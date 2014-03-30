@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.3',
+          VERSION:     '0.9.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
+        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
 
 
     </div>
@@ -177,6 +177,7 @@
 </li>
 <li><a class="reference internal" href="#behavioral-improvements">Behavioral Improvements</a><ul>
 <li><a class="reference internal" href="#many-join-and-left-outer-join-expressions-will-no-longer-be-wrapped-in-select-from-as-anon-1">Many JOIN and LEFT OUTER JOIN expressions will no longer be wrapped in (SELECT * FROM ..) AS ANON_1</a></li>
+<li><a class="reference internal" href="#right-nested-inner-joins-available-in-joined-eager-loads">Right-nested inner joins available in joined eager loads</a></li>
 <li><a class="reference internal" href="#orm-can-efficiently-fetch-just-generated-insert-update-defaults-using-returning">ORM can efficiently fetch just-generated INSERT/UPDATE defaults using RETURNING</a></li>
 <li><a class="reference internal" href="#subquery-eager-loading-will-apply-distinct-to-the-innermost-select-for-some-queries">Subquery Eager Loading will apply DISTINCT to the innermost SELECT for some queries</a></li>
 <li><a class="reference internal" href="#backref-handlers-can-now-propagate-more-than-one-level-deep">Backref handlers can now propagate more than one level deep</a></li>
@@ -228,9 +229,9 @@
 <p class="first admonition-title">About this Document</p>
 <p>This document describes changes between SQLAlchemy version 0.8,
 undergoing maintenance releases as of May, 2013,
-and SQLAlchemy version 0.9, which is expected for release
-in late 2013.</p>
-<p class="last">Document last updated: January 8, 2014</p>
+and SQLAlchemy version 0.9, which had its first production
+release on December 30, 2013.</p>
+<p class="last">Document last updated: February 28, 2014</p>
 </div>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
@@ -1251,6 +1252,30 @@ WHERE engineers.primary_language = %(primary_language_1)s
     OR managers.manager_name = %(manager_name_1)s</pre>
 </div>
 <p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2369">#2369</a> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2587">#2587</a></p>
+</div>
+<div class="section" id="right-nested-inner-joins-available-in-joined-eager-loads">
+<span id="feature-2976"></span><h3>Right-nested inner joins available in joined eager loads<a class="headerlink" href="#right-nested-inner-joins-available-in-joined-eager-loads" title="Permalink to this headline">¶</a></h3>
+<p>As of version 0.9.4, the above mentioned right-nested joining can be enabled
+in the case of a joined eager load where an &#8220;outer&#8221; join is linked to an &#8220;inner&#8221;
+on the right side.</p>
+<p>Normally, a joined eager load chain like the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="s">&quot;orders&quot;</span><span class="p">,</span> <span class="n">innerjoin</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">joinedload</span><span class="p">(</span><span class="s">&quot;items&quot;</span><span class="p">,</span> <span class="n">innerjoin</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span></pre></div>
+</div>
+<p>Would not produce an inner join; because of the LEFT OUTER JOIN from user-&gt;order,
+joined eager loading could not use an INNER join from order-&gt;items without changing
+the user rows that are returned, and would instead ignore the &#8220;chained&#8221; <tt class="docutils literal"><span class="pre">innerjoin=True</span></tt>
+directive.  How 0.9.0 should have delivered this would be that instead of:</p>
+<div class="highlight-python"><pre>FROM users LEFT OUTER JOIN orders ON &lt;onclause&gt; LEFT OUTER JOIN items ON &lt;onclause&gt;</pre>
+</div>
+<p>the new &#8220;right-nested joins are OK&#8221; logic would kick in, and we&#8217;d get:</p>
+<div class="highlight-python"><pre>FROM users LEFT OUTER JOIN (orders JOIN items ON &lt;onclause&gt;) ON &lt;onclause&gt;</pre>
+</div>
+<p>Since we missed the boat on that, to avoid further regressions we&#8217;ve added the above
+functionality by specifying the string <tt class="docutils literal"><span class="pre">&quot;nested&quot;</span></tt> to <a class="reference internal" href="../orm/loading.html#sqlalchemy.orm.joinedload.params.innerjoin" title="sqlalchemy.orm.joinedload"><tt class="xref py py-paramref docutils literal"><span class="pre">joinedload.innerjoin</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="s">&quot;orders&quot;</span><span class="p">,</span> <span class="n">innerjoin</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">joinedload</span><span class="p">(</span><span class="s">&quot;items&quot;</span><span class="p">,</span> <span class="n">innerjoin</span><span class="o">=</span><span class="s">&quot;nested&quot;</span><span class="p">))</span></pre></div>
+</div>
+<p>This feature is new in 0.9.4.</p>
+<p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2976">#2976</a></p>
 </div>
 <div class="section" id="orm-can-efficiently-fetch-just-generated-insert-update-defaults-using-returning">
 <h3>ORM can efficiently fetch just-generated INSERT/UPDATE defaults using RETURNING<a class="headerlink" href="#orm-can-efficiently-fetch-just-generated-insert-update-defaults-using-returning" title="Permalink to this headline">¶</a></h3>

@@ -388,6 +388,66 @@ class SelectableTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiled
         assert u.corresponding_column(s2.c.table2_coly) is u.c.coly
         assert s2.corresponding_column(u.c.coly) is s2.c.table2_coly
 
+    def test_union_of_alias(self):
+        s1 = select([table1.c.col1, table1.c.col2])
+        s2 = select([table1.c.col1, table1.c.col2]).alias()
+
+        u1 = union(s1, s2)
+        assert u1.corresponding_column(s1.c.col1) is u1.c.col1
+        assert u1.corresponding_column(s2.c.col1) is u1.c.col1
+
+        u2 = union(s2, s1)
+        assert u2.corresponding_column(s1.c.col1) is u2.c.col1
+        assert u2.corresponding_column(s2.c.col1) is u2.c.col1
+
+    def test_union_of_text(self):
+        s1 = select([table1.c.col1, table1.c.col2])
+        s2 = text("select col1, col2 from foo").columns(
+                            column('col1'), column('col2'))
+
+        u1 = union(s1, s2)
+        assert u1.corresponding_column(s1.c.col1) is u1.c.col1
+        assert u1.corresponding_column(s2.c.col1) is u1.c.col1
+
+        u2 = union(s2, s1)
+        assert u2.corresponding_column(s1.c.col1) is u2.c.col1
+        assert u2.corresponding_column(s2.c.col1) is u2.c.col1
+
+    @testing.emits_warning("Column 'col1'")
+    def test_union_dupe_keys(self):
+        s1 = select([table1.c.col1, table1.c.col2, table2.c.col1])
+        s2 = select([table2.c.col1, table2.c.col2, table2.c.col3])
+        u1 = union(s1, s2)
+
+        assert u1.corresponding_column(s1.c._all_columns[0]) is u1.c._all_columns[0]
+        assert u1.corresponding_column(s2.c.col1) is u1.c._all_columns[0]
+        assert u1.corresponding_column(s1.c.col2) is u1.c.col2
+        assert u1.corresponding_column(s2.c.col2) is u1.c.col2
+
+        assert u1.corresponding_column(s2.c.col3) is u1.c._all_columns[2]
+
+        assert u1.corresponding_column(table2.c.col1) is u1.c._all_columns[2]
+        assert u1.corresponding_column(table2.c.col3) is u1.c._all_columns[2]
+
+    @testing.emits_warning("Column 'col1'")
+    def test_union_alias_dupe_keys(self):
+        s1 = select([table1.c.col1, table1.c.col2, table2.c.col1]).alias()
+        s2 = select([table2.c.col1, table2.c.col2, table2.c.col3])
+        u1 = union(s1, s2)
+
+        assert u1.corresponding_column(s1.c._all_columns[0]) is u1.c._all_columns[0]
+        assert u1.corresponding_column(s2.c.col1) is u1.c._all_columns[0]
+        assert u1.corresponding_column(s1.c.col2) is u1.c.col2
+        assert u1.corresponding_column(s2.c.col2) is u1.c.col2
+
+        assert u1.corresponding_column(s2.c.col3) is u1.c._all_columns[2]
+
+        # this differs from the non-alias test because table2.c.col1 is
+        # more directly at s2.c.col1 than it is s1.c.col1.
+        assert u1.corresponding_column(table2.c.col1) is u1.c._all_columns[0]
+        assert u1.corresponding_column(table2.c.col3) is u1.c._all_columns[2]
+
+
     def test_select_union(self):
 
         # like testaliasunion, but off a Select off the union.
@@ -1002,6 +1062,16 @@ class JoinConditionTest(fixtures.TestBase, AssertsCompiledSQL):
                 "FROM t2 JOIN t3 ON t2.id = t3.t2id) ON t2.id = t3_t2id")
 
 
+    def test_join_multiple_equiv_fks(self):
+        m = MetaData()
+        t1 = Table('t1', m,
+                Column('id', Integer, primary_key=True)
+            )
+        t2 = Table('t2', m,
+                Column('t1id', Integer, ForeignKey('t1.id'), ForeignKey('t1.id'))
+                )
+
+        assert sql_util.join_condition(t1, t2).compare(t1.c.id == t2.c.t1id)
 
     def test_join_cond_no_such_unrelated_table(self):
         m = MetaData()

@@ -12,30 +12,13 @@ from sqlalchemy.testing import eq_, ne_, assert_raises, assert_raises_message
 from sqlalchemy.testing import fixtures
 from test.orm import _fixtures
 from sqlalchemy.testing.assertsql import AllOf, CompiledSQL
-
-
-_uuids = [
-    '1fc614acbb904742a2990f86af6ded95',
-    '23e253786f4d491b9f9d6189dc33de9b',
-    'fc44910db37e43fd93e9ec8165b885cf',
-    '0187a1832b4249e6b48911821d86de58',
-    '778af6ea2fb74a009d8d2f5abe5dc29a',
-    '51a6ce031aff47e4b5f2895c4161f120',
-    '7434097cd319401fb9f15fa443ccbbbb',
-    '9bc548a8128e4a85ac18060bc3f4b7d3',
-    '59548715e3c440b7bcb96417d06f7930',
-    'd7647c7004734de196885ca2bd73adf8',
-    '70cef121d3ff48d39906b6d1ac77f41a',
-    'ee37a8a6430c466aa322b8a215a0dd70',
-    '782a5f04b4364a53a6fce762f48921c1',
-    'bef510f2420f4476a7629013ead237f5',
-    ]
+import uuid
 
 def make_uuid():
-    """generate uuids even on Python 2.4 which has no 'uuid'"""
-    return _uuids.pop(0)
+    return uuid.uuid4().hex
 
 class VersioningTest(fixtures.MappedTest):
+    __backend__ = True
 
     @classmethod
     def define_tables(cls, metadata):
@@ -326,6 +309,7 @@ class VersioningTest(fixtures.MappedTest):
         )
 
 class ColumnTypeTest(fixtures.MappedTest):
+    __backend__ = True
 
     @classmethod
     def define_tables(cls, metadata):
@@ -366,6 +350,7 @@ class ColumnTypeTest(fixtures.MappedTest):
         s1.commit()
 
 class RowSwitchTest(fixtures.MappedTest):
+    __backend__ = True
     @classmethod
     def define_tables(cls, metadata):
         Table('p', metadata,
@@ -433,6 +418,7 @@ class RowSwitchTest(fixtures.MappedTest):
         session.commit()
 
 class AlternateGeneratorTest(fixtures.MappedTest):
+    __backend__ = True
     @classmethod
     def define_tables(cls, metadata):
         Table('p', metadata,
@@ -544,6 +530,7 @@ class InheritanceTwoVersionIdsTest(fixtures.MappedTest):
     versioning column.
 
     """
+    __backend__ = True
     @classmethod
     def define_tables(cls, metadata):
         Table('base', metadata,
@@ -647,6 +634,7 @@ class InheritanceTwoVersionIdsTest(fixtures.MappedTest):
 
 class ServerVersioningTest(fixtures.MappedTest):
     run_define_tables = 'each'
+    __backend__ = True
 
     @classmethod
     def define_tables(cls, metadata):
@@ -831,6 +819,7 @@ class ServerVersioningTest(fixtures.MappedTest):
 
 class ManualVersionTest(fixtures.MappedTest):
     run_define_tables = 'each'
+    __backend__ = True
 
     @classmethod
     def define_tables(cls, metadata):

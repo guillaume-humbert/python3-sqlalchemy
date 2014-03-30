@@ -12,6 +12,412 @@
         :start-line: 5
 
 .. changelog::
+    :version: 0.9.4
+    :released: March 28, 2014
+
+    .. change::
+        :tags: feature, orm
+        :tickets: 3007
+
+        Added new parameter :paramref:`.mapper.confirm_deleted_rows`.  Defaults
+        to True, indicates that a series of DELETE statements should confirm
+        that the cursor rowcount matches the number of primary keys that should
+        have matched;  this behavior had been taken off in most cases
+        (except when version_id is used) to support the unusual edge case of
+        self-referential ON DELETE CASCADE; to accomodate this, the message
+        is now just a warning, not an exception, and the flag can be used
+        to indicate a mapping that expects self-refererntial cascaded
+        deletes of this nature.  See also :ticket:`2403` for background on the
+        original change.
+
+    .. change::
+        :tags: bug, ext, automap
+        :tickets: 3004
+
+        Added support to automap for the case where a relationship should
+        not be created between two classes that are in a joined inheritance
+        relationship, for those foreign keys that link the subclass back to
+        the superclass.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2948
+
+        Fixed a very old behavior where the lazy load emitted for a one-to-many
+        could inappropriately pull in the parent table, and also return results
+        inconsistent based on what's in the parent table, when the primaryjoin
+        includes some kind of discriminator against the parent table, such
+        as ``and_(parent.id == child.parent_id, parent.deleted == False)``.
+        While this primaryjoin doesn't make that much sense for a one-to-many,
+        it is slightly more common when applied to the many-to-one side, and
+        the one-to-many comes as a result of a backref.
+        Loading rows from ``child`` in this case would keep ``parent.deleted == False``
+        as is within the query, thereby yanking it into the FROM clause
+        and doing a cartesian product.  The new behavior will now substitute
+        the value of the local "parent.deleted" for that parameter as is
+        appropriate.   Though typically, a real-world app probably wants to use a
+        different primaryjoin for the o2m side in any case.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2965
+
+        Improved the check for "how to join from A to B" such that when
+        a table has multiple, composite foreign keys targeting a parent table,
+        the :paramref:`.relationship.foreign_keys` argument will be properly
+        interpreted in order to resolve the ambiguity; previously this condition
+        would raise that there were multiple FK paths when in fact the
+        foreign_keys argument should be establishing which one is expected.
+
+    .. change::
+        :tags: bug, mysql
+
+        Tweaked the settings for mysql-connector-python; in Py2K, the
+        "supports unicode statements" flag is now False, so that SQLAlchemy
+        will encode the *SQL string* (note: *not* the parameters)
+        to bytes before sending to the database.  This seems to allow
+        all unicode-related tests to pass for mysql-connector, including those
+        that use non-ascii table/column names, as well as some tests for the
+        TEXT type using unicode under cursor.executemany().
+
+    .. change::
+        :tags: feature, engine
+
+        Added some new event mechanics for dialect-level events; the initial
+        implementation allows an event handler to redefine the specific mechanics
+        by which an arbitrary dialect invokes execute() or executemany() on a
+        DBAPI cursor.  The new events, at this point semi-public and experimental,
+        are in support of some upcoming transaction-related extensions.
+
+    .. change::
+        :tags: feature, engine
+        :tickets: 2978
+
+        An event listener can now be associated with a :class:`.Engine`,
+        after one or more :class:`.Connection` objects have been created
+        (such as by an orm :class:`.Session` or via explicit connect)
+        and the listener will pick up events from those connections.
+        Previously, performance concerns pushed the event transfer from
+        :class:`.Engine` to  :class:`.Connection` at init-time only, but
+        we've inlined a bunch of conditional checks to make this possible
+        without any additional function calls.
+
+    .. change::
+        :tags: bug, tests
+        :tickets: 2980
+
+        Fixed a few errant ``u''`` strings that would prevent tests from passing
+        in Py3.2.  Patch courtesy Arfrever Frehtes Taifersar Arahesis.
+
+    .. change::
+        :tags: bug, engine
+        :tickets: 2985
+
+        A major improvement made to the mechanics by which the :class:`.Engine`
+        recycles the connection pool when a "disconnect" condition is detected;
+        instead of discarding the pool and explicitly closing out connections,
+        the pool is retained and a "generational" timestamp is updated to
+        reflect the current time, thereby causing all existing connections
+        to be recycled when they are next checked out.   This greatly simplifies
+        the recycle process, removes the need for "waking up" connect attempts
+        waiting on the old pool and eliminates the race condition that many
+        immediately-discarded "pool" objects could be created during the
+        recycle operation.
+
+    .. change::
+        :tags: bug, oracle
+        :tickets: 2987
+
+        Added new datatype :class:`.oracle.DATE`, which is a subclass of
+        :class:`.DateTime`.  As Oracle has no "datetime" type per se,
+        it instead has only ``DATE``, it is appropriate here that the
+        ``DATE`` type as present in the Oracle dialect be an instance of
+        :class:`.DateTime`.  This issue doesn't change anything as far as
+        the behavior of the type, as data conversion is handled by the
+        DBAPI in any case, however the improved subclass layout will help
+        the use cases of inspecting types for cross-database compatibility.
+        Also removed uppercase ``DATETIME`` from the Oracle dialect as this
+        type isn't functional in that context.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 2988
+        :pullreq: github:78
+
+        Fixed an 0.9 regression where a :class:`.Table` that failed to
+        reflect correctly wouldn't be removed from the parent
+        :class:`.MetaData`, even though in an invalid state.  Pullreq
+        courtesy Roman Podoliaka.
+
+    .. change::
+        :tags: bug, engine
+
+        The :meth:`.ConnectionEvents.after_cursor_execute` event is now
+        emitted for the "_cursor_execute()" method of :class:`.Connection`;
+        this is the "quick" executor that is used for things like
+        when a sequence is executed ahead of an INSERT statement, as well as
+        for dialect startup checks like unicode returns, charset, etc.
+        the :meth:`.ConnectionEvents.before_cursor_execute` event was already
+        invoked here.  The "executemany" flag is now always set to False
+        here, as this event always corresponds to a single execution.
+        Previously the flag could be True if we were acting on behalf of
+        an executemany INSERT statement.
+
+    .. change::
+        :tags: bug, orm
+
+        Added support for the not-quite-yet-documented ``insert=True``
+        flag for :func:`.event.listen` to work with mapper / instance events.
+
+    .. change::
+        :tags: feature, sql
+
+        Added support for literal rendering of boolean values, e.g.
+        "true" / "false" or "1" / "0".
+
+    .. change::
+        :tags: feature, sql
+
+        Added a new feature :func:`.schema.conv`, the purpose of which is to
+        mark a constraint name as already having had a naming convention applied.
+        This token will be used by Alembic migrations as of Alembic 0.6.4
+        in order to render constraints in migration scripts with names marked
+        as already having been subject to a naming convention.
+
+    .. change::
+        :tags: bug, sql
+
+        :paramref:`.MetaData.naming_convention` feature will now also
+        apply to :class:`.CheckConstraint` objects that are associated
+        directly with a :class:`.Column` instead of just on the
+        :class:`.Table`.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 2991
+
+        Fixed bug in new :paramref:`.MetaData.naming_convention` feature
+        where the name of a check constraint making use of the
+        `"%(constraint_name)s"` token would get doubled up for the
+        constraint generated by a boolean or enum type, and overall
+        duplicate events would cause the `"%(constraint_name)s"` token
+        to keep compounding itself.
+
+    .. change::
+        :tags: feature, orm
+
+        A warning is emitted if the :meth:`.MapperEvents.before_configured`
+        or :meth:`.MapperEvents.after_configured` events are applied to a
+        specific mapper or mapped class, as the events are only invoked
+        for the :class:`.Mapper` target at the general level.
+
+    .. change::
+        :tags: feature, orm
+
+        Added a new keyword argument ``once=True`` to :func:`.event.listen`
+        and :func:`.event.listens_for`.  This is a convenience feature which
+        will wrap the given listener such that it is only invoked once.
+
+    .. change::
+        :tags: feature, oracle
+        :tickets: 2911
+        :pullreq: github:74
+
+        Added a new engine option ``coerce_to_unicode=True`` to the
+        cx_Oracle dialect, which restores the cx_Oracle outputtypehandler
+        approach to Python unicode conversion under Python 2, which was
+        removed in 0.9.2 as a result of :ticket:`2911`.  Some use cases would
+        prefer that unicode coersion is unconditional for all string values,
+        despite performance concerns.  Pull request courtesy
+        Christoph Zwerschke.
+
+    .. change::
+        :tags: bug, pool
+
+        Fixed small issue in :class:`.SingletonThreadPool` where the current
+        connection to be returned might get inadvertently cleaned out during
+        the "cleanup" process.  Patch courtesy jd23.
+
+    .. change::
+        :tags: bug, ext, py3k
+
+        Fixed bug in association proxy where assigning an empty slice
+        (e.g. ``x[:] = [...]``) would fail on Py3k.
+
+    .. change::
+        :tags: bug, general
+        :tickets: 2979
+
+        Fixed some test/feature failures occurring in Python 3.4,
+        in particular the logic used to wrap "column default" callables
+        wouldn't work properly for Python built-ins.
+
+    .. change::
+        :tags: feature, general
+
+        Support has been added for pytest to run tests.   This runner
+        is currently being supported in addition to nose, and will likely
+        be preferred to nose going forward.   The nose plugin system used
+        by SQLAlchemy has been split out so that it works under pytest as
+        well.  There are no plans to drop support for nose at the moment
+        and we hope that the test suite itself can continue to remain as
+        agnostic of testing platform as possible.  See the file
+        README.unittests.rst for updated information on running tests
+        with pytest.
+
+        The test plugin system has also been enhanced to support running
+        tests against mutiple database URLs at once, by specifying the ``--db``
+        and/or ``--dburi`` flags multiple times.  This does not run the entire test
+        suite for each database, but instead allows test cases that are specific
+        to certain backends make use of that backend as the test is run.
+        When using pytest as the test runner, the system will also run
+        specific test suites multiple times, once for each database, particularly
+        those tests within the "dialect suite".   The plan is that the enhanced
+        system will also be used by Alembic, and allow Alembic to run
+        migration operation tests against multiple backends in one run, including
+        third-party backends not included within Alembic itself.
+        Third party dialects and extensions are also encouraged to standardize
+        on SQLAlchemy's test suite as a basis; see the file README.dialects.rst
+        for background on building out from SQLAlchemy's test platform.
+
+    .. change::
+        :tags: feature, orm
+        :tickets: 2976
+
+        Added a new option to :paramref:`.relationship.innerjoin` which is
+        to specify the string ``"nested"``.  When set to ``"nested"`` as opposed
+        to ``True``, the "chaining" of joins will parenthesize the inner join on the
+        right side of an existing outer join, instead of chaining as a string
+        of outer joins.   This possibly should have been the default behavior
+        when 0.9 was released, as we introduced the feature of right-nested
+        joins in the ORM, however we are keeping it as a non-default for now
+        to avoid further surprises.
+
+        .. seealso::
+
+            :ref:`feature_2976`
+
+    .. change::
+        :tags: bug, ext
+        :tickets: 2810
+
+        Fixed a regression in association proxy caused by :ticket:`2810` which
+        caused a user-provided "getter" to no longer receive values of ``None``
+        when fetching scalar values from a target that is non-present.  The
+        check for None introduced by this change is now moved into the default
+        getter, so a user-provided getter will also again receive values of
+        None.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 2974
+
+        Adjusted the logic which applies names to the .c collection when
+        a no-name :class:`.BindParameter` is received, e.g. via :func:`.sql.literal`
+        or similar; the "key" of the bind param is used as the key within
+        .c. rather than the rendered name.  Since these binds have "anonymous"
+        names in any case, this allows individual bound parameters to
+        have their own name within a selectable if they are otherwise unlabeled.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 2974
+
+        Some changes to how the :attr:`.FromClause.c` collection behaves
+        when presented with duplicate columns.  The behavior of emitting a
+        warning and replacing the old column with the same name still
+        remains to some degree; the replacement in particular is to maintain
+        backwards compatibility.  However, the replaced column still remains
+        associated with the ``c`` collection now in a collection ``._all_columns``,
+        which is used by constructs such as aliases and unions, to deal with
+        the set of columns in ``c`` more towards what is actually in the
+        list of columns rather than the unique set of key names.  This helps
+        with situations where SELECT statements with same-named columns
+        are used in unions and such, so that the union can match the columns
+        up positionally and also there's some chance of :meth:`.FromClause.corresponding_column`
+        still being usable here (it can now return a column that is only
+        in selectable.c._all_columns and not otherwise named).
+        The new collection is underscored as we still need to decide where this
+        list might end up.   Theoretically it
+        would become the result of iter(selectable.c), however this would mean
+        that the length of the iteration would no longer match the length of
+        keys(), and that behavior needs to be checked out.
+
+    .. change::
+        :tags: bug, sql
+
+        Fixed issue in new :meth:`.TextClause.columns` method where the ordering
+        of columns given positionally would not be preserved.   This could
+        have potential impact in positional situations such as applying the
+        resulting :class:`.TextAsFrom` object to a union.
+
+    .. change::
+        :tags: feature, sql
+        :tickets: 2962, 2866
+
+        The new dialect-level keyword argument system for schema-level
+        constructs has been enhanced in order to assist with existing
+        schemes that rely upon addition of ad-hoc keyword arguments to
+        constructs.
+
+        E.g., a construct such as :class:`.Index` will again accept
+        ad-hoc keyword arguments within the :attr:`.Index.kwargs` collection,
+        after construction::
+
+            idx = Index('a', 'b')
+            idx.kwargs['mysql_someargument'] = True
+
+        To suit the use case of allowing custom arguments at construction time,
+        the :meth:`.DialectKWArgs.argument_for` method now allows this registration::
+
+            Index.argument_for('mysql', 'someargument', False)
+
+            idx = Index('a', 'b', mysql_someargument=True)
+
+        .. seealso::
+
+            :meth:`.DialectKWArgs.argument_for`
+
+    .. change::
+        :tags: bug, orm, engine
+        :tickets: 2973
+
+        Fixed bug where events set to listen at the class
+        level (e.g. on the :class:`.Mapper` or :class:`.ClassManager`
+        level, as opposed to on an individual mapped class, and also on
+        :class:`.Connection`) that also made use of internal argument conversion
+        (which is most within those categories) would fail to be removable.
+
+    .. change::
+        :tags: bug, orm
+
+        Fixed regression from 0.8 where using an option like
+        :func:`.orm.lazyload` with the "wildcard" expression, e.g. ``"*"``,
+        would raise an assertion error in the case where the query didn't
+        contain any actual entities.  This assertion is meant for other cases
+        and was catching this one inadvertently.
+
+    .. change::
+        :tags: bug, examples
+
+        Fixed bug in the versioned_history example where column-level INSERT
+        defaults would prevent history values of NULL from being written.
+
+    .. change::
+        :tags: orm, bug, sqlite
+        :tickets: 2969
+
+        More fixes to SQLite "join rewriting"; the fix from :ticket:`2967`
+        implemented right before the release of 0.9.3 affected the case where
+        a UNION contained nested joins in it.   "Join rewriting" is a feature
+        with a wide range of possibilities and is the first intricate
+        "SQL rewriting" feature we've introduced in years, so we're sort of
+        going through a lot of iterations with it (not unlike eager loading
+        back in the 0.2/0.3 series, polymorphic loading in 0.4/0.5). We should
+        be there soon so thanks for bearing with us :).
+
+
+.. changelog::
     :version: 0.9.3
     :released: February 19, 2014
 

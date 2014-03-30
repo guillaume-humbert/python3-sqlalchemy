@@ -27,6 +27,7 @@ Since these objects are part of the SQL expression language, they are usable
 as components in SQL expressions.
 
 """
+from __future__ import absolute_import
 
 import inspect
 from .. import exc, util, event, inspection
@@ -41,6 +42,7 @@ from .selectable import TableClause
 import collections
 import sqlalchemy
 from . import ddl
+import types
 
 RETAIN_SCHEMA = util.symbol('retain_schema')
 
@@ -351,7 +353,7 @@ class Table(DialectKWArgs, SchemaItem, TableClause):
                 table.dispatch.after_parent_attach(table, metadata)
                 return table
             except:
-                #metadata._remove_table(name, schema)
+                metadata._remove_table(name, schema)
                 raise
 
 
@@ -1834,36 +1836,17 @@ class ColumnDefault(DefaultGenerator):
     def _maybe_wrap_callable(self, fn):
         """Wrap callables that don't accept a context.
 
-        The alternative here is to require that
-        a simple callable passed to "default" would need
-        to be of the form "default=lambda ctx: datetime.now".
-        That is the more "correct" way to go, but the case
-        of using a zero-arg callable for "default" is so
-        much more prominent than the context-specific one
-        I'm having trouble justifying putting that inconvenience
-        on everyone.
+        This is to allow easy compatiblity with default callables
+        that aren't specific to accepting of a context.
 
         """
-        if inspect.isfunction(fn) or inspect.ismethod(fn):
-            inspectable = fn
-        elif inspect.isclass(fn):
-            inspectable = fn.__init__
-        elif hasattr(fn, '__call__'):
-            inspectable = fn.__call__
-        else:
-            # probably not inspectable, try anyways.
-            inspectable = fn
         try:
-            argspec = inspect.getargspec(inspectable)
+            argspec = util.get_callable_argspec(fn, no_self=True)
         except TypeError:
             return lambda ctx: fn()
 
         defaulted = argspec[3] is not None and len(argspec[3]) or 0
         positionals = len(argspec[0]) - defaulted
-
-        # Py3K compat - no unbound methods
-        if inspect.ismethod(inspectable) or inspect.isclass(fn):
-            positionals -= 1
 
         if positionals == 0:
             return lambda ctx: fn()
@@ -3021,7 +3004,7 @@ class MetaData(SchemaItem):
 
         self.bind = bind
         if reflect:
-            util.warn("reflect=True is deprecate; please "
+            util.warn_deprecated("reflect=True is deprecate; please "
                             "use the reflect() method.")
             if not bind:
                 raise exc.ArgumentError(

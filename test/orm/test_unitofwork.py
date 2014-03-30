@@ -127,10 +127,6 @@ class UnicodeSchemaTest(fixtures.MappedTest):
     run_dispose_bind = 'once'
 
     @classmethod
-    def create_engine(cls):
-        return engines.utf8_engine()
-
-    @classmethod
     def define_tables(cls, metadata):
         t1 = Table('unitable1', metadata,
               Column(u('méil'), Integer, primary_key=True, key='a', test_needs_autoincrement=True),
@@ -566,6 +562,7 @@ class BatchDeleteIgnoresRowcountTest(fixtures.DeclarativeMappedTest):
         class A(cls.DeclarativeBasic):
             __tablename__ = 'A'
             __table_args__ = dict(test_needs_fk=True)
+            __mapper_args__ = {"confirm_deleted_rows": False}
             id = Column(Integer, primary_key=True)
             parent_id = Column(Integer, ForeignKey('A.id', ondelete='CASCADE'))
 
@@ -573,7 +570,7 @@ class BatchDeleteIgnoresRowcountTest(fixtures.DeclarativeMappedTest):
         A = self.classes.A
         session = Session(testing.db)
 
-        a1, a2 = A(id=1),A(id=2, parent_id=1)
+        a1, a2 = A(id=1), A(id=2, parent_id=1)
 
         session.add_all([a1, a2])
         session.flush()

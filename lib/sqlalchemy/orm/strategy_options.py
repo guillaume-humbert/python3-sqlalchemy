@@ -431,6 +431,8 @@ class _UnboundLoad(Load):
                             "Wildcard loader can only be used with exactly "
                             "one entity.  Use Load(ent) to specify "
                             "specific entities.")
+        elif token.endswith(_DEFAULT_TOKEN):
+            raiseerr = False
 
         for ent in query._mapper_entities:
             # return only the first _MapperEntity when searching
@@ -607,10 +609,19 @@ def joinedload(loadopt, attr, innerjoin=None):
         # joined-load the keywords collection
         query(Order).options(lazyload(Order.items).joinedload(Item.keywords))
 
-    :func:`.orm.joinedload` also accepts a keyword argument `innerjoin=True` which
-    indicates using an inner join instead of an outer::
+    :param innerjoin: if ``True``, indicates that the joined eager load should
+     use an inner join instead of the default of left outer join::
 
         query(Order).options(joinedload(Order.user, innerjoin=True))
+
+     If the joined-eager load is chained onto an existing LEFT OUTER JOIN,
+     ``innerjoin=True`` will be bypassed and the join will continue to
+     chain as LEFT OUTER JOIN so that the results don't change.  As an alternative,
+     specify the value ``"nested"``.  This will instead nest the join
+     on the right side, e.g. using the form "a LEFT OUTER JOIN (b JOIN c)".
+
+     .. versionadded:: 0.9.4 Added ``innerjoin="nested"`` option to support
+        nesting of eager "inner" joins.
 
     .. note::
 
@@ -631,6 +642,11 @@ def joinedload(loadopt, attr, innerjoin=None):
         :func:`.orm.subqueryload`
 
         :func:`.orm.lazyload`
+
+        :paramref:`.relationship.lazy`
+
+        :paramref:`.relationship.innerjoin` - :func:`.relationship`-level version
+        of the :paramref:`.joinedload.innerjoin` option.
 
     """
     loader = loadopt.set_relationship_strategy(attr, {"lazy": "joined"})
@@ -678,6 +694,8 @@ def subqueryload(loadopt, attr):
 
         :func:`.orm.lazyload`
 
+        :paramref:`.relationship.lazy`
+
     """
     return loadopt.set_relationship_strategy(attr, {"lazy": "subquery"})
 
@@ -696,6 +714,10 @@ def lazyload(loadopt, attr):
 
     This function is part of the :class:`.Load` interface and supports
     both method-chained and standalone operation.
+
+    .. seealso::
+
+        :paramref:`.relationship.lazy`
 
     """
     return loadopt.set_relationship_strategy(attr, {"lazy": "select"})
@@ -723,6 +745,8 @@ def immediateload(loadopt, attr):
         :func:`.orm.joinedload`
 
         :func:`.orm.lazyload`
+
+        :paramref:`.relationship.lazy`
 
     """
     loader = loadopt.set_relationship_strategy(attr, {"lazy": "immediate"})

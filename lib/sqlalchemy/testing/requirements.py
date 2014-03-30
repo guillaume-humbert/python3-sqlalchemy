@@ -14,16 +14,11 @@ to provide specific inclusion/exlusions.
 
 """
 
-from . import exclusions, config
+from . import exclusions
 
 
 class Requirements(object):
-    def __init__(self, config):
-        self.config = config
-
-    @property
-    def db(self):
-        return config.db
+    pass
 
 class SuiteRequirements(Requirements):
 
@@ -51,6 +46,12 @@ class SuiteRequirements(Requirements):
         foreign keys."""
 
         return exclusions.open()
+
+    @property
+    def non_updating_cascade(self):
+        """target database must *not* support ON UPDATE..CASCADE behavior in
+        foreign keys."""
+        return exclusions.closed()
 
     @property
     def deferrable_fks(self):
@@ -158,8 +159,8 @@ class SuiteRequirements(Requirements):
         INSERT DEFAULT VALUES or equivalent."""
 
         return exclusions.only_if(
-                    lambda: self.config.db.dialect.supports_empty_insert or \
-                        self.config.db.dialect.supports_default_values,
+                    lambda config: config.db.dialect.supports_empty_insert or \
+                        config.db.dialect.supports_default_values,
                     "empty inserts not supported"
                 )
 
@@ -174,9 +175,16 @@ class SuiteRequirements(Requirements):
         """target platform supports RETURNING."""
 
         return exclusions.only_if(
-                lambda: self.config.db.dialect.implicit_returning,
+                lambda config: config.db.dialect.implicit_returning,
                 "'returning' not supported by database"
             )
+
+    @property
+    def duplicate_names_in_cursor_description(self):
+        """target platform supports a SELECT statement that has
+        the same name repeated more than once in the columns list."""
+
+        return exclusions.open()
 
     @property
     def denormalized_names(self):
@@ -184,7 +192,7 @@ class SuiteRequirements(Requirements):
         UPPERCASE as case insensitive names."""
 
         return exclusions.skip_if(
-                    lambda: not self.db.dialect.requires_name_normalize,
+                    lambda config: not config.db.dialect.requires_name_normalize,
                     "Backend does not require denormalized names."
                 )
 
@@ -194,7 +202,7 @@ class SuiteRequirements(Requirements):
         INSERT statement."""
 
         return exclusions.skip_if(
-                    lambda: not self.db.dialect.supports_multivalues_insert,
+                    lambda config: not config.db.dialect.supports_multivalues_insert,
                     "Backend does not support multirow inserts."
                 )
 
@@ -245,7 +253,7 @@ class SuiteRequirements(Requirements):
         """Target database must support SEQUENCEs."""
 
         return exclusions.only_if([
-                lambda: self.config.db.dialect.supports_sequences
+                lambda config: config.db.dialect.supports_sequences
             ], "no sequence support")
 
     @property
@@ -254,8 +262,8 @@ class SuiteRequirements(Requirements):
         as a means of generating new PK values."""
 
         return exclusions.only_if([
-                lambda: self.config.db.dialect.supports_sequences and \
-                    self.config.db.dialect.sequences_optional
+                lambda config: config.db.dialect.supports_sequences and \
+                    config.db.dialect.sequences_optional
             ], "no sequence support, or sequences not optional")
 
 
@@ -271,7 +279,19 @@ class SuiteRequirements(Requirements):
         return exclusions.open()
 
     @property
+    def view_column_reflection(self):
+        """target database must support retrieval of the columns in a view,
+        similarly to how a table is inspected.
+
+        This does not include the full CREATE VIEW definition.
+
+        """
+        return self.views
+
+    @property
     def view_reflection(self):
+        """target database must support inspection of the full CREATE VIEW definition.
+        """
         return self.views
 
     @property
@@ -349,6 +369,13 @@ class SuiteRequirements(Requirements):
     def date(self):
         """target dialect supports representation of Python
         datetime.date() objects."""
+
+        return exclusions.open()
+
+    @property
+    def date_coerces_from_datetime(self):
+        """target dialect accepts a datetime object as the target
+        of a date column."""
 
         return exclusions.open()
 
@@ -481,6 +508,24 @@ class SuiteRequirements(Requirements):
         return exclusions.open()
 
     @property
+    def selectone(self):
+        """target driver must support the literal statement 'select 1'"""
+        return exclusions.open()
+
+    @property
+    def savepoints(self):
+        """Target database must support savepoints."""
+
+        return exclusions.closed()
+
+    @property
+    def two_phase_transactions(self):
+        """Target database must support two-phase transactions."""
+
+        return exclusions.closed()
+
+
+    @property
     def update_from(self):
         """Target must support UPDATE..FROM syntax"""
         return exclusions.closed()
@@ -507,6 +552,33 @@ class SuiteRequirements(Requirements):
         return exclusions.closed()
 
     @property
+    def percent_schema_names(self):
+        """target backend supports weird identifiers with percent signs
+        in them, e.g. 'some % column'.
+
+        this is a very weird use case but often has problems because of
+        DBAPIs that use python formatting.  It's not a critical use
+        case either.
+
+        """
+        return exclusions.closed()
+
+    @property
+    def order_by_label_with_expression(self):
+        """target backend supports ORDER BY a column label within an
+        expression.
+
+        Basically this::
+
+            select data as foo from test order by foo || 'bar'
+
+        Lots of databases including Postgresql don't support this,
+        so this is off by default.
+
+        """
+        return exclusions.closed()
+
+    @property
     def unicode_connections(self):
         """Target driver must support non-ASCII characters being passed at all."""
         return exclusions.open()
@@ -516,8 +588,44 @@ class SuiteRequirements(Requirements):
         """Catchall for a large variety of MySQL on Windows failures"""
         return exclusions.open()
 
-    def _has_mysql_on_windows(self):
+    @property
+    def ad_hoc_engines(self):
+        """Test environment must allow ad-hoc engine/connection creation.
+
+        DBs that scale poorly for many connections, even when closed, i.e.
+        Oracle, may use the "--low-connections" option which flags this requirement
+        as not present.
+
+        """
+        return exclusions.skip_if(lambda config: config.options.low_connections)
+
+    def _has_mysql_on_windows(self, config):
         return False
 
-    def _has_mysql_fully_case_sensitive(self):
+    def _has_mysql_fully_case_sensitive(self, config):
         return False
+
+    @property
+    def sqlite(self):
+        return exclusions.skip_if(lambda: not self._has_sqlite())
+
+    @property
+    def cextensions(self):
+        return exclusions.skip_if(
+                lambda: not self._has_cextensions(), "C extensions not installed"
+                )
+
+    def _has_sqlite(self):
+        from sqlalchemy import create_engine
+        try:
+            create_engine('sqlite://')
+            return True
+        except ImportError:
+            return False
+
+    def _has_cextensions(self):
+        try:
+            from sqlalchemy import cresultproxy, cprocessors
+            return True
+        except ImportError:
+            return False

@@ -15,6 +15,7 @@ from sqlalchemy.util import ue
 metadata, users = None, None
 
 class ReflectionTest(fixtures.TestBase, ComparesTables):
+    __backend__ = True
 
     @testing.exclude('mssql', '<', (10, 0, 0),
                      'Date is only supported on MSSQL 2008+')
@@ -92,6 +93,7 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         meta = MetaData(testing.db)
         assert_raises(sa.exc.NoSuchTableError, Table, 'nonexistent',
                       meta, autoload=True)
+        assert 'nonexistent' not in meta.tables
 
     @testing.provide_metadata
     def test_include_columns(self):
@@ -829,12 +831,12 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         e = engines.testing_engine(options={"poolclass": AssertionPool})
         fn(e)
 
-    @testing.uses_deprecated
+    @testing.uses_deprecated()
     def test_reflect_uses_bind_constructor_conn(self):
         self._test_reflect_uses_bind(lambda e: MetaData(e.connect(),
                     reflect=True))
 
-    @testing.uses_deprecated
+    @testing.uses_deprecated()
     def test_reflect_uses_bind_constructor_engine(self):
         self._test_reflect_uses_bind(lambda e: MetaData(e, reflect=True))
 
@@ -978,11 +980,11 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
             users_v = Table("users_v", m2, autoload=True)
             addresses_v = Table("email_addresses_v", m2, autoload=True)
 
-            for c1, c2 in zip(users.c, users_v.c):
+            for c1, c2 in zip(users_v.c, users.c):
                 eq_(c1.name, c2.name)
                 self.assert_types_base(c1, c2)
 
-            for c1, c2 in zip(addresses.c, addresses_v.c):
+            for c1, c2 in zip(addresses_v.c, addresses.c):
                 eq_(c1.name, c2.name)
                 self.assert_types_base(c1, c2)
         finally:
@@ -1015,6 +1017,7 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
             _drop_views(metadata.bind)
 
 class CreateDropTest(fixtures.TestBase):
+    __backend__ = True
 
     @classmethod
     def setup_class(cls):
@@ -1102,6 +1105,8 @@ class CreateDropTest(fixtures.TestBase):
         metadata.drop_all(bind=testing.db)
 
 class SchemaManipulationTest(fixtures.TestBase):
+    __backend__ = True
+
     def test_append_constraint_unique(self):
         meta = MetaData()
 
@@ -1118,14 +1123,10 @@ class SchemaManipulationTest(fixtures.TestBase):
         assert addresses.constraints == set([addresses.primary_key, fk])
 
 class UnicodeReflectionTest(fixtures.TestBase):
+    __backend__ = True
+
     @classmethod
     def setup_class(cls):
-        # trigger mysql _server_casing check...
-        testing.db.connect().close()
-
-        cls.bind = bind = engines.utf8_engine(
-                            options={'convert_unicode': True})
-
         cls.metadata = metadata = MetaData()
 
         no_multibyte_period = set([
@@ -1152,7 +1153,7 @@ class UnicodeReflectionTest(fixtures.TestBase):
             names = no_multibyte_period
         # mysql can't handle casing usually
         elif testing.against("mysql") and \
-                not testing.requires._has_mysql_fully_case_sensitive():
+                not testing.requires.mysql_fully_case_sensitive.enabled:
             names = no_multibyte_period.union(no_case_sensitivity)
         # mssql + pyodbc + freetds can't compare multibyte names to
         # information_schema.tables.table_name
@@ -1170,18 +1171,17 @@ class UnicodeReflectionTest(fixtures.TestBase):
                   )
             schema.Index(ixname, t.c[cname])
 
-        metadata.create_all(bind)
+        metadata.create_all(testing.db)
         cls.names = names
 
     @classmethod
     def teardown_class(cls):
-        cls.metadata.drop_all(cls.bind, checkfirst=False)
-        cls.bind.dispose()
+        cls.metadata.drop_all(testing.db, checkfirst=False)
 
     @testing.requires.unicode_connections
     def test_has_table(self):
         for tname, cname, ixname in self.names:
-            assert self.bind.has_table(tname), "Can't detect name %s" % tname
+            assert testing.db.has_table(tname), "Can't detect name %s" % tname
 
     @testing.requires.unicode_connections
     def test_basic(self):
@@ -1190,7 +1190,7 @@ class UnicodeReflectionTest(fixtures.TestBase):
         # (others?) expect non-unicode strings in result sets/bind
         # params
 
-        bind = self.bind
+        bind = testing.db
         names = set([rec[0] for rec in self.names])
 
         reflected = set(bind.table_names())
@@ -1217,7 +1217,7 @@ class UnicodeReflectionTest(fixtures.TestBase):
 
     @testing.requires.unicode_connections
     def test_get_names(self):
-        inspector = inspect(self.bind)
+        inspector = inspect(testing.db)
         names = dict(
             (tname, (cname, ixname)) for tname, cname, ixname in self.names
         )
@@ -1232,6 +1232,7 @@ class UnicodeReflectionTest(fixtures.TestBase):
             )
 
 class SchemaTest(fixtures.TestBase):
+    __backend__ = True
 
     @testing.requires.schemas
     @testing.requires.cross_schema_fk_reflection
@@ -1436,6 +1437,7 @@ def _drop_views(con, schema=None):
 
 class ReverseCasingReflectTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = 'default'
+    __backend__ = True
 
     @testing.requires.denormalized_names
     def setup(self):
@@ -1462,6 +1464,7 @@ class ReverseCasingReflectTest(fixtures.TestBase, AssertsCompiledSQL):
 
 class CaseSensitiveTest(fixtures.TablesTest):
     """Nail down case sensitive behaviors, mostly on MySQL."""
+    __backend__ = True
 
     @classmethod
     def define_tables(cls, metadata):
@@ -1508,6 +1511,7 @@ class CaseSensitiveTest(fixtures.TablesTest):
 
 
 class ColumnEventsTest(fixtures.RemovesEvents, fixtures.TestBase):
+    __backend__ = True
 
     @classmethod
     def setup_class(cls):

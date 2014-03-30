@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.3',
+          VERSION:     '0.9.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
+        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
 
 
     </div>
@@ -833,7 +833,7 @@ that don&#8217;t support true/false constants.</p>
 
 <dl class="data">
 <dt id="sqlalchemy.sql.expression.func">
-<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.functions._FunctionGenerator object at 0x103880e10&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.functions._FunctionGenerator object at 0x103d1f150&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate SQL function expressions.</p>
 <p><a class="reference internal" href="#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a> is a special object instance which generates SQL
 functions based on name-based attributes, e.g.:</p>
@@ -1651,7 +1651,7 @@ of <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" t
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.ColumnCollection">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ColumnCollection</tt><big>(</big><em>*cols</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnCollection" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ColumnCollection</tt><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnCollection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.util._collections.OrderedProperties</span></tt></p>
 <p>An ordered dictionary that stores a list of ColumnElement
 instances.</p>
@@ -2083,6 +2083,11 @@ on certain platforms.</p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.is_" title="sqlalchemy.sql.operators.ColumnOperators.is_"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.is_()</span></tt></a></p>
 </div>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.expression.ColumnElement.key">
+<tt class="descname">key</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnElement.key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.ColumnElement.label">
@@ -3051,6 +3056,112 @@ operators such as <tt class="xref py py-meth docutils literal"><span class="pre"
 <dt id="sqlalchemy.sql.operators.ColumnOperators.timetuple">
 <tt class="descname">timetuple</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.sql.operators.ColumnOperators.timetuple" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hack, allows datetime objects to be compared on the LHS.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.sql.base.DialectKWArgs">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.base.</tt><tt class="descname">DialectKWArgs</tt><a class="headerlink" href="#sqlalchemy.sql.base.DialectKWArgs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Establish the ability for a class to have dialect-specific arguments
+with defaults and constructor validation.</p>
+<p>The <a class="reference internal" href="#sqlalchemy.sql.base.DialectKWArgs" title="sqlalchemy.sql.base.DialectKWArgs"><tt class="xref py py-class docutils literal"><span class="pre">DialectKWArgs</span></tt></a> interacts with the
+<a class="reference internal" href="internals.html#sqlalchemy.engine.default.DefaultDialect.construct_arguments" title="sqlalchemy.engine.default.DefaultDialect.construct_arguments"><tt class="xref py py-attr docutils literal"><span class="pre">DefaultDialect.construct_arguments</span></tt></a> present on a dialect.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="internals.html#sqlalchemy.engine.default.DefaultDialect.construct_arguments" title="sqlalchemy.engine.default.DefaultDialect.construct_arguments"><tt class="xref py py-attr docutils literal"><span class="pre">DefaultDialect.construct_arguments</span></tt></a></p>
+</div>
+<dl class="classmethod">
+<dt id="sqlalchemy.sql.base.DialectKWArgs.argument_for">
+<em class="property">classmethod </em><tt class="descname">argument_for</tt><big>(</big><em>dialect_name</em>, <em>argument_name</em>, <em>default</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.base.DialectKWArgs.argument_for" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a new kind of dialect-specific keyword argument for this class.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Index</span><span class="o">.</span><span class="n">argument_for</span><span class="p">(</span><span class="s">&quot;mydialect&quot;</span><span class="p">,</span> <span class="s">&quot;length&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+<span class="n">some_index</span> <span class="o">=</span> <span class="n">Index</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">,</span> <span class="n">mydialect_length</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span></pre></div>
+</div>
+<p>The <a class="reference internal" href="#sqlalchemy.sql.base.DialectKWArgs.argument_for" title="sqlalchemy.sql.base.DialectKWArgs.argument_for"><tt class="xref py py-meth docutils literal"><span class="pre">DialectKWArgs.argument_for()</span></tt></a> method is a per-argument
+way adding extra arguments to the <a class="reference internal" href="internals.html#sqlalchemy.engine.default.DefaultDialect.construct_arguments" title="sqlalchemy.engine.default.DefaultDialect.construct_arguments"><tt class="xref py py-attr docutils literal"><span class="pre">DefaultDialect.construct_arguments</span></tt></a>
+dictionary. This dictionary provides a list of argument names accepted by
+various schema-level constructs on behalf of a dialect.</p>
+<p>New dialects should typically specify this dictionary all at once as a data
+member of the dialect class.  The use case for ad-hoc addition of
+argument names is typically for end-user code that is also using
+a custom compilation scheme which consumes the additional arguments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.base.DialectKWArgs.argument_for.params.dialect_name"></span><strong>dialect_name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.base.DialectKWArgs.argument_for.params.dialect_name">¶</a> &#8211; name of a dialect.  The dialect must be locatable,
+else a <tt class="xref py py-class docutils literal"><span class="pre">NoSuchModuleError</span></tt> is raised.   The dialect must
+also include an existing <a class="reference internal" href="internals.html#sqlalchemy.engine.default.DefaultDialect.construct_arguments" title="sqlalchemy.engine.default.DefaultDialect.construct_arguments"><tt class="xref py py-attr docutils literal"><span class="pre">DefaultDialect.construct_arguments</span></tt></a> collection,
+indicating that it participates in the keyword-argument validation and
+default system, else <tt class="xref py py-class docutils literal"><span class="pre">ArgumentError</span></tt> is raised.
+If the dialect does not include this collection, then any keyword argument
+can be specified on behalf of this dialect already.  All dialects
+packaged within SQLAlchemy include this collection, however for third
+party dialects, support may vary.</li>
+<li><span class="target" id="sqlalchemy.sql.base.DialectKWArgs.argument_for.params.argument_name"></span><strong>argument_name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.base.DialectKWArgs.argument_for.params.argument_name">¶</a> &#8211; name of the parameter.</li>
+<li><span class="target" id="sqlalchemy.sql.base.DialectKWArgs.argument_for.params.default"></span><strong>default</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.base.DialectKWArgs.argument_for.params.default">¶</a> &#8211; default value of the parameter.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="versionadded">
+<p><span>New in version 0.9.4.</span></p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.base.DialectKWArgs.dialect_kwargs">
+<tt class="descname">dialect_kwargs</tt><a class="headerlink" href="#sqlalchemy.sql.base.DialectKWArgs.dialect_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><p>A collection of keyword arguments specified as dialect-specific
+options to this construct.</p>
+<p>The arguments are present here in their original <tt class="docutils literal"><span class="pre">&lt;dialect&gt;_&lt;kwarg&gt;</span></tt>
+format.  Only arguments that were actually passed are included;
+unlike the <a class="reference internal" href="#sqlalchemy.sql.base.DialectKWArgs.dialect_options" title="sqlalchemy.sql.base.DialectKWArgs.dialect_options"><tt class="xref py py-attr docutils literal"><span class="pre">DialectKWArgs.dialect_options</span></tt></a> collection, which
+contains all options known by this dialect including defaults.</p>
+<p>The collection is also writable; keys are accepted of the
+form <tt class="docutils literal"><span class="pre">&lt;dialect&gt;_&lt;kwarg&gt;</span></tt> where the value will be assembled
+into the list of options.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.2.</span></p>
+</div>
+<div class="versionchanged">
+<p><span>Changed in version 0.9.4: </span>The <a class="reference internal" href="#sqlalchemy.sql.base.DialectKWArgs.dialect_kwargs" title="sqlalchemy.sql.base.DialectKWArgs.dialect_kwargs"><tt class="xref py py-attr docutils literal"><span class="pre">DialectKWArgs.dialect_kwargs</span></tt></a>
+collection is now writable.</p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.base.DialectKWArgs.dialect_options" title="sqlalchemy.sql.base.DialectKWArgs.dialect_options"><tt class="xref py py-attr docutils literal"><span class="pre">DialectKWArgs.dialect_options</span></tt></a> - nested dictionary form</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.base.DialectKWArgs.dialect_options">
+<tt class="descname">dialect_options</tt><a class="headerlink" href="#sqlalchemy.sql.base.DialectKWArgs.dialect_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>A collection of keyword arguments specified as dialect-specific
+options to this construct.</p>
+<p>This is a two-level nested registry, keyed to <tt class="docutils literal"><span class="pre">&lt;dialect_name&gt;</span></tt>
+and <tt class="docutils literal"><span class="pre">&lt;argument_name&gt;</span></tt>.  For example, the <tt class="docutils literal"><span class="pre">postgresql_where</span></tt> argument
+would be locatable as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">arg</span> <span class="o">=</span> <span class="n">my_object</span><span class="o">.</span><span class="n">dialect_options</span><span class="p">[</span><span class="s">&#39;postgresql&#39;</span><span class="p">][</span><span class="s">&#39;where&#39;</span><span class="p">]</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.2.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.base.DialectKWArgs.dialect_kwargs" title="sqlalchemy.sql.base.DialectKWArgs.dialect_kwargs"><tt class="xref py py-attr docutils literal"><span class="pre">DialectKWArgs.dialect_kwargs</span></tt></a> - flat dictionary form</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.base.DialectKWArgs.kwargs">
+<tt class="descname">kwargs</tt><a class="headerlink" href="#sqlalchemy.sql.base.DialectKWArgs.kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><p>A synonym for <a class="reference internal" href="#sqlalchemy.sql.base.DialectKWArgs.dialect_kwargs" title="sqlalchemy.sql.base.DialectKWArgs.dialect_kwargs"><tt class="xref py py-attr docutils literal"><span class="pre">DialectKWArgs.dialect_kwargs</span></tt></a>.</p>
 </dd></dl>
 
 </dd></dl>

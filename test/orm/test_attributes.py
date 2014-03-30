@@ -236,21 +236,6 @@ class AttributesTest(fixtures.ORMTest):
         o2 = pickle.loads(pk_o)
         pk_o2 = pickle.dumps(o2)
 
-        # so... pickle is creating a new 'mt2' string after a roundtrip here,
-        # so we'll brute-force set it to be id-equal to the original string
-        if False:
-            o_mt2_str = [ k for k in o.__dict__ if k == 'mt2'][0]
-            o2_mt2_str = [ k for k in o2.__dict__ if k == 'mt2'][0]
-            self.assert_(o_mt2_str == o2_mt2_str)
-            self.assert_(o_mt2_str is not o2_mt2_str)
-            # change the id of o2.__dict__['mt2']
-            former = o2.__dict__['mt2']
-            del o2.__dict__['mt2']
-            o2.__dict__[o_mt2_str] = former
-
-            # Relies on dict ordering
-            if not jython:
-                self.assert_(pk_o == pk_o2)
 
         # the above is kind of distrurbing, so let's do it again a little
         # differently.  the string-id in serialization thing is just an
@@ -261,11 +246,6 @@ class AttributesTest(fixtures.ORMTest):
         o3 = pickle.loads(pk_o2)
         pk_o3 = pickle.dumps(o3)
         o4 = pickle.loads(pk_o3)
-        pk_o4 = pickle.dumps(o4)
-
-        # Relies on dict ordering
-        if not jython:
-            self.assert_(pk_o3 == pk_o4)
 
         # and lastly make sure we still have our data after all that.
         # identical serialzation is great, *if* it's complete :)
@@ -1871,6 +1851,21 @@ class HistoryTest(fixtures.TestBase):
         eq_(self._someattr_history(f), ([{'a': 'b'}], (), ()))
         f.someattr = ['a']
         eq_(self._someattr_history(f), ([['a']], (), ()))
+
+    def test_scalar_inplace_mutation_replace_self_flag_modified_set(self):
+        Foo = self._fixture(uselist=False, useobject=False,
+                                active_history=False)
+        f = Foo()
+        f.someattr = {'a': 'b'}
+        self._commit_someattr(f)
+        eq_(self._someattr_history(f), ((), [{'a': 'b'}], ()))
+
+        # set the attribute to itself; this places a copy
+        # in committed_state
+        f.someattr = f.someattr
+
+        attributes.flag_modified(f, 'someattr')
+        eq_(self._someattr_history(f), ([{'a': 'b'}], (), ()))
 
 
     def test_use_object_init(self):

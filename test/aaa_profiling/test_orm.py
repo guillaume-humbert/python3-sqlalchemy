@@ -258,6 +258,7 @@ class MergeBackrefsTest(fixtures.MappedTest):
             s.merge(a)
 
 class DeferOptionsTest(fixtures.MappedTest):
+
     @classmethod
     def define_tables(cls, metadata):
         Table('a', metadata,
@@ -312,6 +313,7 @@ class DeferOptionsTest(fixtures.MappedTest):
 
 
 class AttributeOverheadTest(fixtures.MappedTest):
+
     @classmethod
     def define_tables(cls, metadata):
         Table('parent', metadata, Column('id', Integer,

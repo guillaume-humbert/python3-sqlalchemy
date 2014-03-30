@@ -669,6 +669,39 @@ class ListenOverrideTest(fixtures.TestBase):
             [call(5, 7), call(10, 5)]
         )
 
+    def test_remove_clslevel(self):
+        listen_one = Mock()
+        event.listen(self.Target, "event_one", listen_one, add=True)
+        t1 = self.Target()
+        t1.dispatch.event_one(5, 7)
+        eq_(
+            listen_one.mock_calls,
+            [call(12)]
+        )
+        event.remove(self.Target, "event_one", listen_one)
+        t1.dispatch.event_one(10, 5)
+        eq_(
+            listen_one.mock_calls,
+            [call(12)]
+        )
+
+    def test_remove_instancelevel(self):
+        listen_one = Mock()
+        t1 = self.Target()
+        event.listen(t1, "event_one", listen_one, add=True)
+        t1.dispatch.event_one(5, 7)
+        eq_(
+            listen_one.mock_calls,
+            [call(12)]
+        )
+        event.remove(t1, "event_one", listen_one)
+        t1.dispatch.event_one(10, 5)
+        eq_(
+            listen_one.mock_calls,
+            [call(12)]
+        )
+
+
 class PropagateTest(fixtures.TestBase):
     def setUp(self):
         class TargetEvents(event.Events):
@@ -1012,6 +1045,31 @@ class RemovalTest(fixtures.TestBase):
         eq_(f1.mock.mock_calls, [call("x")])
         eq_(f2.mock.mock_calls, [call("x"), call("y")])
 
+    def test_once(self):
+        Target = self._fixture()
+
+        m1 = Mock()
+        m2 = Mock()
+        m3 = Mock()
+        m4 = Mock()
+
+        event.listen(Target, "event_one", m1)
+        event.listen(Target, "event_one", m2, once=True)
+        event.listen(Target, "event_one", m3, once=True)
+
+        t1 = Target()
+        t1.dispatch.event_one("x")
+        t1.dispatch.event_one("y")
+
+        event.listen(Target, "event_one", m4, once=True)
+        t1.dispatch.event_one("z")
+        t1.dispatch.event_one("q")
+
+        eq_(m1.mock_calls, [call("x"), call("y"), call("z"), call("q")])
+        eq_(m2.mock_calls, [call("x")])
+        eq_(m3.mock_calls, [call("x")])
+        eq_(m4.mock_calls, [call("z")])
+
     def test_propagate(self):
         Target = self._fixture()
 
@@ -1087,8 +1145,3 @@ class RemovalTest(fixtures.TestBase):
         )
 
         event.remove(t1, "event_three", m1)
-
-
-
-
-

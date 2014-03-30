@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.3',
+          VERSION:     '0.9.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
+        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
 
 
     </div>
@@ -134,6 +134,14 @@
     <h3><a href="../index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">0.8 Changelog</a><ul>
+<li><a class="reference internal" href="#change-0.8.6">0.8.6</a><ul>
+<li><a class="reference internal" href="#change-0.8.6-general">general</a></li>
+<li><a class="reference internal" href="#change-0.8.6-orm">orm</a></li>
+<li><a class="reference internal" href="#change-0.8.6-sql">sql</a></li>
+<li><a class="reference internal" href="#change-0.8.6-postgresql">postgresql</a></li>
+<li><a class="reference internal" href="#change-0.8.6-misc">misc</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#change-0.8.5">0.8.5</a><ul>
 <li><a class="reference internal" href="#change-0.8.5-orm">orm</a></li>
 <li><a class="reference internal" href="#change-0.8.5-engine">engine</a></li>
@@ -257,6 +265,94 @@
         
 <div class="section" id="changelog">
 <h1>0.8 Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="change-0.8.6">
+<h2>0.8.6<a class="headerlink" href="#change-0.8.6" title="Permalink to this headline">¶</a></h2>
+Released: March 28, 2014<div class="section" id="change-0.8.6-general">
+<h3>general<a class="headerlink" href="#change-0.8.6-general" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.6-0"><span class="target" id="change-4eb0725a9e53337556a261ca91f628e1"><strong>[general] [bug] </strong></span>Adjusted <tt class="docutils literal"><span class="pre">setup.py</span></tt> file to support the possible future
+removal of the <tt class="docutils literal"><span class="pre">setuptools.Feature</span></tt> extension from setuptools.
+If this keyword isn&#8217;t present, the setup will still succeed
+with setuptools rather than falling back to distutils.  C extension
+building can be disabled now also by setting the
+DISABLE_SQLALCHEMY_CEXT environment variable.  This variable works
+whether or not setuptools is even available.<a class="changeset-link headerlink reference internal" href="#change-4eb0725a9e53337556a261ca91f628e1">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2986">#2986</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.8.6-orm">
+<h3>orm<a class="headerlink" href="#change-0.8.6-orm" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.6-1"><span class="target" id="change-8aade2e05c6bfa4d19d23d28d5d85e3c"><strong>[orm] [bug] </strong></span>Fixed ORM bug where changing the primary key of an object, then marking
+it for DELETE would fail to target the correct row for DELETE.
+Note that we cannot currently check &#8220;number of rows matched&#8221; in general
+for DELETE statements as we can&#8217;t be sure that a self-referential
+ON DELETE CASCADE has gotten there first.<a class="changeset-link headerlink reference internal" href="#change-8aade2e05c6bfa4d19d23d28d5d85e3c">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/3006">#3006</a></p>
+</p>
+</li>
+<li><p id="change-0.8.6-2"><span class="target" id="change-3751a74e73168b0beaccedabc93166fc"><strong>[orm] [bug] </strong></span>Fixed regression from 0.8.3 as a result of <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2818">#2818</a>
+where <a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.exists" title="sqlalchemy.orm.query.Query.exists"><tt class="xref py py-meth docutils literal"><span class="pre">Query.exists()</span></tt></a> wouldn&#8217;t work on a query that only
+had a <a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.select_from" title="sqlalchemy.orm.query.Query.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">Query.select_from()</span></tt></a> entry but no other entities.<a class="changeset-link headerlink reference internal" href="#change-3751a74e73168b0beaccedabc93166fc">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2995">#2995</a></p>
+</p>
+</li>
+<li><p id="change-0.8.6-3"><span class="target" id="change-721de30f36994714bbaa71cb716e72e3"><strong>[orm] [bug] </strong></span>Improved an error message which would occur if a query() were made
+against a non-selectable, such as a <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a>, and then
+an attempt was made to use <a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a> such that the &#8220;left&#8221;
+side would be determined as <tt class="docutils literal"><span class="pre">None</span></tt> and then fail.  This condition
+is now detected explicitly.<a class="changeset-link headerlink reference internal" href="#change-721de30f36994714bbaa71cb716e72e3">¶</a><p></p>
+</p>
+</li>
+<li><p id="change-0.8.6-4"><span class="target" id="change-1f6608c117a2d4b77f07a065788123ce"><strong>[orm] [bug] </strong></span>Removed stale names from <tt class="docutils literal"><span class="pre">sqlalchemy.orm.interfaces.__all__</span></tt> and
+refreshed with current names, so that an <tt class="docutils literal"><span class="pre">import</span> <span class="pre">*</span></tt> from this
+module again works.<a class="changeset-link headerlink reference internal" href="#change-1f6608c117a2d4b77f07a065788123ce">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2975">#2975</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.8.6-sql">
+<h3>sql<a class="headerlink" href="#change-0.8.6-sql" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.6-5"><span class="target" id="change-c61526d344b80f9ac2ea48bdf871a1c8"><strong>[sql] [bug] </strong></span>Fixed bug in <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.tuple_" title="sqlalchemy.sql.expression.tuple_"><tt class="xref py py-func docutils literal"><span class="pre">tuple_()</span></tt></a> construct where the &#8220;type&#8221; of essentially
+the first SQL expression would be applied as the &#8220;comparison type&#8221;
+to a compared tuple value; this has the effect in some cases of an
+inappropriate &#8220;type coersion&#8221; occurring, such as when a tuple that
+has a mix of String and Binary values improperly coerces target
+values to Binary even though that&#8217;s not what they are on the left
+side.  <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.tuple_" title="sqlalchemy.sql.expression.tuple_"><tt class="xref py py-func docutils literal"><span class="pre">tuple_()</span></tt></a> now expects heterogeneous types within its
+list of values.<a class="changeset-link headerlink reference internal" href="#change-c61526d344b80f9ac2ea48bdf871a1c8">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2977">#2977</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.8.6-postgresql">
+<h3>postgresql<a class="headerlink" href="#change-0.8.6-postgresql" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.6-6"><span class="target" id="change-0e27187508dd3fc6a655238c01a756bd"><strong>[postgresql] [feature] </strong></span>Enabled &#8220;sane multi-row count&#8221; checking for the psycopg2 DBAPI, as
+this seems to be supported as of psycopg2 2.0.9.<a class="changeset-link headerlink reference internal" href="#change-0e27187508dd3fc6a655238c01a756bd">¶</a><p></p>
+</p>
+</li>
+<li><p id="change-0.8.6-7"><span class="target" id="change-4ae0244a30e5c4a1057dc6ad07795cd1"><strong>[postgresql] [bug] </strong></span>Fixed regression caused by release 0.8.5 / 0.9.3&#8217;s compatibility
+enhancements where index reflection on Postgresql versions specific
+to only the 8.1, 8.2 series again
+broke, surrounding the ever problematic int2vector type.  While
+int2vector supports array operations as of 8.1, apparently it only
+supports CAST to a varchar as of 8.3.<a class="changeset-link headerlink reference internal" href="#change-4ae0244a30e5c4a1057dc6ad07795cd1">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/3000">#3000</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.8.6-misc">
+<h3>misc<a class="headerlink" href="#change-0.8.6-misc" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.6-8"><span class="target" id="change-9b1493eda7803b32e8d28a92c52071a4"><strong>[bug] [ext] </strong></span>Fixed bug in mutable extension as well as
+<a class="reference internal" href="../orm/session.html#sqlalchemy.orm.attributes.flag_modified" title="sqlalchemy.orm.attributes.flag_modified"><tt class="xref py py-func docutils literal"><span class="pre">attributes.flag_modified()</span></tt></a> where the change event would not be
+propagated if the attribute had been reassigned to itself.<a class="changeset-link headerlink reference internal" href="#change-9b1493eda7803b32e8d28a92c52071a4">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2997">#2997</a></p>
+</p>
+</li>
+</ul>
+</div>
+</div>
 <div class="section" id="change-0.8.5">
 <h2>0.8.5<a class="headerlink" href="#change-0.8.5" title="Permalink to this headline">¶</a></h2>
 Released: February 19, 2014<div class="section" id="change-0.8.5-orm">

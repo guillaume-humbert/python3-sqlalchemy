@@ -58,7 +58,7 @@ class InstrumentationEvents(event.Events):
             return None
 
     @classmethod
-    def _listen(cls, event_key, propagate=True):
+    def _listen(cls, event_key, propagate=True, **kw):
         target, identifier, fn = \
             event_key.dispatch_target, event_key.identifier, event_key.fn
 
@@ -79,7 +79,7 @@ class InstrumentationEvents(event.Events):
 
         event_key.\
             with_dispatch_target(instrumentation._instrumentation_factory).\
-            with_wrapper(listen).base_listen()
+            with_wrapper(listen).base_listen(**kw)
 
     @classmethod
     def _clear(cls):
@@ -187,7 +187,7 @@ class InstanceEvents(event.Events):
         return None
 
     @classmethod
-    def _listen(cls, event_key, raw=False, propagate=False):
+    def _listen(cls, event_key, raw=False, propagate=False, **kw):
         target, identifier, fn = \
             event_key.dispatch_target, event_key.identifier, event_key.fn
 
@@ -196,7 +196,7 @@ class InstanceEvents(event.Events):
                 return fn(state.obj(), *arg, **kw)
             event_key = event_key.with_wrapper(wrap)
 
-        event_key.base_listen(propagate=propagate)
+        event_key.base_listen(propagate=propagate, **kw)
 
         if propagate:
             for mgr in target.subclass_managers(True):
@@ -347,7 +347,7 @@ class _EventsHold(event.RefCollection):
         _dispatch_target = None
 
         @classmethod
-        def _listen(cls, event_key, raw=False, propagate=False):
+        def _listen(cls, event_key, raw=False, propagate=False, **kw):
             target, identifier, fn = \
                 event_key.dispatch_target, event_key.identifier, event_key.fn
 
@@ -369,7 +369,7 @@ class _EventsHold(event.RefCollection):
                         # we are already going through __subclasses__()
                         # so leave generic propagate flag False
                         event_key.with_dispatch_target(subject).\
-                            listen(raw=raw, propagate=False)
+                            listen(raw=raw, propagate=False, **kw)
 
     def remove(self, event_key):
         target, identifier, fn = \
@@ -503,10 +503,16 @@ class MapperEvents(event.Events):
             return target
 
     @classmethod
-    def _listen(cls, event_key,
-                            raw=False, retval=False, propagate=False):
+    def _listen(cls, event_key, raw=False, retval=False, propagate=False, **kw):
         target, identifier, fn = \
             event_key.dispatch_target, event_key.identifier, event_key.fn
+
+        if identifier in ("before_configured", "after_configured") and \
+            target is not mapperlib.Mapper:
+            util.warn(
+                    "'before_configured' and 'after_configured' ORM events "
+                    "only invoke with the mapper() function or Mapper class "
+                    "as the target.")
 
         if not raw or not retval:
             if not raw:
@@ -530,9 +536,10 @@ class MapperEvents(event.Events):
 
         if propagate:
             for mapper in target.self_and_descendants:
-                event_key.with_dispatch_target(mapper).base_listen(propagate=True)
+                event_key.with_dispatch_target(mapper).base_listen(
+                                                propagate=True, **kw)
         else:
-            event_key.base_listen()
+            event_key.base_listen(**kw)
 
     @classmethod
     def _clear(cls):
@@ -590,11 +597,30 @@ class MapperEvents(event.Events):
         note is usually called automatically as mappings are first
         used.
 
+        This event can **only** be applied to the :class:`.Mapper` class
+        or :func:`.mapper` function, and not to individual mappings or
+        mapped classes.  It is only invoked for all mappings as a whole::
+
+            from sqlalchemy.orm import mapper
+
+            @event.listens_for(mapper, "before_configured")
+            def go():
+                # ...
+
         Theoretically this event is called once per
         application, but is actually called any time new mappers
         are to be affected by a :func:`.orm.configure_mappers`
         call.   If new mappings are constructed after existing ones have
-        already been used, this event can be called again.
+        already been used, this event can be called again.  To ensure
+        that a particular event is only called once and no further, the
+        ``once=True`` argument (new in 0.9.4) can be applied::
+
+            from sqlalchemy.orm import mapper
+
+            @event.listens_for(mapper, "before_configured", once=True)
+            def go():
+                # ...
+
 
         .. versionadded:: 0.9.3
 
@@ -607,11 +633,29 @@ class MapperEvents(event.Events):
         note is usually called automatically as mappings are first
         used.
 
+        This event can **only** be applied to the :class:`.Mapper` class
+        or :func:`.mapper` function, and not to individual mappings or
+        mapped classes.  It is only invoked for all mappings as a whole::
+
+            from sqlalchemy.orm import mapper
+
+            @event.listens_for(mapper, "after_configured")
+            def go():
+                # ...
+
         Theoretically this event is called once per
         application, but is actually called any time new mappers
         have been affected by a :func:`.orm.configure_mappers`
         call.   If new mappings are constructed after existing ones have
-        already been used, this event can be called again.
+        already been used, this event can be called again.  To ensure
+        that a particular event is only called once and no further, the
+        ``once=True`` argument (new in 0.9.4) can be applied::
+
+            from sqlalchemy.orm import mapper
+
+            @event.listens_for(mapper, "after_configured", once=True)
+            def go():
+                # ...
 
         """
 

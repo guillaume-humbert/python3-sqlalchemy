@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    './',
-          VERSION:     '0.9.3',
+          VERSION:     '0.9.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
+        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
 
 
     </div>
@@ -285,23 +285,34 @@ and 3.xx series of cPython.</p>
 <div class="versionchanged">
 <p><span>Changed in version 0.9.0: </span>The C extensions now compile on Python 3 as well as Python 2.</p>
 </div>
-<p>setup.py will automatically build the extensions if an appropriate platform is
+<p><tt class="docutils literal"><span class="pre">setup.py</span></tt> will automatically build the extensions if an appropriate platform is
 detected. If the build of the C extensions fails, due to missing compiler or
 other issue, the setup process will output a warning message, and re-run the
 build without the C extensions, upon completion reporting final status.</p>
 <p>To run the build/install without even attempting to compile the C extensions,
-pass the flag <tt class="docutils literal"><span class="pre">--without-cextensions</span></tt> to the <tt class="docutils literal"><span class="pre">setup.py</span></tt> script:</p>
+the <tt class="docutils literal"><span class="pre">DISABLE_SQLALCHEMY_CEXT</span></tt> environment variable may be specified.  The
+use case for this is either for special testing circumstances, or in the rare
+case of compatibility/build issues not overcome by the usual &#8220;rebuild&#8221;
+mechanism:</p>
+<div class="highlight-python"><pre># *** only in SQLAlchemy 0.9.4 / 0.8.6 or greater ***
+export DISABLE_SQLALCHEMY_CEXT=1; python setup.py install</pre>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.4,0.8.6: </span>Support for disabling the build of
+C extensions using the <tt class="docutils literal"><span class="pre">DISABLE_SQLALCHEMY_CEXT</span></tt> environment variable
+has been added.  This allows control of C extension building whether or not
+setuptools is available, and additionally works around the fact that
+setuptools will possibly be <strong>removing support</strong> for command-line switches
+such as <tt class="docutils literal"><span class="pre">--without-extensions</span></tt> in a future release.</p>
+<p>For versions of SQLAlchemy prior to 0.9.4 or 0.8.6, the
+<tt class="docutils literal"><span class="pre">--without-cextensions</span></tt> option may be used to disable the attempt to build
+C extensions, provided setupools is in use, and provided the <tt class="docutils literal"><span class="pre">Feature</span></tt>
+construct is supported by the installed version of setuptools:</p>
 <div class="highlight-python"><pre>python setup.py --without-cextensions install</pre>
 </div>
 <p>Or with pip:</p>
 <div class="highlight-python"><pre>pip install --global-option='--without-cextensions' SQLAlchemy</pre>
 </div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The <tt class="docutils literal"><span class="pre">--without-cextensions</span></tt> flag is available <strong>only</strong> if <tt class="docutils literal"><span class="pre">setuptools</span></tt>
-or <tt class="docutils literal"><span class="pre">distribute</span></tt> is installed.  It is not available on a plain Python <tt class="docutils literal"><span class="pre">distutils</span></tt>
-installation.  The library will still install without the C extensions if they
-cannot be built, however.</p>
 </div>
 </div>
 <div class="section" id="installing-on-python-3">

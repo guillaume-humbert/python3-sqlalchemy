@@ -301,19 +301,16 @@ opt for an explicit commit pattern, only committing for those requests
 where one is warranted, but still always tearing down the :class:`.Session`
 unconditionally at the end.
 
-Most web frameworks include infrastructure to establish a single
-:class:`.Session`, associated with the request, which is correctly
-constructed and torn down corresponding
-torn down at the end of a request.   Such infrastructure pieces
-include products such as `Flask-SQLAlchemy <http://packages.python.org/Flask-SQLAlchemy/>`_,
+Some web frameworks include infrastructure to assist in the task
+of aligning the lifespan of a :class:`.Session` with that of a web request.
+This includes products such as `Flask-SQLAlchemy <http://packages.python.org/Flask-SQLAlchemy/>`_,
 for usage in conjunction with the Flask web framework,
 and `Zope-SQLAlchemy <http://pypi.python.org/pypi/zope.sqlalchemy>`_,
-for usage in conjunction with the Pyramid and Zope frameworks.
-SQLAlchemy strongly recommends that these products be used as
-available.
+typically used with the Pyramid framework.
+SQLAlchemy recommends that these products be used as available.
 
-In those situations where integration libraries are not available,
-SQLAlchemy includes its own "helper" class known as
+In those situations where the integration libraries are not
+provided or are insufficient, SQLAlchemy includes its own "helper" class known as
 :class:`.scoped_session`.   A tutorial on the usage of this object
 is at :ref:`unitofwork_contextual`.   It provides both a quick way
 to associate a :class:`.Session` with the current thread, as well as
@@ -725,7 +722,7 @@ and made our ``a1`` object pending, as though we had added it.   Now we have
 
 Above, our ``a1`` is already pending in the session. The
 subsequent :meth:`~.Session.merge` operation essentially
-does nothing. Cascade can be configured via the ``cascade``
+does nothing. Cascade can be configured via the :paramref:`~.relationship.cascade`
 option on :func:`.relationship`, although in this case it
 would mean removing the ``save-update`` cascade from the
 ``User.addresses`` relationship - and usually, that behavior
@@ -1005,79 +1002,234 @@ The :meth:`~.Session.close` method issues a
 transactional/connection resources. When connections are returned to the
 connection pool, transactional state is rolled back as well.
 
+.. _session_expire:
+
 Refreshing / Expiring
 ---------------------
 
-The Session normally works in the context of an ongoing transaction (with the
-default setting of autoflush=False). Most databases offer "isolated"
-transactions - this refers to a series of behaviors that allow the work within
-a transaction to remain consistent as time passes, regardless of the
-activities outside of that transaction. A key feature of a high degree of
-transaction isolation is that emitting the same SELECT statement twice will
-return the same results as when it was called the first time, even if the data
-has been modified in another transaction.
+:term:`Expiring` means that the database-persisted data held inside a series
+of object attributes is erased, in such a way that when those attributes
+are next accessed, a SQL query is emitted which will refresh that data from
+the database.
 
-For this reason, the :class:`.Session` gains very efficient behavior by
-loading the attributes of each instance only once.   Subsequent reads of the
-same row in the same transaction are assumed to have the same value.  The
-user application also gains directly from this assumption, that the transaction
-is regarded as a temporary shield against concurrent changes - a good application
-will ensure that isolation levels are set appropriately such that this assumption
-can be made, given the kind of data being worked with.
+When we talk about expiration of data we are usually talking about an object
+that is in the :term:`persistent` state.   For example, if we load an object
+as follows::
 
-To clear out the currently loaded state on an instance, the instance or its individual
-attributes can be marked as "expired", which results in a reload to
-occur upon next access of any of the instance's attrbutes.  The instance
-can also be immediately reloaded from the database.   The :meth:`~.Session.expire`
-and :meth:`~.Session.refresh` methods achieve this::
+    user = session.query(User).filter_by(name='user1').first()
 
-    # immediately re-load attributes on obj1, obj2
-    session.refresh(obj1)
-    session.refresh(obj2)
+The above ``User`` object is persistent, and has a series of attributes
+present; if we were to look inside its ``__dict__``, we'd see that state
+loaded::
 
-    # expire objects obj1, obj2, attributes will be reloaded
-    # on the next access:
+    >>> user.__dict__
+    {
+      'id': 1, 'name': u'user1',
+      '_sa_instance_state': <...>,
+    }
+
+where ``id`` and ``name`` refer to those columns in the database.
+``_sa_instance_state`` is a non-database-persisted value used by SQLAlchemy
+internally (it refers to the :class:`.InstanceState` for the instance.
+While not directly relevant to this section, if we want to get at it,
+we should use the :func:`.inspect` function to access it).
+
+At this point, the state in our ``User`` object matches that of the loaded
+database row.  But upon expiring the object using a method such as
+:meth:`.Session.expire`, we see that the state is removed::
+
+    >>> session.expire(user)
+    >>> user.__dict__
+    {'_sa_instance_state': <...>}
+
+We see that while the internal "state" still hangs around, the values which
+correspond to the ``id`` and ``name`` columns are gone.   If we were to access
+one of these columns and are watching SQL, we'd see this:
+
+.. sourcecode:: python+sql
+
+    >>> print(user.name)
+    {opensql}SELECT user.id AS user_id, user.name AS user_name
+    FROM user
+    WHERE user.id = ?
+    (1,)
+    {stop}user1
+
+Above, upon accessing the expired attribute ``user.name``, the ORM initiated
+a :term:`lazy load` to retrieve the most recent state from the database,
+by emitting a SELECT for the user row to which this user refers.  Afterwards,
+the ``__dict__`` is again populated::
+
+    >>> user.__dict__
+    {
+      'id': 1, 'name': u'user1',
+      '_sa_instance_state': <...>,
+    }
+
+.. note::  While we are peeking inside of ``__dict__`` in order to see a bit
+   of what SQLAlchemy does with object attributes, we **should not modify**
+   the contents of ``__dict__`` directly, at least as far as those attributes
+   which the SQLAlchemy ORM is maintaining (other attributes outside of SQLA's
+   realm are fine).  This is because SQLAlchemy uses :term:`descriptors` in
+   order to track the changes we make to an object, and when we modify ``__dict__``
+   directly, the ORM won't be able to track that we changed something.
+
+Another key behavior of both :meth:`~.Session.expire` and :meth:`~.Session.refresh`
+is that all un-flushed changes on an object are discarded.  That is,
+if we were to modify an attribute on our ``User``::
+
+    >>> user.name = 'user2'
+
+but then we call :meth:`~.Session.expire` without first calling :meth:`~.Session.flush`,
+our pending value of ``'user2'`` is discarded::
+
+    >>> session.expire(user)
+    >>> user.name
+    'user1'
+
+The :meth:`~.Session.expire` method can be used to mark as "expired" all ORM-mapped
+attributes for an instance::
+
+    # expire all ORM-mapped attributes on obj1
     session.expire(obj1)
-    session.expire(obj2)
 
-When an expired object reloads, all non-deferred column-based attributes are
-loaded in one query. Current behavior for expired relationship-based
-attributes is that they load individually upon access - this behavior may be
-enhanced in a future release. When a refresh is invoked on an object, the
-ultimate operation is equivalent to a :meth:`.Query.get`, so any relationships
-configured with eager loading should also load within the scope of the refresh
-operation.
+it can also be passed a list of string attribute names, referring to specific
+attributes to be marked as expired::
 
-:meth:`~.Session.refresh` and
-:meth:`~.Session.expire` also support being passed a
-list of individual attribute names in which to be refreshed. These names can
-refer to any attribute, column-based or relationship based::
+    # expire only attributes obj1.attr1, obj1.attr2
+    session.expire(obj1, ['attr1', 'attr2'])
 
-    # immediately re-load the attributes 'hello', 'world' on obj1, obj2
-    session.refresh(obj1, ['hello', 'world'])
-    session.refresh(obj2, ['hello', 'world'])
+The :meth:`~.Session.refresh` method has a similar interface, but instead
+of expiring, it emits an immediate SELECT for the object's row immediately::
 
-    # expire the attributes 'hello', 'world' objects obj1, obj2, attributes will be reloaded
-    # on the next access:
-    session.expire(obj1, ['hello', 'world'])
-    session.expire(obj2, ['hello', 'world'])
+    # reload all attributes on obj1
+    session.refresh(obj1)
 
-The full contents of the session may be expired at once using
-:meth:`~.Session.expire_all`::
+:meth:`~.Session.refresh` also accepts a list of string attribute names,
+but unlike :meth:`~.Session.expire`, expects at least one name to
+be that of a column-mapped attribute::
+
+    # reload obj1.attr1, obj1.attr2
+    session.refresh(obj1, ['attr1', 'attr2'])
+
+The :meth:`.Session.expire_all` method allows us to essentially call
+:meth:`.Session.expire` on all objects contained within the :class:`.Session`
+at once::
 
     session.expire_all()
 
-Note that :meth:`~.Session.expire_all` is called **automatically** whenever
-:meth:`~.Session.commit` or :meth:`~.Session.rollback` are called. If using the
-session in its default mode of autocommit=False and with a well-isolated
-transactional environment (which is provided by most backends with the notable
-exception of MySQL MyISAM), there is virtually *no reason* to ever call
-:meth:`~.Session.expire_all` directly - plenty of state will remain on the
-current transaction until it is rolled back or committed or otherwise removed.
+What Actually Loads
+~~~~~~~~~~~~~~~~~~~
 
-:meth:`~.Session.refresh` and :meth:`~.Session.expire` similarly are usually
-only necessary when an UPDATE or DELETE has been issued manually within the
-transaction using :meth:`.Session.execute()`.
+The SELECT statement that's emitted when an object marked with :meth:`~.Session.expire`
+or loaded with :meth:`~.Session.refresh` varies based on several factors, including:
+
+* The load of expired attributes is triggered from **column-mapped attributes only**.
+  While any kind of attribute can be marked as expired, including a
+  :func:`.relationship` - mapped attribute, accessing an expired :func:`.relationship`
+  attribute will emit a load only for that attribute, using standard
+  relationship-oriented lazy loading.   Column-oriented attributes, even if
+  expired, will not load as part of this operation, and instead will load when
+  any column-oriented attribute is accessed.
+
+* :func:`.relationship`- mapped attributes will not load in response to
+  expired column-based attributes being accessed.
+
+* Regarding relationships, :meth:`~.Session.refresh` is more restrictive than
+  :meth:`~.Session.expire` with regards to attributes that aren't column-mapped.
+  Calling :meth:`.refresh` and passing a list of names that only includes
+  relationship-mapped attributes will actually raise an error.
+  In any case, non-eager-loading :func:`.relationship` attributes will not be
+  included in any refresh operation.
+
+* :func:`.relationship` attributes configured as "eager loading" via the
+  :paramref:`~.relationship.lazy` parameter will load in the case of
+  :meth:`~.Session.refresh`, if either no attribute names are specified, or
+  if their names are inclued in the list of attributes to be
+  refreshed.
+
+* Attributes that are configured as :func:`.deferred` will not normally load,
+  during either the expired-attribute load or during a refresh.
+  An unloaded attribute that's :func:`.deferred` instead loads on its own when directly
+  accessed, or if part of a "group" of deferred attributes where an unloaded
+  attribute in that group is accessed.
+
+* For expired attributes that are loaded on access, a joined-inheritance table
+  mapping will emit a SELECT that typically only includes those tables for which
+  unloaded attributes are present.   The action here is sophisticated enough
+  to load only the parent or child table, for example, if the subset of columns
+  that were originally expired encompass only one or the other of those tables.
+
+* When :meth:`~.Session.refresh` is used on a joined-inheritance table mapping,
+  the SELECT emitted will resemble that of when :meth:`.Session.query` is
+  used on the target object's class.  This is typically all those tables that
+  are set up as part of the mapping.
+
+
+When to Expire or Refresh
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :class:`.Session` uses the expiration feature automatically whenever
+the transaction referred to by the session ends.  Meaning, whenever :meth:`.Session.commit`
+or :meth:`.Session.rollback` is called, all objects within the :class:`.Session`
+are expired, using a feature equivalent to that of the :meth:`.Session.expire_all`
+method.   The rationale is that the end of a transaction is a
+demarcating point at which there is no more context available in order to know
+what the current state of the database is, as any number of other transactions
+may be affecting it.  Only when a new transaction starts can we again have access
+to the current state of the database, at which point any number of changes
+may have occurred.
+
+.. sidebar:: Transaction Isolation
+
+    Of course, most databases are capable of handling
+    multiple transactions at once, even involving the same rows of data.   When
+    a relational database handles multiple transactions involving the same
+    tables or rows, this is when the :term:`isolation` aspect of the database comes
+    into play.  The isolation behavior of different databases varies considerably
+    and even on a single database can be configured to behave in different ways
+    (via the so-called :term:`isolation level` setting).  In that sense, the :class:`.Session`
+    can't fully predict when the same SELECT statement, emitted a second time,
+    will definitely return the data we already have, or will return new data.
+    So as a best guess, it assumes that within the scope of a transaction, unless
+    it is known that a SQL expression has been emitted to modify a particular row,
+    there's no need to refresh a row unless explicitly told to do so.
+
+The :meth:`.Session.expire` and :meth:`.Session.refresh` methods are used in
+those cases when one wants to force an object to re-load its data from the
+database, in those cases when it is known that the current state of data
+is possibly stale.  Reasons for this might include:
+
+* some SQL has been emitted within the transaction outside of the
+  scope of the ORM's object handling, such as if a :meth:`.Table.update` construct
+  were emitted using the :meth:`.Session.execute` method;
+
+* if the application
+  is attempting to acquire data that is known to have been modified in a
+  concurrent transaction, and it is also known that the isolation rules in effect
+  allow this data to be visible.
+
+The second bullet has the important caveat that "it is also known that the isolation rules in effect
+allow this data to be visible."  This means that it cannot be assumed that an
+UPDATE that happened on another database connection will yet be visible here
+locally; in many cases, it will not.  This is why if one wishes to use
+:meth:`.expire` or :meth:`.refresh` in order to view data between ongoing
+transactions, an understanding of the isolation behavior in effect is essential.
+
+.. seealso::
+
+    :meth:`.Session.expire`
+
+    :meth:`.Session.expire_all`
+
+    :meth:`.Session.refresh`
+
+    :term:`isolation` - glossary explanation of isolation which includes links
+    to Wikipedia.
+
+    `The SQLAlchemy Session In-Depth <http://techspot.zzzeek.org/2012/11/14/pycon-canada-the-sqlalchemy-session-in-depth/>`_ - a video + slides with an in-depth discussion of the object
+    lifecycle including the role of data expiration.
+
 
 Session Attributes
 ------------------
@@ -1132,28 +1284,29 @@ setting.
 Cascades
 ========
 
-Mappers support the concept of configurable **cascade** behavior on
+Mappers support the concept of configurable :term:`cascade` behavior on
 :func:`~sqlalchemy.orm.relationship` constructs.  This refers
-to how operations performed on a parent object relative to a
+to how operations performed on a "parent" object relative to a
 particular :class:`.Session` should be propagated to items
-referred to by that relationship.
-The default cascade behavior is usually suitable for
-most situations, and the option is normally invoked explicitly
-in order to enable ``delete`` and ``delete-orphan`` cascades,
-which refer to how the relationship should be treated when
-the parent is marked for deletion as well as when a child
-is de-associated from its parent.
+referred to by that relationship (e.g. "child" objects), and is
+affected by the :paramref:`.relationship.cascade` option.
 
-Cascade behavior is configured by setting the ``cascade`` keyword
-argument on
+The default behavior of cascade is limited to cascades of the
+so-called :ref:`cascade_save_update` and :ref:`cascade_merge` settings.
+The typical "alternative" setting for cascade is to add
+the :ref:`cascade_delete` and :ref:`cascade_delete_orphan` options;
+these settings are appropriate for related objects which only exist as
+long as they are attached to their parent, and are otherwise deleted.
+
+Cascade behavior is configured using the by changing the
+:paramref:`~.relationship.cascade` option on
 :func:`~sqlalchemy.orm.relationship`::
 
     class Order(Base):
         __tablename__ = 'order'
 
         items = relationship("Item", cascade="all, delete-orphan")
-        customer = relationship("User", secondary=user_orders_table,
-                                    cascade="save-update")
+        customer = relationship("User", cascade="save-update")
 
 To set cascades on a backref, the same flag can be used with the
 :func:`~.sqlalchemy.orm.backref` function, which ultimately feeds
@@ -1166,109 +1319,303 @@ its arguments back into :func:`~sqlalchemy.orm.relationship`::
                         backref=backref("items", cascade="all, delete-orphan")
                     )
 
-The default value of ``cascade`` is ``save-update, merge``.
-The ``all`` symbol in the cascade options indicates that all
-cascade flags should be enabled, with the exception of ``delete-orphan``.
-Typically, cascade is usually left at its default, or configured
-as ``all, delete-orphan``, indicating the child objects should be
-treated as "owned" by the parent.
+.. sidebar:: The Origins of Cascade
 
-The list of available values which can be specified in ``cascade``
-are as follows:
+    SQLAlchemy's notion of cascading behavior on relationships,
+    as well as the options to configure them, are primarily derived
+    from the similar feature in the Hibernate ORM; Hibernate refers
+    to "cascade" in a few places such as in
+    `Example: Parent/Child <https://docs.jboss.org/hibernate/orm/3.3/reference/en-US/html/example-parentchild.html>`_.
+    If cascades are confusing, we'll refer to their conclusion,
+    stating "The sections we have just covered can be a bit confusing.
+    However, in practice, it all works out nicely."
 
-* ``save-update`` - Indicates that when an object is placed into a
-  :class:`.Session`
-  via :meth:`.Session.add`, all the objects associated with it via this
-  :func:`~sqlalchemy.orm.relationship` should also be added to that
-  same :class:`.Session`.   Additionally, if this object is already present in
-  a :class:`.Session`, child objects will be added to that session as they
-  are associated with this parent, i.e. as they are appended to lists,
-  added to sets, or otherwise associated with the parent.
+The default value of :paramref:`~.relationship.cascade` is ``save-update, merge``.
+The typical alternative setting for this parameter is either
+``all`` or more commonly ``all, delete-orphan``.  The ``all`` symbol
+is a synonym for ``save-update, merge, refresh-expire, expunge, delete``,
+and using it in conjunction with ``delete-orphan`` indicates that the child
+object should follow along with its parent in all cases, and be deleted once
+it is no longer associated with that parent.
 
-  ``save-update`` cascade also cascades the *pending history* of the
-  target attribute, meaning that objects which were
-  removed from a scalar or collection attribute whose changes have not
-  yet been flushed are  also placed into the target session.  This
-  is because they may have foreign key attributes present which
-  will need to be updated to no longer refer to the parent.
+The list of available values which can be specified for
+the :paramref:`~.relationship.cascade` parameter are described in the following subsections.
 
-  The ``save-update`` cascade is on by default, and it's common to not
-  even be aware of it.  It's customary that only a single call to
-  :meth:`.Session.add` against the lead object of a structure
-  has the effect of placing the full structure of
-  objects into the :class:`.Session` at once.
+.. _cascade_save_update:
 
-  However, it can be turned off, which would
-  imply that objects associated with a parent would need to be
-  placed individually using :meth:`.Session.add` calls for
-  each one.
+save-update
+-----------
 
-  Another default behavior of ``save-update`` cascade is that it will
-  take effect in the reverse direction, that is, associating a child
-  with a parent when a backref is present means both relationships
-  are affected; the parent will be added to the child's session.
-  To disable this somewhat indirect session addition, use the
-  ``cascade_backrefs=False`` option described below in
-  :ref:`backref_cascade`.
+``save-update`` cacade indicates that when an object is placed into a
+:class:`.Session` via :meth:`.Session.add`, all the objects associated
+with it via this :func:`.relationship` should also be added to that
+same :class:`.Session`.  Suppose we have an object ``user1`` with two
+related objects ``address1``, ``address2``::
 
-* ``delete`` - This cascade indicates that when the parent object
-  is marked for deletion, the related objects should also be marked
-  for deletion.   Without this cascade present, SQLAlchemy will
-  set the foreign key on a one-to-many relationship to NULL
-  when the parent object is deleted.  When enabled, the row is instead
-  deleted.
+    >>> user1 = User()
+    >>> address1, address2 = Address(), Address()
+    >>> user1.addresses = [address1, address2]
 
-  ``delete`` cascade is often used in conjunction with ``delete-orphan``
-  cascade, as is appropriate for an object whose foreign key is
-  not intended to be nullable.  On some backends, it's also
-  a good idea to set ``ON DELETE`` on the foreign key itself;
-  see the section :ref:`passive_deletes` for more details.
+If we add ``user1`` to a :class:`.Session`, it will also add
+``address1``, ``address2`` implicitly::
 
-  Note that for many-to-many relationships which make usage of the
-  ``secondary`` argument to :func:`~.sqlalchemy.orm.relationship`,
-  SQLAlchemy always emits
-  a DELETE for the association row in between "parent" and "child",
-  when the parent is deleted or whenever the linkage between a particular
-  parent and child is broken.
+    >>> sess = Session()
+    >>> sess.add(user1)
+    >>> address1 in sess
+    True
 
-* ``delete-orphan`` - This cascade adds behavior to the ``delete`` cascade,
-  such that a child object will be marked for deletion when it is
-  de-associated from the parent, not just when the parent is marked
-  for deletion.   This is a common feature when dealing with a related
-  object that is "owned" by its parent, with a NOT NULL foreign key,
-  so that removal of the item from the parent collection results
-  in its deletion.
+``save-update`` cascade also affects attribute operations for objects
+that are already present in a :class:`.Session`.  If we add a third
+object, ``address3`` to the ``user1.addresses`` collection, it
+becomes part of the state of that :class:`.Session`::
 
-  ``delete-orphan`` cascade implies that each child object can only
-  have one parent at a time, so is configured in the vast majority of cases
-  on a one-to-many relationship.   Setting it on a many-to-one or
-  many-to-many relationship is more awkward; for this use case,
-  SQLAlchemy requires that the :func:`~sqlalchemy.orm.relationship`
-  be configured with the :paramref:`~.relationship.single_parent` argument,
-  establishes Python-side validation that ensures the object
-  is associated with only one parent at a time.
+    >>> address3 = Address()
+    >>> user1.append(address3)
+    >>> address3 in sess
+    >>> True
 
-* ``merge`` - This cascade indicates that the :meth:`.Session.merge`
-  operation should be propagated from a parent that's the subject
-  of the :meth:`.Session.merge` call down to referred objects.
-  This cascade is also on by default.
+``save-update`` has the possibly surprising behavior which is that
+persistent objects which were *removed* from a collection
+or in some cases a scalar attribute
+may also be pulled into the :class:`.Session` of a parent object; this is
+so that the flush process may handle that related object appropriately.
+This case can usually only arise if an object is removed from one :class:`.Session`
+and added to another::
 
-* ``refresh-expire`` - A less common option, indicates that the
-  :meth:`.Session.expire` operation should be propagated from a parent
-  down to referred objects.   When using :meth:`.Session.refresh`,
-  the referred objects are expired only, but not actually refreshed.
+    >>> user1 = sess1.query(User).filter_by(id=1).first()
+    >>> address1 = user1.addresses[0]
+    >>> sess1.close()   # user1, address1 no longer associated with sess1
+    >>> user1.addresses.remove(address1)  # address1 no longer associated with user1
+    >>> sess2 = Session()
+    >>> sess2.add(user1)   # ... but it still gets added to the new session,
+    >>> address1 in sess2  # because it's still "pending" for flush
+    True
 
-* ``expunge`` - Indicate that when the parent object is removed
-  from the :class:`.Session` using :meth:`.Session.expunge`, the
-  operation should be propagated down to referred objects.
+The ``save-update`` cascade is on by default, and is typically taken
+for granted; it simplifies code by allowing a single call to
+:meth:`.Session.add` to register an entire structure of objects within
+that :class:`.Session` at once.   While it can be disabled, there
+is usually not a need to do so.
+
+One case where ``save-update`` cascade does sometimes get in the way is in that
+it takes place in both directions for bi-directional relationships, e.g.
+backrefs, meaning that the association of a child object with a particular parent
+can have the effect of the parent object being implicitly associated with that
+child object's :class:`.Session`; this pattern, as well as how to modify its
+behavior using the :paramref:`~.relationship.cascade_backrefs` flag,
+is discussed in the section :ref:`backref_cascade`.
+
+.. _cascade_delete:
+
+delete
+------
+
+The ``delete`` cascade indicates that when a "parent" object
+is marked for deletion, its related "child" objects should also be marked
+for deletion.   If for example we we have a relationship ``User.addresses``
+with ``delete`` cascade configured::
+
+    class User(Base):
+        # ...
+
+        addresses = relationship("Address", cascade="save-update, merge, delete")
+
+If using the above mapping, we have a ``User`` object and two
+related ``Address`` objects::
+
+    >>> user1 = sess.query(User).filter_by(id=1).first()
+    >>> address1, address2 = user1.addresses
+
+If we mark ``user1`` for deletion, after the flush operation proceeds,
+``address1`` and ``address2`` will also be deleted:
+
+.. sourcecode:: python+sql
+
+    >>> sess.delete(user1)
+    >>> sess.commit()
+    {opensql}DELETE FROM address WHERE address.id = ?
+    ((1,), (2,))
+    DELETE FROM user WHERE user.id = ?
+    (1,)
+    COMMIT
+
+Alternatively, if our ``User.addresses`` relationship does *not* have
+``delete`` cascade, SQLAlchemy's default behavior is to instead de-associate
+``address1`` and ``address2`` from ``user1`` by setting their foreign key
+reference to ``NULL``.  Using a mapping as follows::
+
+    class User(Base):
+        # ...
+
+        addresses = relationship("Address")
+
+Upon deletion of a parent ``User`` object, the rows in ``address`` are not
+deleted, but are instead de-associated:
+
+.. sourcecode:: python+sql
+
+    >>> sess.delete(user1)
+    >>> sess.commit()
+    {opensql}UPDATE address SET user_id=? WHERE address.id = ?
+    (None, 1)
+    UPDATE address SET user_id=? WHERE address.id = ?
+    (None, 2)
+    DELETE FROM user WHERE user.id = ?
+    (1,)
+    COMMIT
+
+``delete`` cascade is more often than not used in conjunction with
+:ref:`cascade_delete_orphan` cascade, which will emit a DELETE for the related
+row if the "child" object is deassociated from the parent.  The combination
+of ``delete`` and ``delete-orphan`` cascade covers both situations where
+SQLAlchemy has to decide between setting a foreign key column to NULL versus
+deleting the row entirely.
+
+.. topic:: ORM-level "delete" cascade vs. FOREIGN KEY level "ON DELETE" cascade
+
+    The behavior of SQLAlchemy's "delete" cascade has a lot of overlap with the
+    ``ON DELETE CASCADE`` feature of a database foreign key, as well
+    as with that of the ``ON DELETE SET NULL`` foreign key setting when "delete"
+    cascade is not specified.   Database level "ON DELETE" cascades are specific to the
+    "FOREIGN KEY" construct of the relational database; SQLAlchemy allows
+    configuration of these schema-level constructs at the :term:`DDL` level
+    using options on :class:`.ForeignKeyConstraint` which are described
+    at :ref:`on_update_on_delete`.
+
+    It is important to note the differences between the ORM and the relational
+    database's notion of "cascade" as well as how they integrate:
+
+    * A database level ``ON DELETE`` cascade is configured effectively
+      on the **many-to-one** side of the relationship; that is, we configure
+      it relative to the ``FOREIGN KEY`` constraint that is the "many" side
+      of a relationship.  At the ORM level, **this direction is reversed**.
+      SQLAlchemy handles the deletion of "child" objects relative to a
+      "parent" from the "parent" side, which means that ``delete`` and
+      ``delete-orphan`` cascade are configured on the **one-to-many**
+      side.
+
+    * Database level foreign keys with no ``ON DELETE`` setting
+      are often used to **prevent** a parent
+      row from being removed, as it would necessarily leave an unhandled
+      related row present.  If this behavior is desired in a one-to-many
+      relationship, SQLAlchemy's default behavior of setting a foreign key
+      to ``NULL`` can be caught in one of two ways:
+
+        * The easiest and most common is just to to set the
+          foreign-key-holding column to ``NOT NULL`` at the database schema
+          level.  An attempt by SQLAlchemy to set the column to NULL will
+          fail with a simple NOT NULL constraint exception.
+
+        * The other, more special case way is to set the :paramref:`~.relationship.passive_deletes`
+          flag to the string ``"all"``.  This has the effect of entirely
+          disabling SQLAlchemy's behavior of setting the foreign key column
+          to NULL, and a DELETE will be emitted for the parent row without
+          any affect on the child row, even if the child row is present
+          in memory. This may be desirable in the case when
+          database-level foreign key triggers, either special ``ON DELETE`` settings
+          or otherwise, need to be activated in all cases when a parent row is deleted.
+
+    * Database level ``ON DELETE`` cascade is **vastly more efficient**
+      than that of SQLAlchemy.  The database can chain a series of cascade
+      operations across many relationships at once; e.g. if row A is deleted,
+      all the related rows in table B can be deleted, and all the C rows related
+      to each of those B rows, and on and on, all within the scope of a single
+      DELETE statement.  SQLAlchemy on the other hand, in order to support
+      the cascading delete operation fully, has to individually load each
+      related collection in order to target all rows that then may have further
+      related collections.  That is, SQLAlchemy isn't sophisticated enough
+      to emit a DELETE for all those related rows at once within this context.
+
+    * SQLAlchemy doesn't **need** to be this sophisticated, as we instead provide
+      smooth integration with the database's own ``ON DELETE`` functionality,
+      by using the :paramref:`~.relationship.passive_deletes` option in conjunction
+      with properly configured foreign key constraints.   Under this behavior,
+      SQLAlchemy only emits DELETE for those rows that are already locally
+      present in the :class:`.Session`; for any collections that are unloaded,
+      it leaves them to the database to handle, rather than emitting a SELECT
+      for them.  The section :ref:`passive_deletes` provides an example of this use.
+
+    * While database-level ``ON DELETE`` functionality works only on the "many"
+      side of a relationship, SQLAlchemy's "delete" cascade
+      has **limited** ability to operate in the *reverse* direction as well,
+      meaning it can be configured on the "many" side to delete an object
+      on the "one" side when the reference on the "many" side is deleted.  However
+      this can easily result in constraint violations if there are other objects
+      referring to this "one" side from the "many", so it typically is only
+      useful when a relationship is in fact a "one to one".  The
+      :paramref:`~.relationship.single_parent` flag should be used to establish
+      an in-Python assertion for this case.
+
+
+When using a :func:`.relationship` that also includes a many-to-many
+table using the :paramref:`~.relationship.secondary` option, SQLAlchemy's
+delete cascade handles the rows in this many-to-many table automatically.
+Just like, as described in :ref:`relationships_many_to_many_deletion`,
+the addition or removal of an object from a many-to-many collection
+results in the INSERT or DELETE of a row in the many-to-many table,
+the ``delete`` cascade, when activated as the result of a parent object
+delete operation, will DELETE not just the row in the "child" table but also
+in the many-to-many table.
+
+.. _cascade_delete_orphan:
+
+delete-orphan
+-------------
+
+``delete-orphan`` cascade adds behavior to the ``delete`` cascade,
+such that a child object will be marked for deletion when it is
+de-associated from the parent, not just when the parent is marked
+for deletion.   This is a common feature when dealing with a related
+object that is "owned" by its parent, with a NOT NULL foreign key,
+so that removal of the item from the parent collection results
+in its deletion.
+
+``delete-orphan`` cascade implies that each child object can only
+have one parent at a time, so is configured in the vast majority of cases
+on a one-to-many relationship.   Setting it on a many-to-one or
+many-to-many relationship is more awkward; for this use case,
+SQLAlchemy requires that the :func:`~sqlalchemy.orm.relationship`
+be configured with the :paramref:`~.relationship.single_parent` argument,
+establishes Python-side validation that ensures the object
+is associated with only one parent at a time.
+
+.. _cascade_merge:
+
+merge
+-----
+
+``merge`` cascade indicates that the :meth:`.Session.merge`
+operation should be propagated from a parent that's the subject
+of the :meth:`.Session.merge` call down to referred objects.
+This cascade is also on by default.
+
+.. _cascade_refresh_expire:
+
+refresh-expire
+--------------
+
+``refresh-expire`` is an uncommon option, indicating that the
+:meth:`.Session.expire` operation should be propagated from a parent
+down to referred objects.   When using :meth:`.Session.refresh`,
+the referred objects are expired only, but not actually refreshed.
+
+.. _cascade_expunge:
+
+expunge
+-------
+
+``expunge`` cascade indicates that when the parent object is removed
+from the :class:`.Session` using :meth:`.Session.expunge`, the
+operation should be propagated down to referred objects.
 
 .. _backref_cascade:
 
 Controlling Cascade on Backrefs
 -------------------------------
 
-The ``save-update`` cascade takes place on backrefs by default.   This means
-that, given a mapping such as this::
+The :ref:`cascade_save_update` cascade by default takes place on attribute change events
+emitted from backrefs.  This is probably a confusing statement more
+easily described through demonstration; it means that, given a mapping such as this::
 
     mapper(Order, order_table, properties={
         'items' : relationship(Item, backref='order')

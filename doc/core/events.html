@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.3',
+          VERSION:     '0.9.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
+        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
 
 
     </div>
@@ -1281,6 +1281,115 @@ handler to the given <a class="reference internal" href="connections.html#sqlalc
 <p class="last"><a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.set_connection_execution_options" title="sqlalchemy.events.ConnectionEvents.set_connection_execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.set_connection_execution_options()</span></tt></a> - event
 which is called when <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> is called.</p>
 </div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.events.DialectEvents">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.events.</tt><tt class="descname">DialectEvents</tt><a class="headerlink" href="#sqlalchemy.events.DialectEvents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.event.base.Events" title="sqlalchemy.event.base.Events"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.event.base.Events</span></tt></a></p>
+<p>event interface for execution-replacement functions.</p>
+<p>These events allow direct instrumentation and replacement
+of key dialect functions which interact with the DBAPI.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.events.DialectEvents" title="sqlalchemy.events.DialectEvents"><tt class="xref py py-class docutils literal"><span class="pre">DialectEvents</span></tt></a> hooks should be considered <strong>semi-public</strong>
+and experimental.
+These hooks are not for general use and are only for those situations where
+intricate re-statement of DBAPI mechanics must be injected onto an existing
+dialect.   For general-use statement-interception events, please
+use the <a class="reference internal" href="#sqlalchemy.events.ConnectionEvents" title="sqlalchemy.events.ConnectionEvents"><tt class="xref py py-class docutils literal"><span class="pre">ConnectionEvents</span></tt></a> interface.</p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.before_cursor_execute" title="sqlalchemy.events.ConnectionEvents.before_cursor_execute"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.before_cursor_execute()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.before_execute" title="sqlalchemy.events.ConnectionEvents.before_execute"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.before_execute()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.after_cursor_execute" title="sqlalchemy.events.ConnectionEvents.after_cursor_execute"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.after_cursor_execute()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.after_execute" title="sqlalchemy.events.ConnectionEvents.after_execute"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.after_execute()</span></tt></a></p>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.4.</span></p>
+</div>
+<dl class="method">
+<dt id="sqlalchemy.events.DialectEvents.do_execute">
+<tt class="descname">do_execute</tt><big>(</big><em>cursor</em>, <em>statement</em>, <em>parameters</em>, <em>context</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.DialectEvents.do_execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive a cursor to have execute() called.</p>
+<div class="event-signatures container">
+<p>Example argument forms:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
+
+<span class="c"># standard decorator style</span>
+<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeEngine</span><span class="p">,</span> <span class="s">&#39;do_execute&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">receive_do_execute</span><span class="p">(</span><span class="n">cursor</span><span class="p">,</span> <span class="n">statement</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="s">&quot;listen for the &#39;do_execute&#39; event&quot;</span>
+
+    <span class="c"># ... (event handling logic) ...</span>
+
+<span class="c"># named argument style (new in 0.9)</span>
+<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeEngine</span><span class="p">,</span> <span class="s">&#39;do_execute&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">receive_do_execute</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s">&quot;listen for the &#39;do_execute&#39; event&quot;</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;cursor&#39;</span><span class="p">]</span>
+    <span class="n">statement</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;statement&#39;</span><span class="p">]</span>
+
+    <span class="c"># ... (event handling logic) ...</span></pre></div>
+</div>
+</div>
+<p>Return the value True to halt further events from invoking,
+and to indicate that the cursor execution has already taken
+place within the event handler.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.events.DialectEvents.do_execute_no_params">
+<tt class="descname">do_execute_no_params</tt><big>(</big><em>cursor</em>, <em>statement</em>, <em>context</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.DialectEvents.do_execute_no_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive a cursor to have execute() with no parameters called.</p>
+<div class="event-signatures container">
+<p>Example argument forms:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
+
+<span class="c"># standard decorator style</span>
+<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeEngine</span><span class="p">,</span> <span class="s">&#39;do_execute_no_params&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">receive_do_execute_no_params</span><span class="p">(</span><span class="n">cursor</span><span class="p">,</span> <span class="n">statement</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="s">&quot;listen for the &#39;do_execute_no_params&#39; event&quot;</span>
+
+    <span class="c"># ... (event handling logic) ...</span></pre></div>
+</div>
+</div>
+<p>Return the value True to halt further events from invoking,
+and to indicate that the cursor execution has already taken
+place within the event handler.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.events.DialectEvents.do_executemany">
+<tt class="descname">do_executemany</tt><big>(</big><em>cursor</em>, <em>statement</em>, <em>parameters</em>, <em>context</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.DialectEvents.do_executemany" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive a cursor to have executemany() called.</p>
+<div class="event-signatures container">
+<p>Example argument forms:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
+
+<span class="c"># standard decorator style</span>
+<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeEngine</span><span class="p">,</span> <span class="s">&#39;do_executemany&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">receive_do_executemany</span><span class="p">(</span><span class="n">cursor</span><span class="p">,</span> <span class="n">statement</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="s">&quot;listen for the &#39;do_executemany&#39; event&quot;</span>
+
+    <span class="c"># ... (event handling logic) ...</span>
+
+<span class="c"># named argument style (new in 0.9)</span>
+<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeEngine</span><span class="p">,</span> <span class="s">&#39;do_executemany&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">receive_do_executemany</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s">&quot;listen for the &#39;do_executemany&#39; event&quot;</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;cursor&#39;</span><span class="p">]</span>
+    <span class="n">statement</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;statement&#39;</span><span class="p">]</span>
+
+    <span class="c"># ... (event handling logic) ...</span></pre></div>
+</div>
+</div>
+<p>Return the value True to halt further events from invoking,
+and to indicate that the cursor execution has already taken
+place within the event handler.</p>
 </dd></dl>
 
 </dd></dl>

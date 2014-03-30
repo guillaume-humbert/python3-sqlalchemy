@@ -243,10 +243,7 @@ class AssociationProxy(interfaces._InspectionAttr):
 
         if self.scalar:
             target = getattr(obj, self.target_collection)
-            if target is not None:
-                return self._scalar_get(target)
-            else:
-                return None
+            return self._scalar_get(target)
         else:
             try:
                 # If the owning instance is reborn (orm session resurrect,
@@ -291,7 +288,8 @@ class AssociationProxy(interfaces._InspectionAttr):
 
     def _default_getset(self, collection_class):
         attr = self.value_attr
-        getter = operator.attrgetter(attr)
+        _getter = operator.attrgetter(attr)
+        getter = lambda target: _getter(target) if target is not None else None
         if collection_class is dict:
             setter = lambda o, k, v: setattr(o, attr, v)
         else:
@@ -542,11 +540,12 @@ class _AssociationList(_AssociationCollection):
                 stop = index.stop
             step = index.step or 1
 
+            start = index.start or 0
             rng = list(range(index.start or 0, stop, step))
             if step == 1:
                 for i in rng:
-                    del self[index.start]
-                i = index.start
+                    del self[start]
+                i = start
                 for item in value:
                     self.insert(i, item)
                     i += 1

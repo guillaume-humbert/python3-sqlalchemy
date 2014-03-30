@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.3',
+          VERSION:     '0.9.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
+        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
 
 
     </div>
@@ -360,7 +360,7 @@ is accepted as well, matching the name of the table as stored in <tt class="docu
                     <span class="n">backref</span><span class="o">=</span><span class="s">&quot;parents&quot;</span><span class="p">)</span></pre></div>
 </div>
 <div class="section" id="deleting-rows-from-the-many-to-many-table">
-<h4>Deleting Rows from the Many to Many Table<a class="headerlink" href="#deleting-rows-from-the-many-to-many-table" title="Permalink to this headline">¶</a></h4>
+<span id="relationships-many-to-many-deletion"></span><h4>Deleting Rows from the Many to Many Table<a class="headerlink" href="#deleting-rows-from-the-many-to-many-table" title="Permalink to this headline">¶</a></h4>
 <p>A behavior which is unique to the <a class="reference internal" href="#sqlalchemy.orm.relationship.params.secondary" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">secondary</span></tt></a> argument to <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>
 is that the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> which is specified here is automatically subject
 to INSERT and DELETE statements, as objects are added or removed from the collection.
@@ -1270,6 +1270,23 @@ and <a class="reference internal" href="#sqlalchemy.orm.relationship.params.seco
 In the Declarative form above, as we are declaring these conditions within the Python
 block that corresponds to the <tt class="docutils literal"><span class="pre">Node</span></tt> class, the <tt class="docutils literal"><span class="pre">id</span></tt> variable is available directly
 as the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> object we wish to join with.</p>
+<p>Alternatively, we can define the <a class="reference internal" href="#sqlalchemy.orm.relationship.params.primaryjoin" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">primaryjoin</span></tt></a>
+and <a class="reference internal" href="#sqlalchemy.orm.relationship.params.secondaryjoin" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">secondaryjoin</span></tt></a> arguments using strings, which is suitable
+in the case that our configuration does not have either the <tt class="docutils literal"><span class="pre">Node.id</span></tt> column
+object available yet or the <tt class="docutils literal"><span class="pre">node_to_node</span></tt> table perhaps isn&#8217;t yet available.
+When referring to a plain <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object in a declarative string, we
+use the string name of the table as it is present in the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;node&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">right_nodes</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Node&quot;</span><span class="p">,</span>
+                        <span class="n">secondary</span><span class="o">=</span><span class="s">&quot;node_to_node&quot;</span><span class="p">,</span>
+                        <span class="n">primaryjoin</span><span class="o">=</span><span class="s">&quot;Node.id==node_to_node.c.left_node_id&quot;</span><span class="p">,</span>
+                        <span class="n">secondaryjoin</span><span class="o">=</span><span class="s">&quot;Node.id==node_to_node.c.right_node_id&quot;</span><span class="p">,</span>
+                        <span class="n">backref</span><span class="o">=</span><span class="s">&quot;left_nodes&quot;</span>
+    <span class="p">)</span></pre></div>
+</div>
 <p>A classical mapping situation here is similar, where <tt class="docutils literal"><span class="pre">node_to_node</span></tt> can be joined
 to <tt class="docutils literal"><span class="pre">node.c.id</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Table</span><span class="p">,</span> <span class="n">MetaData</span>
@@ -1816,70 +1833,31 @@ of backref specification.</p>
 <li><span class="target" id="sqlalchemy.orm.relationship.params.cascade"></span><strong>cascade</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.cascade">¶</a> &#8211; <p>a comma-separated list of cascade rules which determines how
 Session operations should be &#8220;cascaded&#8221; from parent to child.
 This defaults to <tt class="docutils literal"><span class="pre">False</span></tt>, which means the default cascade
-should be used.  The default value is <tt class="docutils literal"><span class="pre">&quot;save-update,</span> <span class="pre">merge&quot;</span></tt>.</p>
-<p>Available cascades are:</p>
-<ul>
-<li><tt class="docutils literal"><span class="pre">save-update</span></tt> - cascade the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">Session.add()</span></tt></a>
-operation.  This cascade applies both to future and
-past calls to <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">Session.add()</span></tt></a>,
-meaning new items added to a collection or scalar relationship
-get placed into the same session as that of the parent, and
-also applies to items which have been removed from this
-relationship but are still part of unflushed history.</li>
-<li><tt class="docutils literal"><span class="pre">merge</span></tt> - cascade the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-meth docutils literal"><span class="pre">Session.merge()</span></tt></a>
-operation</li>
-<li><tt class="docutils literal"><span class="pre">expunge</span></tt> - cascade the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.expunge" title="sqlalchemy.orm.session.Session.expunge"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expunge()</span></tt></a>
-operation</li>
-<li><tt class="docutils literal"><span class="pre">delete</span></tt> - cascade the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.delete" title="sqlalchemy.orm.session.Session.delete"><tt class="xref py py-meth docutils literal"><span class="pre">Session.delete()</span></tt></a>
-operation</li>
-<li><tt class="docutils literal"><span class="pre">delete-orphan</span></tt> - if an item of the child&#8217;s type is
-detached from its parent, mark it for deletion.<div class="versionchanged">
-<p><span>Changed in version 0.7: </span>This option does not prevent
-a new instance of the child object from being persisted
-without a parent to start with; to constrain against
-that case, ensure the child&#8217;s foreign key column(s)
-is configured as NOT NULL</p>
-</div>
-</li>
-<li><tt class="docutils literal"><span class="pre">refresh-expire</span></tt> - cascade the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire()</span></tt></a>
-and <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">Session.refresh()</span></tt></a> operations</li>
-<li><tt class="docutils literal"><span class="pre">all</span></tt> - shorthand for &#8220;save-update,merge, refresh-expire,
-expunge, delete&#8221;</li>
-</ul>
+should be used - this default cascade is <tt class="docutils literal"><span class="pre">&quot;save-update,</span> <span class="pre">merge&quot;</span></tt>.</p>
+<p>The available cascades are <tt class="docutils literal"><span class="pre">save-update</span></tt>, <tt class="docutils literal"><span class="pre">merge</span></tt>,
+<tt class="docutils literal"><span class="pre">expunge</span></tt>, <tt class="docutils literal"><span class="pre">delete</span></tt>, <tt class="docutils literal"><span class="pre">delete-orphan</span></tt>, and <tt class="docutils literal"><span class="pre">refresh-expire</span></tt>.
+An additional option, <tt class="docutils literal"><span class="pre">all</span></tt> indicates shorthand for
+<tt class="docutils literal"><span class="pre">&quot;save-update,</span> <span class="pre">merge,</span> <span class="pre">refresh-expire,</span>
+<span class="pre">expunge,</span> <span class="pre">delete&quot;</span></tt>, and is often used as in <tt class="docutils literal"><span class="pre">&quot;all,</span> <span class="pre">delete-orphan&quot;</span></tt>
+to indicate that related objects should follow along with the
+parent object in all cases, and be deleted when de-associated.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p><a class="reference internal" href="session.html#unitofwork-cascades"><em>Cascades</em></a> - Introductory documentation and
-examples.</p>
+<p><a class="reference internal" href="session.html#unitofwork-cascades"><em>Cascades</em></a> - Full detail on each of the available
+cascade options.</p>
 <p class="last"><a class="reference internal" href="tutorial.html#tutorial-delete-cascade"><em>Configuring delete/delete-orphan Cascade</em></a> - Tutorial example describing
 a delete cascade.</p>
 </div>
 </li>
 <li><span class="target" id="sqlalchemy.orm.relationship.params.cascade_backrefs"></span><strong>cascade_backrefs=True</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.cascade_backrefs">¶</a> &#8211; <p>a boolean value indicating if the <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade should
 operate along an assignment event intercepted by a backref.
-When set to <tt class="docutils literal"><span class="pre">False</span></tt>,
-the attribute managed by this relationship will not cascade
-an incoming transient object into the session of a
+When set to <tt class="docutils literal"><span class="pre">False</span></tt>, the attribute managed by this relationship
+will not cascade an incoming transient object into the session of a
 persistent parent, if the event is received via backref.</p>
-<p>That is:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">a_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-    <span class="s">&#39;bs&#39;</span><span class="p">:</span><span class="n">relationship</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&quot;a&quot;</span><span class="p">,</span> <span class="n">cascade_backrefs</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="p">})</span></pre></div>
-</div>
-<p>If an <tt class="docutils literal"><span class="pre">A()</span></tt> is present in the session, assigning it to
-the &#8220;a&#8221; attribute on a transient <tt class="docutils literal"><span class="pre">B()</span></tt> will not place
-the <tt class="docutils literal"><span class="pre">B()</span></tt> into the session.   To set the flag in the other
-direction, i.e. so that <tt class="docutils literal"><span class="pre">A().bs.append(B())</span></tt> won&#8217;t add
-a transient <tt class="docutils literal"><span class="pre">A()</span></tt> into the session for a persistent <tt class="docutils literal"><span class="pre">B()</span></tt>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">a_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-    <span class="s">&#39;bs&#39;</span><span class="p">:</span><span class="n">relationship</span><span class="p">(</span><span class="n">B</span><span class="p">,</span>
-            <span class="n">backref</span><span class="o">=</span><span class="n">backref</span><span class="p">(</span><span class="s">&quot;a&quot;</span><span class="p">,</span> <span class="n">cascade_backrefs</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-        <span class="p">)</span>
-<span class="p">})</span></pre></div>
-</div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="session.html#backref-cascade"><em>Controlling Cascade on Backrefs</em></a> - Introductory documentation and
-examples.</p>
+<p class="last"><a class="reference internal" href="session.html#backref-cascade"><em>Controlling Cascade on Backrefs</em></a> - Full discussion and examples on how
+the <a class="reference internal" href="#sqlalchemy.orm.relationship.params.cascade_backrefs" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">cascade_backrefs</span></tt></a> option is used.</p>
 </div>
 </li>
 <li><span class="target" id="sqlalchemy.orm.relationship.params.collection_class"></span><strong>collection_class</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.collection_class">¶</a> &#8211; <p>a class or callable that returns a new list-holding object. will
@@ -2013,10 +1991,20 @@ generally perform better than outer joins.</p>
 object via many-to-one using local foreign keys that are not nullable,
 or when the reference is one-to-one or a collection that is guaranteed
 to have one or at least one entry.</p>
+<p>If the joined-eager load is chained onto an existing LEFT OUTER JOIN,
+<tt class="docutils literal"><span class="pre">innerjoin=True</span></tt> will be bypassed and the join will continue to
+chain as LEFT OUTER JOIN so that the results don&#8217;t change.  As an alternative,
+specify the value <tt class="docutils literal"><span class="pre">&quot;nested&quot;</span></tt>.  This will instead nest the join
+on the right side, e.g. using the form &#8220;a LEFT OUTER JOIN (b JOIN c)&#8221;.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.4: </span>Added <tt class="docutils literal"><span class="pre">innerjoin=&quot;nested&quot;</span></tt> option to support
+nesting of eager &#8220;inner&#8221; joins.</p>
+</div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="loading.html#what-kind-of-loading"><em>What Kind of Loading to Use ?</em></a> - Discussion of some details of
+<p><a class="reference internal" href="loading.html#what-kind-of-loading"><em>What Kind of Loading to Use ?</em></a> - Discussion of some details of
 various loader options.</p>
+<p class="last"><a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload.params.innerjoin" title="sqlalchemy.orm.joinedload"><tt class="xref py py-paramref docutils literal"><span class="pre">joinedload.innerjoin</span></tt></a> - loader option version</p>
 </div>
 </li>
 <li><span class="target" id="sqlalchemy.orm.relationship.params.join_depth"></span><strong>join_depth</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.relationship.params.join_depth">¶</a> &#8211; <p>when non-<tt class="docutils literal"><span class="pre">None</span></tt>, an integer value indicating how many levels
@@ -2045,8 +2033,8 @@ using a separate SELECT statement, or identity map fetch for
 simple many-to-one references.</li>
 <li><tt class="docutils literal"><span class="pre">joined</span></tt> - items should be loaded &#8220;eagerly&#8221; in the same query as
 that of the parent, using a JOIN or LEFT OUTER JOIN.  Whether
-the join is &#8220;outer&#8221; or not is determined by the <tt class="docutils literal"><span class="pre">innerjoin</span></tt>
-parameter.</li>
+the join is &#8220;outer&#8221; or not is determined by the
+<a class="reference internal" href="#sqlalchemy.orm.relationship.params.innerjoin" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">innerjoin</span></tt></a> parameter.</li>
 <li><tt class="docutils literal"><span class="pre">subquery</span></tt> - items should be loaded &#8220;eagerly&#8221; as the parents are
 loaded, using one additional SQL statement, which issues a JOIN to a
 subquery of the original statement, for each collection requested.</li>

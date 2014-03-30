@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.3',
+          VERSION:     '0.9.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
+        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
 
 
     </div>
@@ -1326,7 +1326,7 @@ be no pending state change on an unloaded attribute.</p>
 <p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2320">#2320</a></p>
 </div>
 <div class="section" id="column-key-is-honored-in-the-select-c-attribute-of-select-with-select-apply-labels">
-<h3><tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt> is honored in the <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.c" title="sqlalchemy.sql.expression.Select.c"><tt class="xref py py-attr docutils literal"><span class="pre">Select.c</span></tt></a> attribute of <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> with <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.apply_labels" title="sqlalchemy.sql.expression.Select.apply_labels"><tt class="xref py py-meth docutils literal"><span class="pre">Select.apply_labels()</span></tt></a><a class="headerlink" href="#column-key-is-honored-in-the-select-c-attribute-of-select-with-select-apply-labels" title="Permalink to this headline">¶</a></h3>
+<h3><a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column.key" title="sqlalchemy.schema.Column.key"><tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt></a> is honored in the <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.c" title="sqlalchemy.sql.expression.Select.c"><tt class="xref py py-attr docutils literal"><span class="pre">Select.c</span></tt></a> attribute of <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> with <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.apply_labels" title="sqlalchemy.sql.expression.Select.apply_labels"><tt class="xref py py-meth docutils literal"><span class="pre">Select.apply_labels()</span></tt></a><a class="headerlink" href="#column-key-is-honored-in-the-select-c-attribute-of-select-with-select-apply-labels" title="Permalink to this headline">¶</a></h3>
 <p>Users of the expression system know that <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.apply_labels" title="sqlalchemy.sql.expression.Select.apply_labels"><tt class="xref py py-meth docutils literal"><span class="pre">Select.apply_labels()</span></tt></a>
 prepends the table name to each column name, affecting the
 names that are available from <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.c" title="sqlalchemy.sql.expression.Select.c"><tt class="xref py py-attr docutils literal"><span class="pre">Select.c</span></tt></a>:</p>
@@ -1334,7 +1334,7 @@ names that are available from <a class="reference internal" href="../core/select
 <span class="n">s</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">table1_col1</span>
 <span class="n">s</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">table1_col2</span></pre></div>
 </div>
-<p>Before 0.8, if the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> had a different <tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt>, this
+<p>Before 0.8, if the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> had a different <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column.key" title="sqlalchemy.schema.Column.key"><tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt></a>, this
 key would be ignored, inconsistently versus when
 <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.apply_labels" title="sqlalchemy.sql.expression.Select.apply_labels"><tt class="xref py py-meth docutils literal"><span class="pre">Select.apply_labels()</span></tt></a> were not used:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># before 0.8</span>
@@ -1349,7 +1349,7 @@ key would be ignored, inconsistently versus when
 <span class="n">s</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">table1_column_one</span> <span class="c"># would raise AttributeError</span>
 <span class="n">s</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">table1_col1</span> <span class="c"># would be accessible like this</span></pre></div>
 </div>
-<p>In 0.8, <tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt> is honored in both cases:</p>
+<p>In 0.8, <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column.key" title="sqlalchemy.schema.Column.key"><tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt></a> is honored in both cases:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># with 0.8</span>
 <span class="n">table1</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;t1&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col1&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s">&#39;column_one&#39;</span><span class="p">)</span>
@@ -1365,9 +1365,9 @@ key would be ignored, inconsistently versus when
 <p>All other behavior regarding &#8220;name&#8221; and &#8220;key&#8221; are the same,
 including that the rendered SQL will still use the form
 <tt class="docutils literal"><span class="pre">&lt;tablename&gt;_&lt;colname&gt;</span></tt> - the emphasis here was on
-preventing the <tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt> contents from being rendered into the
+preventing the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column.key" title="sqlalchemy.schema.Column.key"><tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt></a> contents from being rendered into the
 <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement so that there are no issues with
-special/ non-ascii characters used in the <tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt>.</p>
+special/ non-ascii characters used in the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column.key" title="sqlalchemy.schema.Column.key"><tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt></a>.</p>
 <p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2397">#2397</a></p>
 </div>
 <div class="section" id="single-parent-warning-is-now-an-error">

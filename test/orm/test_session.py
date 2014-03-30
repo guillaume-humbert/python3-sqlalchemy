@@ -209,6 +209,7 @@ class BindTest(_fixtures.FixtureTest):
 
 class ExecutionTest(_fixtures.FixtureTest):
     run_inserts = None
+    __backend__ = True
 
     @testing.requires.sequences
     def test_sequence_execute(self):
@@ -258,6 +259,7 @@ class ExecutionTest(_fixtures.FixtureTest):
 
 class TransScopingTest(_fixtures.FixtureTest):
     run_inserts = None
+    __prefer_requires__ = "independent_connections",
 
     def test_no_close_on_flush(self):
         """Flush() doesn't close a connection the session didn't open"""
@@ -394,6 +396,7 @@ class SessionUtilTest(_fixtures.FixtureTest):
 class SessionStateTest(_fixtures.FixtureTest):
     run_inserts = None
 
+    __prefer_requires__ = ('independent_connections', )
 
     def test_info(self):
         s = Session()
@@ -822,6 +825,7 @@ class SessionStateTest(_fixtures.FixtureTest):
         assert object_session(u1) is None
 
 class SessionStateWFixtureTest(_fixtures.FixtureTest):
+    __backend__ = True
 
     def test_autoflush_rollback(self):
         Address, addresses, users, User = (self.classes.Address,
@@ -1600,6 +1604,7 @@ class SessionInterface(fixtures.TestBase):
 
 class TLTransactionTest(fixtures.MappedTest):
     run_dispose_bind = 'once'
+    __backend__ = True
 
     @classmethod
     def setup_bind(cls):

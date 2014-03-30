@@ -28,6 +28,7 @@ class NaturalPKTest(fixtures.MappedTest):
     # MySQL 5.5 on Windows crashes (the entire server, not the client)
     # if you screw around with ON UPDATE CASCADE type of stuff.
     __requires__ = 'skip_mysql_on_windows', 'on_update_or_deferrable_fks'
+    __backend__ = True
 
     @classmethod
     def define_tables(cls, metadata):
@@ -388,10 +389,7 @@ class NaturalPKTest(fixtures.MappedTest):
     def test_manytomany_passive(self):
         self._test_manytomany(True)
 
-    # mysqldb executemany() of the association table fails to
-    # report the correct row count
-    @testing.fails_if(lambda: testing.against('mysql')
-        and not (testing.against('+zxjdbc') or testing.against('+cymysql')))
+    @testing.requires.non_updating_cascade
     def test_manytomany_nonpassive(self):
         self._test_manytomany(False)
 
@@ -453,6 +451,7 @@ class NaturalPKTest(fixtures.MappedTest):
 
 class TransientExceptionTesst(_fixtures.FixtureTest):
     run_inserts = None
+    __backend__ = True
 
     def test_transient_exception(self):
         """An object that goes from a pk value to transient/pending
@@ -492,6 +491,7 @@ class ReversePKsTest(fixtures.MappedTest):
     """reverse the primary keys of two entities and ensure bookkeeping
     succeeds."""
 
+    __backend__ = True
 
     @classmethod
     def define_tables(cls, metadata):
@@ -553,6 +553,7 @@ class SelfReferentialTest(fixtures.MappedTest):
     __unsupported_on__ = ('mssql', 'mysql')
 
     __requires__ = 'on_update_or_deferrable_fks',
+    __backend__ = True
 
     @classmethod
     def define_tables(cls, metadata):
@@ -657,6 +658,7 @@ class SelfReferentialTest(fixtures.MappedTest):
 
 class NonPKCascadeTest(fixtures.MappedTest):
     __requires__ = 'skip_mysql_on_windows', 'on_update_or_deferrable_fks'
+    __backend__ = True
 
     @classmethod
     def define_tables(cls, metadata):
@@ -762,6 +764,7 @@ class NonPKCascadeTest(fixtures.MappedTest):
 class CascadeToFKPKTest(fixtures.MappedTest, testing.AssertsCompiledSQL):
     """A primary key mutation cascades onto a foreign key that is itself a
     primary key."""
+    __backend__ = True
 
     @classmethod
     def define_tables(cls, metadata):
@@ -792,8 +795,7 @@ class CascadeToFKPKTest(fixtures.MappedTest, testing.AssertsCompiledSQL):
     def test_onetomany_passive(self):
         self._test_onetomany(True)
 
-    # PG etc. need passive=True to allow PK->PK cascade
-    @testing.fails_on_everything_except('sqlite', 'oracle', '+zxjdbc')
+    @testing.requires.non_updating_cascade
     def test_onetomany_nonpassive(self):
         self._test_onetomany(False)
 
@@ -870,7 +872,7 @@ class CascadeToFKPKTest(fixtures.MappedTest, testing.AssertsCompiledSQL):
     def test_change_m2o_passive(self):
         self._test_change_m2o(True)
 
-    @testing.fails_on_everything_except('sqlite', 'oracle', '+zxjdbc')
+    @testing.requires.non_updating_cascade
     def test_change_m2o_nonpassive(self):
         self._test_change_m2o(False)
 
@@ -1016,6 +1018,7 @@ class JoinedInheritanceTest(fixtures.MappedTest):
     __unsupported_on__ = ('mssql',)
 
     __requires__ = 'skip_mysql_on_windows',
+    __backend__ = True
 
     @classmethod
     def define_tables(cls, metadata):
@@ -1056,8 +1059,7 @@ class JoinedInheritanceTest(fixtures.MappedTest):
     def test_pk_passive(self):
         self._test_pk(True)
 
-    # PG etc. need passive=True to allow PK->PK cascade
-    @testing.fails_on_everything_except('sqlite', 'oracle', '+zxjdbc')
+    @testing.requires.non_updating_cascade
     def test_pk_nonpassive(self):
         self._test_pk(False)
 
@@ -1066,8 +1068,7 @@ class JoinedInheritanceTest(fixtures.MappedTest):
         self._test_fk(True)
 
     # PG etc. need passive=True to allow PK->PK cascade
-    @testing.fails_on_everything_except('sqlite', 'mysql+zxjdbc', 'oracle',
-                                                'postgresql+zxjdbc')
+    @testing.requires.non_updating_cascade
     def test_fk_nonpassive(self):
         self._test_fk(False)
 

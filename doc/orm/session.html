@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.3',
+          VERSION:     '0.9.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
+        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
 
 
     </div>
@@ -166,11 +166,21 @@
 <li><a class="reference internal" href="#rolling-back">Rolling Back</a></li>
 <li><a class="reference internal" href="#expunging">Expunging</a></li>
 <li><a class="reference internal" href="#closing">Closing</a></li>
-<li><a class="reference internal" href="#refreshing-expiring">Refreshing / Expiring</a></li>
+<li><a class="reference internal" href="#refreshing-expiring">Refreshing / Expiring</a><ul>
+<li><a class="reference internal" href="#what-actually-loads">What Actually Loads</a></li>
+<li><a class="reference internal" href="#when-to-expire-or-refresh">When to Expire or Refresh</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#session-attributes">Session Attributes</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#cascades">Cascades</a><ul>
+<li><a class="reference internal" href="#save-update">save-update</a></li>
+<li><a class="reference internal" href="#delete">delete</a></li>
+<li><a class="reference internal" href="#delete-orphan">delete-orphan</a></li>
+<li><a class="reference internal" href="#merge">merge</a></li>
+<li><a class="reference internal" href="#refresh-expire">refresh-expire</a></li>
+<li><a class="reference internal" href="#expunge">expunge</a></li>
 <li><a class="reference internal" href="#controlling-cascade-on-backrefs">Controlling Cascade on Backrefs</a></li>
 </ul>
 </li>
@@ -486,18 +496,15 @@ may also be committed at this point, or alternatively the application may
 opt for an explicit commit pattern, only committing for those requests
 where one is warranted, but still always tearing down the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>
 unconditionally at the end.</p>
-<p>Most web frameworks include infrastructure to establish a single
-<a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>, associated with the request, which is correctly
-constructed and torn down corresponding
-torn down at the end of a request.   Such infrastructure pieces
-include products such as <a class="reference external" href="http://packages.python.org/Flask-SQLAlchemy/">Flask-SQLAlchemy</a>,
+<p>Some web frameworks include infrastructure to assist in the task
+of aligning the lifespan of a <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> with that of a web request.
+This includes products such as <a class="reference external" href="http://packages.python.org/Flask-SQLAlchemy/">Flask-SQLAlchemy</a>,
 for usage in conjunction with the Flask web framework,
 and <a class="reference external" href="http://pypi.python.org/pypi/zope.sqlalchemy">Zope-SQLAlchemy</a>,
-for usage in conjunction with the Pyramid and Zope frameworks.
-SQLAlchemy strongly recommends that these products be used as
-available.</p>
-<p>In those situations where integration libraries are not available,
-SQLAlchemy includes its own &#8220;helper&#8221; class known as
+typically used with the Pyramid framework.
+SQLAlchemy recommends that these products be used as available.</p>
+<p>In those situations where the integration libraries are not
+provided or are insufficient, SQLAlchemy includes its own &#8220;helper&#8221; class known as
 <a class="reference internal" href="#sqlalchemy.orm.scoping.scoped_session" title="sqlalchemy.orm.scoping.scoped_session"><tt class="xref py py-class docutils literal"><span class="pre">scoped_session</span></tt></a>.   A tutorial on the usage of this object
 is at <a class="reference internal" href="#unitofwork-contextual"><em>Contextual/Thread-local Sessions</em></a>.   It provides both a quick way
 to associate a <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> with the current thread, as well as
@@ -877,7 +884,7 @@ and made our <tt class="docutils literal"><span class="pre">a1</span></tt> objec
 </div>
 <p>Above, our <tt class="docutils literal"><span class="pre">a1</span></tt> is already pending in the session. The
 subsequent <a class="reference internal" href="#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-meth docutils literal"><span class="pre">merge()</span></tt></a> operation essentially
-does nothing. Cascade can be configured via the <tt class="docutils literal"><span class="pre">cascade</span></tt>
+does nothing. Cascade can be configured via the <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.cascade" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">cascade</span></tt></a>
 option on <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>, although in this case it
 would mean removing the <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade from the
 <tt class="docutils literal"><span class="pre">User.addresses</span></tt> relationship - and usually, that behavior
@@ -1119,70 +1126,201 @@ transactional/connection resources. When connections are returned to the
 connection pool, transactional state is rolled back as well.</p>
 </div>
 <div class="section" id="refreshing-expiring">
-<h3>Refreshing / Expiring<a class="headerlink" href="#refreshing-expiring" title="Permalink to this headline">¶</a></h3>
-<p>The Session normally works in the context of an ongoing transaction (with the
-default setting of autoflush=False). Most databases offer &#8220;isolated&#8221;
-transactions - this refers to a series of behaviors that allow the work within
-a transaction to remain consistent as time passes, regardless of the
-activities outside of that transaction. A key feature of a high degree of
-transaction isolation is that emitting the same SELECT statement twice will
-return the same results as when it was called the first time, even if the data
-has been modified in another transaction.</p>
-<p>For this reason, the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> gains very efficient behavior by
-loading the attributes of each instance only once.   Subsequent reads of the
-same row in the same transaction are assumed to have the same value.  The
-user application also gains directly from this assumption, that the transaction
-is regarded as a temporary shield against concurrent changes - a good application
-will ensure that isolation levels are set appropriately such that this assumption
-can be made, given the kind of data being worked with.</p>
-<p>To clear out the currently loaded state on an instance, the instance or its individual
-attributes can be marked as &#8220;expired&#8221;, which results in a reload to
-occur upon next access of any of the instance&#8217;s attrbutes.  The instance
-can also be immediately reloaded from the database.   The <a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">expire()</span></tt></a>
-and <a class="reference internal" href="#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">refresh()</span></tt></a> methods achieve this:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># immediately re-load attributes on obj1, obj2</span>
-<span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">obj1</span><span class="p">)</span>
-<span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">obj2</span><span class="p">)</span>
-
-<span class="c"># expire objects obj1, obj2, attributes will be reloaded</span>
-<span class="c"># on the next access:</span>
-<span class="n">session</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="n">obj1</span><span class="p">)</span>
-<span class="n">session</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="n">obj2</span><span class="p">)</span></pre></div>
+<span id="session-expire"></span><h3>Refreshing / Expiring<a class="headerlink" href="#refreshing-expiring" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="../glossary.html#term-expiring"><em class="xref std std-term">Expiring</em></a> means that the database-persisted data held inside a series
+of object attributes is erased, in such a way that when those attributes
+are next accessed, a SQL query is emitted which will refresh that data from
+the database.</p>
+<p>When we talk about expiration of data we are usually talking about an object
+that is in the <a class="reference internal" href="../glossary.html#term-persistent"><em class="xref std std-term">persistent</em></a> state.   For example, if we load an object
+as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">user</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;user1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span></pre></div>
 </div>
-<p>When an expired object reloads, all non-deferred column-based attributes are
-loaded in one query. Current behavior for expired relationship-based
-attributes is that they load individually upon access - this behavior may be
-enhanced in a future release. When a refresh is invoked on an object, the
-ultimate operation is equivalent to a <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.get" title="sqlalchemy.orm.query.Query.get"><tt class="xref py py-meth docutils literal"><span class="pre">Query.get()</span></tt></a>, so any relationships
-configured with eager loading should also load within the scope of the refresh
-operation.</p>
-<p><a class="reference internal" href="#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">refresh()</span></tt></a> and
-<a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">expire()</span></tt></a> also support being passed a
-list of individual attribute names in which to be refreshed. These names can
-refer to any attribute, column-based or relationship based:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># immediately re-load the attributes &#39;hello&#39;, &#39;world&#39; on obj1, obj2</span>
-<span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">obj1</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;hello&#39;</span><span class="p">,</span> <span class="s">&#39;world&#39;</span><span class="p">])</span>
-<span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">obj2</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;hello&#39;</span><span class="p">,</span> <span class="s">&#39;world&#39;</span><span class="p">])</span>
-
-<span class="c"># expire the attributes &#39;hello&#39;, &#39;world&#39; objects obj1, obj2, attributes will be reloaded</span>
-<span class="c"># on the next access:</span>
-<span class="n">session</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="n">obj1</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;hello&#39;</span><span class="p">,</span> <span class="s">&#39;world&#39;</span><span class="p">])</span>
-<span class="n">session</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="n">obj2</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;hello&#39;</span><span class="p">,</span> <span class="s">&#39;world&#39;</span><span class="p">])</span></pre></div>
+<p>The above <tt class="docutils literal"><span class="pre">User</span></tt> object is persistent, and has a series of attributes
+present; if we were to look inside its <tt class="docutils literal"><span class="pre">__dict__</span></tt>, we&#8217;d see that state
+loaded:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">user</span><span class="o">.</span><span class="n">__dict__</span>
+<span class="go">{</span>
+<span class="go">  &#39;id&#39;: 1, &#39;name&#39;: u&#39;user1&#39;,</span>
+<span class="go">  &#39;_sa_instance_state&#39;: &lt;...&gt;,</span>
+<span class="go">}</span></pre></div>
 </div>
-<p>The full contents of the session may be expired at once using
-<a class="reference internal" href="#sqlalchemy.orm.session.Session.expire_all" title="sqlalchemy.orm.session.Session.expire_all"><tt class="xref py py-meth docutils literal"><span class="pre">expire_all()</span></tt></a>:</p>
+<p>where <tt class="docutils literal"><span class="pre">id</span></tt> and <tt class="docutils literal"><span class="pre">name</span></tt> refer to those columns in the database.
+<tt class="docutils literal"><span class="pre">_sa_instance_state</span></tt> is a non-database-persisted value used by SQLAlchemy
+internally (it refers to the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a> for the instance.
+While not directly relevant to this section, if we want to get at it,
+we should use the <a class="reference internal" href="../core/inspection.html#sqlalchemy.inspection.inspect" title="sqlalchemy.inspection.inspect"><tt class="xref py py-func docutils literal"><span class="pre">inspect()</span></tt></a> function to access it).</p>
+<p>At this point, the state in our <tt class="docutils literal"><span class="pre">User</span></tt> object matches that of the loaded
+database row.  But upon expiring the object using a method such as
+<a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire()</span></tt></a>, we see that the state is removed:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">user</span><span class="o">.</span><span class="n">__dict__</span>
+<span class="go">{&#39;_sa_instance_state&#39;: &lt;...&gt;}</span></pre></div>
+</div>
+<p>We see that while the internal &#8220;state&#8221; still hangs around, the values which
+correspond to the <tt class="docutils literal"><span class="pre">id</span></tt> and <tt class="docutils literal"><span class="pre">name</span></tt> columns are gone.   If we were to access
+one of these columns and are watching SQL, we&#8217;d see this:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="k">print</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+<div class='show_sql'>SELECT user.id AS user_id, user.name AS user_name
+FROM user
+WHERE user.id = ?
+(1,)</div><span class="n">user1</span></pre></div>
+</div>
+<p>Above, upon accessing the expired attribute <tt class="docutils literal"><span class="pre">user.name</span></tt>, the ORM initiated
+a <a class="reference internal" href="../glossary.html#term-lazy-load"><em class="xref std std-term">lazy load</em></a> to retrieve the most recent state from the database,
+by emitting a SELECT for the user row to which this user refers.  Afterwards,
+the <tt class="docutils literal"><span class="pre">__dict__</span></tt> is again populated:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">user</span><span class="o">.</span><span class="n">__dict__</span>
+<span class="go">{</span>
+<span class="go">  &#39;id&#39;: 1, &#39;name&#39;: u&#39;user1&#39;,</span>
+<span class="go">  &#39;_sa_instance_state&#39;: &lt;...&gt;,</span>
+<span class="go">}</span></pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">While we are peeking inside of <tt class="docutils literal"><span class="pre">__dict__</span></tt> in order to see a bit
+of what SQLAlchemy does with object attributes, we <strong>should not modify</strong>
+the contents of <tt class="docutils literal"><span class="pre">__dict__</span></tt> directly, at least as far as those attributes
+which the SQLAlchemy ORM is maintaining (other attributes outside of SQLA&#8217;s
+realm are fine).  This is because SQLAlchemy uses <a class="reference internal" href="../glossary.html#term-descriptors"><em class="xref std std-term">descriptors</em></a> in
+order to track the changes we make to an object, and when we modify <tt class="docutils literal"><span class="pre">__dict__</span></tt>
+directly, the ORM won&#8217;t be able to track that we changed something.</p>
+</div>
+<p>Another key behavior of both <a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">expire()</span></tt></a> and <a class="reference internal" href="#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">refresh()</span></tt></a>
+is that all un-flushed changes on an object are discarded.  That is,
+if we were to modify an attribute on our <tt class="docutils literal"><span class="pre">User</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">user</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;user2&#39;</span></pre></div>
+</div>
+<p>but then we call <a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">expire()</span></tt></a> without first calling <a class="reference internal" href="#sqlalchemy.orm.session.Session.flush" title="sqlalchemy.orm.session.Session.flush"><tt class="xref py py-meth docutils literal"><span class="pre">flush()</span></tt></a>,
+our pending value of <tt class="docutils literal"><span class="pre">'user2'</span></tt> is discarded:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">user</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;user1&#39;</span></pre></div>
+</div>
+<p>The <a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">expire()</span></tt></a> method can be used to mark as &#8220;expired&#8221; all ORM-mapped
+attributes for an instance:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># expire all ORM-mapped attributes on obj1</span>
+<span class="n">session</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="n">obj1</span><span class="p">)</span></pre></div>
+</div>
+<p>it can also be passed a list of string attribute names, referring to specific
+attributes to be marked as expired:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># expire only attributes obj1.attr1, obj1.attr2</span>
+<span class="n">session</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="n">obj1</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;attr1&#39;</span><span class="p">,</span> <span class="s">&#39;attr2&#39;</span><span class="p">])</span></pre></div>
+</div>
+<p>The <a class="reference internal" href="#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">refresh()</span></tt></a> method has a similar interface, but instead
+of expiring, it emits an immediate SELECT for the object&#8217;s row immediately:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># reload all attributes on obj1</span>
+<span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">obj1</span><span class="p">)</span></pre></div>
+</div>
+<p><a class="reference internal" href="#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">refresh()</span></tt></a> also accepts a list of string attribute names,
+but unlike <a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">expire()</span></tt></a>, expects at least one name to
+be that of a column-mapped attribute:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># reload obj1.attr1, obj1.attr2</span>
+<span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">obj1</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;attr1&#39;</span><span class="p">,</span> <span class="s">&#39;attr2&#39;</span><span class="p">])</span></pre></div>
+</div>
+<p>The <a class="reference internal" href="#sqlalchemy.orm.session.Session.expire_all" title="sqlalchemy.orm.session.Session.expire_all"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire_all()</span></tt></a> method allows us to essentially call
+<a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire()</span></tt></a> on all objects contained within the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>
+at once:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">expire_all</span><span class="p">()</span></pre></div>
 </div>
-<p>Note that <a class="reference internal" href="#sqlalchemy.orm.session.Session.expire_all" title="sqlalchemy.orm.session.Session.expire_all"><tt class="xref py py-meth docutils literal"><span class="pre">expire_all()</span></tt></a> is called <strong>automatically</strong> whenever
-<a class="reference internal" href="#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">commit()</span></tt></a> or <a class="reference internal" href="#sqlalchemy.orm.session.Session.rollback" title="sqlalchemy.orm.session.Session.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">rollback()</span></tt></a> are called. If using the
-session in its default mode of autocommit=False and with a well-isolated
-transactional environment (which is provided by most backends with the notable
-exception of MySQL MyISAM), there is virtually <em>no reason</em> to ever call
-<a class="reference internal" href="#sqlalchemy.orm.session.Session.expire_all" title="sqlalchemy.orm.session.Session.expire_all"><tt class="xref py py-meth docutils literal"><span class="pre">expire_all()</span></tt></a> directly - plenty of state will remain on the
-current transaction until it is rolled back or committed or otherwise removed.</p>
-<p><a class="reference internal" href="#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">refresh()</span></tt></a> and <a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">expire()</span></tt></a> similarly are usually
-only necessary when an UPDATE or DELETE has been issued manually within the
-transaction using <a class="reference internal" href="#sqlalchemy.orm.session.Session.execute" title="sqlalchemy.orm.session.Session.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Session.execute()</span></tt></a>.</p>
+<div class="section" id="what-actually-loads">
+<h4>What Actually Loads<a class="headerlink" href="#what-actually-loads" title="Permalink to this headline">¶</a></h4>
+<p>The SELECT statement that&#8217;s emitted when an object marked with <a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">expire()</span></tt></a>
+or loaded with <a class="reference internal" href="#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">refresh()</span></tt></a> varies based on several factors, including:</p>
+<ul class="simple">
+<li>The load of expired attributes is triggered from <strong>column-mapped attributes only</strong>.
+While any kind of attribute can be marked as expired, including a
+<a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> - mapped attribute, accessing an expired <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>
+attribute will emit a load only for that attribute, using standard
+relationship-oriented lazy loading.   Column-oriented attributes, even if
+expired, will not load as part of this operation, and instead will load when
+any column-oriented attribute is accessed.</li>
+<li><a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>- mapped attributes will not load in response to
+expired column-based attributes being accessed.</li>
+<li>Regarding relationships, <a class="reference internal" href="#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">refresh()</span></tt></a> is more restrictive than
+<a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">expire()</span></tt></a> with regards to attributes that aren&#8217;t column-mapped.
+Calling <a class="reference internal" href="events.html#sqlalchemy.orm.events.InstanceEvents.refresh" title="sqlalchemy.orm.events.InstanceEvents.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">refresh()</span></tt></a> and passing a list of names that only includes
+relationship-mapped attributes will actually raise an error.
+In any case, non-eager-loading <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> attributes will not be
+included in any refresh operation.</li>
+<li><a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> attributes configured as &#8220;eager loading&#8221; via the
+<a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.lazy" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">lazy</span></tt></a> parameter will load in the case of
+<a class="reference internal" href="#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">refresh()</span></tt></a>, if either no attribute names are specified, or
+if their names are inclued in the list of attributes to be
+refreshed.</li>
+<li>Attributes that are configured as <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.deferred" title="sqlalchemy.orm.deferred"><tt class="xref py py-func docutils literal"><span class="pre">deferred()</span></tt></a> will not normally load,
+during either the expired-attribute load or during a refresh.
+An unloaded attribute that&#8217;s <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.deferred" title="sqlalchemy.orm.deferred"><tt class="xref py py-func docutils literal"><span class="pre">deferred()</span></tt></a> instead loads on its own when directly
+accessed, or if part of a &#8220;group&#8221; of deferred attributes where an unloaded
+attribute in that group is accessed.</li>
+<li>For expired attributes that are loaded on access, a joined-inheritance table
+mapping will emit a SELECT that typically only includes those tables for which
+unloaded attributes are present.   The action here is sophisticated enough
+to load only the parent or child table, for example, if the subset of columns
+that were originally expired encompass only one or the other of those tables.</li>
+<li>When <a class="reference internal" href="#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">refresh()</span></tt></a> is used on a joined-inheritance table mapping,
+the SELECT emitted will resemble that of when <a class="reference internal" href="#sqlalchemy.orm.session.Session.query" title="sqlalchemy.orm.session.Session.query"><tt class="xref py py-meth docutils literal"><span class="pre">Session.query()</span></tt></a> is
+used on the target object&#8217;s class.  This is typically all those tables that
+are set up as part of the mapping.</li>
+</ul>
+</div>
+<div class="section" id="when-to-expire-or-refresh">
+<h4>When to Expire or Refresh<a class="headerlink" href="#when-to-expire-or-refresh" title="Permalink to this headline">¶</a></h4>
+<p>The <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> uses the expiration feature automatically whenever
+the transaction referred to by the session ends.  Meaning, whenever <a class="reference internal" href="#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">Session.commit()</span></tt></a>
+or <a class="reference internal" href="#sqlalchemy.orm.session.Session.rollback" title="sqlalchemy.orm.session.Session.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">Session.rollback()</span></tt></a> is called, all objects within the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>
+are expired, using a feature equivalent to that of the <a class="reference internal" href="#sqlalchemy.orm.session.Session.expire_all" title="sqlalchemy.orm.session.Session.expire_all"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire_all()</span></tt></a>
+method.   The rationale is that the end of a transaction is a
+demarcating point at which there is no more context available in order to know
+what the current state of the database is, as any number of other transactions
+may be affecting it.  Only when a new transaction starts can we again have access
+to the current state of the database, at which point any number of changes
+may have occurred.</p>
+<div class="sidebar">
+<p class="first sidebar-title">Transaction Isolation</p>
+<p class="last">Of course, most databases are capable of handling
+multiple transactions at once, even involving the same rows of data.   When
+a relational database handles multiple transactions involving the same
+tables or rows, this is when the <a class="reference internal" href="../glossary.html#term-isolation"><em class="xref std std-term">isolation</em></a> aspect of the database comes
+into play.  The isolation behavior of different databases varies considerably
+and even on a single database can be configured to behave in different ways
+(via the so-called <em class="xref std std-term">isolation level</em> setting).  In that sense, the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>
+can&#8217;t fully predict when the same SELECT statement, emitted a second time,
+will definitely return the data we already have, or will return new data.
+So as a best guess, it assumes that within the scope of a transaction, unless
+it is known that a SQL expression has been emitted to modify a particular row,
+there&#8217;s no need to refresh a row unless explicitly told to do so.</p>
+</div>
+<p>The <a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire()</span></tt></a> and <a class="reference internal" href="#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">Session.refresh()</span></tt></a> methods are used in
+those cases when one wants to force an object to re-load its data from the
+database, in those cases when it is known that the current state of data
+is possibly stale.  Reasons for this might include:</p>
+<ul class="simple">
+<li>some SQL has been emitted within the transaction outside of the
+scope of the ORM&#8217;s object handling, such as if a <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table.update" title="sqlalchemy.schema.Table.update"><tt class="xref py py-meth docutils literal"><span class="pre">Table.update()</span></tt></a> construct
+were emitted using the <a class="reference internal" href="#sqlalchemy.orm.session.Session.execute" title="sqlalchemy.orm.session.Session.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Session.execute()</span></tt></a> method;</li>
+<li>if the application
+is attempting to acquire data that is known to have been modified in a
+concurrent transaction, and it is also known that the isolation rules in effect
+allow this data to be visible.</li>
+</ul>
+<p>The second bullet has the important caveat that &#8220;it is also known that the isolation rules in effect
+allow this data to be visible.&#8221;  This means that it cannot be assumed that an
+UPDATE that happened on another database connection will yet be visible here
+locally; in many cases, it will not.  This is why if one wishes to use
+<a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">expire()</span></tt></a> or <a class="reference internal" href="events.html#sqlalchemy.orm.events.InstanceEvents.refresh" title="sqlalchemy.orm.events.InstanceEvents.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">refresh()</span></tt></a> in order to view data between ongoing
+transactions, an understanding of the isolation behavior in effect is essential.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.orm.session.Session.expire_all" title="sqlalchemy.orm.session.Session.expire_all"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire_all()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">Session.refresh()</span></tt></a></p>
+<p><a class="reference internal" href="../glossary.html#term-isolation"><em class="xref std std-term">isolation</em></a> - glossary explanation of isolation which includes links
+to Wikipedia.</p>
+<p class="last"><a class="reference external" href="http://techspot.zzzeek.org/2012/11/14/pycon-canada-the-sqlalchemy-session-in-depth/">The SQLAlchemy Session In-Depth</a> - a video + slides with an in-depth discussion of the object
+lifecycle including the role of data expiration.</p>
+</div>
+</div>
 </div>
 <div class="section" id="session-attributes">
 <h3>Session Attributes<a class="headerlink" href="#session-attributes" title="Permalink to this headline">¶</a></h3>
@@ -1230,26 +1368,26 @@ setting.</p>
 </div>
 <div class="section" id="cascades">
 <span id="unitofwork-cascades"></span><h2>Cascades<a class="headerlink" href="#cascades" title="Permalink to this headline">¶</a></h2>
-<p>Mappers support the concept of configurable <strong>cascade</strong> behavior on
+<p>Mappers support the concept of configurable <em class="xref std std-term">cascade</em> behavior on
 <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> constructs.  This refers
-to how operations performed on a parent object relative to a
+to how operations performed on a &#8220;parent&#8221; object relative to a
 particular <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> should be propagated to items
-referred to by that relationship.
-The default cascade behavior is usually suitable for
-most situations, and the option is normally invoked explicitly
-in order to enable <tt class="docutils literal"><span class="pre">delete</span></tt> and <tt class="docutils literal"><span class="pre">delete-orphan</span></tt> cascades,
-which refer to how the relationship should be treated when
-the parent is marked for deletion as well as when a child
-is de-associated from its parent.</p>
-<p>Cascade behavior is configured by setting the <tt class="docutils literal"><span class="pre">cascade</span></tt> keyword
-argument on
+referred to by that relationship (e.g. &#8220;child&#8221; objects), and is
+affected by the <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.cascade" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.cascade</span></tt></a> option.</p>
+<p>The default behavior of cascade is limited to cascades of the
+so-called <a class="reference internal" href="#cascade-save-update"><em>save-update</em></a> and <a class="reference internal" href="#cascade-merge"><em>merge</em></a> settings.
+The typical &#8220;alternative&#8221; setting for cascade is to add
+the <a class="reference internal" href="#cascade-delete"><em>delete</em></a> and <a class="reference internal" href="#cascade-delete-orphan"><em>delete-orphan</em></a> options;
+these settings are appropriate for related objects which only exist as
+long as they are attached to their parent, and are otherwise deleted.</p>
+<p>Cascade behavior is configured using the by changing the
+<a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.cascade" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">cascade</span></tt></a> option on
 <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Order</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;order&#39;</span>
 
     <span class="n">items</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Item&quot;</span><span class="p">,</span> <span class="n">cascade</span><span class="o">=</span><span class="s">&quot;all, delete-orphan&quot;</span><span class="p">)</span>
-    <span class="n">customer</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;User&quot;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="n">user_orders_table</span><span class="p">,</span>
-                                <span class="n">cascade</span><span class="o">=</span><span class="s">&quot;save-update&quot;</span><span class="p">)</span></pre></div>
+    <span class="n">customer</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;User&quot;</span><span class="p">,</span> <span class="n">cascade</span><span class="o">=</span><span class="s">&quot;save-update&quot;</span><span class="p">)</span></pre></div>
 </div>
 <p>To set cascades on a backref, the same flag can be used with the
 <a class="reference internal" href="relationships.html#sqlalchemy.orm.backref" title="sqlalchemy.orm.backref"><tt class="xref py py-func docutils literal"><span class="pre">backref()</span></tt></a> function, which ultimately feeds
@@ -1261,65 +1399,226 @@ its arguments back into <a class="reference internal" href="relationships.html#s
                     <span class="n">backref</span><span class="o">=</span><span class="n">backref</span><span class="p">(</span><span class="s">&quot;items&quot;</span><span class="p">,</span> <span class="n">cascade</span><span class="o">=</span><span class="s">&quot;all, delete-orphan&quot;</span><span class="p">)</span>
                 <span class="p">)</span></pre></div>
 </div>
-<p>The default value of <tt class="docutils literal"><span class="pre">cascade</span></tt> is <tt class="docutils literal"><span class="pre">save-update,</span> <span class="pre">merge</span></tt>.
-The <tt class="docutils literal"><span class="pre">all</span></tt> symbol in the cascade options indicates that all
-cascade flags should be enabled, with the exception of <tt class="docutils literal"><span class="pre">delete-orphan</span></tt>.
-Typically, cascade is usually left at its default, or configured
-as <tt class="docutils literal"><span class="pre">all,</span> <span class="pre">delete-orphan</span></tt>, indicating the child objects should be
-treated as &#8220;owned&#8221; by the parent.</p>
-<p>The list of available values which can be specified in <tt class="docutils literal"><span class="pre">cascade</span></tt>
-are as follows:</p>
+<div class="sidebar">
+<p class="first sidebar-title">The Origins of Cascade</p>
+<p class="last">SQLAlchemy&#8217;s notion of cascading behavior on relationships,
+as well as the options to configure them, are primarily derived
+from the similar feature in the Hibernate ORM; Hibernate refers
+to &#8220;cascade&#8221; in a few places such as in
+<a class="reference external" href="https://docs.jboss.org/hibernate/orm/3.3/reference/en-US/html/example-parentchild.html">Example: Parent/Child</a>.
+If cascades are confusing, we&#8217;ll refer to their conclusion,
+stating &#8220;The sections we have just covered can be a bit confusing.
+However, in practice, it all works out nicely.&#8221;</p>
+</div>
+<p>The default value of <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.cascade" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">cascade</span></tt></a> is <tt class="docutils literal"><span class="pre">save-update,</span> <span class="pre">merge</span></tt>.
+The typical alternative setting for this parameter is either
+<tt class="docutils literal"><span class="pre">all</span></tt> or more commonly <tt class="docutils literal"><span class="pre">all,</span> <span class="pre">delete-orphan</span></tt>.  The <tt class="docutils literal"><span class="pre">all</span></tt> symbol
+is a synonym for <tt class="docutils literal"><span class="pre">save-update,</span> <span class="pre">merge,</span> <span class="pre">refresh-expire,</span> <span class="pre">expunge,</span> <span class="pre">delete</span></tt>,
+and using it in conjunction with <tt class="docutils literal"><span class="pre">delete-orphan</span></tt> indicates that the child
+object should follow along with its parent in all cases, and be deleted once
+it is no longer associated with that parent.</p>
+<p>The list of available values which can be specified for
+the <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.cascade" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">cascade</span></tt></a> parameter are described in the following subsections.</p>
+<div class="section" id="save-update">
+<span id="cascade-save-update"></span><h3>save-update<a class="headerlink" href="#save-update" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">save-update</span></tt> cacade indicates that when an object is placed into a
+<a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> via <a class="reference internal" href="#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">Session.add()</span></tt></a>, all the objects associated
+with it via this <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> should also be added to that
+same <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.  Suppose we have an object <tt class="docutils literal"><span class="pre">user1</span></tt> with two
+related objects <tt class="docutils literal"><span class="pre">address1</span></tt>, <tt class="docutils literal"><span class="pre">address2</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">user1</span> <span class="o">=</span> <span class="n">User</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">address1</span><span class="p">,</span> <span class="n">address2</span> <span class="o">=</span> <span class="n">Address</span><span class="p">(),</span> <span class="n">Address</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">user1</span><span class="o">.</span><span class="n">addresses</span> <span class="o">=</span> <span class="p">[</span><span class="n">address1</span><span class="p">,</span> <span class="n">address2</span><span class="p">]</span></pre></div>
+</div>
+<p>If we add <tt class="docutils literal"><span class="pre">user1</span></tt> to a <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>, it will also add
+<tt class="docutils literal"><span class="pre">address1</span></tt>, <tt class="docutils literal"><span class="pre">address2</span></tt> implicitly:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">sess</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sess</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">user1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">address1</span> <span class="ow">in</span> <span class="n">sess</span>
+<span class="go">True</span></pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">save-update</span></tt> cascade also affects attribute operations for objects
+that are already present in a <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.  If we add a third
+object, <tt class="docutils literal"><span class="pre">address3</span></tt> to the <tt class="docutils literal"><span class="pre">user1.addresses</span></tt> collection, it
+becomes part of the state of that <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">address3</span> <span class="o">=</span> <span class="n">Address</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">user1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">address3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">address3</span> <span class="ow">in</span> <span class="n">sess</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">True</span></pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">save-update</span></tt> has the possibly surprising behavior which is that
+persistent objects which were <em>removed</em> from a collection
+or in some cases a scalar attribute
+may also be pulled into the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> of a parent object; this is
+so that the flush process may handle that related object appropriately.
+This case can usually only arise if an object is removed from one <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>
+and added to another:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">user1</span> <span class="o">=</span> <span class="n">sess1</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">address1</span> <span class="o">=</span> <span class="n">user1</span><span class="o">.</span><span class="n">addresses</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sess1</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>   <span class="c"># user1, address1 no longer associated with sess1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">user1</span><span class="o">.</span><span class="n">addresses</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">address1</span><span class="p">)</span>  <span class="c"># address1 no longer associated with user1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sess2</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sess2</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">user1</span><span class="p">)</span>   <span class="c"># ... but it still gets added to the new session,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">address1</span> <span class="ow">in</span> <span class="n">sess2</span>  <span class="c"># because it&#39;s still &quot;pending&quot; for flush</span>
+<span class="go">True</span></pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade is on by default, and is typically taken
+for granted; it simplifies code by allowing a single call to
+<a class="reference internal" href="#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">Session.add()</span></tt></a> to register an entire structure of objects within
+that <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> at once.   While it can be disabled, there
+is usually not a need to do so.</p>
+<p>One case where <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade does sometimes get in the way is in that
+it takes place in both directions for bi-directional relationships, e.g.
+backrefs, meaning that the association of a child object with a particular parent
+can have the effect of the parent object being implicitly associated with that
+child object&#8217;s <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>; this pattern, as well as how to modify its
+behavior using the <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.cascade_backrefs" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">cascade_backrefs</span></tt></a> flag,
+is discussed in the section <a class="reference internal" href="#backref-cascade"><em>Controlling Cascade on Backrefs</em></a>.</p>
+</div>
+<div class="section" id="delete">
+<span id="cascade-delete"></span><h3>delete<a class="headerlink" href="#delete" title="Permalink to this headline">¶</a></h3>
+<p>The <tt class="docutils literal"><span class="pre">delete</span></tt> cascade indicates that when a &#8220;parent&#8221; object
+is marked for deletion, its related &#8220;child&#8221; objects should also be marked
+for deletion.   If for example we we have a relationship <tt class="docutils literal"><span class="pre">User.addresses</span></tt>
+with <tt class="docutils literal"><span class="pre">delete</span></tt> cascade configured:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="c"># ...</span>
+
+    <span class="n">addresses</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">,</span> <span class="n">cascade</span><span class="o">=</span><span class="s">&quot;save-update, merge, delete&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>If using the above mapping, we have a <tt class="docutils literal"><span class="pre">User</span></tt> object and two
+related <tt class="docutils literal"><span class="pre">Address</span></tt> objects:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">user1</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">address1</span><span class="p">,</span> <span class="n">address2</span> <span class="o">=</span> <span class="n">user1</span><span class="o">.</span><span class="n">addresses</span></pre></div>
+</div>
+<p>If we mark <tt class="docutils literal"><span class="pre">user1</span></tt> for deletion, after the flush operation proceeds,
+<tt class="docutils literal"><span class="pre">address1</span></tt> and <tt class="docutils literal"><span class="pre">address2</span></tt> will also be deleted:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">sess</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">user1</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">sess</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<div class='show_sql'>DELETE FROM address WHERE address.id = ?
+((1,), (2,))
+DELETE FROM user WHERE user.id = ?
+(1,)
+COMMIT</div></pre></div>
+</div>
+<p>Alternatively, if our <tt class="docutils literal"><span class="pre">User.addresses</span></tt> relationship does <em>not</em> have
+<tt class="docutils literal"><span class="pre">delete</span></tt> cascade, SQLAlchemy&#8217;s default behavior is to instead de-associate
+<tt class="docutils literal"><span class="pre">address1</span></tt> and <tt class="docutils literal"><span class="pre">address2</span></tt> from <tt class="docutils literal"><span class="pre">user1</span></tt> by setting their foreign key
+reference to <tt class="docutils literal"><span class="pre">NULL</span></tt>.  Using a mapping as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="c"># ...</span>
+
+    <span class="n">addresses</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Address&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>Upon deletion of a parent <tt class="docutils literal"><span class="pre">User</span></tt> object, the rows in <tt class="docutils literal"><span class="pre">address</span></tt> are not
+deleted, but are instead de-associated:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">sess</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">user1</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">sess</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<div class='show_sql'>UPDATE address SET user_id=? WHERE address.id = ?
+(None, 1)
+UPDATE address SET user_id=? WHERE address.id = ?
+(None, 2)
+DELETE FROM user WHERE user.id = ?
+(1,)
+COMMIT</div></pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">delete</span></tt> cascade is more often than not used in conjunction with
+<a class="reference internal" href="#cascade-delete-orphan"><em>delete-orphan</em></a> cascade, which will emit a DELETE for the related
+row if the &#8220;child&#8221; object is deassociated from the parent.  The combination
+of <tt class="docutils literal"><span class="pre">delete</span></tt> and <tt class="docutils literal"><span class="pre">delete-orphan</span></tt> cascade covers both situations where
+SQLAlchemy has to decide between setting a foreign key column to NULL versus
+deleting the row entirely.</p>
+<div class="topic">
+<p class="topic-title first">ORM-level &#8220;delete&#8221; cascade vs. FOREIGN KEY level &#8220;ON DELETE&#8221; cascade</p>
+<p>The behavior of SQLAlchemy&#8217;s &#8220;delete&#8221; cascade has a lot of overlap with the
+<tt class="docutils literal"><span class="pre">ON</span> <span class="pre">DELETE</span> <span class="pre">CASCADE</span></tt> feature of a database foreign key, as well
+as with that of the <tt class="docutils literal"><span class="pre">ON</span> <span class="pre">DELETE</span> <span class="pre">SET</span> <span class="pre">NULL</span></tt> foreign key setting when &#8220;delete&#8221;
+cascade is not specified.   Database level &#8220;ON DELETE&#8221; cascades are specific to the
+&#8220;FOREIGN KEY&#8221; construct of the relational database; SQLAlchemy allows
+configuration of these schema-level constructs at the <a class="reference internal" href="../glossary.html#term-ddl"><em class="xref std std-term">DDL</em></a> level
+using options on <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> which are described
+at <a class="reference internal" href="../core/constraints.html#on-update-on-delete"><em>ON UPDATE and ON DELETE</em></a>.</p>
+<p>It is important to note the differences between the ORM and the relational
+database&#8217;s notion of &#8220;cascade&#8221; as well as how they integrate:</p>
 <ul>
-<li><p class="first"><tt class="docutils literal"><span class="pre">save-update</span></tt> - Indicates that when an object is placed into a
-<a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>
-via <a class="reference internal" href="#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">Session.add()</span></tt></a>, all the objects associated with it via this
-<a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> should also be added to that
-same <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.   Additionally, if this object is already present in
-a <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>, child objects will be added to that session as they
-are associated with this parent, i.e. as they are appended to lists,
-added to sets, or otherwise associated with the parent.</p>
-<p><tt class="docutils literal"><span class="pre">save-update</span></tt> cascade also cascades the <em>pending history</em> of the
-target attribute, meaning that objects which were
-removed from a scalar or collection attribute whose changes have not
-yet been flushed are  also placed into the target session.  This
-is because they may have foreign key attributes present which
-will need to be updated to no longer refer to the parent.</p>
-<p>The <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade is on by default, and it&#8217;s common to not
-even be aware of it.  It&#8217;s customary that only a single call to
-<a class="reference internal" href="#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">Session.add()</span></tt></a> against the lead object of a structure
-has the effect of placing the full structure of
-objects into the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> at once.</p>
-<p>However, it can be turned off, which would
-imply that objects associated with a parent would need to be
-placed individually using <a class="reference internal" href="#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">Session.add()</span></tt></a> calls for
-each one.</p>
-<p>Another default behavior of <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade is that it will
-take effect in the reverse direction, that is, associating a child
-with a parent when a backref is present means both relationships
-are affected; the parent will be added to the child&#8217;s session.
-To disable this somewhat indirect session addition, use the
-<tt class="docutils literal"><span class="pre">cascade_backrefs=False</span></tt> option described below in
-<a class="reference internal" href="#backref-cascade"><em>Controlling Cascade on Backrefs</em></a>.</p>
+<li><p class="first">A database level <tt class="docutils literal"><span class="pre">ON</span> <span class="pre">DELETE</span></tt> cascade is configured effectively
+on the <strong>many-to-one</strong> side of the relationship; that is, we configure
+it relative to the <tt class="docutils literal"><span class="pre">FOREIGN</span> <span class="pre">KEY</span></tt> constraint that is the &#8220;many&#8221; side
+of a relationship.  At the ORM level, <strong>this direction is reversed</strong>.
+SQLAlchemy handles the deletion of &#8220;child&#8221; objects relative to a
+&#8220;parent&#8221; from the &#8220;parent&#8221; side, which means that <tt class="docutils literal"><span class="pre">delete</span></tt> and
+<tt class="docutils literal"><span class="pre">delete-orphan</span></tt> cascade are configured on the <strong>one-to-many</strong>
+side.</p>
 </li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">delete</span></tt> - This cascade indicates that when the parent object
-is marked for deletion, the related objects should also be marked
-for deletion.   Without this cascade present, SQLAlchemy will
-set the foreign key on a one-to-many relationship to NULL
-when the parent object is deleted.  When enabled, the row is instead
-deleted.</p>
-<p><tt class="docutils literal"><span class="pre">delete</span></tt> cascade is often used in conjunction with <tt class="docutils literal"><span class="pre">delete-orphan</span></tt>
-cascade, as is appropriate for an object whose foreign key is
-not intended to be nullable.  On some backends, it&#8217;s also
-a good idea to set <tt class="docutils literal"><span class="pre">ON</span> <span class="pre">DELETE</span></tt> on the foreign key itself;
-see the section <a class="reference internal" href="collections.html#passive-deletes"><em>Using Passive Deletes</em></a> for more details.</p>
-<p>Note that for many-to-many relationships which make usage of the
-<tt class="docutils literal"><span class="pre">secondary</span></tt> argument to <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>,
-SQLAlchemy always emits
-a DELETE for the association row in between &#8220;parent&#8221; and &#8220;child&#8221;,
-when the parent is deleted or whenever the linkage between a particular
-parent and child is broken.</p>
+<li><p class="first">Database level foreign keys with no <tt class="docutils literal"><span class="pre">ON</span> <span class="pre">DELETE</span></tt> setting
+are often used to <strong>prevent</strong> a parent
+row from being removed, as it would necessarily leave an unhandled
+related row present.  If this behavior is desired in a one-to-many
+relationship, SQLAlchemy&#8217;s default behavior of setting a foreign key
+to <tt class="docutils literal"><span class="pre">NULL</span></tt> can be caught in one of two ways:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The easiest and most common is just to to set the
+foreign-key-holding column to <tt class="docutils literal"><span class="pre">NOT</span> <span class="pre">NULL</span></tt> at the database schema
+level.  An attempt by SQLAlchemy to set the column to NULL will
+fail with a simple NOT NULL constraint exception.</li>
+<li>The other, more special case way is to set the <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.passive_deletes" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">passive_deletes</span></tt></a>
+flag to the string <tt class="docutils literal"><span class="pre">&quot;all&quot;</span></tt>.  This has the effect of entirely
+disabling SQLAlchemy&#8217;s behavior of setting the foreign key column
+to NULL, and a DELETE will be emitted for the parent row without
+any affect on the child row, even if the child row is present
+in memory. This may be desirable in the case when
+database-level foreign key triggers, either special <tt class="docutils literal"><span class="pre">ON</span> <span class="pre">DELETE</span></tt> settings
+or otherwise, need to be activated in all cases when a parent row is deleted.</li>
+</ul>
+</div></blockquote>
 </li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">delete-orphan</span></tt> - This cascade adds behavior to the <tt class="docutils literal"><span class="pre">delete</span></tt> cascade,
+<li><p class="first">Database level <tt class="docutils literal"><span class="pre">ON</span> <span class="pre">DELETE</span></tt> cascade is <strong>vastly more efficient</strong>
+than that of SQLAlchemy.  The database can chain a series of cascade
+operations across many relationships at once; e.g. if row A is deleted,
+all the related rows in table B can be deleted, and all the C rows related
+to each of those B rows, and on and on, all within the scope of a single
+DELETE statement.  SQLAlchemy on the other hand, in order to support
+the cascading delete operation fully, has to individually load each
+related collection in order to target all rows that then may have further
+related collections.  That is, SQLAlchemy isn&#8217;t sophisticated enough
+to emit a DELETE for all those related rows at once within this context.</p>
+</li>
+<li><p class="first">SQLAlchemy doesn&#8217;t <strong>need</strong> to be this sophisticated, as we instead provide
+smooth integration with the database&#8217;s own <tt class="docutils literal"><span class="pre">ON</span> <span class="pre">DELETE</span></tt> functionality,
+by using the <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.passive_deletes" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">passive_deletes</span></tt></a> option in conjunction
+with properly configured foreign key constraints.   Under this behavior,
+SQLAlchemy only emits DELETE for those rows that are already locally
+present in the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>; for any collections that are unloaded,
+it leaves them to the database to handle, rather than emitting a SELECT
+for them.  The section <a class="reference internal" href="collections.html#passive-deletes"><em>Using Passive Deletes</em></a> provides an example of this use.</p>
+</li>
+<li><p class="first">While database-level <tt class="docutils literal"><span class="pre">ON</span> <span class="pre">DELETE</span></tt> functionality works only on the &#8220;many&#8221;
+side of a relationship, SQLAlchemy&#8217;s &#8220;delete&#8221; cascade
+has <strong>limited</strong> ability to operate in the <em>reverse</em> direction as well,
+meaning it can be configured on the &#8220;many&#8221; side to delete an object
+on the &#8220;one&#8221; side when the reference on the &#8220;many&#8221; side is deleted.  However
+this can easily result in constraint violations if there are other objects
+referring to this &#8220;one&#8221; side from the &#8220;many&#8221;, so it typically is only
+useful when a relationship is in fact a &#8220;one to one&#8221;.  The
+<a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.single_parent" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">single_parent</span></tt></a> flag should be used to establish
+an in-Python assertion for this case.</p>
+</li>
+</ul>
+</div>
+<p>When using a <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> that also includes a many-to-many
+table using the <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.secondary" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">secondary</span></tt></a> option, SQLAlchemy&#8217;s
+delete cascade handles the rows in this many-to-many table automatically.
+Just like, as described in <a class="reference internal" href="relationships.html#relationships-many-to-many-deletion"><em>Deleting Rows from the Many to Many Table</em></a>,
+the addition or removal of an object from a many-to-many collection
+results in the INSERT or DELETE of a row in the many-to-many table,
+the <tt class="docutils literal"><span class="pre">delete</span></tt> cascade, when activated as the result of a parent object
+delete operation, will DELETE not just the row in the &#8220;child&#8221; table but also
+in the many-to-many table.</p>
+</div>
+<div class="section" id="delete-orphan">
+<span id="cascade-delete-orphan"></span><h3>delete-orphan<a class="headerlink" href="#delete-orphan" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">delete-orphan</span></tt> cascade adds behavior to the <tt class="docutils literal"><span class="pre">delete</span></tt> cascade,
 such that a child object will be marked for deletion when it is
 de-associated from the parent, not just when the parent is marked
 for deletion.   This is a common feature when dealing with a related
@@ -1334,26 +1633,32 @@ SQLAlchemy requires that the <a class="reference internal" href="relationships.h
 be configured with the <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.single_parent" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">single_parent</span></tt></a> argument,
 establishes Python-side validation that ensures the object
 is associated with only one parent at a time.</p>
-</li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">merge</span></tt> - This cascade indicates that the <a class="reference internal" href="#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-meth docutils literal"><span class="pre">Session.merge()</span></tt></a>
+</div>
+<div class="section" id="merge">
+<span id="cascade-merge"></span><h3>merge<a class="headerlink" href="#merge" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">merge</span></tt> cascade indicates that the <a class="reference internal" href="#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-meth docutils literal"><span class="pre">Session.merge()</span></tt></a>
 operation should be propagated from a parent that&#8217;s the subject
 of the <a class="reference internal" href="#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-meth docutils literal"><span class="pre">Session.merge()</span></tt></a> call down to referred objects.
 This cascade is also on by default.</p>
-</li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">refresh-expire</span></tt> - A less common option, indicates that the
+</div>
+<div class="section" id="refresh-expire">
+<span id="cascade-refresh-expire"></span><h3>refresh-expire<a class="headerlink" href="#refresh-expire" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">refresh-expire</span></tt> is an uncommon option, indicating that the
 <a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire()</span></tt></a> operation should be propagated from a parent
 down to referred objects.   When using <a class="reference internal" href="#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">Session.refresh()</span></tt></a>,
 the referred objects are expired only, but not actually refreshed.</p>
-</li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">expunge</span></tt> - Indicate that when the parent object is removed
+</div>
+<div class="section" id="expunge">
+<span id="cascade-expunge"></span><h3>expunge<a class="headerlink" href="#expunge" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">expunge</span></tt> cascade indicates that when the parent object is removed
 from the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> using <a class="reference internal" href="#sqlalchemy.orm.session.Session.expunge" title="sqlalchemy.orm.session.Session.expunge"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expunge()</span></tt></a>, the
 operation should be propagated down to referred objects.</p>
-</li>
-</ul>
+</div>
 <div class="section" id="controlling-cascade-on-backrefs">
 <span id="backref-cascade"></span><h3>Controlling Cascade on Backrefs<a class="headerlink" href="#controlling-cascade-on-backrefs" title="Permalink to this headline">¶</a></h3>
-<p>The <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade takes place on backrefs by default.   This means
-that, given a mapping such as this:</p>
+<p>The <a class="reference internal" href="#cascade-save-update"><em>save-update</em></a> cascade by default takes place on attribute change events
+emitted from backrefs.  This is probably a confusing statement more
+easily described through demonstration; it means that, given a mapping such as this:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Order</span><span class="p">,</span> <span class="n">order_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
     <span class="s">&#39;items&#39;</span> <span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Item</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&#39;order&#39;</span><span class="p">)</span>
 <span class="p">})</span></pre></div>
@@ -2889,6 +3194,12 @@ indicating a subset of attributes to be expired.</li>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#session-expire"><em>Refreshing / Expiring</em></a> - introductory material</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">Session.refresh()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -2910,6 +3221,12 @@ or <a class="reference internal" href="#sqlalchemy.orm.session.Session.commit" t
 state can be loaded for the new transaction.   For this reason,
 calling <a class="reference internal" href="#sqlalchemy.orm.session.Session.expire_all" title="sqlalchemy.orm.session.Session.expire_all"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire_all()</span></tt></a> should not be needed when
 autocommit is <tt class="docutils literal"><span class="pre">False</span></tt>, assuming the transaction is isolated.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#session-expire"><em>Refreshing / Expiring</em></a> - introductory material</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">Session.refresh()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -3330,6 +3647,12 @@ as used by <a class="reference internal" href="query.html#sqlalchemy.orm.query.Q
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#session-expire"><em>Refreshing / Expiring</em></a> - introductory material</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.session.Session.expire_all" title="sqlalchemy.orm.session.Session.expire_all"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire_all()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">

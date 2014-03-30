@@ -561,6 +561,8 @@ lib/sqlalchemy/testing/util.py
 lib/sqlalchemy/testing/warnings.py
 lib/sqlalchemy/testing/plugin/__init__.py
 lib/sqlalchemy/testing/plugin/noseplugin.py
+lib/sqlalchemy/testing/plugin/plugin_base.py
+lib/sqlalchemy/testing/plugin/pytestplugin.py
 lib/sqlalchemy/testing/suite/__init__.py
 lib/sqlalchemy/testing/suite/test_ddl.py
 lib/sqlalchemy/testing/suite/test_insert.py
@@ -580,6 +582,7 @@ lib/sqlalchemy/util/topological.py
 test/__init__.py
 test/binary_data_one.dat
 test/binary_data_two.dat
+test/conftest.py
 test/requirements.py
 test/aaa_profiling/__init__.py
 test/aaa_profiling/test_compiler.py
@@ -625,6 +628,7 @@ test/engine/__init__.py
 test/engine/test_bind.py
 test/engine/test_ddlevents.py
 test/engine/test_execute.py
+test/engine/test_logging.py
 test/engine/test_parseconnect.py
 test/engine/test_pool.py
 test/engine/test_processors.py
