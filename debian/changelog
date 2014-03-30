@@ -1,3 +1,10 @@
+sqlalchemy (0.9.4-1) unstable; urgency=medium
+
+  * New upstream release
+  * Document doc/_static/* in debian/copyright (closes: #736241)
+
+ -- Piotr Ożarowski <piotr@debian.org>  Sun, 30 Mar 2014 21:17:48 +0200
+
 sqlalchemy (0.9.3-1) unstable; urgency=low
 
   * New upstream release
