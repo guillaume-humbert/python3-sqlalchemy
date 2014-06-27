@@ -7,14 +7,38 @@ function initSQLPopups() {
     });
 }
 
-/*function initFloatyThings() {
-	$("dl.function, dl.class, dl.method, dl.attr, dl.data").each(function(idx, elem) {
-		$(elem).prepend("<div class='floatything'>" + $(elem).contents("dt").attr('id')+ "</div>");
-	});
-}*/
+var automatedBreakpoint = -1;
+
+function initFloatyThings() {
+
+    automatedBreakpoint = $("#docs-container").position().top + $("#docs-top-navigation-container").height();
+
+    $("#fixed-sidebar.withsidebar").addClass("preautomated");
+
+
+    function setScroll() {
+
+        var scrolltop = $(window).scrollTop();
+        if (scrolltop >= automatedBreakpoint) {
+            $("#fixed-sidebar.withsidebar").css("top", 5);
+        }
+        else {
+            $("#fixed-sidebar.withsidebar").css(
+                "top", $("#docs-body").offset().top - Math.max(scrolltop, 0));
+        }
+
+
+    }
+    $(window).scroll(setScroll)
+
+    setScroll();
+}
+
 
 $(document).ready(function() {
     initSQLPopups();
-    /*initFloatyThings();*/
+    if (!$.browser.mobile) {
+        initFloatyThings();
+    }
 });
 

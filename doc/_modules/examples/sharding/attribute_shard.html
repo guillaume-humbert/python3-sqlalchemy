@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../../../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -67,60 +68,46 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-
-        <li>
-            <a href="../../../contents.html">Table of Contents</a> |
-            <a href="../../../genindex.html">Index</a>
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../../../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="../../index.html" title="Module code">Module code</a>
-        » 
-                examples.sharding.attribute_shard
-            
-
-        <h2>
-            
-                examples.sharding.attribute_shard
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
+    <div id="fixed-sidebar" class="">
+
+        <div id="index-nav">
+            <form class="search" action="../../../search.html" method="get">
+              <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+
+            <p>
+            <a href="../../../index.html">Contents</a> |
+            <a href="../../../genindex.html">Index</a>
+            </p>
+
+        </div>
+
+
+    </div>
+
+    
 
     <div id="docs-body" class="" >
         
@@ -235,7 +222,7 @@
 
 <span class="sd">    given a primary key, returns a list of shards</span>
 <span class="sd">    to search.  here, we don&#39;t have any particular information from a</span>
-<span class="sd">    pk so we just return all shard ids. often, youd want to do some</span>
+<span class="sd">    pk so we just return all shard ids. often, you&#39;d want to do some</span>
 <span class="sd">    kind of round-robin strategy here so that requests are evenly</span>
 <span class="sd">    distributed among DBs.</span>
 

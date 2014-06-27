@@ -428,6 +428,45 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             checkparams={'param_1': 7}
         )
 
+    def _test_array_zero_indexes(self, zero_indexes):
+        c = Column('x', postgresql.ARRAY(Integer, zero_indexes=zero_indexes))
+
+        add_one = 1 if zero_indexes else 0
+
+        self.assert_compile(
+            cast(c, postgresql.ARRAY(Integer, zero_indexes=zero_indexes)),
+            "CAST(x AS INTEGER[])"
+        )
+        self.assert_compile(
+            c[5],
+            "x[%(x_1)s]",
+            checkparams={'x_1': 5 + add_one}
+        )
+
+        self.assert_compile(
+            c[5:7],
+            "x[%(x_1)s:%(x_2)s]",
+            checkparams={'x_2': 7 + add_one, 'x_1': 5 + add_one}
+        )
+        self.assert_compile(
+            c[5:7][2:3],
+            "x[%(x_1)s:%(x_2)s][%(param_1)s:%(param_2)s]",
+            checkparams={'x_2': 7 + add_one, 'x_1': 5 + add_one,
+                'param_1': 2 + add_one, 'param_2': 3 + add_one}
+        )
+        self.assert_compile(
+            c[5:7][3],
+            "x[%(x_1)s:%(x_2)s][%(param_1)s]",
+            checkparams={'x_2': 7 + add_one, 'x_1': 5 + add_one,
+                    'param_1': 3 + add_one}
+        )
+
+    def test_array_zero_indexes_true(self):
+        self._test_array_zero_indexes(True)
+
+    def test_array_zero_indexes_false(self):
+        self._test_array_zero_indexes(False)
+
     def test_array_literal_type(self):
         is_(postgresql.array([1, 2]).type._type_affinity, postgresql.ARRAY)
         is_(postgresql.array([1, 2]).type.item_type._type_affinity, Integer)

@@ -30,7 +30,7 @@ psycopg2-specific keyword arguments which are accepted by
   way of enabling this mode on a per-execution basis.
 * ``use_native_unicode``: Enable the usage of Psycopg2 "native unicode" mode
   per connection.  True by default.
-* ``isolation_level``: This option, available for all Posgtresql dialects,
+* ``isolation_level``: This option, available for all PostgreSQL dialects,
   includes the ``AUTOCOMMIT`` isolation level when using the psycopg2
   dialect.  See :ref:`psycopg2_isolation_level`.
 
@@ -102,7 +102,7 @@ This overrides the encoding specified in the Postgresql client configuration.
     :func:`.create_engine`.
 
 SQLAlchemy can also be instructed to skip the usage of the psycopg2
-``UNICODE`` extension and to instead utilize it's own unicode encode/decode
+``UNICODE`` extension and to instead utilize its own unicode encode/decode
 services, which are normally reserved only for those DBAPIs that don't
 fully support unicode directly.  Passing ``use_native_unicode=False`` to
 :func:`.create_engine` will disable usage of ``psycopg2.extensions.UNICODE``.
@@ -144,6 +144,12 @@ The psycopg2 dialect supports these constants for isolation level:
 .. versionadded:: 0.8.2 support for AUTOCOMMIT isolation level when using
    psycopg2.
 
+.. seealso::
+
+    :ref:`postgresql_isolation_level`
+
+    :ref:`pg8000_isolation_level`
+
 
 NOTICE logging
 ---------------
@@ -169,7 +175,7 @@ connection, a sequence like the following is performed:
    If this function returns a list of HSTORE identifiers, we then determine that
    the ``HSTORE`` extension is present.
 
-2. If the ``use_native_hstore`` flag is at it's default of ``True``, and
+2. If the ``use_native_hstore`` flag is at its default of ``True``, and
    we've detected that ``HSTORE`` oids are available, the
    ``psycopg2.extensions.register_hstore()`` extension is invoked for all
    connections.
@@ -270,7 +276,7 @@ class _PGJSON(JSON):
         else:
             return super(_PGJSON, self).result_processor(dialect, coltype)
 
-# When we're handed literal SQL, ensure it's a SELECT-query. Since
+# When we're handed literal SQL, ensure it's a SELECT query. Since
 # 8.3, combining cursors and "FOR UPDATE" has been fine.
 SERVER_SIDE_CURSOR_RE = re.compile(
     r'\s*SELECT',
@@ -489,23 +495,31 @@ class PGDialect_psycopg2(PGDialect):
 
     def is_disconnect(self, e, connection, cursor):
         if isinstance(e, self.dbapi.Error):
+            # check the "closed" flag.  this might not be
+            # present on old psycopg2 versions
+            if getattr(connection, 'closed', False):
+                return True
+
+            # legacy checks based on strings.  the "closed" check
+            # above most likely obviates the need for any of these.
             str_e = str(e).partition("\n")[0]
             for msg in [
                 # these error messages from libpq: interfaces/libpq/fe-misc.c
                 # and interfaces/libpq/fe-secure.c.
-                # TODO: these are sent through gettext in libpq and we can't
-                # check within other locales - consider using connection.closed
                 'terminating connection',
                 'closed the connection',
                 'connection not open',
                 'could not receive data from server',
                 'could not send data to server',
-                # psycopg2 client errors, psycopg2/conenction.h, psycopg2/cursor.h
+                # psycopg2 client errors, psycopg2/conenction.h,
+                # psycopg2/cursor.h
                 'connection already closed',
                 'cursor already closed',
                 # not sure where this path is originally from, it may
                 # be obsolete.   It really says "losed", not "closed".
-                'losed the connection unexpectedly'
+                'losed the connection unexpectedly',
+                # this can occur in newer SSL
+                'connection has been closed unexpectedly'
             ]:
                 idx = str_e.find(msg)
                 if idx >= 0 and '"' not in str_e[:idx]:

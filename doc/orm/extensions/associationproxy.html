@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,13 +44,14 @@
         <script type="text/javascript" src="../../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
     <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../../index.html" />
         <link rel="up" title="ORM Extensions" href="index.html" />
-        <link rel="next" title="Declarative" href="declarative.html" />
+        <link rel="next" title="Automap" href="automap.html" />
         <link rel="prev" title="ORM Extensions" href="index.html" />
     <!-- end layout.mako headers -->
 
@@ -69,71 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="index.html" title="previous chapter">ORM Extensions</a>
-            </li>
-            <li>Next:
-            <a href="declarative.html" title="next chapter">Declarative</a>
-            </li>
-
-        <li>
-            <a href="../../contents.html">Table of Contents</a> |
-            <a href="../../genindex.html">Index</a>
-            | <a href="../../_sources/orm/extensions/associationproxy.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-                » <a href="index.html" title="ORM Extensions">ORM Extensions</a>
-        » 
-                Association Proxy
-            
-
-        <h2>
-            
-                Association Proxy
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="ORM Extensions">Up</a> |
+
+                    <a href="index.html" title="ORM Extensions">Prev</a> |
+                    <a href="automap.html" title="Automap">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../../index.html">Contents</a> |
+                <a href="../../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                Association Proxy
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">Association Proxy</a><ul>
 <li><a class="reference internal" href="#simplifying-scalar-collections">Simplifying Scalar Collections</a></li>
 <li><a class="reference internal" href="#creation-of-new-values">Creation of New Values</a></li>
@@ -147,26 +138,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="index.html" title="previous chapter">ORM Extensions</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="declarative.html" title="next chapter">Declarative</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -858,7 +836,7 @@ in the generation of new instances of this class.</p>
         Previous:
         <a href="index.html" title="previous chapter">ORM Extensions</a>
         Next:
-        <a href="declarative.html" title="next chapter">Declarative</a>
+        <a href="automap.html" title="next chapter">Automap</a>
 
     <div id="docs-copyright">
         &copy; <a href="../../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.

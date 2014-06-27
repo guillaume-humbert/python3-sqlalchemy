@@ -14,7 +14,8 @@ from .elements import ClauseElement, TextClause, ClauseList, \
 from .elements import _clone, \
         _literal_as_text, _interpret_as_column_or_from, _expand_cloned,\
         _select_iterables, _anonymous_label, _clause_element_as_expr,\
-        _cloned_intersection, _cloned_difference, True_, _only_column_elements
+        _cloned_intersection, _cloned_difference, True_, _only_column_elements,\
+        TRUE
 from .base import Immutable, Executable, _generative, \
             ColumnCollection, ColumnSet, _from_objects, Generative
 from . import type_api
@@ -41,7 +42,7 @@ def _interpret_as_select(element):
     element = _interpret_as_from(element)
     if isinstance(element, Alias):
         element = element.original
-    if not isinstance(element, Select):
+    if not isinstance(element, SelectBase):
         element = element.select()
     return element
 
@@ -468,7 +469,7 @@ class FromClause(Selectable):
         to its .c. collection when a Column has been added to one of the
         Table objects it ultimtely derives from.
 
-        If the given selectable hasn't populated it's .c. collection yet,
+        If the given selectable hasn't populated its .c. collection yet,
         it should at least pass on the message to the contained selectables,
         but it will return None.
 
@@ -1466,8 +1467,8 @@ class SelectBase(Executable, FromClause):
             parts_alias = parts.alias()
             included_parts = included_parts.union_all(
                 select([
-                    parts_alias.c.part,
                     parts_alias.c.sub_part,
+                    parts_alias.c.part,
                     parts_alias.c.quantity
                 ]).
                     where(parts_alias.c.part==incl_alias.c.sub_part)
@@ -1477,9 +1478,7 @@ class SelectBase(Executable, FromClause):
                         included_parts.c.sub_part,
                         func.sum(included_parts.c.quantity).
                           label('total_quantity')
-                    ]).\
-                    select_from(included_parts.join(parts,
-                                included_parts.c.part==parts.c.part)).\\
+                    ]).\\
                     group_by(included_parts.c.sub_part)
 
             result = conn.execute(statement).fetchall()
@@ -2061,7 +2060,7 @@ class Select(HasPrefixes, GenerativeSelect):
           Use this parameter to explicitly specify "from" objects which are not
           automatically locatable. This could include
           :class:`~sqlalchemy.schema.Table` objects that aren't otherwise present,
-          or :class:`.Join` objects whose presence will supercede that of the
+          or :class:`.Join` objects whose presence will supersede that of the
           :class:`~sqlalchemy.schema.Table` objects already located in the other
           clauses.
 
@@ -2191,12 +2190,12 @@ class Select(HasPrefixes, GenerativeSelect):
             self._raw_columns = []
 
         if whereclause is not None:
-            self._whereclause = _literal_as_text(whereclause)
+            self._whereclause = _literal_as_text(whereclause).self_group(against=operators._asbool)
         else:
             self._whereclause = None
 
         if having is not None:
-            self._having = _literal_as_text(having)
+            self._having = _literal_as_text(having).self_group(against=operators._asbool)
         else:
             self._having = None
 
@@ -2404,7 +2403,7 @@ class Select(HasPrefixes, GenerativeSelect):
         # here is the same item is _correlate as in _from_obj but the
         # _correlate version has an annotation on it - (specifically
         # RelationshipProperty.Comparator._criterion_exists() does
-        # this). Also keep _correlate liberally open with it's previous
+        # this). Also keep _correlate liberally open with its previous
         # contents, as this set is used for matching, not rendering.
         self._correlate = set(clone(f) for f in
                               self._correlate).union(self._correlate)
@@ -2412,7 +2411,7 @@ class Select(HasPrefixes, GenerativeSelect):
         # 4. clone other things.   The difficulty here is that Column
         # objects are not actually cloned, and refer to their original
         # .table, resulting in the wrong "from" parent after a clone
-        # operation.  Hence _from_cloned and _from_obj supercede what is
+        # operation.  Hence _from_cloned and _from_obj supersede what is
         # present here.
         self._raw_columns = [clone(c, **kw) for c in self._raw_columns]
         for attr in '_whereclause', '_having', '_order_by_clause', \

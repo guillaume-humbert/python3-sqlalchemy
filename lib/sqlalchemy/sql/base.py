@@ -181,6 +181,8 @@ class DialectKWArgs(object):
             raise exc.ArgumentError("Dialect '%s' does have keyword-argument "
                         "validation and defaults enabled configured" %
                         dialect_name)
+        if cls not in construct_arg_dictionary:
+            construct_arg_dictionary[cls] = {}
         construct_arg_dictionary[cls][argument_name] = default
 
     @util.memoized_property
@@ -487,6 +489,9 @@ class ColumnCollection(util.OrderedProperties):
         for this dictionary.
 
         """
+        if not column.key:
+            raise exc.ArgumentError(
+                        "Can't add unnamed column to column collection")
         self[column.key] = column
 
     def __delitem__(self, key):

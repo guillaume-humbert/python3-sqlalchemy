@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,71 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="functions.html" title="previous chapter">SQL and Generic Functions</a>
-            </li>
-            <li>Next:
-            <a href="schema.html" title="next chapter">Schema Definition Language</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/core/types.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
-                » <a href="expression_api.html" title="SQL Statements and Expressions API">SQL Statements and Expressions API</a>
-        » 
-                Column and Data Types
-            
-
-        <h2>
-            
-                Column and Data Types
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="expression_api.html" title="SQL Statements and Expressions API">Up</a> |
+
+                    <a href="functions.html" title="SQL and Generic Functions">Prev</a> |
+                    <a href="schema.html" title="Schema Definition Language">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                Column and Data Types
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">Column and Data Types</a><ul>
 <li><a class="reference internal" href="#generic-types">Generic Types</a></li>
 <li><a class="reference internal" href="#sql-standard-types">SQL Standard Types</a></li>
@@ -160,26 +151,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="functions.html" title="previous chapter">SQL and Generic Functions</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="schema.html" title="next chapter">Schema Definition Language</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -322,7 +300,7 @@ created and dropped within <tt class="docutils literal"><span class="pre">create
 operations. If the type is not associated with any <tt class="docutils literal"><span class="pre">MetaData</span></tt>
 object, it will associate itself with each <tt class="docutils literal"><span class="pre">Table</span></tt> in which it is
 used, and will be created when any of those individual tables are
-created, after a check is performed for it&#8217;s existence. The type is
+created, after a check is performed for its existence. The type is
 only dropped when <tt class="docutils literal"><span class="pre">drop_all()</span></tt> is called for that <tt class="docutils literal"><span class="pre">Table</span></tt>
 object&#8217;s metadata, however.</li>
 <li><span class="target" id="sqlalchemy.types.Enum.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Enum.params.name">¶</a> &#8211; The name of this type. This is required for Postgresql
@@ -1748,7 +1726,7 @@ meaning, in-place changes to values will not be detected and will not be
 flushed. Without further steps, you instead would need to replace the existing
 value with a new one on each parent object to detect changes. Note that
 there&#8217;s nothing wrong with this, as many applications may not require that the
-values are ever mutated once created.  For those which do have this requirment,
+values are ever mutated once created.  For those which do have this requirement,
 support for mutability is best applied using the <tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt>
 extension - see the example in <a class="reference internal" href="../orm/extensions/mutable.html"><em>Mutation Tracking</em></a>.</p>
 </div>

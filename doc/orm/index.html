@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -68,95 +69,74 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="../intro.html" title="previous chapter">Overview</a>
-            </li>
-            <li>Next:
-            <a href="tutorial.html" title="next chapter">Object Relational Tutorial</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/orm/index.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-        » 
-                SQLAlchemy ORM
-            
-
-        <h2>
-            
-                SQLAlchemy ORM
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="../index.html" title="SQLAlchemy 0.9 Documentation">Up</a> |
+
+                    <a href="../intro.html" title="Overview">Prev</a> |
+                    <a href="tutorial.html" title="Object Relational Tutorial">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                SQLAlchemy ORM
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">SQLAlchemy ORM</a><ul>
 </ul>
 </li>
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="../intro.html" title="previous chapter">Overview</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="tutorial.html" title="next chapter">Object Relational Tutorial</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -282,6 +262,7 @@ tutorial.</p>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#specifying-alternate-join-conditions">Specifying Alternate Join Conditions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#creating-custom-foreign-conditions">Creating Custom Foreign Conditions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#using-custom-operators-in-join-conditions">Using custom operators in join conditions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="relationships.html#non-relational-comparisons-materialized-path">Non-relational Comparisons / Materialized Path</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#self-referential-many-to-many-relationship">Self-Referential Many-to-Many Relationship</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#composite-secondary-joins">Composite &#8220;Secondary&#8221; Joins</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#relationship-to-non-primary-mapper">Relationship to Non Primary Mapper</a></li>
@@ -318,7 +299,7 @@ tutorial.</p>
 <li class="toctree-l3"><a class="reference internal" href="inheritance.html#basic-control-of-which-tables-are-queried">Basic Control of Which Tables are Queried</a></li>
 <li class="toctree-l3"><a class="reference internal" href="inheritance.html#advanced-control-of-which-tables-are-queried">Advanced Control of Which Tables are Queried</a></li>
 <li class="toctree-l3"><a class="reference internal" href="inheritance.html#creating-joins-to-specific-subtypes">Creating Joins to Specific Subtypes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="inheritance.html#eager-loading-of-specific-subtypes">Eager Loading of Specific Subtypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inheritance.html#eager-loading-of-specific-or-polymorphic-subtypes">Eager Loading of Specific or Polymorphic Subtypes</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="inheritance.html#single-table-inheritance">Single Table Inheritance</a></li>
@@ -435,6 +416,16 @@ tutorial.</p>
 <li class="toctree-l3"><a class="reference internal" href="extensions/associationproxy.html#api-documentation">API Documentation</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="extensions/automap.html">Automap</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="extensions/automap.html#basic-use">Basic Use</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extensions/automap.html#generating-mappings-from-an-existing-metadata">Generating Mappings from an Existing MetaData</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extensions/automap.html#specifying-classes-explcitly">Specifying Classes Explcitly</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extensions/automap.html#overriding-naming-schemes">Overriding Naming Schemes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extensions/automap.html#relationship-detection">Relationship Detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extensions/automap.html#using-automap-with-explicit-declarations">Using Automap with Explicit Declarations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="extensions/automap.html#api-reference">API Reference</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="extensions/declarative.html">Declarative</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="extensions/declarative.html#synopsis">Synopsis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="extensions/declarative.html#defining-attributes">Defining Attributes</a></li>
@@ -492,6 +483,7 @@ tutorial.</p>
 <li class="toctree-l3"><a class="reference internal" href="examples.html#module-examples.dynamic_dict">Dynamic Relations as Dictionaries</a></li>
 <li class="toctree-l3"><a class="reference internal" href="examples.html#module-examples.generic_associations">Generic Associations</a></li>
 <li class="toctree-l3"><a class="reference internal" href="examples.html#module-examples.large_collection">Large Collections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples.html#module-examples.materialized_paths">Materialized Paths</a></li>
 <li class="toctree-l3"><a class="reference internal" href="examples.html#module-examples.nested_sets">Nested Sets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="examples.html#module-examples.join_conditions">Relationship Join Conditions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="examples.html#module-examples.elementtree">XML Persistence</a></li>

@@ -1,8 +1,12 @@
 /* global */
 
+.body-background {
+  background-color: #FDFBFC;
+}
+
 body {
   background-color: #FDFBFC;
-  margin:38px;
+  margin:0 38px;
   color:#333333;
 }
 
@@ -61,6 +65,8 @@ a.headerlink:hover {
 
 #docs-container {
   max-width:1000px;
+  margin: 0 auto;
+  position: relative;
 }
 
 
@@ -77,21 +83,41 @@ a.headerlink:hover {
   font-family:Verdana,sans-serif;
 
   font-size:.9em;
-
+  position: relative;
 }
 
-#docs-top-navigation,
-#docs-bottom-navigation {
+#docs-sidebar-popout,
+#docs-bottom-navigation,
+#index-nav {
   font-family: Verdana, sans-serif;
   background-color: #FBFBEE;
   border: solid 1px #CCC;
-  padding:10px;
   font-size:.8em;
 }
 
-#docs-top-navigation {
-  margin:10px 0px 10px 0px;
-  line-height:1.2em;
+#docs-bottom-navigation,
+#index-nav {
+  padding:10px;
+}
+
+#docs-sidebar-popout {
+  font-size:.75em;
+}
+
+#docs-sidebar-popout p,
+#docs-sidebar-popout form {
+  margin:5px 0 5px 0px;
+}
+
+#docs-sidebar-popout h3 {
+  margin:0 0 10px 0;
+}
+
+
+#docs-version-header {
+  position: absolute;
+  right: 0;
+  bottom: 0;
 }
 
 .docs-navigation-links {
@@ -120,13 +146,10 @@ a.headerlink:hover {
     font-size:1.6em;
 }
 
-#docs-search {
-    float:right;
-}
-
 #docs-top-page-control {
-  float:right;
-  width:350px;
+  position: absolute;
+  right: 20px;
+  bottom: 14px;
 }
 
 #docs-top-page-control ul {
@@ -149,12 +172,11 @@ a.headerlink:hover {
 /* content container, sidebar */
 
 #docs-body-container {
-  background-color:#EFEFEF;
-  border: solid 1px #CCC;
 }
 
 #docs-body,
-#docs-sidebar
+#docs-sidebar,
+#index-nav
  {
   /*font-family: helvetica, arial, sans-serif;
   font-size:.9em;*/
@@ -173,11 +195,97 @@ a.headerlink:hover {
   font-size:.85em;
 }
 
+#fixed-sidebar {
+  position: relative;
+}
+
+#fixed-sidebar.withsidebar {
+  float: left;
+  width:224px;
+}
+
+#fixed-sidebar.preautomated {
+    position: fixed;
+    float: none;
+    top:0;
+    bottom: 0;
+}
+
+#fixed-sidebar.automated {
+    position: fixed;
+    float: none;
+    top: 120px;
+    min-height: 0;
+}
+
+
 #docs-sidebar {
-  float:left;
-  width:212px;
-  padding: 10px 0 0 15px;
   font-size:.85em;
+
+  border: solid 1px #CCC;
+
+  z-index: 3;
+  background-color: #EFEFEF;
+}
+
+#index-nav {
+  position: relative;
+  margin-top:10px;
+  padding:0 10px;
+}
+
+#index-nav form {
+  padding-top:10px;
+  float:right;
+}
+
+#sidebar-paginate {
+  position: absolute;
+  bottom: 4.5em;
+  left: 10px;
+}
+
+#sidebar-topnav {
+  position: absolute;
+  bottom: 3em;
+  left: 10px;
+}
+
+#sidebar-search {
+  position: absolute;
+  bottom: 1em;
+  left: 10px;
+}
+
+#docs-sidebar {
+  top: 132px;
+  bottom: 0;
+  min-height: 0;
+  overflow-y: auto;
+  margin-top:5px;
+  width:212px;
+  padding-left:10px;
+}
+
+#docs-sidebar-popout {
+  height:120px;
+  max-height: 120px;
+  width:212px;
+  padding-left:10px;
+  padding-top:10px;
+  position: relative;
+}
+
+
+#fixed-sidebar.preautomated #docs-sidebar,
+#fixed-sidebar.preautomated #docs-sidebar-popout {
+  position:absolute;
+}
+
+#fixed-sidebar.preautomated #docs-sidebar:after {
+  content: " ";
+  display:block;
+  height: 150px;
 }
 
 #docs-sidebar h3, #docs-sidebar h4 {
@@ -187,9 +295,13 @@ a.headerlink:hover {
     font-size: 1.1em;
     font-weight: normal;
     margin: 10px 0 0 -15px;
-    padding: 5px 10px 5px 10px;
+    padding: 5px 10px 5px 15px;
     text-shadow: 1px 1px 0 white;
-    width:210px;
+    /*width:210px;*/
+}
+
+#docs-sidebar h3:first-child {
+  margin-top: 0px;
 }
 
 #docs-sidebar h3 a, #docs-sidebar h4 a {
@@ -209,15 +321,21 @@ a.headerlink:hover {
     margin-left: 20px;
 }
 
+
+
+
 #docs-body {
   background-color:#FFFFFF;
   padding:1px 10px 10px 10px;
+
+  border: solid 1px #CCC;
+  margin-top:10px;
 }
 
 #docs-body.withsidebar {
-  margin: 0 0 0 230px;
-  border-left:3px solid #DFDFDF;
+  margin-left: 230px;
 }
+
 
 #docs-body h1,
 #docs-body h2,
@@ -226,11 +344,12 @@ a.headerlink:hover {
   font-family:Helvetica, Arial, sans-serif;
 }
 
-#docs-body h1 {
+#docs-body #sqlalchemy-documentation h1 {
   /* hide the <h1> for each content section. */
   display:none;
   font-size:2.0em;
 }
+
 
 #docs-body h2 {
   font-size:1.8em;
@@ -323,8 +442,8 @@ th.field-name {
 }
 
 div.section {
-  clear:right;
 }
+
 div.note, div.warning, p.deprecated, div.topic, div.admonition  {
     background-color:#EEFFEF;
 }
@@ -348,7 +467,6 @@ div.admonition, div.topic, .deprecated, .versionadded, .versionchanged {
     margin-top:5px;
     box-shadow: 2px 2px 3px #DFDFDF;
 }
-
 
 div.sidebar {
     background-color: #FFFFEE;
@@ -405,10 +523,11 @@ dl.method > dt,
 dl.class > dt,
 dl.exception > dt
 {
-    background-color:#F0F0F0;
+    background-color: #EFEFEF;
     margin:25px -10px 10px 10px;
     padding: 0px 10px;
 }
+
 
 dl.glossary > dt {
   font-weight:bold;

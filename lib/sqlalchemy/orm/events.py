@@ -213,7 +213,7 @@ class InstanceEvents(event.Events):
         """
 
     def init(self, target, args, kwargs):
-        """Receive an instance when it's constructor is called.
+        """Receive an instance when its constructor is called.
 
         This method is only called during a userland construction of
         an object.  It is not called when an object is loaded from the
@@ -222,7 +222,7 @@ class InstanceEvents(event.Events):
         """
 
     def init_failure(self, target, args, kwargs):
-        """Receive an instance when it's constructor has been called,
+        """Receive an instance when its constructor has been called,
         and raised an exception.
 
         This method is only called during a userland construction of
@@ -316,7 +316,7 @@ class InstanceEvents(event.Events):
         """
 
     def unpickle(self, target, state_dict):
-        """Receive an object instance after it's associated state has
+        """Receive an object instance after its associated state has
         been unpickled.
 
         :param target: the mapped instance.  If
@@ -472,9 +472,7 @@ class MapperEvents(event.Events):
          processing normally.
        * ``sqlalchemy.orm.interfaces.EXT_STOP`` - cancel all subsequent
          event handlers in the chain.
-       * other values - the return value specified by specific listeners,
-         such as :meth:`~.MapperEvents.translate_row` or
-         :meth:`~.MapperEvents.create_instance`.
+       * other values - the return value specified by specific listeners.
 
     """
 
@@ -663,6 +661,13 @@ class MapperEvents(event.Events):
         """Perform pre-processing on the given result row and return a
         new row instance.
 
+        .. deprecated:: 0.9 the :meth:`.translate_row` event should
+           be considered as legacy.  The row as delivered in a mapper
+           load operation typically requires that highly technical
+           details be accommodated in order to identity the correct
+           column keys are present in the row, rendering this particular
+           event hook as difficult to use and unreliable.
+
         This listener is typically registered with ``retval=True``.
         It is called when the mapper first receives a row, before
         the object identity or the instance itself has been derived
@@ -691,6 +696,10 @@ class MapperEvents(event.Events):
         """Receive a row when a new object instance is about to be
         created from that row.
 
+        .. deprecated:: 0.9 the :meth:`.create_instance` event should
+           be considered as legacy.  Manipulation of the object construction
+           mechanics during a load should not be necessary.
+
         The method can choose to create the instance itself, or it can return
         EXT_CONTINUE to indicate normal object creation should take place.
         This listener is typically registered with ``retval=True``.
@@ -715,6 +724,11 @@ class MapperEvents(event.Events):
                         result, **flags):
         """Receive an object instance before that instance is appended
         to a result list.
+
+        .. deprecated:: 0.9 the :meth:`.append_result` event should
+           be considered as legacy.  It is a difficult to use method
+           whose original purpose is better suited by custom collection
+           classes.
 
         This is a rarely used hook which can be used to alter
         the construction of a result list returned by :class:`.Query`.
@@ -747,6 +761,11 @@ class MapperEvents(event.Events):
                             target, **flags):
         """Receive an instance before that instance has
         its attributes populated.
+
+        .. deprecated:: 0.9 the :meth:`.populate_instance` event should
+           be considered as legacy.  The mechanics of instance population
+           should not need modification; special "on load" rules can as always
+           be accommodated by the :class:`.InstanceEvents.load` event.
 
         This usually corresponds to a newly loaded instance but may
         also correspond to an already-loaded instance which has
@@ -1648,7 +1667,7 @@ class AttributeEvents(event.Events):
           replaces it.
         :param initiator: An instance of :class:`.attributes.Event`
           representing the initiation of the event.  May be modified
-          from it's original value by backref handlers in order to control
+          from its original value by backref handlers in order to control
           chained event propagation.
 
           .. versionchanged:: 0.9.0 the ``initiator`` argument is now
@@ -1669,7 +1688,7 @@ class AttributeEvents(event.Events):
         :param value: the value being removed.
         :param initiator: An instance of :class:`.attributes.Event`
           representing the initiation of the event.  May be modified
-          from it's original value by backref handlers in order to control
+          from its original value by backref handlers in order to control
           chained event propagation.
 
           .. versionchanged:: 0.9.0 the ``initiator`` argument is now
@@ -1697,7 +1716,7 @@ class AttributeEvents(event.Events):
           or expired.
         :param initiator: An instance of :class:`.attributes.Event`
           representing the initiation of the event.  May be modified
-          from it's original value by backref handlers in order to control
+          from its original value by backref handlers in order to control
           chained event propagation.
 
           .. versionchanged:: 0.9.0 the ``initiator`` argument is now

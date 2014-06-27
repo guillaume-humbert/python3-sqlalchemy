@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,70 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="connections.html" title="previous chapter">Working with Engines and Connections</a>
-            </li>
-            <li>Next:
-            <a href="event.html" title="next chapter">Events</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/core/pooling.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
-        » 
-                Connection Pooling
-            
-
-        <h2>
-            
-                Connection Pooling
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="SQLAlchemy Core">Up</a> |
+
+                    <a href="connections.html" title="Working with Engines and Connections">Prev</a> |
+                    <a href="event.html" title="Events">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                Connection Pooling
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">Connection Pooling</a><ul>
 <li><a class="reference internal" href="#connection-pool-configuration">Connection Pool Configuration</a></li>
 <li><a class="reference internal" href="#switching-pool-implementations">Switching Pool Implementations</a></li>
@@ -155,26 +147,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="connections.html" title="previous chapter">Working with Engines and Connections</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="event.html" title="next chapter">Events</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -288,7 +267,7 @@ within a transparent proxy:</p>
 <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;select foo&quot;</span><span class="p">)</span></pre></div>
 </div>
 <p>The purpose of the transparent proxy is to intercept the <tt class="docutils literal"><span class="pre">close()</span></tt> call,
-such that instead of the DBAPI connection being closed, it&#8217;s returned to the
+such that instead of the DBAPI connection being closed, it is returned to the
 pool:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># &quot;close&quot; the connection.  Returns</span>
 <span class="c"># it to the pool.</span>
@@ -378,7 +357,7 @@ of the <a class="reference internal" href="#sqlalchemy.pool.Pool" title="sqlalch
 <h3>Disconnect Handling - Pessimistic<a class="headerlink" href="#disconnect-handling-pessimistic" title="Permalink to this headline">¶</a></h3>
 <p>At the expense of some extra SQL emitted for each connection checked out from the pool,
 a &#8220;ping&#8221; operation established by a checkout event handler
-can detect an invalid connection before it&#8217;s used:</p>
+can detect an invalid connection before it is used:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">exc</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.pool</span> <span class="kn">import</span> <span class="n">Pool</span>

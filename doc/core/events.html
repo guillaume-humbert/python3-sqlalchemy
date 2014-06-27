@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,70 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="event.html" title="previous chapter">Events</a>
-            </li>
-            <li>Next:
-            <a href="compiler.html" title="next chapter">Custom SQL Constructs and Compilation Extension</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/core/events.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
-        » 
-                Core Events
-            
-
-        <h2>
-            
-                Core Events
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="SQLAlchemy Core">Up</a> |
+
+                    <a href="event.html" title="Events">Prev</a> |
+                    <a href="compiler.html" title="Custom SQL Constructs and Compilation Extension">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                Core Events
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">Core Events</a><ul>
 <li><a class="reference internal" href="#connection-pool-events">Connection Pool Events</a></li>
 <li><a class="reference internal" href="#sql-execution-and-connection-events">SQL Execution and Connection Events</a></li>
@@ -142,26 +134,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="event.html" title="previous chapter">Events</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="compiler.html" title="next chapter">Custom SQL Constructs and Compilation Extension</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -178,7 +157,7 @@ ORM events are described in <a class="reference internal" href="../orm/events.ht
 </dd></dl>
 
 <div class="versionadded">
-<p><span>New in version 0.7: </span>The event system supercedes the previous system of &#8220;extension&#8221;, &#8220;listener&#8221;,
+<p><span>New in version 0.7: </span>The event system supersedes the previous system of &#8220;extension&#8221;, &#8220;listener&#8221;,
 and &#8220;proxy&#8221; classes.</p>
 </div>
 <div class="section" id="connection-pool-events">
@@ -429,7 +408,7 @@ before it is returned to the pool.  The behavior of &#8220;reset&#8221; can
 be controlled, including disabled, using the <tt class="docutils literal"><span class="pre">reset_on_return</span></tt>
 pool argument.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.events.PoolEvents.reset" title="sqlalchemy.events.PoolEvents.reset"><tt class="xref py py-meth docutils literal"><span class="pre">PoolEvents.reset()</span></tt></a> event is usually followed by the
-the <a class="reference internal" href="#sqlalchemy.events.PoolEvents.checkin" title="sqlalchemy.events.PoolEvents.checkin"><tt class="xref py py-meth docutils literal"><span class="pre">PoolEvents.checkin()</span></tt></a> event is called, except in those
+<a class="reference internal" href="#sqlalchemy.events.PoolEvents.checkin" title="sqlalchemy.events.PoolEvents.checkin"><tt class="xref py py-meth docutils literal"><span class="pre">PoolEvents.checkin()</span></tt></a> event is called, except in those
 cases where the connection is discarded immediately after reset.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -895,7 +874,7 @@ commit, use the <a class="reference internal" href="#sqlalchemy.events.PoolEvent
 </div>
 <p>This event is called with the DBAPI exception instance
 received from the DBAPI itself, <em>before</em> SQLAlchemy wraps the
-exception with it&#8217;s own exception wrappers, and before any
+exception with its own exception wrappers, and before any
 other operations are performed on the DBAPI cursor; the
 existing transaction remains in effect as well as any state
 on the cursor.</p>
@@ -1450,7 +1429,7 @@ functions.</p>
 <dl class="method">
 <dt id="sqlalchemy.events.DDLEvents.after_create">
 <tt class="descname">after_create</tt><big>(</big><em>target</em>, <em>connection</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.DDLEvents.after_create" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called after CREATE statments are emitted.</p>
+<dd><p>Called after CREATE statements are emitted.</p>
 <div class="event-signatures container">
 <p>Example argument forms:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
@@ -1488,7 +1467,7 @@ elements used by internal events.</li>
 <dl class="method">
 <dt id="sqlalchemy.events.DDLEvents.after_drop">
 <tt class="descname">after_drop</tt><big>(</big><em>target</em>, <em>connection</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.DDLEvents.after_drop" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called after DROP statments are emitted.</p>
+<dd><p>Called after DROP statements are emitted.</p>
 <div class="event-signatures container">
 <p>Example argument forms:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
@@ -1569,7 +1548,7 @@ i.e. those copies that are generated when
 <dl class="method">
 <dt id="sqlalchemy.events.DDLEvents.before_create">
 <tt class="descname">before_create</tt><big>(</big><em>target</em>, <em>connection</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.DDLEvents.before_create" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called before CREATE statments are emitted.</p>
+<dd><p>Called before CREATE statements are emitted.</p>
 <div class="event-signatures container">
 <p>Example argument forms:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
@@ -1607,7 +1586,7 @@ elements used by internal events.</li>
 <dl class="method">
 <dt id="sqlalchemy.events.DDLEvents.before_drop">
 <tt class="descname">before_drop</tt><big>(</big><em>target</em>, <em>connection</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.DDLEvents.before_drop" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called before DROP statments are emitted.</p>
+<dd><p>Called before DROP statements are emitted.</p>
 <div class="event-signatures container">
 <p>Example argument forms:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>

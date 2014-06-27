@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,70 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="changelog_02.html" title="previous chapter">0.2 Changelog</a>
-            </li>
-            <li>Next:
-            <a href="migration_08.html" title="next chapter">What&#8217;s New in SQLAlchemy 0.8?</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/changelog/changelog_01.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
-        » 
-                0.1 Changelog
-            
-
-        <h2>
-            
-                0.1 Changelog
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="Changes and Migration">Up</a> |
+
+                    <a href="changelog_02.html" title="0.2 Changelog">Prev</a> |
+                    <a href="migration_08.html" title="What&#8217;s New in SQLAlchemy 0.8?">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                0.1 Changelog
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">0.1 Changelog</a><ul>
 <li><a class="reference internal" href="#change-0.1.7">0.1.7</a></li>
 <li><a class="reference internal" href="#change-0.1.6">0.1.6</a></li>
@@ -146,26 +138,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="changelog_02.html" title="previous chapter">0.2 Changelog</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="migration_08.html" title="next chapter">What&#8217;s New in SQLAlchemy 0.8?</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -192,7 +171,7 @@ Released: Fri May 05 2006<ul class="simple">
 <li><p id="change-0.1.7-5"><span class="target" id="change-a83c4b8c4929f00119792aaa1c7eaad0"></span>with convert_unicode=True, reflection was failing, has been fixed<a class="changeset-link headerlink reference internal" href="#change-a83c4b8c4929f00119792aaa1c7eaad0">¶</a><p></p>
 </p>
 </li>
-<li><p id="change-0.1.7-6"><span class="target" id="change-05c25cbd078b2189f6edd43949f26d53"></span>types types types!  still werent working....have to use TypeDecorator again :(<a class="changeset-link headerlink reference internal" href="#change-05c25cbd078b2189f6edd43949f26d53">¶</a><p></p>
+<li><p id="change-0.1.7-6"><span class="target" id="change-0ebe95b934b2c9cbf552ea86f570c164"></span>types types types!  still weren&#8217;t working....have to use TypeDecorator again :(<a class="changeset-link headerlink reference internal" href="#change-0ebe95b934b2c9cbf552ea86f570c164">¶</a><p></p>
 </p>
 </li>
 <li><p id="change-0.1.7-7"><span class="target" id="change-f786fe476a97d9670225bd23f8ba525c"></span>mysql binary type converts array output to buffer, fixes PickleType<a class="changeset-link headerlink reference internal" href="#change-f786fe476a97d9670225bd23f8ba525c">¶</a><p></p>
@@ -443,7 +422,7 @@ against a column named the same as &#8220;tablename_colname&#8221; added<a class
 </p>
 </li>
 <li><p id="change-0.1.5-27"><span class="target" id="change-43809b3535863fd4ce975b2ea873a830"></span>fixed attributes bug where if an object is committed, its lazy-loaded list got
-blown away if it hadnt been loaded<a class="changeset-link headerlink reference internal" href="#change-43809b3535863fd4ce975b2ea873a830">¶</a><p></p>
+blown away if it hadn&#8217;t been loaded<a class="changeset-link headerlink reference internal" href="#change-43809b3535863fd4ce975b2ea873a830">¶</a><p></p>
 </p>
 </li>
 <li><p id="change-0.1.5-28"><span class="target" id="change-7e3df3d4f8a185e894a5aeb68a8ec08c"></span>added unique_connection() method to engine, connection pool to return a
@@ -677,11 +656,11 @@ changeset 1019)<a class="changeset-link headerlink reference internal" href="#ch
 <li><p id="change-0.1.1-3"><span class="target" id="change-9d8b445291ec495ae301791eabf26ce9"></span>psycopg1 date/time issue with None fixed (changeset 1005)<a class="changeset-link headerlink reference internal" href="#change-9d8b445291ec495ae301791eabf26ce9">¶</a><p></p>
 </p>
 </li>
-<li><p id="change-0.1.1-4"><span class="target" id="change-5d0280d06f52e25177cfdb38d7c05d87"></span>two issues related to postgres, which doesnt want to give you the &#8220;lastrowid&#8221;
+<li><p id="change-0.1.1-4"><span class="target" id="change-e8ec3a2e0e2f56f6655ddcd4de136d35"></span>two issues related to postgres, which doesn&#8217;t want to give you the &#8220;lastrowid&#8221;
 since oids are deprecated:<blockquote>
 <div><ul>
 <li>postgres database-side defaults that are on primary key cols <em>do</em> execute
-explicitly beforehand, even though thats not the idea of a PassiveDefault.  this is
+explicitly beforehand, even though that&#8217;s not the idea of a PassiveDefault.  this is
 because sequences on columns get reflected as PassiveDefaults, but need to be explicitly
 executed on a primary key col so we know what we just inserted.</li>
 <li>if you did add a row that has a bunch of database-side defaults on it,
@@ -690,7 +669,7 @@ the DB side, the &#8220;cant get the row back without an OID&#8221; exception th
 also will not happen unless someone (usually the ORM) explicitly asks for it.</li>
 </ul>
 </div></blockquote>
-<a class="changeset-link headerlink reference internal" href="#change-5d0280d06f52e25177cfdb38d7c05d87">¶</a><p></p>
+<a class="changeset-link headerlink reference internal" href="#change-e8ec3a2e0e2f56f6655ddcd4de136d35">¶</a><p></p>
 </p>
 </li>
 <li><p id="change-0.1.1-5"><span class="target" id="change-2c3fc20743a99145b4a0ecf183bce3b5"></span>fixed a glitch with engine.execute_compiled where it was making a second

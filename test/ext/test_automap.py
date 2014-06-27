@@ -4,8 +4,9 @@ from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import relationship, interfaces, backref
 from sqlalchemy.ext.automap import generate_relationship
 from sqlalchemy.testing.mock import Mock, call
-from sqlalchemy import Column, String, Table, Integer, ForeignKey
+from sqlalchemy import String, Integer, ForeignKey
 from sqlalchemy import testing
+from sqlalchemy.testing.schema import Table, Column
 
 class AutomapTest(fixtures.MappedTest):
     @classmethod
@@ -123,7 +124,7 @@ class AutomapTest(fixtures.MappedTest):
         i1 = Item()
         o1.items_collection.add(i1)
 
-        # it's 'order_collection' because the class name is
+        # it is 'order_collection' because the class name is
         # "Order" !
         assert isinstance(i1.order_collection, list)
         assert o1 in i1.order_collection
@@ -153,16 +154,19 @@ class AutomapInhTest(fixtures.MappedTest):
     def define_tables(cls, metadata):
         Table('single', metadata,
                 Column('id', Integer, primary_key=True),
-                Column('type', String(10))
+                Column('type', String(10)),
+                test_needs_fk=True
             )
 
         Table('joined_base', metadata,
                 Column('id', Integer, primary_key=True),
-                Column('type', String(10))
+                Column('type', String(10)),
+                test_needs_fk=True
             )
 
         Table('joined_inh', metadata,
                 Column('id', Integer, ForeignKey('joined_base.id'), primary_key=True),
+                test_needs_fk=True
             )
 
         FixtureTest.define_tables(metadata)

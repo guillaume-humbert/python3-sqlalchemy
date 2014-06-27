@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,70 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="loading.html" title="previous chapter">Relationship Loading Techniques</a>
-            </li>
-            <li>Next:
-            <a href="extensions/index.html" title="next chapter">ORM Extensions</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/orm/events.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-        » 
-                ORM Events
-            
-
-        <h2>
-            
-                ORM Events
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="SQLAlchemy ORM">Up</a> |
+
+                    <a href="loading.html" title="Relationship Loading Techniques">Prev</a> |
+                    <a href="extensions/index.html" title="ORM Extensions">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                ORM Events
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">ORM Events</a><ul>
 <li><a class="reference internal" href="#attribute-events">Attribute Events</a></li>
 <li><a class="reference internal" href="#mapper-events">Mapper Events</a></li>
@@ -144,26 +136,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="loading.html" title="previous chapter">Relationship Loading Techniques</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="extensions/index.html" title="next chapter">ORM Extensions</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -171,7 +150,7 @@
 <span id="orm-event-toplevel"></span><h1>ORM Events<a class="headerlink" href="#orm-events" title="Permalink to this headline">¶</a></h1>
 <p>The ORM includes a wide variety of hooks available for subscription.</p>
 <div class="versionadded">
-<p><span>New in version 0.7: </span>The event supercedes the previous system of &#8220;extension&#8221; classes.</p>
+<p><span>New in version 0.7: </span>The event supersedes the previous system of &#8220;extension&#8221; classes.</p>
 </div>
 <p>For an introduction to the event API, see <a class="reference internal" href="../core/event.html"><em>Events</em></a>.  Non-ORM events
 such as those regarding connections and low-level statement execution are described in
@@ -268,7 +247,7 @@ function must return this value, or a new value which
 replaces it.</li>
 <li><span class="target" id="sqlalchemy.orm.events.AttributeEvents.append.params.initiator"></span><strong>initiator</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.events.AttributeEvents.append.params.initiator">¶</a> &#8211; <p>An instance of <a class="reference internal" href="internals.html#sqlalchemy.orm.attributes.Event" title="sqlalchemy.orm.attributes.Event"><tt class="xref py py-class docutils literal"><span class="pre">attributes.Event</span></tt></a>
 representing the initiation of the event.  May be modified
-from it&#8217;s original value by backref handlers in order to control
+from its original value by backref handlers in order to control
 chained event propagation.</p>
 <div class="versionchanged">
 <p><span>Changed in version 0.9.0: </span>the <tt class="docutils literal"><span class="pre">initiator</span></tt> argument is now
@@ -314,7 +293,7 @@ be the <a class="reference internal" href="internals.html#sqlalchemy.orm.state.I
 <li><span class="target" id="sqlalchemy.orm.events.AttributeEvents.remove.params.value"></span><strong>value</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.events.AttributeEvents.remove.params.value">¶</a> &#8211; the value being removed.</li>
 <li><span class="target" id="sqlalchemy.orm.events.AttributeEvents.remove.params.initiator"></span><strong>initiator</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.events.AttributeEvents.remove.params.initiator">¶</a> &#8211; <p>An instance of <a class="reference internal" href="internals.html#sqlalchemy.orm.attributes.Event" title="sqlalchemy.orm.attributes.Event"><tt class="xref py py-class docutils literal"><span class="pre">attributes.Event</span></tt></a>
 representing the initiation of the event.  May be modified
-from it&#8217;s original value by backref handlers in order to control
+from its original value by backref handlers in order to control
 chained event propagation.</p>
 <div class="versionchanged">
 <p><span>Changed in version 0.9.0: </span>the <tt class="docutils literal"><span class="pre">initiator</span></tt> argument is now
@@ -377,7 +356,7 @@ the database if the existing value is currently unloaded
 or expired.</li>
 <li><span class="target" id="sqlalchemy.orm.events.AttributeEvents.set.params.initiator"></span><strong>initiator</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.events.AttributeEvents.set.params.initiator">¶</a> &#8211; <p>An instance of <a class="reference internal" href="internals.html#sqlalchemy.orm.attributes.Event" title="sqlalchemy.orm.attributes.Event"><tt class="xref py py-class docutils literal"><span class="pre">attributes.Event</span></tt></a>
 representing the initiation of the event.  May be modified
-from it&#8217;s original value by backref handlers in order to control
+from its original value by backref handlers in order to control
 chained event propagation.</p>
 <div class="versionchanged">
 <p><span>Changed in version 0.9.0: </span>the <tt class="docutils literal"><span class="pre">initiator</span></tt> argument is now
@@ -471,9 +450,7 @@ values are:</p>
 processing normally.</li>
 <li><tt class="docutils literal"><span class="pre">sqlalchemy.orm.interfaces.EXT_STOP</span></tt> - cancel all subsequent
 event handlers in the chain.</li>
-<li>other values - the return value specified by specific listeners,
-such as <a class="reference internal" href="#sqlalchemy.orm.events.MapperEvents.translate_row" title="sqlalchemy.orm.events.MapperEvents.translate_row"><tt class="xref py py-meth docutils literal"><span class="pre">translate_row()</span></tt></a> or
-<a class="reference internal" href="#sqlalchemy.orm.events.MapperEvents.create_instance" title="sqlalchemy.orm.events.MapperEvents.create_instance"><tt class="xref py py-meth docutils literal"><span class="pre">create_instance()</span></tt></a>.</li>
+<li>other values - the return value specified by specific listeners.</li>
 </ul>
 </li>
 </ul>
@@ -803,6 +780,12 @@ to a result list.</p>
 
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
+</div>
+<div class="deprecated">
+<p><span>Deprecated since version 0.9: </span>the <a class="reference internal" href="deprecated.html#sqlalchemy.orm.interfaces.MapperExtension.append_result" title="sqlalchemy.orm.interfaces.MapperExtension.append_result"><tt class="xref py py-meth docutils literal"><span class="pre">append_result()</span></tt></a> event should
+be considered as legacy.  It is a difficult to use method
+whose original purpose is better suited by custom collection
+classes.</p>
 </div>
 <p>This is a rarely used hook which can be used to alter
 the construction of a result list returned by <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>.</p>
@@ -1168,6 +1151,11 @@ created from that row.</p>
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
 </div>
+<div class="deprecated">
+<p><span>Deprecated since version 0.9: </span>the <a class="reference internal" href="#sqlalchemy.orm.events.MapperEvents.create_instance" title="sqlalchemy.orm.events.MapperEvents.create_instance"><tt class="xref py py-meth docutils literal"><span class="pre">create_instance()</span></tt></a> event should
+be considered as legacy.  Manipulation of the object construction
+mechanics during a load should not be necessary.</p>
+</div>
 <p>The method can choose to create the instance itself, or it can return
 EXT_CONTINUE to indicate normal object creation should take place.
 This listener is typically registered with <tt class="docutils literal"><span class="pre">retval=True</span></tt>.</p>
@@ -1306,6 +1294,12 @@ its attributes populated.</p>
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
 </div>
+<div class="deprecated">
+<p><span>Deprecated since version 0.9: </span>the <a class="reference internal" href="deprecated.html#sqlalchemy.orm.interfaces.MapperExtension.populate_instance" title="sqlalchemy.orm.interfaces.MapperExtension.populate_instance"><tt class="xref py py-meth docutils literal"><span class="pre">populate_instance()</span></tt></a> event should
+be considered as legacy.  The mechanics of instance population
+should not need modification; special &#8220;on load&#8221; rules can as always
+be accommodated by the <tt class="xref py py-class docutils literal"><span class="pre">InstanceEvents.load</span></tt> event.</p>
+</div>
 <p>This usually corresponds to a newly loaded instance but may
 also correspond to an already-loaded instance which has
 unloaded attributes to be populated.  The method may be called
@@ -1360,6 +1354,14 @@ new row instance.</p>
 
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
+</div>
+<div class="deprecated">
+<p><span>Deprecated since version 0.9: </span>the <a class="reference internal" href="deprecated.html#sqlalchemy.orm.interfaces.MapperExtension.translate_row" title="sqlalchemy.orm.interfaces.MapperExtension.translate_row"><tt class="xref py py-meth docutils literal"><span class="pre">translate_row()</span></tt></a> event should
+be considered as legacy.  The row as delivered in a mapper
+load operation typically requires that highly technical
+details be accommodated in order to identity the correct
+column keys are present in the row, rendering this particular
+event hook as difficult to use and unreliable.</p>
 </div>
 <p>This listener is typically registered with <tt class="docutils literal"><span class="pre">retval=True</span></tt>.
 It is called when the mapper first receives a row, before
@@ -1506,7 +1508,7 @@ expired.</li>
 <dl class="method">
 <dt id="sqlalchemy.orm.events.InstanceEvents.init">
 <tt class="descname">init</tt><big>(</big><em>target</em>, <em>args</em>, <em>kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.InstanceEvents.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Receive an instance when it&#8217;s constructor is called.</p>
+<dd><p>Receive an instance when its constructor is called.</p>
 <div class="event-signatures container">
 <p>Example argument forms:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
@@ -1527,7 +1529,7 @@ database.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.events.InstanceEvents.init_failure">
 <tt class="descname">init_failure</tt><big>(</big><em>target</em>, <em>args</em>, <em>kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.InstanceEvents.init_failure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Receive an instance when it&#8217;s constructor has been called,
+<dd><p>Receive an instance when its constructor has been called,
 and raised an exception.</p>
 <div class="event-signatures container">
 <p>Example argument forms:</p>
@@ -1699,7 +1701,7 @@ object associated with the instance.</td>
 <dl class="method">
 <dt id="sqlalchemy.orm.events.InstanceEvents.unpickle">
 <tt class="descname">unpickle</tt><big>(</big><em>target</em>, <em>state_dict</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.InstanceEvents.unpickle" title="Permalink to this definition">¶</a></dt>
-<dd><p>Receive an object instance after it&#8217;s associated state has
+<dd><p>Receive an object instance after its associated state has
 been unpickled.</p>
 <div class="event-signatures container">
 <p>Example argument forms:</p>

@@ -519,8 +519,8 @@ class Query(object):
             parts_alias = aliased(Part, name="p")
             included_parts = included_parts.union_all(
                 session.query(
-                    parts_alias.part,
                     parts_alias.sub_part,
+                    parts_alias.part,
                     parts_alias.quantity).\\
                         filter(parts_alias.part==incl_alias.c.sub_part)
                 )
@@ -1243,6 +1243,7 @@ class Query(object):
                 self._criterion = self._criterion & criterion
             else:
                 self._criterion = criterion
+
 
     def filter_by(self, **kwargs):
         """apply the given filtering criterion to a copy
@@ -2886,7 +2887,6 @@ class Query(object):
                         order_by=context.order_by,
                         **self._select_args
                     )
-
         statement._for_update_arg = context._for_update_arg
 
         for hint in self._with_hints:

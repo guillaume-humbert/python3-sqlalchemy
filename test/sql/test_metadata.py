@@ -7,7 +7,7 @@ from sqlalchemy import Integer, String, UniqueConstraint, \
     CheckConstraint, ForeignKey, MetaData, Sequence, \
     ForeignKeyConstraint, PrimaryKeyConstraint, ColumnDefault, Index, event,\
     events, Unicode, types as sqltypes, bindparam, \
-    Table, Column, Boolean, Enum
+    Table, Column, Boolean, Enum, func, text
 from sqlalchemy import schema, exc
 import sqlalchemy as tsa
 from sqlalchemy.testing import fixtures
@@ -451,7 +451,7 @@ class MetaDataTest(fixtures.TestBase, ComparesTables):
                 "Column('x', String(), table=<bar>), schema=None)"),
             (schema.DefaultGenerator(for_update=True),
                 "DefaultGenerator(for_update=True)"),
-            (schema.Index("bar", "c"), "Index('bar')"),
+            (schema.Index("bar", "c"), "Index('bar', 'c')"),
             (i1, "Index('bar', Column('x', Integer(), table=<foo>))"),
             (schema.FetchedValue(), "FetchedValue()"),
             (ck,
@@ -541,7 +541,7 @@ class ToMetaDataTest(fixtures.TestBase, ComparesTables):
                                    table_c.c.bar.onupdate.arg) == 'z'
                     assert isinstance(table2_c.c.id.default, Sequence)
 
-                # constraints dont get reflected for any dialect right
+                # constraints don't get reflected for any dialect right
                 # now
 
                 if has_constraints:
@@ -1053,6 +1053,24 @@ class TableTest(fixtures.TestBase, AssertsCompiledSQL):
         )
         eq_(list(t.primary_key), [t.c.b, t.c.c])
 
+    def test_pk_always_flips_nullable(self):
+        m = MetaData()
+
+        t1 = Table('t1', m, Column('x', Integer), PrimaryKeyConstraint('x'))
+
+        t2 = Table('t2', m, Column('x', Integer, primary_key=True))
+
+        eq_(list(t1.primary_key), [t1.c.x])
+
+        eq_(list(t2.primary_key), [t2.c.x])
+
+        assert t1.c.x.primary_key
+        assert t2.c.x.primary_key
+
+        assert not t2.c.x.nullable
+        assert not t1.c.x.nullable
+
+
 class SchemaTypeTest(fixtures.TestBase):
     class MyType(sqltypes.SchemaType, sqltypes.TypeEngine):
         column = None
@@ -1439,6 +1457,73 @@ class UseExistingTest(fixtures.TablesTest):
                         Column('foo', Integer),
                       extend_existing=True)
         assert "foo" in users.c
+
+class IndexTest(fixtures.TestBase):
+    def _assert(self, t, i, columns=True):
+        eq_(t.indexes, set([i]))
+        if columns:
+            eq_(list(i.columns), [t.c.x])
+        else:
+            eq_(list(i.columns), [])
+        assert i.table is t
+
+    def test_separate_decl_columns(self):
+        m = MetaData()
+        t = Table('t', m, Column('x', Integer))
+        i = Index('i', t.c.x)
+        self._assert(t, i)
+
+    def test_separate_decl_columns_functional(self):
+        m = MetaData()
+        t = Table('t', m, Column('x', Integer))
+        i = Index('i', func.foo(t.c.x))
+        self._assert(t, i)
+
+    def test_inline_decl_columns(self):
+        m = MetaData()
+        c = Column('x', Integer)
+        i = Index('i', c)
+        t = Table('t', m, c, i)
+        self._assert(t, i)
+
+    def test_inline_decl_columns_functional(self):
+        m = MetaData()
+        c = Column('x', Integer)
+        i = Index('i', func.foo(c))
+        t = Table('t', m, c, i)
+        self._assert(t, i)
+
+    def test_inline_decl_string(self):
+        m = MetaData()
+        i = Index('i', "x")
+        t = Table('t', m, Column('x', Integer), i)
+        self._assert(t, i)
+
+    def test_inline_decl_textonly(self):
+        m = MetaData()
+        i = Index('i', text("foobar(x)"))
+        t = Table('t', m, Column('x', Integer), i)
+        self._assert(t, i, columns=False)
+
+    def test_separate_decl_textonly(self):
+        m = MetaData()
+        i = Index('i', text("foobar(x)"))
+        t = Table('t', m, Column('x', Integer))
+        t.append_constraint(i)
+        self._assert(t, i, columns=False)
+
+    def test_unnamed_column_exception(self):
+        # this can occur in some declarative situations
+        c = Column(Integer)
+        idx = Index('q', c)
+        m = MetaData()
+        t = Table('t', m, Column('q'))
+        assert_raises_message(
+            exc.ArgumentError,
+            "Can't add unnamed column to column collection",
+            t.append_constraint, idx
+        )
+
 
 class ConstraintTest(fixtures.TestBase):
     def _single_fixture(self):
@@ -2625,6 +2710,17 @@ class DialectKWArgTest(fixtures.TestBase):
 
             idx = Index('a', 'b', 'c')
             eq_(idx.dialect_options['participating']['xyzqpr'], False)
+
+    def test_add_new_arguments_participating_no_existing(self):
+        with self._fixture():
+            PrimaryKeyConstraint.argument_for("participating", "xyzqpr", False)
+
+            pk = PrimaryKeyConstraint('a', 'b', 'c', participating_xyzqpr=True)
+
+            eq_(pk.kwargs['participating_xyzqpr'], True)
+
+            pk = PrimaryKeyConstraint('a', 'b', 'c')
+            eq_(pk.dialect_options['participating']['xyzqpr'], False)
 
     def test_add_new_arguments_nonparticipating(self):
         with self._fixture():

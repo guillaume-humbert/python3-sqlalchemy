@@ -1,3 +1,14 @@
+sqlalchemy (0.9.6-1) unstable; urgency=medium
+
+  * New upstream release
+  * Remove Python 3.X build tag files, thanks to Matthias Urlichs for the
+    patch (closes: #747852)
+  * python-fdb isn't in the Debian archive yet so default dialect for firebird://
+    URLs is changed to obsolete kinterbasdb, thanks to Russell Stuart for the
+    patch (closes: #752145)
+
+ -- Piotr Ożarowski <piotr@debian.org>  Fri, 27 Jun 2014 20:17:13 +0200
+
 sqlalchemy (0.9.4-1) unstable; urgency=medium
 
   * New upstream release

@@ -208,10 +208,24 @@ class DeferredColumnLoader(LoaderStrategy):
 
     def setup_query(self, context, entity, path, loadopt, adapter,
                                 only_load_props=None, **kwargs):
+
         if (
-                loadopt and self.group and
+            (
+                loadopt and
+                'undefer_pks' in loadopt.local_opts and
+                set(self.columns).intersection(self.parent.primary_key)
+            )
+            or
+            (
+                loadopt and
+                self.group and
                 loadopt.local_opts.get('undefer_group', False) == self.group
-            ) or (only_load_props and self.key in only_load_props):
+            )
+            or
+            (
+                only_load_props and self.key in only_load_props
+            )
+        ):
             self.parent_property._get_strategy_by_cls(ColumnLoader).\
                             setup_query(context, entity,
                                         path, loadopt, adapter, **kwargs)
@@ -885,7 +899,7 @@ class SubqueryLoader(AbstractRelationshipLoader):
                     attr = getattr(parent_alias, key).\
                                     of_type(effective_entity)
                 else:
-                    attr = key
+                    attr = getattr(mapper.entity, key)
 
             if second_to_last:
                 q = q.join(parent_alias, attr, from_joinpoint=True)
@@ -1033,7 +1047,7 @@ class JoinedLoader(AbstractRelationshipLoader):
     def setup_query(self, context, entity, path, loadopt, adapter, \
                                 column_collection=None, parentmapper=None,
                                 **kwargs):
-        """Add a left outer join to the statement thats being constructed."""
+        """Add a left outer join to the statement that's being constructed."""
 
         if not context.query._enable_eagerloads:
             return
@@ -1337,7 +1351,7 @@ class JoinedLoader(AbstractRelationshipLoader):
             self.mapper.identity_key_from_row(row, decorator)
             return decorator
         except KeyError:
-            # no identity key - dont return a row
+            # no identity key - don't return a row
             # processor, will cause a degrade to lazy
             return False
 

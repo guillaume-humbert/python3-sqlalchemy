@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,70 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="changelog_06.html" title="previous chapter">0.6 Changelog</a>
-            </li>
-            <li>Next:
-            <a href="changelog_04.html" title="next chapter">0.4 Changelog</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/changelog/changelog_05.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
-        » 
-                0.5 Changelog
-            
-
-        <h2>
-            
-                0.5 Changelog
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="Changes and Migration">Up</a> |
+
+                    <a href="changelog_06.html" title="0.6 Changelog">Prev</a> |
+                    <a href="changelog_04.html" title="0.4 Changelog">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                0.5 Changelog
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">0.5 Changelog</a><ul>
 <li><a class="reference internal" href="#change-0.5.9">0.5.9</a><ul>
 <li><a class="reference internal" href="#change-0.5.9-sql">sql</a></li>
@@ -285,26 +277,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="changelog_06.html" title="previous chapter">0.6 Changelog</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="changelog_04.html" title="next chapter">0.4 Changelog</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -346,7 +325,7 @@ positionally.<a class="changeset-link headerlink reference internal" href="#chan
 correspondence for cloned selectables which contain
 free-standing column expressions.   This bug is
 generally only noticeable when exercising newer
-ORM behavior only availble in 0.6 via,
+ORM behavior only available in 0.6 via,
 but is more correct at the SQL expression level
 as well.<a class="changeset-link headerlink reference internal" href="#change-8bee8818221b5bb1cf4c4108b3aa9610">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1568">#1568</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1617">#1617</a></p>
 </p>
@@ -648,9 +627,9 @@ by Query subclasses to engineer custom state..  See
 for an example.<a class="changeset-link headerlink reference internal" href="#change-86add61f8d0b31f3db1dafe61599f9fd">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1424">#1424</a></p>
 </p>
 </li>
-<li><p id="change-0.5.6-14"><span class="target" id="change-c18d700e059c8b6470b7052533741017"><strong>[orm] </strong></span>Fixed recursion issue which occured if a mapped object&#8217;s
+<li><p id="change-0.5.6-14"><span class="target" id="change-bd03cdda4f3805582c68e5d89d128cee"><strong>[orm] </strong></span>Fixed recursion issue which occurred if a mapped object&#8217;s
 <cite>__len__()</cite> or <cite>__nonzero__()</cite> method resulted in state
-changes.<a class="changeset-link headerlink reference internal" href="#change-c18d700e059c8b6470b7052533741017">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1501">#1501</a></p>
+changes.<a class="changeset-link headerlink reference internal" href="#change-bd03cdda4f3805582c68e5d89d128cee">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1501">#1501</a></p>
 </p>
 </li>
 <li><p id="change-0.5.6-15"><span class="target" id="change-492e04471392666b62e00c94cf43b82e"><strong>[orm] </strong></span>Fixed incorrect exception raise in
@@ -757,7 +736,7 @@ automatically to the backref in the same way that primaryjoin
 and secondaryjoin do.  For the extremely rare use case where
 the backref of a relation() has intentionally different
 &#8220;foreign_keys&#8221; configured, both sides now need to be
-configured explicity (if they do in fact require this setting,
+configured explicitly (if they do in fact require this setting,
 see the next note...).<a class="changeset-link headerlink reference internal" href="#change-4e7cee15f685dfecf68097230f6e27be">¶</a><p></p>
 </p>
 </li>
@@ -946,7 +925,7 @@ objects with pending changes.  This saves a tremendous number
 of method calls in the context of a large interconnected
 graph of mappers.</li>
 <li>Cached a wasteful &#8220;table sort&#8221; operation that previously
-occured multiple times per flush, also removing significant
+occurred multiple times per flush, also removing significant
 method call count from flush().</li>
 <li>Other redundant behaviors have been simplified in
 mapper._save_obj().</li>
@@ -1360,7 +1339,7 @@ cases, SQLA does not scan the full set of potential parents
 when determining &#8220;orphan&#8221; status - for a persistent object
 it only detects an in-python de-association event to establish
 the object as an &#8220;orphan&#8221;.  Next, the good news: to support
-one-to-one via a foreign key or assocation table, or to
+one-to-one via a foreign key or association table, or to
 support one-to-many via an association table, a new flag
 single_parent=True may be set which indicates objects
 linked to the relation are only meant to have a single parent.
@@ -1537,9 +1516,9 @@ statements for identifiers with percent signs in them.<a class="changeset-link h
 arguments.<a class="changeset-link headerlink reference internal" href="#change-2cbce9f8f05e9d65a6b86934e8c67a99">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1214">#1214</a></p>
 </p>
 </li>
-<li><p id="change-0.5.1-17"><span class="target" id="change-fd3c08eaa45b51c81fd0bd4406f196c7"><strong>[schema] </strong></span>Column with no name (as in declarative) won&#8217;t raise a
-NoneType error when it&#8217;s string output is requsted
-(such as in a stack trace).<a class="changeset-link headerlink reference internal" href="#change-fd3c08eaa45b51c81fd0bd4406f196c7">¶</a><p></p>
+<li><p id="change-0.5.1-17"><span class="target" id="change-2c9147ef2ccab23fc1b8801fe1dcbde9"><strong>[schema] </strong></span>Column with no name (as in declarative) won&#8217;t raise a
+NoneType error when its string output is requested
+(such as in a stack trace).<a class="changeset-link headerlink reference internal" href="#change-2c9147ef2ccab23fc1b8801fe1dcbde9">¶</a><p></p>
 </p>
 </li>
 <li><p id="change-0.5.1-18"><span class="target" id="change-a3dad3ae16e7410704efd7b0ac6e059f"><strong>[schema] </strong></span>Fixed bug when overriding a Column with a ForeignKey

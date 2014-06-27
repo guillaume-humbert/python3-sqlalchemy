@@ -571,7 +571,7 @@ class TypeCoerceCastTest(fixtures.TablesTest):
         MyType = self.MyType
 
         # test coerce from nulltype - e.g. use an object that
-        # doens't match to a known type
+        # does't match to a known type
         class MyObj(object):
             def __str__(self):
                 return "THISISMYOBJ"
@@ -1218,7 +1218,8 @@ class BinaryTest(fixtures.TestBase, AssertsExecutionResults):
 
     def load_stream(self, name):
         f = os.path.join(os.path.dirname(__file__), "..", name)
-        return open(f, mode='rb').read()
+        with open(f, mode='rb') as o:
+            return o.read()
 
 class ExpressionTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiledSQL):
     __dialect__ = 'default'

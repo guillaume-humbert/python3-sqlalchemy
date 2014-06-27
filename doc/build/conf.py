@@ -92,11 +92,11 @@ copyright = u'2007-2014, the SQLAlchemy authors and contributors'
 # The short X.Y version.
 version = "0.9"
 # The full version, including alpha/beta/rc tags.
-release = "0.9.4"
+release = "0.9.6"
 
-release_date = "March 28, 2014"
+release_date = "June 23, 2014"
 
-site_base = "http://www.sqlalchemy.org"
+site_base = os.environ.get("RTD_SITE_BASE", "http://www.sqlalchemy.org")
 
 # arbitrary number recognized by builders.py, incrementing this
 # will force a rebuild
@@ -206,9 +206,11 @@ html_domain_indices = False
 
 # If true, the reST sources are included in the HTML build as _sources/<name>.
 #html_copy_source = True
+html_copy_source = False
 
 # If true, links to the reST sources are added to the pages.
 #html_show_sourcelink = True
+html_show_sourcelink = False
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
 #html_show_sphinx = True
@@ -324,4 +326,5 @@ epub_copyright = u'2007-2014, SQLAlchemy authors'
 
 intersphinx_mapping = {
     'alembic': ('http://alembic.readthedocs.org/en/latest/', None),
+    'psycopg2': ('http://pythonhosted.org/psycopg2', None),
 }

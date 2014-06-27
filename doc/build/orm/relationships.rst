@@ -1013,7 +1013,7 @@ to just ``city='Boston'``.   When using Declarative, rudimentary SQL functions l
 
 The custom criteria we use in a :paramref:`~.relationship.primaryjoin`
 is generally only significant when SQLAlchemy is rendering SQL in
-order to load or represent this relationship. That is, it's  used in
+order to load or represent this relationship. That is, it's used in
 the SQL statement that's emitted in order to perform a per-attribute
 lazy load, or when a join is constructed at query time, such as via
 :meth:`.Query.join`, or via the eager "joined" or "subquery" styles of
@@ -1156,6 +1156,48 @@ Will render as::
 .. versionadded:: 0.9.2 - Added the :paramref:`.Operators.op.is_comparison`
    flag to assist in the creation of :func:`.relationship` constructs using
    custom operators.
+
+Non-relational Comparisons / Materialized Path
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning::  this section details an experimental feature.
+
+Using custom expressions means we can produce unorthodox join conditions that
+don't obey the usual primary/foreign key model.  One such example is the
+materialized path pattern, where we compare strings for overlapping path tokens
+in order to produce a tree structure.
+
+Through careful use of :func:`.foreign` and :func:`.remote`, we can build
+a relationship that effectively produces a rudimentary materialized path
+system.   Essentially, when :func:`.foreign` and :func:`.remote` are
+on the *same* side of the comparison expression, the relationship is considered
+to be "one to many"; when they are on *different* sides, the relationship
+is considered to be "many to one".   For the comparison we'll use here,
+we'll be dealing with collections so we keep things configured as "one to many"::
+
+    class Element(Base):
+        __tablename__ = 'element'
+
+        path = Column(String, primary_key=True)
+
+        descendants = relationship('Element',
+                               primaryjoin=
+                                    remote(foreign(path)).like(
+                                            path.concat('/%')),
+                               viewonly=True,
+                               order_by=path)
+
+Above, if given an ``Element`` object with a path attribute of ``"/foo/bar2"``,
+we seek for a load of ``Element.descendants`` to look like::
+
+    SELECT element.path AS element_path
+    FROM element
+    WHERE element.path LIKE ('/foo/bar2' || '/%') ORDER BY element.path
+
+.. versionadded:: 0.9.5 Support has been added to allow a single-column
+   comparison to itself within a primaryjoin condition, as well as for
+   primaryjoin conditions that use :meth:`.Operators.like` as the comparison
+   operator.
 
 .. _self_referential_many_to_many:
 

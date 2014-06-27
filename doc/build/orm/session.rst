@@ -196,6 +196,28 @@ Knowing these states is important, since the
 operations (such as trying to save the same object to two different sessions
 at the same time).
 
+Getting the Current State of an Object
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The actual state of any mapped object can be viewed at any time using
+the :func:`.inspect` system::
+
+  >>> from sqlalchemy import inspect
+  >>> insp = inspect(my_object)
+  >>> insp.persistent
+  True
+
+.. seealso::
+
+    :attr:`.InstanceState.transient`
+
+    :attr:`.InstanceState.pending`
+
+    :attr:`.InstanceState.persistent`
+
+    :attr:`.InstanceState.detached`
+
+
 .. _session_faq:
 
 Session Frequently Asked Questions
@@ -612,7 +634,7 @@ When given an instance, it follows these steps:
 * The new instance is returned.
 
 With :meth:`~.Session.merge`, the given "source"
-instance is not modifed nor is it associated with the target :class:`.Session`,
+instance is not modified nor is it associated with the target :class:`.Session`,
 and remains available to be merged with any number of other :class:`.Session`
 objects.  :meth:`~.Session.merge` is useful for
 taking the state of any kind of object structure without regard for its
@@ -641,8 +663,8 @@ new session. Here's some examples:
   copies of itself that are local to individual :class:`~.Session`
   objects.
 
-  In the caching use case, it's common that the ``load=False`` flag
-  is used to remove the overhead of reconciling the object's state
+  In the caching use case, it's common to use the ``load=False``
+  flag to remove the overhead of reconciling the object's state
   with the database.   There's also a "bulk" version of
   :meth:`~.Session.merge` called :meth:`~.Query.merge_result`
   that was designed to work with cache-extended :class:`.Query`
@@ -664,7 +686,7 @@ Merge Tips
 
 :meth:`~.Session.merge` is an extremely useful method for many purposes.  However,
 it deals with the intricate border between objects that are transient/detached and
-those that are persistent, as well as the automated transferrence of state.
+those that are persistent, as well as the automated transference of state.
 The wide variety of scenarios that can present themselves here often require a
 more careful approach to the state of objects.   Common problems with merge usually involve
 some unexpected state regarding the object being passed to :meth:`~.Session.merge`.
@@ -1501,7 +1523,7 @@ deleting the row entirely.
       relationship, SQLAlchemy's default behavior of setting a foreign key
       to ``NULL`` can be caught in one of two ways:
 
-        * The easiest and most common is just to to set the
+        * The easiest and most common is just to set the
           foreign-key-holding column to ``NOT NULL`` at the database schema
           level.  An attempt by SQLAlchemy to set the column to NULL will
           fail with a simple NOT NULL constraint exception.
@@ -1801,7 +1823,7 @@ is closed out after the :meth:`.Session.flush` operation completes.
     of usage, and can in some cases lead to concurrent connection
     checkouts.
 
-    In the absense of a demarcated transaction, the :class:`.Session`
+    In the absence of a demarcated transaction, the :class:`.Session`
     cannot make appropriate decisions as to when autoflush should
     occur nor when auto-expiration should occur, so these features
     should be disabled with ``autoflush=False, expire_on_commit=False``.
@@ -1846,7 +1868,7 @@ Using Subtransactions with Autocommit
 A subtransaction indicates usage of the :meth:`.Session.begin` method in conjunction with
 the ``subtransactions=True`` flag.  This produces a non-transactional, delimiting construct that
 allows nesting of calls to :meth:`~.Session.begin` and :meth:`~.Session.commit`.
-It's purpose is to allow the construction of code that can function within a transaction
+Its purpose is to allow the construction of code that can function within a transaction
 both independently of any external code that starts a transaction,
 as well as within a block that has already demarcated a transaction.
 
@@ -2021,7 +2043,7 @@ entire database interaction is rolled back::
             self.connection = engine.connect()
 
             # begin a non-ORM transaction
-            self.trans = connection.begin()
+            self.trans = self.connection.begin()
 
             # bind an individual Session to the connection
             self.session = Session(bind=self.connection)
@@ -2452,6 +2474,8 @@ Session Utilites
 ----------------
 
 .. autofunction:: make_transient
+
+.. autofunction:: make_transient_to_detached
 
 .. autofunction:: object_session
 

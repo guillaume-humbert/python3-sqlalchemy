@@ -20,7 +20,7 @@ class _LiteralRoundTripFixture(object):
         """test literal rendering """
 
         # for literal, we test the literal render in an INSERT
-        # into a typed column.  we can then SELECT it back as it's
+        # into a typed column.  we can then SELECT it back as its
         # official type; ideally we'd be able to use CAST here
         # but MySQL in particular can't CAST fully
         t = Table('t', self.metadata, Column('x', type_))
@@ -208,7 +208,7 @@ class StringTest(_LiteralRoundTripFixture, fixtures.TestBase):
 
     def test_literal_backslashes(self):
         data = r'backslash one \ backslash two \\ end'
-        self._literal_round_trip(Text, [data], [data])
+        self._literal_round_trip(String(40), [data], [data])
 
 
 class _DateFixture(_LiteralRoundTripFixture):

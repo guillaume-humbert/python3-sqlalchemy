@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,70 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="migration_07.html" title="previous chapter">What&#8217;s New in SQLAlchemy 0.7?</a>
-            </li>
-            <li>Next:
-            <a href="migration_05.html" title="next chapter">What&#8217;s new in SQLAlchemy 0.5?</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/changelog/migration_06.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
-        » 
-                What&#8217;s New in SQLAlchemy 0.6?
-            
-
-        <h2>
-            
-                What&#8217;s New in SQLAlchemy 0.6?
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="Changes and Migration">Up</a> |
+
+                    <a href="migration_07.html" title="What&#8217;s New in SQLAlchemy 0.7?">Prev</a> |
+                    <a href="migration_05.html" title="What&#8217;s new in SQLAlchemy 0.5?">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                What&#8217;s New in SQLAlchemy 0.6?
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">What&#8217;s New in SQLAlchemy 0.6?</a><ul>
 <li><a class="reference internal" href="#platform-support">Platform Support</a></li>
 <li><a class="reference internal" href="#new-dialect-system">New Dialect System</a><ul>
@@ -187,26 +179,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="migration_07.html" title="previous chapter">What&#8217;s New in SQLAlchemy 0.7?</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="migration_05.html" title="next chapter">What&#8217;s new in SQLAlchemy 0.5?</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -997,7 +976,7 @@ parent rows.</p>
 <h3><tt class="docutils literal"><span class="pre">`eagerload()``</span></tt>, <tt class="docutils literal"><span class="pre">``eagerload_all()``</span></tt> is now <tt class="docutils literal"><span class="pre">``joinedload()``</span></tt>, <tt class="docutils literal"><span class="pre">``joinedload_all()`</span></tt><a class="headerlink" href="#eagerload-eagerload-all-is-now-joinedload-joinedload-all" title="Permalink to this headline">¶</a></h3>
 <p>To make room for the new subquery load feature, the existing
 <tt class="docutils literal"><span class="pre">`eagerload()``</span></tt>/<tt class="docutils literal"><span class="pre">``eagerload_all()``</span></tt> options are now
-superceded by <tt class="docutils literal"><span class="pre">``joinedload()``</span></tt> and
+superseded by <tt class="docutils literal"><span class="pre">``joinedload()``</span></tt> and
 <tt class="docutils literal"><span class="pre">``joinedload_all()``</span></tt>.   The old names will hang around
 for the foreseeable future just like <tt class="docutils literal"><span class="pre">``relation()`</span></tt>.</p>
 </div>

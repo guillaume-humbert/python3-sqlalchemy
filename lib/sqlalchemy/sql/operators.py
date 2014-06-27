@@ -518,11 +518,17 @@ class ColumnOperators(Operators):
         return self.operate(contains_op, other, **kwargs)
 
     def match(self, other, **kwargs):
-        """Implements the 'match' operator.
+        """Implements a database-specific 'match' operator.
 
-        In a column context, this produces a MATCH clause, i.e.
-        ``MATCH '<other>'``.  The allowed contents of ``other``
-        are database backend specific.
+        :meth:`~.ColumnOperators.match` attempts to resolve to
+        a MATCH-like function or operator provided by the backend.
+        Examples include:
+
+        * Postgresql - renders ``x @@ to_tsquery(y)``
+        * MySQL - renders ``MATCH (x) AGAINST (y IN BOOLEAN MODE)``
+        * Oracle - renders ``CONTAINS(x, y)``
+        * other backends may provide special implementations;
+          some backends such as SQLite have no support.
 
         """
         return self.operate(match_op, other, **kwargs)
@@ -584,10 +590,12 @@ class ColumnOperators(Operators):
         """
         return self.reverse_operate(div, other)
 
-    def between(self, cleft, cright):
+    def between(self, cleft, cright, symmetric=False):
         """Produce a :func:`~.expression.between` clause against
-        the parent object, given the lower and upper range."""
-        return self.operate(between_op, cleft, cright)
+        the parent object, given the lower and upper range.
+
+        """
+        return self.operate(between_op, cleft, cright, symmetric=symmetric)
 
     def distinct(self):
         """Produce a :func:`~.expression.distinct` clause against the
@@ -707,8 +715,11 @@ def notilike_op(a, b, escape=None):
     return a.notilike(b, escape=escape)
 
 
-def between_op(a, b, c):
-    return a.between(b, c)
+def between_op(a, b, c, symmetric=False):
+    return a.between(b, c, symmetric=symmetric)
+
+def notbetween_op(a, b, c, symmetric=False):
+    return a.notbetween(b, c, symmetric=symmetric)
 
 
 def in_op(a, b):
@@ -777,7 +788,7 @@ def nullslast_op(a):
 
 _commutative = set([eq, ne, add, mul])
 
-_comparison = set([eq, ne, lt, gt, ge, le, between_op])
+_comparison = set([eq, ne, lt, gt, ge, le, between_op, like_op])
 
 
 def is_comparison(op):
@@ -837,6 +848,7 @@ _PRECEDENCE = {
     le: 5,
 
     between_op: 5,
+    notbetween_op: 5,
     distinct_op: 5,
     inv: 5,
     istrue: 5,

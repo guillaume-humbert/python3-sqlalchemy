@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -51,7 +52,7 @@
     <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../../index.html" />
         <link rel="up" title="ORM Extensions" href="index.html" />
         <link rel="next" title="Mutation Tracking" href="mutable.html" />
-        <link rel="prev" title="Association Proxy" href="associationproxy.html" />
+        <link rel="prev" title="Automap" href="automap.html" />
     <!-- end layout.mako headers -->
 
 
@@ -69,71 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="associationproxy.html" title="previous chapter">Association Proxy</a>
-            </li>
-            <li>Next:
-            <a href="mutable.html" title="next chapter">Mutation Tracking</a>
-            </li>
-
-        <li>
-            <a href="../../contents.html">Table of Contents</a> |
-            <a href="../../genindex.html">Index</a>
-            | <a href="../../_sources/orm/extensions/declarative.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-                » <a href="index.html" title="ORM Extensions">ORM Extensions</a>
-        » 
-                Declarative
-            
-
-        <h2>
-            
-                Declarative
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="ORM Extensions">Up</a> |
+
+                    <a href="automap.html" title="Automap">Prev</a> |
+                    <a href="mutable.html" title="Mutation Tracking">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../../index.html">Contents</a> |
+                <a href="../../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                Declarative
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">Declarative</a><ul>
 <li><a class="reference internal" href="#synopsis">Synopsis</a></li>
 <li><a class="reference internal" href="#defining-attributes">Defining Attributes</a></li>
@@ -185,26 +176,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="associationproxy.html" title="previous chapter">Association Proxy</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="mutable.html" title="next chapter">Mutation Tracking</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -1080,7 +1058,7 @@ to our table.</p>
             <span class="n">primaryjoin</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">Target</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="n">cls</span><span class="o">.</span><span class="n">target_id</span>
         <span class="p">)</span></pre></div>
 </div>
-<p>or alternatively, the string form (which ultmately generates a lambda):</p>
+<p>or alternatively, the string form (which ultimately generates a lambda):</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">RefTargetMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="nd">@declared_attr</span>
     <span class="k">def</span> <span class="nf">target_id</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
@@ -1160,7 +1138,7 @@ string values to an implementing class:</p>
 </div>
 <p>Above, the <tt class="docutils literal"><span class="pre">HasStringCollection</span></tt> mixin produces a <a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>
 which refers to a newly generated class called <tt class="docutils literal"><span class="pre">StringAttribute</span></tt>.  The
-<tt class="docutils literal"><span class="pre">StringAttribute</span></tt> class is generated with it&#8217;s own <a class="reference internal" href="../../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
+<tt class="docutils literal"><span class="pre">StringAttribute</span></tt> class is generated with its own <a class="reference internal" href="../../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
 definition which is local to the parent class making usage of the
 <tt class="docutils literal"><span class="pre">HasStringCollection</span></tt> mixin.  It also produces an <a class="reference internal" href="associationproxy.html#sqlalchemy.ext.associationproxy.association_proxy" title="sqlalchemy.ext.associationproxy.association_proxy"><tt class="xref py py-func docutils literal"><span class="pre">association_proxy()</span></tt></a>
 object which proxies references to the <tt class="docutils literal"><span class="pre">strings</span></tt> attribute onto the <tt class="docutils literal"><span class="pre">value</span></tt>
@@ -1396,7 +1374,7 @@ setup using <a class="reference internal" href="../session.html#sqlalchemy.orm.s
 <h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="sqlalchemy.ext.declarative.declarative_base">
-<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x10fba9d70&gt;</em>, <em>class_registry=None</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.api.DeclarativeMeta'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x1103f7cf8&gt;</em>, <em>class_registry=None</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.api.DeclarativeMeta'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a base class for declarative class definitions.</p>
 <p>The new base class will be given a metaclass that produces
 appropriate <a class="reference internal" href="../../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects and makes
@@ -1740,7 +1718,7 @@ separately, e.g.:</p>
 
 <div id="docs-bottom-navigation" class="docs-navigation-links">
         Previous:
-        <a href="associationproxy.html" title="previous chapter">Association Proxy</a>
+        <a href="automap.html" title="previous chapter">Automap</a>
         Next:
         <a href="mutable.html" title="next chapter">Mutation Tracking</a>
 

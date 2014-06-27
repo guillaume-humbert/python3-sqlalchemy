@@ -218,7 +218,7 @@ class AttributesTest(fixtures.ORMTest):
         attributes.register_attribute(MyTest2, 'b', uselist=False,
                 useobject=False)
 
-        # shouldnt be pickling callables at the class level
+        # shouldn't be pickling callables at the class level
 
         def somecallable(state, passive):
             return None
@@ -1298,7 +1298,7 @@ class PendingBackrefTest(fixtures.ORMTest):
 
         p = Post("post 5")
 
-        # setting blog doesnt call 'posts' callable, calls with no fetch
+        # setting blog doesn't call 'posts' callable, calls with no fetch
         p.blog = b
         eq_(
             lazy_posts.mock_calls, [
@@ -1957,12 +1957,22 @@ class HistoryTest(fixtures.TestBase):
         Foo, Bar = self._two_obj_fixture(uselist=False)
         f = Foo()
         f.someattr = None
+        # we'd expect ([None], (), ()), however because
+        # we set to None w/o setting history if we were to "get" first,
+        # it is more consistent that this doesn't set history.
+        eq_(self._someattr_history(f), ((), [None], ()))
+
+    def test_use_object_get_first_set_None(self):
+        Foo, Bar = self._two_obj_fixture(uselist=False)
+        f = Foo()
+        assert f.someattr is None
+        f.someattr = None
         eq_(self._someattr_history(f), ((), [None], ()))
 
     def test_use_object_set_dict_set_None(self):
         Foo, Bar = self._two_obj_fixture(uselist=False)
         f = Foo()
-        hi =Bar(name='hi')
+        hi = Bar(name='hi')
         f.__dict__['someattr'] = hi
         f.someattr = None
         eq_(self._someattr_history(f), ([None], (), [hi]))

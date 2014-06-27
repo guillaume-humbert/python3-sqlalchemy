@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,70 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="query.html" title="previous chapter">Querying</a>
-            </li>
-            <li>Next:
-            <a href="events.html" title="next chapter">ORM Events</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/orm/loading.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-        » 
-                Relationship Loading Techniques
-            
-
-        <h2>
-            
-                Relationship Loading Techniques
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="SQLAlchemy ORM">Up</a> |
+
+                    <a href="query.html" title="Querying">Prev</a> |
+                    <a href="events.html" title="ORM Events">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                Relationship Loading Techniques
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">Relationship Loading Techniques</a><ul>
 <li><a class="reference internal" href="#using-loader-strategies-lazy-loading-eager-loading">Using Loader Strategies: Lazy Loading, Eager Loading</a></li>
 <li><a class="reference internal" href="#loading-along-paths">Loading Along Paths</a></li>
@@ -150,26 +142,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="query.html" title="previous chapter">Querying</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="events.html" title="next chapter">ORM Events</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -315,7 +294,7 @@ specified in the <a class="reference internal" href="query.html#sqlalchemy.orm.q
 the string <tt class="docutils literal"><span class="pre">'*'</span></tt> as the argument to any of these options:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">lazyload</span><span class="p">(</span><span class="s">&#39;*&#39;</span><span class="p">))</span></pre></div>
 </div>
-<p>Above, the <tt class="docutils literal"><span class="pre">lazyload('*')</span></tt> option will supercede the <tt class="docutils literal"><span class="pre">lazy</span></tt> setting
+<p>Above, the <tt class="docutils literal"><span class="pre">lazyload('*')</span></tt> option will supersede the <tt class="docutils literal"><span class="pre">lazy</span></tt> setting
 of all <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> constructs in use for that query,
 except for those which use the <tt class="docutils literal"><span class="pre">'dynamic'</span></tt> style of loading.
 If some relationships specify
@@ -323,7 +302,7 @@ If some relationships specify
 using <tt class="docutils literal"><span class="pre">lazyload('*')</span></tt> will unilaterally
 cause all those relationships to use <tt class="docutils literal"><span class="pre">'select'</span></tt> loading, e.g. emit a
 SELECT statement when each attribute is accessed.</p>
-<p>The option does not supercede loader options stated in the
+<p>The option does not supersede loader options stated in the
 query, such as <a class="reference internal" href="#sqlalchemy.orm.eagerload" title="sqlalchemy.orm.eagerload"><tt class="xref py py-func docutils literal"><span class="pre">eagerload()</span></tt></a>,
 <a class="reference internal" href="#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a>, etc.  The query below will still use joined loading
 for the <tt class="docutils literal"><span class="pre">widget</span></tt> relationship:</p>

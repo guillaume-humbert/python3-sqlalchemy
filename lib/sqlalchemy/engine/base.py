@@ -122,7 +122,7 @@ class Connection(Connectable):
         execution options which will take effect for a call to
         :meth:`execute`. As the new :class:`.Connection` references the same
         underlying resource, it's usually a good idea to ensure that the copies
-        would be discarded immediately, which is implicit if used as in::
+        will be discarded immediately, which is implicit if used as in::
 
             result = connection.execution_options(stream_results=True).\\
                                 execute(stmt)
@@ -507,7 +507,8 @@ class Connection(Connectable):
             except Exception as e:
                 self._handle_dbapi_exception(e, None, None, None, None)
             finally:
-                if self.connection._reset_agent is self.__transaction:
+                if not self.__invalid and \
+                        self.connection._reset_agent is self.__transaction:
                     self.connection._reset_agent = None
                 self.__transaction = None
         else:
@@ -524,7 +525,8 @@ class Connection(Connectable):
         except Exception as e:
             self._handle_dbapi_exception(e, None, None, None, None)
         finally:
-            if self.connection._reset_agent is self.__transaction:
+            if not self.__invalid and \
+                    self.connection._reset_agent is self.__transaction:
                 self.connection._reset_agent = None
             self.__transaction = None
 
@@ -637,7 +639,12 @@ class Connection(Connectable):
                 conn.close()
             if conn._reset_agent is self.__transaction:
                 conn._reset_agent = None
-            del self.__connection
+
+            # the close() process can end up invalidating us,
+            # as the pool will call our transaction as the "reset_agent"
+            # for rollback(), which can then cause an invalidation
+            if not self.__invalid:
+                del self.__connection
         self.__can_reconnect = False
         self.__transaction = None
 
@@ -1047,8 +1054,9 @@ class Connection(Connectable):
         except (SystemExit, KeyboardInterrupt):
             raise
         except Exception:
-            self.connection._logger.error(
-                                    "Error closing cursor", exc_info=True)
+            # log the error through the connection pool's logger.
+            self.engine.pool.logger.error(
+                                "Error closing cursor", exc_info=True)
 
     _reentrant_error = False
     _is_disconnect = False
@@ -1078,7 +1086,7 @@ class Connection(Connectable):
         self._reentrant_error = True
         try:
             # non-DBAPI error - if we already got a context,
-            # or theres no string statement, don't wrap it
+            # or there's no string statement, don't wrap it
             should_wrap = isinstance(e, self.dialect.dbapi.Error) or \
                 (statement is not None and context is None)
 

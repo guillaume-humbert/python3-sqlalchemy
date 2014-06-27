@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,95 +70,72 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="expression_api.html" title="previous chapter">SQL Statements and Expressions API</a>
-            </li>
-            <li>Next:
-            <a href="selectable.html" title="next chapter">Selectables, Tables, FROM objects</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/core/sqlelement.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
-                » <a href="expression_api.html" title="SQL Statements and Expressions API">SQL Statements and Expressions API</a>
-        » 
-                Column Elements and Expressions
-            
-
-        <h2>
-            
-                Column Elements and Expressions
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="expression_api.html" title="SQL Statements and Expressions API">Up</a> |
+
+                    <a href="expression_api.html" title="SQL Statements and Expressions API">Prev</a> |
+                    <a href="selectable.html" title="Selectables, Tables, FROM objects">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                Column Elements and Expressions
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">Column Elements and Expressions</a></li>
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="expression_api.html" title="previous chapter">SQL Statements and Expressions API</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="selectable.html" title="next chapter">Selectables, Tables, FROM objects</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -241,7 +219,7 @@ with which to apply the <a class="reference internal" href="#sqlalchemy.sql.expr
 
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.between">
-<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">between</tt><big>(</big><em>expr</em>, <em>lower_bound</em>, <em>upper_bound</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.between" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">between</tt><big>(</big><em>expr</em>, <em>lower_bound</em>, <em>upper_bound</em>, <em>symmetric=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.between" title="Permalink to this definition">¶</a></dt>
 <dd><p>Produce a <tt class="docutils literal"><span class="pre">BETWEEN</span></tt> predicate clause.</p>
 <p>E.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">between</span>
@@ -277,6 +255,12 @@ expression.</li>
 bound of the right side of the <tt class="docutils literal"><span class="pre">BETWEEN</span></tt> expression.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.between.params.upper_bound"></span><strong>upper_bound</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.between.params.upper_bound">¶</a> &#8211; a column or Python scalar expression serving as the
 upper bound of the right side of the <tt class="docutils literal"><span class="pre">BETWEEN</span></tt> expression.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.between.params.symmetric"></span><strong>symmetric</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.between.params.symmetric">¶</a> &#8211; <p>if True, will render &#8221; BETWEEN SYMMETRIC &#8221;. Note
+that not all databases support this syntax.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.5.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
@@ -343,7 +327,7 @@ such as:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">expr</span> <span class="o">=</span> <span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;Wendy&#39;</span></pre></div>
 </div>
 <p>The above expression will produce a <a class="reference internal" href="#sqlalchemy.sql.expression.BinaryExpression" title="sqlalchemy.sql.expression.BinaryExpression"><tt class="xref py py-class docutils literal"><span class="pre">BinaryExpression</span></tt></a>
-contruct, where the left side is the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> object
+construct, where the left side is the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> object
 representing the <tt class="docutils literal"><span class="pre">name</span></tt> column, and the right side is a <a class="reference internal" href="#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a>
 representing the literal value:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">print</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">right</span><span class="p">))</span>
@@ -467,7 +451,7 @@ support OUT parameters.</li>
 acts somewhat analogously to an &#8220;if/then&#8221; construct in other
 languages.  It returns an instance of <a class="reference internal" href="#sqlalchemy.sql.expression.Case" title="sqlalchemy.sql.expression.Case"><tt class="xref py py-class docutils literal"><span class="pre">Case</span></tt></a>.</p>
 <p><a class="reference internal" href="#sqlalchemy.sql.expression.case" title="sqlalchemy.sql.expression.case"><tt class="xref py py-func docutils literal"><span class="pre">case()</span></tt></a> in its usual form is passed a list of &#8220;when&#8221;
-contructs, that is, a list of conditions and results as tuples:</p>
+constructs, that is, a list of conditions and results as tuples:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">case</span>
 
 <span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span>\
@@ -833,7 +817,7 @@ that don&#8217;t support true/false constants.</p>
 
 <dl class="data">
 <dt id="sqlalchemy.sql.expression.func">
-<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.functions._FunctionGenerator object at 0x103d1f150&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.functions._FunctionGenerator object at 0x103e6a210&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate SQL function expressions.</p>
 <p><a class="reference internal" href="#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a> is a special object instance which generates SQL
 functions based on name-based attributes, e.g.:</p>
@@ -1321,7 +1305,7 @@ take effect when literal values or <a class="reference internal" href="#sqlalche
 passed to <a class="reference internal" href="#sqlalchemy.sql.expression.type_coerce" title="sqlalchemy.sql.expression.type_coerce"><tt class="xref py py-func docutils literal"><span class="pre">type_coerce()</span></tt></a> as targets.
 For example, if a type implements the <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine.bind_expression" title="sqlalchemy.types.TypeEngine.bind_expression"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.bind_expression()</span></tt></a>
 method or <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine.bind_processor" title="sqlalchemy.types.TypeEngine.bind_processor"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.bind_processor()</span></tt></a> method or equivalent,
-these functions will take effect at statement compliation/execution time
+these functions will take effect at statement compilation/execution time
 when a literal value is passed, as in:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># bound-value handling of MyStringType will be applied to the</span>
 <span class="c"># literal value &quot;some string&quot;</span>
@@ -1338,7 +1322,7 @@ statement.</p>
 <li><span class="target" id="sqlalchemy.sql.expression.type_coerce.params.expression"></span><strong>expression</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.type_coerce.params.expression">¶</a> &#8211; A SQL expression, such as a <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> expression
 or a Python string which will be coerced into a bound literal value.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.type_coerce.params.type_"></span><strong>type_</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.type_coerce.params.type_">¶</a> &#8211; A <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> class or instance indicating
-the type to which the the expression is coerced.</li>
+the type to which the expression is coerced.</li>
 </ul>
 </td>
 </tr>
@@ -1356,7 +1340,7 @@ the type to which the the expression is coerced.</li>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.ColumnElement</span></tt></a></p>
 <p>Represent an expression that is <tt class="docutils literal"><span class="pre">LEFT</span> <span class="pre">&lt;operator&gt;</span> <span class="pre">RIGHT</span></tt>.</p>
 <p>A <a class="reference internal" href="#sqlalchemy.sql.expression.BinaryExpression" title="sqlalchemy.sql.expression.BinaryExpression"><tt class="xref py py-class docutils literal"><span class="pre">BinaryExpression</span></tt></a> is generated automatically
-whenever two column expressions are used in a Python binary expresion:</p>
+whenever two column expressions are used in a Python binary expression:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">column</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">column</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;b&#39;</span><span class="p">)</span>
 <span class="go">&lt;sqlalchemy.sql.expression.BinaryExpression object at 0x101029dd0&gt;</span>
@@ -1527,11 +1511,32 @@ key value to be rendered inline within the INSERT statement&#8217;s
 VALUES clause. This typically refers to Sequence execution but may
 also refer to any server-side default generation function
 associated with a primary key <cite>Column</cite>.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.ClauseElement.compile.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.ClauseElement.compile.params.compile_kwargs">¶</a> &#8211; <p>optional dictionary of additional parameters
+that will be passed through to the compiler within all &#8220;visit&#8221;
+methods.  This allows any custom flag to be passed through to
+a custom compilation construct, for example.  It is also used
+for the case of passing the <tt class="docutils literal"><span class="pre">literal_binds</span></tt> flag through:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">select</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">))</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">t</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">compile_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;literal_binds&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../faq.html#faq-sql-expression-string"><em>How do I render SQL expressions as strings, possibly with bound parameters inlined?</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1687,7 +1692,7 @@ the new column under the name &#8216;columnname&#8217;.</p>
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.ColumnElement">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ColumnElement</tt><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnElement" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.ClauseElement</span></tt></a>, <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.operators.ColumnOperators</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.operators.ColumnOperators</span></tt></a>, <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.ClauseElement</span></tt></a></p>
 <p>Represent a column-oriented SQL expression suitable for usage in the
 &#8220;columns&#8221; clause, WHERE clause etc. of a statement.</p>
 <p>While the most familiar kind of <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> is the
@@ -1828,7 +1833,7 @@ parent object.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.ColumnElement.between">
-<tt class="descname">between</tt><big>(</big><em>cleft</em>, <em>cright</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnElement.between" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">between</tt><big>(</big><em>cleft</em>, <em>cright</em>, <em>symmetric=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnElement.between" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.between" title="sqlalchemy.sql.operators.ColumnOperators.between"><tt class="xref py py-meth docutils literal"><span class="pre">between()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>Produce a <a class="reference internal" href="#sqlalchemy.sql.expression.between" title="sqlalchemy.sql.expression.between"><tt class="xref py py-func docutils literal"><span class="pre">between()</span></tt></a> clause against
@@ -1914,11 +1919,32 @@ key value to be rendered inline within the INSERT statement&#8217;s
 VALUES clause. This typically refers to Sequence execution but may
 also refer to any server-side default generation function
 associated with a primary key <cite>Column</cite>.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.ColumnElement.compile.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.ColumnElement.compile.params.compile_kwargs">¶</a> &#8211; <p>optional dictionary of additional parameters
+that will be passed through to the compiler within all &#8220;visit&#8221;
+methods.  This allows any custom flag to be passed through to
+a custom compilation construct, for example.  It is also used
+for the case of passing the <tt class="docutils literal"><span class="pre">literal_binds</span></tt> flag through:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">select</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">))</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">t</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">compile_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;literal_binds&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../faq.html#faq-sql-expression-string"><em>How do I render SQL expressions as strings, possibly with bound parameters inlined?</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -2134,10 +2160,17 @@ keyword, e.g.:</p>
 <tt class="descname">match</tt><big>(</big><em>other</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnElement.match" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.match" title="sqlalchemy.sql.operators.ColumnOperators.match"><tt class="xref py py-meth docutils literal"><span class="pre">match()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
-<p>Implements the &#8216;match&#8217; operator.</p>
-<p>In a column context, this produces a MATCH clause, i.e.
-<tt class="docutils literal"><span class="pre">MATCH</span> <span class="pre">'&lt;other&gt;'</span></tt>.  The allowed contents of <tt class="docutils literal"><span class="pre">other</span></tt>
-are database backend specific.</p>
+<p>Implements a database-specific &#8216;match&#8217; operator.</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.match" title="sqlalchemy.sql.operators.ColumnOperators.match"><tt class="xref py py-meth docutils literal"><span class="pre">match()</span></tt></a> attempts to resolve to
+a MATCH-like function or operator provided by the backend.
+Examples include:</p>
+<ul class="simple">
+<li>Postgresql - renders <tt class="docutils literal"><span class="pre">x</span> <span class="pre">&#64;&#64;</span> <span class="pre">to_tsquery(y)</span></tt></li>
+<li>MySQL - renders <tt class="docutils literal"><span class="pre">MATCH</span> <span class="pre">(x)</span> <span class="pre">AGAINST</span> <span class="pre">(y</span> <span class="pre">IN</span> <span class="pre">BOOLEAN</span> <span class="pre">MODE)</span></tt></li>
+<li>Oracle - renders <tt class="docutils literal"><span class="pre">CONTAINS(x,</span> <span class="pre">y)</span></tt></li>
+<li>other backends may provide special implementations;
+some backends such as SQLite have no support.</li>
+</ul>
 </dd></dl>
 
 <dl class="method">
@@ -2725,7 +2758,7 @@ parent object.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.operators.ColumnOperators.between">
-<tt class="descname">between</tt><big>(</big><em>cleft</em>, <em>cright</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.operators.ColumnOperators.between" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">between</tt><big>(</big><em>cleft</em>, <em>cright</em>, <em>symmetric=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.operators.ColumnOperators.between" title="Permalink to this definition">¶</a></dt>
 <dd><p>Produce a <a class="reference internal" href="#sqlalchemy.sql.expression.between" title="sqlalchemy.sql.expression.between"><tt class="xref py py-func docutils literal"><span class="pre">between()</span></tt></a> clause against
 the parent object, given the lower and upper range.</p>
 </dd></dl>
@@ -2879,10 +2912,17 @@ keyword, e.g.:</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.operators.ColumnOperators.match">
 <tt class="descname">match</tt><big>(</big><em>other</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.operators.ColumnOperators.match" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implements the &#8216;match&#8217; operator.</p>
-<p>In a column context, this produces a MATCH clause, i.e.
-<tt class="docutils literal"><span class="pre">MATCH</span> <span class="pre">'&lt;other&gt;'</span></tt>.  The allowed contents of <tt class="docutils literal"><span class="pre">other</span></tt>
-are database backend specific.</p>
+<dd><p>Implements a database-specific &#8216;match&#8217; operator.</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.match" title="sqlalchemy.sql.operators.ColumnOperators.match"><tt class="xref py py-meth docutils literal"><span class="pre">match()</span></tt></a> attempts to resolve to
+a MATCH-like function or operator provided by the backend.
+Examples include:</p>
+<ul class="simple">
+<li>Postgresql - renders <tt class="docutils literal"><span class="pre">x</span> <span class="pre">&#64;&#64;</span> <span class="pre">to_tsquery(y)</span></tt></li>
+<li>MySQL - renders <tt class="docutils literal"><span class="pre">MATCH</span> <span class="pre">(x)</span> <span class="pre">AGAINST</span> <span class="pre">(y</span> <span class="pre">IN</span> <span class="pre">BOOLEAN</span> <span class="pre">MODE)</span></tt></li>
+<li>Oracle - renders <tt class="docutils literal"><span class="pre">CONTAINS(x,</span> <span class="pre">y)</span></tt></li>
+<li>other backends may provide special implementations;
+some backends such as SQLite have no support.</li>
+</ul>
 </dd></dl>
 
 <dl class="method">
