@@ -18,7 +18,9 @@ clean:
 	find . -name '*\.py[co]' -delete
 	dh_clean build-docs build-stamp install-docs \
 		$(PYVERS:%=install-python%) $(PYVERS:%=build-python%) \
-		$(PYVERS:%=install-debug-python%) $(PYVERS:%=build-debug-python%)
+		$(PYVERS:%=install-debug-python%) $(PYVERS:%=build-debug-python%) \
+		$(PY3VERS:%=install-python%) $(PY3VERS:%=build-python%) \
+		$(PHONYY3VERS:%=install-debug-python%) $(PY3VERS:%=build-debug-python%)
 
 build: build-arch
 
