@@ -1,3 +1,9 @@
+sqlalchemy (0.9.7-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Piotr Ożarowski <piotr@debian.org>  Fri, 25 Jul 2014 22:43:09 +0200
+
 sqlalchemy (0.9.6-1) unstable; urgency=medium
 
   * New upstream release
