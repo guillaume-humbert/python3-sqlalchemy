@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -726,9 +726,10 @@ use an inner join instead of the default of left outer join:</p>
 </div>
 <p>If the joined-eager load is chained onto an existing LEFT OUTER JOIN,
 <tt class="docutils literal"><span class="pre">innerjoin=True</span></tt> will be bypassed and the join will continue to
-chain as LEFT OUTER JOIN so that the results don&#8217;t change.  As an alternative,
-specify the value <tt class="docutils literal"><span class="pre">&quot;nested&quot;</span></tt>.  This will instead nest the join
-on the right side, e.g. using the form &#8220;a LEFT OUTER JOIN (b JOIN c)&#8221;.</p>
+chain as LEFT OUTER JOIN so that the results don&#8217;t change.  As an
+alternative, specify the value <tt class="docutils literal"><span class="pre">&quot;nested&quot;</span></tt>.  This will instead nest the
+join on the right side, e.g. using the form &#8220;a LEFT OUTER JOIN
+(b JOIN c)&#8221;.</p>
 <div class="versionadded">
 <p><span>New in version 0.9.4: </span>Added <tt class="docutils literal"><span class="pre">innerjoin=&quot;nested&quot;</span></tt> option to support
 nesting of eager &#8220;inner&#8221; joins.</p>
@@ -739,12 +740,14 @@ nesting of eager &#8220;inner&#8221; joins.</p>
 </table>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>The joins produced by <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">orm.joinedload()</span></tt></a> are <strong>anonymously aliased</strong>.
-The criteria by which the join proceeds cannot be modified, nor can the
-<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> refer to these joins in any way, including ordering.</p>
+<p>The joins produced by <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">orm.joinedload()</span></tt></a> are <strong>anonymously
+aliased</strong>.  The criteria by which the join proceeds cannot be
+modified, nor can the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> refer to these joins in any way,
+including ordering.</p>
 <p class="last">To produce a specific SQL JOIN which is explicitly available, use
 <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a>.   To combine explicit JOINs with eager loading
-of collections, use <a class="reference internal" href="#sqlalchemy.orm.contains_eager" title="sqlalchemy.orm.contains_eager"><tt class="xref py py-func docutils literal"><span class="pre">orm.contains_eager()</span></tt></a>; see <a class="reference internal" href="#contains-eager"><em>Routing Explicit Joins/Statements into Eagerly Loaded Collections</em></a>.</p>
+of collections, use <a class="reference internal" href="#sqlalchemy.orm.contains_eager" title="sqlalchemy.orm.contains_eager"><tt class="xref py py-func docutils literal"><span class="pre">orm.contains_eager()</span></tt></a>; see
+<a class="reference internal" href="#contains-eager"><em>Routing Explicit Joins/Statements into Eagerly Loaded Collections</em></a>.</p>
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
@@ -753,8 +756,8 @@ of collections, use <a class="reference internal" href="#sqlalchemy.orm.contains
 <p><a class="reference internal" href="#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">orm.subqueryload()</span></tt></a></p>
 <p><a class="reference internal" href="#sqlalchemy.orm.lazyload" title="sqlalchemy.orm.lazyload"><tt class="xref py py-func docutils literal"><span class="pre">orm.lazyload()</span></tt></a></p>
 <p><a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.lazy" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.lazy</span></tt></a></p>
-<p class="last"><a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.innerjoin" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.innerjoin</span></tt></a> - <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>-level version
-of the <a class="reference internal" href="#sqlalchemy.orm.joinedload.params.innerjoin" title="sqlalchemy.orm.joinedload"><tt class="xref py py-paramref docutils literal"><span class="pre">joinedload.innerjoin</span></tt></a> option.</p>
+<p class="last"><a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.innerjoin" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.innerjoin</span></tt></a> - <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>-level
+version of the <a class="reference internal" href="#sqlalchemy.orm.joinedload.params.innerjoin" title="sqlalchemy.orm.joinedload"><tt class="xref py py-paramref docutils literal"><span class="pre">joinedload.innerjoin</span></tt></a> option.</p>
 </div>
 </dd></dl>
 

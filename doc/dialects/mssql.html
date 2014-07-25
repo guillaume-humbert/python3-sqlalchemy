@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -127,7 +127,11 @@
         <ul>
 <li><a class="reference internal" href="#">Microsoft SQL Server</a><ul>
 <li><a class="reference internal" href="#dialect-mssql">Support for the Microsoft SQL Server database.</a></li>
-<li><a class="reference internal" href="#auto-increment-behavior">Auto Increment Behavior</a></li>
+<li><a class="reference internal" href="#auto-increment-behavior">Auto Increment Behavior</a><ul>
+<li><a class="reference internal" href="#controlling-start-and-increment">Controlling &#8220;Start&#8221; and &#8220;Increment&#8221;</a></li>
+<li><a class="reference internal" href="#insert-behavior">INSERT behavior</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#collation-support">Collation Support</a></li>
 <li><a class="reference internal" href="#limit-offset-support">LIMIT/OFFSET Support</a></li>
 <li><a class="reference internal" href="#nullability">Nullability</a></li>
@@ -202,32 +206,139 @@
 </div>
 <div class="section" id="auto-increment-behavior">
 <h2>Auto Increment Behavior<a class="headerlink" href="#auto-increment-behavior" title="Permalink to this headline">¶</a></h2>
-<p><tt class="docutils literal"><span class="pre">IDENTITY</span></tt> columns are supported by using SQLAlchemy
-<tt class="docutils literal"><span class="pre">schema.Sequence()</span></tt> objects. In other words:</p>
+<p>SQL Server provides so-called &#8220;auto incrementing&#8221; behavior using the
+<tt class="docutils literal"><span class="pre">IDENTITY</span></tt> construct, which can be placed on an integer primary key.
+SQLAlchemy considers <tt class="docutils literal"><span class="pre">IDENTITY</span></tt> within its default &#8220;autoincrement&#8221; behavior,
+described at <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column.params.autoincrement" title="sqlalchemy.schema.Column"><tt class="xref py py-paramref docutils literal"><span class="pre">Column.autoincrement</span></tt></a>; this means
+that by default, the first integer primary key column in a <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
+will be considered to be the identity column and will generate DDL as such:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">MetaData</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Integer</span>
+
+<span class="n">m</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">))</span>
+<span class="n">m</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span></pre></div>
+</div>
+<p>The above example will generate DDL as:</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">t</span> <span class="p">(</span>
+    <span class="n">id</span> <span class="nb">INTEGER</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">IDENTITY</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">x</span> <span class="nb">INTEGER</span> <span class="k">NULL</span><span class="p">,</span>
+    <span class="k">PRIMARY</span> <span class="k">KEY</span> <span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="p">)</span></pre></div>
+</div>
+<p>For the case where this default generation of <tt class="docutils literal"><span class="pre">IDENTITY</span></tt> is not desired,
+specify <tt class="docutils literal"><span class="pre">autoincrement=False</span></tt> on all integer primary key columns:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">m</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoincrement</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">))</span>
+<span class="n">m</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span></pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">An INSERT statement which refers to an explicit value for such
+a column is prohibited by SQL Server, however SQLAlchemy will detect this
+and modify the <tt class="docutils literal"><span class="pre">IDENTITY_INSERT</span></tt> flag accordingly at statement execution
+time.  As this is not a high performing process, care should be taken to
+set the <tt class="docutils literal"><span class="pre">autoincrement</span></tt> flag appropriately for columns that will not
+actually require IDENTITY behavior.</p>
+</div>
+<div class="section" id="controlling-start-and-increment">
+<h3>Controlling &#8220;Start&#8221; and &#8220;Increment&#8221;<a class="headerlink" href="#controlling-start-and-increment" title="Permalink to this headline">¶</a></h3>
+<p>Specific control over the parameters of the <tt class="docutils literal"><span class="pre">IDENTITY</span></tt> value is supported
+using the <a class="reference internal" href="../core/defaults.html#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">schema.Sequence</span></tt></a> object.  While this object normally
+represents an explicit &#8220;sequence&#8221; for supporting backends, on SQL Server it is
+re-purposed to specify behavior regarding the identity column, including
+support of the &#8220;start&#8221; and &#8220;increment&#8221; values:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Column</span>
 
 <span class="n">Table</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span>
-              <span class="n">Sequence</span><span class="p">(</span><span class="s">&#39;blah&#39;</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+              <span class="n">Sequence</span><span class="p">(</span><span class="s">&#39;blah&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span>
+              <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">20</span><span class="p">))</span>
      <span class="p">)</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">some_engine</span><span class="p">)</span></pre></div>
 </div>
 <p>would yield:</p>
-<div class="highlight-python"><pre>CREATE TABLE test (
-  id INTEGER NOT NULL IDENTITY(100,10) PRIMARY KEY,
-  name VARCHAR(20) NULL,
-  )</pre>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">test</span> <span class="p">(</span>
+  <span class="n">id</span> <span class="nb">INTEGER</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">IDENTITY</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+  <span class="n">name</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="p">)</span></pre></div>
 </div>
 <p>Note that the <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">increment</span></tt> values for sequences are
 optional and will default to 1,1.</p>
-<p>Implicit <tt class="docutils literal"><span class="pre">autoincrement</span></tt> behavior works the same in MSSQL as it
-does in other dialects and results in an <tt class="docutils literal"><span class="pre">IDENTITY</span></tt> column.</p>
-<ul class="simple">
-<li>Support for <tt class="docutils literal"><span class="pre">SET</span> <span class="pre">IDENTITY_INSERT</span> <span class="pre">ON</span></tt> mode (automagic on / off for
-<tt class="docutils literal"><span class="pre">INSERT</span></tt> s)</li>
-<li>Support for auto-fetching of <tt class="docutils literal"><span class="pre">&#64;&#64;IDENTITY/&#64;&#64;SCOPE_IDENTITY()</span></tt> on
-<tt class="docutils literal"><span class="pre">INSERT</span></tt></li>
+</div>
+<div class="section" id="insert-behavior">
+<h3>INSERT behavior<a class="headerlink" href="#insert-behavior" title="Permalink to this headline">¶</a></h3>
+<p>Handling of the <tt class="docutils literal"><span class="pre">IDENTITY</span></tt> column at INSERT time involves two key
+techniques. The most common is being able to fetch the &#8220;last inserted value&#8221;
+for a given <tt class="docutils literal"><span class="pre">IDENTITY</span></tt> column, a process which SQLAlchemy performs
+implicitly in many cases, most importantly within the ORM.</p>
+<p>The process for fetching this value has several variants:</p>
+<ul>
+<li><p class="first">In the vast majority of cases, RETURNING is used in conjunction with INSERT
+statements on SQL Server in order to get newly generated primary key values:</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">t</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">OUTPUT</span> <span class="n">inserted</span><span class="p">.</span><span class="n">id</span> <span class="k">VALUES</span> <span class="p">(</span><span class="o">?</span><span class="p">)</span></pre></div>
+</div>
+</li>
+<li><p class="first">When RETURNING is not available or has been disabled via
+<tt class="docutils literal"><span class="pre">implicit_returning=False</span></tt>, either the <tt class="docutils literal"><span class="pre">scope_identity()</span></tt> function or
+the <tt class="docutils literal"><span class="pre">&#64;&#64;identity</span></tt> variable is used; behavior varies by backend:</p>
+<ul>
+<li><p class="first">when using PyODBC, the phrase <tt class="docutils literal"><span class="pre">;</span> <span class="pre">select</span> <span class="pre">scope_identity()</span></tt> will be
+appended to the end of the INSERT statement; a second result set will be
+fetched in order to receive the value.  Given a table as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
+        <span class="n">implicit_returning</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span></pre></div>
+</div>
+<p>an INSERT will look like:</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">t</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">VALUES</span> <span class="p">(</span><span class="o">?</span><span class="p">);</span> <span class="k">select</span> <span class="n">scope_identity</span><span class="p">()</span></pre></div>
+</div>
+</li>
+<li><p class="first">Other dialects such as pymssql will call upon
+<tt class="docutils literal"><span class="pre">SELECT</span> <span class="pre">scope_identity()</span> <span class="pre">AS</span> <span class="pre">lastrowid</span></tt> subsequent to an INSERT
+statement. If the flag <tt class="docutils literal"><span class="pre">use_scope_identity=False</span></tt> is passed to
+<a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>, the statement <tt class="docutils literal"><span class="pre">SELECT</span> <span class="pre">&#64;&#64;identity</span> <span class="pre">AS</span> <span class="pre">lastrowid</span></tt>
+is used instead.</p>
+</li>
 </ul>
+</li>
+</ul>
+<p>A table that contains an <tt class="docutils literal"><span class="pre">IDENTITY</span></tt> column will prohibit an INSERT statement
+that refers to the identity column explicitly.  The SQLAlchemy dialect will
+detect when an INSERT construct, created using a core <a class="reference internal" href="../core/dml.html#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a>
+construct (not a plain string SQL), refers to the identity column, and
+in this case will emit <tt class="docutils literal"><span class="pre">SET</span> <span class="pre">IDENTITY_INSERT</span> <span class="pre">ON</span></tt> prior to the insert
+statement proceeding, and <tt class="docutils literal"><span class="pre">SET</span> <span class="pre">IDENTITY_INSERT</span> <span class="pre">OFF</span></tt> subsequent to the
+execution.  Given this example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">m</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+                <span class="n">Column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">))</span>
+<span class="n">m</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+
+<span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">insert</span><span class="p">(),</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;x&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s">&#39;x&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">})</span></pre></div>
+</div>
+<p>The above column will be created with IDENTITY, however the INSERT statement
+we emit is specifying explicit values.  In the echo output we can see
+how SQLAlchemy handles this:</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">t</span> <span class="p">(</span>
+    <span class="n">id</span> <span class="nb">INTEGER</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">IDENTITY</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">x</span> <span class="nb">INTEGER</span> <span class="k">NULL</span><span class="p">,</span>
+    <span class="k">PRIMARY</span> <span class="k">KEY</span> <span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="k">COMMIT</span>
+<span class="k">SET</span> <span class="n">IDENTITY_INSERT</span> <span class="n">t</span> <span class="k">ON</span>
+<span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">t</span> <span class="p">(</span><span class="n">id</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="k">VALUES</span> <span class="p">(</span><span class="o">?</span><span class="p">,</span> <span class="o">?</span><span class="p">)</span>
+<span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="k">SET</span> <span class="n">IDENTITY_INSERT</span> <span class="n">t</span> <span class="k">OFF</span>
+<span class="k">COMMIT</span></pre></div>
+</div>
+<p>This
+is an auxilliary use case suitable for testing and bulk insert scenarios.</p>
+</div>
 </div>
 <div class="section" id="collation-support">
 <h2>Collation Support<a class="headerlink" href="#collation-support" title="Permalink to this headline">¶</a></h2>
@@ -301,7 +412,8 @@ for these types will be issued as DATETIME.</p>
       <span class="n">PrimaryKeyConstraint</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">,</span> <span class="s">&quot;y&quot;</span><span class="p">,</span> <span class="n">mssql_clustered</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span></pre></div>
 </div>
 <p>which will render the table, for example, as:</p>
-<div class="highlight-python"><pre>CREATE TABLE my_table (x INTEGER NOT NULL, y INTEGER NOT NULL, PRIMARY KEY CLUSTERED (x, y))</pre>
+<div class="highlight-python"><pre>CREATE TABLE my_table (x INTEGER NOT NULL, y INTEGER NOT NULL,
+                       PRIMARY KEY CLUSTERED (x, y))</pre>
 </div>
 <p>Similarly, we can generate a clustered unique constraint using:</p>
 <div class="highlight-python"><pre>  Table('my_table', metadata,
@@ -320,7 +432,8 @@ for these types will be issued as DATETIME.</p>
 for <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a>.</p>
 <div class="section" id="include">
 <h3>INCLUDE<a class="headerlink" href="#include" title="Permalink to this headline">¶</a></h3>
-<p>The <tt class="docutils literal"><span class="pre">mssql_include</span></tt> option renders INCLUDE(colname) for the given string names:</p>
+<p>The <tt class="docutils literal"><span class="pre">mssql_include</span></tt> option renders INCLUDE(colname) for the given string
+names:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Index</span><span class="p">(</span><span class="s">&quot;my_index&quot;</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">mssql_include</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;y&#39;</span><span class="p">])</span></pre></div>
 </div>
 <p>would render the index as <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">INDEX</span> <span class="pre">my_index</span> <span class="pre">ON</span> <span class="pre">table</span> <span class="pre">(x)</span> <span class="pre">INCLUDE</span> <span class="pre">(y)</span></tt></p>
@@ -900,9 +1013,9 @@ following connection string:</p>
 <div class="highlight-python"><pre>DRIVER={SQL Server};Server=host;Database=db;UID=user;PWD=pass;port=123</pre>
 </div>
 </li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">mssql+pyodbc://user:pass&#64;host/db?driver=MyDriver</span></tt> - connects using a connection
-string that includes a custom
-ODBC driver name.  This will create the following connection string:</p>
+<li><p class="first"><tt class="docutils literal"><span class="pre">mssql+pyodbc://user:pass&#64;host/db?driver=MyDriver</span></tt> - connects using a
+connection string that includes a custom ODBC driver name.  This will create
+the following connection string:</p>
 <div class="highlight-python"><pre>DRIVER={MyDriver};Server=host;Database=db;UID=user;PWD=pass</pre>
 </div>
 </li>
@@ -927,14 +1040,14 @@ the python shell. For example:</p>
 <div class="section" id="unicode-binds">
 <h3>Unicode Binds<a class="headerlink" href="#unicode-binds" title="Permalink to this headline">¶</a></h3>
 <p>The current state of PyODBC on a unix backend with FreeTDS and/or
-EasySoft is poor regarding unicode; different OS platforms and versions of UnixODBC
-versus IODBC versus FreeTDS/EasySoft versus PyODBC itself dramatically
-alter how strings are received.  The PyODBC dialect attempts to use all the information
-it knows to determine whether or not a Python unicode literal can be
-passed directly to the PyODBC driver or not; while SQLAlchemy can encode
-these to bytestrings first, some users have reported that PyODBC mis-handles
-bytestrings for certain encodings and requires a Python unicode object,
-while the author has observed widespread cases where a Python unicode
+EasySoft is poor regarding unicode; different OS platforms and versions of
+UnixODBC versus IODBC versus FreeTDS/EasySoft versus PyODBC itself
+dramatically alter how strings are received.  The PyODBC dialect attempts to
+use all the information it knows to determine whether or not a Python unicode
+literal can be passed directly to the PyODBC driver or not; while SQLAlchemy
+can encode these to bytestrings first, some users have reported that PyODBC
+mis-handles bytestrings for certain encodings and requires a Python unicode
+object, while the author has observed widespread cases where a Python unicode
 is completely misinterpreted by PyODBC, particularly when dealing with
 the information schema tables used in table reflection, and the value
 must first be encoded to a bytestring.</p>

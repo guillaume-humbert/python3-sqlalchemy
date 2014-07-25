@@ -1,5 +1,6 @@
 # sqlalchemy/log.py
-# Copyright (C) 2006-2014 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2006-2014 the SQLAlchemy authors and contributors
+# <see AUTHORS file>
 # Includes alterations by Vinay Sajip vinay_sajip@yahoo.co.uk
 #
 # This module is part of SQLAlchemy and is released under
@@ -46,6 +47,7 @@ def class_logger(cls):
     _logged_classes.add(cls)
     return cls
 
+
 class Identified(object):
     logging_name = None
 
@@ -90,7 +92,7 @@ class InstanceLogger(object):
         # if echo flag is enabled and no handlers,
         # add a handler to the list
         if self._echo_map[echo] <= logging.INFO \
-            and not self.logger.handlers:
+           and not self.logger.handlers:
             _add_default_handler(self.logger)
 
     #
@@ -173,10 +175,11 @@ def instance_logger(instance, echoflag=None):
 
     if instance.logging_name:
         name = "%s.%s.%s" % (instance.__class__.__module__,
-                      instance.__class__.__name__, instance.logging_name)
+                             instance.__class__.__name__,
+                             instance.logging_name)
     else:
         name = "%s.%s" % (instance.__class__.__module__,
-                  instance.__class__.__name__)
+                          instance.__class__.__name__)
 
     instance._echo = echoflag
 

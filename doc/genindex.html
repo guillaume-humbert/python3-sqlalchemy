@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    './',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -77,7 +77,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -2555,6 +2555,14 @@
 
 
 <dt>
+        <a href="core/connections.html#sqlalchemy.engine.ExceptionContext.chained_exception">chained_exception (sqlalchemy.engine.ExceptionContext attribute)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="orm/extensions/mutable.html#sqlalchemy.ext.mutable.Mutable.changed">changed() (sqlalchemy.ext.mutable.Mutable method)</a>
 </dt>
 
@@ -3512,6 +3520,8 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="core/connections.html#sqlalchemy.engine.ExceptionContext.connection">(sqlalchemy.engine.ExceptionContext attribute)</a>
+      </dt>
       <dt><a href="core/pooling.html#sqlalchemy.pool._ConnectionFairy.connection">(sqlalchemy.pool._ConnectionFairy attribute)</a>
       </dt>
       <dt><a href="core/pooling.html#sqlalchemy.pool._ConnectionRecord.connection">(sqlalchemy.pool._ConnectionRecord attribute)</a>
@@ -3612,6 +3622,8 @@
     <dd><dl>
       <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.HSTORE.comparator_factory.contained_by">(sqlalchemy.dialects.postgresql.HSTORE.comparator_factory method)</a>
       </dt>
+      <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.JSONB.comparator_factory.contained_by">(sqlalchemy.dialects.postgresql.JSONB.comparator_factory method)</a>
+      </dt>
       <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.contained_by">(sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory method)</a>
       </dt>
     </dl></dd>
@@ -3627,6 +3639,8 @@
       <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ARRAY.Comparator.contains">(sqlalchemy.dialects.postgresql.ARRAY.Comparator method)</a>
       </dt>
       <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.HSTORE.comparator_factory.contains">(sqlalchemy.dialects.postgresql.HSTORE.comparator_factory method)</a>
+      </dt>
+      <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.JSONB.comparator_factory.contains">(sqlalchemy.dialects.postgresql.JSONB.comparator_factory method)</a>
       </dt>
       <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.contains">(sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory method)</a>
       </dt>
@@ -4067,6 +4081,14 @@
 
 <dt>
         <a href="core/functions.html#sqlalchemy.sql.functions.current_user">current_user (class in sqlalchemy.sql.functions)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/connections.html#sqlalchemy.engine.ExceptionContext.cursor">cursor (sqlalchemy.engine.ExceptionContext attribute)</a>
 </dt>
 
 
@@ -5426,6 +5448,22 @@
 
 
 <dt>
+        <a href="core/internals.html#sqlalchemy.engine.interfaces.ExecutionContext.exception">exception (sqlalchemy.engine.interfaces.ExecutionContext attribute)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/connections.html#sqlalchemy.engine.ExceptionContext">ExceptionContext (class in sqlalchemy.engine)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ExcludeConstraint">ExcludeConstraint (class in sqlalchemy.dialects.postgresql)</a>
 </dt>
 
@@ -5503,6 +5541,14 @@
 
 <dt>
         <a href="core/internals.html#sqlalchemy.engine.default.DefaultDialect.execute_sequence_format">execute_sequence_format (sqlalchemy.engine.default.DefaultDialect attribute)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/connections.html#sqlalchemy.engine.ExceptionContext.execution_context">execution_context (sqlalchemy.engine.ExceptionContext attribute)</a>
 </dt>
 
 
@@ -6460,6 +6506,14 @@
 
 
 <dt>
+        <a href="core/events.html#sqlalchemy.events.ConnectionEvents.handle_error">handle_error() (sqlalchemy.events.ConnectionEvents method)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="orm/extensions/associationproxy.html#sqlalchemy.ext.associationproxy.AssociationProxy.has">has() (sqlalchemy.ext.associationproxy.AssociationProxy method)</a>
 </dt>
 
@@ -6483,6 +6537,10 @@
         <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.HSTORE.comparator_factory.has_all">has_all() (sqlalchemy.dialects.postgresql.HSTORE.comparator_factory method)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.JSONB.comparator_factory.has_all">(sqlalchemy.dialects.postgresql.JSONB.comparator_factory method)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -6491,6 +6549,10 @@
         <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.HSTORE.comparator_factory.has_any">has_any() (sqlalchemy.dialects.postgresql.HSTORE.comparator_factory method)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.JSONB.comparator_factory.has_any">(sqlalchemy.dialects.postgresql.JSONB.comparator_factory method)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -6524,6 +6586,8 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.JSONB.comparator_factory.has_key">(sqlalchemy.dialects.postgresql.JSONB.comparator_factory method)</a>
+      </dt>
       <dt><a href="core/connections.html#sqlalchemy.engine.RowProxy.has_key">(sqlalchemy.engine.RowProxy method)</a>
       </dt>
       <dt><a href="orm/internals.html#sqlalchemy.orm.instrumentation.ClassManager.has_key">(sqlalchemy.orm.instrumentation.ClassManager method)</a>
@@ -6539,6 +6603,8 @@
 
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -6551,8 +6617,6 @@
     </dl></dd>
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -7147,8 +7211,6 @@
 
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -7157,6 +7219,8 @@
 
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -7544,6 +7608,18 @@
 
 
 <dt>
+        <a href="core/connections.html#sqlalchemy.engine.ExceptionContext.is_disconnect">is_disconnect (sqlalchemy.engine.ExceptionContext attribute)</a>
+</dt>
+
+    <dd><dl>
+      <dt><a href="core/internals.html#sqlalchemy.engine.interfaces.ExecutionContext.is_disconnect">(sqlalchemy.engine.interfaces.ExecutionContext attribute)</a>
+      </dt>
+    </dl></dd>
+
+  
+
+
+<dt>
         <a href="core/internals.html#sqlalchemy.engine.interfaces.Dialect.is_disconnect">is_disconnect() (sqlalchemy.engine.interfaces.Dialect method)</a>
 </dt>
 
@@ -7843,6 +7919,22 @@
 
 <dt>
         <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.JSON.comparator_factory">JSON.comparator_factory (class in sqlalchemy.dialects.postgresql)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.JSONB">JSONB (class in sqlalchemy.dialects.postgresql)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.JSONB.comparator_factory">JSONB.comparator_factory (class in sqlalchemy.dialects.postgresql)</a>
 </dt>
 
 
@@ -9452,6 +9544,14 @@
 
 
 <dt>
+        <a href="core/connections.html#sqlalchemy.engine.ExceptionContext.original_exception">original_exception (sqlalchemy.engine.ExceptionContext attribute)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="orm/internals.html#sqlalchemy.orm.instrumentation.ClassManager.original_init">original_init (sqlalchemy.orm.instrumentation.ClassManager attribute)</a>
 </dt>
 
@@ -9543,6 +9643,14 @@
 
 <dt>
         <a href="core/functions.html#sqlalchemy.sql.functions.FunctionElement.packagenames">packagenames (sqlalchemy.sql.functions.FunctionElement attribute)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/connections.html#sqlalchemy.engine.ExceptionContext.parameters">parameters (sqlalchemy.engine.ExceptionContext attribute)</a>
 </dt>
 
 
@@ -11373,8 +11481,6 @@
 
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -11387,6 +11493,8 @@
     </dl></dd>
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -11913,6 +12021,14 @@
 
 
 <dt>
+        <a href="core/connections.html#sqlalchemy.engine.ExceptionContext.sqlalchemy_exception">sqlalchemy_exception (sqlalchemy.engine.ExceptionContext attribute)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="core/exceptions.html#sqlalchemy.exc.SQLAlchemyError">SQLAlchemyError</a>
 </dt>
 
@@ -11971,10 +12087,12 @@
 
 
 <dt>
-        <a href="core/exceptions.html#sqlalchemy.exc.StatementError.statement">statement (sqlalchemy.exc.StatementError attribute)</a>
+        <a href="core/connections.html#sqlalchemy.engine.ExceptionContext.statement">statement (sqlalchemy.engine.ExceptionContext attribute)</a>
 </dt>
 
     <dd><dl>
+      <dt><a href="core/exceptions.html#sqlalchemy.exc.StatementError.statement">(sqlalchemy.exc.StatementError attribute)</a>
+      </dt>
       <dt><a href="orm/query.html#sqlalchemy.orm.query.Query.statement">(sqlalchemy.orm.query.Query attribute)</a>
       </dt>
     </dl></dd>

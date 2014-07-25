@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -247,8 +247,8 @@ DBAPI connection.</li>
 <li><span class="target" id="sqlalchemy.events.PoolEvents.checkout.params.connection_record"></span><strong>connection_record</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.checkout.params.connection_record">¶</a> &#8211; the <a class="reference internal" href="pooling.html#sqlalchemy.pool._ConnectionRecord" title="sqlalchemy.pool._ConnectionRecord"><tt class="xref py py-class docutils literal"><span class="pre">_ConnectionRecord</span></tt></a> managing the
 DBAPI connection.</li>
 <li><span class="target" id="sqlalchemy.events.PoolEvents.checkout.params.connection_proxy"></span><strong>connection_proxy</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.checkout.params.connection_proxy">¶</a> &#8211; the <a class="reference internal" href="pooling.html#sqlalchemy.pool._ConnectionFairy" title="sqlalchemy.pool._ConnectionFairy"><tt class="xref py py-class docutils literal"><span class="pre">_ConnectionFairy</span></tt></a> object which
-will proxy the public interface of the DBAPI connection for the lifespan
-of the checkout.</li>
+will proxy the public interface of the DBAPI connection for the
+lifespan of the checkout.</li>
 </ul>
 </td>
 </tr>
@@ -323,9 +323,9 @@ on the settings used for all connections.  Since a particular
 <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> refers to a single &#8220;creator&#8221; function (which in terms
 of a <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> refers to the URL and connection options used),
 it is typically valid to make observations about a single connection
-that can be safely assumed to be valid about all subsequent connections,
-such as the database version, the server and client encoding settings,
-collation settings, and many others.</p>
+that can be safely assumed to be valid about all subsequent
+connections, such as the database version, the server and client
+encoding settings, collation settings, and many others.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -359,8 +359,8 @@ DBAPI connection.</li>
 </div>
 <p>This event is called any time the <a class="reference internal" href="pooling.html#sqlalchemy.pool._ConnectionRecord.invalidate" title="sqlalchemy.pool._ConnectionRecord.invalidate"><tt class="xref py py-meth docutils literal"><span class="pre">_ConnectionRecord.invalidate()</span></tt></a>
 method is invoked, either from API usage or via &#8220;auto-invalidation&#8221;.
-The event occurs before a final attempt to call <tt class="docutils literal"><span class="pre">.close()</span></tt> on the connection
-occurs.</p>
+The event occurs before a final attempt to call <tt class="docutils literal"><span class="pre">.close()</span></tt> on the
+connection occurs.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -874,16 +874,21 @@ commit, use the <a class="reference internal" href="#sqlalchemy.events.PoolEvent
 </div>
 <p>This event is called with the DBAPI exception instance
 received from the DBAPI itself, <em>before</em> SQLAlchemy wraps the
-exception with its own exception wrappers, and before any
+exception with it&#8217;s own exception wrappers, and before any
 other operations are performed on the DBAPI cursor; the
 existing transaction remains in effect as well as any state
 on the cursor.</p>
 <p>The use case here is to inject low-level exception handling
 into an <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, typically for logging and
-debugging purposes.   In general, user code should <strong>not</strong> modify
+debugging purposes.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Code should <strong>not</strong> modify
 any state or throw any exceptions here as this will
 interfere with SQLAlchemy&#8217;s cleanup and error handling
-routines.</p>
+routines.  For exception modification, please refer to the
+new <a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.handle_error" title="sqlalchemy.events.ConnectionEvents.handle_error"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.handle_error()</span></tt></a> event.</p>
+</div>
 <p>Subsequent to this hook, SQLAlchemy may attempt any
 number of operations on the connection/cursor, including
 closing the cursor, rolling back of the transaction in the
@@ -911,8 +916,9 @@ DBAPI.  The class here is specific to the DBAPI module in use.</li>
 </tr>
 </tbody>
 </table>
-<div class="versionadded">
-<p><span>New in version 0.7.7.</span></p>
+<div class="deprecated">
+<p><span>Deprecated since version 0.9.7: </span>- replaced by
+<a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.handle_error" title="sqlalchemy.events.ConnectionEvents.handle_error"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.handle_error()</span></tt></a></p>
 </div>
 </dd></dl>
 
@@ -942,8 +948,8 @@ In contrast, this event refers only to the production of a higher level
 <p>It also differs from the <a class="reference internal" href="#sqlalchemy.events.PoolEvents.checkout" title="sqlalchemy.events.PoolEvents.checkout"><tt class="xref py py-meth docutils literal"><span class="pre">PoolEvents.checkout()</span></tt></a> event
 in that it is specific to the <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> object, not the
 DBAPI connection that <a class="reference internal" href="#sqlalchemy.events.PoolEvents.checkout" title="sqlalchemy.events.PoolEvents.checkout"><tt class="xref py py-meth docutils literal"><span class="pre">PoolEvents.checkout()</span></tt></a> deals with, although
-this DBAPI connection is available here via the <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.connection" title="sqlalchemy.engine.Connection.connection"><tt class="xref py py-attr docutils literal"><span class="pre">Connection.connection</span></tt></a>
-attribute.  But note there can in fact
+this DBAPI connection is available here via the
+<a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.connection" title="sqlalchemy.engine.Connection.connection"><tt class="xref py py-attr docutils literal"><span class="pre">Connection.connection</span></tt></a> attribute.  But note there can in fact
 be multiple <a class="reference internal" href="#sqlalchemy.events.PoolEvents.checkout" title="sqlalchemy.events.PoolEvents.checkout"><tt class="xref py py-meth docutils literal"><span class="pre">PoolEvents.checkout()</span></tt></a> events within the lifespan
 of a single <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> object, if that <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>
 is invalidated and re-established.  There can also be multiple
@@ -973,9 +979,103 @@ of an INSERT statement.</li>
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="#sqlalchemy.events.PoolEvents.checkout" title="sqlalchemy.events.PoolEvents.checkout"><tt class="xref py py-meth docutils literal"><span class="pre">PoolEvents.checkout()</span></tt></a> the lower-level pool checkout event
 for an individual DBAPI connection</p>
-<p class="last"><a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.set_connection_execution_options" title="sqlalchemy.events.ConnectionEvents.set_connection_execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.set_connection_execution_options()</span></tt></a> - a copy of a
-<a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> is also made when the
+<p class="last"><a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.set_connection_execution_options" title="sqlalchemy.events.ConnectionEvents.set_connection_execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.set_connection_execution_options()</span></tt></a> - a copy
+of a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> is also made when the
 <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> method is called.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.events.ConnectionEvents.handle_error">
+<tt class="descname">handle_error</tt><big>(</big><em>exception_context</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.handle_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Intercept all exceptions processed by the <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</p>
+<div class="event-signatures container">
+<p>Example argument forms:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
+
+<span class="c"># standard decorator style</span>
+<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeEngine</span><span class="p">,</span> <span class="s">&#39;handle_error&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">receive_handle_error</span><span class="p">(</span><span class="n">exception_context</span><span class="p">):</span>
+    <span class="s">&quot;listen for the &#39;handle_error&#39; event&quot;</span>
+
+    <span class="c"># ... (event handling logic) ...</span></pre></div>
+</div>
+</div>
+<p>This includes all exceptions emitted by the DBAPI as well as
+within SQLAlchemy&#8217;s statement invocation process, including
+encoding errors and other statement validation errors.  Other areas
+in which the event is invoked include transaction begin and end,
+result row fetching, cursor creation.</p>
+<p>Note that <a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.handle_error" title="sqlalchemy.events.ConnectionEvents.handle_error"><tt class="xref py py-meth docutils literal"><span class="pre">handle_error()</span></tt></a> may support new kinds of exceptions
+and new calling scenarios at <em>any time</em>.  Code which uses this
+event must expect new calling patterns to be present in minor
+releases.</p>
+<p>To support the wide variety of members that correspond to an exception,
+as well as to allow extensibility of the event without backwards
+incompatibility, the sole argument received is an instance of
+<a class="reference internal" href="connections.html#sqlalchemy.engine.ExceptionContext" title="sqlalchemy.engine.ExceptionContext"><tt class="xref py py-class docutils literal"><span class="pre">ExceptionContext</span></tt></a>.   This object contains data members
+representing detail about the exception.</p>
+<p>Use cases supported by this hook include:</p>
+<ul class="simple">
+<li>read-only, low-level exception handling for logging and
+debugging purposes</li>
+<li>exception re-writing</li>
+</ul>
+<p>The hook is called while the cursor from the failed operation
+(if any) is still open and accessible.   Special cleanup operations
+can be called on this cursor; SQLAlchemy will attempt to close
+this cursor subsequent to this hook being invoked.  If the connection
+is in &#8220;autocommit&#8221; mode, the transaction also remains open within
+the scope of this hook; the rollback of the per-statement transaction
+also occurs after the hook is called.</p>
+<p>The user-defined event handler has two options for replacing
+the SQLAlchemy-constructed exception into one that is user
+defined.   It can either raise this new exception directly, in
+which case all further event listeners are bypassed and the
+exception will be raised, after appropriate cleanup as taken
+place:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">Engine</span><span class="p">,</span> <span class="s">&quot;handle_error&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">handle_exception</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">original_exception</span><span class="p">,</span>
+        <span class="n">psycopg2</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">)</span> <span class="ow">and</span> \
+        <span class="s">&quot;failed&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">original_exception</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">MySpecialException</span><span class="p">(</span><span class="s">&quot;failed operation&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>Alternatively, a &#8220;chained&#8221; style of event handling can be
+used, by configuring the handler with the <tt class="docutils literal"><span class="pre">retval=True</span></tt>
+modifier and returning the new exception instance from the
+function.  In this case, event handling will continue onto the
+next handler.   The &#8220;chained&#8221; exception is available using
+<a class="reference internal" href="connections.html#sqlalchemy.engine.ExceptionContext.chained_exception" title="sqlalchemy.engine.ExceptionContext.chained_exception"><tt class="xref py py-attr docutils literal"><span class="pre">ExceptionContext.chained_exception</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">Engine</span><span class="p">,</span> <span class="s">&quot;handle_error&quot;</span><span class="p">,</span> <span class="n">retval</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">handle_exception</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">chained_exception</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> \
+        <span class="s">&quot;special&quot;</span> <span class="ow">in</span> <span class="n">context</span><span class="o">.</span><span class="n">chained_exception</span><span class="o">.</span><span class="n">message</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">MySpecialException</span><span class="p">(</span><span class="s">&quot;failed&quot;</span><span class="p">,</span>
+            <span class="n">cause</span><span class="o">=</span><span class="n">context</span><span class="o">.</span><span class="n">chained_exception</span><span class="p">)</span></pre></div>
+</div>
+<p>Handlers that return <tt class="docutils literal"><span class="pre">None</span></tt> may remain within this chain; the
+last non-<tt class="docutils literal"><span class="pre">None</span></tt> return value is the one that continues to be
+passed to the next handler.</p>
+<p>When a custom exception is raised or returned, SQLAlchemy raises
+this new exception as-is, it is not wrapped by any SQLAlchemy
+object.  If the exception is not a subclass of
+<a class="reference internal" href="exceptions.html#sqlalchemy.exc.StatementError" title="sqlalchemy.exc.StatementError"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.exc.StatementError</span></tt></a>,
+certain features may not be available; currently this includes
+the ORM&#8217;s feature of adding a detail hint about &#8220;autoflush&#8221; to
+exceptions raised within the autoflush process.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.events.ConnectionEvents.handle_error.params.context"></span><strong>context</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.ConnectionEvents.handle_error.params.context">¶</a> &#8211; an <a class="reference internal" href="connections.html#sqlalchemy.engine.ExceptionContext" title="sqlalchemy.engine.ExceptionContext"><tt class="xref py py-class docutils literal"><span class="pre">ExceptionContext</span></tt></a> object.  See this
+class for details on all available members.</td>
+</tr>
+</tbody>
+</table>
+<div class="versionadded">
+<p><span>New in version 0.9.7: </span>Added the
+<a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.handle_error" title="sqlalchemy.events.ConnectionEvents.handle_error"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.handle_error()</span></tt></a> hook.</p>
 </div>
 </dd></dl>
 
@@ -1258,7 +1358,8 @@ handler to the given <a class="reference internal" href="connections.html#sqlalc
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.set_connection_execution_options" title="sqlalchemy.events.ConnectionEvents.set_connection_execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.set_connection_execution_options()</span></tt></a> - event
-which is called when <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> is called.</p>
+which is called when <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> is
+called.</p>
 </div>
 </dd></dl>
 
@@ -1275,10 +1376,10 @@ of key dialect functions which interact with the DBAPI.</p>
 <p class="first admonition-title">Note</p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.events.DialectEvents" title="sqlalchemy.events.DialectEvents"><tt class="xref py py-class docutils literal"><span class="pre">DialectEvents</span></tt></a> hooks should be considered <strong>semi-public</strong>
 and experimental.
-These hooks are not for general use and are only for those situations where
-intricate re-statement of DBAPI mechanics must be injected onto an existing
-dialect.   For general-use statement-interception events, please
-use the <a class="reference internal" href="#sqlalchemy.events.ConnectionEvents" title="sqlalchemy.events.ConnectionEvents"><tt class="xref py py-class docutils literal"><span class="pre">ConnectionEvents</span></tt></a> interface.</p>
+These hooks are not for general use and are only for those situations
+where intricate re-statement of DBAPI mechanics must be injected onto
+an existing dialect.  For general-use statement-interception events,
+please use the <a class="reference internal" href="#sqlalchemy.events.ConnectionEvents" title="sqlalchemy.events.ConnectionEvents"><tt class="xref py py-class docutils literal"><span class="pre">ConnectionEvents</span></tt></a> interface.</p>
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>

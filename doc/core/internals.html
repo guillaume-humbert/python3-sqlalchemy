@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -573,7 +573,8 @@ for those dialects which don&#8217;t implement get_pk_constraint().</p>
 <p>Return information about primary keys in <cite>table_name</cite>.</p>
 <p>Deprecated.  This method is only called by the default
 implementation of <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect.get_pk_constraint" title="sqlalchemy.engine.interfaces.Dialect.get_pk_constraint"><tt class="xref py py-meth docutils literal"><span class="pre">Dialect.get_pk_constraint()</span></tt></a>.  Dialects should
-instead implement the <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect.get_pk_constraint" title="sqlalchemy.engine.interfaces.Dialect.get_pk_constraint"><tt class="xref py py-meth docutils literal"><span class="pre">Dialect.get_pk_constraint()</span></tt></a> method directly.</p>
+instead implement the <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect.get_pk_constraint" title="sqlalchemy.engine.interfaces.Dialect.get_pk_constraint"><tt class="xref py py-meth docutils literal"><span class="pre">Dialect.get_pk_constraint()</span></tt></a> method
+directly.</p>
 </dd></dl>
 
 <dl class="method">
@@ -598,7 +599,8 @@ unique constraint information as a list of dicts with these keys:</p>
 <dt>column_names</dt>
 <dd>list of column names in order</dd>
 <dt>**kw</dt>
-<dd>other options passed to the dialect&#8217;s get_unique_constraints() method.</dd>
+<dd>other options passed to the dialect&#8217;s get_unique_constraints()
+method.</dd>
 </dl>
 <div class="versionadded">
 <p><span>New in version 0.9.0.</span></p>
@@ -1189,7 +1191,8 @@ key information as a dictionary with these keys:</p>
 <dd><p>Return information about primary keys in <cite>table_name</cite>.</p>
 <p>Deprecated.  This method is only called by the default
 implementation of <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect.get_pk_constraint" title="sqlalchemy.engine.interfaces.Dialect.get_pk_constraint"><tt class="xref py py-meth docutils literal"><span class="pre">Dialect.get_pk_constraint()</span></tt></a>.  Dialects should
-instead implement the <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect.get_pk_constraint" title="sqlalchemy.engine.interfaces.Dialect.get_pk_constraint"><tt class="xref py py-meth docutils literal"><span class="pre">Dialect.get_pk_constraint()</span></tt></a> method directly.</p>
+instead implement the <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect.get_pk_constraint" title="sqlalchemy.engine.interfaces.Dialect.get_pk_constraint"><tt class="xref py py-meth docutils literal"><span class="pre">Dialect.get_pk_constraint()</span></tt></a> method
+directly.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1210,7 +1213,8 @@ unique constraint information as a list of dicts with these keys:</p>
 <dt>column_names</dt>
 <dd>list of column names in order</dd>
 <dt>**kw</dt>
-<dd>other options passed to the dialect&#8217;s get_unique_constraints() method.</dd>
+<dd>other options passed to the dialect&#8217;s get_unique_constraints()
+method.</dd>
 </dl>
 <div class="versionadded">
 <p><span>New in version 0.9.0.</span></p>
@@ -1431,6 +1435,23 @@ connection.cursor(), such as postgresql which may return a PG
 &#8220;server side&#8221; cursor.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="sqlalchemy.engine.interfaces.ExecutionContext.exception">
+<tt class="descname">exception</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.engine.interfaces.ExecutionContext.exception" title="Permalink to this definition">¶</a></dt>
+<dd><p>A DBAPI-level exception that was caught when this ExecutionContext
+attempted to execute a statement.</p>
+<p>This attribute is meaningful only within the
+<a class="reference internal" href="events.html#sqlalchemy.events.ConnectionEvents.dbapi_error" title="sqlalchemy.events.ConnectionEvents.dbapi_error"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.dbapi_error()</span></tt></a> event.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.7.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.engine.interfaces.ExecutionContext.is_disconnect" title="sqlalchemy.engine.interfaces.ExecutionContext.is_disconnect"><tt class="xref py py-attr docutils literal"><span class="pre">ExecutionContext.is_disconnect</span></tt></a></p>
+<p class="last"><a class="reference internal" href="events.html#sqlalchemy.events.ConnectionEvents.dbapi_error" title="sqlalchemy.events.ConnectionEvents.dbapi_error"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.dbapi_error()</span></tt></a></p>
+</div>
+</dd></dl>
+
 <dl class="method">
 <dt id="sqlalchemy.engine.interfaces.ExecutionContext.get_rowcount">
 <tt class="descname">get_rowcount</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.interfaces.ExecutionContext.get_rowcount" title="Permalink to this definition">¶</a></dt>
@@ -1444,6 +1465,23 @@ cases an interpreted value.</p>
 <tt class="descname">handle_dbapi_exception</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.interfaces.ExecutionContext.handle_dbapi_exception" title="Permalink to this definition">¶</a></dt>
 <dd><p>Receive a DBAPI exception which occurred upon execute, result
 fetch, etc.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.interfaces.ExecutionContext.is_disconnect">
+<tt class="descname">is_disconnect</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.engine.interfaces.ExecutionContext.is_disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean flag set to True or False when a DBAPI-level exception
+is caught when this ExecutionContext attempted to execute a statement.</p>
+<p>This attribute is meaningful only within the
+<a class="reference internal" href="events.html#sqlalchemy.events.ConnectionEvents.dbapi_error" title="sqlalchemy.events.ConnectionEvents.dbapi_error"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.dbapi_error()</span></tt></a> event.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.7.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.engine.interfaces.ExecutionContext.exception" title="sqlalchemy.engine.interfaces.ExecutionContext.exception"><tt class="xref py py-attr docutils literal"><span class="pre">ExecutionContext.exception</span></tt></a></p>
+<p class="last"><a class="reference internal" href="events.html#sqlalchemy.events.ConnectionEvents.dbapi_error" title="sqlalchemy.events.ConnectionEvents.dbapi_error"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.dbapi_error()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">

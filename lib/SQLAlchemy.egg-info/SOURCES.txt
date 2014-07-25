@@ -473,6 +473,7 @@ lib/sqlalchemy/testing/__init__.py
 lib/sqlalchemy/testing/assertions.py
 lib/sqlalchemy/testing/assertsql.py
 lib/sqlalchemy/testing/config.py
+lib/sqlalchemy/testing/distutils_run.py
 lib/sqlalchemy/testing/engines.py
 lib/sqlalchemy/testing/entities.py
 lib/sqlalchemy/testing/exclusions.py

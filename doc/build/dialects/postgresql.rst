@@ -15,8 +15,8 @@ they originate from :mod:`sqlalchemy.types` or from the local dialect::
     from sqlalchemy.dialects.postgresql import \
         ARRAY, BIGINT, BIT, BOOLEAN, BYTEA, CHAR, CIDR, DATE, \
         DOUBLE_PRECISION, ENUM, FLOAT, HSTORE, INET, INTEGER, \
-        INTERVAL, JSON, MACADDR, NUMERIC, OID, REAL, SMALLINT, TEXT, TIME, \
-        TIMESTAMP, UUID, VARCHAR, INT4RANGE, INT8RANGE, NUMRANGE, \
+        INTERVAL, JSON, JSONB, MACADDR, NUMERIC, OID, REAL, SMALLINT, TEXT, \
+        TIME, TIMESTAMP, UUID, VARCHAR, INT4RANGE, INT8RANGE, NUMRANGE, \
         DATERANGE, TSRANGE, TSTZRANGE, TSVECTOR
 
 Types which are specific to PostgreSQL, or have PostgreSQL-specific
@@ -72,6 +72,9 @@ construction arguments, are as follows:
 .. autoclass:: JSON
     :members:
 
+.. autoclass:: JSONB
+    :members:
+
 .. autoclass:: JSONElement
     :members:
 
@@ -94,7 +97,7 @@ construction arguments, are as follows:
 Range Types
 ~~~~~~~~~~~
 
-The new range column types founds in PostgreSQL 9.2 onwards are
+The new range column types found in PostgreSQL 9.2 onwards are
 catered for by the following types:
 
 .. autoclass:: INT4RANGE

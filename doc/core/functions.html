@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -566,7 +566,7 @@ emits COUNT *.</p>
 
 <dl class="data">
 <dt id="sqlalchemy.sql.functions.func">
-<tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.functions._FunctionGenerator object at 0x103e6a210&gt;</em><a class="headerlink" href="#sqlalchemy.sql.functions.func" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.functions._FunctionGenerator object at 0x103499410&gt;</em><a class="headerlink" href="#sqlalchemy.sql.functions.func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate SQL function expressions.</p>
 <p><a class="reference internal" href="#sqlalchemy.sql.functions.func" title="sqlalchemy.sql.functions.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a> is a special object instance which generates SQL
 functions based on name-based attributes, e.g.:</p>
@@ -620,6 +620,15 @@ and <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expressio
 <p>Functions which are interpreted as &#8220;generic&#8221; functions know how to
 calculate their return type automatically. For a listing of known generic
 functions, see <a class="reference internal" href="#generic-functions"><em>SQL and Generic Functions</em></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The <a class="reference internal" href="#sqlalchemy.sql.functions.func" title="sqlalchemy.sql.functions.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a> construct has only limited support for calling
+standalone &#8220;stored procedures&#8221;, especially those with special
+parameterization concerns.</p>
+<p class="last">See the section <a class="reference internal" href="connections.html#stored-procedures"><em>Calling Stored Procedures</em></a> for details on how to use
+the DBAPI-level <tt class="docutils literal"><span class="pre">callproc()</span></tt> method for fully traditional stored
+procedures.</p>
+</div>
 </dd></dl>
 
 <dl class="class">

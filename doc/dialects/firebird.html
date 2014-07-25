@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -243,8 +243,9 @@ Python driver for Firebird.</p>
 </div>
 <div class="section" id="arguments">
 <h3>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h3>
-<p>The <tt class="docutils literal"><span class="pre">fdb</span></tt> dialect is based on the <a class="reference internal" href="#module-sqlalchemy.dialects.firebird.kinterbasdb" title="sqlalchemy.dialects.firebird.kinterbasdb"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.dialects.firebird.kinterbasdb</span></tt></a>
-dialect, however does not accept every argument that Kinterbasdb does.</p>
+<p>The <tt class="docutils literal"><span class="pre">fdb</span></tt> dialect is based on the
+<a class="reference internal" href="#module-sqlalchemy.dialects.firebird.kinterbasdb" title="sqlalchemy.dialects.firebird.kinterbasdb"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.dialects.firebird.kinterbasdb</span></tt></a> dialect, however does not
+accept every argument that Kinterbasdb does.</p>
 <ul>
 <li><p class="first"><tt class="docutils literal"><span class="pre">enable_rowcount</span></tt> - True by default, setting this to False disables
 the usage of &#8220;cursor.rowcount&#8221; with the
@@ -282,8 +283,8 @@ In 0.8 it defaulted to <tt class="docutils literal"><span class="pre">True</span
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference external" href="http://pythonhosted.org/fdb/usage-guide.html#retaining-transactions">http://pythonhosted.org/fdb/usage-guide.html#retaining-transactions</a> - information
-on the &#8220;retaining&#8221; flag.</p>
+<p class="last"><a class="reference external" href="http://pythonhosted.org/fdb/usage-guide.html#retaining-transactions">http://pythonhosted.org/fdb/usage-guide.html#retaining-transactions</a>
+- information on the &#8220;retaining&#8221; flag.</p>
 </div>
 </li>
 </ul>
@@ -306,8 +307,8 @@ on the &#8220;retaining&#8221; flag.</p>
 <div class="section" id="id1">
 <h3>Arguments<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <p>The Kinterbasdb backend accepts the <tt class="docutils literal"><span class="pre">enable_rowcount</span></tt> and <tt class="docutils literal"><span class="pre">retaining</span></tt>
-arguments accepted by the <a class="reference internal" href="#module-sqlalchemy.dialects.firebird.fdb" title="sqlalchemy.dialects.firebird.fdb"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.dialects.firebird.fdb</span></tt></a> dialect.   In addition, it
-also accepts the following:</p>
+arguments accepted by the <a class="reference internal" href="#module-sqlalchemy.dialects.firebird.fdb" title="sqlalchemy.dialects.firebird.fdb"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.dialects.firebird.fdb</span></tt></a> dialect.
+In addition, it also accepts the following:</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">type_conv</span></tt> - select the kind of mapping done on the types: by default
 SQLAlchemy uses 200 with Unicode, datetime and decimal support.  See
