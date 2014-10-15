@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.7',
+          VERSION:     '0.9.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -71,6 +71,9 @@
 
 
 
+
+
+
 <div id="docs-container">
 
 
@@ -80,7 +83,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
+        Release: <span class="version-num">0.9.8</span> | Release Date: October 13, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -150,7 +153,10 @@
 <li><a class="reference internal" href="#psycopg2-connect-arguments">psycopg2 Connect Arguments</a></li>
 <li><a class="reference internal" href="#unix-domain-connections">Unix Domain Connections</a></li>
 <li><a class="reference internal" href="#per-statement-connection-execution-options">Per-Statement/Connection Execution Options</a></li>
-<li><a class="reference internal" href="#unicode">Unicode</a></li>
+<li><a class="reference internal" href="#unicode-with-psycopg2">Unicode with Psycopg2</a><ul>
+<li><a class="reference internal" href="#disabling-native-unicode">Disabling Native Unicode</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#transactions">Transactions</a></li>
 <li><a class="reference internal" href="#psycopg2-transaction-isolation-level">Psycopg2 Transaction Isolation Level</a></li>
 <li><a class="reference internal" href="#notice-logging">NOTICE logging</a></li>
@@ -165,7 +171,7 @@
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.postgresql.pg8000">pg8000</a><ul>
 <li><a class="reference internal" href="#dialect-postgresql-pg8000-url">DBAPI</a></li>
 <li><a class="reference internal" href="#dialect-postgresql-pg8000-connect">Connecting</a></li>
-<li><a class="reference internal" href="#id3">Unicode</a></li>
+<li><a class="reference internal" href="#unicode">Unicode</a></li>
 <li><a class="reference internal" href="#pg8000-transaction-isolation-level">pg8000 Transaction Isolation Level</a></li>
 </ul>
 </li>
@@ -1247,7 +1253,7 @@ It is known to work on psycopg2 and not pg8000 or zxjdbc.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.JSON">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">JSON</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.JSON" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">JSON</tt><big>(</big><em>none_as_null=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.JSON" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Represent the Postgresql JSON type.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSON" title="sqlalchemy.dialects.postgresql.JSON"><tt class="xref py py-class docutils literal"><span class="pre">JSON</span></tt></a> type stores arbitrary JSON format data, e.g.:</p>
@@ -1310,6 +1316,31 @@ against the database using <tt class="docutils literal"><span class="pre">psycop
 <div class="versionadded">
 <p><span>New in version 0.9.</span></p>
 </div>
+<dl class="method">
+<dt id="sqlalchemy.dialects.postgresql.JSON.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>none_as_null=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.JSON.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a <a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSON" title="sqlalchemy.dialects.postgresql.JSON"><tt class="xref py py-class docutils literal"><span class="pre">JSON</span></tt></a> type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.postgresql.JSON.params.none_as_null"></span><strong>none_as_null</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.JSON.params.none_as_null">¶</a> &#8211; <p>if True, persist the value <tt class="docutils literal"><span class="pre">None</span></tt> as a
+SQL NULL value, not the JSON encoding of <tt class="docutils literal"><span class="pre">null</span></tt>.   Note that
+when this flag is False, the <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.null" title="sqlalchemy.sql.expression.null"><tt class="xref py py-func docutils literal"><span class="pre">null()</span></tt></a> construct can still
+be used to persist a NULL value:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">null</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">insert</span><span class="p">(),</span> <span class="n">data</span><span class="o">=</span><span class="n">null</span><span class="p">())</span></pre></div>
+</div>
+<div class="versionchanged">
+<p><span>Changed in version 0.9.8: </span>- Added <tt class="docutils literal"><span class="pre">none_as_null</span></tt>, and <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.null" title="sqlalchemy.sql.expression.null"><tt class="xref py py-func docutils literal"><span class="pre">null()</span></tt></a>
+is now supported in order to persist a NULL value.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.JSON.comparator_factory">
 <em class="property">class </em><tt class="descname">comparator_factory</tt><big>(</big><em>expr</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.JSON.comparator_factory" title="Permalink to this definition">¶</a></dt>
@@ -1321,7 +1352,7 @@ against the database using <tt class="docutils literal"><span class="pre">psycop
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.JSONB">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">JSONB</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.JSONB" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">JSONB</tt><big>(</big><em>none_as_null=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.JSONB" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.postgresql.json.JSON</span></tt></p>
 <p>Represent the Postgresql JSONB type.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.dialects.postgresql.JSONB" title="sqlalchemy.dialects.postgresql.JSONB"><tt class="xref py py-class docutils literal"><span class="pre">JSONB</span></tt></a> type stores arbitrary JSONB format data, e.g.:</p>
@@ -1753,7 +1784,7 @@ before using these column types.</p>
 </div>
 <p>When instantiating models that use these column types, you should pass
 whatever data type is expected by the DBAPI driver you&#8217;re using for
-the column type. For <a class="reference external" href="http://pythonhosted.org/psycopg2/module.html#psycopg2" title="(in Psycopg v2.5)"><tt class="xref py py-mod docutils literal"><span class="pre">psycopg2</span></tt></a> these are
+the column type. For <a class="reference external" href="http://pythonhosted.org/psycopg2/module.html#module-psycopg2" title="(in Psycopg v2.5)"><tt class="xref py py-mod docutils literal"><span class="pre">psycopg2</span></tt></a> these are
 <a class="reference external" href="http://pythonhosted.org/psycopg2/extras.html#psycopg2.extras.NumericRange" title="(in Psycopg v2.5)"><tt class="xref py py-class docutils literal"><span class="pre">NumericRange</span></tt></a>,
 <a class="reference external" href="http://pythonhosted.org/psycopg2/extras.html#psycopg2.extras.DateRange" title="(in Psycopg v2.5)"><tt class="xref py py-class docutils literal"><span class="pre">DateRange</span></tt></a>,
 <a class="reference external" href="http://pythonhosted.org/psycopg2/extras.html#psycopg2.extras.DateTimeRange" title="(in Psycopg v2.5)"><tt class="xref py py-class docutils literal"><span class="pre">DateTimeRange</span></tt></a> and
@@ -1850,8 +1881,8 @@ for this constraint.</li>
 <h3>psycopg2 Connect Arguments<a class="headerlink" href="#psycopg2-connect-arguments" title="Permalink to this headline">¶</a></h3>
 <p>psycopg2-specific keyword arguments which are accepted by
 <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> are:</p>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">server_side_cursors</span></tt>: Enable the usage of &#8220;server side cursors&#8221; for SQL
+<ul>
+<li><p class="first"><tt class="docutils literal"><span class="pre">server_side_cursors</span></tt>: Enable the usage of &#8220;server side cursors&#8221; for SQL
 statements which support this feature. What this essentially means from a
 psycopg2 point of view is that the cursor is created using a name, e.g.
 <tt class="docutils literal"><span class="pre">connection.cursor('some</span> <span class="pre">name')</span></tt>, which has the effect that result rows
@@ -1861,12 +1892,30 @@ are instead left on the server and only retrieved as needed. SQLAlchemy&#8217;s
 behavior when this feature is enabled, such that groups of 100 rows at a
 time are fetched over the wire to reduce conversational overhead.
 Note that the <tt class="docutils literal"><span class="pre">stream_results=True</span></tt> execution option is a more targeted
-way of enabling this mode on a per-execution basis.</li>
-<li><tt class="docutils literal"><span class="pre">use_native_unicode</span></tt>: Enable the usage of Psycopg2 &#8220;native unicode&#8221; mode
-per connection.  True by default.</li>
-<li><tt class="docutils literal"><span class="pre">isolation_level</span></tt>: This option, available for all PostgreSQL dialects,
+way of enabling this mode on a per-execution basis.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">use_native_unicode</span></tt>: Enable the usage of Psycopg2 &#8220;native unicode&#8221; mode
+per connection.  True by default.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#psycopg2-disable-native-unicode"><em>Disabling Native Unicode</em></a></p>
+</div>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">isolation_level</span></tt>: This option, available for all PostgreSQL dialects,
 includes the <tt class="docutils literal"><span class="pre">AUTOCOMMIT</span></tt> isolation level when using the psycopg2
-dialect.  See <a class="reference internal" href="#psycopg2-isolation-level"><em>Psycopg2 Transaction Isolation Level</em></a>.</li>
+dialect.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#psycopg2-isolation-level"><em>Psycopg2 Transaction Isolation Level</em></a></p>
+</div>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">client_encoding</span></tt>: sets the client encoding in a libpq-agnostic way,
+using psycopg2&#8217;s <tt class="docutils literal"><span class="pre">set_client_encoding()</span></tt> method.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#psycopg2-unicode"><em>Unicode with Psycopg2</em></a></p>
+</div>
+</li>
 </ul>
 </div>
 <div class="section" id="unix-domain-connections">
@@ -1901,33 +1950,52 @@ If <tt class="docutils literal"><span class="pre">None</span></tt> or not set, t
 <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> is used.</li>
 </ul>
 </div>
-<div class="section" id="unicode">
-<h3>Unicode<a class="headerlink" href="#unicode" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="unicode-with-psycopg2">
+<span id="psycopg2-unicode"></span><h3>Unicode with Psycopg2<a class="headerlink" href="#unicode-with-psycopg2" title="Permalink to this headline">¶</a></h3>
 <p>By default, the psycopg2 driver uses the <tt class="docutils literal"><span class="pre">psycopg2.extensions.UNICODE</span></tt>
 extension, such that the DBAPI receives and returns all strings as Python
 Unicode objects directly - SQLAlchemy passes these values through without
 change.   Psycopg2 here will encode/decode string values based on the
 current &#8220;client encoding&#8221; setting; by default this is the value in
 the <tt class="docutils literal"><span class="pre">postgresql.conf</span></tt> file, which often defaults to <tt class="docutils literal"><span class="pre">SQL_ASCII</span></tt>.
-Typically, this can be changed to <tt class="docutils literal"><span class="pre">utf-8</span></tt>, as a more useful default:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c">#client_encoding = sql_ascii # actually, defaults to database</span>
+Typically, this can be changed to <tt class="docutils literal"><span class="pre">utf8</span></tt>, as a more useful default:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># postgresql.conf file</span>
+
+<span class="c"># client_encoding = sql_ascii # actually, defaults to database</span>
                              <span class="c"># encoding</span>
 <span class="n">client_encoding</span> <span class="o">=</span> <span class="n">utf8</span></pre></div>
 </div>
 <p>A second way to affect the client encoding is to set it within Psycopg2
-locally.   SQLAlchemy will call psycopg2&#8217;s <tt class="docutils literal"><span class="pre">set_client_encoding()</span></tt>
-method (see:
-<a class="reference external" href="http://initd.org/psycopg/docs/connection.html#connection.set_client_encoding">http://initd.org/psycopg/docs/connection.html#connection.set_client_encoding</a>)
+locally.   SQLAlchemy will call psycopg2&#8217;s
+<a class="reference external" href="http://pythonhosted.org/psycopg2/connection.html#connection.set_client_encoding" title="(in Psycopg v2.5)"><tt class="docutils literal"><span class="pre">connection.set_client_encoding()</span></tt></a> method
 on all new connections based on the value passed to
 <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> using the <tt class="docutils literal"><span class="pre">client_encoding</span></tt> parameter:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;postgresql://user:pass@host/dbname&quot;</span><span class="p">,</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># set_client_encoding() setting;</span>
+<span class="c"># works for *all* Postgresql versions</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;postgresql://user:pass@host/dbname&quot;</span><span class="p">,</span>
                        <span class="n">client_encoding</span><span class="o">=</span><span class="s">&#39;utf8&#39;</span><span class="p">)</span></pre></div>
 </div>
-<p>This overrides the encoding specified in the Postgresql client configuration.</p>
-<div class="versionadded">
-<p><span>New in version 0.7.3: </span>The psycopg2-specific <tt class="docutils literal"><span class="pre">client_encoding</span></tt> parameter to
-<a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>.</p>
+<p>This overrides the encoding specified in the Postgresql client configuration.
+When using the parameter in this way, the psycopg2 driver emits
+<tt class="docutils literal"><span class="pre">SET</span> <span class="pre">client_encoding</span> <span class="pre">TO</span> <span class="pre">'utf8'</span></tt> on the connection explicitly, and works
+in all Postgresql versions.</p>
+<p>Note that the <tt class="docutils literal"><span class="pre">client_encoding</span></tt> setting as passed to <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>
+is <strong>not the same</strong> as the more recently added <tt class="docutils literal"><span class="pre">client_encoding</span></tt> parameter
+now supported by libpq directly.   This is enabled when <tt class="docutils literal"><span class="pre">client_encoding</span></tt>
+is passed directly to <tt class="docutils literal"><span class="pre">psycopg2.connect()</span></tt>, and from SQLAlchemy is passed
+using the <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine.params.connect_args" title="sqlalchemy.create_engine"><tt class="xref py py-paramref docutils literal"><span class="pre">create_engine.connect_args</span></tt></a> parameter:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># libpq direct parameter setting;</span>
+<span class="c"># only works for Postgresql **9.1 and above**</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;postgresql://user:pass@host/dbname&quot;</span><span class="p">,</span>
+                       <span class="n">connect_args</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;client_encoding&#39;</span><span class="p">:</span> <span class="s">&#39;utf8&#39;</span><span class="p">})</span>
+
+<span class="c"># using the query string is equivalent</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;postgresql://user:pass@host/dbname?client_encoding=utf8&quot;</span><span class="p">)</span></pre></div>
 </div>
+<p>The above parameter was only added to libpq as of version 9.1 of Postgresql,
+so using the previous method is better for cross-version support.</p>
+<div class="section" id="disabling-native-unicode">
+<span id="psycopg2-disable-native-unicode"></span><h4>Disabling Native Unicode<a class="headerlink" href="#disabling-native-unicode" title="Permalink to this headline">¶</a></h4>
 <p>SQLAlchemy can also be instructed to skip the usage of the psycopg2
 <tt class="docutils literal"><span class="pre">UNICODE</span></tt> extension and to instead utilize its own unicode encode/decode
 services, which are normally reserved only for those DBAPIs that don&#8217;t
@@ -1938,8 +2006,8 @@ in and coerce from bytes on the way back,
 using the value of the <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> <tt class="docutils literal"><span class="pre">encoding</span></tt> parameter, which
 defaults to <tt class="docutils literal"><span class="pre">utf-8</span></tt>.
 SQLAlchemy&#8217;s own unicode encode/decode functionality is steadily becoming
-obsolete as more DBAPIs support unicode fully along with the approach of
-Python 3; in modern usage psycopg2 should be relied upon to handle unicode.</p>
+obsolete as most DBAPIs now support unicode fully.</p>
+</div>
 </div>
 <div class="section" id="transactions">
 <h3>Transactions<a class="headerlink" href="#transactions" title="Permalink to this headline">¶</a></h3>
@@ -2045,8 +2113,8 @@ which may be more performant.</p>
 </div>
 </p>
 </div>
-<div class="section" id="id3">
-<h3>Unicode<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="unicode">
+<h3>Unicode<a class="headerlink" href="#unicode" title="Permalink to this headline">¶</a></h3>
 <p>When communicating with the server, pg8000 <strong>always uses the server-side
 character set</strong>.  SQLAlchemy has no ability to modify what character set
 pg8000 chooses to use, and additionally SQLAlchemy does no unicode conversion

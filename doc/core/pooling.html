@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.7',
+          VERSION:     '0.9.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -71,6 +71,9 @@
 
 
 
+
+
+
 <div id="docs-container">
 
 
@@ -80,7 +83,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
+        Release: <span class="version-num">0.9.8</span> | Release Date: October 13, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -586,7 +589,7 @@ idle in the pool.</p>
 <tt class="descname">recreate</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.pool.Pool.recreate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new <a class="reference internal" href="#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>, of the same class as this one
 and configured with identical creation arguments.</p>
-<p>This method is used in conjunection with <a class="reference internal" href="#sqlalchemy.pool.Pool.dispose" title="sqlalchemy.pool.Pool.dispose"><tt class="xref py py-meth docutils literal"><span class="pre">dispose()</span></tt></a>
+<p>This method is used in conjunction with <a class="reference internal" href="#sqlalchemy.pool.Pool.dispose" title="sqlalchemy.pool.Pool.dispose"><tt class="xref py py-meth docutils literal"><span class="pre">dispose()</span></tt></a>
 to close out an entire <a class="reference internal" href="#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> and create a new one in
 its place.</p>
 </dd></dl>
@@ -751,7 +754,7 @@ in a future release.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.pool._ConnectionFairy">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">_ConnectionFairy</tt><big>(</big><em>dbapi_connection</em>, <em>connection_record</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool._ConnectionFairy" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">_ConnectionFairy</tt><big>(</big><em>dbapi_connection</em>, <em>connection_record</em>, <em>echo</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool._ConnectionFairy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Proxies a DBAPI connection and provides return-on-dereference
 support.</p>
 <p>This is an internal object used by the <a class="reference internal" href="#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> implementation

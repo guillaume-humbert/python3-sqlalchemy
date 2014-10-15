@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.7',
+          VERSION:     '0.9.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -71,6 +71,9 @@
 
 
 
+
+
+
 <div id="docs-container">
 
 
@@ -80,7 +83,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
+        Release: <span class="version-num">0.9.8</span> | Release Date: October 13, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -138,7 +141,11 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#conjunctions">Conjunctions</a></li>
-<li><a class="reference internal" href="#using-text">Using Text</a></li>
+<li><a class="reference internal" href="#using-text">Using Text</a><ul>
+<li><a class="reference internal" href="#using-more-specific-text-with-table-literal-column-and-column">Using More Specific Text with <tt class="docutils literal"><span class="pre">table()</span></tt>, <tt class="docutils literal"><span class="pre">literal_column()</span></tt>, and <tt class="docutils literal"><span class="pre">column()</span></tt></a></li>
+<li><a class="reference internal" href="#ordering-or-grouping-by-a-label">Ordering or Grouping by a Label</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#using-aliases">Using Aliases</a></li>
 <li><a class="reference internal" href="#using-joins">Using Joins</a></li>
 <li><a class="reference internal" href="#everything-else">Everything Else</a><ul>
@@ -780,11 +787,11 @@ method calls is called <a class="reference internal" href="../glossary.html#term
 <p>Our last example really became a handful to type. Going from what one
 understands to be a textual SQL expression into a Python construct which
 groups components together in a programmatic style can be hard. That&#8217;s why
-SQLAlchemy lets you just use strings too. The <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> construct represents
-any textual statement, in a backend-agnostic way.
-To use bind parameters with <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a>, always use the
-named colon format. Such as below, we create a <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> and execute it,
-feeding in the bind parameters to the <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execute" title="sqlalchemy.engine.Connection.execute"><tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt></a> method:</p>
+SQLAlchemy lets you just use strings, for those cases when the SQL
+is already known and there isn&#8217;t a strong need for the statement to support
+dynamic features.  The <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> construct is used
+to compose a textual statement that is passed to the database mostly
+unchanged.  Below, we create a <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> object and execute it:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">text</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">text</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="s">&quot;SELECT users.fullname || &#39;, &#39; || addresses.email_address AS title &quot;</span>
@@ -800,25 +807,37 @@ WHERE users.id = addresses.user_id AND users.name BETWEEN ? AND ? AND
 (addresses.email_address LIKE ? OR addresses.email_address LIKE ?)
 ('m', 'z', '%@aol.com', '%@msn.com')</div><span class="go">[(u&#39;Wendy Williams, wendy@aol.com&#39;,)]</span></pre></div>
 </div>
-<p>To gain a &#8220;hybrid&#8221; approach, the <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct accepts strings for most
-of its arguments. Below we combine the usage of strings with our constructed
-<a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> object, by using the <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> object to structure the
-statement, and strings to provide all the content within the structure. For
-this example, SQLAlchemy is not given any <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>
-or <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects in any of its expressions, so it
-cannot generate a FROM clause. So we also use the <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Select.select_from" title="sqlalchemy.sql.expression.Select.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">select_from()</span></tt></a>
-method, which accepts a <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> or string expression
-to be placed within the FROM clause:</p>
+<p>Above, we can see that bound parameters are specified in
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> using the named colon format; this format is
+consistent regardless of database backend.  To send values in for the
+parameters, we passed them into the <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execute" title="sqlalchemy.engine.Connection.execute"><tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt></a> method
+as additional arguments.  Depending on how we are working, we can also
+send values to be associated directly with the <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a>
+construct using the <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.TextClause.bindparams" title="sqlalchemy.sql.expression.TextClause.bindparams"><tt class="xref py py-meth docutils literal"><span class="pre">bindparams()</span></tt></a> method; if we are
+using datatypes that need special handling as they are received in Python,
+or we&#8217;d like to compose our <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> object into a larger
+expression, we may also wish to use the <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.TextClause.columns" title="sqlalchemy.sql.expression.TextClause.columns"><tt class="xref py py-meth docutils literal"><span class="pre">columns()</span></tt></a> method
+in order to specify column return types and names.</p>
+<p><a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> can also be used freely within a
+<a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> object, which accepts <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a>
+objects as an argument for most of its builder functions.
+Below, we combine the usage of <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> within a
+<a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> object.  The <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct provides the &#8220;geometry&#8221;
+of the statement, and the <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> construct provides the
+textual content within this form.  We can build a statement without the
+need to refer to any pre-established <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> metadata:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span>
-<span class="gp">... </span>           <span class="s">&quot;users.fullname || &#39;, &#39; || addresses.email_address AS title&quot;</span>
-<span class="gp">... </span>         <span class="p">])</span><span class="o">.</span>\
-<span class="gp">... </span>          <span class="n">where</span><span class="p">(</span>
-<span class="gp">... </span>             <span class="n">and_</span><span class="p">(</span>
-<span class="gp">... </span>                <span class="s">&quot;users.id = addresses.user_id&quot;</span><span class="p">,</span>
-<span class="gp">... </span>                <span class="s">&quot;users.name BETWEEN &#39;m&#39; AND &#39;z&#39;&quot;</span><span class="p">,</span>
-<span class="gp">... </span>                <span class="s">&quot;(addresses.email_address LIKE :x OR addresses.email_address LIKE :y)&quot;</span>
+<span class="gp">... </span>       <span class="n">text</span><span class="p">(</span><span class="s">&quot;users.fullname || &#39;, &#39; || addresses.email_address AS title&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="p">])</span><span class="o">.</span>\
+<span class="gp">... </span>        <span class="n">where</span><span class="p">(</span>
+<span class="gp">... </span>            <span class="n">and_</span><span class="p">(</span>
+<span class="gp">... </span>                <span class="n">text</span><span class="p">(</span><span class="s">&quot;users.id = addresses.user_id&quot;</span><span class="p">),</span>
+<span class="gp">... </span>                <span class="n">text</span><span class="p">(</span><span class="s">&quot;users.name BETWEEN &#39;m&#39; AND &#39;z&#39;&quot;</span><span class="p">),</span>
+<span class="gp">... </span>                <span class="n">text</span><span class="p">(</span>
+<span class="gp">... </span>                    <span class="s">&quot;(addresses.email_address LIKE :x &quot;</span>
+<span class="gp">... </span>                    <span class="s">&quot;OR addresses.email_address LIKE :y)&quot;</span><span class="p">)</span>
 <span class="gp">... </span>            <span class="p">)</span>
-<span class="gp">... </span>          <span class="p">)</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="s">&#39;users, addresses&#39;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="p">)</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="s">&#39;users, addresses&#39;</span><span class="p">))</span>
 <a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s">&#39;%@aol.com&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s">&#39;%@msn.com&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT users.fullname || ', ' || addresses.email_address AS title
 FROM users, addresses
@@ -826,21 +845,116 @@ WHERE users.id = addresses.user_id AND users.name BETWEEN 'm' AND 'z'
 AND (addresses.email_address LIKE ? OR addresses.email_address LIKE ?)
 ('%@aol.com', '%@msn.com')</div><span class="go">[(u&#39;Wendy Williams, wendy@aol.com&#39;,)]</span></pre></div>
 </div>
-<p>Going from constructed SQL to text, we lose some capabilities. We lose the
-capability for SQLAlchemy to compile our expression to a specific target
-database; above, our expression won&#8217;t work with MySQL since it has no <tt class="docutils literal"><span class="pre">||</span></tt>
-construct. It also becomes more tedious for SQLAlchemy to be made aware of the
-datatypes in use; for example, if our bind parameters required UTF-8 encoding
-before going in, or conversion from a Python <tt class="docutils literal"><span class="pre">datetime</span></tt> into a string (as is
-required with SQLite), we would have to add extra information to our
-<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> construct. Similar issues arise on the result set side, where
-SQLAlchemy also performs type-specific data conversion in some cases; still
-more information can be added to <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> to work around this. But what we
-really lose from our statement is the ability to manipulate it, transform it,
-and analyze it. These features are critical when using the ORM, which makes
-heavy usage of relational transformations. To show off what we mean, we&#8217;ll
-first introduce the ALIAS construct and the JOIN construct, just so we have
-some juicier bits to play with.</p>
+<div class="topic">
+<p class="topic-title first">Why not use strings everywhere?</p>
+<p>When we use literal strings, the Core can&#8217;t adapt our SQL to work
+on different database backends.  Above, our expression won&#8217;t work
+with MySQL since MySQL doesn&#8217;t have the <tt class="docutils literal"><span class="pre">||</span></tt> construct.
+If we only use <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> to specify columns, our <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>
+construct will have an empty <tt class="docutils literal"><span class="pre">.c</span></tt> collection
+that we&#8217;d normally use to create subqueries.
+We also lose typing information about result columns and bound parameters,
+which is often needed to correctly translate data values between
+Python and the database.  Overall, the more <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> we use,
+the less flexibility and ability for manipulation/transformation
+the statement will have.</p>
+</div>
+<div class="section" id="using-more-specific-text-with-table-literal-column-and-column">
+<span id="sqlexpression-literal-column"></span><h3>Using More Specific Text with <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.table" title="sqlalchemy.sql.expression.table"><tt class="xref py py-func docutils literal"><span class="pre">table()</span></tt></a>, <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a>, and <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a><a class="headerlink" href="#using-more-specific-text-with-table-literal-column-and-column" title="Permalink to this headline">¶</a></h3>
+<p>We can move our level of structure back in the other direction too,
+by using <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a>, <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a>,
+and <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.table" title="sqlalchemy.sql.expression.table"><tt class="xref py py-func docutils literal"><span class="pre">table()</span></tt></a> for some of the
+key elements of our statement.   Using these constructs, we can get
+some more expression capabilities than if we used <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a>
+directly, as they provide to the Core more information about how the strings
+they store are to be used, but still without the need to get into full
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> based metadata.  Below, we also specify the <a class="reference internal" href="types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a>
+datatype for two of the key <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> objects,
+so that the string-specific concatenation operator becomes available.
+We also use <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> in order to use table-qualified
+expressions, e.g. <tt class="docutils literal"><span class="pre">users.fullname</span></tt>, that will be rendered as is;
+using <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> implies an individual column name that may
+be quoted:</p>
+<div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">select</span><span class="p">,</span> <span class="n">and_</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">String</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">literal_column</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span>
+<span class="gp">... </span>   <span class="n">literal_column</span><span class="p">(</span><span class="s">&quot;users.fullname&quot;</span><span class="p">,</span> <span class="n">String</span><span class="p">)</span> <span class="o">+</span>
+<span class="gp">... </span>   <span class="s">&#39; , &#39;</span> <span class="o">+</span>
+<span class="gp">... </span>   <span class="n">literal_column</span><span class="p">(</span><span class="s">&quot;addresses.email_address&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&quot;title&quot;</span><span class="p">)</span>
+<span class="gp">... </span><span class="p">])</span><span class="o">.</span>\
+<span class="gp">... </span>   <span class="n">where</span><span class="p">(</span>
+<span class="gp">... </span>       <span class="n">and_</span><span class="p">(</span>
+<span class="gp">... </span>           <span class="n">literal_column</span><span class="p">(</span><span class="s">&quot;users.id&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">literal_column</span><span class="p">(</span><span class="s">&quot;addresses.user_id&quot;</span><span class="p">),</span>
+<span class="gp">... </span>           <span class="n">text</span><span class="p">(</span><span class="s">&quot;users.name BETWEEN &#39;m&#39; AND &#39;z&#39;&quot;</span><span class="p">),</span>
+<span class="gp">... </span>           <span class="n">text</span><span class="p">(</span>
+<span class="gp">... </span>               <span class="s">&quot;(addresses.email_address LIKE :x OR &quot;</span>
+<span class="gp">... </span>               <span class="s">&quot;addresses.email_address LIKE :y)&quot;</span><span class="p">)</span>
+<span class="gp">... </span>       <span class="p">)</span>
+<span class="gp">... </span>   <span class="p">)</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">table</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">table</span><span class="p">(</span><span class="s">&#39;addresses&#39;</span><span class="p">))</span>
+
+<a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s">&#39;%@aol.com&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s">&#39;%@msn.com&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span> 
+<div class='popup_sql'>SELECT "users.fullname" || ? || "addresses.email_address" AS anon_1
+FROM users, addresses
+WHERE "users.id" = "addresses.user_id"
+AND users.name BETWEEN 'm' AND 'z'
+AND (addresses.email_address LIKE ? OR addresses.email_address LIKE ?)
+(' , ', '%@aol.com', '%@msn.com')</div><span class="go">[(u&#39;Wendy Williams, wendy@aol.com&#39;,)]</span></pre></div>
+</div>
+</div>
+<div class="section" id="ordering-or-grouping-by-a-label">
+<h3>Ordering or Grouping by a Label<a class="headerlink" href="#ordering-or-grouping-by-a-label" title="Permalink to this headline">¶</a></h3>
+<p>One place where we sometimes want to use a string as a shortcut is when
+our statement has some labeled column element that we want to refer to in
+a place such as the &#8220;ORDER BY&#8221; or &#8220;GROUP BY&#8221; clause; other candidates include
+fields within an &#8220;OVER&#8221; or &#8220;DISTINCT&#8221; clause.  If we have such a label
+in our <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct, we can refer to it directly by passing the
+string straight into <tt class="xref py py-meth docutils literal"><span class="pre">select.order_by()</span></tt> or <tt class="xref py py-meth docutils literal"><span class="pre">select.group_by()</span></tt>,
+among others.  This will refer to the named label and also prevent the
+expression from being rendered twice:</p>
+<div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">func</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span>
+<span class="gp">... </span>        <span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;num_addresses&#39;</span><span class="p">)])</span><span class="o">.</span>\
+<span class="gp">... </span>        <span class="n">order_by</span><span class="p">(</span><span class="s">&quot;num_addresses&quot;</span><span class="p">)</span>
+
+<a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">stmt</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span> 
+<div class='popup_sql'>SELECT addresses.user_id, count(addresses.id) AS num_addresses
+FROM addresses ORDER BY num_addresses
+()</div><span class="go">[(2, 4)]</span></pre></div>
+</div>
+<p>We can use modifiers like <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.asc" title="sqlalchemy.sql.expression.asc"><tt class="xref py py-func docutils literal"><span class="pre">asc()</span></tt></a> or <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.desc" title="sqlalchemy.sql.expression.desc"><tt class="xref py py-func docutils literal"><span class="pre">desc()</span></tt></a> by passing the string
+name:</p>
+<div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">func</span><span class="p">,</span> <span class="n">desc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span>
+<span class="gp">... </span>        <span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;num_addresses&#39;</span><span class="p">)])</span><span class="o">.</span>\
+<span class="gp">... </span>        <span class="n">order_by</span><span class="p">(</span><span class="n">desc</span><span class="p">(</span><span class="s">&quot;num_addresses&quot;</span><span class="p">))</span>
+
+<a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">stmt</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span> 
+<div class='popup_sql'>SELECT addresses.user_id, count(addresses.id) AS num_addresses
+FROM addresses ORDER BY num_addresses DESC
+()</div><span class="go">[(2, 4)]</span></pre></div>
+</div>
+<p>Note that the string feature here is very much tailored to when we have
+already used the <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement.label" title="sqlalchemy.sql.expression.ColumnElement.label"><tt class="xref py py-meth docutils literal"><span class="pre">label()</span></tt></a> method to create a
+specifically-named label.  In other cases, we always want to refer to the
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> object directly so that the expression system can
+make the most effective choices for rendering.  Below, we illustrate how using
+the <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> eliminates ambiguity when we want to order
+by a column name that appears more than once:</p>
+<div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">u1a</span><span class="p">,</span> <span class="n">u1b</span> <span class="o">=</span> <span class="n">users</span><span class="o">.</span><span class="n">alias</span><span class="p">(),</span> <span class="n">users</span><span class="o">.</span><span class="n">alias</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">u1a</span><span class="p">,</span> <span class="n">u1b</span><span class="p">])</span><span class="o">.</span>\
+<span class="gp">... </span>            <span class="n">where</span><span class="p">(</span><span class="n">u1a</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">&gt;</span> <span class="n">u1b</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span>\
+<span class="gp">... </span>            <span class="n">order_by</span><span class="p">(</span><span class="n">u1a</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>  <span class="c"># using &quot;name&quot; here would be ambiguous</span>
+
+<a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">stmt</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span> 
+<div class='popup_sql'>SELECT users_1.id, users_1.name, users_1.fullname, users_2.id,
+users_2.name, users_2.fullname
+FROM users AS users_1, users AS users_2
+WHERE users_1.name > users_2.name ORDER BY users_1.name
+()</div><span class="go">[(2, u&#39;wendy&#39;, u&#39;Wendy Williams&#39;, 1, u&#39;jack&#39;, u&#39;Jack Jones&#39;)]</span></pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="using-aliases">
 <h2>Using Aliases<a class="headerlink" href="#using-aliases" title="Permalink to this headline">¶</a></h2>

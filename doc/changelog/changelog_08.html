@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.7',
+          VERSION:     '0.9.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -71,6 +71,9 @@
 
 
 
+
+
+
 <div id="docs-container">
 
 
@@ -80,7 +83,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
+        Release: <span class="version-num">0.9.8</span> | Release Date: October 13, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -2100,7 +2103,11 @@ Please use the <a class="reference internal" href="../core/metadata.html#sqlalch
 that is, an INSERT that renders like
 &#8220;INSERT INTO table VALUES (...), (...), ...&#8221;.
 Supported by Postgresql, SQLite, and MySQL.
-Big thanks to Idan Kamara for doing the legwork on this one.<a class="changeset-link headerlink reference internal" href="#change-ccda1d442536d0ccedacde3786a7a049">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2623">#2623</a></p>
+Big thanks to Idan Kamara for doing the legwork on this one.<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="migration_08.html#feature-2623"><em>Multiple-VALUES support for Insert</em></a></p>
+</div>
+<a class="changeset-link headerlink reference internal" href="#change-ccda1d442536d0ccedacde3786a7a049">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2623">#2623</a></p>
 </p>
 </li>
 <li><p id="change-0.8.0b2-12"><span class="target" id="change-9b15516022fbd264038c54ed46d7b9c9"><strong>[sql] [bug] </strong></span>Fixed bug where using server_onupdate=&lt;FetchedValue|DefaultClause&gt;

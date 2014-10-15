@@ -11,6 +11,7 @@ from sqlalchemy import Table, select, bindparam, Column,\
     UniqueConstraint
 from sqlalchemy.types import Integer, String, Boolean, DateTime, Date, Time
 from sqlalchemy import types as sqltypes
+from sqlalchemy import event, inspect
 from sqlalchemy.util import u, ue
 from sqlalchemy import exc, sql, schema, pool, util
 from sqlalchemy.dialects.sqlite import base as sqlite, \
@@ -479,40 +480,6 @@ class DialectTest(fixtures.TestBase, AssertsExecutionResults):
         assert u('méil') in result.keys()
         assert ue('\u6e2c\u8a66') in result.keys()
 
-    def test_attached_as_schema(self):
-        cx = testing.db.connect()
-        try:
-            cx.execute('ATTACH DATABASE ":memory:" AS  test_schema')
-            dialect = cx.dialect
-            assert dialect.get_table_names(cx, 'test_schema') == []
-            meta = MetaData(cx)
-            Table('created', meta, Column('id', Integer),
-                  schema='test_schema')
-            alt_master = Table('sqlite_master', meta, autoload=True,
-                               schema='test_schema')
-            meta.create_all(cx)
-            eq_(dialect.get_table_names(cx, 'test_schema'), ['created'])
-            assert len(alt_master.c) > 0
-            meta.clear()
-            reflected = Table('created', meta, autoload=True,
-                              schema='test_schema')
-            assert len(reflected.c) == 1
-            cx.execute(reflected.insert(), dict(id=1))
-            r = cx.execute(reflected.select()).fetchall()
-            assert list(r) == [(1, )]
-            cx.execute(reflected.update(), dict(id=2))
-            r = cx.execute(reflected.select()).fetchall()
-            assert list(r) == [(2, )]
-            cx.execute(reflected.delete(reflected.c.id == 2))
-            r = cx.execute(reflected.select()).fetchall()
-            assert list(r) == []
-
-            # note that sqlite_master is cleared, above
-
-            meta.drop_all()
-            assert dialect.get_table_names(cx, 'test_schema') == []
-        finally:
-            cx.execute('DETACH DATABASE test_schema')
 
     @testing.exclude('sqlite', '<', (2, 6), 'no database support')
     def test_temp_table_reflection(self):
@@ -548,7 +515,6 @@ class DialectTest(fixtures.TestBase, AssertsExecutionResults):
         e = create_engine('sqlite+pysqlite:///foo.db')
         assert e.pool.__class__ is pool.NullPool
 
-
     def test_dont_reflect_autoindex(self):
         meta = MetaData(testing.db)
         t = Table('foo', meta, Column('bar', String, primary_key=True))
@@ -573,6 +539,107 @@ class DialectTest(fixtures.TestBase, AssertsExecutionResults):
             meta.create_all()
         finally:
             meta.drop_all()
+
+
+class AttachedMemoryDBTest(fixtures.TestBase):
+    __only_on__ = 'sqlite'
+
+    dbname = None
+
+    def setUp(self):
+        self.conn = conn = testing.db.connect()
+        if self.dbname is None:
+            dbname = ':memory:'
+        else:
+            dbname = self.dbname
+        conn.execute('ATTACH DATABASE "%s" AS  test_schema' % dbname)
+        self.metadata = MetaData()
+
+    def tearDown(self):
+        self.metadata.drop_all(self.conn)
+        self.conn.execute('DETACH DATABASE test_schema')
+        if self.dbname:
+            os.remove(self.dbname)
+
+    def _fixture(self):
+        meta = self.metadata
+        ct = Table(
+            'created', meta,
+            Column('id', Integer),
+            Column('name', String),
+            schema='test_schema')
+
+        meta.create_all(self.conn)
+        return ct
+
+    def test_no_tables(self):
+        insp = inspect(self.conn)
+        eq_(insp.get_table_names("test_schema"), [])
+
+    def test_table_names_present(self):
+        self._fixture()
+        insp = inspect(self.conn)
+        eq_(insp.get_table_names("test_schema"), ["created"])
+
+    def test_table_names_system(self):
+        self._fixture()
+        insp = inspect(self.conn)
+        eq_(insp.get_table_names("test_schema"), ["created"])
+
+    def test_reflect_system_table(self):
+        meta = MetaData(self.conn)
+        alt_master = Table(
+            'sqlite_master', meta, autoload=True,
+            autoload_with=self.conn,
+            schema='test_schema')
+        assert len(alt_master.c) > 0
+
+    def test_reflect_user_table(self):
+        self._fixture()
+
+        m2 = MetaData()
+        c2 = Table('created', m2, autoload=True, autoload_with=self.conn)
+        eq_(len(c2.c), 2)
+
+    def test_crud(self):
+        ct = self._fixture()
+
+        self.conn.execute(ct.insert(), {'id': 1, 'name': 'foo'})
+        eq_(
+            self.conn.execute(ct.select()).fetchall(),
+            [(1, 'foo')]
+        )
+
+        self.conn.execute(ct.update(), {'id': 2, 'name': 'bar'})
+        eq_(
+            self.conn.execute(ct.select()).fetchall(),
+            [(2, 'bar')]
+        )
+        self.conn.execute(ct.delete())
+        eq_(
+            self.conn.execute(ct.select()).fetchall(),
+            []
+        )
+
+    def test_col_targeting(self):
+        ct = self._fixture()
+
+        self.conn.execute(ct.insert(), {'id': 1, 'name': 'foo'})
+        row = self.conn.execute(ct.select()).first()
+        eq_(row['id'], 1)
+        eq_(row['name'], 'foo')
+
+    def test_col_targeting_union(self):
+        ct = self._fixture()
+
+        self.conn.execute(ct.insert(), {'id': 1, 'name': 'foo'})
+        row = self.conn.execute(ct.select().union(ct.select())).first()
+        eq_(row['id'], 1)
+        eq_(row['name'], 'foo')
+
+
+class AttachedFileDBTest(AttachedMemoryDBTest):
+    dbname = 'attached_db.db'
 
 
 class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
@@ -947,6 +1014,83 @@ class ReflectFKConstraintTest(fixtures.TestBase):
             set([con.name for con in c.constraints]),
             set([None, None])
         )
+
+
+class SavepointTest(fixtures.TablesTest):
+    """test that savepoints work when we use the correct event setup"""
+    __only_on__ = 'sqlite'
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table(
+            'users', metadata,
+            Column('user_id', Integer, primary_key=True),
+            Column('user_name', String)
+        )
+
+    @classmethod
+    def setup_bind(cls):
+        engine = engines.testing_engine(options={"use_reaper": False})
+
+        @event.listens_for(engine, "connect")
+        def do_connect(dbapi_connection, connection_record):
+            # disable pysqlite's emitting of the BEGIN statement entirely.
+            # also stops it from emitting COMMIT before any DDL.
+            dbapi_connection.isolation_level = None
+
+        @event.listens_for(engine, "begin")
+        def do_begin(conn):
+            # emit our own BEGIN
+            conn.execute("BEGIN")
+
+        return engine
+
+    def test_nested_subtransaction_rollback(self):
+        users = self.tables.users
+        connection = self.bind.connect()
+        transaction = connection.begin()
+        connection.execute(users.insert(), user_id=1, user_name='user1')
+        trans2 = connection.begin_nested()
+        connection.execute(users.insert(), user_id=2, user_name='user2')
+        trans2.rollback()
+        connection.execute(users.insert(), user_id=3, user_name='user3')
+        transaction.commit()
+        eq_(connection.execute(select([users.c.user_id]).
+            order_by(users.c.user_id)).fetchall(),
+            [(1, ), (3, )])
+        connection.close()
+
+    def test_nested_subtransaction_commit(self):
+        users = self.tables.users
+        connection = self.bind.connect()
+        transaction = connection.begin()
+        connection.execute(users.insert(), user_id=1, user_name='user1')
+        trans2 = connection.begin_nested()
+        connection.execute(users.insert(), user_id=2, user_name='user2')
+        trans2.commit()
+        connection.execute(users.insert(), user_id=3, user_name='user3')
+        transaction.commit()
+        eq_(connection.execute(select([users.c.user_id]).
+            order_by(users.c.user_id)).fetchall(),
+            [(1, ), (2, ), (3, )])
+        connection.close()
+
+    def test_rollback_to_subtransaction(self):
+        users = self.tables.users
+        connection = self.bind.connect()
+        transaction = connection.begin()
+        connection.execute(users.insert(), user_id=1, user_name='user1')
+        trans2 = connection.begin_nested()
+        connection.execute(users.insert(), user_id=2, user_name='user2')
+        trans3 = connection.begin()
+        connection.execute(users.insert(), user_id=3, user_name='user3')
+        trans3.rollback()
+        connection.execute(users.insert(), user_id=4, user_name='user4')
+        transaction.commit()
+        eq_(connection.execute(select([users.c.user_id]).
+            order_by(users.c.user_id)).fetchall(),
+            [(1, ), (4, )])
+        connection.close()
 
 
 class TypeReflectionTest(fixtures.TestBase):

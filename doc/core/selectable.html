@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.7',
+          VERSION:     '0.9.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -71,6 +71,9 @@
 
 
 
+
+
+
 <div id="docs-container">
 
 
@@ -80,7 +83,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
+        Release: <span class="version-num">0.9.8</span> | Release Date: October 13, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -361,58 +364,86 @@ either <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expres
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.select.params.columns"></span><strong>columns</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.columns">¶</a> &#8211; <p>A list of <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> objects, typically
-<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> objects or subclasses, which will form the
-columns clause of the resulting statement. For all members which are
-instances of <a class="reference internal" href="#sqlalchemy.sql.expression.Selectable" title="sqlalchemy.sql.expression.Selectable"><tt class="xref py py-class docutils literal"><span class="pre">Selectable</span></tt></a>, the individual
-<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> members of the <a class="reference internal" href="#sqlalchemy.sql.expression.Selectable" title="sqlalchemy.sql.expression.Selectable"><tt class="xref py py-class docutils literal"><span class="pre">Selectable</span></tt></a> will be
-added individually to the columns clause. For example, specifying a
-<a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> instance will result in all the
-contained <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects within to be
-added to the columns clause.</p>
-<p>This argument is not present on the form of <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>
-available on <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</p>
+<li><span class="target" id="sqlalchemy.sql.expression.select.params.columns"></span><strong>columns</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.columns">¶</a> &#8211; <p>A list of <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> or <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+objects which will form the columns clause of the resulting
+statement.   For those objects that are instances of
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> (typically <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> or <a class="reference internal" href="#sqlalchemy.sql.expression.Alias" title="sqlalchemy.sql.expression.Alias"><tt class="xref py py-class docutils literal"><span class="pre">Alias</span></tt></a>
+objects), the <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.c" title="sqlalchemy.sql.expression.FromClause.c"><tt class="xref py py-attr docutils literal"><span class="pre">FromClause.c</span></tt></a> collection is extracted
+to form a collection of <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> objects.</p>
+<p>This parameter will also accept <a class="reference internal" href="types.html#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">Text</span></tt></a> constructs as
+given, as well as ORM-mapped classes.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <a class="reference internal" href="#sqlalchemy.sql.expression.select.params.columns" title="sqlalchemy.sql.expression.select"><tt class="xref py py-paramref docutils literal"><span class="pre">select.columns</span></tt></a> parameter is not available
+in the method form of <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>, e.g.
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.select" title="sqlalchemy.sql.expression.FromClause.select"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.select()</span></tt></a>.</p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.Select.column" title="sqlalchemy.sql.expression.Select.column"><tt class="xref py py-meth docutils literal"><span class="pre">Select.column()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Select.with_only_columns" title="sqlalchemy.sql.expression.Select.with_only_columns"><tt class="xref py py-meth docutils literal"><span class="pre">Select.with_only_columns()</span></tt></a></p>
+</div>
 </li>
-<li><span class="target" id="sqlalchemy.sql.expression.select.params.whereclause"></span><strong>whereclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.whereclause">¶</a> &#8211; A <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> expression which will be used to form the
-<tt class="docutils literal"><span class="pre">WHERE</span></tt> clause.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.select.params.from_obj"></span><strong>from_obj</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.from_obj">¶</a> &#8211; A list of <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> objects which will be added to the
-<tt class="docutils literal"><span class="pre">FROM</span></tt> clause of the resulting statement. Note that &#8220;from&#8221; objects
-are automatically located within the columns and whereclause
-ClauseElements.  Use this parameter to explicitly specify &#8220;from&#8221;
-objects which are not automatically locatable. This could include
-<a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects that aren&#8217;t otherwise
-present, or <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> objects whose presence will supersede
-that of the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects already
-located in the other clauses.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.select.params.autocommit"></span><strong>autocommit</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.autocommit">¶</a> &#8211; Deprecated.  Use .execution_options(autocommit=&lt;True|False&gt;)
-to set the autocommit option.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.select.params.whereclause"></span><strong>whereclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.whereclause">¶</a> &#8211; <p>A <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> expression which will be used to form the
+<tt class="docutils literal"><span class="pre">WHERE</span></tt> clause.   It is typically preferable to add WHERE
+criterion to an existing <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> using method chaining
+with <a class="reference internal" href="#sqlalchemy.sql.expression.Select.where" title="sqlalchemy.sql.expression.Select.where"><tt class="xref py py-meth docutils literal"><span class="pre">Select.where()</span></tt></a>.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Select.where" title="sqlalchemy.sql.expression.Select.where"><tt class="xref py py-meth docutils literal"><span class="pre">Select.where()</span></tt></a></p>
+</div>
+</li>
+<li><span class="target" id="sqlalchemy.sql.expression.select.params.from_obj"></span><strong>from_obj</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.from_obj">¶</a> &#8211; <p>A list of <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> objects which will be added to the
+<tt class="docutils literal"><span class="pre">FROM</span></tt> clause of the resulting statement.  This is equivalent
+to calling <a class="reference internal" href="#sqlalchemy.sql.expression.Select.select_from" title="sqlalchemy.sql.expression.Select.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">Select.select_from()</span></tt></a> using method chaining on
+an existing <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Select.select_from" title="sqlalchemy.sql.expression.Select.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">Select.select_from()</span></tt></a> - full description of explicit
+FROM clause specification.</p>
+</div>
+</li>
+<li><span class="target" id="sqlalchemy.sql.expression.select.params.autocommit"></span><strong>autocommit</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.autocommit">¶</a> &#8211; <p>Deprecated.  Use <tt class="docutils literal"><span class="pre">.execution_options(autocommit=&lt;True|False&gt;)</span></tt>
+to set the autocommit option.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Executable.execution_options" title="sqlalchemy.sql.expression.Executable.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Executable.execution_options()</span></tt></a></p>
+</div>
+</li>
 <li><span class="target" id="sqlalchemy.sql.expression.select.params.bind"></span><strong>bind=None</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.bind">¶</a> &#8211; an <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> or <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> instance
 to which the
 resulting <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object will be bound.  The
 <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object will otherwise automatically bind to
 whatever <tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt> instances can be located within
 its contained <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> members.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.select.params.correlate"></span><strong>correlate=True</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.correlate">¶</a> &#8211; indicates that this <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object should have its
+<li><span class="target" id="sqlalchemy.sql.expression.select.params.correlate"></span><strong>correlate=True</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.correlate">¶</a> &#8211; <p>indicates that this <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object should have its
 contained <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> elements &#8220;correlated&#8221; to an enclosing
-<a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object.  This means that any
-<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> instance within the &#8220;froms&#8221; collection of
-this <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> which is also present in the &#8220;froms&#8221;
-collection of an enclosing select will not be rendered in the
-<tt class="docutils literal"><span class="pre">FROM</span></tt> clause of this select statement.</li>
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object.  It is typically preferable to specify
+correlations on an existing <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> construct using
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select.correlate" title="sqlalchemy.sql.expression.Select.correlate"><tt class="xref py py-meth docutils literal"><span class="pre">Select.correlate()</span></tt></a>.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Select.correlate" title="sqlalchemy.sql.expression.Select.correlate"><tt class="xref py py-meth docutils literal"><span class="pre">Select.correlate()</span></tt></a> - full description of correlation.</p>
+</div>
+</li>
 <li><span class="target" id="sqlalchemy.sql.expression.select.params.distinct"></span><strong>distinct=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.distinct">¶</a> &#8211; <p>when <tt class="docutils literal"><span class="pre">True</span></tt>, applies a <tt class="docutils literal"><span class="pre">DISTINCT</span></tt> qualifier to the columns
 clause of the resulting statement.</p>
 <p>The boolean argument may also be a column expression or list
 of column expressions - this is a special calling form which
 is understood by the Postgresql dialect to render the
 <tt class="docutils literal"><span class="pre">DISTINCT</span> <span class="pre">ON</span> <span class="pre">(&lt;columns&gt;)</span></tt> syntax.</p>
-<p><tt class="docutils literal"><span class="pre">distinct</span></tt> is also available via the <a class="reference internal" href="#sqlalchemy.sql.expression.Select.distinct" title="sqlalchemy.sql.expression.Select.distinct"><tt class="xref py py-meth docutils literal"><span class="pre">distinct()</span></tt></a>
-generative method.</p>
+<p><tt class="docutils literal"><span class="pre">distinct</span></tt> is also available on an existing <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a>
+object via the <a class="reference internal" href="#sqlalchemy.sql.expression.Select.distinct" title="sqlalchemy.sql.expression.Select.distinct"><tt class="xref py py-meth docutils literal"><span class="pre">distinct()</span></tt></a> method.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Select.distinct" title="sqlalchemy.sql.expression.Select.distinct"><tt class="xref py py-meth docutils literal"><span class="pre">Select.distinct()</span></tt></a></p>
+</div>
 </li>
 <li><span class="target" id="sqlalchemy.sql.expression.select.params.for_update"></span><strong>for_update=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.for_update">¶</a> &#8211; <blockquote>
 <div>when <tt class="docutils literal"><span class="pre">True</span></tt>, applies <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span></tt> to the end of the
 resulting statement.<div class="deprecated">
 <p><span>Deprecated since version 0.9.0: </span>- use
-<a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.with_for_update" title="sqlalchemy.sql.expression.GenerativeSelect.with_for_update"><tt class="xref py py-meth docutils literal"><span class="pre">GenerativeSelect.with_for_update()</span></tt></a> to specify the
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select.with_for_update" title="sqlalchemy.sql.expression.Select.with_for_update"><tt class="xref py py-meth docutils literal"><span class="pre">Select.with_for_update()</span></tt></a> to specify the
 structure of the <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span></tt> clause.</p>
 </div>
 <p><tt class="docutils literal"><span class="pre">for_update</span></tt> accepts various string values interpreted by
@@ -428,24 +459,59 @@ on Postgresql, translates to <tt class="docutils literal"><span class="pre">FOR<
 </div></blockquote>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.with_for_update" title="sqlalchemy.sql.expression.GenerativeSelect.with_for_update"><tt class="xref py py-meth docutils literal"><span class="pre">GenerativeSelect.with_for_update()</span></tt></a> - improved API for
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Select.with_for_update" title="sqlalchemy.sql.expression.Select.with_for_update"><tt class="xref py py-meth docutils literal"><span class="pre">Select.with_for_update()</span></tt></a> - improved API for
 specifying the <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span></tt> clause.</p>
 </div>
 </li>
-<li><span class="target" id="sqlalchemy.sql.expression.select.params.group_by"></span><strong>group_by</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.group_by">¶</a> &#8211; a list of <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> objects which will comprise the
-<tt class="docutils literal"><span class="pre">GROUP</span> <span class="pre">BY</span></tt> clause of the resulting select.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.select.params.having"></span><strong>having</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.having">¶</a> &#8211; a <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> that will comprise the <tt class="docutils literal"><span class="pre">HAVING</span></tt> clause
-of the resulting select when <tt class="docutils literal"><span class="pre">GROUP</span> <span class="pre">BY</span></tt> is used.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.select.params.limit"></span><strong>limit=None</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.limit">¶</a> &#8211; a numerical value which usually compiles to a <tt class="docutils literal"><span class="pre">LIMIT</span></tt>
-expression in the resulting select.  Databases that don&#8217;t
+<li><span class="target" id="sqlalchemy.sql.expression.select.params.group_by"></span><strong>group_by</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.group_by">¶</a> &#8211; <p>a list of <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> objects which will comprise the
+<tt class="docutils literal"><span class="pre">GROUP</span> <span class="pre">BY</span></tt> clause of the resulting select.  This parameter
+is typically specified more naturally using the
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select.group_by" title="sqlalchemy.sql.expression.Select.group_by"><tt class="xref py py-meth docutils literal"><span class="pre">Select.group_by()</span></tt></a> method on an existing <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a>.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Select.group_by" title="sqlalchemy.sql.expression.Select.group_by"><tt class="xref py py-meth docutils literal"><span class="pre">Select.group_by()</span></tt></a></p>
+</div>
+</li>
+<li><span class="target" id="sqlalchemy.sql.expression.select.params.having"></span><strong>having</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.having">¶</a> &#8211; <p>a <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> that will comprise the <tt class="docutils literal"><span class="pre">HAVING</span></tt> clause
+of the resulting select when <tt class="docutils literal"><span class="pre">GROUP</span> <span class="pre">BY</span></tt> is used.  This parameter
+is typically specified more naturally using the
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select.having" title="sqlalchemy.sql.expression.Select.having"><tt class="xref py py-meth docutils literal"><span class="pre">Select.having()</span></tt></a> method on an existing <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a>.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Select.having" title="sqlalchemy.sql.expression.Select.having"><tt class="xref py py-meth docutils literal"><span class="pre">Select.having()</span></tt></a></p>
+</div>
+</li>
+<li><span class="target" id="sqlalchemy.sql.expression.select.params.limit"></span><strong>limit=None</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.limit">¶</a> &#8211; <p>a numerical value which usually renders as a <tt class="docutils literal"><span class="pre">LIMIT</span></tt>
+expression in the resulting select.  Backends that don&#8217;t
 support <tt class="docutils literal"><span class="pre">LIMIT</span></tt> will attempt to provide similar
-functionality.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.select.params.offset"></span><strong>offset=None</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.offset">¶</a> &#8211; a numeric value which usually compiles to an <tt class="docutils literal"><span class="pre">OFFSET</span></tt>
-expression in the resulting select.  Databases that don&#8217;t
+functionality.    This parameter is typically specified more naturally
+using the <a class="reference internal" href="#sqlalchemy.sql.expression.Select.limit" title="sqlalchemy.sql.expression.Select.limit"><tt class="xref py py-meth docutils literal"><span class="pre">Select.limit()</span></tt></a> method on an existing
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a>.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Select.limit" title="sqlalchemy.sql.expression.Select.limit"><tt class="xref py py-meth docutils literal"><span class="pre">Select.limit()</span></tt></a></p>
+</div>
+</li>
+<li><span class="target" id="sqlalchemy.sql.expression.select.params.offset"></span><strong>offset=None</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.offset">¶</a> &#8211; <p>a numeric value which usually renders as an <tt class="docutils literal"><span class="pre">OFFSET</span></tt>
+expression in the resulting select.  Backends that don&#8217;t
 support <tt class="docutils literal"><span class="pre">OFFSET</span></tt> will attempt to provide similar
-functionality.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.select.params.order_by"></span><strong>order_by</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.order_by">¶</a> &#8211; a scalar or list of <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> objects which will
-comprise the <tt class="docutils literal"><span class="pre">ORDER</span> <span class="pre">BY</span></tt> clause of the resulting select.</li>
+functionality.  This parameter is typically specified more naturally
+using the <a class="reference internal" href="#sqlalchemy.sql.expression.Select.offset" title="sqlalchemy.sql.expression.Select.offset"><tt class="xref py py-meth docutils literal"><span class="pre">Select.offset()</span></tt></a> method on an existing
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a>.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Select.offset" title="sqlalchemy.sql.expression.Select.offset"><tt class="xref py py-meth docutils literal"><span class="pre">Select.offset()</span></tt></a></p>
+</div>
+</li>
+<li><span class="target" id="sqlalchemy.sql.expression.select.params.order_by"></span><strong>order_by</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.order_by">¶</a> &#8211; <p>a scalar or list of <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> objects which will
+comprise the <tt class="docutils literal"><span class="pre">ORDER</span> <span class="pre">BY</span></tt> clause of the resulting select.
+This parameter is typically specified more naturally using the
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select.order_by" title="sqlalchemy.sql.expression.Select.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">Select.order_by()</span></tt></a> method on an existing <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a>.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Select.order_by" title="sqlalchemy.sql.expression.Select.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">Select.order_by()</span></tt></a></p>
+</div>
+</li>
 <li><span class="target" id="sqlalchemy.sql.expression.select.params.use_labels"></span><strong>use_labels=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.use_labels">¶</a> &#8211; <p>when <tt class="docutils literal"><span class="pre">True</span></tt>, the statement will be generated using labels
 for each column in the columns clause, which qualify each
 column with its parent table&#8217;s (or aliases) name so that name
@@ -453,8 +519,13 @@ conflicts between columns in different tables don&#8217;t occur.
 The format of the label is &lt;tablename&gt;_&lt;column&gt;.  The &#8220;c&#8221;
 collection of the resulting <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object will use these
 names as well for targeting column members.</p>
-<p>use_labels is also available via the
-<a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.apply_labels" title="sqlalchemy.sql.expression.GenerativeSelect.apply_labels"><tt class="xref py py-meth docutils literal"><span class="pre">apply_labels()</span></tt></a> generative method.</p>
+<p>This parameter can also be specified on an existing
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object using the <a class="reference internal" href="#sqlalchemy.sql.expression.Select.apply_labels" title="sqlalchemy.sql.expression.Select.apply_labels"><tt class="xref py py-meth docutils literal"><span class="pre">Select.apply_labels()</span></tt></a>
+method.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Select.apply_labels" title="sqlalchemy.sql.expression.Select.apply_labels"><tt class="xref py py-meth docutils literal"><span class="pre">Select.apply_labels()</span></tt></a></p>
+</div>
 </li>
 </ul>
 </td>
@@ -1389,6 +1460,18 @@ subquery with a label.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.limit" title="sqlalchemy.sql.expression.GenerativeSelect.limit"><tt class="xref py py-meth docutils literal"><span class="pre">limit()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect" title="sqlalchemy.sql.expression.GenerativeSelect"><tt class="xref py py-class docutils literal"><span class="pre">GenerativeSelect</span></tt></a></div>
 <p>return a new selectable with the given LIMIT criterion
 applied.</p>
+<p>This is a numerical value which usually renders as a <tt class="docutils literal"><span class="pre">LIMIT</span></tt>
+expression in the resulting select.  Backends that don&#8217;t
+support <tt class="docutils literal"><span class="pre">LIMIT</span></tt> will attempt to provide similar
+functionality.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.limit.params.limit"></span><strong>limit</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.limit.params.limit">¶</a> &#8211; an integer LIMIT parameter.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -1398,6 +1481,18 @@ applied.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.offset" title="sqlalchemy.sql.expression.GenerativeSelect.offset"><tt class="xref py py-meth docutils literal"><span class="pre">offset()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect" title="sqlalchemy.sql.expression.GenerativeSelect"><tt class="xref py py-class docutils literal"><span class="pre">GenerativeSelect</span></tt></a></div>
 <p>return a new selectable with the given OFFSET criterion
 applied.</p>
+<p>This is a numeric value which usually renders as an <tt class="docutils literal"><span class="pre">OFFSET</span></tt>
+expression in the resulting select.  Backends that don&#8217;t
+support <tt class="docutils literal"><span class="pre">OFFSET</span></tt> will attempt to provide similar
+functionality.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.offset.params.offset"></span><strong>offset</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.offset.params.offset">¶</a> &#8211; an integer OFFSET parameter.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -2721,6 +2816,18 @@ subquery with a label.</p>
 <tt class="descname">limit</tt><big>(</big><em>limit</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.GenerativeSelect.limit" title="Permalink to this definition">¶</a></dt>
 <dd><p>return a new selectable with the given LIMIT criterion
 applied.</p>
+<p>This is a numerical value which usually renders as a <tt class="docutils literal"><span class="pre">LIMIT</span></tt>
+expression in the resulting select.  Backends that don&#8217;t
+support <tt class="docutils literal"><span class="pre">LIMIT</span></tt> will attempt to provide similar
+functionality.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.limit.params.limit"></span><strong>limit</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.limit.params.limit">¶</a> &#8211; an integer LIMIT parameter.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -2728,6 +2835,18 @@ applied.</p>
 <tt class="descname">offset</tt><big>(</big><em>offset</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.GenerativeSelect.offset" title="Permalink to this definition">¶</a></dt>
 <dd><p>return a new selectable with the given OFFSET criterion
 applied.</p>
+<p>This is a numeric value which usually renders as an <tt class="docutils literal"><span class="pre">OFFSET</span></tt>
+expression in the resulting select.  Backends that don&#8217;t
+support <tt class="docutils literal"><span class="pre">OFFSET</span></tt> will attempt to provide similar
+functionality.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.offset.params.offset"></span><strong>offset</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.offset.params.offset">¶</a> &#8211; an integer OFFSET parameter.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -4146,6 +4265,18 @@ subquery with a label.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.limit" title="sqlalchemy.sql.expression.GenerativeSelect.limit"><tt class="xref py py-meth docutils literal"><span class="pre">limit()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect" title="sqlalchemy.sql.expression.GenerativeSelect"><tt class="xref py py-class docutils literal"><span class="pre">GenerativeSelect</span></tt></a></div>
 <p>return a new selectable with the given LIMIT criterion
 applied.</p>
+<p>This is a numerical value which usually renders as a <tt class="docutils literal"><span class="pre">LIMIT</span></tt>
+expression in the resulting select.  Backends that don&#8217;t
+support <tt class="docutils literal"><span class="pre">LIMIT</span></tt> will attempt to provide similar
+functionality.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.sql.expression.Select.limit.params.limit"></span><strong>limit</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.limit.params.limit">¶</a> &#8211; an integer LIMIT parameter.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -4164,6 +4295,18 @@ actually be rendered.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.offset" title="sqlalchemy.sql.expression.GenerativeSelect.offset"><tt class="xref py py-meth docutils literal"><span class="pre">offset()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect" title="sqlalchemy.sql.expression.GenerativeSelect"><tt class="xref py py-class docutils literal"><span class="pre">GenerativeSelect</span></tt></a></div>
 <p>return a new selectable with the given OFFSET criterion
 applied.</p>
+<p>This is a numeric value which usually renders as an <tt class="docutils literal"><span class="pre">OFFSET</span></tt>
+expression in the resulting select.  Backends that don&#8217;t
+support <tt class="docutils literal"><span class="pre">OFFSET</span></tt> will attempt to provide similar
+functionality.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.sql.expression.Select.offset.params.offset"></span><strong>offset</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.offset.params.offset">¶</a> &#8211; an integer OFFSET parameter.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -4471,7 +4614,7 @@ with the token <tt class="docutils literal"><span class="pre">%(name)s</span></t
 the table or alias. E.g. when using Oracle, the
 following:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">mytable</span><span class="p">])</span><span class="o">.</span>\
-    <span class="n">with_hint</span><span class="p">(</span><span class="n">mytable</span><span class="p">,</span> <span class="s">&quot;+ index(</span><span class="si">%(name)s</span><span class="s"> ix_mytable)&quot;</span><span class="p">)</span></pre></div>
+    <span class="n">with_hint</span><span class="p">(</span><span class="n">mytable</span><span class="p">,</span> <span class="s">&quot;index(</span><span class="si">%(name)s</span><span class="s"> ix_mytable)&quot;</span><span class="p">)</span></pre></div>
 </div>
 <p>Would render SQL as:</p>
 <div class="highlight-python"><pre>select /*+ index(mytable ix_mytable) */ ... from mytable</pre>
@@ -4480,8 +4623,7 @@ following:</p>
 hint to a particular backend. Such as, to add hints for both Oracle
 and Sybase simultaneously:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">mytable</span><span class="p">])</span><span class="o">.</span>\
-    <span class="n">with_hint</span><span class="p">(</span>
-        <span class="n">mytable</span><span class="p">,</span> <span class="s">&quot;+ index(</span><span class="si">%(name)s</span><span class="s"> ix_mytable)&quot;</span><span class="p">,</span> <span class="s">&#39;oracle&#39;</span><span class="p">)</span><span class="o">.</span>\
+    <span class="n">with_hint</span><span class="p">(</span><span class="n">mytable</span><span class="p">,</span> <span class="s">&quot;index(</span><span class="si">%(name)s</span><span class="s"> ix_mytable)&quot;</span><span class="p">,</span> <span class="s">&#39;oracle&#39;</span><span class="p">)</span><span class="o">.</span>\
     <span class="n">with_hint</span><span class="p">(</span><span class="n">mytable</span><span class="p">,</span> <span class="s">&quot;WITH INDEX ix_mytable&quot;</span><span class="p">,</span> <span class="s">&#39;sybase&#39;</span><span class="p">)</span></pre></div>
 </div>
 </dd></dl>

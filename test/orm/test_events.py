@@ -116,6 +116,7 @@ class MapperEventsTest(_RemoveListeners, _fixtures.FixtureTest):
 
         mapper(User, users)
         canary = self.listen_all(User)
+        named_canary = self.listen_all(User, named=True)
 
         sess = create_session()
         u = User(name='u1')
@@ -129,14 +130,18 @@ class MapperEventsTest(_RemoveListeners, _fixtures.FixtureTest):
         sess.flush()
         sess.delete(u)
         sess.flush()
-        eq_(canary,
-            ['init', 'before_insert',
-             'after_insert', 'expire', 'translate_row',
-             'populate_instance', 'refresh',
-             'append_result', 'translate_row', 'create_instance',
-             'populate_instance', 'load', 'append_result',
-             'before_update', 'after_update', 'before_delete',
-             'after_delete'])
+
+        expected = [
+            'init', 'before_insert',
+            'after_insert', 'expire', 'translate_row',
+            'populate_instance', 'refresh',
+            'append_result', 'translate_row', 'create_instance',
+            'populate_instance', 'load', 'append_result',
+            'before_update', 'after_update', 'before_delete',
+            'after_delete']
+
+        eq_(canary, expected)
+        eq_(named_canary, expected)
 
     def test_insert_before_configured(self):
         users, User = self.tables.users, self.classes.User
@@ -964,6 +969,47 @@ class RefreshTest(_fixtures.FixtureTest):
         sess.query(User).first()
         eq_(canary, [])
 
+    def test_changes_reset(self):
+        """test the contract of load/refresh such that history is reset.
+
+        This has never been an official contract but we are testing it
+        here to ensure it is maintained given the loading performance
+        enhancements.
+
+        """
+        User = self.classes.User
+
+        @event.listens_for(User, "load")
+        def canary1(obj, context):
+            obj.name = 'new name!'
+
+        @event.listens_for(User, "refresh")
+        def canary2(obj, context, props):
+            obj.name = 'refreshed name!'
+
+        sess = Session()
+        u1 = User(name='u1')
+        sess.add(u1)
+        sess.commit()
+        sess.close()
+
+        u1 = sess.query(User).first()
+        eq_(
+            attributes.get_history(u1, "name"),
+            ((), ['new name!'], ())
+        )
+        assert "name" not in attributes.instance_state(u1).committed_state
+        assert u1 not in sess.dirty
+
+        sess.expire(u1)
+        u1.id
+        eq_(
+            attributes.get_history(u1, "name"),
+            ((), ['refreshed name!'], ())
+        )
+        assert "name" not in attributes.instance_state(u1).committed_state
+        assert u1 in sess.dirty
+
     def test_repeated_rows(self):
         User = self.classes.User
 
@@ -1179,6 +1225,7 @@ class SessionEventsTest(_RemoveListeners, _fixtures.FixtureTest):
             'after_flush', 'after_flush_postexec',
             'before_commit', 'after_commit','after_transaction_end']
         )
+
 
     def test_rollback_hook(self):
         User, users = self.classes.User, self.tables.users

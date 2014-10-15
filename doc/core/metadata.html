@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.7',
+          VERSION:     '0.9.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -71,6 +71,9 @@
 
 
 
+
+
+
 <div id="docs-container">
 
 
@@ -80,7 +83,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
+        Release: <span class="version-num">0.9.8</span> | Release Date: October 13, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -1722,44 +1725,82 @@ to add the list of <a class="reference internal" href="#sqlalchemy.schema.Column
 table. Similar to the style of a CREATE TABLE statement, other
 <a class="reference internal" href="#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">SchemaItem</span></tt></a> constructs may be added here, including
 <a class="reference internal" href="constraints.html#sqlalchemy.schema.PrimaryKeyConstraint" title="sqlalchemy.schema.PrimaryKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt></a>, and <a class="reference internal" href="constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>.</li>
-<li><span class="target" id="sqlalchemy.schema.Table.params.autoload"></span><strong>autoload</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Table.params.autoload">¶</a> &#8211; Defaults to False: the Columns for this table should
-be reflected from the database. Usually there will be no Column
-objects in the constructor if this property is set.</li>
-<li><span class="target" id="sqlalchemy.schema.Table.params.autoload_replace"></span><strong>autoload_replace</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Table.params.autoload_replace">¶</a> &#8211; <p>If <tt class="docutils literal"><span class="pre">True</span></tt>, when using <tt class="docutils literal"><span class="pre">autoload=True</span></tt>
-and <tt class="docutils literal"><span class="pre">extend_existing=True</span></tt>,
-replace <tt class="docutils literal"><span class="pre">Column</span></tt> objects already present in the <tt class="docutils literal"><span class="pre">Table</span></tt> that&#8217;s
-in the <tt class="docutils literal"><span class="pre">MetaData</span></tt> registry with
-what&#8217;s reflected.  Otherwise, all existing columns will be
-excluded from the reflection process.    Note that this does
-not impact <tt class="docutils literal"><span class="pre">Column</span></tt> objects specified in the same call to <tt class="docutils literal"><span class="pre">Table</span></tt>
-which includes <tt class="docutils literal"><span class="pre">autoload</span></tt>, those always take precedence.
-Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
+<li><span class="target" id="sqlalchemy.schema.Table.params.autoload"></span><strong>autoload</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Table.params.autoload">¶</a> &#8211; <p>Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.  When <tt class="docutils literal"><span class="pre">True</span></tt>, <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>
+objects
+for this table should be reflected from the database, possibly
+augmenting or replacing existing <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects that were
+expicitly specified.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="reflection.html"><em>Reflecting Database Objects</em></a></p>
+</div>
+</li>
+<li><span class="target" id="sqlalchemy.schema.Table.params.autoload_replace"></span><strong>autoload_replace</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Table.params.autoload_replace">¶</a> &#8211; <p>Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>; when using
+<a class="reference internal" href="#sqlalchemy.schema.Table.params.autoload" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.autoload</span></tt></a>
+in conjunction with <a class="reference internal" href="#sqlalchemy.schema.Table.params.extend_existing" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.extend_existing</span></tt></a>, indicates
+that <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects present in the already-existing
+<a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object should be replaced with columns of the same
+name retrieved from the autoload process.   When <tt class="docutils literal"><span class="pre">False</span></tt>, columns
+already present under existing names will be omitted from the
+reflection process.</p>
+<p>Note that this setting does not impact <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects
+specified programmatically within the call to <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> that
+also is autoloading; those <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects will always
+replace existing columns of the same name when
+<a class="reference internal" href="#sqlalchemy.schema.Table.params.extend_existing" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.extend_existing</span></tt></a> is <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
 <div class="versionadded">
 <p><span>New in version 0.7.5.</span></p>
 </div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.schema.Table.params.autoload" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.autoload</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.schema.Table.params.extend_existing" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.extend_existing</span></tt></a></p>
+</div>
 </li>
-<li><span class="target" id="sqlalchemy.schema.Table.params.autoload_with"></span><strong>autoload_with</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Table.params.autoload_with">¶</a> &#8211; If autoload==True, this is an optional Engine
-or Connection instance to be used for the table reflection. If
-<tt class="docutils literal"><span class="pre">None</span></tt>, the underlying MetaData&#8217;s bound connectable will be used.</li>
+<li><span class="target" id="sqlalchemy.schema.Table.params.autoload_with"></span><strong>autoload_with</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Table.params.autoload_with">¶</a> &#8211; <p>An <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> or <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> object
+with which this <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object will be reflected, when
+<a class="reference internal" href="#sqlalchemy.schema.Table.params.autoload" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.autoload</span></tt></a> is also <tt class="docutils literal"><span class="pre">True</span></tt>. If left unset,
+but <a class="reference internal" href="#sqlalchemy.schema.Table.params.autoload" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.autoload</span></tt></a> is set to <tt class="docutils literal"><span class="pre">True</span></tt>, an autoload
+operation will attempt to proceed by locating an <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> or
+<a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> bound to the underlying <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.schema.Table.params.autoload" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.autoload</span></tt></a></p>
+</div>
+</li>
 <li><span class="target" id="sqlalchemy.schema.Table.params.extend_existing"></span><strong>extend_existing</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Table.params.extend_existing">¶</a> &#8211; <p>When <tt class="docutils literal"><span class="pre">True</span></tt>, indicates that if this
 <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> is already present in the given <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>,
 apply further arguments within the constructor to the existing
 <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</p>
-<p>If <tt class="docutils literal"><span class="pre">extend_existing</span></tt> or <tt class="docutils literal"><span class="pre">keep_existing</span></tt> are not set, an error is
-raised if additional table modifiers are specified when
-the given <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> is already present in the
-<a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>.</p>
+<p>If <a class="reference internal" href="#sqlalchemy.schema.Table.params.extend_existing" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.extend_existing</span></tt></a> or
+<a class="reference internal" href="#sqlalchemy.schema.Table.params.keep_existing" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.keep_existing</span></tt></a> are not set, and the given name
+of the new <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> refers to a <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> that is
+already present in the target <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> collection, and
+this <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> specifies additional columns or other constructs
+or flags that modify the table&#8217;s state, an
+error is raised.  The purpose of these two mutually-exclusive flags
+is to specify what action should be taken when a <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
+is specified that matches an existing <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, yet specifies
+additional constructs.</p>
+<p><a class="reference internal" href="#sqlalchemy.schema.Table.params.extend_existing" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.extend_existing</span></tt></a> will also work in conjunction
+with <a class="reference internal" href="#sqlalchemy.schema.Table.params.autoload" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.autoload</span></tt></a> to run a new reflection
+operation against the database, even if a <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
+of the same name is already present in the target
+<a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>; newly reflected <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects
+and other options will be added into the state of the
+<a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, potentially overwriting existing columns
+and options of the same name.</p>
 <div class="versionchanged">
-<p><span>Changed in version 0.7.4: </span><tt class="docutils literal"><span class="pre">extend_existing</span></tt> will work in conjunction
-with <tt class="docutils literal"><span class="pre">autoload=True</span></tt> to run a new reflection operation against
-the database; new <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects will be produced
-from database metadata to replace those existing with the same
-name, and additional <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects not present
-in the <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> will be added.</p>
+<p><span>Changed in version 0.7.4: </span><a class="reference internal" href="#sqlalchemy.schema.Table.params.extend_existing" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.extend_existing</span></tt></a> will
+invoke a new reflection operation when combined with
+<a class="reference internal" href="#sqlalchemy.schema.Table.params.autoload" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.autoload</span></tt></a> set to True.</p>
 </div>
-<p>As is always the case with <tt class="docutils literal"><span class="pre">autoload=True</span></tt>, <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>
-objects can be specified in the same <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> constructor,
-which will take precedence.  I.e.:</p>
+<p>As is always the case with <a class="reference internal" href="#sqlalchemy.schema.Table.params.autoload" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.autoload</span></tt></a>,
+<a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects can be specified in the same <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
+constructor, which will take precedence.  Below, the existing
+table <tt class="docutils literal"><span class="pre">mytable</span></tt> will be augmented with <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects
+both reflected from the database, as well as the given <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>
+named &#8220;y&#8221;:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Table</span><span class="p">(</span><span class="s">&quot;mytable&quot;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
             <span class="n">Column</span><span class="p">(</span><span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
             <span class="n">extend_existing</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
@@ -1767,10 +1808,12 @@ which will take precedence.  I.e.:</p>
             <span class="n">autoload_with</span><span class="o">=</span><span class="n">engine</span>
         <span class="p">)</span></pre></div>
 </div>
-<p>The above will overwrite all columns within <tt class="docutils literal"><span class="pre">mytable</span></tt> which
-are present in the database, except for <tt class="docutils literal"><span class="pre">y</span></tt> which will be used as is
-from the above definition.   If the <tt class="docutils literal"><span class="pre">autoload_replace</span></tt> flag
-is set to False, no existing columns will be replaced.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.schema.Table.params.autoload" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.autoload</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.schema.Table.params.autoload_replace" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.autoload_replace</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.schema.Table.params.keep_existing" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.keep_existing</span></tt></a></p>
+</div>
 </li>
 <li><span class="target" id="sqlalchemy.schema.Table.params.implicit_returning"></span><strong>implicit_returning</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Table.params.implicit_returning">¶</a> &#8211; True by default - indicates that
 RETURNING can be used by default to fetch newly inserted primary key
@@ -1791,11 +1834,21 @@ originally created. This is to allow a function that wishes
 to define a new <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> on first call, but on
 subsequent calls will return the same <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>,
 without any of the declarations (particularly constraints)
-being applied a second time. Also see extend_existing.</p>
-<p>If extend_existing or keep_existing are not set, an error is
-raised if additional table modifiers are specified when
-the given <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> is already present in the
-<a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>.</p>
+being applied a second time.</p>
+<p>If <a class="reference internal" href="#sqlalchemy.schema.Table.params.extend_existing" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.extend_existing</span></tt></a> or
+<a class="reference internal" href="#sqlalchemy.schema.Table.params.keep_existing" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.keep_existing</span></tt></a> are not set, and the given name
+of the new <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> refers to a <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> that is
+already present in the target <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> collection, and
+this <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> specifies additional columns or other constructs
+or flags that modify the table&#8217;s state, an
+error is raised.  The purpose of these two mutually-exclusive flags
+is to specify what action should be taken when a <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
+is specified that matches an existing <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, yet specifies
+additional constructs.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.schema.Table.params.extend_existing" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.extend_existing</span></tt></a></p>
+</div>
 </li>
 <li><span class="target" id="sqlalchemy.schema.Table.params.listeners"></span><strong>listeners</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Table.params.listeners">¶</a> &#8211; <p>A list of tuples of the form <tt class="docutils literal"><span class="pre">(&lt;eventname&gt;,</span> <span class="pre">&lt;fn&gt;)</span></tt>
 which will be passed to <a class="reference internal" href="event.html#sqlalchemy.event.listen" title="sqlalchemy.event.listen"><tt class="xref py py-func docutils literal"><span class="pre">event.listen()</span></tt></a> upon construction.
@@ -1838,7 +1891,7 @@ schema name, specify the flag
 <tt class="docutils literal"><span class="pre">quote_schema=True</span></tt> to the constructor, or use the
 <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.elements.quoted_name" title="sqlalchemy.sql.elements.quoted_name"><tt class="xref py py-class docutils literal"><span class="pre">quoted_name</span></tt></a> construct to specify the name.</p>
 </li>
-<li><span class="target" id="sqlalchemy.schema.Table.params.useexisting"></span><strong>useexisting</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Table.params.useexisting">¶</a> &#8211; Deprecated.  Use extend_existing.</li>
+<li><span class="target" id="sqlalchemy.schema.Table.params.useexisting"></span><strong>useexisting</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Table.params.useexisting">¶</a> &#8211; Deprecated.  Use <a class="reference internal" href="#sqlalchemy.schema.Table.params.extend_existing" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.extend_existing</span></tt></a>.</li>
 <li><span class="target" id="sqlalchemy.schema.Table.params.**kw"></span><strong>**kw</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Table.params.**kw">¶</a> &#8211; Additional keyword arguments not mentioned above are
 dialect specific, and passed in the form <tt class="docutils literal"><span class="pre">&lt;dialectname&gt;_&lt;argname&gt;</span></tt>.
 See the documentation regarding an individual dialect at

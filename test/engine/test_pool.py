@@ -12,24 +12,25 @@ from sqlalchemy.testing.mock import Mock, call
 
 join_timeout = 10
 
+
 def MockDBAPI():
     def cursor():
-        while True:
-            yield Mock()
+        return Mock()
 
-    def connect():
-        while True:
-            yield Mock(cursor=Mock(side_effect=cursor()))
+    def connect(*arg, **kw):
+        return Mock(cursor=Mock(side_effect=cursor))
 
     def shutdown(value):
         if value:
             db.connect = Mock(side_effect=Exception("connect failed"))
         else:
-            db.connect = Mock(side_effect=connect())
+            db.connect = Mock(side_effect=connect)
 
-    db = Mock(connect=Mock(side_effect=connect()),
-                    shutdown=shutdown, _shutdown=False)
+    db = Mock(
+        connect=Mock(side_effect=connect),
+        shutdown=shutdown, _shutdown=False)
     return db
+
 
 class PoolTestBase(fixtures.TestBase):
     def setup(self):
@@ -101,6 +102,7 @@ class PoolTest(PoolTestBase):
 
     @testing.fails_on('+pyodbc',
                       "pyodbc cursor doesn't implement tuple __eq__")
+    @testing.fails_on("+pg8000", "returns [1], not (1,)")
     def test_cursor_iterable(self):
         conn = testing.db.raw_connection()
         cursor = conn.cursor()
@@ -108,7 +110,6 @@ class PoolTest(PoolTestBase):
         expected = [(1, )]
         for row in cursor:
             eq_(row, expected.pop(0))
-
 
     def test_no_connect_on_recreate(self):
         def creator():
@@ -129,10 +130,10 @@ class PoolTest(PoolTestBase):
             p.dispose()
             p.recreate()
 
-    def testthreadlocal_del(self):
+    def test_threadlocal_del(self):
         self._do_testthreadlocal(useclose=False)
 
-    def testthreadlocal_close(self):
+    def test_threadlocal_close(self):
         self._do_testthreadlocal(useclose=True)
 
     def _do_testthreadlocal(self, useclose=False):
@@ -793,12 +794,13 @@ class DeprecatedPoolListenerTest(PoolTestBase):
             c.close()
             assert counts == [1, 2, 2]
 
+
 class QueuePoolTest(PoolTestBase):
 
-    def testqueuepool_del(self):
+    def test_queuepool_del(self):
         self._do_testqueuepool(useclose=False)
 
-    def testqueuepool_close(self):
+    def test_queuepool_close(self):
         self._do_testqueuepool(useclose=True)
 
     def _do_testqueuepool(self, useclose=False):

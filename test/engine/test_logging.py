@@ -1,35 +1,23 @@
-from sqlalchemy.testing import eq_, assert_raises, assert_raises_message, \
-    config, is_
-import re
-from sqlalchemy.testing.util import picklers
-from sqlalchemy.interfaces import ConnectionProxy
-from sqlalchemy import MetaData, Integer, String, INT, VARCHAR, func, \
-    bindparam, select, event, TypeDecorator, create_engine, Sequence
-from sqlalchemy.sql import column, literal
-from sqlalchemy.testing.schema import Table, Column
+from sqlalchemy.testing import eq_, assert_raises_message
+from sqlalchemy import select
 import sqlalchemy as tsa
-from sqlalchemy import testing
 from sqlalchemy.testing import engines
-from sqlalchemy import util
-from sqlalchemy.testing.engines import testing_engine
 import logging.handlers
-from sqlalchemy.dialects.oracle.zxjdbc import ReturningParam
-from sqlalchemy.engine import result as _result, default
-from sqlalchemy.engine.base import Engine
 from sqlalchemy.testing import fixtures
-from sqlalchemy.testing.mock import Mock, call, patch
+from sqlalchemy.testing import mock
+from sqlalchemy.testing.util import lazy_gc
+
 
 class LogParamsTest(fixtures.TestBase):
     __only_on__ = 'sqlite'
     __requires__ = 'ad_hoc_engines',
 
     def setup(self):
-        self.eng = engines.testing_engine(options={'echo':True})
+        self.eng = engines.testing_engine(options={'echo': True})
         self.eng.execute("create table foo (data string)")
         self.buf = logging.handlers.BufferingHandler(100)
         for log in [
             logging.getLogger('sqlalchemy.engine'),
-            logging.getLogger('sqlalchemy.pool')
         ]:
             log.addHandler(self.buf)
 
@@ -37,14 +25,13 @@ class LogParamsTest(fixtures.TestBase):
         self.eng.execute("drop table foo")
         for log in [
             logging.getLogger('sqlalchemy.engine'),
-            logging.getLogger('sqlalchemy.pool')
         ]:
             log.removeHandler(self.buf)
 
     def test_log_large_dict(self):
         self.eng.execute(
             "INSERT INTO foo (data) values (:data)",
-            [{"data":str(i)} for i in range(100)]
+            [{"data": str(i)} for i in range(100)]
         )
         eq_(
             self.buf.buffer[1].message,
@@ -76,7 +63,7 @@ class LogParamsTest(fixtures.TestBase):
             "100 total bound parameter sets ...  {'data': '98'}, {'data': '99'}\]",
             lambda: self.eng.execute(
                 "INSERT INTO nonexistent (data) values (:data)",
-                [{"data":str(i)} for i in range(100)]
+                [{"data": str(i)} for i in range(100)]
             )
         )
 
@@ -94,6 +81,88 @@ class LogParamsTest(fixtures.TestBase):
             )
         )
 
+
+class PoolLoggingTest(fixtures.TestBase):
+    def setup(self):
+        self.existing_level = logging.getLogger("sqlalchemy.pool").level
+
+        self.buf = logging.handlers.BufferingHandler(100)
+        for log in [
+            logging.getLogger('sqlalchemy.pool')
+        ]:
+            log.addHandler(self.buf)
+
+    def teardown(self):
+        for log in [
+            logging.getLogger('sqlalchemy.pool')
+        ]:
+            log.removeHandler(self.buf)
+        logging.getLogger("sqlalchemy.pool").setLevel(self.existing_level)
+
+    def _queuepool_echo_fixture(self):
+        return tsa.pool.QueuePool(creator=mock.Mock(), echo='debug')
+
+    def _queuepool_logging_fixture(self):
+        logging.getLogger("sqlalchemy.pool").setLevel(logging.DEBUG)
+        return tsa.pool.QueuePool(creator=mock.Mock())
+
+    def _stpool_echo_fixture(self):
+        return tsa.pool.SingletonThreadPool(creator=mock.Mock(), echo='debug')
+
+    def _stpool_logging_fixture(self):
+        logging.getLogger("sqlalchemy.pool").setLevel(logging.DEBUG)
+        return tsa.pool.SingletonThreadPool(creator=mock.Mock())
+
+    def _test_queuepool(self, q, dispose=True):
+        conn = q.connect()
+        conn.close()
+        conn = None
+
+        conn = q.connect()
+        conn.close()
+        conn = None
+
+        conn = q.connect()
+        conn = None
+        del conn
+        lazy_gc()
+        q.dispose()
+
+        eq_(
+            [buf.msg for buf in self.buf.buffer],
+            [
+                'Created new connection %r',
+                'Connection %r checked out from pool',
+                'Connection %r being returned to pool',
+                'Connection %s rollback-on-return%s',
+                'Connection %r checked out from pool',
+                'Connection %r being returned to pool',
+                'Connection %s rollback-on-return%s',
+                'Connection %r checked out from pool',
+                'Connection %r being returned to pool',
+                'Connection %s rollback-on-return%s',
+                'Closing connection %r',
+
+            ] + (['Pool disposed. %s'] if dispose else [])
+        )
+
+    def test_stpool_echo(self):
+        q = self._stpool_echo_fixture()
+        self._test_queuepool(q, False)
+
+    def test_stpool_logging(self):
+        q = self._stpool_logging_fixture()
+        self._test_queuepool(q, False)
+
+    def test_queuepool_echo(self):
+        q = self._queuepool_echo_fixture()
+        self._test_queuepool(q)
+
+    def test_queuepool_logging(self):
+        q = self._queuepool_logging_fixture()
+        self._test_queuepool(q)
+
+
 class LoggingNameTest(fixtures.TestBase):
     __requires__ = 'ad_hoc_engines',
 
@@ -104,7 +173,7 @@ class LoggingNameTest(fixtures.TestBase):
             assert name in (
                 'sqlalchemy.engine.base.Engine.%s' % eng_name,
                 'sqlalchemy.pool.%s.%s' %
-                    (eng.pool.__class__.__name__, pool_name)
+                (eng.pool.__class__.__name__, pool_name)
             )
 
     def _assert_no_name_in_execute(self, eng):
@@ -118,15 +187,15 @@ class LoggingNameTest(fixtures.TestBase):
 
     def _named_engine(self, **kw):
         options = {
-            'logging_name':'myenginename',
-            'pool_logging_name':'mypoolname',
-            'echo':True
+            'logging_name': 'myenginename',
+            'pool_logging_name': 'mypoolname',
+            'echo': True
         }
         options.update(kw)
         return engines.testing_engine(options=options)
 
     def _unnamed_engine(self, **kw):
-        kw.update({'echo':True})
+        kw.update({'echo': True})
         return engines.testing_engine(options=kw)
 
     def setup(self):
@@ -183,6 +252,7 @@ class LoggingNameTest(fixtures.TestBase):
         eng = self._unnamed_engine(echo='debug', echo_pool='debug')
         self._assert_no_name_in_execute(eng)
 
+
 class EchoTest(fixtures.TestBase):
     __requires__ = 'ad_hoc_engines',
 
@@ -196,7 +266,7 @@ class EchoTest(fixtures.TestBase):
         logging.getLogger('sqlalchemy.engine').removeHandler(self.buf)
         logging.getLogger('sqlalchemy.engine').setLevel(self.level)
 
-    def testing_engine(self):
+    def _testing_engine(self):
         e = engines.testing_engine()
 
         # do an initial execute to clear out 'first connect'
@@ -235,8 +305,8 @@ class EchoTest(fixtures.TestBase):
     def test_echo_flag_independence(self):
         """test the echo flag's independence to a specific engine."""
 
-        e1 = self.testing_engine()
-        e2 = self.testing_engine()
+        e1 = self._testing_engine()
+        e2 = self._testing_engine()
 
         e1.echo = True
         e1.execute(select([1])).close()

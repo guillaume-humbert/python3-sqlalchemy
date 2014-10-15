@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.7',
+          VERSION:     '0.9.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -71,6 +71,9 @@
 
 
 
+
+
+
 <div id="docs-container">
 
 
@@ -80,7 +83,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
+        Release: <span class="version-num">0.9.8</span> | Release Date: October 13, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -954,13 +957,15 @@ WHERE users.name LIKE ? ORDER BY users.id
 <div class="section" id="using-literal-sql">
 <span id="orm-tutorial-literal-sql"></span><h3>Using Literal SQL<a class="headerlink" href="#using-literal-sql" title="Permalink to this headline">¶</a></h3>
 <p>Literal strings can be used flexibly with
-<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>. Most methods accept strings in addition
-to SQLAlchemy clause constructs. For example,
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>, by specifying their use
+with the <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> construct, which is accepted
+by most applicable methods.  For example,
 <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-meth docutils literal"><span class="pre">filter()</span></tt></a> and
 <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.order_by" title="sqlalchemy.orm.query.Query.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">order_by()</span></tt></a>:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span>\
-<span class="o">...</span>             <span class="nb">filter</span><span class="p">(</span><span class="s">&quot;id&lt;224&quot;</span><span class="p">)</span><span class="o">.</span>\
-<span class="o">...</span>             <span class="n">order_by</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span> 
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">text</span>
+<a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span>             <span class="nb">filter</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="s">&quot;id&lt;224&quot;</span><span class="p">))</span><span class="o">.</span>\
+<span class="o">...</span>             <span class="n">order_by</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span> 
 <span class="o">...</span>     <span class="k">print</span> <span class="n">user</span><span class="o">.</span><span class="n">name</span>
 <div class='popup_sql'>SELECT users.id AS users_id,
         users.name AS users_name,
@@ -976,7 +981,7 @@ WHERE id<224 ORDER BY id
 <p>Bind parameters can be specified with string-based SQL, using a colon. To
 specify the values, use the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.params" title="sqlalchemy.orm.query.Query.params"><tt class="xref py py-meth docutils literal"><span class="pre">params()</span></tt></a>
 method:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s">&quot;id&lt;:value and name=:name&quot;</span><span class="p">)</span><span class="o">.</span>\
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="s">&quot;id&lt;:value and name=:name&quot;</span><span class="p">))</span><span class="o">.</span>\
 <span class="o">...</span>     <span class="n">params</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mi">224</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;fred&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT users.id AS users_id,
         users.name AS users_name,
@@ -991,7 +996,7 @@ WHERE id<? and name=? ORDER BY users.id
 columns clause of the statement contains the column names normally used by the
 mapper (below illustrated using an asterisk):</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">from_statement</span><span class="p">(</span>
-<span class="o">...</span>                     <span class="s">&quot;SELECT * FROM users where name=:name&quot;</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span>                     <span class="n">text</span><span class="p">(</span><span class="s">&quot;SELECT * FROM users where name=:name&quot;</span><span class="p">))</span><span class="o">.</span>\
 <span class="o">...</span>                     <span class="n">params</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;ed&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 <div class='popup_sql'>SELECT * FROM users where name=?
 ('ed',)</div><span class="p">[</span><span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;ed&#39;</span><span class="p">,</span> <span class="n">fullname</span><span class="o">=</span><span class="s">&#39;Ed Jones&#39;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s">&#39;f8s7ccs&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span></pre></div>
@@ -999,83 +1004,18 @@ mapper (below illustrated using an asterisk):</p>
 <p>You can use <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.from_statement" title="sqlalchemy.orm.query.Query.from_statement"><tt class="xref py py-meth docutils literal"><span class="pre">from_statement()</span></tt></a> to go
 completely &#8220;raw&#8221;, using string names to identify desired columns:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">,</span> <span class="s">&quot;name&quot;</span><span class="p">,</span> <span class="s">&quot;thenumber12&quot;</span><span class="p">)</span><span class="o">.</span>\
-<span class="o">...</span>         <span class="n">from_statement</span><span class="p">(</span><span class="s">&quot;SELECT id, name, 12 as &quot;</span>
-<span class="o">...</span>                 <span class="s">&quot;thenumber12 FROM users where name=:name&quot;</span><span class="p">)</span><span class="o">.</span>\
+<span class="o">...</span>         <span class="n">from_statement</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="s">&quot;SELECT id, name, 12 as &quot;</span>
+<span class="o">...</span>                 <span class="s">&quot;thenumber12 FROM users where name=:name&quot;</span><span class="p">))</span><span class="o">.</span>\
 <span class="o">...</span>                 <span class="n">params</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;ed&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 <div class='popup_sql'>SELECT id, name, 12 as thenumber12 FROM users where name=?
 ('ed',)</div><span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="s">u&#39;ed&#39;</span><span class="p">,</span> <span class="mi">12</span><span class="p">)]</span></pre></div>
 </div>
-<div class="topic">
-<p class="topic-title first">Pros and Cons of Literal SQL</p>
-<p><a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> is constructed like the rest of SQLAlchemy, in that it tries
-to always allow &#8220;falling back&#8221; to a less automated, lower level approach to things.
-Accepting strings for all SQL fragments is a big part of that, so that
-you can bypass the need to organize SQL constructs if you know specifically
-what string output you&#8217;d like.
-But when using literal strings, the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> no longer knows anything about
-that part of the SQL construct being emitted, and has no ability to
-<strong>transform</strong> it to adapt to new contexts.</p>
-<p>For example, suppose we selected <tt class="docutils literal"><span class="pre">User</span></tt> objects and ordered by the <tt class="docutils literal"><span class="pre">name</span></tt>
-column, using a string to indicate <tt class="docutils literal"><span class="pre">name</span></tt>:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">q</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-<a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">q</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
-<div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name
-FROM users ORDER BY name
-()</div><span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="s">u&#39;ed&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s">u&#39;fred&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s">u&#39;mary&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s">u&#39;wendy&#39;</span><span class="p">)]</span></pre></div>
-</div>
-<p>Perfectly fine.  But suppose, before we got a hold of the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>,
-some sophisticated transformations were applied to it, such as below
-where we use <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.from_self" title="sqlalchemy.orm.query.Query.from_self"><tt class="xref py py-meth docutils literal"><span class="pre">from_self()</span></tt></a>, a particularly advanced
-method, to retrieve pairs of user names with
-different numbers of characters:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">func</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ua</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">User</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">from_self</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ua</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span>\
-<span class="gp">... </span>    <span class="nb">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">&lt;</span> <span class="n">ua</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span>\
-<span class="gp">... </span>    <span class="nb">filter</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="n">ua</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">!=</span> <span class="n">func</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></pre></div>
-</div>
-<p>The <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> now represents a select from a subquery, where
-<tt class="docutils literal"><span class="pre">User</span></tt> is represented twice both inside and outside of the subquery.
-Telling the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> to order by &#8220;name&#8221; doesn&#8217;t really give
-us much guarantee which &#8220;name&#8221; it&#8217;s going to order on.  In this
-case it assumes &#8220;name&#8221; is against the outer &#8220;aliased&#8221; <tt class="docutils literal"><span class="pre">User</span></tt> construct:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">q</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
-<div class='popup_sql'>SELECT anon_1.users_id AS anon_1_users_id,
-         anon_1.users_name AS anon_1_users_name,
-         users_1.name AS users_1_name
-FROM (SELECT users.id AS users_id, users.name AS users_name
-     FROM users) AS anon_1, users AS users_1
-WHERE anon_1.users_name < users_1.name
-     AND length(users_1.name) != length(anon_1.users_name)
-ORDER BY name
-()</div><span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="s">u&#39;ed&#39;</span><span class="p">,</span> <span class="s">u&#39;fred&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">u&#39;ed&#39;</span><span class="p">,</span> <span class="s">u&#39;mary&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">u&#39;ed&#39;</span><span class="p">,</span> <span class="s">u&#39;wendy&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s">u&#39;mary&#39;</span><span class="p">,</span> <span class="s">u&#39;wendy&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s">u&#39;fred&#39;</span><span class="p">,</span> <span class="s">u&#39;wendy&#39;</span><span class="p">)]</span></pre></div>
-</div>
-<p>Only if we use the SQL element directly, in this case <tt class="docutils literal"><span class="pre">User.name</span></tt>
-or <tt class="docutils literal"><span class="pre">ua.name</span></tt>, do we give <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> enough information to know
-for sure which &#8220;name&#8221; we&#8217;d like to order on, where we can see we get different results
-for each:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">q</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">ua</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
-<div class='popup_sql'>SELECT anon_1.users_id AS anon_1_users_id,
-         anon_1.users_name AS anon_1_users_name,
-         users_1.name AS users_1_name
-FROM (SELECT users.id AS users_id, users.name AS users_name
-     FROM users) AS anon_1, users AS users_1
-WHERE anon_1.users_name < users_1.name
-     AND length(users_1.name) != length(anon_1.users_name)
-ORDER BY users_1.name
-()</div><span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="s">u&#39;ed&#39;</span><span class="p">,</span> <span class="s">u&#39;fred&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">u&#39;ed&#39;</span><span class="p">,</span> <span class="s">u&#39;mary&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">u&#39;ed&#39;</span><span class="p">,</span> <span class="s">u&#39;wendy&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s">u&#39;mary&#39;</span><span class="p">,</span> <span class="s">u&#39;wendy&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s">u&#39;fred&#39;</span><span class="p">,</span> <span class="s">u&#39;wendy&#39;</span><span class="p">)]</span>
-
-<a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">q</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
-<div class='popup_sql'>SELECT anon_1.users_id AS anon_1_users_id,
-         anon_1.users_name AS anon_1_users_name,
-         users_1.name AS users_1_name
-FROM (SELECT users.id AS users_id, users.name AS users_name
-     FROM users) AS anon_1, users AS users_1
-WHERE anon_1.users_name < users_1.name
-     AND length(users_1.name) != length(anon_1.users_name)
-ORDER BY anon_1.users_name
-()</div><span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="s">u&#39;ed&#39;</span><span class="p">,</span> <span class="s">u&#39;wendy&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">u&#39;ed&#39;</span><span class="p">,</span> <span class="s">u&#39;mary&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">u&#39;ed&#39;</span><span class="p">,</span> <span class="s">u&#39;fred&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s">u&#39;fred&#39;</span><span class="p">,</span> <span class="s">u&#39;wendy&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s">u&#39;mary&#39;</span><span class="p">,</span> <span class="s">u&#39;wendy&#39;</span><span class="p">)]</span></pre></div>
-</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../core/tutorial.html#sqlexpression-text"><em>Using Text</em></a> - Core description of textual segments.  The
+behavior of the ORM <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object with regards to
+<a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> and related constructs is very similar to that of the
+Core <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> object.</p>
 </div>
 </div>
 <div class="section" id="counting">

@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    './',
-          VERSION:     '0.9.7',
+          VERSION:     '0.9.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -68,6 +68,9 @@
 
 
 
+
+
+
 <div id="docs-container">
 
 
@@ -77,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
+        Release: <span class="version-num">0.9.8</span> | Release Date: October 13, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -477,24 +480,24 @@ techniques can be seen at <a class="reference external" href="http://www.sqlalch
 <span id="faq-sql-expression-string"></span><h3>How do I render SQL expressions as strings, possibly with bound parameters inlined?<a class="headerlink" href="#how-do-i-render-sql-expressions-as-strings-possibly-with-bound-parameters-inlined" title="Permalink to this headline">¶</a></h3>
 <p>The &#8220;stringification&#8221; of a SQLAlchemy statement or Query in the vast majority
 of cases is as simple as:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">print</span> <span class="nb">str</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">statement</span><span class="p">))</span></pre></div>
 </div>
 <p>this applies both to an ORM <a class="reference internal" href="orm/query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> as well as any <a class="reference internal" href="core/selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> or other
 statement.   Additionally, to get the statement as compiled to a
 specific dialect or engine, if the statement itself is not already
 bound to one you can pass this in to <a class="reference internal" href="core/sqlelement.html#sqlalchemy.sql.expression.ClauseElement.compile" title="sqlalchemy.sql.expression.ClauseElement.compile"><tt class="xref py py-meth docutils literal"><span class="pre">ClauseElement.compile()</span></tt></a>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">print</span> <span class="n">statement</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">someengine</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">print</span><span class="p">(</span><span class="n">statement</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">someengine</span><span class="p">))</span></pre></div>
 </div>
 <p>or without an <a class="reference internal" href="core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.dialects</span> <span class="kn">import</span> <span class="n">postgresql</span>
-<span class="k">print</span> <span class="n">statement</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">dialect</span><span class="o">=</span><span class="n">postgresql</span><span class="o">.</span><span class="n">dialect</span><span class="p">())</span></pre></div>
+<span class="k">print</span><span class="p">(</span><span class="n">statement</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">dialect</span><span class="o">=</span><span class="n">postgresql</span><span class="o">.</span><span class="n">dialect</span><span class="p">()))</span></pre></div>
 </div>
 <p>When given an ORM <a class="reference internal" href="orm/query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object, in order to get at the
 <a class="reference internal" href="core/sqlelement.html#sqlalchemy.sql.expression.ClauseElement.compile" title="sqlalchemy.sql.expression.ClauseElement.compile"><tt class="xref py py-meth docutils literal"><span class="pre">ClauseElement.compile()</span></tt></a>
 method we only need access the <a class="reference internal" href="orm/query.html#sqlalchemy.orm.query.Query.statement" title="sqlalchemy.orm.query.Query.statement"><tt class="xref py py-attr docutils literal"><span class="pre">statement</span></tt></a>
 accessor first:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">statement</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">statement</span>
-<span class="k">print</span> <span class="n">statement</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">someengine</span><span class="p">)</span></pre></div>
+<span class="k">print</span><span class="p">(</span><span class="n">statement</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">someengine</span><span class="p">))</span></pre></div>
 </div>
 <p>The above forms will render the SQL statement as it is passed to the Python
 <a class="reference internal" href="glossary.html#term-dbapi"><em class="xref std std-term">DBAPI</em></a>, which includes that bound parameters are not rendered inline.
@@ -511,55 +514,38 @@ flag, passed to <tt class="docutils literal"><span class="pre">compile_kwargs</s
 
 <span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">t</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
 
-<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">compile_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;literal_binds&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span></pre></div>
+<span class="k">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">compile_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;literal_binds&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}))</span></pre></div>
 </div>
 <p>the above approach has the caveats that it is only supported for basic
 types, such as ints and strings, and furthermore if a <a class="reference internal" href="core/sqlelement.html#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a>
 without a pre-set value is used directly, it won&#8217;t be able to
-stringify that either.    Additionally, the <tt class="docutils literal"><span class="pre">compile_kwargs</span></tt> argument
-itself is only available as of SQLAlchemy 0.9; and there are slightly
-more verbose ways of getting <tt class="docutils literal"><span class="pre">literal_binds</span></tt> injected with 0.8.</p>
-<div class="topic">
-<p class="topic-title first">Applying compiler kw arguments prior to 0.9</p>
-<p>We can provide a fixed set of <tt class="docutils literal"><span class="pre">**kw</span></tt> by calling upon <tt class="docutils literal"><span class="pre">process()</span></tt>
-directly:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">compiled</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span>
-<span class="k">print</span> <span class="n">compiled</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">literal_binds</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+stringify that either.</p>
+<p>To support inline literal rendering for types not supported, implement
+a <a class="reference internal" href="core/types.html#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a> for the target type which includes a
+<a class="reference internal" href="core/types.html#sqlalchemy.types.TypeDecorator.process_literal_param" title="sqlalchemy.types.TypeDecorator.process_literal_param"><tt class="xref py py-meth docutils literal"><span class="pre">TypeDecorator.process_literal_param()</span></tt></a> method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">TypeDecorator</span><span class="p">,</span> <span class="n">Integer</span>
+
+
+<span class="k">class</span> <span class="nc">MyFancyType</span><span class="p">(</span><span class="n">TypeDecorator</span><span class="p">):</span>
+    <span class="n">impl</span> <span class="o">=</span> <span class="n">Integer</span>
+
+    <span class="k">def</span> <span class="nf">process_literal_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;my_fancy_formatting(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">value</span>
+
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">MetaData</span>
+
+<span class="n">tab</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">MetaData</span><span class="p">(),</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="n">MyFancyType</span><span class="p">()))</span>
+
+<span class="k">print</span><span class="p">(</span>
+    <span class="n">tab</span><span class="o">.</span><span class="n">select</span><span class="p">()</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">tab</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+        <span class="n">compile_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;literal_binds&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span>
+<span class="p">)</span></pre></div>
 </div>
-<p>Note that in this approach the statement is actually being stringified
-twice, hence using <tt class="docutils literal"><span class="pre">compile_kwargs</span></tt> in 0.9 should be preferred.</p>
+<p>producing output like:</p>
+<div class="highlight-python"><pre>SELECT mytable.x
+FROM mytable
+WHERE mytable.x &gt; my_fancy_formatting(5)</pre>
 </div>
-<p>If we want to skip using <tt class="docutils literal"><span class="pre">literal_binds</span></tt> altogether due to the above
-caveats, we can take the approach of replacing them out ahead of time
-with whatever we want:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">visitors</span><span class="p">,</span> <span class="n">text</span>
-
-<span class="k">def</span> <span class="nf">replace_bindparam</span><span class="p">(</span><span class="n">element</span><span class="p">):</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="s">&#39;effective_value&#39;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">text</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">effective_value</span><span class="p">))</span>
-
-<span class="n">s</span> <span class="o">=</span> <span class="n">visitors</span><span class="o">.</span><span class="n">replacement_traverse</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="p">{},</span> <span class="n">replace_bindparam</span><span class="p">)</span>
-<span class="k">print</span> <span class="n">s</span></pre></div>
-</div>
-<p>Still another approach to injecting functionality where bound
-parameters are concerned is to use the <a class="reference internal" href="core/compiler.html"><em>Compilation Extension
-API</em></a>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.compiler</span> <span class="kn">import</span> <span class="n">compiles</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.sql.expression</span> <span class="kn">import</span> <span class="n">BindParameter</span>
-
-<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">t</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
-
-<span class="nd">@compiles</span><span class="p">(</span><span class="n">BindParameter</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">as_str</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">compiler</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="k">if</span> <span class="s">&#39;binds_as_str&#39;</span> <span class="ow">in</span> <span class="n">kw</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">effective_value</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">compiler</span><span class="o">.</span><span class="n">visit_bindparam</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-
-<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">compile_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;binds_as_str&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span></pre></div>
-</div>
-<p>Above, we pass a self-defined flag <tt class="docutils literal"><span class="pre">binds_as_str</span></tt> through the compiler,
-which we then intercept within our custom render method for <a class="reference internal" href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a>.</p>
 </div>
 <div class="section" id="why-does-col-in-produce-col-col-why-not-1-0">
 <h3>Why does <tt class="docutils literal"><span class="pre">.col.in_([])</span></tt> Produce <tt class="docutils literal"><span class="pre">col</span> <span class="pre">!=</span> <span class="pre">col</span></tt>? Why not <tt class="docutils literal"><span class="pre">1=0</span></tt>?<a class="headerlink" href="#why-does-col-in-produce-col-col-why-not-1-0" title="Permalink to this headline">¶</a></h3>

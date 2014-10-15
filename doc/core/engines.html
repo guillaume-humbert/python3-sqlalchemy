@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.7',
+          VERSION:     '0.9.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -71,6 +71,9 @@
 
 
 
+
+
+
 <div id="docs-container">
 
 
@@ -80,7 +83,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
+        Release: <span class="version-num">0.9.8</span> | Release Date: October 13, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -275,8 +278,13 @@ For a relative file path, this requires three slashes:</p>
 <span class="c"># where &lt;path&gt; is relative:</span>
 <span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:///foo.db&#39;</span><span class="p">)</span></pre></div>
 </div>
-<p>And for an absolute file path, <em>four</em> slashes are used:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:////absolute/path/to/foo.db&#39;</span><span class="p">)</span></pre></div>
+<p>And for an absolute file path, the three slashes are followed by the absolute path:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">#Unix/Mac - 4 initial slashes in total</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:////absolute/path/to/foo.db&#39;</span><span class="p">)</span>
+<span class="c">#Windows</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:///C:</span><span class="se">\\</span><span class="s">path</span><span class="se">\\</span><span class="s">to</span><span class="se">\\</span><span class="s">foo.db&#39;</span><span class="p">)</span>
+<span class="c">#Windows alternative using raw string</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">r&#39;sqlite:///C:\path\to\foo.db&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>To use a SQLite <tt class="docutils literal"><span class="pre">:memory:</span></tt> database, specify an empty URL:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite://&#39;</span><span class="p">)</span></pre></div>
@@ -435,6 +443,20 @@ clause.  This applies to those backends which support RETURNING
 or a compatible construct, including Postgresql, Firebird, Oracle,
 Microsoft SQL Server.   Set this to <tt class="docutils literal"><span class="pre">False</span></tt> to disable
 the automatic usage of RETURNING.</li>
+<li><span class="target" id="sqlalchemy.create_engine.params.isolation_level"></span><strong>isolation_level</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.create_engine.params.isolation_level">¶</a> &#8211; <p>this string parameter is interpreted by various
+dialects in order to affect the transaction isolation level of the
+database connection.   The parameter essentially accepts some subset of
+these string arguments: <tt class="docutils literal"><span class="pre">&quot;SERIALIZABLE&quot;</span></tt>, <tt class="docutils literal"><span class="pre">&quot;REPEATABLE_READ&quot;</span></tt>,
+<tt class="docutils literal"><span class="pre">&quot;READ_COMMITTED&quot;</span></tt>, <tt class="docutils literal"><span class="pre">&quot;READ_UNCOMMITTED&quot;</span></tt> and <tt class="docutils literal"><span class="pre">&quot;AUTOCOMMIT&quot;</span></tt>.
+Behavior here varies per backend, and
+individual dialects should be consulted directly.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="../dialects/sqlite.html#sqlite-concurrency"><em>SQLite Concurrency</em></a></p>
+<p><a class="reference internal" href="../dialects/postgresql.html#postgresql-isolation-level"><em>Postgresql Transaction Isolation</em></a></p>
+<p class="last"><a class="reference internal" href="../dialects/mysql.html#mysql-isolation-level"><em>MySQL Transaction Isolation</em></a></p>
+</div>
+</li>
 <li><span class="target" id="sqlalchemy.create_engine.params.label_length"></span><strong>label_length=None</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.create_engine.params.label_length">¶</a> &#8211; optional integer value which limits
 the size of dynamically generated column labels to that many
 characters. If less than 6, labels are generated as

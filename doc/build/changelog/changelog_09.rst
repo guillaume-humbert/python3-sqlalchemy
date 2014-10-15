@@ -11,6 +11,305 @@
         :start-line: 5
 
 .. changelog::
+    :version: 0.9.8
+    :released: October 13, 2014
+
+    .. change::
+        :tags: bug, mysql, mysqlconnector
+        :versions: 1.0.0
+
+        Mysqlconnector as of version 2.0, probably as a side effect of
+        the  python 3 merge, now does not expect percent signs (e.g.
+        as used as the modulus operator and others) to be doubled,
+        even when using the "pyformat" bound parameter format (this
+        change is not documented by Mysqlconnector).  The dialect now
+        checks for py2k and for mysqlconnector less than version 2.0
+        when detecting if the modulus operator should be rendered as
+        ``%%`` or ``%``.
+
+    .. change::
+        :tags: bug, mysql, mysqlconnector
+        :versions: 1.0.0
+
+        Unicode SQL is now passed for MySQLconnector version 2.0 and above;
+        for Py2k and MySQL < 2.0, strings are encoded.
+
+
+    .. change::
+        :tags: bug, oracle
+        :versions: 1.0.0
+        :tickets: 2138
+
+        Fixed long-standing bug in Oracle dialect where bound parameter
+        names that started with numbers would not be quoted, as Oracle
+        doesn't like numerics in bound parameter names.
+
+    .. change::
+        :tags: bug, sql
+        :versions: 1.0.0
+        :tickets: 3195
+
+        Fixed bug where a fair number of SQL elements within
+        the sql package would fail to ``__repr__()`` successfully,
+        due to a missing ``description`` attribute that would then invoke
+        a recursion overflow when an internal AttributeError would then
+        re-invoke ``__repr__()``.
+
+    .. change::
+        :tags: bug, declarative, orm
+        :versions: 1.0.0
+        :tickets: 3185
+
+        Fixed "'NoneType' object has no attribute 'concrete'" error
+        when using :class:`.AbstractConcreteBase` in conjunction with
+        a subclass that declares ``__abstract__``.
+
+    .. change::
+        :tags: bug, engine
+        :versions: 1.0.0
+        :tickets: 3200
+
+        The execution options passed to an :class:`.Engine` either via
+        :paramref:`.create_engine.execution_options` or
+        :meth:`.Engine.update_execution_options` are not passed to the
+        special :class:`.Connection` used to initialize the dialect
+        within the "first connect" event; dialects will usually
+        perform their own queries in this phase, and none of the
+        current available  options should be applied here.  In
+        particular, the "autocommit" option was causing an attempt to
+        autocommit within this initial connect which would fail with
+        an AttributeError due to the non-standard state of the
+        :class:`.Connection`.
+
+    .. change::
+        :tags: bug, sqlite
+        :versions: 1.0.0
+        :tickets: 3211
+
+        When selecting from a UNION using an attached database file,
+        the pysqlite driver reports column names in cursor.description
+        as 'dbname.tablename.colname', instead of 'tablename.colname' as
+        it normally does for a UNION (note that it's supposed to just be
+        'colname' for both, but we work around it).  The column translation
+        logic here has been adjusted to retrieve the rightmost token, rather
+        than the second token, so it works in both cases.   Workaround
+        courtesy Tony Roberts.
+
+    .. change::
+        :tags: bug, postgresql
+        :versions: 1.0.0
+        :tickets: 3021
+
+        A revisit to this issue first patched in 0.9.5, apparently
+        psycopg2's ``.closed`` accessor is not as reliable as we assumed,
+        so we have added an explicit check for the exception messages
+        "SSL SYSCALL error: Bad file descriptor" and
+        "SSL SYSCALL error: EOF detected" when detecting an
+        is-disconnect scenario.   We will continue to consult psycopg2's
+        connection.closed as a first check.
+
+    .. change::
+        :tags: bug, orm, engine
+        :versions: 1.0.0
+        :tickets: 3197
+
+        Fixed bug that affected generally the same classes of event
+        as that of :ticket:`3199`, when the ``named=True`` parameter
+        would be used.  Some events would fail to register, and others
+        would not invoke the event arguments correctly, generally in the
+        case of when an event was "wrapped" for adaption in some other way.
+        The "named" mechanics have been rearranged to not interfere with
+        the argument signature expected by internal wrapper functions.
+
+    .. change::
+        :tags: bug, declarative
+        :versions: 1.0.0
+        :tickets: 3208
+
+        Fixed an unlikely race condition observed in some exotic end-user
+        setups, where the attempt to check for "duplicate class name" in
+        declarative would hit upon a not-totally-cleaned-up weak reference
+        related to some other class being removed; the check here now ensures
+        the weakref still references an object before calling upon it further.
+
+    .. change::
+        :tags: bug, orm
+        :versions: 1.0.0
+        :tickets: 3199
+
+        Fixed bug that affected many classes of event, particularly
+        ORM events but also engine events, where the usual logic of
+        "de duplicating" a redundant call to :func:`.event.listen`
+        with the same arguments would fail, for those events where the
+        listener function is wrapped.  An assertion would be hit within
+        registry.py.  This assertion has now been integrated into the
+        deduplication check, with the added bonus of a simpler means
+        of checking deduplication across the board.
+
+    .. change::
+        :tags: bug, mssql
+        :versions: 1.0.0
+        :tickets: 3151
+
+        Fixed the version string detection in the pymssql dialect to
+        work with Microsoft SQL Azure, which changes the word "SQL Server"
+        to "SQL Azure".
+
+    .. change::
+        :tags: bug, orm
+        :versions: 1.0.0
+        :tickets: 3194
+
+        Fixed warning that would emit when a complex self-referential
+        primaryjoin contained functions, while at the same time remote_side
+        was specified; the warning would suggest setting "remote side".
+        It now only emits if remote_side isn't present.
+
+    .. change::
+        :tags: bug, ext
+        :versions: 1.0.0
+        :tickets: 3191
+
+        Fixed bug in ordering list where the order of items would be
+        thrown off during a collection replace event, if the
+        reorder_on_append flag were set to True.  The fix ensures that the
+        ordering list only impacts the list that is explicitly associated
+        with the object.
+
+    .. change::
+        :tags: bug, sql
+        :versions: 1.0.0
+        :tickets: 3180
+
+        An adjustment to table/index reflection such that if an index
+        reports a column that isn't found to be present in the table,
+        a warning is emitted and the column is skipped.  This can occur
+        for some special system column situations as has been observed
+        with Oracle.
+
+    .. change::
+        :tags: bug, ext
+        :versions: 1.0.0
+        :pullrequest: bitbucket:28
+
+        Fixed bug where :ref:`ext.mutable.MutableDict`
+        failed to implement the ``update()`` dictionary method, thus
+        not catching changes. Pull request courtesy Matt Chisholm.
+
+    .. change::
+        :tags: bug, ext
+        :versions: 1.0.0
+        :pullrequest: bitbucket:27
+
+        Fixed bug where a custom subclass of :ref:`ext.mutable.MutableDict`
+        would not show up in a "coerce" operation, and would instead
+        return a plain :ref:`ext.mutable.MutableDict`.  Pull request
+        courtesy Matt Chisholm.
+
+    .. change::
+        :tags: bug, pool
+        :versions: 1.0.0
+        :tickets: 3168
+
+        Fixed bug in connection pool logging where the "connection checked out"
+        debug logging message would not emit if the logging were set up using
+        ``logging.setLevel()``, rather than using the ``echo_pool`` flag.
+        Tests to assert this logging have been added.  This is a
+        regression that was introduced in 0.9.0.
+
+    .. change::
+        :tags: feature, postgresql, pg8000
+        :versions: 1.0.0
+        :pullreq: github:125
+
+        Support is added for "sane multi row count" with the pg8000 driver,
+        which applies mostly to when using versioning with the ORM.
+        The feature is version-detected based on pg8000 1.9.14 or greater
+        in use.  Pull request courtesy Tony Locke.
+
+    .. change::
+        :tags: bug, engine
+        :versions: 1.0.0
+        :tickets: 3165
+
+        The string keys that are used to determine the columns impacted
+        for an INSERT or UPDATE are now sorted when they contribute towards
+        the "compiled cache" cache key.   These keys were previously not
+        deterministically ordered, meaning the same statement could be
+        cached multiple times on equivalent keys, costing both in terms of
+        memory as well as performance.
+
+    .. change::
+        :tags: bug, postgresql
+        :versions: 1.0.0
+        :tickets: 3159
+
+        Fixed bug where Postgresql JSON type was not able to persist or
+        otherwise render a SQL NULL column value, rather than a JSON-encoded
+        ``'null'``.  To support this case, changes are as follows:
+
+        * The value :func:`.null` can now be specified, which will always
+          result in a NULL value resulting in the statement.
+
+        * A new parameter :paramref:`.JSON.none_as_null` is added, which
+          when True indicates that the Python ``None`` value should be
+          peristed as SQL NULL, rather than JSON-encoded ``'null'``.
+
+        Retrival of NULL as None is also repaired for DBAPIs other than
+        psycopg2, namely pg8000.
+
+    .. change::
+        :tags: bug, sql
+        :versions: 1.0.0
+        :tickets: 3154
+
+        Fixed bug in CTE where ``literal_binds`` compiler argument would not
+        be always be correctly propagated when one CTE referred to another
+        aliased CTE in a statement.
+
+    .. change::
+        :tags: bug, postgresql
+        :versions: 1.0.0
+        :tickets: 3075
+
+        The exception wrapping system for DBAPI errors can now accommodate
+        non-standard DBAPI exceptions, such as the psycopg2
+        TransactionRollbackError.  These exceptions will now be raised
+        using the closest available subclass in ``sqlalchemy.exc``, in the
+        case of TransactionRollbackError, ``sqlalchemy.exc.OperationalError``.
+
+    .. change::
+        :tags: bug, sql
+        :versions: 1.0.0
+        :tickets: 3144, 3067
+
+        Fixed 0.9.7 regression caused by :ticket:`3067` in conjunction with
+        a mis-named unit test such that so-called "schema" types like
+        :class:`.Boolean` and :class:`.Enum` could no longer be pickled.
+
+    .. change::
+        :tags: bug, postgresql
+        :versions: 1.0.0
+        :tickets: 3141
+        :pullreq: github:124
+
+        Fixed bug in :class:`.postgresql.array` object where comparison
+        to a plain Python list would fail to use the correct array constructor.
+        Pull request courtesy Andrew.
+
+    .. change::
+        :tags: bug, postgresql
+        :versions: 1.0.0
+        :tickets: 3137
+
+        Added a supported :meth:`.FunctionElement.alias` method to functions,
+        e.g. the ``func`` construct.  Previously, behavior for this method
+        was undefined.  The current behavior mimics that of pre-0.9.4,
+        which is that the function is turned into a single-column FROM
+        clause with the given alias name, where the column itself is
+        anonymously named.
+
+.. changelog::
     :version: 0.9.7
     :released: July 22, 2014
 
