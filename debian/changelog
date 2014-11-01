@@ -1,3 +1,11 @@
+sqlalchemy (0.9.8+dfsg-0.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Remove sourceless jquery files from the upstream tarball (closes: #722267)
+    - The package already uses the system versions of those.
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sat, 01 Nov 2014 23:18:08 +0000
+
 sqlalchemy (0.9.8-1) unstable; urgency=medium
 
   * New upstream release
