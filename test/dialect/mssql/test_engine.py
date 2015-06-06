@@ -6,7 +6,7 @@ from sqlalchemy.dialects.mssql import pyodbc, pymssql
 from sqlalchemy.engine import url
 from sqlalchemy.testing import fixtures
 from sqlalchemy import testing
-from sqlalchemy.testing import assert_raises_message
+from sqlalchemy.testing import assert_raises_message, assert_warnings
 from sqlalchemy.testing.mock import Mock
 
 
@@ -40,18 +40,32 @@ class ParseConnectTest(fixtures.TestBase):
         assert ";LANGUAGE=us_english" in dsn_string
         assert ";foo=bar" in dsn_string
 
-    def test_pyodbc_connect(self):
+    def test_pyodbc_hostname(self):
         dialect = pyodbc.dialect()
-        u = url.make_url('mssql://username:password@hostspec/database')
+        u = url.make_url('mssql://username:password@hostspec/database?driver=SQL+Server')
         connection = dialect.create_connect_args(u)
         eq_([['DRIVER={SQL Server};Server=hostspec;Database=database;UI'
+            'D=username;PWD=password'], {}], connection)
+
+    def test_pyodbc_host_no_driver(self):
+        dialect = pyodbc.dialect()
+        u = url.make_url('mssql://username:password@hostspec/database')
+
+        def go():
+            return dialect.create_connect_args(u)
+        connection = assert_warnings(
+            go,
+            ["No driver name specified; this is expected by "
+             "PyODBC when using DSN-less connections"])
+
+        eq_([['Server=hostspec;Database=database;UI'
             'D=username;PWD=password'], {}], connection)
 
     def test_pyodbc_connect_comma_port(self):
         dialect = pyodbc.dialect()
         u = \
             url.make_url('mssql://username:password@hostspec:12345/data'
-                         'base')
+                         'base?driver=SQL Server')
         connection = dialect.create_connect_args(u)
         eq_([['DRIVER={SQL Server};Server=hostspec,12345;Database=datab'
             'ase;UID=username;PWD=password'], {}], connection)
@@ -60,7 +74,7 @@ class ParseConnectTest(fixtures.TestBase):
         dialect = pyodbc.dialect()
         u = \
             url.make_url('mssql://username:password@hostspec/database?p'
-                         'ort=12345')
+                         'ort=12345&driver=SQL+Server')
         connection = dialect.create_connect_args(u)
         eq_([['DRIVER={SQL Server};Server=hostspec;Database=database;UI'
             'D=username;PWD=password;port=12345'], {}], connection)
@@ -69,7 +83,7 @@ class ParseConnectTest(fixtures.TestBase):
         dialect = pyodbc.dialect()
         u = \
             url.make_url('mssql://username:password@hostspec/database?L'
-                         'ANGUAGE=us_english&foo=bar')
+                         'ANGUAGE=us_english&foo=bar&driver=SQL+Server')
         connection = dialect.create_connect_args(u)
         eq_(connection[1], {})
         eq_(connection[0][0]
@@ -143,8 +157,7 @@ class ParseConnectTest(fixtures.TestBase):
 
         eq_(dialect.is_disconnect("not an error", None, None), False)
 
-    @testing.only_on(['mssql+pyodbc', 'mssql+pymssql'],
-                            "FreeTDS specific test")
+    @testing.requires.mssql_freetds
     def test_bad_freetds_warning(self):
         engine = engines.testing_engine()
 

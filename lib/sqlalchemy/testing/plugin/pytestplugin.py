@@ -1,8 +1,21 @@
+try:
+    # installed by bootstrap.py
+    import sqla_plugin_base as plugin_base
+except ImportError:
+    # assume we're a package, use traditional import
+    from . import plugin_base
+
 import pytest
 import argparse
 import inspect
-from . import plugin_base
 import collections
+import itertools
+
+try:
+    import xdist  # noqa
+    has_xdist = True
+except ImportError:
+    has_xdist = False
 
 
 def pytest_addoption(parser):
@@ -24,12 +37,39 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
+    if hasattr(config, "slaveinput"):
+        plugin_base.restore_important_follower_config(config.slaveinput)
+        plugin_base.configure_follower(
+            config.slaveinput["follower_ident"]
+        )
+
     plugin_base.pre_begin(config.option)
 
     plugin_base.set_coverage_flag(bool(getattr(config.option,
                                                "cov_source", False)))
 
+    plugin_base.set_skip_test(pytest.skip.Exception)
+
+
+def pytest_sessionstart(session):
     plugin_base.post_begin()
+
+if has_xdist:
+    _follower_count = itertools.count(1)
+
+    def pytest_configure_node(node):
+        # the master for each node fills slaveinput dictionary
+        # which pytest-xdist will transfer to the subprocess
+
+        plugin_base.memoize_important_follower_config(node.slaveinput)
+
+        node.slaveinput["follower_ident"] = "test_%s" % next(_follower_count)
+        from sqlalchemy.testing import provision
+        provision.create_follower_db(node.slaveinput["follower_ident"])
+
+    def pytest_testnodedown(node, error):
+        from sqlalchemy.testing import provision
+        provision.drop_follower_db(node.slaveinput["follower_ident"])
 
 
 def pytest_collection_modifyitems(session, config, items):
@@ -44,6 +84,10 @@ def pytest_collection_modifyitems(session, config, items):
     # new classes to a module on the fly.
 
     rebuilt_items = collections.defaultdict(list)
+    items[:] = [
+        item for item in
+        items if isinstance(item.parent, pytest.Instance)
+        and not item.parent.parent.name.startswith("_")]
     test_classes = set(item.parent for item in items)
     for test_class in test_classes:
         for sub_cls in plugin_base.generate_sub_tests(
@@ -74,12 +118,11 @@ def pytest_collection_modifyitems(session, config, items):
 
 
 def pytest_pycollect_makeitem(collector, name, obj):
-
     if inspect.isclass(obj) and plugin_base.want_class(obj):
         return pytest.Class(name, parent=collector)
     elif inspect.isfunction(obj) and \
-            name.startswith("test_") and \
-            isinstance(collector, pytest.Instance):
+            isinstance(collector, pytest.Instance) and \
+            plugin_base.want_method(collector.cls, obj):
         return pytest.Function(name, parent=collector)
     else:
         return []
@@ -97,16 +140,18 @@ def pytest_runtest_setup(item):
         return
 
     # ... so we're doing a little dance here to figure it out...
-    if item.parent.parent is not _current_class:
-
+    if _current_class is None:
         class_setup(item.parent.parent)
         _current_class = item.parent.parent
 
         # this is needed for the class-level, to ensure that the
         # teardown runs after the class is completed with its own
         # class-level teardown...
-        item.parent.parent.addfinalizer(
-            lambda: class_teardown(item.parent.parent))
+        def finalize():
+            global _current_class
+            class_teardown(item.parent.parent)
+            _current_class = None
+        item.parent.parent.addfinalizer(finalize)
 
     test_setup(item)
 

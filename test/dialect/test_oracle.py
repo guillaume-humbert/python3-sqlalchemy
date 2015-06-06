@@ -180,37 +180,89 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             t.update().values(plain=5), 'UPDATE s SET "plain"=:"plain"'
         )
 
+    def test_cte(self):
+        part = table(
+            'part',
+            column('part'),
+            column('sub_part'),
+            column('quantity')
+        )
+
+        included_parts = select([
+            part.c.sub_part, part.c.part, part.c.quantity
+        ]).where(part.c.part == "p1").\
+            cte(name="included_parts", recursive=True).\
+            suffix_with(
+                "search depth first by part set ord1",
+                "cycle part set y_cycle to 1 default 0", dialect='oracle')
+
+        incl_alias = included_parts.alias("pr1")
+        parts_alias = part.alias("p")
+        included_parts = included_parts.union_all(
+            select([
+                parts_alias.c.sub_part,
+                parts_alias.c.part, parts_alias.c.quantity
+            ]).where(parts_alias.c.part == incl_alias.c.sub_part)
+        )
+
+        q = select([
+            included_parts.c.sub_part,
+            func.sum(included_parts.c.quantity).label('total_quantity')]).\
+            group_by(included_parts.c.sub_part)
+
+        self.assert_compile(
+            q,
+            "WITH included_parts(sub_part, part, quantity) AS "
+            "(SELECT part.sub_part AS sub_part, part.part AS part, "
+            "part.quantity AS quantity FROM part WHERE part.part = :part_1 "
+            "UNION ALL SELECT p.sub_part AS sub_part, p.part AS part, "
+            "p.quantity AS quantity FROM part p, included_parts pr1 "
+            "WHERE p.part = pr1.sub_part) "
+            "search depth first by part set ord1 cycle part set "
+            "y_cycle to 1 default 0  "
+            "SELECT included_parts.sub_part, sum(included_parts.quantity) "
+            "AS total_quantity FROM included_parts "
+            "GROUP BY included_parts.sub_part"
+        )
+
     def test_limit(self):
         t = table('sometable', column('col1'), column('col2'))
         s = select([t])
         c = s.compile(dialect=oracle.OracleDialect())
-        assert t.c.col1 in set(c.result_map['col1'][1])
+        assert t.c.col1 in set(c._create_result_map()['col1'][1])
         s = select([t]).limit(10).offset(20)
         self.assert_compile(s,
                             'SELECT col1, col2 FROM (SELECT col1, '
                             'col2, ROWNUM AS ora_rn FROM (SELECT '
                             'sometable.col1 AS col1, sometable.col2 AS '
                             'col2 FROM sometable) WHERE ROWNUM <= '
-                            ':ROWNUM_1) WHERE ora_rn > :ora_rn_1')
+                            ':param_1 + :param_2) WHERE ora_rn > :param_2',
+                            checkparams={'param_1': 10, 'param_2': 20})
 
         c = s.compile(dialect=oracle.OracleDialect())
-        assert t.c.col1 in set(c.result_map['col1'][1])
-        s = select([s.c.col1, s.c.col2])
-        self.assert_compile(s,
-                            'SELECT col1, col2 FROM (SELECT col1, col2 '
-                            'FROM (SELECT col1, col2, ROWNUM AS ora_rn '
-                            'FROM (SELECT sometable.col1 AS col1, '
-                            'sometable.col2 AS col2 FROM sometable) '
-                            'WHERE ROWNUM <= :ROWNUM_1) WHERE ora_rn > '
-                            ':ora_rn_1)')
+        eq_(len(c._result_columns), 2)
+        assert t.c.col1 in set(c._create_result_map()['col1'][1])
 
-        self.assert_compile(s,
+        s2 = select([s.c.col1, s.c.col2])
+        self.assert_compile(s2,
                             'SELECT col1, col2 FROM (SELECT col1, col2 '
                             'FROM (SELECT col1, col2, ROWNUM AS ora_rn '
                             'FROM (SELECT sometable.col1 AS col1, '
                             'sometable.col2 AS col2 FROM sometable) '
-                            'WHERE ROWNUM <= :ROWNUM_1) WHERE ora_rn > '
-                            ':ora_rn_1)')
+                            'WHERE ROWNUM <= :param_1 + :param_2) WHERE ora_rn > '
+                            ':param_2)',
+                            checkparams={'param_1': 10, 'param_2': 20})
+
+        self.assert_compile(s2,
+                            'SELECT col1, col2 FROM (SELECT col1, col2 '
+                            'FROM (SELECT col1, col2, ROWNUM AS ora_rn '
+                            'FROM (SELECT sometable.col1 AS col1, '
+                            'sometable.col2 AS col2 FROM sometable) '
+                            'WHERE ROWNUM <= :param_1 + :param_2) WHERE ora_rn > '
+                            ':param_2)')
+        c = s2.compile(dialect=oracle.OracleDialect())
+        eq_(len(c._result_columns), 2)
+        assert s.c.col1 in set(c._create_result_map()['col1'][1])
 
         s = select([t]).limit(10).offset(20).order_by(t.c.col2)
         self.assert_compile(s,
@@ -219,13 +271,19 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                             'sometable.col1 AS col1, sometable.col2 AS '
                             'col2 FROM sometable ORDER BY '
                             'sometable.col2) WHERE ROWNUM <= '
-                            ':ROWNUM_1) WHERE ora_rn > :ora_rn_1')
+                            ':param_1 + :param_2) WHERE ora_rn > :param_2',
+                            checkparams={'param_1': 10, 'param_2': 20}
+                            )
+        c = s.compile(dialect=oracle.OracleDialect())
+        eq_(len(c._result_columns), 2)
+        assert t.c.col1 in set(c._create_result_map()['col1'][1])
+
         s = select([t], for_update=True).limit(10).order_by(t.c.col2)
         self.assert_compile(s,
                             'SELECT col1, col2 FROM (SELECT '
                             'sometable.col1 AS col1, sometable.col2 AS '
                             'col2 FROM sometable ORDER BY '
-                            'sometable.col2) WHERE ROWNUM <= :ROWNUM_1 '
+                            'sometable.col2) WHERE ROWNUM <= :param_1 '
                             'FOR UPDATE')
 
         s = select([t],
@@ -236,7 +294,7 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                             'sometable.col1 AS col1, sometable.col2 AS '
                             'col2 FROM sometable ORDER BY '
                             'sometable.col2) WHERE ROWNUM <= '
-                            ':ROWNUM_1) WHERE ora_rn > :ora_rn_1 FOR '
+                            ':param_1 + :param_2) WHERE ora_rn > :param_2 FOR '
                             'UPDATE')
 
     def test_for_update(self):
@@ -289,7 +347,7 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         stmt = select([type_coerce(column('x'), MyType).label('foo')]).limit(1)
         dialect = oracle.dialect()
         compiled = stmt.compile(dialect=dialect)
-        assert isinstance(compiled.result_map['foo'][-1], MyType)
+        assert isinstance(compiled._create_result_map()['foo'][-1], MyType)
 
     def test_use_binds_for_limits_disabled(self):
         t = table('sometable', column('col1'), column('col2'))
@@ -319,21 +377,22 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(select([t]).limit(10),
                 "SELECT col1, col2 FROM (SELECT sometable.col1 AS col1, "
                 "sometable.col2 AS col2 FROM sometable) WHERE ROWNUM "
-                "<= :ROWNUM_1",
+                "<= :param_1",
                 dialect=dialect)
 
         self.assert_compile(select([t]).offset(10),
                 "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM AS ora_rn "
                 "FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 "
-                "FROM sometable)) WHERE ora_rn > :ora_rn_1",
+                "FROM sometable)) WHERE ora_rn > :param_1",
                 dialect=dialect)
 
         self.assert_compile(select([t]).limit(10).offset(10),
                 "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM AS ora_rn "
                 "FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 "
-                "FROM sometable) WHERE ROWNUM <= :ROWNUM_1) WHERE ora_rn > "
-                ":ora_rn_1",
-                dialect=dialect)
+                "FROM sometable) WHERE ROWNUM <= :param_1 + :param_2) "
+                "WHERE ora_rn > :param_2",
+                dialect=dialect,
+                checkparams={'param_1': 10, 'param_2': 10})
 
     def test_long_labels(self):
         dialect = default.DefaultDialect()
@@ -413,7 +472,7 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
 
         query = select([table1, table2], or_(table1.c.name == 'fred',
                        table1.c.myid == 10, table2.c.othername != 'jack',
-                       'EXISTS (select yay from foo where boo = lar)'
+                       text('EXISTS (select yay from foo where boo = lar)')
                        ), from_obj=[outerjoin(table1, table2,
                        table1.c.myid == table2.c.otherid)])
         self.assert_compile(query,
@@ -482,8 +541,9 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                             'thirdtable.userid(+) = '
                             'myothertable.otherid AND mytable.myid = '
                             'myothertable.otherid ORDER BY '
-                            'mytable.name) WHERE ROWNUM <= :ROWNUM_1) '
-                            'WHERE ora_rn > :ora_rn_1',
+                            'mytable.name) WHERE ROWNUM <= :param_1 + :param_2) '
+                            'WHERE ora_rn > :param_2',
+                            checkparams={'param_1': 10, 'param_2': 5},
                             dialect=oracle.dialect(use_ansi=False))
 
         subq = select([table1]).select_from(table1.outerjoin(table2,
@@ -599,7 +659,7 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         stmt = t1.insert().values(c1=1).returning(fn, t1.c.c3)
         compiled = stmt.compile(dialect=oracle.dialect())
         eq_(
-            compiled.result_map,
+            compiled._create_result_map(),
             {'ret_1': ('ret_1', (t1.c.c3, 'c3', 'c3'), t1.c.c3.type),
             'ret_0': ('ret_0', (fn, 'lower', None), fn.type)}
 
@@ -662,6 +722,51 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             schema.CreateIndex(Index("bar", t1.c.x > 5)),
             "CREATE INDEX bar ON foo (x > 5)"
         )
+
+    def test_table_options(self):
+        m = MetaData()
+
+        t = Table(
+            'foo', m,
+            Column('x', Integer),
+            prefixes=["GLOBAL TEMPORARY"],
+            oracle_on_commit="PRESERVE ROWS"
+        )
+
+        self.assert_compile(
+            schema.CreateTable(t),
+            "CREATE GLOBAL TEMPORARY TABLE "
+            "foo (x INTEGER) ON COMMIT PRESERVE ROWS"
+        )
+
+
+    def test_create_table_compress(self):
+        m = MetaData()
+        tbl1 = Table('testtbl1', m, Column('data', Integer),
+                     oracle_compress=True)
+        tbl2 = Table('testtbl2', m, Column('data', Integer),
+                     oracle_compress="OLTP")
+
+        self.assert_compile(schema.CreateTable(tbl1),
+                            "CREATE TABLE testtbl1 (data INTEGER) COMPRESS")
+        self.assert_compile(schema.CreateTable(tbl2),
+                            "CREATE TABLE testtbl2 (data INTEGER) "
+                            "COMPRESS FOR OLTP")
+
+    def test_create_index_bitmap_compress(self):
+        m = MetaData()
+        tbl = Table('testtbl', m, Column('data', Integer))
+        idx1 = Index('idx1', tbl.c.data, oracle_compress=True)
+        idx2 = Index('idx2', tbl.c.data, oracle_compress=1)
+        idx3 = Index('idx3', tbl.c.data, oracle_bitmap=True)
+
+        self.assert_compile(schema.CreateIndex(idx1),
+                            "CREATE INDEX idx1 ON testtbl (data) COMPRESS")
+        self.assert_compile(schema.CreateIndex(idx2),
+                            "CREATE INDEX idx2 ON testtbl (data) COMPRESS 1")
+        self.assert_compile(schema.CreateIndex(idx3),
+                            "CREATE BITMAP INDEX idx3 ON testtbl (data)")
+
 
 class CompatFlagsTest(fixtures.TestBase, AssertsCompiledSQL):
 
@@ -735,16 +840,16 @@ class MultiSchemaTest(fixtures.TestBase, AssertsCompiledSQL):
         # don't really know how else to go here unless
         # we connect as the other user.
 
-        for stmt in """
-create table test_schema.parent(
+        for stmt in ("""
+create table %(test_schema)s.parent(
     id integer primary key,
     data varchar2(50)
 );
 
-create table test_schema.child(
+create table %(test_schema)s.child(
     id integer primary key,
     data varchar2(50),
-    parent_id integer references test_schema.parent(id)
+    parent_id integer references %(test_schema)s.parent(id)
 );
 
 create table local_table(
@@ -752,35 +857,35 @@ create table local_table(
     data varchar2(50)
 );
 
-create synonym test_schema.ptable for test_schema.parent;
-create synonym test_schema.ctable for test_schema.child;
+create synonym %(test_schema)s.ptable for %(test_schema)s.parent;
+create synonym %(test_schema)s.ctable for %(test_schema)s.child;
 
-create synonym test_schema_ptable for test_schema.parent;
+create synonym %(test_schema)s_ptable for %(test_schema)s.parent;
 
-create synonym test_schema.local_table for local_table;
+create synonym %(test_schema)s.local_table for local_table;
 
 -- can't make a ref from local schema to the
 -- remote schema's table without this,
 -- *and* cant give yourself a grant !
 -- so we give it to public.  ideas welcome.
-grant references on test_schema.parent to public;
-grant references on test_schema.child to public;
-""".split(";"):
+grant references on %(test_schema)s.parent to public;
+grant references on %(test_schema)s.child to public;
+""" % {"test_schema": testing.config.test_schema}).split(";"):
             if stmt.strip():
                 testing.db.execute(stmt)
 
     @classmethod
     def teardown_class(cls):
-        for stmt in """
-drop table test_schema.child;
-drop table test_schema.parent;
+        for stmt in ("""
+drop table %(test_schema)s.child;
+drop table %(test_schema)s.parent;
 drop table local_table;
-drop synonym test_schema.ctable;
-drop synonym test_schema.ptable;
-drop synonym test_schema_ptable;
-drop synonym test_schema.local_table;
+drop synonym %(test_schema)s.ctable;
+drop synonym %(test_schema)s.ptable;
+drop synonym %(test_schema)s_ptable;
+drop synonym %(test_schema)s.local_table;
 
-""".split(";"):
+""" % {"test_schema": testing.config.test_schema}).split(";"):
             if stmt.strip():
                 testing.db.execute(stmt)
 
@@ -813,11 +918,16 @@ drop synonym test_schema.local_table;
 
     def test_reflect_alt_synonym_owner_local_table(self):
         meta = MetaData(testing.db)
-        parent = Table('local_table', meta, autoload=True,
-                            oracle_resolve_synonyms=True, schema="test_schema")
-        self.assert_compile(parent.select(),
-                "SELECT test_schema.local_table.id, "
-                "test_schema.local_table.data FROM test_schema.local_table")
+        parent = Table(
+            'local_table', meta, autoload=True,
+            oracle_resolve_synonyms=True, schema=testing.config.test_schema)
+        self.assert_compile(
+            parent.select(),
+            "SELECT %(test_schema)s.local_table.id, "
+            "%(test_schema)s.local_table.data "
+            "FROM %(test_schema)s.local_table" %
+            {"test_schema": testing.config.test_schema}
+        )
         select([parent]).execute().fetchall()
 
     @testing.provide_metadata
@@ -835,31 +945,41 @@ drop synonym test_schema.local_table;
         child.insert().execute({'cid': 1, 'pid': 1})
         eq_(child.select().execute().fetchall(), [(1, 1)])
 
-
     def test_reflect_alt_owner_explicit(self):
         meta = MetaData(testing.db)
-        parent = Table('parent', meta, autoload=True, schema='test_schema')
-        child = Table('child', meta, autoload=True, schema='test_schema')
+        parent = Table(
+            'parent', meta, autoload=True,
+            schema=testing.config.test_schema)
+        child = Table(
+            'child', meta, autoload=True,
+            schema=testing.config.test_schema)
 
-        self.assert_compile(parent.join(child),
-                "test_schema.parent JOIN test_schema.child ON "
-                "test_schema.parent.id = test_schema.child.parent_id")
+        self.assert_compile(
+            parent.join(child),
+            "%(test_schema)s.parent JOIN %(test_schema)s.child ON "
+            "%(test_schema)s.parent.id = %(test_schema)s.child.parent_id" % {
+                "test_schema": testing.config.test_schema
+            })
         select([parent, child]).\
-                select_from(parent.join(child)).\
-                execute().fetchall()
+            select_from(parent.join(child)).\
+            execute().fetchall()
 
     def test_reflect_local_to_remote(self):
-        testing.db.execute('CREATE TABLE localtable (id INTEGER '
-                           'PRIMARY KEY, parent_id INTEGER REFERENCES '
-                           'test_schema.parent(id))')
+        testing.db.execute(
+            'CREATE TABLE localtable (id INTEGER '
+            'PRIMARY KEY, parent_id INTEGER REFERENCES '
+            '%(test_schema)s.parent(id))' % {
+                "test_schema": testing.config.test_schema})
         try:
             meta = MetaData(testing.db)
             lcl = Table('localtable', meta, autoload=True)
-            parent = meta.tables['test_schema.parent']
+            parent = meta.tables['%s.parent' % testing.config.test_schema]
             self.assert_compile(parent.join(lcl),
-                                'test_schema.parent JOIN localtable ON '
-                                'test_schema.parent.id = '
-                                'localtable.parent_id')
+                                '%(test_schema)s.parent JOIN localtable ON '
+                                '%(test_schema)s.parent.id = '
+                                'localtable.parent_id' % {
+                                    "test_schema": testing.config.test_schema}
+                                )
             select([parent,
                    lcl]).select_from(parent.join(lcl)).execute().fetchall()
         finally:
@@ -867,30 +987,36 @@ drop synonym test_schema.local_table;
 
     def test_reflect_alt_owner_implicit(self):
         meta = MetaData(testing.db)
-        parent = Table('parent', meta, autoload=True,
-                       schema='test_schema')
-        child = Table('child', meta, autoload=True, schema='test_schema'
-                      )
-        self.assert_compile(parent.join(child),
-                            'test_schema.parent JOIN test_schema.child '
-                            'ON test_schema.parent.id = '
-                            'test_schema.child.parent_id')
+        parent = Table(
+            'parent', meta, autoload=True,
+            schema=testing.config.test_schema)
+        child = Table(
+            'child', meta, autoload=True,
+            schema=testing.config.test_schema)
+        self.assert_compile(
+            parent.join(child),
+            '%(test_schema)s.parent JOIN %(test_schema)s.child '
+            'ON %(test_schema)s.parent.id = '
+            '%(test_schema)s.child.parent_id' % {
+                "test_schema": testing.config.test_schema})
         select([parent,
                child]).select_from(parent.join(child)).execute().fetchall()
 
     def test_reflect_alt_owner_synonyms(self):
         testing.db.execute('CREATE TABLE localtable (id INTEGER '
                            'PRIMARY KEY, parent_id INTEGER REFERENCES '
-                           'test_schema.ptable(id))')
+                           '%s.ptable(id))' % testing.config.test_schema)
         try:
             meta = MetaData(testing.db)
             lcl = Table('localtable', meta, autoload=True,
                         oracle_resolve_synonyms=True)
-            parent = meta.tables['test_schema.ptable']
-            self.assert_compile(parent.join(lcl),
-                                'test_schema.ptable JOIN localtable ON '
-                                'test_schema.ptable.id = '
-                                'localtable.parent_id')
+            parent = meta.tables['%s.ptable' % testing.config.test_schema]
+            self.assert_compile(
+                parent.join(lcl),
+                '%(test_schema)s.ptable JOIN localtable ON '
+                '%(test_schema)s.ptable.id = '
+                'localtable.parent_id' % {
+                    "test_schema": testing.config.test_schema})
             select([parent,
                    lcl]).select_from(parent.join(lcl)).execute().fetchall()
         finally:
@@ -899,17 +1025,21 @@ drop synonym test_schema.local_table;
     def test_reflect_remote_synonyms(self):
         meta = MetaData(testing.db)
         parent = Table('ptable', meta, autoload=True,
-                       schema='test_schema',
+                       schema=testing.config.test_schema,
                        oracle_resolve_synonyms=True)
         child = Table('ctable', meta, autoload=True,
-                      schema='test_schema',
+                      schema=testing.config.test_schema,
                       oracle_resolve_synonyms=True)
-        self.assert_compile(parent.join(child),
-                            'test_schema.ptable JOIN '
-                            'test_schema.ctable ON test_schema.ptable.i'
-                            'd = test_schema.ctable.parent_id')
+        self.assert_compile(
+            parent.join(child),
+            '%(test_schema)s.ptable JOIN '
+            '%(test_schema)s.ctable '
+            'ON %(test_schema)s.ptable.id = '
+            '%(test_schema)s.ctable.parent_id' % {
+                "test_schema": testing.config.test_schema})
         select([parent,
                child]).select_from(parent.join(child)).execute().fetchall()
+
 
 class ConstraintTest(fixtures.TablesTest):
 
@@ -1678,6 +1808,58 @@ class UnsupportedIndexReflectTest(fixtures.TestBase):
         m2 = MetaData(testing.db)
         Table('test_index_reflect', m2, autoload=True)
 
+
+def all_tables_compression_missing():
+    try:
+        testing.db.execute('SELECT compression FROM all_tables')
+        return False
+    except:
+        return True
+
+
+def all_tables_compress_for_missing():
+    try:
+        testing.db.execute('SELECT compress_for FROM all_tables')
+        return False
+    except:
+        return True
+
+
+class TableReflectionTest(fixtures.TestBase):
+    __only_on__ = 'oracle'
+
+    @testing.provide_metadata
+    @testing.fails_if(all_tables_compression_missing)
+    def test_reflect_basic_compression(self):
+        metadata = self.metadata
+
+        tbl = Table('test_compress', metadata,
+                    Column('data', Integer, primary_key=True),
+                    oracle_compress=True)
+        metadata.create_all()
+
+        m2 = MetaData(testing.db)
+
+        tbl = Table('test_compress', m2, autoload=True)
+        # Don't hardcode the exact value, but it must be non-empty
+        assert tbl.dialect_options['oracle']['compress']
+
+    @testing.provide_metadata
+    @testing.fails_if(all_tables_compress_for_missing)
+    def test_reflect_oltp_compression(self):
+        metadata = self.metadata
+
+        tbl = Table('test_compress', metadata,
+                    Column('data', Integer, primary_key=True),
+                    oracle_compress="OLTP")
+        metadata.create_all()
+
+        m2 = MetaData(testing.db)
+
+        tbl = Table('test_compress', m2, autoload=True)
+        assert tbl.dialect_options['oracle']['compress'] == "OLTP"
+
+
 class RoundTripIndexTest(fixtures.TestBase):
     __only_on__ = 'oracle'
 
@@ -1695,6 +1877,10 @@ class RoundTripIndexTest(fixtures.TestBase):
 
         # "group" is a keyword, so lower case
         normalind = Index('tableind', table.c.id_b, table.c.group)
+        compress1 = Index('compress1', table.c.id_a, table.c.id_b,
+                          oracle_compress=True)
+        compress2 = Index('compress2', table.c.id_a, table.c.id_b, table.c.col,
+                          oracle_compress=1)
 
         metadata.create_all()
         mirror = MetaData(testing.db)
@@ -1743,8 +1929,15 @@ class RoundTripIndexTest(fixtures.TestBase):
         )
         assert (Index, ('id_b', ), True) in reflected
         assert (Index, ('col', 'group'), True) in reflected
+
+        idx = reflected[(Index, ('id_a', 'id_b', ), False)]
+        assert idx.dialect_options['oracle']['compress'] == 2
+
+        idx = reflected[(Index, ('id_a', 'id_b', 'col', ), False)]
+        assert idx.dialect_options['oracle']['compress'] == 1
+
         eq_(len(reflectedtable.constraints), 1)
-        eq_(len(reflectedtable.indexes), 3)
+        eq_(len(reflectedtable.indexes), 5)
 
 class SequenceTest(fixtures.TestBase, AssertsCompiledSQL):
 
@@ -1889,3 +2082,23 @@ class DBLinkReflectionTest(fixtures.TestBase):
                 autoload_with=testing.db, oracle_resolve_synonyms=True)
         eq_(list(t.c.keys()), ['id', 'data'])
         eq_(list(t.primary_key), [t.c.id])
+
+
+class ServiceNameTest(fixtures.TestBase):
+    __only_on__ = 'oracle+cx_oracle'
+
+    def test_cx_oracle_service_name(self):
+        url_string = 'oracle+cx_oracle://scott:tiger@host/?service_name=hr'
+        eng = create_engine(url_string, _initialize=False)
+        cargs, cparams = eng.dialect.create_connect_args(eng.url)
+
+        assert 'SERVICE_NAME=hr' in cparams['dsn']
+        assert 'SID=hr' not in cparams['dsn']
+
+    def test_cx_oracle_service_name_bad(self):
+        url_string = 'oracle+cx_oracle://scott:tiger@host/hr1?service_name=hr2'
+        assert_raises(
+            exc.InvalidRequestError,
+            create_engine, url_string,
+            _initialize=False
+        )

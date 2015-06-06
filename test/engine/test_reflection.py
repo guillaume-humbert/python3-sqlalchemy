@@ -14,6 +14,7 @@ from sqlalchemy.util import ue
 
 metadata, users = None, None
 
+
 class ReflectionTest(fixtures.TestBase, ComparesTables):
     __backend__ = True
 
@@ -63,6 +64,22 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
                 meta2, autoload=True, autoload_with=testing.db)
         self.assert_tables_equal(users, reflected_users)
         self.assert_tables_equal(addresses, reflected_addresses)
+
+    @testing.provide_metadata
+    def test_autoload_with_imply_autoload(self,):
+        meta = self.metadata
+        t = Table(
+                't',
+                meta,
+                Column('id', sa.Integer, primary_key=True),
+                Column('x', sa.String(20)),
+                Column('y', sa.Integer))
+        meta.create_all()
+
+        meta2 = MetaData()
+        reflected_t = Table('t',  meta2,
+                autoload_with=testing.db)
+        self.assert_tables_equal(t, reflected_t)
 
     @testing.provide_metadata
     def test_two_foreign_keys(self):
@@ -237,7 +254,7 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         """
         Table('a', self.metadata, Column('id', Integer, primary_key=True))
         Table('b', self.metadata, Column('id', Integer, primary_key=True),
-                                    Column('a_id', Integer, sa.ForeignKey('a.id')))
+                Column('a_id', Integer, sa.ForeignKey('a.id')))
         self.metadata.create_all()
 
         m2 = MetaData()
@@ -259,7 +276,7 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         """
         Table('a', self.metadata, Column('id', Integer, primary_key=True))
         Table('b', self.metadata, Column('id', Integer, primary_key=True),
-                                    Column('a_id', Integer, sa.ForeignKey('a.id')))
+                Column('a_id', Integer, sa.ForeignKey('a.id')))
         self.metadata.create_all()
 
         m2 = MetaData()
@@ -388,7 +405,6 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         eq_(list(table.primary_key), [table.c.col1])
         eq_(table.c.col1.primary_key, True)
 
-
     @testing.provide_metadata
     def test_override_pkfk(self):
         """test that you can override columns which contain foreign keys
@@ -402,7 +418,6 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         Table('addresses', meta,
             Column('id', sa.Integer, primary_key=True),
             Column('street', sa.String(30)))
-
 
         meta.create_all()
         meta2 = MetaData(testing.db)
@@ -525,8 +540,6 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         assert f1 in b1.constraints
         assert len(b1.constraints) == 2
 
-
-
     @testing.provide_metadata
     def test_override_keys(self):
         """test that columns can be overridden with a 'key',
@@ -638,12 +651,13 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         backends with {dialect}.get_foreign_keys() support)"""
 
         if testing.against('postgresql'):
-            test_attrs = ('match', 'onupdate', 'ondelete', 'deferrable', 'initially')
+            test_attrs = ('match', 'onupdate', 'ondelete',
+                            'deferrable', 'initially')
             addresses_user_id_fkey = sa.ForeignKey(
                 # Each option is specifically not a Postgres default, or
                 # it won't be returned by PG's inspection
                 'users.id',
-                name = 'addresses_user_id_fkey',
+                name='addresses_user_id_fkey',
                 match='FULL',
                 onupdate='RESTRICT',
                 ondelete='RESTRICT',
@@ -656,7 +670,7 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
             # elided by MySQL's inspection
             addresses_user_id_fkey = sa.ForeignKey(
                 'users.id',
-                name = 'addresses_user_id_fkey',
+                name='addresses_user_id_fkey',
                 onupdate='CASCADE',
                 ondelete='CASCADE'
             )
@@ -710,11 +724,12 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
             Column('slot', sa.String(128)),
             )
 
-        assert_raises_message(sa.exc.InvalidRequestError,
-                            "Foreign key associated with column 'slots.pkg_id' "
-                            "could not find table 'pkgs' with which to generate "
-                            "a foreign key to target column 'pkg_id'",
-                              metadata.create_all)
+        assert_raises_message(
+            sa.exc.InvalidRequestError,
+            "Foreign key associated with column 'slots.pkg_id' "
+            "could not find table 'pkgs' with which to generate "
+            "a foreign key to target column 'pkg_id'",
+            metadata.create_all)
 
     def test_composite_pks(self):
         """test reflection of a composite primary key"""
@@ -781,8 +796,8 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
                      table.c.multi_hoho
                      == table2.c.lala).compare(j.onclause))
 
-
     @testing.crashes('oracle', 'FIXME: unknown, confirm not fails_on')
+    @testing.requires.check_constraints
     @testing.provide_metadata
     def test_reserved(self):
 
@@ -851,7 +866,6 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
 
     def test_reflect_uses_bind_engine_reflect(self):
         self._test_reflect_uses_bind(lambda e: MetaData().reflect(e))
-
 
     @testing.provide_metadata
     def test_reflect_all(self):
@@ -1036,6 +1050,7 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         finally:
             _drop_views(metadata.bind)
 
+
 class CreateDropTest(fixtures.TestBase):
     __backend__ = True
 
@@ -1084,7 +1099,6 @@ class CreateDropTest(fixtures.TestBase):
         eq_(ua, ['users', 'email_addresses'])
         eq_(oi, ['orders', 'items'])
 
-
     def test_checkfirst(self):
         try:
             assert not users.exists(testing.db)
@@ -1124,6 +1138,7 @@ class CreateDropTest(fixtures.TestBase):
                      - set(testing.db.table_names()))
         metadata.drop_all(bind=testing.db)
 
+
 class SchemaManipulationTest(fixtures.TestBase):
     __backend__ = True
 
@@ -1142,6 +1157,7 @@ class SchemaManipulationTest(fixtures.TestBase):
         assert len(addresses.c.user_id.foreign_keys) == 1
         assert addresses.constraints == set([addresses.primary_key, fk])
 
+
 class UnicodeReflectionTest(fixtures.TestBase):
     __backend__ = True
 
@@ -1153,16 +1169,40 @@ class UnicodeReflectionTest(fixtures.TestBase):
             ('plain', 'col_plain', 'ix_plain')
         ])
         no_has_table = [
-            ('no_has_table_1', ue('col_Unit\u00e9ble'), ue('ix_Unit\u00e9ble')),
-            ('no_has_table_2', ue('col_\u6e2c\u8a66'), ue('ix_\u6e2c\u8a66')),
+            (
+                'no_has_table_1',
+                ue('col_Unit\u00e9ble'),
+                ue('ix_Unit\u00e9ble')
+            ),
+            (
+                'no_has_table_2',
+                ue('col_\u6e2c\u8a66'),
+                ue('ix_\u6e2c\u8a66')
+            ),
         ]
         no_case_sensitivity = [
-            (ue('\u6e2c\u8a66'), ue('col_\u6e2c\u8a66'), ue('ix_\u6e2c\u8a66')),
-            (ue('unit\u00e9ble'), ue('col_unit\u00e9ble'), ue('ix_unit\u00e9ble')),
+            (
+                ue('\u6e2c\u8a66'),
+                ue('col_\u6e2c\u8a66'),
+                ue('ix_\u6e2c\u8a66')
+            ),
+            (
+                ue('unit\u00e9ble'),
+                ue('col_unit\u00e9ble'),
+                ue('ix_unit\u00e9ble')
+            ),
         ]
         full = [
-            (ue('Unit\u00e9ble'), ue('col_Unit\u00e9ble'), ue('ix_Unit\u00e9ble')),
-            (ue('\u6e2c\u8a66'), ue('col_\u6e2c\u8a66'), ue('ix_\u6e2c\u8a66')),
+            (
+                ue('Unit\u00e9ble'),
+                ue('col_Unit\u00e9ble'),
+                ue('ix_Unit\u00e9ble')
+            ),
+            (
+                ue('\u6e2c\u8a66'),
+                ue('col_\u6e2c\u8a66'),
+                ue('ix_\u6e2c\u8a66')
+            ),
         ]
 
         # as you can see, our options for this kind of thing
@@ -1251,14 +1291,17 @@ class UnicodeReflectionTest(fixtures.TestBase):
                 [(names[tname][1], names[tname][0])]
             )
 
+
 class SchemaTest(fixtures.TestBase):
     __backend__ = True
 
     @testing.requires.schemas
     @testing.requires.cross_schema_fk_reflection
     def test_has_schema(self):
-        eq_(testing.db.dialect.has_schema(testing.db, 'test_schema'), True)
-        eq_(testing.db.dialect.has_schema(testing.db, 'sa_fake_schema_123'), False)
+        eq_(testing.db.dialect.has_schema(testing.db,
+            testing.config.test_schema), True)
+        eq_(testing.db.dialect.has_schema(testing.db,
+            'sa_fake_schema_123'), False)
 
     @testing.requires.schemas
     @testing.fails_on('sqlite', 'FIXME: unknown')
@@ -1340,14 +1383,17 @@ class SchemaTest(fixtures.TestBase):
     @testing.provide_metadata
     def test_metadata_reflect_schema(self):
         metadata = self.metadata
-        createTables(metadata, "test_schema")
+        createTables(metadata, testing.config.test_schema)
         metadata.create_all()
-        m2 = MetaData(schema="test_schema", bind=testing.db)
+        m2 = MetaData(schema=testing.config.test_schema, bind=testing.db)
         m2.reflect()
         eq_(
             set(m2.tables),
-            set(['test_schema.dingalings', 'test_schema.users',
-                'test_schema.email_addresses'])
+            set([
+                '%s.dingalings' % testing.config.test_schema,
+                '%s.users' % testing.config.test_schema,
+                '%s.email_addresses' % testing.config.test_schema
+                ])
         )
 
     @testing.requires.schemas
@@ -1359,23 +1405,21 @@ class SchemaTest(fixtures.TestBase):
 
         t2 = Table('t', self.metadata,
             Column('id1', sa.ForeignKey('t.id')),
-            schema="test_schema"
+            schema=testing.config.test_schema
         )
 
         self.metadata.create_all()
         m2 = MetaData()
-        m2.reflect(testing.db, schema="test_schema")
+        m2.reflect(testing.db, schema=testing.config.test_schema)
 
         m3 = MetaData()
         m3.reflect(testing.db)
-        m3.reflect(testing.db, schema="test_schema")
+        m3.reflect(testing.db, schema=testing.config.test_schema)
 
         eq_(
             set((t.name, t.schema) for t in m2.tables.values()),
             set((t.name, t.schema) for t in m3.tables.values())
         )
-
-
 
 
 # Tests related to engine.reflection
@@ -1410,7 +1454,8 @@ def createTables(meta, schema=None):
     dingalings = Table("dingalings", meta,
                 Column('dingaling_id', sa.Integer, primary_key=True),
                 Column('address_id', sa.Integer,
-                     sa.ForeignKey('%semail_addresses.address_id' % schema_prefix)),
+                     sa.ForeignKey(
+                         '%semail_addresses.address_id' % schema_prefix)),
                 Column('data', sa.String(30)),
                 schema=schema, test_needs_fk=True,
             )
@@ -1426,12 +1471,14 @@ def createTables(meta, schema=None):
 
     return (users, addresses, dingalings)
 
+
 def createIndexes(con, schema=None):
     fullname = 'users'
     if schema:
         fullname = "%s.%s" % (schema, 'users')
     query = "CREATE INDEX users_t_idx ON %s (test1, test2)" % fullname
     con.execute(sa.sql.text(query))
+
 
 @testing.requires.views
 def _create_views(con, schema=None):
@@ -1440,9 +1487,9 @@ def _create_views(con, schema=None):
         if schema:
             fullname = "%s.%s" % (schema, table_name)
         view_name = fullname + '_v'
-        query = "CREATE VIEW %s AS SELECT * FROM %s" % (view_name,
-                                                                   fullname)
+        query = "CREATE VIEW %s AS SELECT * FROM %s" % (view_name, fullname)
         con.execute(sa.sql.text(query))
+
 
 @testing.requires.views
 def _drop_views(con, schema=None):
@@ -1482,6 +1529,7 @@ class ReverseCasingReflectTest(fixtures.TestBase, AssertsCompiledSQL):
                             'weird_casing."Col2", weird_casing."col3" '
                             'FROM weird_casing')
 
+
 class CaseSensitiveTest(fixtures.TablesTest):
     """Nail down case sensitive behaviors, mostly on MySQL."""
     __backend__ = True
@@ -1517,7 +1565,8 @@ class CaseSensitiveTest(fixtures.TablesTest):
             )
     def test_reflect_via_fk(self):
         m = MetaData()
-        t2 = Table("SomeOtherTable", m, autoload=True, autoload_with=testing.db)
+        t2 = Table("SomeOtherTable", m, autoload=True,
+                    autoload_with=testing.db)
         eq_(t2.name, "SomeOtherTable")
         assert "SomeTable" in m.tables
 
@@ -1527,7 +1576,6 @@ class CaseSensitiveTest(fixtures.TablesTest):
         m = MetaData()
         t2 = Table("sOmEtAbLe", m, autoload=True, autoload_with=testing.db)
         eq_(t2.name, "sOmEtAbLe")
-
 
 
 class ColumnEventsTest(fixtures.RemovesEvents, fixtures.TestBase):
@@ -1562,6 +1610,7 @@ class ColumnEventsTest(fixtures.RemovesEvents, fixtures.TestBase):
         from sqlalchemy.schema import Table
 
         m = MetaData(testing.db)
+
         def column_reflect(insp, table, column_info):
             if column_info['name'] == col:
                 column_info.update(update)
@@ -1598,6 +1647,7 @@ class ColumnEventsTest(fixtures.RemovesEvents, fixtures.TestBase):
 
     def test_override_key_fk(self):
         m = MetaData(testing.db)
+
         def column_reflect(insp, table, column_info):
 
             if column_info['name'] == 'q':

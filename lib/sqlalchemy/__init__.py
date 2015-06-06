@@ -1,5 +1,5 @@
 # sqlalchemy/__init__.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -15,6 +15,7 @@ from .sql import (
     case,
     cast,
     collate,
+    column,
     delete,
     desc,
     distinct,
@@ -24,6 +25,7 @@ from .sql import (
     extract,
     false,
     func,
+    funcfilter,
     insert,
     intersect,
     intersect_all,
@@ -39,6 +41,7 @@ from .sql import (
     over,
     select,
     subquery,
+    table,
     text,
     true,
     tuple_,
@@ -117,7 +120,7 @@ from .schema import (
 from .inspection import inspect
 from .engine import create_engine, engine_from_config
 
-__version__ = '0.9.8'
+__version__ = '1.0.4'
 
 
 def __go(lcls):

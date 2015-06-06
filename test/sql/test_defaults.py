@@ -1,7 +1,8 @@
-from sqlalchemy.testing import eq_, assert_raises_message, assert_raises
+from sqlalchemy.testing import eq_, assert_raises_message, \
+    assert_raises, AssertsCompiledSQL
 import datetime
-from sqlalchemy.schema import CreateSequence, DropSequence
-from sqlalchemy.sql import select, text
+from sqlalchemy.schema import CreateSequence, DropSequence, CreateTable
+from sqlalchemy.sql import select, text, literal_column
 import sqlalchemy as sa
 from sqlalchemy import testing
 from sqlalchemy.testing import engines
@@ -14,8 +15,75 @@ from sqlalchemy.dialects import sqlite
 from sqlalchemy.testing import fixtures
 from sqlalchemy.util import u, b
 from sqlalchemy import util
+import itertools
 
 t = f = f2 = ts = currenttime = metadata = default_generator = None
+
+
+class DDLTest(fixtures.TestBase, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
+    def test_string(self):
+        m = MetaData()
+        t = Table('t', m, Column('x', Integer, server_default='5'))
+        self.assert_compile(
+            CreateTable(t),
+            "CREATE TABLE t (x INTEGER DEFAULT '5')"
+        )
+
+    def test_text(self):
+        m = MetaData()
+        t = Table('t', m, Column('x', Integer, server_default=text('5 + 8')))
+        self.assert_compile(
+            CreateTable(t),
+            "CREATE TABLE t (x INTEGER DEFAULT 5 + 8)"
+        )
+
+    def test_text_literal_binds(self):
+        m = MetaData()
+        t = Table(
+            't', m,
+            Column(
+                'x', Integer, server_default=text('q + :x1').bindparams(x1=7)))
+        self.assert_compile(
+            CreateTable(t),
+            "CREATE TABLE t (x INTEGER DEFAULT q + 7)"
+        )
+
+    def test_sqlexpr(self):
+        m = MetaData()
+        t = Table('t', m, Column(
+            'x', Integer,
+            server_default=literal_column('a') + literal_column('b'))
+        )
+        self.assert_compile(
+            CreateTable(t),
+            "CREATE TABLE t (x INTEGER DEFAULT a + b)"
+        )
+
+    def test_literal_binds_plain(self):
+        m = MetaData()
+        t = Table('t', m, Column(
+            'x', Integer,
+            server_default=literal('a') + literal('b'))
+        )
+        self.assert_compile(
+            CreateTable(t),
+            "CREATE TABLE t (x INTEGER DEFAULT 'a' || 'b')"
+        )
+
+    def test_literal_binds_pgarray(self):
+        from sqlalchemy.dialects.postgresql import ARRAY, array
+        m = MetaData()
+        t = Table('t', m, Column(
+            'x', ARRAY(Integer),
+            server_default=array([1, 2, 3]))
+        )
+        self.assert_compile(
+            CreateTable(t),
+            "CREATE TABLE t (x INTEGER[] DEFAULT ARRAY[1, 2, 3])",
+            dialect='postgresql'
+        )
 
 
 class DefaultTest(fixtures.TestBase):
@@ -65,7 +133,7 @@ class DefaultTest(fixtures.TestBase):
                     [
                         func.trunc(
                             func.sysdate(), sa.literal_column("'DAY'"),
-                            type_=sa.Date).label('today')]))
+                            type_=sa.Date)]))
             assert isinstance(ts, datetime.date) and not isinstance(
                 ts, datetime.datetime)
             f = sa.select([func.length('abcdef')], bind=db).scalar()
@@ -335,14 +403,24 @@ class DefaultTest(fixtures.TestBase):
             [(54, 'imthedefault', f, ts, ts, ctexec, True, False,
               12, today, None, 'hi')])
 
-    @testing.fails_on('firebird', 'Data type unknown')
     def test_insertmany(self):
-        # MySQL-Python 1.2.2 breaks functions in execute_many :(
-        if (testing.against('mysql+mysqldb') and
-                testing.db.dialect.dbapi.version_info[:3] == (1, 2, 2)):
-            return
-
         t.insert().execute({}, {}, {})
+
+        ctexec = currenttime.scalar()
+        l = t.select().execute()
+        today = datetime.date.today()
+        eq_(l.fetchall(),
+            [(51, 'imthedefault', f, ts, ts, ctexec, True, False,
+              12, today, 'py', 'hi'),
+             (52, 'imthedefault', f, ts, ts, ctexec, True, False,
+              12, today, 'py', 'hi'),
+             (53, 'imthedefault', f, ts, ts, ctexec, True, False,
+              12, today, 'py', 'hi')])
+
+    @testing.requires.multivalues_inserts
+    def test_insert_multivalues(self):
+
+        t.insert().values([{}, {}, {}]).execute()
 
         ctexec = currenttime.scalar()
         l = t.select().execute()
@@ -367,7 +445,8 @@ class DefaultTest(fixtures.TestBase):
         ):
             assert_raises_message(
                 sa.exc.ArgumentError,
-                "SQL expression object or string expected.",
+                "SQL expression object or string expected, got object of type "
+                "<.* 'list'> instead",
                 t.select, [const]
             )
             assert_raises_message(
@@ -1272,8 +1351,73 @@ class UnicodeDefaultsTest(fixtures.TestBase):
         default = b('foo')
         assert_raises_message(
             sa.exc.SAWarning,
-            "Unicode column received non-unicode default value.",
+            "Unicode column 'foobar' has non-unicode "
+            "default value b?'foo' specified.",
             Column,
-            Unicode(32),
+            "foobar", Unicode(32),
             default=default
+        )
+
+
+class InsertFromSelectTest(fixtures.TestBase):
+    __backend__ = True
+
+    def _fixture(self):
+        data = Table(
+            'data', self.metadata,
+            Column('x', Integer),
+            Column('y', Integer)
+        )
+        data.create()
+        testing.db.execute(data.insert(), {'x': 2, 'y': 5}, {'x': 7, 'y': 12})
+        return data
+
+    @testing.provide_metadata
+    def test_insert_from_select_override_defaults(self):
+        data = self._fixture()
+
+        table = Table('sometable', self.metadata,
+                      Column('x', Integer),
+                      Column('foo', Integer, default=12),
+                      Column('y', Integer))
+
+        table.create()
+
+        sel = select([data.c.x, data.c.y])
+
+        ins = table.insert().\
+            from_select(["x", "y"], sel)
+        testing.db.execute(ins)
+
+        eq_(
+            testing.db.execute(table.select().order_by(table.c.x)).fetchall(),
+            [(2, 12, 5), (7, 12, 12)]
+        )
+
+    @testing.provide_metadata
+    def test_insert_from_select_fn_defaults(self):
+        data = self._fixture()
+
+        counter = itertools.count(1)
+
+        def foo(ctx):
+            return next(counter)
+
+        table = Table('sometable', self.metadata,
+                      Column('x', Integer),
+                      Column('foo', Integer, default=foo),
+                      Column('y', Integer))
+
+        table.create()
+
+        sel = select([data.c.x, data.c.y])
+
+        ins = table.insert().\
+            from_select(["x", "y"], sel)
+        testing.db.execute(ins)
+
+        # counter is only called once!
+        eq_(
+            testing.db.execute(table.select().order_by(table.c.x)).fetchall(),
+            [(2, 1, 5), (7, 1, 12)]
         )

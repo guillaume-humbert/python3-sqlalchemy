@@ -12,15 +12,18 @@ For SQLite3:
 
 For PostgreSQL:
 	python-psycopg2
+	python3-psycopg2
 
 For MySQL:
 	python-mysqldb
+	python3-mysqldb
 
 For Firebird:
-	python-kinterbasdb
+	python-fdb
+	python3-fdb
 
 For Microsoft SQL Server:
-    python-pymssql
+	python-pymssql
 
 Documentation and examples can be found in the python-sqlalchemy-doc package
 in /usr/share/doc/python-sqlalchemy-doc.

@@ -3,15 +3,16 @@ from sqlalchemy.testing import eq_, assert_raises, \
 from sqlalchemy.ext import declarative as decl
 import sqlalchemy as sa
 from sqlalchemy import testing
-from sqlalchemy import Integer, String, ForeignKey
+from sqlalchemy import Integer, String, ForeignKey, select, func
 from sqlalchemy.testing.schema import Table, Column
 from sqlalchemy.orm import relationship, create_session, class_mapper, \
     configure_mappers, clear_mappers, \
-    deferred, column_property, \
-    Session
+    deferred, column_property, Session, base as orm_base
 from sqlalchemy.util import classproperty
-from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.testing import fixtures
+from sqlalchemy.ext.declarative import declared_attr, declarative_base
+from sqlalchemy.orm import events as orm_events
+from sqlalchemy.testing import fixtures, mock
+from sqlalchemy.testing.util import gc_collect
 
 Base = None
 
@@ -437,6 +438,90 @@ class DeclarativeMixinTest(DeclarativeTestBase):
             id = Column(Integer, primary_key=True)
 
         eq_(MyModel.__table__.kwargs, {'mysql_engine': 'InnoDB'})
+
+    @testing.teardown_events(orm_events.MapperEvents)
+    def test_declare_first_mixin(self):
+        canary = mock.Mock()
+
+        class MyMixin(object):
+            @classmethod
+            def __declare_first__(cls):
+                canary.declare_first__(cls)
+
+            @classmethod
+            def __declare_last__(cls):
+                canary.declare_last__(cls)
+
+        class MyModel(Base, MyMixin):
+            __tablename__ = 'test'
+            id = Column(Integer, primary_key=True)
+
+        configure_mappers()
+
+        eq_(
+            canary.mock_calls,
+            [
+                mock.call.declare_first__(MyModel),
+                mock.call.declare_last__(MyModel),
+            ]
+        )
+
+    @testing.teardown_events(orm_events.MapperEvents)
+    def test_declare_first_base(self):
+        canary = mock.Mock()
+
+        class MyMixin(object):
+            @classmethod
+            def __declare_first__(cls):
+                canary.declare_first__(cls)
+
+            @classmethod
+            def __declare_last__(cls):
+                canary.declare_last__(cls)
+
+        class Base(MyMixin):
+            pass
+        Base = declarative_base(cls=Base)
+
+        class MyModel(Base):
+            __tablename__ = 'test'
+            id = Column(Integer, primary_key=True)
+
+        configure_mappers()
+
+        eq_(
+            canary.mock_calls,
+            [
+                mock.call.declare_first__(MyModel),
+                mock.call.declare_last__(MyModel),
+            ]
+        )
+
+    @testing.teardown_events(orm_events.MapperEvents)
+    def test_declare_first_direct(self):
+        canary = mock.Mock()
+
+        class MyOtherModel(Base):
+            __tablename__ = 'test2'
+            id = Column(Integer, primary_key=True)
+
+            @classmethod
+            def __declare_first__(cls):
+                canary.declare_first__(cls)
+
+            @classmethod
+            def __declare_last__(cls):
+                canary.declare_last__(cls)
+
+        configure_mappers()
+
+        eq_(
+            canary.mock_calls,
+            [
+                mock.call.declare_first__(MyOtherModel),
+                mock.call.declare_last__(MyOtherModel)
+            ]
+        )
 
     def test_mapper_args_declared_attr(self):
 
@@ -1302,6 +1387,283 @@ class DeclarativeMixinPropertyTest(DeclarativeTestBase):
         self._test_relationship(True)
 
 
+class DeclaredAttrTest(DeclarativeTestBase, testing.AssertsCompiledSQL):
+    __dialect__ = 'default'
+
+    def test_singleton_behavior_within_decl(self):
+        counter = mock.Mock()
+
+        class Mixin(object):
+            @declared_attr
+            def my_prop(cls):
+                counter(cls)
+                return Column('x', Integer)
+
+        class A(Base, Mixin):
+            __tablename__ = 'a'
+            id = Column(Integer, primary_key=True)
+
+            @declared_attr
+            def my_other_prop(cls):
+                return column_property(cls.my_prop + 5)
+
+        eq_(counter.mock_calls, [mock.call(A)])
+
+        class B(Base, Mixin):
+            __tablename__ = 'b'
+            id = Column(Integer, primary_key=True)
+
+            @declared_attr
+            def my_other_prop(cls):
+                return column_property(cls.my_prop + 5)
+
+        eq_(
+            counter.mock_calls,
+            [mock.call(A), mock.call(B)])
+
+        # this is why we need singleton-per-class behavior.   We get
+        # an un-bound "x" column otherwise here, because my_prop() generates
+        # multiple columns.
+        a_col = A.my_other_prop.__clause_element__().element.left
+        b_col = B.my_other_prop.__clause_element__().element.left
+        is_(a_col.table, A.__table__)
+        is_(b_col.table, B.__table__)
+        is_(a_col, A.__table__.c.x)
+        is_(b_col, B.__table__.c.x)
+
+        s = Session()
+        self.assert_compile(
+            s.query(A),
+            "SELECT a.x AS a_x, a.x + :x_1 AS anon_1, a.id AS a_id FROM a"
+        )
+        self.assert_compile(
+            s.query(B),
+            "SELECT b.x AS b_x, b.x + :x_1 AS anon_1, b.id AS b_id FROM b"
+        )
+
+
+    def test_singleton_gc(self):
+        counter = mock.Mock()
+
+        class Mixin(object):
+            @declared_attr
+            def my_prop(cls):
+                counter(cls.__name__)
+                return Column('x', Integer)
+
+        class A(Base, Mixin):
+            __tablename__ = 'b'
+            id = Column(Integer, primary_key=True)
+
+            @declared_attr
+            def my_other_prop(cls):
+                return column_property(cls.my_prop + 5)
+
+        eq_(counter.mock_calls, [mock.call("A")])
+        del A
+        gc_collect()
+        assert "A" not in Base._decl_class_registry
+
+    def test_can_we_access_the_mixin_straight(self):
+        class Mixin(object):
+            @declared_attr
+            def my_prop(cls):
+                return Column('x', Integer)
+
+        assert_raises_message(
+            sa.exc.SAWarning,
+            "Unmanaged access of declarative attribute my_prop "
+            "from non-mapped class Mixin",
+            getattr, Mixin, "my_prop"
+        )
+
+    def test_non_decl_access(self):
+        counter = mock.Mock()
+
+        class Mixin(object):
+            @declared_attr
+            def __tablename__(cls):
+                counter(cls)
+                return "foo"
+
+        class Foo(Mixin, Base):
+            id = Column(Integer, primary_key=True)
+
+            @declared_attr
+            def x(cls):
+                cls.__tablename__
+
+            @declared_attr
+            def y(cls):
+                cls.__tablename__
+
+        eq_(
+            counter.mock_calls,
+            [mock.call(Foo)]
+        )
+
+        eq_(Foo.__tablename__, 'foo')
+        eq_(Foo.__tablename__, 'foo')
+
+        eq_(
+            counter.mock_calls,
+            [mock.call(Foo), mock.call(Foo), mock.call(Foo)]
+        )
+
+    def test_property_noncascade(self):
+        counter = mock.Mock()
+
+        class Mixin(object):
+            @declared_attr
+            def my_prop(cls):
+                counter(cls)
+                return column_property(cls.x + 2)
+
+        class A(Base, Mixin):
+            __tablename__ = 'a'
+
+            id = Column(Integer, primary_key=True)
+            x = Column(Integer)
+
+        class B(A):
+            pass
+
+        eq_(counter.mock_calls, [mock.call(A)])
+
+    def test_property_cascade(self):
+        counter = mock.Mock()
+
+        class Mixin(object):
+            @declared_attr.cascading
+            def my_prop(cls):
+                counter(cls)
+                return column_property(cls.x + 2)
+
+        class A(Base, Mixin):
+            __tablename__ = 'a'
+
+            id = Column(Integer, primary_key=True)
+            x = Column(Integer)
+
+        class B(A):
+            pass
+
+        eq_(counter.mock_calls, [mock.call(A), mock.call(B)])
+
+    def test_col_prop_attrs_associated_w_class_for_mapper_args(self):
+        from sqlalchemy import Column
+        import collections
+
+        asserted = collections.defaultdict(set)
+
+        class Mixin(object):
+            @declared_attr.cascading
+            def my_attr(cls):
+                if decl.has_inherited_table(cls):
+                    id = Column(ForeignKey('a.my_attr'), primary_key=True)
+                    asserted['b'].add(id)
+                else:
+                    id = Column(Integer, primary_key=True)
+                    asserted['a'].add(id)
+                return id
+
+        class A(Base, Mixin):
+            __tablename__ = 'a'
+
+            @declared_attr
+            def __mapper_args__(cls):
+                asserted['a'].add(cls.my_attr)
+                return {}
+
+        # here:
+        # 1. A is mapped.  so A.my_attr is now the InstrumentedAttribute.
+        # 2. B wants to call my_attr also.  Due to .cascading, it has been
+        # invoked specific to B, and is present in the dict_ that will
+        # be used when we map the class.  But except for the
+        # special setattr() we do in _scan_attributes() in this case, would
+        # otherwise not been set on the class as anything from this call;
+        # the usual mechanics of calling it from the descriptor also do not
+        # work because A is fully mapped and because A set it up, is currently
+        # that non-expected InstrumentedAttribute and replaces the
+        # descriptor from being invoked.
+
+        class B(A):
+            __tablename__ = 'b'
+
+            @declared_attr
+            def __mapper_args__(cls):
+                asserted['b'].add(cls.my_attr)
+                return {}
+
+        eq_(
+            asserted,
+            {
+                'a': set([A.my_attr.property.columns[0]]),
+                'b': set([B.my_attr.property.columns[0]])
+            }
+        )
+
+    def test_column_pre_map(self):
+        counter = mock.Mock()
+
+        class Mixin(object):
+            @declared_attr
+            def my_col(cls):
+                counter(cls)
+                assert not orm_base._mapper_or_none(cls)
+                return Column('x', Integer)
+
+        class A(Base, Mixin):
+            __tablename__ = 'a'
+
+            id = Column(Integer, primary_key=True)
+
+        eq_(counter.mock_calls, [mock.call(A)])
+
+    def test_mixin_attr_refers_to_column_copies(self):
+        # this @declared_attr can refer to User.id
+        # freely because we now do the "copy column" operation
+        # before the declared_attr is invoked.
+
+        counter = mock.Mock()
+
+        class HasAddressCount(object):
+            id = Column(Integer, primary_key=True)
+
+            @declared_attr
+            def address_count(cls):
+                counter(cls.id)
+                return column_property(
+                    select([func.count(Address.id)]).
+                    where(Address.user_id == cls.id).
+                    as_scalar()
+                )
+
+        class Address(Base):
+            __tablename__ = 'address'
+            id = Column(Integer, primary_key=True)
+            user_id = Column(ForeignKey('user.id'))
+
+        class User(Base, HasAddressCount):
+            __tablename__ = 'user'
+
+        eq_(
+            counter.mock_calls,
+            [mock.call(User.id)]
+        )
+
+        sess = Session()
+        self.assert_compile(
+            sess.query(User).having(User.address_count > 5),
+            'SELECT (SELECT count(address.id) AS '
+            'count_1 FROM address WHERE address.user_id = "user".id) '
+            'AS anon_1, "user".id AS user_id FROM "user" '
+            'HAVING (SELECT count(address.id) AS '
+            'count_1 FROM address WHERE address.user_id = "user".id) '
+            '> :param_1'
+        )
+
+
 class AbstractTest(DeclarativeTestBase):
 
     def test_abstract_boolean(self):
@@ -1326,3 +1688,44 @@ class AbstractTest(DeclarativeTestBase):
             id = Column(Integer, primary_key=True)
 
         eq_(set(Base.metadata.tables), set(['y', 'z', 'q']))
+
+    def test_middle_abstract_attributes(self):
+        # test for [ticket:3219]
+        class A(Base):
+            __tablename__ = 'a'
+
+            id = Column(Integer, primary_key=True)
+            name = Column(String)
+
+        class B(A):
+            __abstract__ = True
+            data = Column(String)
+
+        class C(B):
+            c_value = Column(String)
+
+        eq_(
+            sa.inspect(C).attrs.keys(), ['id', 'name', 'data', 'c_value']
+        )
+
+    def test_middle_abstract_inherits(self):
+        # test for [ticket:3240]
+
+        class A(Base):
+            __tablename__ = 'a'
+            id = Column(Integer, primary_key=True)
+
+        class AAbs(A):
+            __abstract__ = True
+
+        class B1(A):
+            __tablename__ = 'b1'
+            id = Column(ForeignKey('a.id'), primary_key=True)
+
+        class B2(AAbs):
+            __tablename__ = 'b2'
+            id = Column(ForeignKey('a.id'), primary_key=True)
+
+        assert B1.__mapper__.inherits is A.__mapper__
+
+        assert B2.__mapper__.inherits is A.__mapper__

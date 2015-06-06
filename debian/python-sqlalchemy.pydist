@@ -1,1 +1,1 @@
-SQLAlchemy python-sqlalchemy (>= 0.9~), python-sqlalchemy (<< 0.10); PEP386
+SQLAlchemy python-sqlalchemy (>= 1.0~), python-sqlalchemy (<< 1.1); PEP386

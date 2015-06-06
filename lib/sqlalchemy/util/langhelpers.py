@@ -1,5 +1,5 @@
 # util/langhelpers.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -92,6 +92,15 @@ def _unique_symbols(used, *bases):
             raise NameError("exhausted namespace for symbol base %s" % base)
 
 
+def map_bits(fn, n):
+    """Call the given function given each nonzero bit from n."""
+
+    while n:
+        b = n & (~n + 1)
+        yield fn(b)
+        n ^= b
+
+
 def decorator(target):
     """A signature-matching decorator factory."""
 
@@ -134,7 +143,8 @@ def public_factory(target, location):
         fn = target.__init__
         callable_ = target
         doc = "Construct a new :class:`.%s` object. \n\n"\
-            "This constructor is mirrored as a public API function; see :func:`~%s` "\
+            "This constructor is mirrored as a public API function; "\
+            "see :func:`~%s` "\
             "for a full usage and argument description." % (
                 target.__name__, location, )
     else:
@@ -155,6 +165,7 @@ def %(name)s(%(args)s):
     exec(code, env)
     decorated = env[location_name]
     decorated.__doc__ = fn.__doc__
+    decorated.__module__ = "sqlalchemy" + location.rsplit(".", 1)[0]
     if compat.py2k or hasattr(fn, '__func__'):
         fn.__func__.__doc__ = doc
     else:
@@ -435,7 +446,7 @@ def unbound_method_to_callable(func_or_cls):
         return func_or_cls
 
 
-def generic_repr(obj, additional_kw=(), to_inspect=None):
+def generic_repr(obj, additional_kw=(), to_inspect=None, omit_kwarg=()):
     """Produce a __repr__() based on direct association of the __init__()
     specification vs. same-named attributes present.
 
@@ -484,11 +495,13 @@ def generic_repr(obj, additional_kw=(), to_inspect=None):
         output.extend([repr(val) for val in getattr(obj, vargs)])
 
     for arg, defval in kw_args.items():
+        if arg in omit_kwarg:
+            continue
         try:
             val = getattr(obj, arg, missing)
             if val is not missing and val != defval:
                 output.append('%s=%r' % (arg, val))
-        except:
+        except Exception:
             pass
 
     if additional_kw:
@@ -497,7 +510,7 @@ def generic_repr(obj, additional_kw=(), to_inspect=None):
                 val = getattr(obj, arg, missing)
                 if val is not missing and val != defval:
                     output.append('%s=%r' % (arg, val))
-            except:
+            except Exception:
                 pass
 
     return "%s(%s)" % (obj.__class__.__name__, ", ".join(output))
@@ -508,6 +521,15 @@ class portable_instancemethod(object):
     to produce a serializable callable.
 
     """
+
+    __slots__ = 'target', 'name', '__weakref__'
+
+    def __getstate__(self):
+        return {'target': self.target, 'name': self.name}
+
+    def __setstate__(self, state):
+        self.target = state['target']
+        self.name = state['name']
 
     def __init__(self, meth):
         self.target = meth.__self__
@@ -787,6 +809,40 @@ class group_expirable_memoized_property(object):
         return memoized_instancemethod(fn)
 
 
+class MemoizedSlots(object):
+    """Apply memoized items to an object using a __getattr__ scheme.
+
+    This allows the functionality of memoized_property and
+    memoized_instancemethod to be available to a class using __slots__.
+
+    """
+
+    def _fallback_getattr(self, key):
+        raise AttributeError(key)
+
+    def __getattr__(self, key):
+        if key.startswith('_memoized'):
+            raise AttributeError(key)
+        elif hasattr(self, '_memoized_attr_%s' % key):
+            value = getattr(self, '_memoized_attr_%s' % key)()
+            setattr(self, key, value)
+            return value
+        elif hasattr(self, '_memoized_method_%s' % key):
+            fn = getattr(self, '_memoized_method_%s' % key)
+
+            def oneshot(*args, **kw):
+                result = fn(*args, **kw)
+                memo = lambda *a, **kw: result
+                memo.__name__ = fn.__name__
+                memo.__doc__ = fn.__doc__
+                setattr(self, key, memo)
+                return result
+            oneshot.__doc__ = fn.__doc__
+            return oneshot
+        else:
+            return self._fallback_getattr(key)
+
+
 def dependency_for(modulename):
     def decorate(obj):
         # TODO: would be nice to improve on this import silliness,
@@ -932,7 +988,7 @@ def asbool(obj):
 
 
 def bool_or_str(*text):
-    """Return a callable that will evaulate a string as
+    """Return a callable that will evaluate a string as
     boolean, or one of a set of "alternate" string values.
 
     """
@@ -965,7 +1021,7 @@ def coerce_kw_type(kw, key, type_, flexi_bool=True):
             kw[key] = type_(kw[key])
 
 
-def constructor_copy(obj, cls, **kw):
+def constructor_copy(obj, cls, *args, **kw):
     """Instantiate cls using the __dict__ of obj as constructor arguments.
 
     Uses inspect to match the named arguments of ``cls``.
@@ -974,7 +1030,7 @@ def constructor_copy(obj, cls, **kw):
 
     names = get_cls_kwargs(cls)
     kw.update((k, obj.__dict__[k]) for k in names if k in obj.__dict__)
-    return cls(**kw)
+    return cls(*args, **kw)
 
 
 def counter():
@@ -1088,10 +1144,23 @@ class classproperty(property):
         return desc.fget(cls)
 
 
+class hybridproperty(object):
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            clsval = self.func(owner)
+            clsval.__doc__ = self.func.__doc__
+            return clsval
+        else:
+            return self.func(instance)
+
+
 class hybridmethod(object):
     """Decorate a function as cls- or instance- level."""
 
-    def __init__(self, func, expr=None):
+    def __init__(self, func):
         self.func = func
 
     def __get__(self, instance, owner):
@@ -1183,28 +1252,62 @@ def warn_exception(func, *args, **kwargs):
     """
     try:
         return func(*args, **kwargs)
-    except:
+    except Exception:
         warn("%s('%s') ignored" % sys.exc_info()[0:2])
 
 
-def warn(msg, stacklevel=3):
+def ellipses_string(value, len_=25):
+    try:
+        if len(value) > len_:
+            return "%s..." % value[0:len_]
+        else:
+            return value
+    except TypeError:
+        return value
+
+
+class _hash_limit_string(compat.text_type):
+    """A string subclass that can only be hashed on a maximum amount
+    of unique values.
+
+    This is used for warnings so that we can send out parameterized warnings
+    without the __warningregistry__ of the module,  or the non-overridable
+    "once" registry within warnings.py, overloading memory,
+
+
+    """
+    def __new__(cls, value, num, args):
+        interpolated = (value % args) + \
+            (" (this warning may be suppressed after %d occurrences)" % num)
+        self = super(_hash_limit_string, cls).__new__(cls, interpolated)
+        self._hash = hash("%s_%d" % (value, hash(interpolated) % num))
+        return self
+
+    def __hash__(self):
+        return self._hash
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
+
+def warn(msg):
     """Issue a warning.
 
     If msg is a string, :class:`.exc.SAWarning` is used as
     the category.
 
-    .. note::
+    """
+    warnings.warn(msg, exc.SAWarning, stacklevel=2)
 
-       This function is swapped out when the test suite
-       runs, with a compatible version that uses
-       warnings.warn_explicit, so that the warnings registry can
-       be controlled.
+
+def warn_limited(msg, args):
+    """Issue a warning with a paramterized string, limiting the number
+    of registrations.
 
     """
-    if isinstance(msg, compat.string_types):
-        warnings.warn(msg, exc.SAWarning, stacklevel=stacklevel)
-    else:
-        warnings.warn(msg, stacklevel=stacklevel)
+    if args:
+        msg = _hash_limit_string(msg, 10, args)
+    warnings.warn(msg, exc.SAWarning, stacklevel=2)
 
 
 def only_once(fn):
@@ -1247,3 +1350,38 @@ def chop_traceback(tb, exclude_prefix=_UNITTEST_RE, exclude_suffix=_SQLA_RE):
     return tb[start:end + 1]
 
 NoneType = type(None)
+
+
+def attrsetter(attrname):
+    code = \
+        "def set(obj, value):"\
+        "    obj.%s = value" % attrname
+    env = locals().copy()
+    exec(code, env)
+    return env['set']
+
+
+class EnsureKWArgType(type):
+    """Apply translation of functions to accept **kw arguments if they
+    don't already.
+
+    """
+    def __init__(cls, clsname, bases, clsdict):
+        fn_reg = cls.ensure_kwarg
+        if fn_reg:
+            for key in clsdict:
+                m = re.match(fn_reg, key)
+                if m:
+                    fn = clsdict[key]
+                    spec = inspect.getargspec(fn)
+                    if not spec.keywords:
+                        clsdict[key] = wrapped = cls._wrap_w_kw(fn)
+                        setattr(cls, key, wrapped)
+        super(EnsureKWArgType, cls).__init__(clsname, bases, clsdict)
+
+    def _wrap_w_kw(self, fn):
+
+        def wrap(*arg, **kw):
+            return fn(*arg)
+        return update_wrapper(wrap, fn)
+

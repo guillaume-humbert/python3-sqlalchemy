@@ -1,9 +1,9 @@
 from sqlalchemy.testing import eq_, assert_raises, assert_raises_message
 from sqlalchemy.testing import fixtures
-from sqlalchemy import Integer, String, ForeignKey, or_, and_, exc, \
-    select, func, Boolean, case
+from sqlalchemy import Integer, String, ForeignKey, or_, exc, \
+    select, func, Boolean, case, text, column
 from sqlalchemy.orm import mapper, relationship, backref, Session, \
-    joinedload, aliased
+    joinedload, synonym, query
 from sqlalchemy import testing
 
 from sqlalchemy.testing.schema import Table, Column
@@ -18,11 +18,19 @@ class UpdateDeleteTest(fixtures.MappedTest):
               Column('id', Integer, primary_key=True,
                      test_needs_autoincrement=True),
               Column('name', String(32)),
-              Column('age', Integer))
+              Column('age_int', Integer))
+        Table(
+            "addresses", metadata,
+            Column('id', Integer, primary_key=True),
+            Column('user_id', ForeignKey('users.id'))
+        )
 
     @classmethod
     def setup_classes(cls):
         class User(cls.Comparable):
+            pass
+
+        class Address(cls.Comparable):
             pass
 
     @classmethod
@@ -30,10 +38,10 @@ class UpdateDeleteTest(fixtures.MappedTest):
         users = cls.tables.users
 
         users.insert().execute([
-            dict(id=1, name='john', age=25),
-            dict(id=2, name='jack', age=47),
-            dict(id=3, name='jill', age=29),
-            dict(id=4, name='jane', age=37),
+            dict(id=1, name='john', age_int=25),
+            dict(id=2, name='jack', age_int=47),
+            dict(id=3, name='jill', age_int=29),
+            dict(id=4, name='jane', age_int=37),
         ])
 
     @classmethod
@@ -41,7 +49,14 @@ class UpdateDeleteTest(fixtures.MappedTest):
         User = cls.classes.User
         users = cls.tables.users
 
-        mapper(User, users)
+        Address = cls.classes.Address
+        addresses = cls.tables.addresses
+
+        mapper(User, users, properties={
+            'age': users.c.age_int,
+            'addresses': relationship(Address)
+        })
+        mapper(Address, addresses)
 
     def test_illegal_eval(self):
         User = self.classes.User
@@ -57,26 +72,139 @@ class UpdateDeleteTest(fixtures.MappedTest):
 
     def test_illegal_operations(self):
         User = self.classes.User
+        Address = self.classes.Address
 
         s = Session()
 
         for q, mname in (
-            (s.query(User).limit(2), "limit"),
-            (s.query(User).offset(2), "offset"),
-            (s.query(User).limit(2).offset(2), "limit"),
-            (s.query(User).order_by(User.id), "order_by"),
-            (s.query(User).group_by(User.id), "group_by"),
-            (s.query(User).distinct(), "distinct")
+            (s.query(User).limit(2), r"limit\(\)"),
+            (s.query(User).offset(2), r"offset\(\)"),
+            (s.query(User).limit(2).offset(2), r"limit\(\)"),
+            (s.query(User).order_by(User.id), r"order_by\(\)"),
+            (s.query(User).group_by(User.id), r"group_by\(\)"),
+            (s.query(User).distinct(), r"distinct\(\)"),
+            (s.query(User).join(User.addresses),
+                r"join\(\), outerjoin\(\), select_from\(\), or from_self\(\)"),
+            (s.query(User).outerjoin(User.addresses),
+                r"join\(\), outerjoin\(\), select_from\(\), or from_self\(\)"),
+            (s.query(User).select_from(Address),
+                r"join\(\), outerjoin\(\), select_from\(\), or from_self\(\)"),
+            (s.query(User).from_self(),
+                r"join\(\), outerjoin\(\), select_from\(\), or from_self\(\)"),
         ):
             assert_raises_message(
                 exc.InvalidRequestError,
-                r"Can't call Query.update\(\) when %s\(\) has been called" % mname,
+                r"Can't call Query.update\(\) or Query.delete\(\) when "
+                "%s has been called" % mname,
                 q.update,
                 {'name': 'ed'})
             assert_raises_message(
                 exc.InvalidRequestError,
-                r"Can't call Query.delete\(\) when %s\(\) has been called" % mname,
+                r"Can't call Query.update\(\) or Query.delete\(\) when "
+                "%s has been called" % mname,
                 q.delete)
+
+    def test_evaluate_clauseelement(self):
+        User = self.classes.User
+
+        class Thing(object):
+            def __clause_element__(self):
+                return User.name.__clause_element__()
+
+        s = Session()
+        jill = s.query(User).get(3)
+        s.query(User).update(
+            {Thing(): 'moonbeam'},
+            synchronize_session='evaluate')
+        eq_(jill.name, 'moonbeam')
+
+    def test_evaluate_invalid(self):
+        User = self.classes.User
+
+        class Thing(object):
+            def __clause_element__(self):
+                return 5
+
+        s = Session()
+
+        assert_raises_message(
+            exc.InvalidRequestError,
+            "Invalid expression type: 5",
+            s.query(User).update, {Thing(): 'moonbeam'},
+            synchronize_session='evaluate'
+        )
+
+    def test_evaluate_unmapped_col(self):
+        User = self.classes.User
+
+        s = Session()
+        jill = s.query(User).get(3)
+        s.query(User).update(
+            {column('name'): 'moonbeam'},
+            synchronize_session='evaluate')
+        eq_(jill.name, 'jill')
+        s.expire(jill)
+        eq_(jill.name, 'moonbeam')
+
+    def test_evaluate_synonym_string(self):
+        class Foo(object):
+            pass
+        mapper(Foo, self.tables.users, properties={
+            'uname': synonym("name", )
+        })
+
+        s = Session()
+        jill = s.query(Foo).get(3)
+        s.query(Foo).update(
+            {'uname': 'moonbeam'},
+            synchronize_session='evaluate')
+        eq_(jill.uname, 'moonbeam')
+
+    def test_evaluate_synonym_attr(self):
+        class Foo(object):
+            pass
+        mapper(Foo, self.tables.users, properties={
+            'uname': synonym("name", )
+        })
+
+        s = Session()
+        jill = s.query(Foo).get(3)
+        s.query(Foo).update(
+            {Foo.uname: 'moonbeam'},
+            synchronize_session='evaluate')
+        eq_(jill.uname, 'moonbeam')
+
+    def test_evaluate_double_synonym_attr(self):
+        class Foo(object):
+            pass
+        mapper(Foo, self.tables.users, properties={
+            'uname': synonym("name"),
+            'ufoo': synonym('uname')
+        })
+
+        s = Session()
+        jill = s.query(Foo).get(3)
+        s.query(Foo).update(
+            {Foo.ufoo: 'moonbeam'},
+            synchronize_session='evaluate')
+        eq_(jill.ufoo, 'moonbeam')
+
+    def test_evaluate_hybrid_attr(self):
+        from sqlalchemy.ext.hybrid import hybrid_property
+
+        class Foo(object):
+            @hybrid_property
+            def uname(self):
+                return self.name
+
+        mapper(Foo, self.tables.users)
+
+        s = Session()
+        jill = s.query(Foo).get(3)
+        s.query(Foo).update(
+            {Foo.uname: 'moonbeam'},
+            synchronize_session='evaluate')
+        eq_(jill.uname, 'moonbeam')
 
     def test_delete(self):
         User = self.classes.User
@@ -105,7 +233,7 @@ class UpdateDeleteTest(fixtures.MappedTest):
         sess = Session()
 
         john, jack, jill, jane = sess.query(User).order_by(User.id).all()
-        sess.query(User).filter('name = :name').params(
+        sess.query(User).filter(text('name = :name')).params(
             name='john').delete('fetch')
         assert john not in sess
 
@@ -116,7 +244,8 @@ class UpdateDeleteTest(fixtures.MappedTest):
 
         sess = Session()
         john, jack, jill, jane = sess.query(User).order_by(User.id).all()
-        sess.query(User).filter(or_(User.name == 'john', User.name == 'jill')).\
+        sess.query(User).filter(
+            or_(User.name == 'john', User.name == 'jill')).\
             delete(synchronize_session='evaluate')
         assert john not in sess and jill not in sess
         sess.rollback()
@@ -127,7 +256,8 @@ class UpdateDeleteTest(fixtures.MappedTest):
 
         sess = Session()
         john, jack, jill, jane = sess.query(User).order_by(User.id).all()
-        sess.query(User).filter(or_(User.name == 'john', User.name == 'jill')).\
+        sess.query(User).filter(
+            or_(User.name == 'john', User.name == 'jill')).\
             delete(synchronize_session='fetch')
         assert john not in sess and jill not in sess
         sess.rollback()
@@ -139,7 +269,8 @@ class UpdateDeleteTest(fixtures.MappedTest):
         sess = Session()
 
         john, jack, jill, jane = sess.query(User).order_by(User.id).all()
-        sess.query(User).filter(or_(User.name == 'john', User.name == 'jill')).\
+        sess.query(User).filter(
+            or_(User.name == 'john', User.name == 'jill')).\
             delete(synchronize_session=False)
 
         assert john in sess and jill in sess
@@ -152,7 +283,8 @@ class UpdateDeleteTest(fixtures.MappedTest):
         sess = Session()
 
         john, jack, jill, jane = sess.query(User).order_by(User.id).all()
-        sess.query(User).filter(or_(User.name == 'john', User.name == 'jill')).\
+        sess.query(User).filter(
+            or_(User.name == 'john', User.name == 'jill')).\
             delete(synchronize_session='fetch')
 
         assert john not in sess and jill not in sess
@@ -202,7 +334,8 @@ class UpdateDeleteTest(fixtures.MappedTest):
 
         sess.query(User).filter(User.age > 27).\
             update(
-                {users.c.age: User.age - 10}, synchronize_session='evaluate')
+                {users.c.age_int: User.age - 10},
+                synchronize_session='evaluate')
         eq_([john.age, jack.age, jill.age, jane.age], [25, 27, 19, 27])
         eq_(sess.query(User.age).order_by(
             User.id).all(), list(zip([25, 27, 19, 27])))
@@ -213,12 +346,25 @@ class UpdateDeleteTest(fixtures.MappedTest):
         eq_(sess.query(User.age).order_by(
             User.id).all(), list(zip([15, 27, 19, 27])))
 
+    def test_update_against_table_col(self):
+        User, users = self.classes.User, self.tables.users
+
+        sess = Session()
+        john, jack, jill, jane = sess.query(User).order_by(User.id).all()
+        eq_([john.age, jack.age, jill.age, jane.age], [25, 47, 29, 37])
+        sess.query(User).filter(User.age > 27).\
+            update(
+                {users.c.age_int: User.age - 10},
+                synchronize_session='evaluate')
+        eq_([john.age, jack.age, jill.age, jane.age], [25, 37, 19, 27])
+
     def test_update_against_metadata(self):
         User, users = self.classes.User, self.tables.users
 
         sess = Session()
 
-        sess.query(users).update({users.c.age: 29}, synchronize_session=False)
+        sess.query(users).update(
+            {users.c.age_int: 29}, synchronize_session=False)
         eq_(sess.query(User.age).order_by(
             User.id).all(), list(zip([29, 29, 29, 29])))
 
@@ -229,7 +375,7 @@ class UpdateDeleteTest(fixtures.MappedTest):
 
         john, jack, jill, jane = sess.query(User).order_by(User.id).all()
 
-        sess.query(User).filter('age > :x').params(x=29).\
+        sess.query(User).filter(text('age_int > :x')).params(x=29).\
             update({'age': User.age - 10}, synchronize_session='fetch')
 
         eq_([john.age, jack.age, jill.age, jane.age], [25, 37, 29, 27])
@@ -393,7 +539,7 @@ class UpdateDeleteTest(fixtures.MappedTest):
 
         sess.query(User).filter_by(name='j2').\
             delete(
-            synchronize_session='evaluate')
+                synchronize_session='evaluate')
         assert john not in sess
 
     def test_autoflush_before_fetch_delete(self):
@@ -405,7 +551,7 @@ class UpdateDeleteTest(fixtures.MappedTest):
 
         sess.query(User).filter_by(name='j2').\
             delete(
-            synchronize_session='fetch')
+                synchronize_session='fetch')
         assert john not in sess
 
     def test_evaluate_before_update(self):
@@ -447,7 +593,7 @@ class UpdateDeleteTest(fixtures.MappedTest):
         sess.query(User).filter_by(name='john').\
             filter_by(age=25).\
             delete(
-            synchronize_session='evaluate')
+                synchronize_session='evaluate')
         assert john not in sess
 
     def test_fetch_before_delete(self):
@@ -460,7 +606,7 @@ class UpdateDeleteTest(fixtures.MappedTest):
         sess.query(User).filter_by(name='john').\
             filter_by(age=25).\
             delete(
-            synchronize_session='fetch')
+                synchronize_session='fetch')
         assert john not in sess
 
 
@@ -540,7 +686,8 @@ class UpdateDeleteIgnoresLoadersTest(fixtures.MappedTest):
         sess = Session()
 
         john, jack, jill, jane = sess.query(User).order_by(User.id).all()
-        sess.query(User).options(joinedload(User.documents)).filter(User.age > 29).\
+        sess.query(User).options(
+            joinedload(User.documents)).filter(User.age > 29).\
             update({'age': User.age - 10}, synchronize_session='fetch')
 
         eq_([john.age, jack.age, jill.age, jane.age], [25, 37, 29, 27])
@@ -632,8 +779,7 @@ class UpdateDeleteFromTest(fixtures.MappedTest):
             set([
                 (1, True), (2, None),
                 (3, None), (4, True),
-                (5, True), (6, None),
-            ])
+                (5, True), (6, None)])
         )
 
     def test_no_eval_against_multi_table_criteria(self):
@@ -644,14 +790,8 @@ class UpdateDeleteFromTest(fixtures.MappedTest):
 
         q = s.query(User).filter(User.id == Document.user_id)
         assert_raises_message(
-            exc.SAWarning,
-            r"Can't do in-Python evaluation of criteria against alternate "
-            r"class .*Document.*; "
-            "expiration of objects will not be accurate "
-            "and/or may fail.  synchronize_session should be set to "
-            "False or 'fetch'. "
-            "This warning will be an exception "
-            "in 1.0.",
+            exc.InvalidRequestError,
+            "Could not evaluate current criteria in Python.",
             q.update,
             {"name": "ed"}
         )
@@ -672,8 +812,7 @@ class UpdateDeleteFromTest(fixtures.MappedTest):
             set([
                 (1, True), (2, None),
                 (3, None), (4, True),
-                (5, True), (6, None),
-            ])
+                (5, True), (6, None)])
         )
 
     @testing.requires.update_where_target_in_subquery
@@ -696,8 +835,7 @@ class UpdateDeleteFromTest(fixtures.MappedTest):
             set([
                 (1, True), (2, False),
                 (3, False), (4, True),
-                (5, True), (6, False),
-            ])
+                (5, True), (6, False)])
         )
 
     @testing.only_on('mysql', 'Multi table update')
@@ -712,8 +850,7 @@ class UpdateDeleteFromTest(fixtures.MappedTest):
             filter(User.id == 2).update({
                 Document.samename: 'd_samename',
                 User.samename: 'u_samename'
-            }, synchronize_session=False
-        )
+            }, synchronize_session=False)
         eq_(
             s.query(User.id, Document.samename, User.samename).
             filter(User.id == Document.user_id).
@@ -769,6 +906,18 @@ class ExpressionUpdateTest(fixtures.MappedTest):
 
         eq_(d1.cnt, 2)
         sess.close()
+
+    def test_update_args(self):
+        Data = self.classes.Data
+        session = testing.mock.Mock(wraps=Session())
+        update_args = {"mysql_limit": 1}
+        query.Query(Data, session).update({Data.cnt: Data.cnt + 1},
+                                          update_args=update_args)
+        eq_(session.execute.call_count, 1)
+        args, kwargs = session.execute.call_args
+        eq_(len(args), 1)
+        update_stmt = args[0]
+        eq_(update_stmt.dialect_kwargs, update_args)
 
 
 class InheritTest(fixtures.DeclarativeMappedTest):

@@ -222,7 +222,8 @@ class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         mapper(Address, addresses)
         s = create_session()
         a = s.query(Address).from_statement(
-            sa.select([addresses.c.id, addresses.c.user_id])).first()
+            sa.select([addresses.c.id, addresses.c.user_id]).
+            order_by(addresses.c.id)).first()
         eq_(a.user_id, 7)
         eq_(a.id, 1)
         # email address auto-defers
@@ -414,7 +415,9 @@ class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         for constructor, args in [
             (column_property, (users.c.name,)),
             (relationship, (Address,)),
-            (composite, (MyComposite, 'id', 'name'))
+            (composite, (MyComposite, 'id', 'name')),
+            (synonym, 'foo'),
+            (comparable_property, 'foo')
         ]:
             obj = constructor(info={"x": "y"}, *args)
             eq_(obj.info, {"x": "y"})
@@ -713,6 +716,19 @@ class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
             m3.identity_key_from_instance(AddressUser())
         )
 
+    def test_reassign_polymorphic_identity_warns(self):
+        User = self.classes.User
+        users = self.tables.users
+        class MyUser(User):
+            pass
+        m1 = mapper(User, users, polymorphic_on=users.c.name,
+                    polymorphic_identity='user')
+        assert_raises_message(
+            sa.exc.SAWarning,
+            "Reassigning polymorphic association for identity 'user'",
+            mapper,
+            MyUser, users, inherits=User, polymorphic_identity='user'
+        )
 
 
     def test_illegal_non_primary(self):

@@ -1,5 +1,5 @@
 # engine/strategies.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -48,7 +48,8 @@ class DefaultEngineStrategy(EngineStrategy):
         # create url.URL object
         u = url.make_url(name_or_url)
 
-        dialect_cls = u.get_dialect()
+        entrypoint = u.get_dialect()
+        dialect_cls = entrypoint.get_dialect_cls(u)
 
         if kwargs.pop('_coerce_config', False):
             def pop_kwarg(key, default=None):
@@ -81,21 +82,19 @@ class DefaultEngineStrategy(EngineStrategy):
         # assemble connection arguments
         (cargs, cparams) = dialect.create_connect_args(u)
         cparams.update(pop_kwarg('connect_args', {}))
+        cargs = list(cargs)  # allow mutability
 
         # look for existing pool or create
         pool = pop_kwarg('pool', None)
         if pool is None:
-            def connect():
-                try:
-                    return dialect.connect(*cargs, **cparams)
-                except dialect.dbapi.Error as e:
-                    invalidated = dialect.is_disconnect(e, None, None)
-                    util.raise_from_cause(
-                        exc.DBAPIError.instance(
-                            None, None, e, dialect.dbapi.Error,
-                            connection_invalidated=invalidated
-                        )
-                    )
+            def connect(connection_record=None):
+                if dialect._has_events:
+                    for fn in dialect.dispatch.do_connect:
+                        connection = fn(
+                            dialect, connection_record, cargs, cparams)
+                        if connection is not None:
+                            return connection
+                return dialect.connect(*cargs, **cparams)
 
             creator = pop_kwarg('creator', connect)
 
@@ -165,6 +164,10 @@ class DefaultEngineStrategy(EngineStrategy):
                 c._execution_options = util.immutabledict()
                 dialect.initialize(c)
             event.listen(pool, 'first_connect', first_connect, once=True)
+
+        dialect_cls.engine_created(engine)
+        if entrypoint is not dialect_cls:
+            entrypoint.engine_created(engine)
 
         return engine
 

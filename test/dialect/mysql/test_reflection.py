@@ -7,9 +7,11 @@ from sqlalchemy.dialects.mysql import base as mysql
 from sqlalchemy.testing import fixtures, AssertsExecutionResults
 from sqlalchemy import testing
 
+
 class ReflectionTest(fixtures.TestBase, AssertsExecutionResults):
 
     __only_on__ = 'mysql'
+    __backend__ = True
 
     def test_default_reflection(self):
         """Test reflection of column defaults."""
@@ -22,13 +24,12 @@ class ReflectionTest(fixtures.TestBase, AssertsExecutionResults):
                    DefaultClause(''), nullable=False),
             Column('c2', String(10), DefaultClause('0')),
             Column('c3', String(10), DefaultClause('abc')),
-            Column('c4', TIMESTAMP, DefaultClause('2009-04-05 12:00:00'
-                   )),
+            Column('c4', TIMESTAMP, DefaultClause('2009-04-05 12:00:00')),
             Column('c5', TIMESTAMP),
             Column('c6', TIMESTAMP,
                    DefaultClause(sql.text("CURRENT_TIMESTAMP "
                                           "ON UPDATE CURRENT_TIMESTAMP"))),
-            )
+        )
         def_table.create()
         try:
             reflected = Table('mysql_def', MetaData(testing.db),
@@ -281,6 +282,99 @@ class ReflectionTest(fixtures.TestBase, AssertsExecutionResults):
         connection = testing.db.connect()
         view_names = dialect.get_view_names(connection, "information_schema")
         self.assert_('TABLES' in view_names)
+
+    @testing.provide_metadata
+    def test_nullable_reflection(self):
+        """test reflection of NULL/NOT NULL, in particular with TIMESTAMP
+        defaults where MySQL is inconsistent in how it reports CREATE TABLE.
+
+        """
+        meta = self.metadata
+
+        # this is ideally one table, but older MySQL versions choke
+        # on the multiple TIMESTAMP columns
+
+        reflected = []
+        for idx, cols in enumerate([
+            [
+                "x INTEGER NULL",
+                "y INTEGER NOT NULL",
+                "z INTEGER",
+                "q TIMESTAMP NULL"
+            ],
+
+            ["p TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP"],
+            ["r TIMESTAMP NOT NULL"],
+            ["s TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"],
+            ["t TIMESTAMP"],
+            ["u TIMESTAMP DEFAULT CURRENT_TIMESTAMP"]
+        ]):
+            Table("nn_t%d" % idx, meta) # to allow DROP
+
+            testing.db.execute("""
+                CREATE TABLE nn_t%d (
+                    %s
+                )
+            """ % (idx, ", \n".join(cols)))
+
+            reflected.extend(
+                {
+                    "name": d['name'], "nullable": d['nullable'],
+                    "default": d['default']}
+                for d in inspect(testing.db).get_columns("nn_t%d" % idx)
+            )
+
+        eq_(
+            reflected,
+            [
+                {'name': 'x', 'nullable': True, 'default': None},
+                {'name': 'y', 'nullable': False, 'default': None},
+                {'name': 'z', 'nullable': True, 'default': None},
+                {'name': 'q', 'nullable': True, 'default': None},
+                {'name': 'p', 'nullable': True,
+                 'default': 'CURRENT_TIMESTAMP'},
+                {'name': 'r', 'nullable': False,
+                 'default': "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"},
+                {'name': 's', 'nullable': False,
+                 'default': 'CURRENT_TIMESTAMP'},
+                {'name': 't', 'nullable': False,
+                 'default': "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"},
+                {'name': 'u', 'nullable': False,
+                 'default': 'CURRENT_TIMESTAMP'},
+            ]
+        )
+
+    @testing.provide_metadata
+    def test_reflection_with_unique_constraint(self):
+        insp = inspect(testing.db)
+
+        meta = self.metadata
+        uc_table = Table('mysql_uc', meta,
+                         Column('a', String(10)),
+                         UniqueConstraint('a', name='uc_a'))
+
+        uc_table.create()
+
+        # MySQL converts unique constraints into unique indexes.
+        # separately we get both
+        indexes = dict((i['name'], i) for i in insp.get_indexes('mysql_uc'))
+        constraints = set(i['name']
+                          for i in insp.get_unique_constraints('mysql_uc'))
+
+        self.assert_('uc_a' in indexes)
+        self.assert_(indexes['uc_a']['unique'])
+        self.assert_('uc_a' in constraints)
+
+        # reflection here favors the unique index, as that's the
+        # more "official" MySQL construct
+        reflected = Table('mysql_uc', MetaData(testing.db), autoload=True)
+
+        indexes = dict((i.name, i) for i in reflected.indexes)
+        constraints = set(uc.name for uc in reflected.constraints)
+
+        self.assert_('uc_a' in indexes)
+        self.assert_(indexes['uc_a'].unique)
+        self.assert_('uc_a' not in constraints)
 
 
 class RawReflectionTest(fixtures.TestBase):

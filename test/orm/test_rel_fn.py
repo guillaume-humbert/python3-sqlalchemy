@@ -3,9 +3,9 @@ from sqlalchemy.testing import assert_raises_message, eq_, \
 from sqlalchemy.testing import fixtures
 from sqlalchemy.orm import relationships, foreign, remote
 from sqlalchemy import MetaData, Table, Column, ForeignKey, Integer, \
-    select, ForeignKeyConstraint, exc, func, and_, String
+    select, ForeignKeyConstraint, exc, func, and_, String, Boolean
 from sqlalchemy.orm.interfaces import ONETOMANY, MANYTOONE, MANYTOMANY
-
+from sqlalchemy.testing import mock
 
 class _JoinFixtures(object):
     @classmethod
@@ -71,6 +71,7 @@ class _JoinFixtures(object):
         )
         cls.base = Table('base', m,
             Column('id', Integer, primary_key=True),
+            Column('flag', Boolean)
         )
         cls.sub = Table('sub', m,
             Column('id', Integer, ForeignKey('base.id'),
@@ -490,6 +491,44 @@ class _JoinFixtures(object):
                         )
                 )
 
+    def _join_fixture_remote_local_multiple_ref(self, **kw):
+        fn = lambda a, b: ((a == b) | (b == a))
+        return relationships.JoinCondition(
+            self.selfref, self.selfref,
+            self.selfref, self.selfref,
+            support_sync=False,
+            primaryjoin=fn(
+                # we're putting a do-nothing annotation on
+                # "a" so that the left/right is preserved;
+                # annotation vs. non seems to affect __eq__ behavior
+                self.selfref.c.sid._annotate({"foo": "bar"}),
+                foreign(remote(self.selfref.c.sid)))
+        )
+
+    def _join_fixture_inh_selfref_w_entity(self, **kw):
+        fake_logger = mock.Mock(info=lambda *arg, **kw: None)
+        prop = mock.Mock(
+            parent=mock.Mock(),
+            mapper=mock.Mock(),
+            logger=fake_logger
+        )
+        local_selectable = self.base.join(self.sub)
+        remote_selectable = self.base.join(self.sub_w_sub_rel)
+
+        sub_w_sub_rel__sub_id = self.sub_w_sub_rel.c.sub_id._annotate(
+            {'parentmapper': prop.mapper})
+        sub__id = self.sub.c.id._annotate({'parentmapper': prop.parent})
+        sub_w_sub_rel__flag = self.base.c.flag._annotate(
+            {"parentmapper": prop.mapper})
+        return relationships.JoinCondition(
+            local_selectable, remote_selectable,
+            local_selectable, remote_selectable,
+            primaryjoin=and_(
+                sub_w_sub_rel__sub_id == sub__id,
+                sub_w_sub_rel__flag == True
+            ),
+            prop=prop
+        )
 
     def _assert_non_simple_warning(self, fn):
         assert_raises_message(
@@ -891,6 +930,17 @@ class ColumnCollectionsTest(_JoinFixtures, fixtures.TestBase,
             [(self.purely_single_col.c.path, self.purely_single_col.c.path)]
         )
 
+    def test_determine_local_remote_pairs_inh_selfref_w_entities(self):
+        joincond = self._join_fixture_inh_selfref_w_entity()
+        eq_(
+            joincond.local_remote_pairs,
+            [(self.sub.c.id, self.sub_w_sub_rel.c.sub_id)]
+        )
+        eq_(
+            joincond.remote_columns,
+            set([self.base.c.flag, self.sub_w_sub_rel.c.sub_id])
+        )
+
 class DirectionTest(_JoinFixtures, fixtures.TestBase, AssertsCompiledSQL):
     def test_determine_direction_compound_2(self):
         joincond = self._join_fixture_compound_expression_2(
@@ -1174,4 +1224,14 @@ class LazyClauseTest(_JoinFixtures, fixtures.TestBase, AssertsCompiledSQL):
             lazywhere,
             "lft.id = :param_1 AND lft.x = :x_1",
             checkparams= {'param_1': None, 'x_1': 5}
+        )
+
+    def test_lazy_clause_remote_local_multiple_ref(self):
+        joincond = self._join_fixture_remote_local_multiple_ref()
+        lazywhere, bind_to_col, equated_columns = joincond.create_lazy_clause()
+
+        self.assert_compile(
+            lazywhere,
+            ":param_1 = selfref.sid OR selfref.sid = :param_1",
+            checkparams={'param_1': None}
         )

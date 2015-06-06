@@ -1,5 +1,5 @@
 # ext/associationproxy.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -77,16 +77,16 @@ def association_proxy(target_collection, attr, **kw):
 
 
 ASSOCIATION_PROXY = util.symbol('ASSOCIATION_PROXY')
-"""Symbol indicating an :class:`_InspectionAttr` that's
+"""Symbol indicating an :class:`InspectionAttr` that's
     of type :class:`.AssociationProxy`.
 
-   Is assigned to the :attr:`._InspectionAttr.extension_type`
+   Is assigned to the :attr:`.InspectionAttr.extension_type`
    attibute.
 
 """
 
 
-class AssociationProxy(interfaces._InspectionAttr):
+class AssociationProxy(interfaces.InspectionAttrInfo):
     """A descriptor that presents a read/write view of an object attribute."""
 
     is_attribute = False
@@ -365,13 +365,17 @@ class AssociationProxy(interfaces._InspectionAttr):
         operators of the underlying proxied attributes.
 
         """
-
-        if self._value_is_scalar:
-            value_expr = getattr(
-                self.target_class, self.value_attr).has(criterion, **kwargs)
+        if self._target_is_object:
+            if self._value_is_scalar:
+                value_expr = getattr(
+                    self.target_class, self.value_attr).has(
+                    criterion, **kwargs)
+            else:
+                value_expr = getattr(
+                    self.target_class, self.value_attr).any(
+                    criterion, **kwargs)
         else:
-            value_expr = getattr(
-                self.target_class, self.value_attr).any(criterion, **kwargs)
+            value_expr = criterion
 
         # check _value_is_scalar here, otherwise
         # we're scalar->scalar - call .any() so that
@@ -527,7 +531,10 @@ class _AssociationList(_AssociationCollection):
         return self.setter(object, value)
 
     def __getitem__(self, index):
-        return self._get(self.col[index])
+        if not isinstance(index, slice):
+            return self._get(self.col[index])
+        else:
+            return [self._get(member) for member in self.col[index]]
 
     def __setitem__(self, index, value):
         if not isinstance(index, slice):

@@ -18,9 +18,9 @@ MyTest = None
 MyTest2 = None
 
 
-
 def _set_callable(state, dict_, key, callable_):
-    fn = InstanceState._row_processor(state.manager, callable_, key)
+    fn = InstanceState._instance_level_callable_processor(
+        state.manager, callable_, key)
     fn(state, dict_, None)
 
 
@@ -906,7 +906,7 @@ class GetNoValueTest(fixtures.ORMTest):
                         "attr", useobject=True,
                         uselist=False)
 
-        f1 = Foo()
+        f1 = self.f1 = Foo()
         return Foo.attr.impl,\
                 attributes.instance_state(f1), \
                 attributes.instance_dict(f1)
@@ -949,7 +949,7 @@ class GetNoValueTest(fixtures.ORMTest):
             attr.get(state, dict_, passive=attributes.PASSIVE_OFF),
             None
         )
-        assert 'attr' in dict_
+        assert 'attr' not in dict_
 
 class UtilTest(fixtures.ORMTest):
     def test_helpers(self):
@@ -1524,6 +1524,13 @@ class HistoryTest(fixtures.TestBase):
         f.someattr = 3
         eq_(self._someattr_committed_state(f), None)
 
+    def test_committed_value_set_active_hist(self):
+        Foo = self._fixture(uselist=False, useobject=False,
+                                active_history=True)
+        f = Foo()
+        f.someattr = 3
+        eq_(self._someattr_committed_state(f), None)
+
     def test_committed_value_set_commit(self):
         Foo = self._fixture(uselist=False, useobject=False,
                                 active_history=False)
@@ -1565,6 +1572,31 @@ class HistoryTest(fixtures.TestBase):
         f = Foo()
         f.someattr = 'hi'
         eq_(self._someattr_history(f), (['hi'], (), ()))
+
+    def test_scalar_set_None(self):
+        # note - compare:
+        # test_scalar_set_None,
+        # test_scalar_get_first_set_None,
+        # test_use_object_set_None,
+        # test_use_object_get_first_set_None
+        Foo = self._fixture(uselist=False, useobject=False,
+                                active_history=False)
+        f = Foo()
+        f.someattr = None
+        eq_(self._someattr_history(f), ([None], (), ()))
+
+    def test_scalar_get_first_set_None(self):
+        # note - compare:
+        # test_scalar_set_None,
+        # test_scalar_get_first_set_None,
+        # test_use_object_set_None,
+        # test_use_object_get_first_set_None
+        Foo = self._fixture(uselist=False, useobject=False,
+                                active_history=False)
+        f = Foo()
+        assert f.someattr is None
+        f.someattr = None
+        eq_(self._someattr_history(f), ([None], (), ()))
 
     def test_scalar_set_commit(self):
         Foo = self._fixture(uselist=False, useobject=False,
@@ -1789,7 +1821,11 @@ class HistoryTest(fixtures.TestBase):
         self._commit_someattr(f)
 
         state = attributes.instance_state(f)
-        state._expire_attribute_pre_commit(state.dict, 'someattr')
+        # do the same thing that
+        # populators.expire.append((self.key, True))
+        # does in loading.py
+        state.dict.pop('someattr', None)
+        state.expired_attributes.add('someattr')
 
         def scalar_loader(state, toload):
             state.dict['someattr'] = 'one'
@@ -1954,20 +1990,27 @@ class HistoryTest(fixtures.TestBase):
         eq_(self._someattr_history(f), ((), [there], ()))
 
     def test_use_object_set_None(self):
+        # note - compare:
+        # test_scalar_set_None,
+        # test_scalar_get_first_set_None,
+        # test_use_object_set_None,
+        # test_use_object_get_first_set_None
         Foo, Bar = self._two_obj_fixture(uselist=False)
         f = Foo()
         f.someattr = None
-        # we'd expect ([None], (), ()), however because
-        # we set to None w/o setting history if we were to "get" first,
-        # it is more consistent that this doesn't set history.
-        eq_(self._someattr_history(f), ((), [None], ()))
+        eq_(self._someattr_history(f), ([None], (), ()))
 
     def test_use_object_get_first_set_None(self):
+        # note - compare:
+        # test_scalar_set_None,
+        # test_scalar_get_first_set_None,
+        # test_use_object_set_None,
+        # test_use_object_get_first_set_None
         Foo, Bar = self._two_obj_fixture(uselist=False)
         f = Foo()
         assert f.someattr is None
         f.someattr = None
-        eq_(self._someattr_history(f), ((), [None], ()))
+        eq_(self._someattr_history(f), ([None], (), ()))
 
     def test_use_object_set_dict_set_None(self):
         Foo, Bar = self._two_obj_fixture(uselist=False)
@@ -2354,7 +2397,7 @@ class LazyloadHistoryTest(fixtures.TestBase):
             'bar'), ((), (), ['hi']))
         assert f.bar is None
         eq_(attributes.get_state_history(attributes.instance_state(f),
-            'bar'), ([None], (), ['hi']))
+            'bar'), ((), (), ['hi']))
 
     def test_scalar_via_lazyload_with_active(self):
         # TODO: break into individual tests
@@ -2398,7 +2441,7 @@ class LazyloadHistoryTest(fixtures.TestBase):
             'bar'), ((), (), ['hi']))
         assert f.bar is None
         eq_(attributes.get_state_history(attributes.instance_state(f),
-            'bar'), ([None], (), ['hi']))
+            'bar'), ((), (), ['hi']))
 
     def test_scalar_object_via_lazyload(self):
         # TODO: break into individual tests
@@ -2443,7 +2486,7 @@ class LazyloadHistoryTest(fixtures.TestBase):
             'bar'), ((), (), [bar1]))
         assert f.bar is None
         eq_(attributes.get_state_history(attributes.instance_state(f),
-            'bar'), ([None], (), [bar1]))
+            'bar'), ((), (), [bar1]))
 
 class ListenerTest(fixtures.ORMTest):
     def test_receive_changes(self):
@@ -2518,17 +2561,57 @@ class ListenerTest(fixtures.ORMTest):
             [
                 call.set(
                     oldvalue=attributes.NO_VALUE,
-                    initiator=canary.mock_calls[0][2]['initiator'],
+                    initiator=attributes.Event(
+                        Foo.data.impl, attributes.OP_REPLACE),
                     target=f1, value=5),
                 call.append(
-                    initiator=canary.mock_calls[1][2]['initiator'],
+                    initiator=attributes.Event(
+                        Foo.barlist.impl, attributes.OP_APPEND),
                     target=f1,
                     value=b1),
                 call.remove(
-                    initiator=canary.mock_calls[2][2]['initiator'],
+                    initiator=attributes.Event(
+                        Foo.barlist.impl, attributes.OP_REMOVE),
                     target=f1,
                     value=b1)]
         )
+
+    def test_collection_link_events(self):
+        class Foo(object):
+            pass
+        class Bar(object):
+            pass
+        instrumentation.register_class(Foo)
+        instrumentation.register_class(Bar)
+        attributes.register_attribute(Foo, 'barlist', uselist=True,
+                useobject=True)
+
+        canary = Mock()
+        event.listen(Foo.barlist, "init_collection", canary.init)
+        event.listen(Foo.barlist, "dispose_collection", canary.dispose)
+
+        f1 = Foo()
+        eq_(f1.barlist, [])
+        adapter_one = f1.barlist._sa_adapter
+        eq_(canary.init.mock_calls, [call(f1, [], adapter_one)])
+
+        b1 = Bar()
+        f1.barlist.append(b1)
+
+        b2 = Bar()
+        f1.barlist = [b2]
+        adapter_two = f1.barlist._sa_adapter
+        eq_(canary.init.mock_calls, [
+            call(f1, [], adapter_one),
+            call(f1, [b2], adapter_two),
+        ])
+        eq_(
+            canary.dispose.mock_calls,
+            [
+                call(f1, [], adapter_one)
+            ]
+        )
+
 
     def test_none_on_collection_event(self):
         """test that append/remove of None in collections emits events.
@@ -2569,6 +2652,49 @@ class ListenerTest(fixtures.ORMTest):
 
         f1.barlist.remove(None)
         eq_(canary, [(f1, b1), (f1, None), (f1, b2), (f1, None)])
+
+    def test_none_init_scalar(self):
+        canary = Mock()
+        class Foo(object):
+            pass
+        instrumentation.register_class(Foo)
+        attributes.register_attribute(Foo, 'bar')
+
+        event.listen(Foo.bar, "set", canary)
+
+        f1 = Foo()
+        eq_(f1.bar, None)
+        # reversal of approach in #3061
+        eq_(canary.mock_calls, [])
+
+    def test_none_init_object(self):
+        canary = Mock()
+        class Foo(object):
+            pass
+        instrumentation.register_class(Foo)
+        attributes.register_attribute(Foo, 'bar', useobject=True)
+
+        event.listen(Foo.bar, "set", canary)
+
+        f1 = Foo()
+        eq_(f1.bar, None)
+        # reversal of approach in #3061
+        eq_(canary.mock_calls, [])
+
+    def test_none_init_collection(self):
+        canary = Mock()
+        class Foo(object):
+            pass
+        instrumentation.register_class(Foo)
+        attributes.register_attribute(Foo, 'bar', useobject=True, uselist=True)
+
+        event.listen(Foo.bar, "set", canary)
+
+        f1 = Foo()
+        eq_(f1.bar, [])
+        # reversal of approach in #3061
+        eq_(canary.mock_calls, [])
+
 
     def test_propagate(self):
         classes = [None, None, None]

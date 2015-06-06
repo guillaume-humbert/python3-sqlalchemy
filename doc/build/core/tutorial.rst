@@ -50,13 +50,13 @@ Version Check
 =============
 
 
-A quick check to verify that we are on at least **version 0.9** of SQLAlchemy:
+A quick check to verify that we are on at least **version 1.0** of SQLAlchemy:
 
 .. sourcecode:: pycon+sql
 
     >>> import sqlalchemy
     >>> sqlalchemy.__version__ # doctest:+SKIP
-    0.9.0
+    1.0.0
 
 Connecting
 ==========
@@ -307,6 +307,8 @@ them is different across different databases; each database's
 determine the correct value (or values; note that ``inserted_primary_key``
 returns a list so that it supports composite primary keys).
 
+.. _execute_multiple:
+
 Executing Multiple Statements
 ==============================
 
@@ -368,7 +370,7 @@ Selecting
 ==========
 
 We began with inserts just so that our test database had some data in it. The
-more interesting part of the data is selecting it ! We'll cover UPDATE and
+more interesting part of the data is selecting it! We'll cover UPDATE and
 DELETE statements later. The primary construct used to generate SELECT
 statements is the :func:`.select` function:
 
@@ -834,6 +836,11 @@ need to refer to any pre-established :class:`.Table` metadata:
     Python and the database.  Overall, the more :func:`.text` we use,
     the less flexibility and ability for manipulation/transformation
     the statement will have.
+
+.. versionchanged:: 1.0.0
+   The :func:`.select` construct emits warnings when string SQL
+   fragments are coerced to :func:`.text`, and :func:`.text` should
+   be used explicitly.  See :ref:`migration_2992` for background.
 
 .. _sqlexpression_literal_column:
 
@@ -1684,7 +1691,7 @@ Inserts, Updates and Deletes
 
 We've seen :meth:`~.TableClause.insert` demonstrated
 earlier in this tutorial.   Where :meth:`~.TableClause.insert`
-prodces INSERT, the :meth:`~.TableClause.update`
+produces INSERT, the :meth:`~.TableClause.update`
 method produces UPDATE.  Both of these constructs feature
 a method called :meth:`~.ValuesBase.values` which specifies
 the VALUES or SET clause of the statement.

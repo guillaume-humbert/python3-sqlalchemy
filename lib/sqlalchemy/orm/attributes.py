@@ -1,5 +1,5 @@
 # orm/attributes.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -30,9 +30,8 @@ from .base import state_str, instance_str
 
 @inspection._self_inspects
 class QueryableAttribute(interfaces._MappedAttribute,
-                         interfaces._InspectionAttr,
+                         interfaces.InspectionAttr,
                          interfaces.PropComparator):
-
     """Base class for :term:`descriptor` objects that intercept
     attribute events on behalf of a :class:`.MapperProperty`
     object.  The actual :class:`.MapperProperty` is accessible
@@ -212,7 +211,6 @@ class QueryableAttribute(interfaces._MappedAttribute,
 
 
 class InstrumentedAttribute(QueryableAttribute):
-
     """Class bound instrumented attribute which adds basic
     :term:`descriptor` methods.
 
@@ -250,7 +248,6 @@ def create_proxied_attribute(descriptor):
     # function is removed from ext/hybrid.py
 
     class Proxy(QueryableAttribute):
-
         """Presents the :class:`.QueryableAttribute` interface as a
         proxy on top of a Python descriptor / :class:`.PropComparator`
         combination.
@@ -330,7 +327,6 @@ OP_REPLACE = util.symbol("REPLACE")
 
 
 class Event(object):
-
     """A token propagated throughout the course of a chain of attribute
     events.
 
@@ -349,22 +345,25 @@ class Event(object):
 
     .. versionadded:: 0.9.0
 
-    """
+    :var impl: The :class:`.AttributeImpl` which is the current event
+     initiator.
 
-    impl = None
-    """The :class:`.AttributeImpl` which is the current event initiator.
-    """
-
-    op = None
-    """The symbol :attr:`.OP_APPEND`, :attr:`.OP_REMOVE` or :attr:`.OP_REPLACE`,
-    indicating the source operation.
+    :var op: The symbol :attr:`.OP_APPEND`, :attr:`.OP_REMOVE` or
+     :attr:`.OP_REPLACE`, indicating the source operation.
 
     """
+
+    __slots__ = 'impl', 'op', 'parent_token'
 
     def __init__(self, attribute_impl, op):
         self.impl = attribute_impl
         self.op = op
         self.parent_token = self.impl.parent_token
+
+    def __eq__(self, other):
+        return isinstance(other, Event) and \
+            other.impl is self.impl and \
+            other.op == self.op
 
     @property
     def key(self):
@@ -375,7 +374,6 @@ class Event(object):
 
 
 class AttributeImpl(object):
-
     """internal implementation for instrumented attributes."""
 
     def __init__(self, class_, key,
@@ -455,6 +453,11 @@ class AttributeImpl(object):
 
         self.expire_missing = expire_missing
 
+    __slots__ = (
+        'class_', 'key', 'callable_', 'dispatch', 'trackparent',
+        'parent_token', 'send_modified_events', 'is_equal', 'expire_missing'
+    )
+
     def __str__(self):
         return "%s.%s" % (self.class_.__name__, self.key)
 
@@ -524,23 +527,6 @@ class AttributeImpl(object):
 
             state.parents[id_] = False
 
-    def set_callable(self, state, callable_):
-        """Set a callable function for this attribute on the given object.
-
-        This callable will be executed when the attribute is next
-        accessed, and is assumed to construct part of the instances
-        previously stored state. When its value or values are loaded,
-        they will be established as part of the instance's *committed
-        state*.  While *trackparent* information will be assembled for
-        these instances, attribute-level event handlers will not be
-        fired.
-
-        The callable overrides the class level callable set in the
-        ``InstrumentedAttribute`` constructor.
-
-        """
-        state.callables[self.key] = callable_
-
     def get_history(self, state, dict_, passive=PASSIVE_OFF):
         raise NotImplementedError()
 
@@ -565,7 +551,6 @@ class AttributeImpl(object):
     def initialize(self, state, dict_):
         """Initialize the given state's attribute with an empty value."""
 
-        dict_[self.key] = None
         return None
 
     def get(self, state, dict_, passive=PASSIVE_OFF):
@@ -584,7 +569,9 @@ class AttributeImpl(object):
                 if not passive & CALLABLES_OK:
                     return PASSIVE_NO_RESULT
 
-                if key in state.callables:
+                if key in state.expired_attributes:
+                    value = state._load_expired(state, passive)
+                elif key in state.callables:
                     callable_ = state.callables[key]
                     value = callable_(state, passive)
                 elif self.callable_:
@@ -632,7 +619,7 @@ class AttributeImpl(object):
 
         if self.key in state.committed_state:
             value = state.committed_state[self.key]
-            if value is NO_VALUE:
+            if value in (NO_VALUE, NEVER_SET):
                 return None
             else:
                 return value
@@ -648,13 +635,29 @@ class AttributeImpl(object):
 
 
 class ScalarAttributeImpl(AttributeImpl):
-
     """represents a scalar value-holding InstrumentedAttribute."""
 
     accepts_scalar_loader = True
     uses_objects = False
     supports_population = True
     collection = False
+
+    __slots__ = '_replace_token', '_append_token', '_remove_token'
+
+    def __init__(self, *arg, **kw):
+        super(ScalarAttributeImpl, self).__init__(*arg, **kw)
+        self._replace_token = self._append_token = None
+        self._remove_token = None
+
+    def _init_append_token(self):
+        self._replace_token = self._append_token = Event(self, OP_REPLACE)
+        return self._replace_token
+
+    _init_append_or_replace_token = _init_append_token
+
+    def _init_remove_token(self):
+        self._remove_token = Event(self, OP_REMOVE)
+        return self._remove_token
 
     def delete(self, state, dict_):
 
@@ -694,27 +697,18 @@ class ScalarAttributeImpl(AttributeImpl):
         state._modified_event(dict_, self, old)
         dict_[self.key] = value
 
-    @util.memoized_property
-    def _replace_token(self):
-        return Event(self, OP_REPLACE)
-
-    @util.memoized_property
-    def _append_token(self):
-        return Event(self, OP_REPLACE)
-
-    @util.memoized_property
-    def _remove_token(self):
-        return Event(self, OP_REMOVE)
-
     def fire_replace_event(self, state, dict_, value, previous, initiator):
         for fn in self.dispatch.set:
             value = fn(
-                state, value, previous, initiator or self._replace_token)
+                state, value, previous,
+                initiator or self._replace_token or
+                self._init_append_or_replace_token())
         return value
 
     def fire_remove_event(self, state, dict_, value, initiator):
         for fn in self.dispatch.remove:
-            fn(state, value, initiator or self._remove_token)
+            fn(state, value,
+               initiator or self._remove_token or self._init_remove_token())
 
     @property
     def type(self):
@@ -722,7 +716,6 @@ class ScalarAttributeImpl(AttributeImpl):
 
 
 class ScalarObjectAttributeImpl(ScalarAttributeImpl):
-
     """represents a scalar-holding InstrumentedAttribute,
        where the target object is also instrumented.
 
@@ -735,9 +728,13 @@ class ScalarObjectAttributeImpl(ScalarAttributeImpl):
     supports_population = True
     collection = False
 
+    __slots__ = ()
+
     def delete(self, state, dict_):
         old = self.get(state, dict_)
-        self.fire_remove_event(state, dict_, old, self._remove_token)
+        self.fire_remove_event(
+            state, dict_, old,
+            self._remove_token or self._init_remove_token())
         del dict_[self.key]
 
     def get_history(self, state, dict_, passive=PASSIVE_OFF):
@@ -787,14 +784,7 @@ class ScalarObjectAttributeImpl(ScalarAttributeImpl):
             old = self.get(
                 state, dict_, passive=PASSIVE_ONLY_PERSISTENT | NO_AUTOFLUSH)
         else:
-            # would like to call with PASSIVE_NO_FETCH ^ INIT_OK.  However,
-            # we have a long-standing behavior that a "get()" on never set
-            # should implicitly set the value to None.  Leaving INIT_OK
-            # set here means we are consistent whether or not we did a get
-            # first.
-            # see test_use_object_set_None vs.
-            # test_use_object_get_first_set_None in test_attributes.py
-            old = self.get(state, dict_, passive=PASSIVE_NO_FETCH)
+            old = self.get(state, dict_, passive=PASSIVE_NO_FETCH ^ INIT_OK)
 
         if check_old is not None and \
                 old is not PASSIVE_NO_RESULT and \
@@ -817,7 +807,8 @@ class ScalarObjectAttributeImpl(ScalarAttributeImpl):
             self.sethasparent(instance_state(value), state, False)
 
         for fn in self.dispatch.remove:
-            fn(state, value, initiator or self._remove_token)
+            fn(state, value, initiator or
+               self._remove_token or self._init_remove_token())
 
         state._modified_event(dict_, self, value)
 
@@ -829,7 +820,8 @@ class ScalarObjectAttributeImpl(ScalarAttributeImpl):
 
         for fn in self.dispatch.set:
             value = fn(
-                state, value, previous, initiator or self._replace_token)
+                state, value, previous, initiator or
+                self._replace_token or self._init_append_or_replace_token())
 
         state._modified_event(dict_, self, previous)
 
@@ -841,7 +833,6 @@ class ScalarObjectAttributeImpl(ScalarAttributeImpl):
 
 
 class CollectionAttributeImpl(AttributeImpl):
-
     """A collection-holding attribute that instruments changes in membership.
 
     Only handles collections of instrumented objects.
@@ -856,6 +847,8 @@ class CollectionAttributeImpl(AttributeImpl):
     uses_objects = True
     supports_population = True
     collection = True
+
+    __slots__ = 'copy', 'collection_factory', '_append_token', '_remove_token'
 
     def __init__(self, class_, key, callable_, dispatch,
                  typecallable=None, trackparent=False, extension=None,
@@ -873,6 +866,26 @@ class CollectionAttributeImpl(AttributeImpl):
             copy_function = self.__copy
         self.copy = copy_function
         self.collection_factory = typecallable
+        self._append_token = None
+        self._remove_token = None
+
+        if getattr(self.collection_factory, "_sa_linker", None):
+
+            @event.listens_for(self, "init_collection")
+            def link(target, collection, collection_adapter):
+                collection._sa_linker(collection_adapter)
+
+            @event.listens_for(self, "dispose_collection")
+            def unlink(target, collection, collection_adapter):
+                collection._sa_linker(None)
+
+    def _init_append_token(self):
+        self._append_token = Event(self, OP_APPEND)
+        return self._append_token
+
+    def _init_remove_token(self):
+        self._remove_token = Event(self, OP_REMOVE)
+        return self._remove_token
 
     def __copy(self, item):
         return [y for y in collections.collection_adapter(item)]
@@ -916,17 +929,11 @@ class CollectionAttributeImpl(AttributeImpl):
 
         return [(instance_state(o), o) for o in current]
 
-    @util.memoized_property
-    def _append_token(self):
-        return Event(self, OP_APPEND)
-
-    @util.memoized_property
-    def _remove_token(self):
-        return Event(self, OP_REMOVE)
-
     def fire_append_event(self, state, dict_, value, initiator):
         for fn in self.dispatch.append:
-            value = fn(state, value, initiator or self._append_token)
+            value = fn(
+                state, value,
+                initiator or self._append_token or self._init_append_token())
 
         state._modified_event(dict_, self, NEVER_SET, True)
 
@@ -943,7 +950,8 @@ class CollectionAttributeImpl(AttributeImpl):
             self.sethasparent(instance_state(value), state, False)
 
         for fn in self.dispatch.remove:
-            fn(state, value, initiator or self._remove_token)
+            fn(state, value,
+               initiator or self._remove_token or self._init_remove_token())
 
         state._modified_event(dict_, self, NEVER_SET, True)
 
@@ -966,8 +974,13 @@ class CollectionAttributeImpl(AttributeImpl):
         return user_data
 
     def _initialize_collection(self, state):
-        return state.manager.initialize_collection(
+
+        adapter, collection = state.manager.initialize_collection(
             self.key, state, self.collection_factory)
+
+        self.dispatch.init_collection(state, collection, adapter)
+
+        return adapter, collection
 
     def append(self, state, dict_, value, initiator, passive=PASSIVE_OFF):
         collection = self.get_collection(state, dict_, passive=passive)
@@ -1037,12 +1050,14 @@ class CollectionAttributeImpl(AttributeImpl):
         # place a copy of "old" in state.committed_state
         state._modified_event(dict_, self, old, True)
 
-        old_collection = getattr(old, '_sa_adapter')
+        old_collection = old._sa_adapter
 
         dict_[self.key] = user_data
 
         collections.bulk_replace(new_values, old_collection, new_collection)
-        old_collection.unlink(old)
+
+        del old._sa_adapter
+        self.dispatch.dispose_collection(state, old, old_collection)
 
     def _invalidate_collection(self, collection):
         adapter = getattr(collection, '_sa_adapter')
@@ -1128,7 +1143,8 @@ def backref_listeners(attribute, key, uselist):
                 impl.pop(old_state,
                          old_dict,
                          state.obj(),
-                         parent_impl._append_token,
+                         parent_impl._append_token or
+                            parent_impl._init_append_token(),
                          passive=PASSIVE_NO_FETCH)
 
         if child is not None:
@@ -1208,7 +1224,6 @@ History = util.namedtuple("History", [
 
 
 class History(History):
-
     """A 3-tuple of added, unchanged and deleted values,
     representing the changes which have occurred on an instrumented
     attribute.

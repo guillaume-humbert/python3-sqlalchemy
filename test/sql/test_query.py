@@ -6,7 +6,7 @@ from sqlalchemy import (
     exc, sql, func, select, String, Integer, MetaData, and_, ForeignKey,
     union, intersect, except_, union_all, VARCHAR, INT, CHAR, text, Sequence,
     bindparam, literal, not_, type_coerce, literal_column, desc, asc,
-    TypeDecorator, or_, cast)
+    TypeDecorator, or_, cast, table, column)
 from sqlalchemy.engine import default, result as _result
 from sqlalchemy.testing.schema import Table, Column
 
@@ -81,11 +81,10 @@ class QueryTest(fixtures.TestBase):
 
         assert_raises_message(
             exc.StatementError,
-            r"A value is required for bind parameter 'user_name', in "
+            r"\(sqlalchemy.exc.InvalidRequestError\) A value is required for "
+            "bind parameter 'user_name', in "
             "parameter group 2 "
-            "\(original cause: (sqlalchemy.exc.)?InvalidRequestError: A "
-            "value is required for bind parameter 'user_name', in "
-            "parameter group 2\) u?'INSERT INTO query_users",
+            r"\[SQL: u?'INSERT INTO query_users",
             users.insert().execute,
             {'user_id': 7, 'user_name': 'jack'},
             {'user_id': 8, 'user_name': 'ed'},
@@ -275,6 +274,20 @@ class QueryTest(fixtures.TestBase):
 
         r = t6.insert().values(manual_id=id).execute()
         eq_(r.inserted_primary_key, [12, 1])
+
+    def test_implicit_id_insert_select_columns(self):
+        stmt = users.insert().from_select(
+            (users.c.user_id, users.c.user_name),
+            users.select().where(users.c.user_id == 20))
+
+        testing.db.execute(stmt)
+
+    def test_implicit_id_insert_select_keys(self):
+        stmt = users.insert().from_select(
+            ["user_id", "user_name"],
+            users.select().where(users.c.user_id == 20))
+
+        testing.db.execute(stmt)
 
     def test_row_iteration(self):
         users.insert().execute(
@@ -845,8 +858,10 @@ class QueryTest(fixtures.TestBase):
         # this will create column() objects inside
         # the select(), these need to match on name anyway
         r = testing.db.execute(
-            select(['user_id', 'user_name']).select_from('query_users').
-            where('user_id=2')
+            select([
+                column('user_id'), column('user_name')
+            ]).select_from(table('query_users')).
+            where(text('user_id=2'))
         ).first()
         self.assert_(r.user_id == r['user_id'] == r[users.c.user_id] == 2)
         self.assert_(
@@ -985,6 +1000,9 @@ class QueryTest(fixtures.TestBase):
     def test_fetchone_til_end(self):
         result = testing.db.execute("select * from query_users")
         eq_(result.fetchone(), None)
+        eq_(result.fetchone(), None)
+        eq_(result.fetchone(), None)
+        result.close()
         assert_raises_message(
             exc.ResourceClosedError,
             "This result object is closed.",
@@ -1165,6 +1183,48 @@ class QueryTest(fixtures.TestBase):
         )
         eq_(
             row[1], 1
+        )
+
+    def test_fetch_partial_result_map(self):
+        users.insert().execute(user_id=7, user_name='ed')
+
+        t = text("select * from query_users").columns(
+            user_name=String()
+        )
+        eq_(
+            testing.db.execute(t).fetchall(), [(7, 'ed')]
+        )
+
+    def test_fetch_unordered_result_map(self):
+        users.insert().execute(user_id=7, user_name='ed')
+
+        class Goofy1(TypeDecorator):
+            impl = String
+
+            def process_result_value(self, value, dialect):
+                return value + "a"
+
+        class Goofy2(TypeDecorator):
+            impl = String
+
+            def process_result_value(self, value, dialect):
+                return value + "b"
+
+        class Goofy3(TypeDecorator):
+            impl = String
+
+            def process_result_value(self, value, dialect):
+                return value + "c"
+
+        t = text(
+            "select user_name as a, user_name as b, "
+            "user_name as c from query_users").columns(
+            a=Goofy1(), b=Goofy2(), c=Goofy3()
+        )
+        eq_(
+            testing.db.execute(t).fetchall(), [
+                ('eda', 'edb', 'edc')
+            ]
         )
 
     @testing.requires.subqueries
@@ -1608,7 +1668,7 @@ class KeyTargetingTest(fixtures.TablesTest):
                 'wschema', metadata,
                 Column("a", CHAR(2), key="b"),
                 Column("c", CHAR(2), key="q"),
-                schema="test_schema"
+                schema=testing.config.test_schema
             )
 
     @classmethod
@@ -1620,12 +1680,12 @@ class KeyTargetingTest(fixtures.TablesTest):
         cls.tables.content.insert().execute(type="t1")
 
         if testing.requires.schemas.enabled:
-            cls.tables['test_schema.wschema'].insert().execute(
+            cls.tables['%s.wschema' % testing.config.test_schema].insert().execute(
                 dict(b="a1", q="c1"))
 
     @testing.requires.schemas
     def test_keyed_accessor_wschema(self):
-        keyed1 = self.tables['test_schema.wschema']
+        keyed1 = self.tables['%s.wschema' % testing.config.test_schema]
         row = testing.db.execute(keyed1.select()).first()
 
         eq_(row.b, "a1")
@@ -1739,7 +1799,7 @@ class KeyTargetingTest(fixtures.TablesTest):
         # columns which the statement is against to be lightweight
         # cols, which results in a more liberal comparison scheme
         a, b = sql.column('a'), sql.column('b')
-        stmt = select([a, b]).select_from("keyed2")
+        stmt = select([a, b]).select_from(table("keyed2"))
         row = testing.db.execute(stmt).first()
 
         assert keyed2.c.a in row

@@ -18,7 +18,8 @@ from sqlalchemy.testing.exclusions import \
      succeeds_if,\
      SpecPredicate,\
      against,\
-     LambdaPredicate
+     LambdaPredicate,\
+     requires_tag
 
 def no_support(db, reason):
     return SpecPredicate(db, description=reason)
@@ -29,13 +30,19 @@ def exclude(db, op, spec, description=None):
 class DefaultRequirements(SuiteRequirements):
     @property
     def deferrable_or_no_constraints(self):
-        """Target database must support derferable constraints."""
+        """Target database must support deferrable constraints."""
 
         return skip_if([
             no_support('firebird', 'not supported by database'),
             no_support('mysql', 'not supported by database'),
             no_support('mssql', 'not supported by database'),
             ])
+
+    @property
+    def check_constraints(self):
+        """Target database must support check constraints."""
+
+        return exclusions.open()
 
     @property
     def named_constraints(self):
@@ -118,6 +125,17 @@ class DefaultRequirements(SuiteRequirements):
         return skip_if(["firebird", "oracle", "postgresql", "sybase"],
                 "not supported by database"
             )
+
+    @property
+    def temporary_tables(self):
+        """target database supports temporary tables"""
+        return skip_if(
+                    ["mssql", "firebird"], "not supported (?)"
+                )
+
+    @property
+    def temp_table_reflection(self):
+        return self.temporary_tables
 
     @property
     def reflectable_autoincrement(self):
@@ -296,6 +314,17 @@ class DefaultRequirements(SuiteRequirements):
                 )
 
     @property
+    def temp_table_names(self):
+        """target dialect supports listing of temporary table names"""
+
+        return only_on(['sqlite', 'oracle'])
+
+    @property
+    def temporary_views(self):
+        """target database supports temporary views"""
+        return only_on(['sqlite', 'postgresql'])
+
+    @property
     def update_nowait(self):
         """Target database must support SELECT...FOR UPDATE NOWAIT"""
         return skip_if(["firebird", "mssql", "mysql", "sqlite", "sybase"],
@@ -343,7 +372,7 @@ class DefaultRequirements(SuiteRequirements):
     @property
     def window_functions(self):
         return only_if([
-                    "postgresql", "mssql", "oracle"
+                    "postgresql>=8.4", "mssql", "oracle"
                 ], "Backend does not support window functions")
 
     @property
@@ -362,18 +391,7 @@ class DefaultRequirements(SuiteRequirements):
                        'need separate XA implementation'),
             exclude('mysql', '<', (5, 0, 3),
                         'two-phase xact not supported by database'),
-            no_support("postgresql+pg8000", "not supported and/or hangs")
             ])
-
-    @property
-    def graceful_disconnects(self):
-        """Target driver must raise a DBAPI-level exception, such as
-        InterfaceError, when the underlying connection has been closed
-        and the execute() method is called.
-        """
-        return fails_on(
-                    "postgresql+pg8000", "Driver crashes"
-                )
 
     @property
     def views(self):
@@ -442,13 +460,14 @@ class DefaultRequirements(SuiteRequirements):
         )
 
 
+
     @property
     def emulated_lastrowid(self):
         """"target dialect retrieves cursor.lastrowid or an equivalent
         after an insert() construct executes.
         """
         return fails_on_everything_except('mysql',
-                                      'sqlite+pysqlite',
+                                      'sqlite+pysqlite', 'sqlite+pysqlcipher',
                                       'sybase', 'mssql')
 
     @property
@@ -465,7 +484,7 @@ class DefaultRequirements(SuiteRequirements):
         """
         return skip_if('mssql+pymssql', 'crashes on pymssql') + \
                     fails_on_everything_except('mysql',
-                                       'sqlite+pysqlite')
+                                       'sqlite+pysqlite', 'sqlite+pysqlcipher')
 
     @property
     def sane_multi_rowcount(self):
@@ -637,6 +656,10 @@ class DefaultRequirements(SuiteRequirements):
                         'postgresql+pg8000', None, None,
                         'postgresql+pg8000 has FP inaccuracy even with '
                         'only four decimal places '),
+                    (
+                        'postgresql+psycopg2cffi', None, None,
+                        'postgresql+psycopg2cffi has FP inaccuracy even with '
+                        'only four decimal places '),
                 ])
 
     @property
@@ -722,6 +745,22 @@ class DefaultRequirements(SuiteRequirements):
                 )
 
     @property
+    def postgresql_test_dblink(self):
+        return skip_if(
+                    lambda config: not config.file_config.has_option(
+                        'sqla_testing', 'postgres_test_db_link'),
+                    "postgres_test_db_link option not specified in config"
+                )
+
+    @property
+    def postgresql_jsonb(self):
+        return skip_if(
+            lambda config:
+            config.db.dialect.driver == "pg8000" and
+            config.db.dialect._dbapi_version <= (1, 10, 1)
+        )
+
+    @property
     def percent_schema_names(self):
         return skip_if(
             [
@@ -729,6 +768,10 @@ class DefaultRequirements(SuiteRequirements):
                     "+psycopg2", None, None,
                     "psycopg2 2.4 no longer accepts percent "
                     "sign in bind placeholders"),
+                (
+                    "+psycopg2cffi", None, None,
+                    "psycopg2cffi does not accept percent signs in "
+                    "bind placeholders"),
                 ("mysql", None, None, "executemany() doesn't work here")
             ]
         )
@@ -752,16 +795,16 @@ class DefaultRequirements(SuiteRequirements):
             )
 
     @property
-    def threading_with_mock(self):
-        """Mark tests that use threading and mock at the same time - stability
-        issues have been observed with coverage + python 3.3
-
-        """
-        return skip_if(
-                lambda config: util.py3k and
-                    config.options.has_coverage,
-                "Stability issues with coverage + py3k"
+    def mssql_freetds(self):
+        return only_on(
+            LambdaPredicate(
+                lambda config: (
+                    (against(config, 'mssql+pyodbc') and
+                     config.db.dialect.freetds)
+                    or against(config, 'mssql+pymssql')
+                )
             )
+        )
 
     @property
     def selectone(self):
@@ -781,3 +824,9 @@ class DefaultRequirements(SuiteRequirements):
         return against(config, 'mysql') and \
                 config.db.dialect._detect_casing(config.db) == 0
 
+    @property
+    def postgresql_utf8_server_encoding(self):
+        return only_if(
+            lambda config: against(config, 'postgresql') and
+            config.db.scalar("show server_encoding").lower() == "utf8"
+        )
