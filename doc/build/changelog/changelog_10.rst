@@ -16,6 +16,138 @@
         :start-line: 5
 
 .. changelog::
+    :version: 1.0.6
+    :released: June 25, 2015
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3465
+
+        Fixed a major regression in the 1.0 series where the version_id_counter
+        feature would cause an object's version counter to be incremented
+        when there was no net change to the object's row, but instead an object
+        related to it via relationship (e.g. typically many-to-one)
+        were associated or de-associated with it, resulting in an UPDATE
+        statement that updates the object's version counter and nothing else.
+        In the use case where the relatively recent "server side" and/or
+        "programmatic/conditional" version counter feature were used
+        (e.g. setting version_id_generator to False), the bug could cause an
+        UPDATE without a valid SET clause to be emitted.
+
+    .. change::
+        :tags: bug, mssql
+        :tickets: 3464
+
+        Fixed issue when using :class:`.VARBINARY` type in conjunction with
+        an INSERT of NULL + pyodbc; pyodbc requires a special
+        object be passed in order to persist NULL.  As the :class:`.VARBINARY`
+        type is now usually the default for :class:`.LargeBinary` due to
+        :ticket:`3039`, this issue is partially a regression in 1.0.
+        The pymssql driver appears to be unaffected.
+
+    .. change::
+        :tags: bug, postgresql, pypy
+        :tickets: 3439
+
+        Re-fixed this issue first released in 1.0.5 to fix psycopg2cffi
+        JSONB support once again, as they suddenly
+        switched on unconditional decoding of JSONB types in version 2.7.1.
+        Version detection now specifies 2.7.1 as where we should expect
+        the DBAPI to do json encoding for us.
+
+    .. change::
+        :tags: feature, postgresql
+        :tickets: 3455
+        :pullreq: github:179
+
+        Added support for storage parameters under CREATE INDEX, using
+        a new keyword argument ``postgresql_with``.  Also added support for
+        reflection to support both the ``postgresql_with`` flag as well
+        as the ``postgresql_using`` flag, which will now be set on
+        :class:`.Index` objects that are reflected, as well present
+        in a new "dialect_options" dictionary in the result of
+        :meth:`.Inspector.get_indexes`.  Pull request courtesy Pete Hollobon.
+
+        .. seealso::
+
+            :ref:`postgresql_index_storage`
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3462
+
+        Fixed 1.0 regression where the enhanced behavior of single-inheritance
+        joins of :ticket:`3222` takes place inappropriately
+        for a JOIN along explicit join criteria with a single-inheritance
+        subclass that does not make use of any discriminator, resulting
+        in an additional "AND NULL" clause.
+
+    .. change::
+        :tags: bug, postgresql
+        :tickets: 3454
+
+        Repaired the :class:`.ExcludeConstraint` construct to support common
+        features that other objects like :class:`.Index` now do, that
+        the column expression may be specified as an arbitrary SQL
+        expression such as :obj:`.cast` or :obj:`.text`.
+
+    .. change::
+        :tags: feature, postgresql
+        :pullreq: github:182
+
+        Added new execution option ``max_row_buffer`` which is interpreted
+        by the psycopg2 dialect when the ``stream_results`` option is
+        used, which sets a limit on the size of the row buffer that may be
+        allocated.  This value is also provided based on the integer
+        value sent to :meth:`.Query.yield_per`.  Pull request courtesy
+        mcclurem.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3451
+        :pullreq: github:181
+
+        Fixed bug in new :meth:`.Session.bulk_update_mappings` feature where
+        the primary key columns used in the WHERE clause to locate the row
+        would also be included in the SET clause, setting their value to
+        themselves unnecessarily.  Pull request courtesy Patrick Hayes.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3448
+
+        Fixed an unexpected-use regression whereby custom :class:`.Comparator`
+        objects that made use of the ``__clause_element__()`` method and
+        returned an object that was an ORM-mapped
+        :class:`.InstrumentedAttribute` and not explicitly a
+        :class:`.ColumnElement` would fail to be correctly
+        handled when passed as an expression to :meth:`.Session.query`.
+        The logic in 0.9 happened to succeed on this, so this use case is now
+        supported.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3445
+
+        Fixed a bug where clause adaption as applied to a :class:`.Label`
+        object would fail to accommodate the labeled SQL expression
+        in all cases, such that any SQL operation that made use of
+        :meth:`.Label.self_group` would use the original unadapted
+        expression.  One effect of this would be that an ORM :func:`.aliased`
+        construct would not fully accommodate attributes mapped by
+        :obj:`.column_property`, such that the un-aliased table could
+        leak out when the property were used in some kinds of SQL
+        comparisons.
+
+    .. change::
+        :tags: bug, documentation
+        :tickets: 2077
+
+        Fixed an internal "memoization" routine for method types such
+        that a Python descriptor is no longer used; repairs inspectability
+        of these methods including support for Sphinx documentation.
+
+.. changelog::
     :version: 1.0.5
     :released: June 7, 2015
 
