@@ -1,11 +1,11 @@
-from sqlalchemy.test.testing import assert_raises, assert_raises_message
+from test.lib.testing import assert_raises, assert_raises_message
 from sqlalchemy import *
 from sqlalchemy import exc, schema
-from sqlalchemy.test import *
-from sqlalchemy.test import config, engines
+from test.lib import *
+from test.lib import config, engines
 from sqlalchemy.engine import ddl
-from sqlalchemy.test.testing import eq_
-from sqlalchemy.test.assertsql import AllOf, RegexSQL, ExactSQL, CompiledSQL
+from test.lib.testing import eq_
+from test.lib.assertsql import AllOf, RegexSQL, ExactSQL, CompiledSQL
 from sqlalchemy.dialects.postgresql import base as postgresql
 
 class ConstraintTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
@@ -79,9 +79,9 @@ class ConstraintTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
 
         metadata.create_all()
         foo.insert().execute(id=1,x=9,y=5)
-        assert_raises(exc.SQLError, foo.insert().execute, id=2,x=5,y=9)
+        assert_raises(exc.DBAPIError, foo.insert().execute, id=2,x=5,y=9)
         bar.insert().execute(id=1,x=10)
-        assert_raises(exc.SQLError, bar.insert().execute, id=2,x=5)
+        assert_raises(exc.DBAPIError, bar.insert().execute, id=2,x=5)
 
     def test_unique_constraint(self):
         foo = Table('foo', metadata,
@@ -98,8 +98,8 @@ class ConstraintTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
         foo.insert().execute(id=2, value='value2')
         bar.insert().execute(id=1, value='a', value2='a')
         bar.insert().execute(id=2, value='a', value2='b')
-        assert_raises(exc.SQLError, foo.insert().execute, id=3, value='value1')
-        assert_raises(exc.SQLError, bar.insert().execute, id=3, value='a', value2='b')
+        assert_raises(exc.DBAPIError, foo.insert().execute, id=3, value='value1')
+        assert_raises(exc.DBAPIError, bar.insert().execute, id=3, value='a', value2='b')
 
     def test_index_create(self):
         employees = Table('employees', metadata,
@@ -217,8 +217,46 @@ class ConstraintTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
             dialect=dialect
         )
 
+    def test_index_declartion_inline(self):
+        t1 = Table('t1', metadata, 
+            Column('x', Integer),
+            Column('y', Integer),
+            Index('foo', 'x', 'y')
+        )
+        self.assert_compile(
+            schema.CreateIndex(list(t1.indexes)[0]), 
+            "CREATE INDEX foo ON t1 (x, y)"
+        )
+
+    def test_index_asserts_cols_standalone(self):
+        t1 = Table('t1', metadata, 
+            Column('x', Integer)
+        )
+        t2 = Table('t2', metadata,
+            Column('y', Integer)
+        )
+        assert_raises_message(
+            exc.ArgumentError,
+            "Column 't2.y' is not part of table 't1'.",
+            Index,
+            "bar", t1.c.x, t2.c.y
+        )
+
+    def test_index_asserts_cols_inline(self):
+        t1 = Table('t1', metadata, 
+            Column('x', Integer)
+        )
+        assert_raises_message(
+            exc.ArgumentError,
+            "Index 'bar' is against table 't1', and "
+            "cannot be associated with table 't2'.",
+            Table, 't2', metadata,
+                Column('y', Integer),
+                Index('bar', t1.c.x)
+        )
 
 class ConstraintCompilationTest(TestBase, AssertsCompiledSQL):
+    __dialect__ = 'default'
 
     def _test_deferrable(self, constraint_factory):
         t = Table('tbl', MetaData(),

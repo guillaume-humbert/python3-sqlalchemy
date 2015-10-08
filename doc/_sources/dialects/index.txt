@@ -16,6 +16,7 @@ should be consulted to check for current support level.
     :maxdepth: 1
     :glob:
 
+    drizzle
     firebird
     informix
     maxdb
@@ -26,6 +27,5 @@ should be consulted to check for current support level.
     postgresql
     sqlite
     sybase
-
 
 

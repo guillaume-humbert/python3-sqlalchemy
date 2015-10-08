@@ -1,15 +1,14 @@
 import warnings
-from sqlalchemy.test.testing import eq_, assert_raises, assert_raises_message
+from test.lib.testing import eq_, assert_raises, assert_raises_message
 from sqlalchemy import *
 from sqlalchemy import exc as sa_exc, util
 from sqlalchemy.orm import *
 from sqlalchemy.orm import exc as orm_exc, attributes
-from sqlalchemy.test.assertsql import AllOf, CompiledSQL
+from test.lib.assertsql import AllOf, CompiledSQL
 
-from sqlalchemy.test import testing, engines
-from sqlalchemy.util import function_named
+from test.lib import testing, engines
 from test.orm import _base, _fixtures
-from sqlalchemy.test.schema import Table, Column
+from test.lib.schema import Table, Column
 
 class O2MTest(_base.MappedTest):
     """deals with inheritance and one-to-many relationships"""
@@ -98,7 +97,7 @@ class PolymorphicOnNotLocalTest(_base.MappedTest):
                                 polymorphic_identity=0)
 
         assert_raises_message(
-            sa_exc.SAWarning,
+            sa_exc.InvalidRequestError,
             "Could not map polymorphic_on column 'x' to the mapped table - "
             "polymorphic loads will not function properly",
             go
@@ -110,7 +109,7 @@ class PolymorphicOnNotLocalTest(_base.MappedTest):
                                 polymorphic_on=t1t2_join.c.x,
                                 with_polymorphic=('*', t1t2_join),
                                 polymorphic_identity=0)
-        compile_mappers()
+        configure_mappers()
 
         clear_mappers()
 
@@ -122,12 +121,11 @@ class PolymorphicOnNotLocalTest(_base.MappedTest):
                                 with_polymorphic=('*', t1t2_join_2),
                                 polymorphic_identity=0)
         assert_raises_message(
-            sa_exc.SAWarning,
+            sa_exc.InvalidRequestError,
             "Could not map polymorphic_on column 'x' to the mapped table - "
             "polymorphic loads will not function properly",
             go
         )
-
 
 
 class FalseDiscriminatorTest(_base.MappedTest):
@@ -203,6 +201,78 @@ class PolymorphicSynonymTest(_base.MappedTest):
         eq_(sess.query(T2).filter(T2.info=='at2').one(), at2)
         eq_(at2.info, "THE INFO IS:at2")
 
+class PolymorphicAttributeManagementTest(_base.MappedTest):
+    """Test polymorphic_on can be assigned, can be mirrored, etc."""
+
+    run_setup_mappers = 'once'
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('table_a', metadata,
+            Column('id', Integer, primary_key=True, 
+                                test_needs_autoincrement=True),
+            Column('class_name', String(50))
+        )
+        Table('table_b', metadata,
+           Column('id', Integer, ForeignKey('table_a.id'), 
+                                primary_key=True),
+           Column('class_name', String(50))
+        )
+        Table('table_c', metadata,
+           Column('id', Integer, ForeignKey('table_b.id'),
+                                primary_key=True)
+        )
+
+    @classmethod
+    @testing.resolve_artifact_names
+    def setup_classes(cls):
+        class A(_base.ComparableEntity):
+            pass
+        class B(A):
+            pass
+        class C(B):
+            pass
+
+        mapper(A, table_a, 
+                        polymorphic_on=table_a.c.class_name, 
+                        polymorphic_identity='a')
+        mapper(B, table_b, inherits=A, 
+                        polymorphic_on=table_b.c.class_name, 
+                        polymorphic_identity='b')
+        mapper(C, table_c, inherits=B, 
+                        polymorphic_identity='c')
+
+    @testing.resolve_artifact_names
+    def test_poly_configured_immediate(self):
+        a = A()
+        b = B()
+        c = C()
+        eq_(a.class_name, 'a')
+        eq_(b.class_name, 'b')
+        eq_(c.class_name, 'c')
+
+    @testing.resolve_artifact_names
+    def test_base_class(self):
+        sess = Session()
+        c1 = C()
+        sess.add(c1)
+        sess.commit()
+
+        assert isinstance(sess.query(B).first(), C)
+
+        sess.close()
+
+        assert isinstance(sess.query(A).first(), C)
+
+    @testing.resolve_artifact_names
+    def test_assignment(self):
+        sess = Session()
+        b1 = B()
+        b1.class_name = 'c'
+        sess.add(b1)
+        sess.commit()
+        sess.close()
+        assert isinstance(sess.query(B).first(), C)
 
 class CascadeTest(_base.MappedTest):
     """that cascades on polymorphic relationships continue
@@ -213,22 +283,26 @@ class CascadeTest(_base.MappedTest):
     def define_tables(cls, metadata):
         global t1, t2, t3, t4
         t1= Table('t1', metadata,
-            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
+            Column('id', Integer, primary_key=True, 
+                                    test_needs_autoincrement=True),
             Column('data', String(30))
             )
 
         t2 = Table('t2', metadata,
-            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
+            Column('id', Integer, primary_key=True, 
+                                    test_needs_autoincrement=True),
             Column('t1id', Integer, ForeignKey('t1.id')),
             Column('type', String(30)),
             Column('data', String(30))
         )
         t3 = Table('t3', metadata,
-            Column('id', Integer, ForeignKey('t2.id'), primary_key=True),
+            Column('id', Integer, ForeignKey('t2.id'), 
+                                    primary_key=True),
             Column('moredata', String(30)))
 
         t4 = Table('t4', metadata,
-            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
+            Column('id', Integer, primary_key=True, 
+                                    test_needs_autoincrement=True),
             Column('t3id', Integer, ForeignKey('t3.id')),
             Column('data', String(30)))
 
@@ -782,8 +856,8 @@ class DistinctPKTest(_base.MappedTest):
                     primary_key=[person_table.c.id, employee_table.c.id])
         assert_raises_message(sa_exc.SAWarning, 
                                     r"On mapper Mapper\|Employee\|employees, "
-                                    "primary key column 'employees.id' is being "
-                                    "combined with distinct primary key column 'persons.id' "
+                                    "primary key column 'persons.id' is being "
+                                    "combined with distinct primary key column 'employees.id' "
                                     "in attribute 'id'.  Use explicit properties to give "
                                     "each column its own mapped attribute name.",
             self._do_test, True
@@ -911,7 +985,7 @@ class OverrideColKeyTest(_base.MappedTest):
         # column of both tables.
         eq_(
             class_mapper(Sub).get_property('base_id').columns,
-            [base.c.base_id, subtable.c.base_id]
+            [subtable.c.base_id, base.c.base_id]
         )
 
     def test_override_explicit(self):
@@ -983,11 +1057,9 @@ class OverrideColKeyTest(_base.MappedTest):
         # PK col
         assert s2.id == s2.base_id != 15
 
-    @testing.emits_warning(r'Implicit')
     def test_override_implicit(self):
-        # this is how the pattern looks intuitively when 
-        # using declarative.
-        # fixed as part of [ticket:1111]
+        # this is originally [ticket:1111].
+        # the pattern here is now disallowed by [ticket:1892]
 
         class Base(object):
             pass
@@ -997,26 +1069,16 @@ class OverrideColKeyTest(_base.MappedTest):
         mapper(Base, base, properties={
             'id':base.c.base_id
         })
-        mapper(Sub, subtable, inherits=Base, properties={
-            'id':subtable.c.base_id
-        })
 
+        def go():
+            mapper(Sub, subtable, inherits=Base, properties={
+                'id':subtable.c.base_id
+            })
         # Sub mapper compilation needs to detect that "base.c.base_id"
         # is renamed in the inherited mapper as "id", even though
-        # it has its own "id" property.  Sub's "id" property 
-        # gets joined normally with the extra column.
-
-        eq_(
-            set(class_mapper(Sub).get_property('id').columns),
-            set([base.c.base_id, subtable.c.base_id])
-        )
-
-        s1 = Sub()
-        s1.id = 10
-        sess = create_session()
-        sess.add(s1)
-        sess.flush()
-        assert sess.query(Sub).get(10) is s1
+        # it has its own "id" property.  It then generates
+        # an exception in 0.7 due to the implicit conflict.
+        assert_raises(sa_exc.InvalidRequestError, go)
 
     def test_plain_descriptor(self):
         """test that descriptors prevent inheritance from propigating properties to subclasses."""
@@ -1265,15 +1327,21 @@ class OptimizedLoadTest(_base.MappedTest):
                     [{'data':'s1','type':'sub'}]
                 ),
                 CompiledSQL(
-                    "SELECT base.counter AS base_counter, "
-                    "sub.counter AS sub_counter FROM base JOIN sub ON base.id = "
-                    "sub.id WHERE base.id = :param_1",
-                    lambda ctx:{'param_1':s1.id}
-                ),
-                CompiledSQL(
                     "INSERT INTO sub (id, sub) VALUES (:id, :sub)",
                     lambda ctx:{'id':s1.id, 'sub':None}
                 ),
+        )
+        def go():
+            eq_( s1.counter2, 1 )
+        self.assert_sql_execution(
+            testing.db,
+            go,
+            CompiledSQL(
+                "SELECT sub.counter AS sub_counter, base.counter AS base_counter, "
+                "sub.counter2 AS sub_counter2 FROM base JOIN sub ON "
+                "base.id = sub.id WHERE base.id = :param_1",
+                lambda ctx:{u'param_1': s1.id}
+            ),
         )
 
     @testing.resolve_artifact_names
@@ -1332,19 +1400,25 @@ class OptimizedLoadTest(_base.MappedTest):
                     lambda ctx:[{'counter': 1, 'sub': None, 'id': s1.id}]
                 ),
                 CompiledSQL(
-                    "SELECT sub.counter2 AS sub_counter2, "
-                    "subsub.counter2 AS subsub_counter2 FROM base "
-                    "JOIN sub ON base.id = sub.id JOIN "
-                    "subsub ON sub.id = subsub.id WHERE base.id = :param_1",
-                    lambda ctx:{u'param_1': s1.id}
-                ),
-                CompiledSQL(
                     "INSERT INTO subsub (id) VALUES (:id)",
                     lambda ctx:{'id':s1.id}
                 ),
         )
 
-
+        def go():
+            eq_(
+                s1.counter2, 1
+            )
+        self.assert_sql_execution(
+            testing.db,
+            go,
+            CompiledSQL(
+                "SELECT subsub.counter2 AS subsub_counter2, "
+                "sub.counter2 AS sub_counter2 FROM subsub, sub "
+                "WHERE :param_1 = sub.id AND sub.id = subsub.id",
+                lambda ctx:{u'param_1': s1.id}
+            ),
+        )
 
 class NoPKOnSubTableWarningTest(testing.TestBase):
 
@@ -1388,91 +1462,6 @@ class NoPKOnSubTableWarningTest(testing.TestBase):
         mapper(P, parent)
         mc = mapper(C, child, inherits=P, primary_key=[parent.c.id])
         eq_(mc.primary_key, (parent.c.id,))
-
-class InhCondTest(testing.TestBase):
-    def test_inh_cond_ignores_others(self):
-        metadata = MetaData()
-        base_table = Table("base", metadata,
-            Column("id", Integer, primary_key=True)
-        )
-        derived_table = Table("derived", metadata,
-            Column("id", Integer, ForeignKey("base.id"), primary_key=True),
-            Column("owner_id", Integer, ForeignKey("owner.owner_id"))
-        )
-
-        class Base(object):
-            pass
-
-        class Derived(Base):
-            pass
-
-        mapper(Base, base_table)
-        # succeeds, despite "owner" table not configured yet
-        m2 = mapper(Derived, derived_table, 
-                    inherits=Base)
-        assert m2.inherit_condition.compare(
-                    base_table.c.id==derived_table.c.id
-                )
-
-    def test_inh_cond_fails_notfound(self):
-        metadata = MetaData()
-        base_table = Table("base", metadata,
-            Column("id", Integer, primary_key=True)
-        )
-        derived_table = Table("derived", metadata,
-            Column("id", Integer, primary_key=True),
-        )
-
-        class Base(object):
-            pass
-
-        class Derived(Base):
-            pass
-
-        mapper(Base, base_table)
-        assert_raises_message(
-            sa_exc.ArgumentError,
-            "Can't find any foreign key relationships between "
-            "'base' and 'derived'.",
-            mapper,
-            Derived, derived_table,  inherits=Base
-        )
-
-    def test_inh_cond_fails_separate_metas(self):
-        m1 = MetaData()
-        m2 = MetaData()
-        base_table = Table("base", m1,
-            Column("id", Integer, primary_key=True)
-        )
-        derived_table = Table("derived", m2,
-            Column("id", Integer, ForeignKey('base.id'), 
-                primary_key=True),
-        )
-
-        class Base(object):
-            pass
-
-        class Derived(Base):
-            pass
-
-        mapper(Base, base_table)
-
-        # this used to be "can't resolve foreign key base.id",
-        # but with the flag on, we just get "can't find".  this is
-        # the less-than-ideal case that prevented us from doing this
-        # for mapper(), not just declarative, in the first place.  
-        # there is no case where the failure would be silent - 
-        # there is either a single join condition between the two tables 
-        # or there's not.  0.7 changes how join conditions are determined
-        # so that we get the correct FK error here.
-        assert_raises_message(
-            sa_exc.ArgumentError,
-            "Can't find any foreign key relationships between "
-            "'base' and 'derived'.",
-            mapper,
-            Derived, derived_table,  inherits=Base
-        )
-
 
 class PKDiscriminatorTest(_base.MappedTest):
     @classmethod
@@ -1589,6 +1578,14 @@ class NoPolyIdentInMiddleTest(_base.MappedTest):
         )
 
 class DeleteOrphanTest(_base.MappedTest):
+    """Test the fairly obvious, that an error is raised
+    when attempting to insert an orphan.
+
+    Previous SQLA versions would check this constraint 
+    in memory which is the original rationale for this test.
+
+    """
+
     @classmethod
     def define_tables(cls, metadata):
         global single, parent
@@ -1623,8 +1620,6 @@ class DeleteOrphanTest(_base.MappedTest):
         sess = create_session()
         s1 = SubClass(data='s1')
         sess.add(s1)
-        assert_raises_message(orm_exc.FlushError, 
-            r"is not attached to any parent 'Parent' instance via "
-            "that classes' 'related' attribute", sess.flush)
+        assert_raises(sa_exc.DBAPIError, sess.flush)
 
 

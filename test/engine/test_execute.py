@@ -1,13 +1,15 @@
-from sqlalchemy.test.testing import eq_, assert_raises
+from test.lib.testing import eq_, assert_raises, assert_raises_message
 import re
 from sqlalchemy.interfaces import ConnectionProxy
 from sqlalchemy import MetaData, Integer, String, INT, VARCHAR, func, \
-    bindparam, select
-from sqlalchemy.test.schema import Table, Column
+    bindparam, select, event, TypeDecorator
+from sqlalchemy.sql import column, literal
+from test.lib.schema import Table, Column
 import sqlalchemy as tsa
-from sqlalchemy.test import TestBase, testing, engines
+from test.lib import TestBase, testing, engines
 import logging
 from sqlalchemy.dialects.oracle.zxjdbc import ReturningParam
+from sqlalchemy.engine import base, default
 
 users, metadata = None, None
 class ExecuteTest(TestBase):
@@ -63,7 +65,7 @@ class ExecuteTest(TestBase):
             conn.execute('delete from users')
 
     # some psycopg2 versions bomb this.
-    @testing.fails_on_everything_except('mysql+mysqldb',
+    @testing.fails_on_everything_except('mysql+mysqldb', 'mysql+pymysql',
             'mysql+mysqlconnector', 'postgresql')
     @testing.fails_on('postgresql+zxjdbc', 'sprintf not supported')
     def test_raw_sprintf(self):
@@ -87,7 +89,8 @@ class ExecuteTest(TestBase):
     @testing.skip_if(lambda : testing.against('mysql+mysqldb'),
                      'db-api flaky')
     @testing.fails_on_everything_except('postgresql+psycopg2',
-            'postgresql+pypostgresql', 'mysql+mysqlconnector')
+            'postgresql+pypostgresql', 'mysql+mysqlconnector', 
+            'mysql+pymysql')
     def test_raw_python(self):
         for conn in testing.db, testing.db.connect():
             conn.execute('insert into users (user_id, user_name) '
@@ -120,14 +123,30 @@ class ExecuteTest(TestBase):
                     'horse'), (4, 'sally')]
             conn.execute('delete from users')
 
-    def test_exception_wrapping(self):
+    def test_exception_wrapping_dbapi(self):
         for conn in testing.db, testing.db.connect():
-            try:
-                conn.execute('osdjafioajwoejoasfjdoifjowejfoawejqoijwef'
-                             )
-                assert False
-            except tsa.exc.DBAPIError:
-                assert True
+            assert_raises_message(
+                tsa.exc.DBAPIError,
+                r"not_a_valid_statement",
+                conn.execute, 'not_a_valid_statement'
+            )
+
+    def test_exception_wrapping_non_dbapi_statement(self):
+        class MyType(TypeDecorator):
+            impl = Integer
+            def process_bind_param(self, value, dialect):
+                raise Exception("nope")
+
+        for conn in testing.db, testing.db.connect():
+            assert_raises_message(
+                tsa.exc.StatementError,
+                "nope 'SELECT 1 ",
+                conn.execute,
+                    select([1]).\
+                        where(
+                            column('foo') == literal('bar', MyType())
+                        )
+            )
 
     def test_empty_insert(self):
         """test that execute() interprets [] as a list with no params"""
@@ -186,47 +205,158 @@ class CompiledCacheTest(TestBase):
         assert len(cache) == 1
         eq_(conn.execute("select count(*) from users").scalar(), 3)
 
-class LogTest(TestBase):
-    def _test_logger(self, eng, eng_name, pool_name):
-        buf = logging.handlers.BufferingHandler(100)
-        logs = [
-            logging.getLogger('sqlalchemy.engine'),
-            logging.getLogger('sqlalchemy.pool')
-        ]
-        for log in logs:
-            log.addHandler(buf)
-
-        eq_(eng.logging_name, eng_name)
-        eq_(eng.pool.logging_name, pool_name)
+class LoggingNameTest(TestBase):
+    def _assert_names_in_execute(self, eng, eng_name, pool_name):
         eng.execute(select([1]))
-        for log in logs:
-            log.removeHandler(buf)
+        for name in [b.name for b in self.buf.buffer]:
+            assert name in (
+                'sqlalchemy.engine.base.Engine.%s' % eng_name,
+                'sqlalchemy.pool.%s.%s' % 
+                    (eng.pool.__class__.__name__, pool_name)
+            )
 
-        names = set([b.name for b in buf.buffer])
-        assert 'sqlalchemy.engine.base.Engine.%s' % (eng_name,) in names
-        assert 'sqlalchemy.pool.%s.%s' % (eng.pool.__class__.__name__,
-                pool_name) in names
+    def _assert_no_name_in_execute(self, eng):
+        eng.execute(select([1]))
+        for name in [b.name for b in self.buf.buffer]:
+            assert name in (
+                'sqlalchemy.engine.base.Engine',
+                'sqlalchemy.pool.%s' % eng.pool.__class__.__name__
+            )
 
-    def test_named_logger(self):
-        options = {'echo':'debug', 'echo_pool':'debug',
+    def _named_engine(self, **kw):
+        options = {
             'logging_name':'myenginename',
             'pool_logging_name':'mypoolname'
         }
-        eng = engines.testing_engine(options=options)
-        self._test_logger(eng, "myenginename", "mypoolname")
+        options.update(kw)
+        return engines.testing_engine(options=options)
 
+    def _unnamed_engine(self, **kw):
+        return engines.testing_engine(options=kw)
+
+    def setup(self):
+        self.buf = logging.handlers.BufferingHandler(100)
+        for log in [
+            logging.getLogger('sqlalchemy.engine'),
+            logging.getLogger('sqlalchemy.pool')
+        ]:
+            log.addHandler(self.buf)
+
+    def teardown(self):
+        for log in [
+            logging.getLogger('sqlalchemy.engine'),
+            logging.getLogger('sqlalchemy.pool')
+        ]:
+            log.removeHandler(self.buf)
+
+    def test_named_logger_names(self):
+        eng = self._named_engine()
+        eq_(eng.logging_name, "myenginename")
+        eq_(eng.pool.logging_name, "mypoolname")
+
+    def test_named_logger_names_after_dispose(self):
+        eng = self._named_engine()
+        eng.execute(select([1]))
         eng.dispose()
-        self._test_logger(eng, "myenginename", "mypoolname")
+        eq_(eng.logging_name, "myenginename")
+        eq_(eng.pool.logging_name, "mypoolname")
 
+    def test_unnamed_logger_names(self):
+        eng = self._unnamed_engine()
+        eq_(eng.logging_name, None)
+        eq_(eng.pool.logging_name, None)
 
-    def test_unnamed_logger(self):
-        eng = engines.testing_engine(options={'echo': 'debug',
-                'echo_pool': 'debug'})
-        self._test_logger(
-            eng,
-            "0x...%s" % hex(id(eng))[-4:],
-            "0x...%s" % hex(id(eng.pool))[-4:],
-        )
+    def test_named_logger_execute(self):
+        eng = self._named_engine()
+        self._assert_names_in_execute(eng, "myenginename", "mypoolname")
+
+    def test_named_logger_echoflags_execute(self):
+        eng = self._named_engine(echo='debug', echo_pool='debug')
+        self._assert_names_in_execute(eng, "myenginename", "mypoolname")
+
+    def test_named_logger_execute_after_dispose(self):
+        eng = self._named_engine()
+        eng.execute(select([1]))
+        eng.dispose()
+        self._assert_names_in_execute(eng, "myenginename", "mypoolname")
+
+    def test_unnamed_logger_execute(self):
+        eng = self._unnamed_engine()
+        self._assert_no_name_in_execute(eng)
+
+    def test_unnamed_logger_echoflags_execute(self):
+        eng = self._unnamed_engine(echo='debug', echo_pool='debug')
+        self._assert_no_name_in_execute(eng)
+
+class EchoTest(TestBase):
+
+    def setup(self):
+        self.level = logging.getLogger('sqlalchemy.engine').level
+        logging.getLogger('sqlalchemy.engine').setLevel(logging.WARN)
+        self.buf = logging.handlers.BufferingHandler(100)
+        logging.getLogger('sqlalchemy.engine').addHandler(self.buf)
+
+    def teardown(self):
+        logging.getLogger('sqlalchemy.engine').removeHandler(self.buf)
+        logging.getLogger('sqlalchemy.engine').setLevel(self.level)
+
+    def testing_engine(self):
+        e = engines.testing_engine()
+
+        # do an initial execute to clear out 'first connect'
+        # messages
+        e.execute(select([10]))
+        self.buf.flush()
+
+        return e
+
+    def test_levels(self):
+        e1 = engines.testing_engine()
+
+        eq_(e1._should_log_info(), False)
+        eq_(e1._should_log_debug(), False)
+        eq_(e1.logger.isEnabledFor(logging.INFO), False)
+        eq_(e1.logger.getEffectiveLevel(), logging.WARN)
+
+        e1.echo = True
+        eq_(e1._should_log_info(), True)
+        eq_(e1._should_log_debug(), False)
+        eq_(e1.logger.isEnabledFor(logging.INFO), True)
+        eq_(e1.logger.getEffectiveLevel(), logging.INFO)
+
+        e1.echo = 'debug'
+        eq_(e1._should_log_info(), True)
+        eq_(e1._should_log_debug(), True)
+        eq_(e1.logger.isEnabledFor(logging.DEBUG), True)
+        eq_(e1.logger.getEffectiveLevel(), logging.DEBUG)
+
+        e1.echo = False
+        eq_(e1._should_log_info(), False)
+        eq_(e1._should_log_debug(), False)
+        eq_(e1.logger.isEnabledFor(logging.INFO), False)
+        eq_(e1.logger.getEffectiveLevel(), logging.WARN)
+
+    def test_echo_flag_independence(self):
+        """test the echo flag's independence to a specific engine."""
+
+        e1 = self.testing_engine()
+        e2 = self.testing_engine()
+
+        e1.echo = True
+        e1.execute(select([1]))
+        e2.execute(select([2]))
+
+        e1.echo = False
+        e1.execute(select([3]))
+        e2.execute(select([4]))
+
+        e2.echo = True
+        e1.execute(select([5]))
+        e2.execute(select([6]))
+
+        assert self.buf.buffer[0].getMessage().startswith("SELECT 1")
+        assert self.buf.buffer[2].getMessage().startswith("SELECT 6")
+        assert len(self.buf.buffer) == 4
 
 class ResultProxyTest(TestBase):
     def test_nontuple_row(self):
@@ -322,8 +452,277 @@ class ResultProxyTest(TestBase):
         writer.writerow(row)
         assert s.getvalue().strip() == '1,Test'
 
-class ProxyConnectionTest(TestBase):
+class AlternateResultProxyTest(TestBase):
+    __requires__ = ('sqlite', )
 
+    @classmethod
+    def setup_class(cls):
+        from sqlalchemy.engine import base, create_engine, default
+        cls.engine = engine = create_engine('sqlite://')
+        m = MetaData()
+        cls.table = t = Table('test', m, 
+            Column('x', Integer, primary_key=True),
+            Column('y', String(50, convert_unicode='force'))
+        )
+        m.create_all(engine)
+        engine.execute(t.insert(), [
+            {'x':i, 'y':"t_%d" % i} for i in xrange(1, 12)
+        ])
+
+    def _test_proxy(self, cls):
+        class ExcCtx(default.DefaultExecutionContext):
+            def get_result_proxy(self):
+                return cls(self)
+        self.engine.dialect.execution_ctx_cls = ExcCtx
+        rows = []
+        r = self.engine.execute(select([self.table]))
+        assert isinstance(r, cls)
+        for i in range(5):
+            rows.append(r.fetchone())
+        eq_(rows, [(i, "t_%d" % i) for i in xrange(1, 6)])
+
+        rows = r.fetchmany(3)
+        eq_(rows, [(i, "t_%d" % i) for i in xrange(6, 9)])
+
+        rows = r.fetchall()
+        eq_(rows, [(i, "t_%d" % i) for i in xrange(9, 12)])
+
+        r = self.engine.execute(select([self.table]))
+        rows = r.fetchmany(None)
+        eq_(rows[0], (1, "t_1"))
+        # number of rows here could be one, or the whole thing
+        assert len(rows) == 1 or len(rows) == 11
+
+        r = self.engine.execute(select([self.table]).limit(1))
+        r.fetchone()
+        eq_(r.fetchone(), None)
+
+        r = self.engine.execute(select([self.table]).limit(5))
+        rows = r.fetchmany(6)
+        eq_(rows, [(i, "t_%d" % i) for i in xrange(1, 6)])
+
+    def test_plain(self):
+        self._test_proxy(base.ResultProxy)
+
+    def test_buffered_row_result_proxy(self):
+        self._test_proxy(base.BufferedRowResultProxy)
+
+    def test_fully_buffered_result_proxy(self):
+        self._test_proxy(base.FullyBufferedResultProxy)
+
+    def test_buffered_column_result_proxy(self):
+        self._test_proxy(base.BufferedColumnResultProxy)
+
+class EngineEventsTest(TestBase):
+
+    def _assert_stmts(self, expected, received):
+        for stmt, params, posn in expected:
+            if not received:
+                assert False
+            while received:
+                teststmt, testparams, testmultiparams = \
+                    received.pop(0)
+                teststmt = re.compile(r'[\n\t ]+', re.M).sub(' ',
+                        teststmt).strip()
+                if teststmt.startswith(stmt) and (testparams
+                        == params or testparams == posn):
+                    break
+
+    @testing.fails_on('firebird', 'Data type unknown')
+    def test_execute_events(self):
+
+        stmts = []
+        cursor_stmts = []
+
+        def execute(conn, clauseelement, multiparams,
+                                                    params ):
+            stmts.append((str(clauseelement), params, multiparams))
+
+        def cursor_execute(conn, cursor, statement, parameters, 
+                                context, executemany):
+            cursor_stmts.append((str(statement), parameters, None))
+
+
+        for engine in [
+            engines.testing_engine(options=dict(implicit_returning=False)), 
+            engines.testing_engine(options=dict(implicit_returning=False,
+                                   strategy='threadlocal'))
+            ]:
+            event.listen(engine, 'before_execute', execute)
+            event.listen(engine, 'before_cursor_execute', cursor_execute)
+
+            m = MetaData(engine)
+            t1 = Table('t1', m, 
+                Column('c1', Integer, primary_key=True), 
+                Column('c2', String(50), default=func.lower('Foo'),
+                                            primary_key=True)
+            )
+            m.create_all()
+            try:
+                t1.insert().execute(c1=5, c2='some data')
+                t1.insert().execute(c1=6)
+                eq_(engine.execute('select * from t1').fetchall(), [(5,
+                    'some data'), (6, 'foo')])
+            finally:
+                m.drop_all()
+            engine.dispose()
+            compiled = [('CREATE TABLE t1', {}, None),
+                        ('INSERT INTO t1 (c1, c2)', {'c2': 'some data',
+                        'c1': 5}, None), ('INSERT INTO t1 (c1, c2)',
+                        {'c1': 6}, None), ('select * from t1', {},
+                        None), ('DROP TABLE t1', {}, None)]
+            if not testing.against('oracle+zxjdbc'):  # or engine.dialect.pr
+                                                      # eexecute_pk_sequence
+                                                      # s:
+                cursor = [
+                    ('CREATE TABLE t1', {}, ()),
+                    ('INSERT INTO t1 (c1, c2)', {'c2': 'some data', 'c1'
+                     : 5}, (5, 'some data')),
+                    ('SELECT lower', {'lower_2': 'Foo'}, ('Foo', )),
+                    ('INSERT INTO t1 (c1, c2)', {'c2': 'foo', 'c1': 6},
+                     (6, 'foo')),
+                    ('select * from t1', {}, ()),
+                    ('DROP TABLE t1', {}, ()),
+                    ]
+            else:
+                insert2_params = 6, 'Foo'
+                if testing.against('oracle+zxjdbc'):
+                    insert2_params += (ReturningParam(12), )
+                cursor = [('CREATE TABLE t1', {}, ()),
+                          ('INSERT INTO t1 (c1, c2)', {'c2': 'some data'
+                          , 'c1': 5}, (5, 'some data')),
+                          ('INSERT INTO t1 (c1, c2)', {'c1': 6,
+                          'lower_2': 'Foo'}, insert2_params),
+                          ('select * from t1', {}, ()), ('DROP TABLE t1'
+                          , {}, ())]  # bind param name 'lower_2' might
+                                      # be incorrect
+            self._assert_stmts(compiled, stmts)
+            self._assert_stmts(cursor, cursor_stmts)
+
+    def test_options(self):
+        canary = []
+        def execute(conn, *args, **kw):
+            canary.append('execute')
+
+        def cursor_execute(conn, *args, **kw):
+            canary.append('cursor_execute')
+
+        engine = engines.testing_engine()
+        event.listen(engine, 'before_execute', execute)
+        event.listen(engine, 'before_cursor_execute', cursor_execute)
+        conn = engine.connect()
+        c2 = conn.execution_options(foo='bar')
+        eq_(c2._execution_options, {'foo':'bar'})
+        c2.execute(select([1]))
+        c3 = c2.execution_options(bar='bat')
+        eq_(c3._execution_options, {'foo':'bar', 'bar':'bat'})
+        eq_(canary, ['execute', 'cursor_execute'])
+
+    def test_retval_flag(self):
+        canary = []
+        def tracker(name):
+            def go(conn, *args, **kw):
+                canary.append(name)
+            return go
+
+        def execute(conn, clauseelement, multiparams, params):
+            canary.append('execute')
+            return clauseelement, multiparams, params
+
+        def cursor_execute(conn, cursor, statement, 
+                        parameters, context, executemany):
+            canary.append('cursor_execute')
+            return statement, parameters
+
+        engine = engines.testing_engine()
+
+        assert_raises(
+            tsa.exc.ArgumentError,
+            event.listen, engine, "begin", tracker("begin"), retval=True
+        )
+
+        event.listen(engine, "before_execute", execute, retval=True)
+        event.listen(engine, "before_cursor_execute", cursor_execute, retval=True)
+        engine.execute(select([1]))
+        eq_(
+            canary, ['execute', 'cursor_execute']
+        )
+
+
+
+    def test_transactional(self):
+        canary = []
+        def tracker(name):
+            def go(conn, *args, **kw):
+                canary.append(name)
+            return go
+
+        engine = engines.testing_engine()
+        event.listen(engine, 'before_execute', tracker('execute'))
+        event.listen(engine, 'before_cursor_execute', tracker('cursor_execute'))
+        event.listen(engine, 'begin', tracker('begin'))
+        event.listen(engine, 'commit', tracker('commit'))
+        event.listen(engine, 'rollback', tracker('rollback'))
+
+        conn = engine.connect()
+        trans = conn.begin()
+        conn.execute(select([1]))
+        trans.rollback()
+        trans = conn.begin()
+        conn.execute(select([1]))
+        trans.commit()
+
+        eq_(canary, [
+            'begin', 'execute', 'cursor_execute', 'rollback',
+            'begin', 'execute', 'cursor_execute', 'commit',
+            ])
+
+    @testing.requires.savepoints
+    @testing.requires.two_phase_transactions
+    def test_transactional_advanced(self):
+        canary = []
+        def tracker(name):
+            def go(*args, **kw):
+                canary.append(name)
+            return go
+
+        engine = engines.testing_engine()
+        for name in ['begin', 'savepoint', 
+                    'rollback_savepoint', 'release_savepoint',
+                    'rollback', 'begin_twophase', 
+                       'prepare_twophase', 'commit_twophase']:
+            event.listen(engine, '%s' % name, tracker(name))
+
+        conn = engine.connect()
+
+        trans = conn.begin()
+        trans2 = conn.begin_nested()
+        conn.execute(select([1]))
+        trans2.rollback()
+        trans2 = conn.begin_nested()
+        conn.execute(select([1]))
+        trans2.commit()
+        trans.rollback()
+
+        trans = conn.begin_twophase()
+        conn.execute(select([1]))
+        trans.prepare()
+        trans.commit()
+
+        eq_(canary, ['begin', 'savepoint', 
+                    'rollback_savepoint', 'savepoint', 'release_savepoint',
+                    'rollback', 'begin_twophase', 
+                       'prepare_twophase', 'commit_twophase']
+        )
+
+
+class ProxyConnectionTest(TestBase):
+    """These are the same tests as EngineEventsTest, except using
+    the deprecated ConnectionProxy interface.
+
+    """
+
+    @testing.uses_deprecated(r'.*Use event.listen')
     @testing.fails_on('firebird', 'Data type unknown')
     def test_proxy(self):
 
@@ -421,13 +820,14 @@ class ProxyConnectionTest(TestBase):
             assert_stmts(compiled, stmts)
             assert_stmts(cursor, cursor_stmts)
 
+    @testing.uses_deprecated(r'.*Use event.listen')
     def test_options(self):
-        track = []
+        canary = []
         class TrackProxy(ConnectionProxy):
             def __getattribute__(self, key):
                 fn = object.__getattribute__(self, key)
                 def go(*arg, **kw):
-                    track.append(fn.__name__)
+                    canary.append(fn.__name__)
                     return fn(*arg, **kw)
                 return go
         engine = engines.testing_engine(options={'proxy':TrackProxy()})
@@ -437,16 +837,17 @@ class ProxyConnectionTest(TestBase):
         c2.execute(select([1]))
         c3 = c2.execution_options(bar='bat')
         eq_(c3._execution_options, {'foo':'bar', 'bar':'bat'})
-        eq_(track, ['execute', 'cursor_execute'])
+        eq_(canary, ['execute', 'cursor_execute'])
 
 
+    @testing.uses_deprecated(r'.*Use event.listen')
     def test_transactional(self):
-        track = []
+        canary = []
         class TrackProxy(ConnectionProxy):
             def __getattribute__(self, key):
                 fn = object.__getattribute__(self, key)
                 def go(*arg, **kw):
-                    track.append(fn.__name__)
+                    canary.append(fn.__name__)
                     return fn(*arg, **kw)
                 return go
 
@@ -459,26 +860,21 @@ class ProxyConnectionTest(TestBase):
         conn.execute(select([1]))
         trans.commit()
 
-        eq_(track, [
-            'begin',
-            'execute',
-            'cursor_execute',
-            'rollback',
-            'begin',
-            'execute',
-            'cursor_execute',
-            'commit',
+        eq_(canary, [
+            'begin', 'execute', 'cursor_execute', 'rollback',
+            'begin', 'execute', 'cursor_execute', 'commit',
             ])
 
+    @testing.uses_deprecated(r'.*Use event.listen')
     @testing.requires.savepoints
     @testing.requires.two_phase_transactions
     def test_transactional_advanced(self):
-        track = []
+        canary = []
         class TrackProxy(ConnectionProxy):
             def __getattribute__(self, key):
                 fn = object.__getattribute__(self, key)
                 def go(*arg, **kw):
-                    track.append(fn.__name__)
+                    canary.append(fn.__name__)
                     return fn(*arg, **kw)
                 return go
 
@@ -499,8 +895,8 @@ class ProxyConnectionTest(TestBase):
         trans.prepare()
         trans.commit()
 
-        track = [t for t in track if t not in ('cursor_execute', 'execute')]
-        eq_(track, ['begin', 'savepoint', 
+        canary = [t for t in canary if t not in ('cursor_execute', 'execute')]
+        eq_(canary, ['begin', 'savepoint', 
                     'rollback_savepoint', 'savepoint', 'release_savepoint',
                     'rollback', 'begin_twophase', 
                        'prepare_twophase', 'commit_twophase']

@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-                Dialects
-             &mdash; SQLAlchemy 0.6.8 Documentation</title>
+    Dialects
+ &mdash; SQLAlchemy 0.7b1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.8',
+          VERSION:     '0.7b1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,9 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
-        <link rel="next" title="Firebird" href="firebird.html" />
+    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
+        <link rel="next" title="Drizzle" href="drizzle.html" />
         <link rel="prev" title="Core Exceptions" href="../core/exceptions.html" />
+    
 
     </head>
     <body>
@@ -37,57 +38,56 @@
 
 
 
-<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+
+        <div id="search">
+        Search:
+        <form class="search" action="../search.html" method="get">
+          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        </div>
+
+        <div class="versionheader">
+            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+        </div>
+        <div class="clearboth"></div>
+
+        <div class="topnav">
+            <div id="pagecontrol">
+                <a href="../genindex.html">Index</a>
+
+                <div class="sourcelink">(<a href="../_sources/dialects/index.txt">view source)</div>
+            </div>
+
+            <div class="navbanner">
+                <a class="totoc" href="../index.html">Table of Contents</a>
+                » 
+    Dialects
+ 
+
+                
+<div class="prevnext">
+        Previous:
+        <a href="../core/exceptions.html" title="previous chapter">Core Exceptions</a>
+        Next:
+        <a href="drizzle.html" title="next chapter">Drizzle</a>
 </div>
 
-<div class="versionheader">
-    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
-</div>
-<div class="clearboth"></div>
+                <h2>
+                    
+    Dialects
+ 
+                </h2>
+            </div>
+            <div class="clearboth"></div>
+        </div>
 
-<div id="topnav">
-    <div id="pagecontrol">
-        <ul>
-            <li>Prev:
-            <a href="../core/exceptions.html" title="previous chapter">Core Exceptions</a>
-            </li>
-            <li>Next:
-            <a href="firebird.html" title="next chapter">Firebird</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/dialects/index.txt">view source
-        </li>
-        </ul>
-    </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
-        » 
-                Dialects
-             
-
-        <h2>
-            
-                Dialects
-            
-        </h2>
-    </div>
-    <div class="clearboth"></div>
-</div>
-
-<div class="document">
-    <div class="body">
-        
+        <div class="document">
+            <div class="body">
+                
 <div class="section" id="dialects">
 <span id="dialect-toplevel"></span><h1>Dialects<a class="headerlink" href="#dialects" title="Permalink to this headline">¶</a></h1>
 <p>The <strong>dialect</strong> is the system SQLAlchemy uses to communicate with various types of DBAPIs and databases.
@@ -99,6 +99,7 @@ current versions of SQLAlchemy. The compatibility chart
 should be consulted to check for current support level.</p>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="drizzle.html">Drizzle</a></li>
 <li class="toctree-l1"><a class="reference internal" href="firebird.html">Firebird</a></li>
 <li class="toctree-l1"><a class="reference internal" href="informix.html">Informix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="maxdb.html">MaxDB</a></li>
@@ -113,20 +114,28 @@ should be consulted to check for current support level.</p>
 </div>
 </div>
 
-    </div>
+            </div>
+        </div>
+
+        
+        
+            <div class="bottomnav">
+                
+<div class="prevnext">
+        Previous:
+        <a href="../core/exceptions.html" title="previous chapter">Core Exceptions</a>
+        Next:
+        <a href="drizzle.html" title="next chapter">Drizzle</a>
 </div>
 
+                <div class="doc_copyright">
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+                </div>
+            </div>
+        
 
-    <div class="bottomnav">
-            Previous:
-            <a href="../core/exceptions.html" title="previous chapter">Core Exceptions</a>
-            Next:
-            <a href="firebird.html" title="next chapter">Firebird</a>
-        <div class="doc_copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
-    </div>
+
 
 
 

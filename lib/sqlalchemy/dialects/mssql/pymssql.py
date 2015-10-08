@@ -41,7 +41,6 @@ Please consult the pymssql documentation for further information.
 from sqlalchemy.dialects.mssql.base import MSDialect
 from sqlalchemy import types as sqltypes, util, processors
 import re
-import decimal
 
 class _MSNumeric_pymssql(sqltypes.Numeric):
     def result_processor(self, dialect, type_):
@@ -96,7 +95,7 @@ class MSDialect_pymssql(MSDialect):
             opts['host'] = "%s:%s" % (opts['host'], port)
         return [[], opts]
 
-    def is_disconnect(self, e):
+    def is_disconnect(self, e, connection, cursor):
         for msg in (
             "Error 10054",
             "Not connected to any MS SQL server",

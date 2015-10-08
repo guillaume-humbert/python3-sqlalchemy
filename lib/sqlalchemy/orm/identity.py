@@ -5,6 +5,8 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 import weakref
+
+from sqlalchemy import util as base_util
 from sqlalchemy.orm import attributes
 
 
@@ -20,7 +22,7 @@ class IdentityMap(dict):
     def add(self, state):
         raise NotImplementedError()
 
-    def discard(self, state):
+    def remove(self, state):
         raise NotImplementedError()
 
     def update(self, dict):
@@ -28,10 +30,6 @@ class IdentityMap(dict):
 
     def clear(self):
         raise NotImplementedError("IdentityMap uses remove() to remove data")
-
-    def remove(self, state):
-        # deprecated, here for 0.6 compat
-        return self.discard(state)
 
     def _manage_incoming_state(self, state):
         state._instance_dict = self._wr
@@ -85,6 +83,7 @@ class IdentityMap(dict):
 class WeakInstanceDict(IdentityMap):
     def __init__(self):
         IdentityMap.__init__(self)
+        self._remove_mutex = base_util.threading.Lock()
 
     def __getitem__(self, key):
         state = dict.__getitem__(self, key)
@@ -144,10 +143,31 @@ class WeakInstanceDict(IdentityMap):
         dict.__setitem__(self, key, state)
         self._manage_incoming_state(state)
 
+    def remove_key(self, key):
+        state = dict.__getitem__(self, key)
+        self.remove(state)
+
+    def remove(self, state):
+        self._remove_mutex.acquire()
+        try:
+            if dict.pop(self, state.key) is not state:
+                raise AssertionError(
+                        "State %s is not present in this "
+                        "identity map" % state)
+        finally:
+            self._remove_mutex.release()
+
+        self._manage_removed_state(state)
+
+    def discard(self, state):
+        if self.contains_state(state):
+            dict.__delitem__(self, state.key)
+            self._manage_removed_state(state)
+
     def get(self, key, default=None):
-        state = dict.get(self, key, default)
-        if state is default:
+        if not dict.__contains__(self, key):
             return default
+        state = dict.__getitem__(self, key)
         o = state.obj()
         if o is None:
             o = state._is_really_none()
@@ -155,53 +175,53 @@ class WeakInstanceDict(IdentityMap):
                 return default
         return o
 
-    def _items(self):
-        values = self.all_states()
-        result = []
-        for state in values:
-            value = state.obj()
-            if value is not None:
-                result.append((state.key, value))
-        return result
-
-    def _values(self):
-        values = self.all_states()
-        result = []
-        for state in values:
-            value = state.obj()
-            if value is not None:
-                result.append(value)
-
-        return result
-
-    # Py3K
-    #def items(self):
-    #    return iter(self._items())
-    #
-    #def values(self):
-    #    return iter(self._values())
+    def items(self):
     # Py2K
-    items = _items
-    def iteritems(self):
-        return iter(self.items())
+        return list(self.iteritems())
 
-    values = _values
-    def itervalues(self):
-        return iter(self.values())
+    def iteritems(self):
     # end Py2K
+        self._remove_mutex.acquire()
+        try:
+            result = []
+            for state in dict.values(self):
+                value = state.obj()
+                if value is not None:
+                    result.append((state.key, value))
+
+            return iter(result)
+        finally:
+            self._remove_mutex.release()
+
+    def values(self):
+    # Py2K
+        return list(self.itervalues())
+
+    def itervalues(self):
+    # end Py2K
+        self._remove_mutex.acquire()
+        try:
+            result = []
+            for state in dict.values(self):
+                value = state.obj()
+                if value is not None:
+                    result.append(value)
+
+            return iter(result)
+        finally:
+            self._remove_mutex.release()
 
     def all_states(self):
-        # Py3K
-        # return list(dict.values(self))
-        # Py2K
-        return dict.values(self)
-        # end Py2K
+        self._remove_mutex.acquire()
+        try:
+            # Py3K
+            # return list(dict.values(self))
 
-    def discard(self, state):
-        st = dict.get(self, state.key, None)
-        if st is state:
-            dict.__delitem__(self, state.key)
-            self._manage_removed_state(state)
+            # Py2K
+            return dict.values(self)
+            # end Py2K
+        finally:
+            self._remove_mutex.release()
 
     def prune(self):
         return 0
@@ -236,13 +256,21 @@ class StrongInstanceDict(IdentityMap):
             dict.__setitem__(self, state.key, state.obj())
             self._manage_incoming_state(state)
 
+    def remove(self, state):
+        if attributes.instance_state(dict.pop(self, state.key)) \
+            is not state:
+            raise AssertionError('State %s is not present in this '
+                                 'identity map' % state)
+        self._manage_removed_state(state)
+
     def discard(self, state):
-        obj = dict.get(self, state.key, None)
-        if obj is not None:
-            st = attributes.instance_state(obj)
-            if st is state:
-                dict.__delitem__(self, state.key)
-                self._manage_removed_state(state)
+        if self.contains_state(state):
+            dict.__delitem__(self, state.key)
+            self._manage_removed_state(state)
+
+    def remove_key(self, key):
+        state = attributes.instance_state(dict.__getitem__(self, key))
+        self.remove(state)
 
     def prune(self):
         """prune unreferenced, non-dirty states."""

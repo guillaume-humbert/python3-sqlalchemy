@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-                Declarative
-             &mdash; SQLAlchemy 0.6.8 Documentation</title>
+    Declarative
+ &mdash; SQLAlchemy 0.7b1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.8',
+          VERSION:     '0.7b1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,10 +27,11 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../../index.html" />
         <link rel="up" title="ORM Extensions" href="index.html" />
-        <link rel="next" title="Ordering List" href="orderinglist.html" />
+        <link rel="next" title="Mutation Tracking" href="mutable.html" />
         <link rel="prev" title="Association Proxy" href="associationproxy.html" />
+    
 
     </head>
     <body>
@@ -38,60 +39,59 @@
 
 
 
-<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+
+        <div id="search">
+        Search:
+        <form class="search" action="../../search.html" method="get">
+          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        </div>
+
+        <div class="versionheader">
+            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+        </div>
+        <div class="clearboth"></div>
+
+        <div class="topnav">
+            <div id="pagecontrol">
+                <a href="../../genindex.html">Index</a>
+
+                <div class="sourcelink">(<a href="../../_sources/orm/extensions/declarative.txt">view source)</div>
+            </div>
+
+            <div class="navbanner">
+                <a class="totoc" href="../../index.html">Table of Contents</a>
+                        » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
+                        » <a href="index.html" title="ORM Extensions">ORM Extensions</a>
+                » 
+    Declarative
+ 
+
+                
+<div class="prevnext">
+        Previous:
+        <a href="associationproxy.html" title="previous chapter">Association Proxy</a>
+        Next:
+        <a href="mutable.html" title="next chapter">Mutation Tracking</a>
 </div>
 
-<div class="versionheader">
-    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
-        <ul>
-            <li>Prev:
-            <a href="associationproxy.html" title="previous chapter">Association Proxy</a>
-            </li>
-            <li>Next:
-            <a href="orderinglist.html" title="next chapter">Ordering List</a>
-            </li>
-
-        <li>
-            <a href="../../contents.html">Table of Contents</a> |
-            <a href="../../genindex.html">Index</a>
-            | <a href="../../_sources/orm/extensions/declarative.txt">view source
-        </li>
-        </ul>
-    </div>
-    <div id="navbanner">
-        <a class="totoc" href="../../index.html">SQLAlchemy 0.6.8 Documentation</a>
-                » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-                » <a href="index.html" title="ORM Extensions">ORM Extensions</a>
-        » 
-                Declarative
-             
-
-        <h2>
-            
-                Declarative
-            
-        </h2>
-        <ul>
+                <h2>
+                    
+    Declarative
+ 
+                </h2>
+            </div>
+                <ul>
 <li><a class="reference internal" href="#">Declarative</a><ul>
 <li><a class="reference internal" href="#synopsis">Synopsis</a></li>
 <li><a class="reference internal" href="#defining-attributes">Defining Attributes</a></li>
 <li><a class="reference internal" href="#accessing-the-metadata">Accessing the MetaData</a></li>
 <li><a class="reference internal" href="#configuring-relationships">Configuring Relationships</a></li>
 <li><a class="reference internal" href="#configuring-many-to-many-relationships">Configuring Many-to-Many Relationships</a></li>
-<li><a class="reference internal" href="#defining-synonyms">Defining Synonyms</a></li>
 <li><a class="reference internal" href="#defining-sql-expressions">Defining SQL Expressions</a></li>
 <li><a class="reference internal" href="#table-configuration">Table Configuration</a></li>
 <li><a class="reference internal" href="#using-a-hybrid-approach-with-table">Using a Hybrid Approach with __table__</a></li>
@@ -108,6 +108,7 @@ Search:
 <li><a class="reference internal" href="#mixing-in-deferred-column-property-etc">Mixing in deferred(), column_property(), etc.</a></li>
 <li><a class="reference internal" href="#controlling-table-inheritance-with-mixins">Controlling table inheritance with mixins</a></li>
 <li><a class="reference internal" href="#combining-table-mapper-arguments-from-multiple-mixins">Combining Table/Mapper Arguments from Multiple Mixins</a></li>
+<li><a class="reference internal" href="#creating-indexes-with-mixins">Creating Indexes with Mixins</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#class-constructor">Class Constructor</a></li>
@@ -117,13 +118,12 @@ Search:
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
+            <div class="clearboth"></div>
+        </div>
 
-<div class="document">
-    <div class="body">
-        
+        <div class="document">
+            <div class="body">
+                
 <div class="section" id="module-sqlalchemy.ext.declarative">
 <span id="declarative"></span><span id="declarative-toplevel"></span><h1>Declarative<a class="headerlink" href="#module-sqlalchemy.ext.declarative" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="synopsis">
@@ -131,7 +131,7 @@ Search:
 <p>SQLAlchemy object-relational configuration involves the
 combination of <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, <a class="reference internal" href="../mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a>, and class
 objects to define a mapped class.
-<a class="reference internal" href="#module-sqlalchemy.ext.declarative" title="sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> allows all three to be
+<a class="reference internal" href="#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> allows all three to be
 expressed at once within the class declaration. As much as
 possible, regular SQLAlchemy schema and ORM constructs are
 used directly, so that configuration between &#8220;classical&#8221; ORM
@@ -289,64 +289,9 @@ the <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema
 </div>
 <p>As with traditional mapping, its generally not a good idea to use 
 a <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> as the &#8220;secondary&#8221; argument which is also mapped to
-a class, unless the <tt class="xref py py-class docutils literal"><span class="pre">relationship</span></tt> is declared with <tt class="docutils literal"><span class="pre">viewonly=True</span></tt>.
+a class, unless the <a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-class docutils literal"><span class="pre">relationship</span></tt></a> is declared with <tt class="docutils literal"><span class="pre">viewonly=True</span></tt>.
 Otherwise, the unit-of-work system may attempt duplicate INSERT and
 DELETE statements against the underlying table.</p>
-</div>
-<div class="section" id="defining-synonyms">
-<span id="declarative-synonyms"></span><h2>Defining Synonyms<a class="headerlink" href="#defining-synonyms" title="Permalink to this headline">¶</a></h2>
-<p>Synonyms are introduced in <a class="reference internal" href="../mapper_config.html#synonyms"><em>Using Descriptors</em></a>. To define a getter/setter
-which proxies to an underlying attribute, use
-<a class="reference internal" href="../mapper_config.html#sqlalchemy.orm.synonym" title="sqlalchemy.orm.synonym"><tt class="xref py py-func docutils literal"><span class="pre">synonym()</span></tt></a> with the <tt class="docutils literal"><span class="pre">descriptor</span></tt> argument.  Here we present
-using Python 2.6 style properties:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;sometable&#39;</span>
-
-    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-
-    <span class="n">_attr</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;attr&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attr</span>
-
-    <span class="nd">@attr.setter</span>
-    <span class="k">def</span> <span class="nf">attr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_attr</span> <span class="o">=</span> <span class="n">attr</span>
-
-    <span class="n">attr</span> <span class="o">=</span> <span class="n">synonym</span><span class="p">(</span><span class="s">&#39;_attr&#39;</span><span class="p">,</span> <span class="n">descriptor</span><span class="o">=</span><span class="n">attr</span><span class="p">)</span></pre></div>
-</div>
-<p>The above synonym is then usable as an instance attribute as well as a
-class-level expression construct:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">x</span> <span class="o">=</span> <span class="n">MyClass</span><span class="p">()</span>
-<span class="n">x</span><span class="o">.</span><span class="n">attr</span> <span class="o">=</span> <span class="s">&quot;some value&quot;</span>
-<span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">attr</span> <span class="o">==</span> <span class="s">&#39;some other value&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></pre></div>
-</div>
-<p>For simple getters, the <a class="reference internal" href="#sqlalchemy.ext.declarative.synonym_for" title="sqlalchemy.ext.declarative.synonym_for"><tt class="xref py py-func docutils literal"><span class="pre">synonym_for()</span></tt></a> decorator can be used in
-conjunction with <tt class="docutils literal"><span class="pre">&#64;property</span></tt>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;sometable&#39;</span>
-
-    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">_attr</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;attr&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">)</span>
-
-    <span class="nd">@synonym_for</span><span class="p">(</span><span class="s">&#39;_attr&#39;</span><span class="p">)</span>
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attr</span></pre></div>
-</div>
-<p>Similarly, <a class="reference internal" href="#sqlalchemy.ext.declarative.comparable_using" title="sqlalchemy.ext.declarative.comparable_using"><tt class="xref py py-func docutils literal"><span class="pre">comparable_using()</span></tt></a> is a front end for the
-<a class="reference internal" href="../mapper_config.html#sqlalchemy.orm.comparable_property" title="sqlalchemy.orm.comparable_property"><tt class="xref py py-func docutils literal"><span class="pre">comparable_property()</span></tt></a> ORM function:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;sometable&#39;</span>
-
-    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">)</span>
-
-    <span class="nd">@comparable_using</span><span class="p">(</span><span class="n">MyUpperCaseComparator</span><span class="p">)</span>
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">uc_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span></pre></div>
-</div>
 </div>
 <div class="section" id="defining-sql-expressions">
 <span id="declarative-sql-expressions"></span><h2>Defining SQL Expressions<a class="headerlink" href="#defining-sql-expressions" title="Permalink to this headline">¶</a></h2>
@@ -603,11 +548,11 @@ requires usage of <a class="reference internal" href="../mapper_config.html#sqla
 </div>
 <div class="section" id="mixin-classes">
 <h2>Mixin Classes<a class="headerlink" href="#mixin-classes" title="Permalink to this headline">¶</a></h2>
-<p>A common need when using <a class="reference internal" href="#module-sqlalchemy.ext.declarative" title="sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> is to
+<p>A common need when using <a class="reference internal" href="#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> is to
 share some functionality, often a set of columns, across many
 classes. The normal Python idiom would be to put this common code into
 a base class and have all the other classes subclass this class.</p>
-<p>When using <a class="reference internal" href="#module-sqlalchemy.ext.declarative" title="sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a>, this need is met by
+<p>When using <a class="reference internal" href="#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a>, this need is met by
 using a &#8220;mixin class&#8221;. A mixin class is one that isn&#8217;t mapped to a
 table and doesn&#8217;t subclass the declarative <tt class="xref py py-class docutils literal"><span class="pre">Base</span></tt>. For example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -659,7 +604,7 @@ keys, as a <tt class="xref py py-class docutils literal"><span class="pre">Forei
 which can&#8217;t be properly recreated at this level.  For columns that 
 have foreign keys, as well as for the variety of mapper-level constructs
 that require destination-explicit context, the
-<tt class="xref py py-func docutils literal"><span class="pre">declared_attr()</span></tt> decorator (renamed from <tt class="docutils literal"><span class="pre">sqlalchemy.util.classproperty</span></tt> in 0.6.5) 
+<a class="reference internal" href="#sqlalchemy.ext.declarative.declared_attr" title="sqlalchemy.ext.declarative.declared_attr"><tt class="xref py py-func docutils literal"><span class="pre">declared_attr()</span></tt></a> decorator (renamed from <tt class="docutils literal"><span class="pre">sqlalchemy.util.classproperty</span></tt> in 0.6.5) 
 is provided so that
 patterns common to many classes can be defined as callables:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declared_attr</span>
@@ -677,7 +622,7 @@ patterns common to many classes can be defined as callables:</p>
 point at which the <tt class="docutils literal"><span class="pre">User</span></tt> class is constructed, and the declarative
 extension can use the resulting <tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt> object as returned by
 the method without the need to copy it.</p>
-<p>Columns generated by <tt class="xref py py-func docutils literal"><span class="pre">declared_attr()</span></tt> can also be
+<p>Columns generated by <a class="reference internal" href="#sqlalchemy.ext.declarative.declared_attr" title="sqlalchemy.ext.declarative.declared_attr"><tt class="xref py py-func docutils literal"><span class="pre">declared_attr()</span></tt></a> can also be
 referenced by <tt class="docutils literal"><span class="pre">__mapper_args__</span></tt> to a limited degree, currently 
 by <tt class="docutils literal"><span class="pre">polymorphic_on</span></tt> and <tt class="docutils literal"><span class="pre">version_id_col</span></tt>, by specifying the 
 classdecorator itself into the dictionary - the declarative extension
@@ -698,7 +643,7 @@ will resolve them at class construction time:</p>
 <h3>Mixing in Relationships<a class="headerlink" href="#mixing-in-relationships" title="Permalink to this headline">¶</a></h3>
 <p>Relationships created by <a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> are provided
 with declarative mixin classes exclusively using the
-<tt class="xref py py-func docutils literal"><span class="pre">declared_attr()</span></tt> approach, eliminating any ambiguity
+<a class="reference internal" href="#sqlalchemy.ext.declarative.declared_attr" title="sqlalchemy.ext.declarative.declared_attr"><tt class="xref py py-func docutils literal"><span class="pre">declared_attr()</span></tt></a> approach, eliminating any ambiguity
 which could arise when copying a relationship and its possibly column-bound
 contents. Below is an example which combines a foreign key column and a
 relationship so that two classes <tt class="docutils literal"><span class="pre">Foo</span></tt> and <tt class="docutils literal"><span class="pre">Bar</span></tt> can both be configured to
@@ -747,7 +692,7 @@ to get it&#8217;s name:</p>
 <tt class="xref py py-class docutils literal"><span class="pre">MapperProperty</span></tt> subclasses such as
 <a class="reference internal" href="../mapper_config.html#sqlalchemy.orm.deferred" title="sqlalchemy.orm.deferred"><tt class="xref py py-func docutils literal"><span class="pre">deferred()</span></tt></a>, <a class="reference internal" href="../mapper_config.html#sqlalchemy.orm.column_property" title="sqlalchemy.orm.column_property"><tt class="xref py py-func docutils literal"><span class="pre">column_property()</span></tt></a>,
 etc. ultimately involve references to columns, and therefore, when 
-used with declarative mixins, have the <tt class="xref py py-func docutils literal"><span class="pre">declared_attr()</span></tt> 
+used with declarative mixins, have the <a class="reference internal" href="#sqlalchemy.ext.declarative.declared_attr" title="sqlalchemy.ext.declarative.declared_attr"><tt class="xref py py-func docutils literal"><span class="pre">declared_attr()</span></tt></a> 
 requirement so that no reliance on copying is needed:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">SomethingMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
@@ -854,7 +799,7 @@ classes:</p>
 specified with declarative mixins, you may want to combine
 some parameters from several mixins with those you wish to
 define on the class iteself. The
-<tt class="xref py py-func docutils literal"><span class="pre">declared_attr()</span></tt> decorator can be used
+<a class="reference internal" href="#sqlalchemy.ext.declarative.declared_attr" title="sqlalchemy.ext.declarative.declared_attr"><tt class="xref py py-func docutils literal"><span class="pre">declared_attr()</span></tt></a> decorator can be used
 here to create user-defined collation routines that pull
 from multiple collections:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declared_attr</span>
@@ -869,13 +814,31 @@ from multiple collections:</p>
     <span class="n">__tablename__</span><span class="o">=</span><span class="s">&#39;my_model&#39;</span>
 
     <span class="nd">@declared_attr</span>
-    <span class="k">def</span> <span class="nf">__table_args__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__table_args__</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
         <span class="n">args</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="n">args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">MySQLSettings</span><span class="o">.</span><span class="n">__table_args__</span><span class="p">)</span>
         <span class="n">args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">MyOtherMixin</span><span class="o">.</span><span class="n">__table_args__</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">args</span>
 
     <span class="nb">id</span> <span class="o">=</span>  <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+</div>
+</div>
+<div class="section" id="creating-indexes-with-mixins">
+<h3>Creating Indexes with Mixins<a class="headerlink" href="#creating-indexes-with-mixins" title="Permalink to this headline">¶</a></h3>
+<p>To define a named, potentially multicolumn <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> that applies to all 
+tables derived from a mixin, use the &#8220;inline&#8221; form of <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> and establish
+it as part of <tt class="docutils literal"><span class="pre">__table_args__</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span>  <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span>  <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span>
+    
+    <span class="nd">@declared_attr</span>
+    <span class="k">def</span> <span class="nf">__table_args__</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">Index</span><span class="p">(</span><span class="s">&#39;test_idx_</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">cls</span><span class="o">.</span><span class="n">__tablename__</span><span class="p">,</span> <span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">),)</span>
+
+<span class="k">class</span> <span class="nc">MyModel</span><span class="p">(</span><span class="n">Base</span><span class="p">,</span><span class="n">MyMixin</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;atable&#39;</span>
+    <span class="n">c</span> <span class="o">=</span>  <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span><span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
 </div>
 </div>
@@ -906,7 +869,7 @@ setup using <a class="reference internal" href="../session.html#sqlalchemy.orm.s
 <h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="sqlalchemy.ext.declarative.declarative_base">
-<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x4642670&gt;</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.DeclarativeMeta'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x458a1b0&gt;</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.DeclarativeMeta'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a base class for declarative class definitions.</p>
 <p>The new base class will be given a metaclass that produces
 appropriate <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects and makes
@@ -1066,20 +1029,28 @@ MetaData object.</p>
 </div>
 </div>
 
-    </div>
+            </div>
+        </div>
+
+        
+        
+            <div class="bottomnav">
+                
+<div class="prevnext">
+        Previous:
+        <a href="associationproxy.html" title="previous chapter">Association Proxy</a>
+        Next:
+        <a href="mutable.html" title="next chapter">Mutation Tracking</a>
 </div>
 
+                <div class="doc_copyright">
+                    &copy; <a href="../../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+                </div>
+            </div>
+        
 
-    <div class="bottomnav">
-            Previous:
-            <a href="associationproxy.html" title="previous chapter">Association Proxy</a>
-            Next:
-            <a href="orderinglist.html" title="next chapter">Ordering List</a>
-        <div class="doc_copyright">
-            &copy; <a href="../../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
-    </div>
+
 
 
 

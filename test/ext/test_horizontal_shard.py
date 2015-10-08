@@ -1,22 +1,22 @@
 import datetime, os
 from sqlalchemy import *
+from sqlalchemy import event
 from sqlalchemy import sql
 from sqlalchemy.orm import *
 from sqlalchemy.ext.horizontal_shard import ShardedSession
 from sqlalchemy.sql import operators
-from sqlalchemy.test import *
-from sqlalchemy.test.testing import eq_
+from test.lib import *
+from test.lib.testing import eq_
 from nose import SkipTest
 
 # TODO: ShardTest can be turned into a base for further subclasses
 
 class ShardTest(TestBase):
-    @classmethod
-    def setup_class(cls):
+    def setUp(self):
         global db1, db2, db3, db4, weather_locations, weather_reports
 
         try:
-            db1 = create_engine('sqlite:///shard1.db')
+            db1 = create_engine('sqlite:///shard1.db', pool_threadlocal=True)
         except ImportError:
             raise SkipTest('Requires sqlite')
         db2 = create_engine('sqlite:///shard2.db')
@@ -29,7 +29,8 @@ class ShardTest(TestBase):
 
         def id_generator(ctx):
             # in reality, might want to use a separate transaction for this.
-            c = db1.connect()
+
+            c = db1.contextual_connect()
             nextid = c.execute(ids.select(for_update=True)).scalar()
             c.execute(ids.update(values={ids.c.nextid : ids.c.nextid + 1}))
             return nextid
@@ -56,11 +57,12 @@ class ShardTest(TestBase):
 
         db1.execute(ids.insert(), nextid=1)
 
-        cls.setup_session()
-        cls.setup_mappers()
+        self.setup_session()
+        self.setup_mappers()
 
-    @classmethod
-    def teardown_class(cls):
+    def tearDown(self):
+        clear_mappers()
+
         for db in (db1, db2, db3, db4):
             db.connect().invalidate()
         for i in range(1,5):
@@ -100,8 +102,8 @@ class ShardTest(TestBase):
                             for bind in binary.right.clauses:
                                 ids.append(shard_lookup[bind.value])
 
-
-            FindContinent().traverse(query._criterion)
+            if query._criterion is not None:
+                FindContinent().traverse(query._criterion)
             if len(ids) == 0:
                 return ['north_america', 'asia', 'europe',
                         'south_america']
@@ -138,8 +140,7 @@ class ShardTest(TestBase):
         })
 
         mapper(Report, weather_reports)
-
-    def test_roundtrip(self):
+    def _fixture_data(self):
         tokyo = WeatherLocation('Asia', 'Tokyo')
         newyork = WeatherLocation('North America', 'New York')
         toronto = WeatherLocation('North America', 'Toronto')
@@ -162,6 +163,11 @@ class ShardTest(TestBase):
             ]:
             sess.add(c)
         sess.commit()
+        return sess
+
+    def test_roundtrip(self):
+        sess = self._fixture_data()
+        tokyo = sess.query(WeatherLocation).filter_by(city="Tokyo").one()
         tokyo.city  # reload 'city' attribute on tokyo
         sess.expunge_all()
         eq_(db2.execute(weather_locations.select()).fetchall(), [(1,
@@ -185,3 +191,20 @@ class ShardTest(TestBase):
         eq_(set([c.city for c in asia_and_europe]), set(['Tokyo',
             'London', 'Dublin']))
 
+    def test_shard_id_event(self):
+        canary = []
+        def load(instance, ctx):
+            canary.append(ctx.attributes["shard_id"])
+
+        event.listen(WeatherLocation, "load", load)
+        sess = self._fixture_data()
+
+        tokyo = sess.query(WeatherLocation).filter_by(city="Tokyo").set_shard("asia").one()
+
+        sess.query(WeatherLocation).all()
+        eq_(
+            canary, 
+            ['asia', 'north_america', 'north_america', 
+            'europe', 'europe', 'south_america', 
+            'south_america']
+        )

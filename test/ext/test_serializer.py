@@ -2,14 +2,14 @@
 from sqlalchemy.ext import serializer
 from sqlalchemy import exc
 import sqlalchemy as sa
-from sqlalchemy.test import testing
+from test.lib import testing
 from sqlalchemy import MetaData, Integer, String, ForeignKey, select, \
     desc, func, util
-from sqlalchemy.test.schema import Table
-from sqlalchemy.test.schema import Column
+from test.lib.schema import Table
+from test.lib.schema import Column
 from sqlalchemy.orm import relationship, sessionmaker, scoped_session, \
-    class_mapper, mapper, joinedload, compile_mappers, aliased
-from sqlalchemy.test.testing import eq_
+    class_mapper, mapper, joinedload, configure_mappers, aliased
+from test.lib.testing import eq_
 from test.orm._base import ComparableEntity, MappedTest
 
 
@@ -44,7 +44,7 @@ class SerializeTest(MappedTest):
                : relationship(Address, backref='user',
                order_by=addresses.c.id)})
         mapper(Address, addresses)
-        compile_mappers()
+        configure_mappers()
 
     @classmethod
     def insert_data(cls):
@@ -124,8 +124,8 @@ class SerializeTest(MappedTest):
     def test_aliases(self):
         u7, u8, u9, u10 = Session.query(User).order_by(User.id).all()
         ualias = aliased(User)
-        q = Session.query(User, ualias).join((ualias, User.id
-                < ualias.id)).filter(User.id < 9).order_by(User.id,
+        q = Session.query(User, ualias).join(ualias, User.id
+                < ualias.id).filter(User.id < 9).order_by(User.id,
                 ualias.id)
         eq_(list(q.all()), [(u7, u8), (u7, u9), (u7, u10), (u8, u9),
             (u8, u10)])

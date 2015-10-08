@@ -27,7 +27,7 @@ The expression package uses functions to construct SQL expressions.  The return 
 
 .. autofunction:: cast
 
-.. autofunction:: sqlalchemy.sql.expression.column
+.. autofunction:: column
 
 .. autofunction:: collate
 
@@ -71,11 +71,13 @@ The expression package uses functions to construct SQL expressions.  The return 
 
 .. autofunction:: outerjoin
 
+.. autofunction:: over
+
 .. autofunction:: select
 
 .. autofunction:: subquery
 
-.. autofunction:: sqlalchemy.sql.expression.table
+.. autofunction:: table
 
 .. autofunction:: text
 
@@ -101,6 +103,10 @@ Classes
    :show-inheritance:
 
 .. autoclass:: ClauseElement
+   :members:
+   :show-inheritance:
+
+.. autoclass:: ClauseList
    :members:
    :show-inheritance:
 
@@ -151,7 +157,7 @@ Classes
    :show-inheritance:
 
 .. autoclass:: Insert
-   :members: prefix_with, values
+   :members: prefix_with, values, returning
    :show-inheritance:
 
 .. autoclass:: Join
@@ -166,7 +172,7 @@ Classes
    :members:
    :show-inheritance:
 
-.. autoclass:: _SelectBaseMixin
+.. autoclass:: _SelectBase
    :members:
    :show-inheritance:
 

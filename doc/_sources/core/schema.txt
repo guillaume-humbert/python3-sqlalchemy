@@ -6,9 +6,6 @@ Schema Definition Language
 
 .. module:: sqlalchemy.schema
 
-
-.. _metadata_describing:
-
 Describing Databases with MetaData
 ==================================
 
@@ -379,6 +376,9 @@ Schema API Constructs
     :undoc-members:
     :show-inheritance:
 
+.. autoclass:: SchemaItem
+    :show-inheritance:
+
 .. autoclass:: Table
     :members:
     :undoc-members:
@@ -388,6 +388,7 @@ Schema API Constructs
     :members:
     :undoc-members:
     :show-inheritance:
+
 
 .. _metadata_reflection:
 
@@ -516,9 +517,6 @@ database is also available. This is known as the "Inspector"::
     :members:
     :undoc-members:
     :show-inheritance:
-
-
-.. _metadata_defaults:
 
 Column Insert/Update Defaults
 ==============================
@@ -823,12 +821,12 @@ Default Geneation API Constructs
 
 .. autoclass:: Sequence
     :show-inheritance:
+    :members:
 
 Defining Constraints and Indexes
 =================================
 
 .. _metadata_foreignkeys:
-.. _metadata_constraints:
 
 Defining Foreign Keys
 ---------------------
@@ -1083,10 +1081,6 @@ separate UNIQUE constraint. For indexes with specific names or which encompass
 more than one column, use the :class:`~sqlalchemy.schema.Index` construct,
 which requires a name.
 
-Note that the :class:`~sqlalchemy.schema.Index` construct is created
-**externally** to the table which it corresponds, using
-:class:`~sqlalchemy.schema.Column` objects and not strings.
-
 Below we illustrate a :class:`~sqlalchemy.schema.Table` with several
 :class:`~sqlalchemy.schema.Index` objects associated. The DDL for "CREATE
 INDEX" is issued right after the create statements for the table:
@@ -1128,6 +1122,28 @@ INDEX" is issued right after the create statements for the table:
     CREATE UNIQUE INDEX myindex ON mytable (col5, col6)
     CREATE INDEX idx_col34 ON mytable (col3, col4){stop}
 
+Note in the example above, the :class:`.Index` construct is created
+externally to the table which it corresponds, using :class:`.Column` 
+objects directly.  As of SQLAlchemy 0.7, :class:`.Index` also supports
+"inline" definition inside the :class:`.Table`, using string names to 
+identify columns::
+
+    meta = MetaData()
+    mytable = Table('mytable', meta,
+        Column('col1', Integer),
+
+        Column('col2', Integer),
+
+        Column('col3', Integer),
+        Column('col4', Integer),
+
+        # place an index on col1, col2
+        Index('idx_col12', 'col1', 'col2'),
+
+        # place a unique index on col3, col4
+        Index('idx_col34', 'col3', 'col4', unique=True)
+    )
+
 The :class:`~sqlalchemy.schema.Index` object also supports its own ``create()`` method:
 
 .. sourcecode:: python+sql
@@ -1138,8 +1154,6 @@ The :class:`~sqlalchemy.schema.Index` object also supports its own ``create()`` 
 
 .. autoclass:: Index
     :show-inheritance:
-
-.. _metadata_ddl:
 
 Customizing DDL
 ===============
@@ -1158,6 +1172,8 @@ associated with it. For more complex scenarios where database-specific DDL is
 required, SQLAlchemy offers two techniques which can be used to add any DDL
 based on any condition, either accompanying the standard generation of tables
 or by itself.
+
+.. _schema_ddl_sequences:
 
 Controlling DDL Sequences
 -------------------------
@@ -1219,14 +1235,24 @@ constructed externally and associated with the
 
 So far, the effect is the same. However, if we create DDL elements
 corresponding to the creation and removal of this constraint, and associate
-them with the :class:`~sqlalchemy.schema.Table` as events, these new events
+them with the :class:`.Table` as events, these new events
 will take over the job of issuing DDL for the constraint. Additionally, the
 constraint will be added via ALTER:
 
 .. sourcecode:: python+sql
 
-    AddConstraint(constraint).execute_at("after-create", users)
-    DropConstraint(constraint).execute_at("before-drop", users)
+    from sqlalchemy import event
+
+    event.listen(
+        users,
+        "after_create", 
+        AddConstraint(constraint)
+    )
+    event.listen(
+        users,
+        "before_drop",
+        DropConstraint(constraint)
+    )
 
     {sql}users.create(engine)
     CREATE TABLE users (
@@ -1241,26 +1267,46 @@ constraint will be added via ALTER:
     ALTER TABLE users DROP CONSTRAINT cst_user_name_length
     DROP TABLE users{stop}
 
-The real usefulness of the above becomes clearer once we illustrate the ``on``
-attribute of a DDL event. The ``on`` parameter is part of the constructor, and
-may be a string name of a database dialect name, a tuple containing dialect
-names, or a Python callable. This will limit the execution of the item to just
-those dialects, or when the return value of the callable is ``True``. So if
-our :class:`~sqlalchemy.schema.CheckConstraint` was only supported by
-Postgresql and not other databases, we could limit it to just that dialect::
+The real usefulness of the above becomes clearer once we illustrate the :meth:`.DDLEvent.execute_if`
+method.  This method returns a modified form of the DDL callable which will 
+filter on criteria before responding to a received event.   It accepts a
+parameter ``dialect``, which is the string name of a dialect or a tuple of such,
+which will limit the execution of the item to just those dialects.  It also
+accepts a ``callable_`` parameter which may reference a Python callable which will 
+be invoked upon event reception, returning ``True`` or ``False`` indicating if
+the event should proceed.
 
-    AddConstraint(constraint, on='postgresql').execute_at("after-create", users)
-    DropConstraint(constraint, on='postgresql').execute_at("before-drop", users)
+If our :class:`~sqlalchemy.schema.CheckConstraint` was only supported by
+Postgresql and not other databases, we could limit its usage to just that dialect::
+
+    event.listen(
+        users,
+        'after_create',
+        AddConstraint(constraint).execute_if(dialect='postgresql')
+    )
+    event.listen(
+        users,
+        'before_drop',
+        DropConstraint(constraint).execute_if(dialect='postgresql')
+    )
 
 Or to any set of dialects::
 
-    AddConstraint(constraint, on=('postgresql', 'mysql')).execute_at("after-create", users)
-    DropConstraint(constraint, on=('postgresql', 'mysql')).execute_at("before-drop", users)
+    event.listen(
+        users,
+        "after_create",
+        AddConstraint(constraint).execute_if(dialect=('postgresql', 'mysql'))
+    )
+    event.listen(
+        users,
+        "before_drop",
+        DropConstraint(constraint).execute_if(dialect=('postgresql', 'mysql'))
+    )
 
-When using a callable, the callable is passed the ddl element, event name, the
-:class:`~sqlalchemy.schema.Table` or :class:`~sqlalchemy.schema.MetaData`
+When using a callable, the callable is passed the ddl element, the
+:class:`.Table` or :class:`.MetaData`
 object whose "create" or "drop" event is in progress, and the
-:class:`~sqlalchemy.engine.base.Connection` object being used for the
+:class:`.Connection` object being used for the
 operation, as well as additional information as keyword arguments. The
 callable can perform checks, such as whether or not a given item already
 exists. Below we define ``should_create()`` and ``should_drop()`` callables
@@ -1268,15 +1314,23 @@ that check for the presence of our named constraint:
 
 .. sourcecode:: python+sql
 
-    def should_create(ddl, event, target, connection, **kw):
+    def should_create(ddl, target, connection, **kw):
         row = connection.execute("select conname from pg_constraint where conname='%s'" % ddl.element.name).scalar()
         return not bool(row)
 
-    def should_drop(ddl, event, target, connection, **kw):
-        return not should_create(ddl, event, target, connection, **kw)
+    def should_drop(ddl, target, connection, **kw):
+        return not should_create(ddl, target, connection, **kw)
 
-    AddConstraint(constraint, on=should_create).execute_at("after-create", users)
-    DropConstraint(constraint, on=should_drop).execute_at("before-drop", users)
+    event.listen(
+        users,
+        "after_create",
+        AddConstraint(constraint).execute_if(callable_=should_create)
+    )
+    event.listen(
+        users,
+        "before_drop",
+        DropConstraint(constraint).execute_if(callable_=should_drop)
+    )
 
     {sql}users.create(engine)
     CREATE TABLE users (
@@ -1302,9 +1356,13 @@ other DDL elements except it accepts a string which is the text to be emitted:
 
 .. sourcecode:: python+sql
 
-    DDL("ALTER TABLE users ADD CONSTRAINT "
-        "cst_user_name_length "
-        " CHECK (length(user_name) >= 8)").execute_at("after-create", metadata)
+    event.listen(
+        metadata,
+        "after_create",
+        DDL("ALTER TABLE users ADD CONSTRAINT "
+            "cst_user_name_length "
+            " CHECK (length(user_name) >= 8)")
+    )
 
 A more comprehensive method of creating libraries of DDL constructs is to use
 custom compilation - see :ref:`sqlalchemy.ext.compiler_toplevel` for

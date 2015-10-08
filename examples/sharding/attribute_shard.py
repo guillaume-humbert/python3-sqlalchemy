@@ -1,16 +1,19 @@
 
 # step 1. imports
 from sqlalchemy import (create_engine, MetaData, Table, Column, Integer,
-    String, ForeignKey, Float, DateTime)
+    String, ForeignKey, Float, DateTime, event)
 from sqlalchemy.orm import sessionmaker, mapper, relationship
 from sqlalchemy.ext.horizontal_shard import ShardedSession
 from sqlalchemy.sql import operators, visitors
 
 import datetime
 
-# step 2. databases
+# step 2. databases.
+# db1 is used for id generation. The "pool_threadlocal" 
+# causes the id_generator() to use the same connection as that
+# of an ongoing transaction within db1.
 echo = True
-db1 = create_engine('sqlite://', echo=echo)
+db1 = create_engine('sqlite://', echo=echo, pool_threadlocal=True)
 db2 = create_engine('sqlite://', echo=echo)
 db3 = create_engine('sqlite://', echo=echo)
 db4 = create_engine('sqlite://', echo=echo)
@@ -230,6 +233,15 @@ mapper(WeatherLocation, weather_locations, properties={
 
 mapper(Report, weather_reports)
 
+# step 8 (optional), events.  The "shard_id" is placed
+# in the QueryContext where it can be intercepted and associated
+# with objects, if needed.
+
+def add_shard_id(instance, ctx):
+    instance.shard_id = ctx.attributes["shard_id"]
+
+event.listen(WeatherLocation, "load", add_shard_id)
+event.listen(Report, "load", add_shard_id)
 
 # save and load objects!
 
@@ -250,7 +262,11 @@ for c in [tokyo, newyork, toronto, london, dublin, brasilia, quito]:
     sess.add(c)
 sess.commit()
 
-t = sess.query(WeatherLocation).get(tokyo.id)
+tokyo_id = tokyo.id
+
+sess.close()
+
+t = sess.query(WeatherLocation).get(tokyo_id)
 assert t.city == tokyo.city
 assert t.reports[0].temperature == 80.0
 

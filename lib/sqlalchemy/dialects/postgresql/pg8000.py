@@ -27,10 +27,8 @@ Passing data from/to the Interval type is not supported as of
 yet.
 
 """
-import decimal
-
-from sqlalchemy.engine import default
 from sqlalchemy import util, exc
+from sqlalchemy.util.compat import decimal
 from sqlalchemy import processors
 from sqlalchemy import types as sqltypes
 from sqlalchemy.dialects.postgresql.base import PGDialect, \
@@ -110,7 +108,7 @@ class PGDialect_pg8000(PGDialect):
         opts.update(url.query)
         return ([], opts)
 
-    def is_disconnect(self, e):
+    def is_disconnect(self, e, connection, cursor):
         return "connection is closed" in str(e)
 
 dialect = PGDialect_pg8000

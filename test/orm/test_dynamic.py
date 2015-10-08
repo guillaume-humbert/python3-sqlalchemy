@@ -1,13 +1,12 @@
-from sqlalchemy.test.testing import eq_, ne_
+from test.lib.testing import eq_, ne_
 import operator
 from sqlalchemy.orm import dynamic_loader, backref
-from sqlalchemy.test import testing
+from test.lib import testing
 from sqlalchemy import Integer, String, ForeignKey, desc, select, func
-from sqlalchemy.test.schema import Table, Column
+from test.lib.schema import Table, Column
 from sqlalchemy.orm import mapper, relationship, create_session, Query, attributes
 from sqlalchemy.orm.dynamic import AppenderMixin
-from sqlalchemy.test.testing import eq_, AssertsCompiledSQL, assert_raises_message
-from sqlalchemy.util import function_named
+from test.lib.testing import eq_, AssertsCompiledSQL, assert_raises_message
 from test.orm import _base, _fixtures
 
 
@@ -416,7 +415,7 @@ class SessionTest(_fixtures.FixtureTest):
             'addresses':dynamic_loader(mapper(Address, addresses), order_by=Address.id,
                                        backref='user')
         })
-        sess = create_session(autoflush=True)
+        sess = create_session(autoflush=True, autocommit=False)
         u = User(name='ed')
         u.addresses.append(Address(email_address='a'))
         u.addresses.append(Address(email_address='b'))
@@ -452,7 +451,7 @@ class SessionTest(_fixtures.FixtureTest):
             'addresses':dynamic_loader(mapper(Address, addresses), order_by=Address.id,
                                        backref='user', cascade="all, delete-orphan")
         })
-        sess = create_session(autoflush=True)
+        sess = create_session(autoflush=True, autocommit=False)
         u = User(name='ed')
         u.addresses.append(Address(email_address='a'))
         u.addresses.append(Address(email_address='b'))
@@ -488,7 +487,7 @@ class SessionTest(_fixtures.FixtureTest):
             'addresses':dynamic_loader(mapper(Address, addresses), order_by=Address.id,
                                        cascade="all, delete-orphan", backref='user')
         })
-        sess = create_session(autoflush=True)
+        sess = create_session(autoflush=True, autocommit=False)
         u = User(name='ed')
         u.addresses.append(Address(email_address='a'))
         u.addresses.append(Address(email_address='b'))
@@ -527,7 +526,7 @@ class SessionTest(_fixtures.FixtureTest):
         mapper(User, users, properties={
             'addresses':dynamic_loader(mapper(Address, addresses), backref='user')
         })
-        sess = create_session(autoflush=autoflush)
+        sess = create_session(autoflush=autoflush, autocommit=False)
 
         u = User(name='buffy')
 

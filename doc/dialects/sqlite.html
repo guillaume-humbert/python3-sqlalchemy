@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-                SQLite
-             &mdash; SQLAlchemy 0.6.8 Documentation</title>
+    SQLite
+ &mdash; SQLAlchemy 0.7b1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.8',
+          VERSION:     '0.7b1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,10 +27,11 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="Sybase" href="sybase.html" />
         <link rel="prev" title="PostgreSQL" href="postgresql.html" />
+    
 
     </head>
     <body>
@@ -38,52 +39,52 @@
 
 
 
-<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+
+        <div id="search">
+        Search:
+        <form class="search" action="../search.html" method="get">
+          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        </div>
+
+        <div class="versionheader">
+            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+        </div>
+        <div class="clearboth"></div>
+
+        <div class="topnav">
+            <div id="pagecontrol">
+                <a href="../genindex.html">Index</a>
+
+                <div class="sourcelink">(<a href="../_sources/dialects/sqlite.txt">view source)</div>
+            </div>
+
+            <div class="navbanner">
+                <a class="totoc" href="../index.html">Table of Contents</a>
+                        » <a href="index.html" title="Dialects">Dialects</a>
+                » 
+    SQLite
+ 
+
+                
+<div class="prevnext">
+        Previous:
+        <a href="postgresql.html" title="previous chapter">PostgreSQL</a>
+        Next:
+        <a href="sybase.html" title="next chapter">Sybase</a>
 </div>
 
-<div class="versionheader">
-    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
-        <ul>
-            <li>Prev:
-            <a href="postgresql.html" title="previous chapter">PostgreSQL</a>
-            </li>
-            <li>Next:
-            <a href="sybase.html" title="next chapter">Sybase</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/dialects/sqlite.txt">view source
-        </li>
-        </ul>
-    </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
-                » <a href="index.html" title="Dialects">Dialects</a>
-        » 
-                SQLite
-             
-
-        <h2>
-            
-                SQLite
-            
-        </h2>
-        <ul>
+                <h2>
+                    
+    SQLite
+ 
+                </h2>
+            </div>
+                <ul>
 <li><a class="reference internal" href="#">SQLite</a><ul>
 <li><a class="reference internal" href="#date-and-time-types">Date and Time Types</a></li>
 <li><a class="reference internal" href="#auto-incrementing-behavior">Auto Incrementing Behavior</a></li>
@@ -93,7 +94,7 @@ Search:
 <li><a class="reference internal" href="#driver">Driver</a></li>
 <li><a class="reference internal" href="#connect-strings">Connect Strings</a></li>
 <li><a class="reference internal" href="#compatibility-with-sqlite3-native-date-and-datetime-types">Compatibility with sqlite3 &#8220;native&#8221; date and datetime types</a></li>
-<li><a class="reference internal" href="#threading-behavior">Threading Behavior</a></li>
+<li><a class="reference internal" href="#pooling-behavior">Pooling Behavior</a></li>
 <li><a class="reference internal" href="#unicode">Unicode</a></li>
 </ul>
 </li>
@@ -101,15 +102,14 @@ Search:
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
+            <div class="clearboth"></div>
+        </div>
 
-<div class="document">
-    <div class="body">
-        
+        <div class="document">
+            <div class="body">
+                
 <div class="section" id="module-sqlalchemy.dialects.sqlite.base">
-<span id="sqlite"></span><h1>SQLite<a class="headerlink" href="#module-sqlalchemy.dialects.sqlite.base" title="Permalink to this headline">¶</a></h1>
+<span id="sqlite"></span><span id="sqlite-toplevel"></span><h1>SQLite<a class="headerlink" href="#module-sqlalchemy.dialects.sqlite.base" title="Permalink to this headline">¶</a></h1>
 <p>Support for the SQLite database.</p>
 <p>For information on connecting using a specific driver, see the documentation
 section regarding that driver.</p>
@@ -155,135 +155,12 @@ connection.   Valid values for this parameter are <tt class="docutils literal"><
 <h2>SQLite Data Types<a class="headerlink" href="#sqlite-data-types" title="Permalink to this headline">¶</a></h2>
 <p>As with all SQLAlchemy dialects, all UPPERCASE types that are known to be
 valid with SQLite are importable from the top level dialect, whether
-they originate from <a class="reference internal" href="../core/types.html#module-sqlalchemy.types" title="sqlalchemy.types"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.types</span></tt></a> or from the local dialect:</p>
+they originate from <a class="reference internal" href="../core/types.html#module-sqlalchemy.types"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.types</span></tt></a> or from the local dialect:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.dialects.sqlite</span> <span class="kn">import</span> \
             <span class="n">BLOB</span><span class="p">,</span> <span class="n">BOOLEAN</span><span class="p">,</span> <span class="n">CHAR</span><span class="p">,</span> <span class="n">DATE</span><span class="p">,</span> <span class="n">DATETIME</span><span class="p">,</span> <span class="n">DECIMAL</span><span class="p">,</span> <span class="n">FLOAT</span><span class="p">,</span> \
             <span class="n">INTEGER</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SMALLINT</span><span class="p">,</span> <span class="n">TEXT</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">TIMESTAMP</span><span class="p">,</span> \
             <span class="n">VARCHAR</span></pre></div>
 </div>
-<span class="target" id="module-sqlalchemy.dialects.sqlite"></span><dl class="class">
-<dt id="sqlalchemy.dialects.sqlite.DATETIME">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.sqlite.</tt><tt class="descname">DATETIME</tt><big>(</big><em>storage_format=None</em>, <em>regexp=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.sqlite.DATETIME" title="Permalink to this definition">¶</a></dt>
-<dd><p>Represent a Python datetime object in SQLite using a string.</p>
-<p>The default string storage format is:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="s">&quot;</span><span class="si">%04d</span><span class="s">-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s"> </span><span class="si">%02d</span><span class="s">:</span><span class="si">%02d</span><span class="s">:</span><span class="si">%02d</span><span class="s">.</span><span class="si">%06d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> 
-                        <span class="n">value</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">day</span><span class="p">,</span>
-                        <span class="n">value</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span> 
-                        <span class="n">value</span><span class="o">.</span><span class="n">second</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">microsecond</span><span class="p">)</span></pre></div>
-</div>
-<p>e.g.:</p>
-<div class="highlight-python"><pre>2011-03-15 12:05:57.10558</pre>
-</div>
-<p>The storage format can be customized to some degree using the 
-<tt class="docutils literal"><span class="pre">storage_format</span></tt> and <tt class="docutils literal"><span class="pre">regexp</span></tt> parameters, such as:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.dialects.sqlite</span> <span class="kn">import</span> <span class="n">DATETIME</span>
-
-<span class="n">dt</span> <span class="o">=</span> <span class="n">DATETIME</span><span class="p">(</span>
-        <span class="n">storage_format</span><span class="o">=</span><span class="s">&quot;</span><span class="si">%04d</span><span class="s">/</span><span class="si">%02d</span><span class="s">/</span><span class="si">%02d</span><span class="s"> </span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%06d</span><span class="s">&quot;</span><span class="p">,</span>
-        <span class="n">regexp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;(\d+)/(\d+)/(\d+) (\d+)-(\d+)-(\d+)(?:-(\d+))?&quot;</span><span class="p">)</span>
-    <span class="p">)</span></pre></div>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>storage_format</strong> &#8211; format string which will be appled to the 
-tuple <tt class="docutils literal"><span class="pre">(value.year,</span> <span class="pre">value.month,</span> <span class="pre">value.day,</span> <span class="pre">value.hour,</span>
-<span class="pre">value.minute,</span> <span class="pre">value.second,</span> <span class="pre">value.microsecond)</span></tt>, given a
-Python datetime.datetime() object.</li>
-<li><strong>regexp</strong> &#8211; regular expression which will be applied to 
-incoming result rows. The resulting match object is appled to
-the Python datetime() constructor via <tt class="docutils literal"><span class="pre">*map(int,</span>
-<span class="pre">match_obj.groups(0))</span></tt>.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="class">
-<dt id="sqlalchemy.dialects.sqlite.DATE">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.sqlite.</tt><tt class="descname">DATE</tt><big>(</big><em>storage_format=None</em>, <em>regexp=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.sqlite.DATE" title="Permalink to this definition">¶</a></dt>
-<dd><p>Represent a Python date object in SQLite using a string.</p>
-<p>The default string storage format is:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="s">&quot;</span><span class="si">%04d</span><span class="s">-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">day</span><span class="p">)</span></pre></div>
-</div>
-<p>e.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="mi">2011</span><span class="o">-</span><span class="mo">03</span><span class="o">-</span><span class="mi">15</span></pre></div>
-</div>
-<p>The storage format can be customized to some degree using the 
-<tt class="docutils literal"><span class="pre">storage_format</span></tt> and <tt class="docutils literal"><span class="pre">regexp</span></tt> parameters, such as:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.dialects.sqlite</span> <span class="kn">import</span> <span class="n">DATE</span>
-
-<span class="n">d</span> <span class="o">=</span> <span class="n">DATE</span><span class="p">(</span>
-        <span class="n">storage_format</span><span class="o">=</span><span class="s">&quot;</span><span class="si">%02d</span><span class="s">/</span><span class="si">%02d</span><span class="s">/</span><span class="si">%02d</span><span class="s">&quot;</span><span class="p">,</span>
-        <span class="n">regexp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;(\d+)/(\d+)/(\d+)&quot;</span><span class="p">)</span>
-    <span class="p">)</span></pre></div>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>storage_format</strong> &#8211; format string which will be appled to the 
-tuple <tt class="docutils literal"><span class="pre">(value.year,</span> <span class="pre">value.month,</span> <span class="pre">value.day)</span></tt>,
-given a Python datetime.date() object.</li>
-<li><strong>regexp</strong> &#8211; regular expression which will be applied to 
-incoming result rows. The resulting match object is appled to
-the Python date() constructor via <tt class="docutils literal"><span class="pre">*map(int,</span>
-<span class="pre">match_obj.groups(0))</span></tt>.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="class">
-<dt id="sqlalchemy.dialects.sqlite.TIME">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.sqlite.</tt><tt class="descname">TIME</tt><big>(</big><em>storage_format=None</em>, <em>regexp=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.sqlite.TIME" title="Permalink to this definition">¶</a></dt>
-<dd><p>Represent a Python time object in SQLite using a string.</p>
-<p>The default string storage format is:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="s">&quot;</span><span class="si">%02d</span><span class="s">:</span><span class="si">%02d</span><span class="s">:</span><span class="si">%02d</span><span class="s">.</span><span class="si">%06d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span> 
-                        <span class="n">value</span><span class="o">.</span><span class="n">second</span><span class="p">,</span>
-                         <span class="n">value</span><span class="o">.</span><span class="n">microsecond</span><span class="p">)</span></pre></div>
-</div>
-<p>e.g.:</p>
-<div class="highlight-python"><pre>12:05:57.10558</pre>
-</div>
-<p>The storage format can be customized to some degree using the 
-<tt class="docutils literal"><span class="pre">storage_format</span></tt> and <tt class="docutils literal"><span class="pre">regexp</span></tt> parameters, such as:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.dialects.sqlite</span> <span class="kn">import</span> <span class="n">TIME</span>
-
-<span class="n">t</span> <span class="o">=</span> <span class="n">TIME</span><span class="p">(</span>
-        <span class="n">storage_format</span><span class="o">=</span><span class="s">&quot;</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%06d</span><span class="s">&quot;</span><span class="p">,</span>
-        <span class="n">regexp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;(\d+)-(\d+)-(\d+)-(?:-(\d+))?&quot;</span><span class="p">)</span>
-    <span class="p">)</span></pre></div>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>storage_format</strong> &#8211; format string which will be appled 
-to the tuple <tt class="docutils literal"><span class="pre">(value.hour,</span> <span class="pre">value.minute,</span> <span class="pre">value.second,</span>
-<span class="pre">value.microsecond)</span></tt>, given a Python datetime.time() object.</li>
-<li><strong>regexp</strong> &#8211; regular expression which will be applied to 
-incoming result rows. The resulting match object is appled to
-the Python time() constructor via <tt class="docutils literal"><span class="pre">*map(int,</span>
-<span class="pre">match_obj.groups(0))</span></tt>.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 </div>
 <div class="section" id="module-sqlalchemy.dialects.sqlite.pysqlite">
 <span id="pysqlite"></span><h2>Pysqlite<a class="headerlink" href="#module-sqlalchemy.dialects.sqlite.pysqlite" title="Permalink to this headline">¶</a></h2>
@@ -363,8 +240,8 @@ processing. Execution of &#8220;func.current_date()&#8221; will return a string.
 &#8220;func.current_timestamp()&#8221; is registered as returning a DATETIME type in
 SQLAlchemy, so this function still receives SQLAlchemy-level result processing.</p>
 </div>
-<div class="section" id="threading-behavior">
-<h3>Threading Behavior<a class="headerlink" href="#threading-behavior" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="pooling-behavior">
+<h3>Pooling Behavior<a class="headerlink" href="#pooling-behavior" title="Permalink to this headline">¶</a></h3>
 <p>Pysqlite connections do not support being moved between threads, unless
 the <tt class="docutils literal"><span class="pre">check_same_thread</span></tt> Pysqlite flag is set to <tt class="xref docutils literal"><span class="pre">False</span></tt>.  In addition,
 when using an in-memory SQLite database, the full database exists only within 
@@ -374,27 +251,27 @@ database does not support being shared between threads regardless of the
 application <strong>cannot</strong> share data from a <tt class="docutils literal"><span class="pre">:memory:</span></tt> database across threads
 unless access to the connection is limited to a single worker thread which communicates
 through a queueing mechanism to concurrent threads.</p>
-<p>To provide a default which accomodates SQLite&#8217;s default threading capabilities
-somewhat reasonably, the SQLite dialect will specify that the <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.SingletonThreadPool" title="sqlalchemy.pool.SingletonThreadPool"><tt class="xref py py-class docutils literal"><span class="pre">SingletonThreadPool</span></tt></a>
-be used by default.  This pool maintains a single SQLite connection per thread
-that is held open up to a count of five concurrent threads.  When more than five threads
-are used, a cleanup mechanism will dispose of excess unused connections.</p>
-<p>Two optional pool implementations that may be appropriate for particular SQLite usage scenarios:</p>
-<blockquote>
-<div><ul class="simple">
-<li>the <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.StaticPool" title="sqlalchemy.pool.StaticPool"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.pool.StaticPool</span></tt></a> might be appropriate for a multithreaded
-application using an in-memory database, assuming the threading issues inherent in 
-pysqlite are somehow accomodated for.  This pool holds persistently onto a single connection
-which is never closed, and is returned for all requests.</li>
-<li>the <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.NullPool" title="sqlalchemy.pool.NullPool"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.pool.NullPool</span></tt></a> might be appropriate for an application that
-makes use of a file-based sqlite database.  This pool disables any actual &#8220;pooling&#8221;
-behavior, and simply opens and closes real connections corresonding to the <tt class="xref py py-func docutils literal"><span class="pre">connect()</span></tt>
-and <tt class="xref py py-func docutils literal"><span class="pre">close()</span></tt> methods.  SQLite can &#8220;connect&#8221; to a particular file with very high 
-efficiency, so this option may actually perform better without the extra overhead
-of <tt class="xref py py-class docutils literal"><span class="pre">SingletonThreadPool</span></tt>.  NullPool will of course render a <tt class="docutils literal"><span class="pre">:memory:</span></tt> connection
-useless since the database would be lost as soon as the connection is &#8220;returned&#8221; to the pool.</li>
+<p>To provide for these two behaviors, the pysqlite dialect will select a <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>
+implementation suitable:</p>
+<ul>
+<li><p class="first">When a <tt class="docutils literal"><span class="pre">:memory:</span></tt> SQLite database is specified, the dialect will use <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.SingletonThreadPool" title="sqlalchemy.pool.SingletonThreadPool"><tt class="xref py py-class docutils literal"><span class="pre">SingletonThreadPool</span></tt></a>.
+This pool maintains a single connection per thread, so that all access to the engine within
+the current thread use the same <tt class="docutils literal"><span class="pre">:memory:</span></tt> database.</p>
+</li>
+<li><p class="first">When a file-based database is specified, the dialect will use <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.NullPool" title="sqlalchemy.pool.NullPool"><tt class="xref py py-class docutils literal"><span class="pre">NullPool</span></tt></a> as the source 
+of connections.  This pool closes and discards connections which are returned to the pool immediately.
+SQLite file-based connections have extermely low overhead, so pooling is not necessary.
+The scheme also prevents a connection from being used again in a different thread
+and works best with SQLite&#8217;s coarse-grained file locking.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The default selection of <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.NullPool" title="sqlalchemy.pool.NullPool"><tt class="xref py py-class docutils literal"><span class="pre">NullPool</span></tt></a> for SQLite file-based databases 
+is new in SQLAlchemy 0.7. Previous versions
+select <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.SingletonThreadPool" title="sqlalchemy.pool.SingletonThreadPool"><tt class="xref py py-class docutils literal"><span class="pre">SingletonThreadPool</span></tt></a> by
+default for all SQLite databases.</p>
+</div>
+</li>
 </ul>
-</div></blockquote>
 </div>
 <div class="section" id="unicode">
 <h3>Unicode<a class="headerlink" href="#unicode" title="Permalink to this headline">¶</a></h3>
@@ -411,20 +288,28 @@ always represented by an actual database result string.</p>
 </div>
 </div>
 
-    </div>
+            </div>
+        </div>
+
+        
+        
+            <div class="bottomnav">
+                
+<div class="prevnext">
+        Previous:
+        <a href="postgresql.html" title="previous chapter">PostgreSQL</a>
+        Next:
+        <a href="sybase.html" title="next chapter">Sybase</a>
 </div>
 
+                <div class="doc_copyright">
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+                </div>
+            </div>
+        
 
-    <div class="bottomnav">
-            Previous:
-            <a href="postgresql.html" title="previous chapter">PostgreSQL</a>
-            Next:
-            <a href="sybase.html" title="next chapter">Sybase</a>
-        <div class="doc_copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
-    </div>
+
 
 
 

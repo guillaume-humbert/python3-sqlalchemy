@@ -1,17 +1,17 @@
 # coding: utf-8
-from sqlalchemy.test.testing import eq_, assert_raises, assert_raises_message
-from sqlalchemy.test import  engines
+from test.lib.testing import eq_, assert_raises, assert_raises_message
+from test.lib import  engines
 import datetime
-import decimal
 from sqlalchemy import *
 from sqlalchemy.orm import *
 from sqlalchemy import exc, schema, types
 from sqlalchemy.dialects.postgresql import base as postgresql
 from sqlalchemy.engine.strategies import MockEngineStrategy
-from sqlalchemy.test import *
-from sqlalchemy.test.util import round_decimal
+from sqlalchemy.util.compat import decimal
+from test.lib import *
+from test.lib.util import round_decimal
 from sqlalchemy.sql import table, column
-from sqlalchemy.test.testing import eq_
+from test.lib.testing import eq_
 from test.engine._base import TablesTest
 import logging
 
@@ -220,16 +220,6 @@ class CompileTest(TestBase, AssertsCompiledSQL):
                                     'anon_1 FROM t' % (field,
                                     compiled_expr))
 
-    def test_reserved_words(self):
-        table = Table("pg_table", MetaData(),
-            Column("col1", Integer),
-            Column("variadic", Integer))
-        x = select([table.c.col1, table.c.variadic])
-
-        self.assert_compile(x, 
-            '''SELECT pg_table.col1, pg_table."variadic" FROM pg_table''')
-
-
 class FloatCoercionTest(TablesTest, AssertsExecutionResults):
     __only_on__ = 'postgresql'
     __dialect__ = postgresql.dialect()
@@ -289,7 +279,7 @@ class FloatCoercionTest(TablesTest, AssertsExecutionResults):
             Column('q', postgresql.ARRAY(Numeric))
         )
         metadata.create_all()
-        t1.insert().execute(x=[5], y=[5], z=[6], q=[decimal.Decimal("6.4")])
+        t1.insert().execute(x=[5], y=[5], z=[6], q=[6.4])
         row = t1.select().execute().first()
         eq_(
             row, 
@@ -504,11 +494,11 @@ class EnumTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
             metadata.drop_all()
 
 class NumericInterpretationTest(TestBase):
-
+    __only_on__ = 'postgresql'
 
     def test_numeric_codes(self):
         from sqlalchemy.dialects.postgresql import pg8000, psycopg2, base
-        from decimal import Decimal
+        from sqlalchemy.util.compat import decimal
 
         for dialect in (pg8000.dialect(), psycopg2.dialect()):
 
@@ -519,7 +509,31 @@ class NumericInterpretationTest(TestBase):
                 val = 23.7
                 if proc is not None:
                     val = proc(val)
-                assert val in (23.7, Decimal("23.7"))
+                assert val in (23.7, decimal.Decimal("23.7"))
+
+    @testing.provide_metadata
+    def test_numeric_default(self):
+        # pg8000 appears to fail when the value is 0, 
+        # returns an int instead of decimal.
+        t =Table('t', metadata, 
+            Column('id', Integer, primary_key=True),
+            Column('nd', Numeric(asdecimal=True), default=1),
+            Column('nf', Numeric(asdecimal=False), default=1),
+            Column('fd', Float(asdecimal=True), default=1),
+            Column('ff', Float(asdecimal=False), default=1),
+        )
+        metadata.create_all()
+        r = t.insert().execute()
+
+        row = t.select().execute().first()
+        assert isinstance(row[1], decimal.Decimal)
+        assert isinstance(row[2], float)
+        assert isinstance(row[3], decimal.Decimal)
+        assert isinstance(row[4], float)
+        eq_(
+            row,
+            (1, decimal.Decimal("1"), 1, decimal.Decimal("1"), 1)
+        )
 
 class InsertTest(TestBase, AssertsExecutionResults):
 
@@ -533,7 +547,7 @@ class InsertTest(TestBase, AssertsExecutionResults):
 
     def teardown(self):
         metadata.drop_all()
-        metadata.tables.clear()
+        metadata.clear()
         if self.engine is not testing.db:
             self.engine.dispose()
 
@@ -979,7 +993,7 @@ class DomainReflectionTest(TestBase, AssertsExecutionResults):
             :
             try:
                 con.execute(ddl)
-            except exc.SQLError, e:
+            except exc.DBAPIError, e:
                 if not 'already exists' in str(e):
                     raise e
         con.execute('CREATE TABLE testtable (question integer, answer '
@@ -1070,24 +1084,125 @@ class DomainReflectionTest(TestBase, AssertsExecutionResults):
         finally:
             postgresql.PGDialect.ischema_names = ischema_names
 
+class DistinctOnTest(TestBase, AssertsCompiledSQL):
+    """Test 'DISTINCT' with SQL expression language and orm.Query with
+    an emphasis on PG's 'DISTINCT ON' syntax.
+
+    """
+    __dialect__ = postgresql.dialect()
+
+    def setup(self):
+        self.table = Table('t', MetaData(), 
+                Column('id',Integer, primary_key=True), 
+                Column('a', String),
+                Column('b', String),
+            )
+
+    def test_plain_generative(self):
+        self.assert_compile(
+            select([self.table]).distinct(),
+            "SELECT DISTINCT t.id, t.a, t.b FROM t"
+        )
+
+    def test_on_columns_generative(self):
+        self.assert_compile(
+            select([self.table]).distinct(self.table.c.a),
+            "SELECT DISTINCT ON (t.a) t.id, t.a, t.b FROM t"
+        )
+
+    def test_on_columns_generative_multi_call(self):
+        self.assert_compile(
+            select([self.table]).distinct(self.table.c.a).
+                distinct(self.table.c.b),
+            "SELECT DISTINCT ON (t.a, t.b) t.id, t.a, t.b FROM t"
+        )
+
+    def test_plain_inline(self):
+        self.assert_compile(
+            select([self.table], distinct=True),
+            "SELECT DISTINCT t.id, t.a, t.b FROM t"
+        )
+
+    def test_on_columns_inline_list(self):
+        self.assert_compile(
+            select([self.table], 
+                    distinct=[self.table.c.a, self.table.c.b]).
+                    order_by(self.table.c.a, self.table.c.b),
+            "SELECT DISTINCT ON (t.a, t.b) t.id, "
+            "t.a, t.b FROM t ORDER BY t.a, t.b"
+        )
+
+    def test_on_columns_inline_scalar(self):
+        self.assert_compile(
+            select([self.table], distinct=self.table.c.a),
+            "SELECT DISTINCT ON (t.a) t.id, t.a, t.b FROM t"
+        )
+
+    def test_query_plain(self):
+        sess = Session()
+        self.assert_compile(
+            sess.query(self.table).distinct(),
+            "SELECT DISTINCT t.id AS t_id, t.a AS t_a, "
+            "t.b AS t_b FROM t"
+        )
+
+    def test_query_on_columns(self):
+        sess = Session()
+        self.assert_compile(
+            sess.query(self.table).distinct(self.table.c.a),
+            "SELECT DISTINCT ON (t.a) t.id AS t_id, t.a AS t_a, "
+            "t.b AS t_b FROM t"
+        )
+
+    def test_query_on_columns_multi_call(self):
+        sess = Session()
+        self.assert_compile(
+            sess.query(self.table).distinct(self.table.c.a).
+                    distinct(self.table.c.b),
+            "SELECT DISTINCT ON (t.a, t.b) t.id AS t_id, t.a AS t_a, "
+            "t.b AS t_b FROM t"
+        )
+
+    def test_query_on_columns_subquery(self):
+        sess = Session()
+        class Foo(object):
+            pass
+        mapper(Foo, self.table)
+        sess = Session()
+        self.assert_compile(
+            sess.query(Foo).from_self().distinct(Foo.a, Foo.b),
+            "SELECT DISTINCT ON (anon_1.t_a, anon_1.t_b) anon_1.t_id "
+            "AS anon_1_t_id, anon_1.t_a AS anon_1_t_a, anon_1.t_b "
+            "AS anon_1_t_b FROM (SELECT t.id AS t_id, t.a AS t_a, "
+            "t.b AS t_b FROM t) AS anon_1"
+        )
+
+    def test_query_distinct_on_aliased(self):
+        class Foo(object):
+            pass
+        mapper(Foo, self.table)
+        a1 = aliased(Foo)
+        sess = Session()
+        self.assert_compile(
+            sess.query(a1).distinct(a1.a),
+            "SELECT DISTINCT ON (t_1.a) t_1.id AS t_1_id, "
+            "t_1.a AS t_1_a, t_1.b AS t_1_b FROM t AS t_1"
+        )
 
 class MiscTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
 
     __only_on__ = 'postgresql'
 
+    @testing.provide_metadata
     def test_date_reflection(self):
-        m1 = MetaData(testing.db)
-        t1 = Table('pgdate', m1, Column('date1',
+        t1 = Table('pgdate', metadata, Column('date1',
                    DateTime(timezone=True)), Column('date2',
                    DateTime(timezone=False)))
-        m1.create_all()
-        try:
-            m2 = MetaData(testing.db)
-            t2 = Table('pgdate', m2, autoload=True)
-            assert t2.c.date1.type.timezone is True
-            assert t2.c.date2.type.timezone is False
-        finally:
-            m1.drop_all()
+        metadata.create_all()
+        m2 = MetaData(testing.db)
+        t2 = Table('pgdate', m2, autoload=True)
+        assert t2.c.date1.type.timezone is True
+        assert t2.c.date2.type.timezone is False
 
     @testing.fails_on('+zxjdbc',
                       'The JDBC driver handles the version parsing')
@@ -1178,68 +1293,25 @@ class MiscTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
         finally:
             t.drop(checkfirst=True)
 
+    @testing.provide_metadata
     def test_renamed_sequence_reflection(self):
-        m1 = MetaData(testing.db)
-        t = Table('t', m1, Column('id', Integer, primary_key=True))
-        m1.create_all()
-        try:
-            m2 = MetaData(testing.db)
-            t2 = Table('t', m2, autoload=True, implicit_returning=False)
-            eq_(t2.c.id.server_default.arg.text,
-                "nextval('t_id_seq'::regclass)")
-            r = t2.insert().execute()
-            eq_(r.inserted_primary_key, [1])
-            testing.db.connect().execution_options(autocommit=True).\
-                    execute('alter table t_id_seq rename to foobar_id_seq'
-                    )
-            m3 = MetaData(testing.db)
-            t3 = Table('t', m3, autoload=True, implicit_returning=False)
-            eq_(t3.c.id.server_default.arg.text,
-                "nextval('foobar_id_seq'::regclass)")
-            r = t3.insert().execute()
-            eq_(r.inserted_primary_key, [2])
-        finally:
-            m1.drop_all()
-
-    def test_distinct_on(self):
-        t = Table('mytable', MetaData(testing.db), Column('id',
-                  Integer, primary_key=True), Column('a', String(8)))
-        eq_(str(t.select(distinct=t.c.a)),
-            'SELECT DISTINCT ON (mytable.a) mytable.id, mytable.a '
-            '\nFROM mytable')
-        eq_(str(t.select(distinct=['id', 'a'])),
-            'SELECT DISTINCT ON (id, a) mytable.id, mytable.a \nFROM '
-            'mytable')
-        eq_(str(t.select(distinct=[t.c.id, t.c.a])),
-            'SELECT DISTINCT ON (mytable.id, mytable.a) mytable.id, '
-            'mytable.a \nFROM mytable')
-
-    @testing.fails_if(lambda: True, "[ticket:2142]")
-    def test_distinct_on_subquery(self):
-        t1 = Table('mytable1', MetaData(testing.db), Column('id',
-                  Integer, primary_key=True), Column('a', String(8)))
-        t2 = Table('mytable2', MetaData(testing.db), Column('id',
-                  Integer, primary_key=True), Column('a', String(8)))
-
-        sq = select([t1]).alias()
-        q = select([t2.c.id,sq.c.id], distinct=sq.c.id).where(t2.c.id==sq.c.id)
-        self.assert_compile(
-            q,
-            "SELECT DISTINCT ON (anon_1.id) mytable2.id, anon_1.id "
-            "FROM mytable2, (SELECT mytable1.id AS id, mytable1.a AS a "
-            "FROM mytable1) AS anon_1 "
-            "WHERE mytable2.id = anon_1.id"
-            )
-
-        sq = select([t1]).alias('sq')
-        q = select([t2.c.id,sq.c.id], distinct=sq.c.id).where(t2.c.id==sq.c.id)
-        self.assert_compile(
-            q,
-            "SELECT DISTINCT ON (sq.id) mytable2.id, sq.id "
-            "FROM mytable2, (SELECT mytable1.id AS id, mytable1.a AS a "
-            "FROM mytable1) AS sq "
-            "WHERE mytable2.id = sq.id"
-            )
+        t = Table('t', metadata, Column('id', Integer, primary_key=True))
+        metadata.create_all()
+        m2 = MetaData(testing.db)
+        t2 = Table('t', m2, autoload=True, implicit_returning=False)
+        eq_(t2.c.id.server_default.arg.text,
+            "nextval('t_id_seq'::regclass)")
+        r = t2.insert().execute()
+        eq_(r.inserted_primary_key, [1])
+        testing.db.connect().execution_options(autocommit=True).\
+                execute('alter table t_id_seq rename to foobar_id_seq'
+                )
+        m3 = MetaData(testing.db)
+        t3 = Table('t', m3, autoload=True, implicit_returning=False)
+        eq_(t3.c.id.server_default.arg.text,
+            "nextval('foobar_id_seq'::regclass)")
+        r = t3.insert().execute()
+        eq_(r.inserted_primary_key, [2])
 
     def test_schema_reflection(self):
         """note: this test requires that the 'test_schema' schema be
@@ -1366,24 +1438,15 @@ class MiscTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
         finally:
             testing.db.execute('drop table speedy_users')
 
-    @testing.emits_warning()
+    @testing.provide_metadata
     def test_index_reflection(self):
         """ Reflecting partial & expression-based indexes should warn
         """
 
-        import warnings
-
-        def capture_warnings(*args, **kw):
-            capture_warnings._orig_showwarning(*args, **kw)
-            capture_warnings.warnings.append(args)
-
-        capture_warnings._orig_showwarning = warnings.warn
-        capture_warnings.warnings = []
-        m1 = MetaData(testing.db)
-        t1 = Table('party', m1, Column('id', String(10),
+        t1 = Table('party', metadata, Column('id', String(10),
                    nullable=False), Column('name', String(20),
                    index=True), Column('aname', String(20)))
-        m1.create_all()
+        metadata.create_all()
         testing.db.execute("""
           create index idx1 on party ((id || name))
         """)
@@ -1394,17 +1457,10 @@ class MiscTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
             create index idx3 on party using btree
                 (lower(name::text), lower(aname::text))
         """)
-        try:
+
+        def go():
             m2 = MetaData(testing.db)
-            warnings.warn = capture_warnings
             t2 = Table('party', m2, autoload=True)
-            wrn = capture_warnings.warnings
-            assert str(wrn[0][0]) \
-                == 'Skipped unsupported reflection of '\
-                'expression-based index idx1'
-            assert str(wrn[1][0]) \
-                == 'Predicate of partial index idx2 ignored during '\
-                'reflection'
             assert len(t2.indexes) == 2
 
             # Make sure indexes are in the order we expect them in
@@ -1417,64 +1473,17 @@ class MiscTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
             assert r2.unique == False
             assert [t2.c.id] == r1.columns
             assert [t2.c.name] == r2.columns
-        finally:
-            warnings.warn = capture_warnings._orig_showwarning
-            m1.drop_all()
 
-    @testing.provide_metadata
-    def test_index_reflection_modified(self):
-        """reflect indexes when a column name has changed - PG 9 
-        does not update the name of the column in the index def.
-        [ticket:2141]
+        testing.assert_warnings(go,
+            [
+                'Skipped unsupported reflection of '
+                'expression-based index idx1',
+                'Predicate of partial index idx2 ignored during '
+                'reflection',
+                'Skipped unsupported reflection of '
+                'expression-based index idx3'
+            ])
 
-        """
-
-        t1 = Table('t', metadata,
-            Column('id', Integer, primary_key=True),
-            Column('x', Integer)
-        )
-        metadata.create_all()
-        conn = testing.db.connect().execution_options(autocommit=True)
-        conn.execute("CREATE INDEX idx1 ON t (x)")
-        conn.execute("ALTER TABLE t RENAME COLUMN x to y")
-
-        ind = testing.db.dialect.get_indexes(conn, "t", None)
-        eq_(ind, [{'unique': False, 'column_names': [u'y'], 'name': u'idx1'}])
-        conn.close()
-
-    @testing.fails_on('postgresql+pypostgresql',
-                      'pypostgresql bombs on multiple calls')
-    def test_set_isolation_level(self):
-        """Test setting the isolation level with create_engine"""
-
-        eng = create_engine(testing.db.url)
-        eq_(eng.execute('show transaction isolation level').scalar(),
-            'read committed')
-        eng = create_engine(testing.db.url,
-                            isolation_level='SERIALIZABLE')
-        eq_(eng.execute('show transaction isolation level').scalar(),
-            'serializable')
-
-        # check that it stays
-        conn = eng.connect()
-        eq_(conn.execute('show transaction isolation level').scalar(),
-            'serializable')
-        conn.close()
-
-        conn = eng.connect()
-        eq_(conn.execute('show transaction isolation level').scalar(),
-            'serializable')
-        conn.close()
-
-        eng = create_engine(testing.db.url, isolation_level='FOO')
-        if testing.db.driver == 'zxjdbc':
-            exception_cls = eng.dialect.dbapi.Error
-        elif testing.db.driver == 'psycopg2':
-            exception_cls = exc.InvalidRequestError
-        else:
-            exception_cls = eng.dialect.dbapi.ProgrammingError
-        assert_raises(exception_cls, eng.execute,
-                      'show transaction isolation level')
 
     @testing.fails_on('+zxjdbc', 'psycopg2/pg8000 specific assertion')
     @testing.fails_on('pypostgresql',
@@ -1579,11 +1588,11 @@ class TimePrecisionTest(TestBase, AssertsCompiledSQL):
             self.assert_compile(type_, expected)
 
     @testing.only_on('postgresql', 'DB specific feature')
-    @testing.provide_metadata
     def test_reflection(self):
+        m1 = MetaData(testing.db)
         t1 = Table(
             't1',
-            metadata,
+            m1,
             Column('c1', postgresql.TIME()),
             Column('c2', postgresql.TIME(precision=5)),
             Column('c3', postgresql.TIME(timezone=True, precision=5)),
@@ -1593,20 +1602,23 @@ class TimePrecisionTest(TestBase, AssertsCompiledSQL):
                    precision=5)),
             )
         t1.create()
-        m2 = MetaData(testing.db)
-        t2 = Table('t1', m2, autoload=True)
-        eq_(t2.c.c1.type.precision, None)
-        eq_(t2.c.c2.type.precision, 5)
-        eq_(t2.c.c3.type.precision, 5)
-        eq_(t2.c.c4.type.precision, None)
-        eq_(t2.c.c5.type.precision, 5)
-        eq_(t2.c.c6.type.precision, 5)
-        eq_(t2.c.c1.type.timezone, False)
-        eq_(t2.c.c2.type.timezone, False)
-        eq_(t2.c.c3.type.timezone, True)
-        eq_(t2.c.c4.type.timezone, False)
-        eq_(t2.c.c5.type.timezone, False)
-        eq_(t2.c.c6.type.timezone, True)
+        try:
+            m2 = MetaData(testing.db)
+            t2 = Table('t1', m2, autoload=True)
+            eq_(t2.c.c1.type.precision, None)
+            eq_(t2.c.c2.type.precision, 5)
+            eq_(t2.c.c3.type.precision, 5)
+            eq_(t2.c.c4.type.precision, None)
+            eq_(t2.c.c5.type.precision, 5)
+            eq_(t2.c.c6.type.precision, 5)
+            eq_(t2.c.c1.type.timezone, False)
+            eq_(t2.c.c2.type.timezone, False)
+            eq_(t2.c.c3.type.timezone, True)
+            eq_(t2.c.c4.type.timezone, False)
+            eq_(t2.c.c5.type.timezone, False)
+            eq_(t2.c.c6.type.timezone, True)
+        finally:
+            t1.drop()
 
 class ArrayTest(TestBase, AssertsExecutionResults):
 
@@ -1699,9 +1711,11 @@ class ArrayTest(TestBase, AssertsExecutionResults):
         class Foo(object):
             pass
 
-        footable = Table('foo', metadata, Column('id', Integer,
-                         primary_key=True), Column('intarr',
-                         postgresql.ARRAY(Integer), nullable=True))
+        footable = Table('foo', metadata, 
+                        Column('id', Integer,primary_key=True), 
+                        Column('intarr', 
+                            postgresql.ARRAY(Integer, mutable=True), 
+                            nullable=True))
         mapper(Foo, footable)
         metadata.create_all()
         sess = create_session()
@@ -1739,7 +1753,8 @@ class ArrayTest(TestBase, AssertsExecutionResults):
         assert_raises_message(
             exc.ArgumentError, 
             "mutable must be set to False if as_tuple is True.",
-            postgresql.ARRAY, Integer, as_tuple=True)
+            postgresql.ARRAY, Integer, mutable=True, 
+                as_tuple=True)
 
         t1 = Table('t1', metadata,
             Column('id', Integer, primary_key=True),
@@ -1765,6 +1780,8 @@ class ArrayTest(TestBase, AssertsExecutionResults):
             set(row[1] for row in r),
             set([('1', '2', '3'), ('4', '5', '6'), (('4', '5'), ('6', '7'))])
         )
+
+
 
 class TimestampTest(TestBase, AssertsExecutionResults):
     __only_on__ = 'postgresql'
@@ -1920,7 +1937,7 @@ class ServerSideCursorsTest(TestBase, AssertsExecutionResults):
         finally:
             test_table.drop(checkfirst=True)
 
-class SpecialTypesTest(TestBase, ComparesTables, AssertsCompiledSQL):
+class SpecialTypesTest(TestBase, ComparesTables):
     """test DDL and reflection of PG-specific types """
 
     __only_on__ = 'postgresql'
@@ -1942,12 +1959,11 @@ class SpecialTypesTest(TestBase, ComparesTables, AssertsCompiledSQL):
                 return "INTERVAL DAY TO SECOND"
 
         table = Table('sometable', metadata,
-            Column('id', postgresql.UUID, primary_key=True),
-            Column('flag', postgresql.BIT),
-            Column('bitstring', postgresql.BIT(4)),
-            Column('addr', postgresql.INET),
-            Column('addr2', postgresql.MACADDR),
-            Column('addr3', postgresql.CIDR),
+            Column('id', postgresql.PGUuid, primary_key=True),
+            Column('flag', postgresql.PGBit),
+            Column('addr', postgresql.PGInet),
+            Column('addr2', postgresql.PGMacAddr),
+            Column('addr3', postgresql.PGCidr),
             Column('doubleprec', postgresql.DOUBLE_PRECISION),
             Column('plain_interval', postgresql.INTERVAL),
             Column('year_interval', y2m()),
@@ -1973,36 +1989,6 @@ class SpecialTypesTest(TestBase, ComparesTables, AssertsCompiledSQL):
         self.assert_tables_equal(table, t, strict_types=True)
         assert t.c.plain_interval.type.precision is None
         assert t.c.precision_interval.type.precision == 3
-        assert t.c.bitstring.type.length == 4
-
-    def test_bit_compile(self):
-        pairs = [(postgresql.BIT(), 'BIT(1)'),
-                 (postgresql.BIT(5), 'BIT(5)'),
-                 (postgresql.BIT(varying=True), 'BIT VARYING'),
-                 (postgresql.BIT(5, varying=True), 'BIT VARYING(5)'),
-                ]
-        for type_, expected in pairs:
-            self.assert_compile(type_, expected)
-
-    @testing.provide_metadata
-    def test_bit_reflection(self):
-        t1 = Table('t1', metadata,
-        Column('bit1', postgresql.BIT()),
-        Column('bit5', postgresql.BIT(5)),
-        Column('bitvarying', postgresql.BIT(varying=True)),
-        Column('bitvarying5', postgresql.BIT(5, varying=True)),
-        )
-        t1.create()
-        m2 = MetaData(testing.db)
-        t2 = Table('t1', m2, autoload=True)
-        eq_(t2.c.bit1.type.length, 1)
-        eq_(t2.c.bit1.type.varying, False)
-        eq_(t2.c.bit5.type.length, 5)
-        eq_(t2.c.bit5.type.varying, False)
-        eq_(t2.c.bitvarying.type.length, None)
-        eq_(t2.c.bitvarying.type.varying, True)
-        eq_(t2.c.bitvarying5.type.length, 5)
-        eq_(t2.c.bitvarying5.type.varying, True)
 
 class UUIDTest(TestBase):
     """Test the bind/return values of the UUID type."""
@@ -2129,14 +2115,12 @@ class MatchTest(TestBase, AssertsCompiledSQL):
                 )).execute().fetchall()
         eq_([3], [r.id for r in results])
 
-    @testing.requires.english_locale_on_postgresql
     def test_simple_derivative_match(self):
         results = \
             matchtable.select().where(matchtable.c.title.match('nutshells'
                 )).execute().fetchall()
         eq_([5], [r.id for r in results])
 
-    @testing.requires.english_locale_on_postgresql
     def test_or_match(self):
         results1 = \
             matchtable.select().where(or_(matchtable.c.title.match('nutshells'
@@ -2149,7 +2133,6 @@ class MatchTest(TestBase, AssertsCompiledSQL):
                 )).order_by(matchtable.c.id).execute().fetchall()
         eq_([3, 5], [r.id for r in results2])
 
-    @testing.requires.english_locale_on_postgresql
     def test_and_match(self):
         results1 = \
             matchtable.select().where(and_(matchtable.c.title.match('python'
@@ -2162,7 +2145,6 @@ class MatchTest(TestBase, AssertsCompiledSQL):
                 )).execute().fetchall()
         eq_([5], [r.id for r in results2])
 
-    @testing.requires.english_locale_on_postgresql
     def test_match_across_joins(self):
         results = matchtable.select().where(and_(cattable.c.id
                 == matchtable.c.category_id,
@@ -2200,3 +2182,4 @@ class TupleTest(TestBase):
                 ).scalar(),
                 exp
             )
+

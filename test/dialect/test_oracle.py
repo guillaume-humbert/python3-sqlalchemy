@@ -1,16 +1,16 @@
 # coding: utf-8
 
-from sqlalchemy.test.testing import eq_
+from test.lib.testing import eq_
 from sqlalchemy import *
 from sqlalchemy import types as sqltypes, exc
 from sqlalchemy.sql import table, column
-from sqlalchemy.test import *
-from sqlalchemy.test.testing import eq_, assert_raises, assert_raises_message
-from sqlalchemy.test.engines import testing_engine
+from test.lib import *
+from test.lib.testing import eq_, assert_raises, assert_raises_message
+from test.lib.engines import testing_engine
 from sqlalchemy.dialects.oracle import cx_oracle, base as oracle
 from sqlalchemy.engine import default
 from sqlalchemy.util import jython
-from decimal import Decimal
+from sqlalchemy.util.compat import decimal
 import datetime
 import os
 
@@ -132,49 +132,6 @@ class CompileTest(TestBase, AssertsCompiledSQL):
                             ':ROWNUM_1) WHERE ora_rn > :ora_rn_1 FOR '
                             'UPDATE')
 
-    def test_use_binds_for_limits_disabled(self):
-        t = table('sometable', column('col1'), column('col2'))
-        dialect = oracle.OracleDialect(use_binds_for_limits = False)
-
-        self.assert_compile(select([t]).limit(10),
-                "SELECT col1, col2 FROM (SELECT sometable.col1 AS col1, "
-                "sometable.col2 AS col2 FROM sometable) WHERE ROWNUM <= 10",
-                dialect=dialect)
-
-        self.assert_compile(select([t]).offset(10),
-                "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM AS ora_rn "
-                "FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 "
-                "FROM sometable)) WHERE ora_rn > 10",
-                dialect=dialect)
-
-        self.assert_compile(select([t]).limit(10).offset(10),
-                "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM AS ora_rn "
-                "FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 "
-                "FROM sometable) WHERE ROWNUM <= 20) WHERE ora_rn > 10",
-                dialect=dialect)
-
-    def test_use_binds_for_limits_enabled(self):
-        t = table('sometable', column('col1'), column('col2'))
-        dialect = oracle.OracleDialect(use_binds_for_limits = True)
-
-        self.assert_compile(select([t]).limit(10),
-                "SELECT col1, col2 FROM (SELECT sometable.col1 AS col1, "
-                "sometable.col2 AS col2 FROM sometable) WHERE ROWNUM "
-                "<= :ROWNUM_1",
-                dialect=dialect)
-
-        self.assert_compile(select([t]).offset(10),
-                "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM AS ora_rn "
-                "FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 "
-                "FROM sometable)) WHERE ora_rn > :ora_rn_1",
-                dialect=dialect)
-
-        self.assert_compile(select([t]).limit(10).offset(10),
-                "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM AS ora_rn "
-                "FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 "
-                "FROM sometable) WHERE ROWNUM <= :ROWNUM_1) WHERE ora_rn > "
-                ":ora_rn_1",
-                dialect=dialect)
 
     def test_long_labels(self):
         dialect = default.DefaultDialect()
@@ -402,6 +359,19 @@ class CompileTest(TestBase, AssertsCompiledSQL):
         self.assert_compile(except_(t1.select(), t2.select()),
                             'SELECT t1.c1, t1.c2, t1.c3 FROM t1 MINUS '
                             'SELECT t2.c1, t2.c2, t2.c3 FROM t2')
+
+    def test_no_paren_fns(self):
+        for fn, expected in [
+            (func.uid(), "uid"),
+            (func.UID(), "UID"),
+            (func.sysdate(), "sysdate"),
+            (func.row_number(), "row_number()"),
+            (func.rank(), "rank()"),
+            (func.now(), "CURRENT_TIMESTAMP"),
+            (func.current_timestamp(), "CURRENT_TIMESTAMP"),
+            (func.user(), "USER"),
+        ]:
+            self.assert_compile(fn, expected)
 
 class CompatFlagsTest(TestBase, AssertsCompiledSQL):
     __only_on__ = 'oracle'
@@ -817,12 +787,12 @@ class TypesTest(TestBase, AssertsCompiledSQL):
             ):
                 for i, (val, type_) in enumerate((
                     (1, int),
-                    (Decimal("5.2"), Decimal),
+                    (decimal.Decimal("5.2"), decimal.Decimal),
                     (6.5, float),
                     (8.5, float),
                     (9.5, float),
                     (12, int),
-                    (Decimal("14.85"), Decimal),
+                    (decimal.Decimal("14.85"), decimal.Decimal),
                     (15.76, float),
                 )):
                     eq_(row[i], val)
@@ -852,8 +822,8 @@ class TypesTest(TestBase, AssertsCompiledSQL):
         foo.create()
 
         foo.insert().execute(
-            {'idata':5, 'ndata':Decimal("45.6"), 'ndata2':Decimal("45.0"), 
-                    'nidata':Decimal('53'), 'fdata':45.68392},
+            {'idata':5, 'ndata':decimal.Decimal("45.6"), 'ndata2':decimal.Decimal("45.0"), 
+                    'nidata':decimal.Decimal('53'), 'fdata':45.68392},
         )
 
         stmt = """
@@ -868,10 +838,10 @@ class TypesTest(TestBase, AssertsCompiledSQL):
 
 
         row = testing.db.execute(stmt).fetchall()[0]
-        eq_([type(x) for x in row], [int, Decimal, Decimal, int, float])
+        eq_([type(x) for x in row], [int, decimal.Decimal, decimal.Decimal, int, float])
         eq_(
             row, 
-            (5, Decimal('45.6'), Decimal('45'), 53, 45.683920000000001)
+            (5, decimal.Decimal('45.6'), decimal.Decimal('45'), 53, 45.683920000000001)
         )
 
         # with a nested subquery, 
@@ -895,10 +865,10 @@ class TypesTest(TestBase, AssertsCompiledSQL):
         FROM dual
         """
         row = testing.db.execute(stmt).fetchall()[0]
-        eq_([type(x) for x in row], [int, Decimal, int, int, Decimal])
+        eq_([type(x) for x in row], [int, decimal.Decimal, int, int, decimal.Decimal])
         eq_(
             row, 
-            (5, Decimal('45.6'), 45, 53, Decimal('45.68392'))
+            (5, decimal.Decimal('45.6'), 45, 53, decimal.Decimal('45.68392'))
         )
 
         row = testing.db.execute(text(stmt, 
@@ -909,9 +879,9 @@ class TypesTest(TestBase, AssertsCompiledSQL):
                                         'nidata':Numeric(5, 0),
                                         'fdata':Float()
                                 })).fetchall()[0]
-        eq_([type(x) for x in row], [int, Decimal, Decimal, Decimal, float])
+        eq_([type(x) for x in row], [int, decimal.Decimal, decimal.Decimal, decimal.Decimal, float])
         eq_(row, 
-            (5, Decimal('45.6'), Decimal('45'), Decimal('53'), 45.683920000000001)
+            (5, decimal.Decimal('45.6'), decimal.Decimal('45'), decimal.Decimal('53'), 45.683920000000001)
         )
 
         stmt = """
@@ -938,8 +908,8 @@ class TypesTest(TestBase, AssertsCompiledSQL):
         WHERE ROWNUM >= 0) anon_1
         """
         row =testing.db.execute(stmt).fetchall()[0]
-        eq_([type(x) for x in row], [int, Decimal, int, int, Decimal])
-        eq_(row, (5, Decimal('45.6'), 45, 53, Decimal('45.68392')))
+        eq_([type(x) for x in row], [int, decimal.Decimal, int, int, decimal.Decimal])
+        eq_(row, (5, decimal.Decimal('45.6'), 45, 53, decimal.Decimal('45.68392')))
 
         row = testing.db.execute(text(stmt, 
                                 typemap={
@@ -949,9 +919,9 @@ class TypesTest(TestBase, AssertsCompiledSQL):
                                         'anon_1_nidata':Numeric(5, 0), 
                                         'anon_1_fdata':Float()
                                 })).fetchall()[0]
-        eq_([type(x) for x in row], [int, Decimal, Decimal, Decimal, float])
+        eq_([type(x) for x in row], [int, decimal.Decimal, decimal.Decimal, decimal.Decimal, float])
         eq_(row, 
-            (5, Decimal('45.6'), Decimal('45'), Decimal('53'), 45.683920000000001)
+            (5, decimal.Decimal('45.6'), decimal.Decimal('45'), decimal.Decimal('53'), 45.683920000000001)
         )
 
         row = testing.db.execute(text(stmt, 
@@ -962,9 +932,9 @@ class TypesTest(TestBase, AssertsCompiledSQL):
                                         'anon_1_nidata':Numeric(5, 0, asdecimal=False), 
                                         'anon_1_fdata':Float(asdecimal=True)
                                 })).fetchall()[0]
-        eq_([type(x) for x in row], [int, float, float, float, Decimal])
+        eq_([type(x) for x in row], [int, float, float, float, decimal.Decimal])
         eq_(row, 
-            (5, 45.6, 45, 53, Decimal('45.68392'))
+            (5, 45.6, 45, 53, decimal.Decimal('45.68392'))
         )
 
 
@@ -1107,11 +1077,11 @@ class EuroNumericTest(TestBase):
     @testing.provide_metadata
     def test_output_type_handler(self):
         for stmt, exp, kw in [
-            ("SELECT 0.1 FROM DUAL", Decimal("0.1"), {}),
+            ("SELECT 0.1 FROM DUAL", decimal.Decimal("0.1"), {}),
             ("SELECT 15 FROM DUAL", 15, {}),
-            ("SELECT CAST(15 AS NUMERIC(3, 1)) FROM DUAL", Decimal("15"), {}),
-            ("SELECT CAST(0.1 AS NUMERIC(5, 2)) FROM DUAL", Decimal("0.1"), {}),
-            ("SELECT :num FROM DUAL", Decimal("2.5"), {'num':Decimal("2.5")})
+            ("SELECT CAST(15 AS NUMERIC(3, 1)) FROM DUAL", decimal.Decimal("15"), {}),
+            ("SELECT CAST(0.1 AS NUMERIC(5, 2)) FROM DUAL", decimal.Decimal("0.1"), {}),
+            ("SELECT :num FROM DUAL", decimal.Decimal("2.5"), {'num':decimal.Decimal("2.5")})
         ]:
             test_exp = self.engine.scalar(stmt, **kw)
             eq_(
@@ -1345,39 +1315,5 @@ class ExecuteTest(TestBase):
             "ORA-02014",
             t.select(for_update=True).limit(2).offset(3).execute
         )
-
-
-class UnicodeSchemaTest(TestBase):
-    __only_on__ = 'oracle'
-
-    @testing.provide_metadata
-    def test_quoted_column_non_unicode(self):
-        table=Table("atable", metadata,
-            Column("_underscorecolumn", Unicode(255), primary_key=True),
-        )
-        metadata.create_all()
-
-        table.insert().execute(
-            {'_underscorecolumn': u'’é'},
-        )
-        result = testing.db.execute(
-            table.select().where(table.c._underscorecolumn==u'’é')
-        ).scalar()
-        eq_(result, u'’é')
-
-    @testing.provide_metadata
-    def test_quoted_column_unicode(self):
-        table=Table("atable", metadata,
-            Column(u"méil", Unicode(255), primary_key=True),
-        )
-        metadata.create_all()
-
-        table.insert().execute(
-            {u'méil': u'’é'},
-        )
-        result = testing.db.execute(
-            table.select().where(table.c[u'méil']==u'’é')
-        ).scalar()
-        eq_(result, u'’é')
 
 

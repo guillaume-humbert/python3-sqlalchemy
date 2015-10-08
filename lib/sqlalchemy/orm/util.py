@@ -4,13 +4,13 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-import sqlalchemy.exceptions as sa_exc
-from sqlalchemy import sql, util
+
+from sqlalchemy import sql, util, event, exc as sa_exc
 from sqlalchemy.sql import expression, util as sql_util, operators
 from sqlalchemy.orm.interfaces import MapperExtension, EXT_CONTINUE,\
-                                PropComparator, MapperProperty,\
-                                AttributeExtension
+                                PropComparator, MapperProperty
 from sqlalchemy.orm import attributes, exc
+import operator
 
 mapperlib = util.importlater("sqlalchemy.orm", "mapperlib")
 
@@ -20,7 +20,7 @@ all_cascades = frozenset(("delete", "delete-orphan", "all", "merge",
 
 _INSTRUMENTOR = ('mapper', 'instrumentor')
 
-class CascadeOptions(object):
+class CascadeOptions(dict):
     """Keeps track of the options sent to relationship().cascade"""
 
     def __init__(self, arg=""):
@@ -28,12 +28,16 @@ class CascadeOptions(object):
             values = set()
         else:
             values = set(c.strip() for c in arg.split(','))
+
+        for name in ['save-update', 'delete', 'refresh-expire', 
+                            'merge', 'expunge']:
+            boolean = name in values or 'all' in values
+            setattr(self, name.replace('-', '_'), boolean)
+            if boolean:
+                self[name] = True
         self.delete_orphan = "delete-orphan" in values
-        self.delete = "delete" in values or "all" in values
-        self.save_update = "save-update" in values or "all" in values
-        self.merge = "merge" in values or "all" in values
-        self.expunge = "expunge" in values or "all" in values
-        self.refresh_expire = "refresh-expire" in values or "all" in values
+        if self.delete_orphan:
+            self['delete-orphan'] = True
 
         if self.delete_orphan and not self.delete:
             util.warn("The 'delete-orphan' cascade option requires "
@@ -43,45 +47,23 @@ class CascadeOptions(object):
             if x not in all_cascades:
                 raise sa_exc.ArgumentError("Invalid cascade option '%s'" % x)
 
-    def __contains__(self, item):
-        return getattr(self, item.replace("-", "_"), False)
-
     def __repr__(self):
         return "CascadeOptions(%s)" % repr(",".join(
             [x for x in ['delete', 'save_update', 'merge', 'expunge',
                          'delete_orphan', 'refresh-expire']
              if getattr(self, x, False) is True]))
 
+def _validator_events(desc, key, validator):
+    """Runs a validation method on an attribute value to be set or appended."""
 
-class Validator(AttributeExtension):
-    """Runs a validation method on an attribute value to be set or appended.
+    def append(state, value, initiator):
+        return validator(state.obj(), key, value)
 
-    The Validator class is used by the :func:`~sqlalchemy.orm.validates`
-    decorator, and direct access is usually not needed.
+    def set_(state, value, oldvalue, initiator):
+        return validator(state.obj(), key, value)
 
-    """
-
-    def __init__(self, key, validator):
-        """Construct a new Validator.
-
-            key - name of the attribute to be validated;
-            will be passed as the second argument to
-            the validation method (the first is the object instance itself).
-
-            validator - an function or instance method which accepts
-            three arguments; an instance (usually just 'self' for a method),
-            the key name of the attribute, and the value.  The function should
-            return the same value given, unless it wishes to modify it.
-
-        """
-        self.key = key
-        self.validator = validator
-
-    def append(self, state, value, initiator):
-        return self.validator(state.obj(), self.key, value)
-
-    def set(self, state, value, oldvalue, initiator):
-        return self.validator(state.obj(), self.key, value)
+    event.listen(desc, 'append', append, raw=True, retval=True)
+    event.listen(desc, 'set', set_, raw=True, retval=True)
 
 def polymorphic_union(table_map, typecolname, aliasname='p_union'):
     """Create a ``UNION`` statement used by a polymorphic mapper.
@@ -184,78 +166,6 @@ def identity_key(*args, **kwargs):
     mapper = object_mapper(instance)
     return mapper.identity_key_from_instance(instance)
 
-class ExtensionCarrier(dict):
-    """Fronts an ordered collection of MapperExtension objects.
-
-    Bundles multiple MapperExtensions into a unified callable unit,
-    encapsulating ordering, looping and EXT_CONTINUE logic.  The
-    ExtensionCarrier implements the MapperExtension interface, e.g.::
-
-      carrier.after_insert(...args...)
-
-    The dictionary interface provides containment for implemented
-    method names mapped to a callable which executes that method
-    for participating extensions.
-
-    """
-
-    interface = set(method for method in dir(MapperExtension)
-                    if not method.startswith('_'))
-
-    def __init__(self, extensions=None):
-        self._extensions = []
-        for ext in extensions or ():
-            self.append(ext)
-
-    def copy(self):
-        return ExtensionCarrier(self._extensions)
-
-    def push(self, extension):
-        """Insert a MapperExtension at the beginning of the collection."""
-        self._register(extension)
-        self._extensions.insert(0, extension)
-
-    def append(self, extension):
-        """Append a MapperExtension at the end of the collection."""
-        self._register(extension)
-        self._extensions.append(extension)
-
-    def __iter__(self):
-        """Iterate over MapperExtensions in the collection."""
-        return iter(self._extensions)
-
-    def _register(self, extension):
-        """Register callable fronts for overridden interface methods."""
-
-        for method in self.interface.difference(self):
-            impl = getattr(extension, method, None)
-            if impl and impl is not getattr(MapperExtension, method):
-                self[method] = self._create_do(method)
-
-    def _create_do(self, method):
-        """Return a closure that loops over impls of the named method."""
-
-        def _do(*args, **kwargs):
-            for ext in self._extensions:
-                ret = getattr(ext, method)(*args, **kwargs)
-                if ret is not EXT_CONTINUE:
-                    return ret
-            else:
-                return EXT_CONTINUE
-        _do.__name__ = method
-        return _do
-
-    @staticmethod
-    def _pass(*args, **kwargs):
-        return EXT_CONTINUE
-
-    def __getattr__(self, key):
-        """Delegate MapperExtension methods to bundled fronts."""
-
-        if key not in self.interface:
-            raise AttributeError(key)
-        return self.get(key, self._pass)
-
 class ORMAdapter(sql_util.ColumnAdapter):
     """Extends ColumnAdapter to accept ORM entities.
 
@@ -302,7 +212,7 @@ class AliasedClass(object):
         self.__mapper = _class_to_mapper(cls)
         self.__target = self.__mapper.class_
         if alias is None:
-            alias = self.__mapper._with_polymorphic_selectable.alias()
+            alias = self.__mapper._with_polymorphic_selectable.alias(name=name)
         self.__adapter = sql_util.ClauseAdapter(alias,
                                 equivalents=self.__mapper._equivalent_columns)
         self.__alias = alias
@@ -336,23 +246,15 @@ class AliasedClass(object):
                         'parentmapper':self.__mapper}
                     )
 
-    def __adapt_prop(self, prop):
-        existing = getattr(self.__target, prop.key)
+    def __adapt_prop(self, existing, key):
         comparator = existing.comparator.adapted(self.__adapt_element)
 
-        queryattr = attributes.QueryableAttribute(prop.key,
+        queryattr = attributes.QueryableAttribute(self, key,
             impl=existing.impl, parententity=self, comparator=comparator)
-        setattr(self, prop.key, queryattr)
+        setattr(self, key, queryattr)
         return queryattr
 
     def __getattr__(self, key):
-        if self.__mapper.has_property(key):
-            return self.__adapt_prop(
-                        self.__mapper.get_property(
-                            key, _compile_mappers=False
-                        )
-                    )
-
         for base in self.__target.__mro__:
             try:
                 attr = object.__getattribute__(base, key)
@@ -363,20 +265,31 @@ class AliasedClass(object):
         else:
             raise AttributeError(key)
 
-        if hasattr(attr, 'func_code'):
+        if isinstance(attr, attributes.QueryableAttribute):
+            return self.__adapt_prop(attr, key)
+        elif hasattr(attr, 'func_code'):
             is_method = getattr(self.__target, key, None)
             if is_method and is_method.im_self is not None:
                 return util.types.MethodType(attr.im_func, self, self)
             else:
                 return None
         elif hasattr(attr, '__get__'):
-            return attr.__get__(None, self)
+            ret = attr.__get__(None, self)
+            if isinstance(ret, PropComparator):
+                return ret.adapted(self.__adapt_element)
+            return ret
         else:
             return attr
 
     def __repr__(self):
         return '<AliasedClass at 0x%x; %s>' % (
             id(self), self.__target.__name__)
+
+def aliased(element, alias=None, name=None):
+    if isinstance(element, expression.FromClause):
+        return element.alias(name)
+    else:
+        return AliasedClass(element, alias=alias, name=name)
 
 def _orm_annotate(element, exclude=None):
     """Deep copy the given ClauseElement, annotating each element with the
@@ -508,7 +421,7 @@ def with_parent(instance, prop):
     """
     if isinstance(prop, basestring):
         mapper = object_mapper(instance)
-        prop = mapper.get_property(prop, resolve_synonyms=True)
+        prop = mapper.get_property(prop)
     elif isinstance(prop, attributes.QueryableAttribute):
         prop = prop.property
 
@@ -544,8 +457,8 @@ def _entity_info(entity, compile=True):
     else:
         return None, entity, False
 
-    if compile:
-        mapper = mapper.compile()
+    if compile and mapperlib.module._new_mappers:
+        mapperlib.configure_mappers()
     return mapper, mapper._with_polymorphic_selectable, False
 
 def _entity_descriptor(entity, key):
@@ -586,8 +499,7 @@ def _attr_as_key(attr):
 def _is_aliased_class(entity):
     return isinstance(entity, AliasedClass)
 
-def _state_mapper(state):
-    return state.manager.mapper
+_state_mapper = util.dottedgetter('manager.mapper')
 
 def object_mapper(instance):
     """Given an object, return the primary Mapper associated with the object
@@ -618,8 +530,8 @@ def class_mapper(class_, compile=True):
     except exc.NO_STATE:
         raise exc.UnmappedClassError(class_)
 
-    if compile:
-        mapper = mapper.compile()
+    if compile and mapperlib.module._new_mappers:
+        mapperlib.configure_mappers()
     return mapper
 
 def _class_to_mapper(class_or_mapper, compile=True):
@@ -637,10 +549,9 @@ def _class_to_mapper(class_or_mapper, compile=True):
     else:
         raise exc.UnmappedClassError(class_or_mapper)
 
-    if compile:
-        return mapper.compile()
-    else:
-        return mapper
+    if compile and mapperlib.module._new_mappers:
+        mapperlib.configure_mappers()
+    return mapper
 
 def has_identity(object):
     state = attributes.instance_state(object)

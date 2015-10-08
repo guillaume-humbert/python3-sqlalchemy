@@ -1,21 +1,46 @@
 # coding: utf-8
-from sqlalchemy.test.testing import eq_, assert_raises, assert_raises_message
+from test.lib.testing import eq_, assert_raises, assert_raises_message
 import decimal
 import datetime, os, re
 from sqlalchemy import *
-from sqlalchemy import exc, types, util, schema
+from sqlalchemy import exc, types, util, schema, dialects
+for name in dialects.__all__:
+    __import__("sqlalchemy.dialects.%s" % name)
 from sqlalchemy.sql import operators, column, table
-from sqlalchemy.test.testing import eq_
+from test.lib.testing import eq_
 import sqlalchemy.engine.url as url
-from sqlalchemy.databases import *
-from sqlalchemy.test.schema import Table, Column
-from sqlalchemy.test import *
-from sqlalchemy.test.util import picklers
-from decimal import Decimal
-from sqlalchemy.test.util import round_decimal
-
+from test.lib.schema import Table, Column
+from test.lib import *
+from test.lib.util import picklers
+from sqlalchemy.util.compat import decimal
+from test.lib.util import round_decimal
 
 class AdaptTest(TestBase):
+    def _all_dialect_modules(self):
+        return [
+            getattr(dialects, d)
+            for d in dialects.__all__
+            if not d.startswith('_')
+        ]
+
+    def _all_dialects(self):
+        return [d.base.dialect() for d in 
+                self._all_dialect_modules()]
+
+    def _all_types(self):
+        def types_for_mod(mod):
+            for key in dir(mod):
+                typ = getattr(mod, key)
+                if not isinstance(typ, type) or not issubclass(typ, types.TypeEngine):
+                    continue
+                yield typ
+
+        for typ in types_for_mod(types):
+            yield typ
+        for dialect in self._all_dialect_modules():
+            for typ in types_for_mod(dialect):
+                yield typ
+
     def test_uppercase_rendering(self):
         """Test that uppercase types from types.py always render as their
         type.
@@ -27,12 +52,7 @@ class AdaptTest(TestBase):
 
         """
 
-        for dialect in [
-                oracle.dialect(), 
-                mysql.dialect(), 
-                postgresql.dialect(), 
-                sqlite.dialect(), 
-                mssql.dialect()]: 
+        for dialect in self._all_dialects():
             for type_, expected in (
                 (FLOAT, "FLOAT"),
                 (NUMERIC, "NUMERIC"),
@@ -49,14 +69,17 @@ class AdaptTest(TestBase):
                                     "NVARCHAR2(10)")),
                 (CHAR, "CHAR"),
                 (NCHAR, ("NCHAR", "NATIONAL CHAR")),
-                (BLOB, "BLOB"),
-                (BOOLEAN, ("BOOLEAN", "BOOL"))
+                (BLOB, ("BLOB", "BLOB SUB_TYPE 0")),
+                (BOOLEAN, ("BOOLEAN", "BOOL", "INTEGER"))
             ):
                 if isinstance(expected, str):
                     expected = (expected, )
 
-                compiled = types.to_instance(type_).\
+                try:
+                    compiled = types.to_instance(type_).\
                             compile(dialect=dialect)
+                except NotImplementedError:
+                    continue
 
                 assert compiled in expected, \
                     "%r matches none of %r for dialect %s" % \
@@ -65,6 +88,39 @@ class AdaptTest(TestBase):
                 assert str(types.to_instance(type_)) in expected, \
                     "default str() of type %r not expected, %r" % \
                     (type_, expected)
+
+    @testing.uses_deprecated()
+    def test_adapt_method(self):
+        """ensure all types have a working adapt() method,
+        which creates a distinct copy.
+
+        The distinct copy ensures that when we cache
+        the adapted() form of a type against the original
+        in a weak key dictionary, a cycle is not formed.
+
+        This test doesn't test type-specific arguments of
+        adapt() beyond their defaults.
+
+        """
+
+        for typ in self._all_types():
+            if typ in (types.TypeDecorator, types.TypeEngine):
+                continue
+            elif typ is dialects.postgresql.ARRAY:
+                t1 = typ(String)
+            else:
+                t1 = typ()
+            for cls in [typ] + typ.__subclasses__():
+                if not issubclass(typ, types.Enum) and \
+                    issubclass(cls, types.Enum):
+                    continue
+                t2 = t1.adapt(cls)
+                assert t1 is not t2
+                for k in t1.__dict__:
+                    if k == 'impl':
+                        continue
+                    eq_(getattr(t2, k), t1.__dict__[k])
+
 
 class TypeAffinityTest(TestBase):
     def test_type_affinity(self):
@@ -155,7 +211,7 @@ class UserDefinedTest(TestBase, AssertsCompiledSQL):
             (Float(2), "FLOAT(2)", {'precision':4}),
             (Numeric(19, 2), "NUMERIC(19, 2)", {}),
         ]:
-            for dialect_ in (postgresql, mssql, mysql):
+            for dialect_ in (dialects.postgresql, dialects.mssql, dialects.mysql):
                 dialect_ = dialect_.dialect()
 
                 raw_impl = types.to_instance(impl_, **kw)
@@ -188,8 +244,8 @@ class UserDefinedTest(TestBase, AssertsCompiledSQL):
                 else:
                     return super(MyType, self).load_dialect_impl(dialect)
 
-        sl = sqlite.dialect()
-        pg = postgresql.dialect()
+        sl = dialects.sqlite.dialect()
+        pg = dialects.postgresql.dialect()
         t = MyType()
         self.assert_compile(t, "VARCHAR(50)", dialect=sl)
         self.assert_compile(t, "FLOAT", dialect=pg)
@@ -421,7 +477,7 @@ class UnicodeTest(TestBase, AssertsExecutionResults):
 
     def test_round_trip(self):
         unicodedata = u"Alors vous imaginez ma surprise, au lever du jour, "\
-                    u"quand une drôle de petit voix m’a réveillé. Elle "\
+                    u"quand une drôle de petite voix m’a réveillé. Elle "\
                     u"disait: « S’il vous plaît… dessine-moi un mouton! »"
 
         unicode_table.insert().execute(unicode_varchar=unicodedata,unicode_text=unicodedata)
@@ -437,7 +493,7 @@ class UnicodeTest(TestBase, AssertsExecutionResults):
         # vs. cursor.execute()
 
         unicodedata = u"Alors vous imaginez ma surprise, au lever du jour, quand "\
-                        u"une drôle de petit voix m’a réveillé. "\
+                        u"une drôle de petite voix m’a réveillé. "\
                         u"Elle disait: « S’il vous plaît… dessine-moi un mouton! »"
 
         unicode_table.insert().execute(
@@ -455,7 +511,7 @@ class UnicodeTest(TestBase, AssertsExecutionResults):
         """ensure compiler processing works for UNIONs"""
 
         unicodedata = u"Alors vous imaginez ma surprise, au lever du jour, quand "\
-                        u"une drôle de petit voix m’a réveillé. "\
+                        u"une drôle de petite voix m’a réveillé. "\
                         u"Elle disait: « S’il vous plaît… dessine-moi un mouton! »"
 
         unicode_table.insert().execute(unicode_varchar=unicodedata,unicode_text=unicodedata)
@@ -480,7 +536,7 @@ class UnicodeTest(TestBase, AssertsExecutionResults):
         """
 
         unicodedata = u"Alors vous imaginez ma surprise, au lever du jour, quand "\
-                        u"une drôle de petit voix m’a réveillé. "\
+                        u"une drôle de petite voix m’a réveillé. "\
                         u"Elle disait: « S’il vous plaît… dessine-moi un mouton! »"
 
         # using Unicode explicly - warning should be emitted
@@ -533,7 +589,7 @@ class UnicodeTest(TestBase, AssertsExecutionResults):
         """checks String(unicode_error='ignore') is passed to underlying codec."""
 
         unicodedata = u"Alors vous imaginez ma surprise, au lever du jour, quand "\
-                        u"une drôle de petit voix m’a réveillé. "\
+                        u"une drôle de petite voix m’a réveillé. "\
                         u"Elle disait: « S’il vous plaît… dessine-moi un mouton! »"
 
         asciidata = unicodedata.encode('ascii', 'ignore')
@@ -610,7 +666,7 @@ class UnicodeTest(TestBase, AssertsExecutionResults):
                 eq_(
                       x,
                       u'Alors vous imaginez ma surprise, au lever du jour, quand une '
-                      u'drle de petit voix ma rveill. Elle disait:  Sil vous plat '
+                      u'drle de petite voix ma rveill. Elle disait:  Sil vous plat '
                       u'dessine-moi un mouton! '
                 )
             elif engine.dialect.returns_unicode_strings:
@@ -698,6 +754,7 @@ class EnumTest(TestBase):
         eq_(e1.adapt(ENUM).schema, 'bar')
 
     @testing.fails_on('mysql+mysqldb', "MySQL seems to issue a 'data truncated' warning.")
+    @testing.fails_on('mysql+pymysql', "MySQL seems to issue a 'data truncated' warning.")
     def test_constraint(self):
         assert_raises(exc.DBAPIError, 
             enum_table.insert().execute,
@@ -816,6 +873,8 @@ class BinaryTest(TestBase, AssertsExecutionResults):
         return open(f, mode='rb').read()
 
 class ExpressionTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
     @classmethod
     def setup_class(cls):
         global test_table, meta, MyCustomType, MyTypeDec
@@ -1089,14 +1148,15 @@ class CompileTest(TestBase, AssertsCompiledSQL):
         for type_, expected in (
             (String(), "VARCHAR"),
             (Integer(), "INTEGER"),
-            (postgresql.INET(), "INET"),
-            (postgresql.FLOAT(), "FLOAT"),
-            (mysql.REAL(precision=8, scale=2), "REAL(8, 2)"),
-            (postgresql.REAL(), "REAL"),
+            (dialects.postgresql.INET(), "INET"),
+            (dialects.postgresql.FLOAT(), "FLOAT"),
+            (dialects.mysql.REAL(precision=8, scale=2), "REAL(8, 2)"),
+            (dialects.postgresql.REAL(), "REAL"),
             (INTEGER(), "INTEGER"),
-            (mysql.INTEGER(display_width=5), "INTEGER(5)")
+            (dialects.mysql.INTEGER(display_width=5), "INTEGER(5)")
         ):
-            self.assert_compile(type_, expected)
+            self.assert_compile(type_, expected,
+                                allow_dialect_select=True)
 
 class DateTest(TestBase, AssertsExecutionResults):
     @classmethod
@@ -1269,8 +1329,8 @@ class NumericTest(TestBase):
     def test_numeric_as_decimal(self):
         self._do_test(
             Numeric(precision=8, scale=4),
-            [15.7563, Decimal("15.7563"), None],
-            [Decimal("15.7563"), None], 
+            [15.7563, decimal.Decimal("15.7563"), None],
+            [decimal.Decimal("15.7563"), None], 
         )
 
     def test_numeric_as_float(self):
@@ -1281,7 +1341,7 @@ class NumericTest(TestBase):
 
         self._do_test(
             Numeric(precision=8, scale=4, asdecimal=False),
-            [15.7563, Decimal("15.7563"), None],
+            [15.7563, decimal.Decimal("15.7563"), None],
             [15.7563, None],
             filter_ = filter_
         )
@@ -1289,15 +1349,15 @@ class NumericTest(TestBase):
     def test_float_as_decimal(self):
         self._do_test(
             Float(precision=8, asdecimal=True),
-            [15.7563, Decimal("15.7563"), None],
-            [Decimal("15.7563"), None], 
+            [15.7563, decimal.Decimal("15.7563"), None],
+            [decimal.Decimal("15.7563"), None], 
             filter_ = lambda n:n is not None and round(n, 5) or None
         )
 
     def test_float_as_float(self):
         self._do_test(
             Float(precision=8),
-            [15.7563, Decimal("15.7563")],
+            [15.7563, decimal.Decimal("15.7563")],
             [15.7563],
             filter_ = lambda n:n is not None and round(n, 5) or None
         )
@@ -1382,6 +1442,54 @@ class NumericTest(TestBase):
             numbers
         )
 
+class NumericRawSQLTest(TestBase):
+    """Test what DBAPIs and dialects return without any typing
+    information supplied at the SQLA level.
+
+    """
+    def _fixture(self, metadata, type, data):
+        t = Table('t', metadata,
+            Column("val", type)
+        )
+        metadata.create_all()
+        t.insert().execute(val=data)
+
+    @testing.fails_on('sqlite', "Doesn't provide Decimal results natively")
+    @testing.provide_metadata
+    def test_decimal_fp(self):
+        t = self._fixture(metadata, Numeric(10, 5), decimal.Decimal("45.5"))
+        val = testing.db.execute("select val from t").scalar()
+        assert isinstance(val, decimal.Decimal)
+        eq_(val, decimal.Decimal("45.5"))
+
+    @testing.fails_on('sqlite', "Doesn't provide Decimal results natively")
+    @testing.provide_metadata
+    def test_decimal_int(self):
+        t = self._fixture(metadata, Numeric(10, 5), decimal.Decimal("45"))
+        val = testing.db.execute("select val from t").scalar()
+        assert isinstance(val, decimal.Decimal)
+        eq_(val, decimal.Decimal("45"))
+
+    @testing.provide_metadata
+    def test_ints(self):
+        t = self._fixture(metadata, Integer, 45)
+        val = testing.db.execute("select val from t").scalar()
+        assert isinstance(val, (int, long))
+        eq_(val, 45)
+
+    @testing.provide_metadata
+    def test_float(self):
+        t = self._fixture(metadata, Float, 46.583)
+        val = testing.db.execute("select val from t").scalar()
+        assert isinstance(val, float)
+
+        # some DBAPIs have unusual float handling
+        if testing.against('oracle+cx_oracle', 'mysql+oursql'):
+            eq_(round_decimal(val, 3), 46.583)
+        else:
+            eq_(val, 46.583)
+
+
 
 
 class IntervalTest(TestBase, AssertsExecutionResults):
@@ -1404,6 +1512,13 @@ class IntervalTest(TestBase, AssertsExecutionResults):
     @classmethod
     def teardown_class(cls):
         metadata.drop_all()
+
+    def test_non_native_adapt(self):
+        interval = Interval(native=False)
+        adapted = interval.dialect_impl(testing.db.dialect)
+        assert type(adapted) is Interval
+        assert adapted.native is False
+        eq_(str(adapted), "DATETIME")
 
     @testing.fails_on("+pg8000", "Not yet known how to pass values of the INTERVAL type")
     @testing.fails_on("postgresql+zxjdbc", "Not yet known how to pass values of the INTERVAL type")

@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-                Engine Configuration
-             &mdash; SQLAlchemy 0.6.8 Documentation</title>
+    Engine Configuration
+ &mdash; SQLAlchemy 0.7b1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.8',
+          VERSION:     '0.7b1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,10 +27,11 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Working with Engines and Connections" href="connections.html" />
         <link rel="prev" title="SQL Statements and Expressions" href="expression_api.html" />
+    
 
     </head>
     <body>
@@ -38,52 +39,52 @@
 
 
 
-<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+
+        <div id="search">
+        Search:
+        <form class="search" action="../search.html" method="get">
+          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        </div>
+
+        <div class="versionheader">
+            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+        </div>
+        <div class="clearboth"></div>
+
+        <div class="topnav">
+            <div id="pagecontrol">
+                <a href="../genindex.html">Index</a>
+
+                <div class="sourcelink">(<a href="../_sources/core/engines.txt">view source)</div>
+            </div>
+
+            <div class="navbanner">
+                <a class="totoc" href="../index.html">Table of Contents</a>
+                        » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
+                » 
+    Engine Configuration
+ 
+
+                
+<div class="prevnext">
+        Previous:
+        <a href="expression_api.html" title="previous chapter">SQL Statements and Expressions</a>
+        Next:
+        <a href="connections.html" title="next chapter">Working with Engines and Connections</a>
 </div>
 
-<div class="versionheader">
-    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
-        <ul>
-            <li>Prev:
-            <a href="expression_api.html" title="previous chapter">SQL Statements and Expressions</a>
-            </li>
-            <li>Next:
-            <a href="connections.html" title="next chapter">Working with Engines and Connections</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/core/engines.txt">view source
-        </li>
-        </ul>
-    </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
-        » 
-                Engine Configuration
-             
-
-        <h2>
-            
-                Engine Configuration
-            
-        </h2>
-        <ul>
+                <h2>
+                    
+    Engine Configuration
+ 
+                </h2>
+            </div>
+                <ul>
 <li><a class="reference internal" href="#">Engine Configuration</a><ul>
 <li><a class="reference internal" href="#supported-databases">Supported Databases</a></li>
 <li><a class="reference internal" href="#database-engine-options">Database Engine Options</a></li>
@@ -94,13 +95,12 @@ Search:
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
+            <div class="clearboth"></div>
+        </div>
 
-<div class="document">
-    <div class="body">
-        
+        <div class="document">
+            <div class="body">
+                
 <div class="section" id="engine-configuration">
 <span id="engines-toplevel"></span><h1>Engine Configuration<a class="headerlink" href="#engine-configuration" title="Permalink to this headline">¶</a></h1>
 <p>The <strong>Engine</strong> is the starting point for any SQLAlchemy application. It&#8217;s
@@ -130,7 +130,7 @@ applications.</p>
 <p>SQLAlchemy includes many <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> implementations for various
 backends; each is described as its own package in the <em class="xref std std-ref">sqlalchemy.dialects_toplevel</em> package.  A
 SQLAlchemy dialect always requires that an appropriate DBAPI driver is installed.</p>
-<p>The table below summarizes the state of DBAPI support in SQLAlchemy 0.6.  The values
+<p>The table below summarizes the state of DBAPI support in SQLAlchemy 0.7.  The values
 translate as:</p>
 <ul class="simple">
 <li>yes / Python platform - The SQLAlchemy dialect is mostly or fully operational on the target platform.</li>
@@ -180,7 +180,23 @@ information on current support.</li>
 <td>thirdparty</td>
 <td>thirdparty</td>
 </tr>
-<tr><td><strong>Firebird</strong></td>
+<tr><td><strong>Drizzle</strong></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td><a class="reference external" href="http://sourceforge.net/projects/mysql-python">mysql-python</a></td>
+<td><tt class="docutils literal"><span class="pre">drizzle+mysqldb</span></tt>*</td>
+<td>yes</td>
+<td>development</td>
+<td>no</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr><td><strong>Firebird / Interbase</strong></td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -328,6 +344,14 @@ information on current support.</li>
 <td><tt class="docutils literal"><span class="pre">mysql+oursql</span></tt></td>
 <td>yes</td>
 <td>yes</td>
+<td>no</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr><td><a class="reference external" href="http://code.google.com/p/pymysql/">pymysql</a></td>
+<td><tt class="docutils literal"><span class="pre">mysql+pymysql</span></tt></td>
+<td>yes</td>
+<td>development</td>
 <td>no</td>
 <td>yes</td>
 <td>yes</td>
@@ -689,9 +713,7 @@ This has the effect of four slashes being present for an absolute file path:</p>
 </div>
 <p>The <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> will ask the connection pool for a
 connection when the <tt class="docutils literal"><span class="pre">connect()</span></tt> or <tt class="docutils literal"><span class="pre">execute()</span></tt> methods are called. The
-default connection pool, <a class="reference internal" href="pooling.html#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a>, as well as the
-default connection pool used with SQLite,
-<a class="reference internal" href="pooling.html#sqlalchemy.pool.SingletonThreadPool" title="sqlalchemy.pool.SingletonThreadPool"><tt class="xref py py-class docutils literal"><span class="pre">SingletonThreadPool</span></tt></a>, will open connections to the
+default connection pool, <a class="reference internal" href="pooling.html#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a>, will open connections to the
 database on an as-needed basis. As concurrent statements are executed,
 <a class="reference internal" href="pooling.html#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a> will grow its pool of connections to a
 default size of five, and will allow a default &#8220;overflow&#8221; of ten. Since the
@@ -699,6 +721,11 @@ default size of five, and will allow a default &#8220;overflow&#8221; of ten. Si
 connection pool, it follows that you should keep a single
 <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> per database established within an
 application, rather than creating a new one for each connection.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><a class="reference internal" href="pooling.html#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a> is not used by default for SQLite engines.  See
+<a class="reference internal" href="../dialects/sqlite.html"><em>SQLite</em></a> for details on SQLite connection pool usage.</p>
+</div>
 <dl class="class">
 <dt id="sqlalchemy.engine.url.URL">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.url.</tt><tt class="descname">URL</tt><big>(</big><em>drivername</em>, <em>username=None</em>, <em>password=None</em>, <em>host=None</em>, <em>port=None</em>, <em>database=None</em>, <em>query=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.url.URL" title="Permalink to this definition">¶</a></dt>
@@ -811,7 +838,7 @@ namespace of SA loggers that can be turned on is as follows:</p>
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
 <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;sqlalchemy.engine&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span></pre></div>
 </div>
-<p>By default, the log level is set to <tt class="docutils literal"><span class="pre">logging.ERROR</span></tt> within the entire
+<p>By default, the log level is set to <tt class="docutils literal"><span class="pre">logging.WARN</span></tt> within the entire
 <tt class="docutils literal"><span class="pre">sqlalchemy</span></tt> namespace so that no log operations occur, even within an
 application that has logging enabled otherwise.</p>
 <p>The <tt class="docutils literal"><span class="pre">echo</span></tt> flags present as keyword arguments to
@@ -838,29 +865,37 @@ by only emitting log statements when the current logging level is detected
 as <tt class="docutils literal"><span class="pre">logging.INFO</span></tt> or <tt class="docutils literal"><span class="pre">logging.DEBUG</span></tt>.  It only checks this level when
 a new connection is procured from the connection pool.  Therefore when
 changing the logging configuration for an already-running application, any
-<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> that&#8217;s currently active, or more commonly a
+<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine.Connection" title="sqlalchemy.engine.base.Engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> that&#8217;s currently active, or more commonly a
 <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> object that&#8217;s active in a transaction, won&#8217;t log any
-SQL according to the new configuration until a new <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>
+SQL according to the new configuration until a new <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine.Connection" title="sqlalchemy.engine.base.Engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>
 is procured (in the case of <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>, this is
 after the current transaction ends and a new one begins).</p>
 </div>
 </div>
 </div>
 
-    </div>
+            </div>
+        </div>
+
+        
+        
+            <div class="bottomnav">
+                
+<div class="prevnext">
+        Previous:
+        <a href="expression_api.html" title="previous chapter">SQL Statements and Expressions</a>
+        Next:
+        <a href="connections.html" title="next chapter">Working with Engines and Connections</a>
 </div>
 
+                <div class="doc_copyright">
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+                </div>
+            </div>
+        
 
-    <div class="bottomnav">
-            Previous:
-            <a href="expression_api.html" title="previous chapter">SQL Statements and Expressions</a>
-            Next:
-            <a href="connections.html" title="next chapter">Working with Engines and Connections</a>
-        <div class="doc_copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
-    </div>
+
 
 
 

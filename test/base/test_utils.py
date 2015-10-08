@@ -1,9 +1,9 @@
-from sqlalchemy.test.testing import assert_raises, assert_raises_message
+from test.lib.testing import assert_raises, assert_raises_message
 import copy, threading
 from sqlalchemy import util, sql, exc
-from sqlalchemy.test import TestBase
-from sqlalchemy.test.testing import eq_, is_, ne_
-from sqlalchemy.test.util import gc_collect, picklers
+from test.lib import TestBase
+from test.lib.testing import eq_, is_, ne_
+from test.lib.util import gc_collect, picklers
 from sqlalchemy.util import classproperty
 
 
@@ -82,7 +82,7 @@ class OrderedSetTest(TestBase):
 
 class FrozenDictTest(TestBase):
     def test_serialize(self):
-        d = util.frozendict({1:2, 3:4})
+        d = util.immutabledict({1:2, 3:4})
         for loads, dumps in picklers():
             print loads(dumps(d))
 

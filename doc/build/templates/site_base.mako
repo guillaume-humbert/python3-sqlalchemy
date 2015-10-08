@@ -19,8 +19,7 @@ ${next.body()}
 ${'</%text>'}
 
 <%text><%def name="style()"></%text>
-    <%block name="headers"/>
-
+    ${self.headers()}
     <%text>${parent.style()}</%text>
     <link href="/css/site_docs.css" rel="stylesheet" type="text/css"></link>
 <%text></%def></%text>

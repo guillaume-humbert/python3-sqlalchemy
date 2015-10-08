@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: SQLAlchemy
-Version: 0.6.8
+Version: 0.7b1
 Summary: Database Abstraction Library
 Home-page: http://www.sqlalchemy.org
 Author: Mike Bayer
@@ -128,7 +128,7 @@ Description: SQLAlchemy is:
         
         
 Platform: UNKNOWN
-Classifier: Development Status :: 5 - Production/Stable
+Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Programming Language :: Python

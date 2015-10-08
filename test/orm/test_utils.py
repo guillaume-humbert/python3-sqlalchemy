@@ -1,4 +1,4 @@
-from sqlalchemy.test.testing import assert_raises, assert_raises_message
+from test.lib.testing import assert_raises, assert_raises_message
 from sqlalchemy.orm import interfaces, util
 from sqlalchemy import Column
 from sqlalchemy import Integer
@@ -8,47 +8,11 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.orm import mapper, create_session
 
 
-from sqlalchemy.test import TestBase, testing
+from test.lib import TestBase, testing
 
 from test.orm import _fixtures
-from sqlalchemy.test.testing import eq_
+from test.lib.testing import eq_
 
-
-class ExtensionCarrierTest(TestBase):
-    def test_basic(self):
-        carrier = util.ExtensionCarrier()
-
-        assert 'translate_row' not in carrier
-        assert carrier.translate_row() is interfaces.EXT_CONTINUE
-        assert 'translate_row' not in carrier
-
-        assert_raises(AttributeError, lambda: carrier.snickysnack)
-
-        class Partial(object):
-            def __init__(self, marker):
-                self.marker = marker
-            def translate_row(self, row):
-                return self.marker
-
-        carrier.append(Partial('end'))
-        assert 'translate_row' in carrier
-        assert carrier.translate_row(None) == 'end'
-
-        carrier.push(Partial('front'))
-        assert carrier.translate_row(None) == 'front'
-
-        assert 'populate_instance' not in carrier
-        carrier.append(interfaces.MapperExtension)
-
-        # Py3K
-        #assert 'populate_instance' not in carrier
-        # Py2K
-        assert 'populate_instance' in carrier
-        # end Py2K
-
-        assert carrier.interface
-        for m in carrier.interface:
-            assert getattr(interfaces.MapperExtension, m)
 
 class AliasedClassTest(TestBase):
     def point_map(self, cls):
@@ -229,9 +193,9 @@ class IdentityKeyTest(_fixtures.FixtureTest):
     def test_identity_key_1(self):
         mapper(User, users)
 
-        key = util.identity_key(User, 1)
+        key = util.identity_key(User, [1])
         eq_(key, (User, (1,)))
-        key = util.identity_key(User, ident=1)
+        key = util.identity_key(User, ident=[1])
         eq_(key, (User, (1,)))
 
     @testing.resolve_artifact_names

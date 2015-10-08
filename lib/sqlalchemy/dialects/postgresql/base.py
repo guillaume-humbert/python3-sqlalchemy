@@ -87,11 +87,9 @@ option to the Index constructor::
 
 import re
 
-from sqlalchemy import schema as sa_schema
 from sqlalchemy import sql, schema, exc, util
-from sqlalchemy.engine import base, default, reflection
+from sqlalchemy.engine import default, reflection
 from sqlalchemy.sql import compiler, expression, util as sql_util
-from sqlalchemy.sql import operators as sql_operators
 from sqlalchemy import types as sqltypes
 
 try:
@@ -102,24 +100,6 @@ except ImportError:
 from sqlalchemy.types import INTEGER, BIGINT, SMALLINT, VARCHAR, \
         CHAR, TEXT, FLOAT, NUMERIC, \
         DATE, BOOLEAN
-
-RESERVED_WORDS = set(
-    ["all", "analyse", "analyze", "and", "any", "array", "as", "asc",
-    "asymmetric", "both", "case", "cast", "check", "collate", "column",
-    "constraint", "create", "current_catalog", "current_date",
-    "current_role", "current_time", "current_timestamp", "current_user",
-    "default", "deferrable", "desc", "distinct", "do", "else", "end",
-    "except", "false", "fetch", "for", "foreign", "from", "grant", "group",
-    "having", "in", "initially", "intersect", "into", "leading", "limit",
-    "localtime", "localtimestamp", "new", "not", "null", "off", "offset",
-    "old", "on", "only", "or", "order", "placing", "primary", "references",
-    "returning", "select", "session_user", "some", "symmetric", "table",
-    "then", "to", "trailing", "true", "union", "unique", "user", "using",
-    "variadic", "when", "where", "window", "with", "authorization",
-    "between", "binary", "cross", "current_schema", "freeze", "full",
-    "ilike", "inner", "is", "isnull", "join", "left", "like", "natural",
-    "notnull", "outer", "over", "overlaps", "right", "similar", "verbose"
-    ])
 
 _DECIMAL_TYPES = (1231, 1700)
 _FLOAT_TYPES = (700, 701, 1021, 1022)
@@ -151,6 +131,7 @@ class TIMESTAMP(sqltypes.TIMESTAMP):
         super(TIMESTAMP, self).__init__(timezone=timezone)
         self.precision = precision
 
+
 class TIME(sqltypes.TIME):
     def __init__(self, timezone=False, precision=None):
         super(TIME, self).__init__(timezone=timezone)
@@ -167,9 +148,6 @@ class INTERVAL(sqltypes.TypeEngine):
     def __init__(self, precision=None):
         self.precision = precision
 
-    def adapt(self, impltype):
-        return impltype(self.precision)
-
     @classmethod
     def _adapt_from_generic_interval(cls, interval):
         return INTERVAL(precision=interval.second_precision)
@@ -182,15 +160,9 @@ PGInterval = INTERVAL
 
 class BIT(sqltypes.TypeEngine):
     __visit_name__ = 'BIT'
+    def __init__(self, length=1):
+        self.length= length
 
-    def __init__(self, length=None, varying=False):
-        if not varying:
-            # BIT without VARYING defaults to length 1
-            self.length = length or 1
-        else:
-            # but BIT VARYING can be unlimited-length, so no default
-            self.length = length
-        self.varying = varying
 PGBit = BIT
 
 class UUID(sqltypes.TypeEngine):
@@ -251,15 +223,11 @@ class ARRAY(sqltypes.MutableType, sqltypes.Concatenable, sqltypes.TypeEngine):
     The ARRAY type may not be supported on all DBAPIs.
     It is known to work on psycopg2 and not pg8000.
 
-    **Note:** be sure to read the notes for 
-    :class:`.MutableType` regarding ORM 
-    performance implications.   The :class:`.ARRAY` type's 
-    mutability can be disabled using the "mutable" flag.
 
     """
     __visit_name__ = 'ARRAY'
 
-    def __init__(self, item_type, mutable=True, as_tuple=False):
+    def __init__(self, item_type, mutable=False, as_tuple=False):
         """Construct an ARRAY.
 
         E.g.::
@@ -274,14 +242,23 @@ class ARRAY(sqltypes.MutableType, sqltypes.Concatenable, sqltypes.TypeEngine):
           ``ARRAY(ARRAY(Integer))`` or such. The type mapping figures out on
           the fly
 
-        :param mutable=True: Specify whether lists passed to this
-          class should be considered mutable. If so, generic copy operations
-          (typically used by the ORM) will shallow-copy values.
+        :param mutable=False: Specify whether lists passed to this
+          class should be considered mutable - this enables 
+          "mutable types" mode in the ORM.  Be sure to read the 
+          notes for :class:`.MutableType` regarding ORM 
+          performance implications (default changed from ``True`` in 
+          0.7.0).
 
-        :param as_tuple=False: Specify whether return results should be converted
-          to tuples from lists.  DBAPIs such as psycopg2 return lists by default.
-          When tuples are returned, the results are hashable.   This flag can only
-          be set to ``True`` when ``mutable`` is set to ``False``. (new in 0.6.5)
+          .. note:: This functionality is now superceded by the
+             ``sqlalchemy.ext.mutable`` extension described in 
+             :ref:`mutable_toplevel`.
+
+        :param as_tuple=False: Specify whether return results
+          should be converted to tuples from lists. DBAPIs such
+          as psycopg2 return lists by default. When tuples are
+          returned, the results are hashable. This flag can only
+          be set to ``True`` when ``mutable`` is set to
+          ``False``. (new in 0.6.5)
 
         """
         if isinstance(item_type, ARRAY):
@@ -311,23 +288,8 @@ class ARRAY(sqltypes.MutableType, sqltypes.Concatenable, sqltypes.TypeEngine):
     def is_mutable(self):
         return self.mutable
 
-    def dialect_impl(self, dialect, **kwargs):
-        impl = super(ARRAY, self).dialect_impl(dialect, **kwargs)
-        if impl is self:
-            impl = self.__class__.__new__(self.__class__)
-            impl.__dict__.update(self.__dict__)
-        impl.item_type = self.item_type.dialect_impl(dialect)
-        return impl
-
-    def adapt(self, impltype):
-        return impltype(
-            self.item_type,
-            mutable=self.mutable,
-            as_tuple=self.as_tuple
-        )
-
     def bind_processor(self, dialect):
-        item_proc = self.item_type.bind_processor(dialect)
+        item_proc = self.item_type.dialect_impl(dialect).bind_processor(dialect)
         if item_proc:
             def convert_item(item):
                 if isinstance(item, (list, tuple)):
@@ -347,7 +309,7 @@ class ARRAY(sqltypes.MutableType, sqltypes.Concatenable, sqltypes.TypeEngine):
         return process
 
     def result_processor(self, dialect, coltype):
-        item_proc = self.item_type.result_processor(dialect, coltype)
+        item_proc = self.item_type.dialect_impl(dialect).result_processor(dialect, coltype)
         if item_proc:
             def convert_item(item):
                 if isinstance(item, list):
@@ -424,8 +386,7 @@ ischema_names = {
     'inet': INET,
     'cidr': CIDR,
     'uuid': UUID,
-    'bit': BIT,
-    'bit varying': BIT,
+    'bit':BIT,
     'macaddr': MACADDR,
     'double precision' : DOUBLE_PRECISION,
     'timestamp' : TIMESTAMP,
@@ -483,11 +444,11 @@ class PGCompiler(compiler.SQLCompiler):
     def limit_clause(self, select):
         text = ""
         if select._limit is not None:
-            text +=  " \n LIMIT " + str(select._limit)
+            text +=  " \n LIMIT " + self.process(sql.literal(select._limit))
         if select._offset is not None:
             if select._limit is None:
                 text += " \n LIMIT ALL"
-            text += " OFFSET " + str(select._offset)
+            text += " OFFSET " + self.process(sql.literal(select._offset))
         return text
 
     def get_select_precolumns(self, select):
@@ -496,11 +457,10 @@ class PGCompiler(compiler.SQLCompiler):
                 return "DISTINCT "
             elif isinstance(select._distinct, (list, tuple)):
                 return "DISTINCT ON (" + ', '.join(
-                    [(isinstance(col, basestring) and col 
-                        or self.process(col)) for col in select._distinct]
+                    [self.process(col) for col in select._distinct]
                 )+ ") "
             else:
-                return "DISTINCT ON (" + unicode(select._distinct) + ") "
+                return "DISTINCT ON (" + self.process(select._distinct) + ") "
         else:
             return ""
 
@@ -545,15 +505,18 @@ class PGCompiler(compiler.SQLCompiler):
 class PGDDLCompiler(compiler.DDLCompiler):
     def get_column_specification(self, column, **kwargs):
         colspec = self.preparer.format_column(column)
+        type_affinity = column.type._type_affinity
         if column.primary_key and \
-            len(column.foreign_keys)==0 and \
-            column.autoincrement and \
-            isinstance(column.type, sqltypes.Integer) and \
-            not isinstance(column.type, sqltypes.SmallInteger) and \
-            (column.default is None or 
-                (isinstance(column.default, schema.Sequence) and
-                column.default.optional)):
-            if isinstance(column.type, sqltypes.BigInteger):
+            column is column.table._autoincrement_column and \
+            not issubclass(type_affinity, sqltypes.SmallInteger) and \
+            (
+                column.default is None or 
+                (
+                    isinstance(column.default, schema.Sequence) and
+                    column.default.optional
+                )
+            ):
+            if issubclass(type_affinity, sqltypes.BigInteger):
                 colspec += " BIGSERIAL"
             else:
                 colspec += " SERIAL"
@@ -667,13 +630,7 @@ class PGTypeCompiler(compiler.GenericTypeCompiler):
             return "INTERVAL"
 
     def visit_BIT(self, type_):
-        if type_.varying:
-            compiled = "BIT VARYING"
-            if type_.length is not None:
-                compiled += "(%d)" % type_.length
-        else:
-            compiled = "BIT(%d)" % type_.length
-        return compiled
+        return "BIT(%d)" % type_.length
 
     def visit_UUID(self, type_):
         return "UUID"
@@ -692,9 +649,6 @@ class PGTypeCompiler(compiler.GenericTypeCompiler):
 
 
 class PGIdentifierPreparer(compiler.IdentifierPreparer):
-
-    reserved_words = RESERVED_WORDS
-
     def _unquote_identifier(self, value):
         if value[0] == self.initial_quote:
             value = value[1:-1].\
@@ -728,24 +682,23 @@ class DropEnumType(schema._CreateDropBase):
   __visit_name__ = "drop_enum_type"
 
 class PGExecutionContext(default.DefaultExecutionContext):
-    def fire_sequence(self, seq):
+    def fire_sequence(self, seq, type_):
         if not seq.optional:
             return self._execute_scalar(("select nextval('%s')" % \
-                    self.dialect.identifier_preparer.format_sequence(seq)))
+                    self.dialect.identifier_preparer.format_sequence(seq)), type_)
         else:
             return None
 
     def get_insert_default(self, column):
-        if column.primary_key:
+        if column.primary_key and column is column.table._autoincrement_column:
             if (isinstance(column.server_default, schema.DefaultClause) and
                 column.server_default.arg is not None):
 
                 # pre-execute passive defaults on primary key columns
                 return self._execute_scalar("select %s" %
-                                        column.server_default.arg)
+                                        column.server_default.arg, column.type)
 
-            elif column is column.table._autoincrement_column \
-                    and (column.default is None or 
+            elif (column.default is None or 
                         (isinstance(column.default, schema.Sequence) and
                         column.default.optional)):
 
@@ -770,7 +723,7 @@ class PGExecutionContext(default.DefaultExecutionContext):
                     exc = "select nextval('\"%s\"')" % \
                             (seq_name, )
 
-                return self._execute_scalar(exc)
+                return self._execute_scalar(exc, column.type)
 
         return super(PGExecutionContext, self).get_insert_default(column)
 
@@ -824,15 +777,35 @@ class PGDialect(default.DefaultDialect):
     def on_connect(self):
         if self.isolation_level is not None:
             def connect(conn):
-                cursor = conn.cursor()
-                cursor.execute(
-                    "SET SESSION CHARACTERISTICS AS TRANSACTION "
-                    "ISOLATION LEVEL %s" % self.isolation_level)
-                cursor.execute("COMMIT")
-                cursor.close()
+                self.set_isolation_level(conn, self.isolation_level)
             return connect
         else:
             return None
+
+    _isolation_lookup = set(['SERIALIZABLE', 
+                'READ UNCOMMITTED', 'READ COMMITTED', 'REPEATABLE READ'])
+
+    def set_isolation_level(self, connection, level):
+        level = level.replace('_', ' ')
+        if level not in self._isolation_lookup:
+            raise exc.ArgumentError(
+                "Invalid value '%s' for isolation_level. "
+                "Valid isolation levels for %s are %s" % 
+                (level, self.name, ", ".join(self._isolation_lookup))
+                ) 
+        cursor = connection.cursor()
+        cursor.execute(
+            "SET SESSION CHARACTERISTICS AS TRANSACTION "
+            "ISOLATION LEVEL %s" % level)
+        cursor.execute("COMMIT")
+        cursor.close()
+
+    def get_isolation_level(self, connection):
+        cursor = connection.cursor()
+        cursor.execute('show transaction isolation level')
+        val = cursor.fetchone()[0]
+        cursor.close()
+        return val.upper()
 
     def do_begin_twophase(self, connection, xid):
         self.do_begin(connection.connection)
@@ -1130,7 +1103,6 @@ class PGDialect(default.DefaultDialect):
             if charlen:
                 charlen = charlen.group(1)
             kwargs = {}
-            args = None
 
             if attype == 'numeric':
                 if charlen:
@@ -1141,7 +1113,7 @@ class PGDialect(default.DefaultDialect):
             elif attype == 'double precision':
                 args = (53, )
             elif attype == 'integer':
-                args = (32, 0)
+                args = ()
             elif attype in ('timestamp with time zone', 
                             'time with time zone'):
                 kwargs['timezone'] = True
@@ -1154,12 +1126,6 @@ class PGDialect(default.DefaultDialect):
                 if charlen:
                     kwargs['precision'] = int(charlen)
                 args = ()
-            elif attype == 'bit varying':
-                kwargs['varying'] = True
-                if charlen:
-                    args = (int(charlen),)
-                else:
-                    args = ()
             elif attype in ('interval','interval year to month',
                                 'interval day to second'):
                 if charlen:
@@ -1314,31 +1280,16 @@ class PGDialect(default.DefaultDialect):
     def get_indexes(self, connection, table_name, schema, **kw):
         table_oid = self.get_table_oid(connection, table_name, schema,
                                        info_cache=kw.get('info_cache'))
-
         IDX_SQL = """
-          SELECT
-              i.relname as relname,
-              ix.indisunique, ix.indexprs, ix.indpred,
-              a.attname
-          FROM
-              pg_class t 
-                    join pg_index ix on t.oid = ix.indrelid
-                    join pg_class i on i.oid=ix.indexrelid
-                    left outer join 
-                        pg_attribute a 
-                        on t.oid=a.attrelid and a.attnum=ANY(ix.indkey)
-          WHERE
-              t.relkind = 'r'
-              and t.oid = :table_oid
-              and ix.indisprimary = 'f'
-          ORDER BY
-              t.relname,
-              i.relname
+          SELECT c.relname, i.indisunique, i.indexprs, i.indpred,
+            a.attname
+          FROM pg_index i, pg_class c, pg_attribute a
+          WHERE i.indrelid = :table_oid AND i.indexrelid = c.oid
+            AND a.attrelid = i.indexrelid AND i.indisprimary = 'f'
+          ORDER BY c.relname, a.attnum
         """
-
         t = sql.text(IDX_SQL, typemap={'attname':sqltypes.Unicode})
         c = connection.execute(t, table_oid=table_oid)
-
         index_names = {}
         indexes = []
         sv_idx_name = None
@@ -1364,8 +1315,7 @@ class PGDialect(default.DefaultDialect):
                 indexes.append(index_d)
                 index_names[idx_name] = index_d
             index_d['name'] = idx_name
-            if col is not None:
-                index_d['column_names'].append(col)
+            index_d['column_names'].append(col)
             index_d['unique'] = unique
         return indexes
 

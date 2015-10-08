@@ -79,27 +79,32 @@ The psycopg2 dialect will log Postgresql NOTICE messages via the
     logging.getLogger('sqlalchemy.dialects.postgresql').setLevel(logging.INFO)
 
 
-Per-Statement Execution Options
--------------------------------
+Per-Statement/Connection Execution Options
+-------------------------------------------
 
-The following per-statement execution options are respected:
+The following DBAPI-specific options are respected when used with 
+:meth:`.Connection.execution_options`, :meth:`.Executable.execution_options`,
+:meth:`.Query.execution_options`, in addition to those not specific to DBAPIs:
 
-* *stream_results* - Enable or disable usage of server side cursors for the SELECT-statement.
-  If *None* or not set, the *server_side_cursors* option of the connection is used. If
+* isolation_level - Set the transaction isolation level for the lifespan of a 
+  :class:`.Connection` (can only be set on a connection, not a statement or query).
+  This includes the options ``SERIALIZABLE``, ``READ COMMITTED``,
+  ``READ UNCOMMITTED`` and ``REPEATABLE READ``.
+* stream_results - Enable or disable usage of server side cursors.
+  If ``None`` or not set, the ``server_side_cursors`` option of the :class:`.Engine` is used. If
   auto-commit is enabled, the option is ignored.
 
 """
 
 import random
 import re
-import decimal
 import logging
 
 from sqlalchemy import util, exc
+from sqlalchemy.util.compat import decimal
 from sqlalchemy import processors
-from sqlalchemy.engine import base, default
+from sqlalchemy.engine import base
 from sqlalchemy.sql import expression
-from sqlalchemy.sql import operators as sql_operators
 from sqlalchemy import types as sqltypes
 from sqlalchemy.dialects.postgresql.base import PGDialect, PGCompiler, \
                                 PGIdentifierPreparer, PGExecutionContext, \
@@ -178,11 +183,12 @@ class PGExecutionContext_psycopg2(PGExecutionContext):
             # use server-side cursors:
             # http://lists.initd.org/pipermail/psycopg/2007-January/005251.html
             ident = "c_%s_%s" % (hex(id(self))[2:], hex(random.randint(0, 65535))[2:])
-            return self._connection.connection.cursor(ident)
+            return self._dbapi_connection.cursor(ident)
         else:
-            return self._connection.connection.cursor()
+            return self._dbapi_connection.cursor()
 
     def get_result_proxy(self):
+        # TODO: ouch
         if logger.isEnabledFor(logging.INFO):
             self._log_notices(self.cursor)
 
@@ -221,6 +227,7 @@ class PGDialect_psycopg2(PGDialect):
     execution_ctx_cls = PGExecutionContext_psycopg2
     statement_compiler = PGCompiler_psycopg2
     preparer = PGIdentifierPreparer_psycopg2
+    psycopg2_version = (0, 0)
 
     colspecs = util.update_copy(
         PGDialect.colspecs,
@@ -237,29 +244,43 @@ class PGDialect_psycopg2(PGDialect):
         self.server_side_cursors = server_side_cursors
         self.use_native_unicode = use_native_unicode
         self.supports_unicode_binds = use_native_unicode
+        if self.dbapi and hasattr(self.dbapi, '__version__'):
+            m = re.match(r'(\d+)\.(\d+)\.(\d+)?', 
+                                self.dbapi.__version__)
+            if m:
+                self.psycopg2_version = tuple(map(int, m.group(1, 2, 3)))
 
     @classmethod
     def dbapi(cls):
         psycopg = __import__('psycopg2')
         return psycopg
 
+    @util.memoized_property
+    def _isolation_lookup(self):
+        extensions = __import__('psycopg2.extensions').extensions
+        return {
+            'READ COMMITTED':extensions.ISOLATION_LEVEL_READ_COMMITTED, 
+            'READ UNCOMMITTED':extensions.ISOLATION_LEVEL_READ_UNCOMMITTED, 
+            'REPEATABLE READ':extensions.ISOLATION_LEVEL_REPEATABLE_READ,
+            'SERIALIZABLE':extensions.ISOLATION_LEVEL_SERIALIZABLE
+        }
+
+    def set_isolation_level(self, connection, level):
+        try:
+            level = self._isolation_lookup[level.replace('_', ' ')]
+        except KeyError:
+            raise exc.ArgumentError(
+                "Invalid value '%s' for isolation_level. "
+                "Valid isolation levels for %s are %s" % 
+                (level, self.name, ", ".join(self._isolation_lookup))
+                ) 
+
+        connection.set_isolation_level(level)
+
     def on_connect(self):
         if self.isolation_level is not None:
-            extensions = __import__('psycopg2.extensions').extensions
-            isol = {
-            'READ_COMMITTED':extensions.ISOLATION_LEVEL_READ_COMMITTED, 
-            'READ_UNCOMMITTED':extensions.ISOLATION_LEVEL_READ_UNCOMMITTED, 
-            'REPEATABLE_READ':extensions.ISOLATION_LEVEL_REPEATABLE_READ,
-            'SERIALIZABLE':extensions.ISOLATION_LEVEL_SERIALIZABLE
-
-            }
             def base_on_connect(conn):
-                try:
-                    conn.set_isolation_level(isol[self.isolation_level])
-                except:
-                    raise exc.InvalidRequestError(
-                                "Invalid isolation level: '%s'" % 
-                                self.isolation_level)
+                self.set_isolation_level(conn, self.isolation_level)
         else:
             base_on_connect = None
 
@@ -280,7 +301,7 @@ class PGDialect_psycopg2(PGDialect):
         opts.update(url.query)
         return ([], opts)
 
-    def is_disconnect(self, e):
+    def is_disconnect(self, e, connection, cursor):
         if isinstance(e, self.dbapi.OperationalError):
             # these error messages from libpq: interfaces/libpq/fe-misc.c.
             # TODO: these are sent through gettext in libpq and we can't 

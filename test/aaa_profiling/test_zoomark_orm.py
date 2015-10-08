@@ -8,7 +8,7 @@ import sys
 import time
 from sqlalchemy import *
 from sqlalchemy.orm import *
-from sqlalchemy.test import *
+from test.lib import *
 ITERATIONS = 1
 dbapi_session = engines.ReplayableSession()
 metadata = None
@@ -28,8 +28,7 @@ class ZooMarkTest(TestBase):
     """
 
     __only_on__ = 'postgresql+psycopg2'
-    __skip_if__ = lambda : sys.version_info < (2, 5),   # TODO: get 2.4
-                                                        # support
+    __skip_if__ = lambda : sys.version_info < (2, 5),
 
     def test_baseline_0_setup(self):
         global metadata, session
@@ -331,42 +330,42 @@ class ZooMarkTest(TestBase):
         session = sessionmaker()()
         engine.connect()
 
-    @profiling.function_call_count(4898)
+    @profiling.function_call_count(4912)
     def test_profile_1_create_tables(self):
         self.test_baseline_1_create_tables()
 
-    @profiling.function_call_count(8469)
+    @profiling.function_call_count(6324, {'2.7+cextension':5992, '2.6+cextension':5992})
     def test_profile_1a_populate(self):
         self.test_baseline_1a_populate()
 
-    @profiling.function_call_count(591)
+    @profiling.function_call_count(416)
     def test_profile_2_insert(self):
         self.test_baseline_2_insert()
 
     # this number...
 
     @profiling.function_call_count(6783, {
-        '2.6': 7194,
-        '2.7': 7298,
-        '2.7+cextension': 7288,
-        '2.6+cextension': 7184,
+        '2.6': 6058,
+        '2.7': 5922,
+        '2.7+cextension': 5714,
+        '2.6+cextension': 5714,
         })
     def test_profile_3_properties(self):
         self.test_baseline_3_properties()
 
     # and this number go down slightly when using the C extensions
 
-    @profiling.function_call_count(22510, {'2.6': 24055, '2.7': 24214})
+    @profiling.function_call_count(17698, {'2.7+cextension':17698, '2.6': 18943, '2.7':19110})
     def test_profile_4_expressions(self):
         self.test_baseline_4_expressions()
 
-    @profiling.function_call_count(1313, {'2.6+cextension': 1236,
-                                   '2.7+cextension': 1207},
+    @profiling.function_call_count(1172, {'2.6+cextension': 1090,
+                                   '2.7+cextension': 1086},
                                    variance=0.1)
     def test_profile_5_aggregates(self):
         self.test_baseline_5_aggregates()
 
-    @profiling.function_call_count(2929)
+    @profiling.function_call_count(2417)
     def test_profile_6_editing(self):
         self.test_baseline_6_editing()
 

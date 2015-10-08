@@ -1,3 +1,5 @@
+.. _sqlite_toplevel:
+
 SQLite
 ======
 
@@ -14,14 +16,6 @@ they originate from :mod:`sqlalchemy.types` or from the local dialect::
                 BLOB, BOOLEAN, CHAR, DATE, DATETIME, DECIMAL, FLOAT, \
                 INTEGER, NUMERIC, SMALLINT, TEXT, TIME, TIMESTAMP, \
                 VARCHAR
-
-.. module:: sqlalchemy.dialects.sqlite
-
-.. autoclass:: DATETIME
-
-.. autoclass:: DATE
-
-.. autoclass:: TIME
 
 Pysqlite
 --------

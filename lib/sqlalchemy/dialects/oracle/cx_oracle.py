@@ -127,7 +127,8 @@ from sqlalchemy.engine import base
 from sqlalchemy import types as sqltypes, util, exc, processors
 from datetime import datetime
 import random
-from decimal import Decimal
+import collections
+from sqlalchemy.util.compat import decimal
 import re
 
 class _OracleNumeric(sqltypes.Numeric):
@@ -154,10 +155,10 @@ class _OracleNumeric(sqltypes.Numeric):
                 def to_decimal(value):
                     if value is None:
                         return None
-                    elif isinstance(value, Decimal):
+                    elif isinstance(value, decimal.Decimal):
                         return value
                     else:
-                        return Decimal(fstring % value)
+                        return decimal.Decimal(fstring % value)
                 return to_decimal
             else:
                 if self.precision is None and self.scale is None:
@@ -293,15 +294,10 @@ class OracleExecutionContext_cx_oracle(OracleExecutionContext):
         quoted_bind_names = \
             getattr(self.compiled, '_quoted_bind_names', None)
         if quoted_bind_names:
-            if not self.dialect.supports_unicode_statements:
-                # if DBAPI doesn't accept unicode statements, 
-                # keys in self.parameters would have been encoded
-                # here.  so convert names in quoted_bind_names
-                # to encoded as well.
+            if not self.dialect.supports_unicode_binds:
                 quoted_bind_names = \
                                 dict(
-                                    (fromname.encode(self.dialect.encoding), 
-                                    toname.encode(self.dialect.encoding)) 
+                                    (fromname, toname.encode(self.dialect.encoding)) 
                                     for fromname, toname in 
                                     quoted_bind_names.items()
                                 )
@@ -338,7 +334,7 @@ class OracleExecutionContext_cx_oracle(OracleExecutionContext):
                                                         self.out_parameters[name]
 
     def create_cursor(self):
-        c = self._connection.connection.cursor()
+        c = self._dbapi_connection.cursor()
         if self.dialect.arraysize:
             c.arraysize = self.dialect.arraysize
 
@@ -428,8 +424,8 @@ class ReturningResultProxy(base.FullyBufferedResultProxy):
         return ret
 
     def _buffer_rows(self):
-        return [tuple(self._returning_params["ret_%d" % i] 
-                    for i, c in enumerate(self._returning_params))]
+        return collections.deque([tuple(self._returning_params["ret_%d" % i] 
+                    for i, c in enumerate(self._returning_params))])
 
 class OracleDialect_cx_oracle(OracleDialect):
     execution_ctx_cls = OracleExecutionContext_cx_oracle
@@ -580,15 +576,15 @@ class OracleDialect_cx_oracle(OracleDialect):
             self._detect_decimal = \
                 lambda value: _detect_decimal(value.replace(char, '.'))
             self._to_decimal = \
-                lambda value: Decimal(value.replace(char, '.'))
+                lambda value: decimal.Decimal(value.replace(char, '.'))
 
     def _detect_decimal(self, value):
         if "." in value:
-            return Decimal(value)
+            return decimal.Decimal(value)
         else:
             return int(value)
 
-    _to_decimal = Decimal
+    _to_decimal = decimal.Decimal
 
     def on_connect(self):
         if self.cx_oracle_ver < (5,):
@@ -684,7 +680,7 @@ class OracleDialect_cx_oracle(OracleDialect):
                         for x in connection.connection.version.split('.')
                     )
 
-    def is_disconnect(self, e):
+    def is_disconnect(self, e, connection, cursor):
         if isinstance(e, self.dbapi.InterfaceError):
             return "not connected" in str(e)
         else:

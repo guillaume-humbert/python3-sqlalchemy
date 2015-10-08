@@ -20,8 +20,6 @@ they originate from :mod:`sqlalchemy.types` or from the local dialect::
 Types which are specific to SQL Server, or have SQL Server-specific 
 construction arguments, are as follows:
 
-.. currentmodule:: sqlalchemy.dialects.mssql
-
 .. autoclass:: BIT
    :members: __init__
    :show-inheritance:

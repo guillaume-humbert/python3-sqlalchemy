@@ -17,7 +17,7 @@ New strategies can be added via new ``EngineStrategy`` classes.
 from operator import attrgetter
 
 from sqlalchemy.engine import base, threadlocal, url
-from sqlalchemy import util, exc
+from sqlalchemy import util, exc, event
 from sqlalchemy import pool as poollib
 
 strategies = {}
@@ -42,8 +42,6 @@ class EngineStrategy(object):
 
 class DefaultEngineStrategy(EngineStrategy):
     """Base class for built-in stratgies."""
-
-    pool_threadlocal = False
 
     def create(self, name_or_url, **kwargs):
         # create url.URL object
@@ -82,16 +80,20 @@ class DefaultEngineStrategy(EngineStrategy):
                     return dialect.connect(*cargs, **cparams)
                 except Exception, e:
                     # Py3K
-                    #raise exc.DBAPIError.instance(None, None, e) from e
+                    #raise exc.DBAPIError.instance(None, None, 
+                    #                   e, dialect.dbapi.Error) from e
                     # Py2K
                     import sys
-                    raise exc.DBAPIError.instance(None, None, e), None, sys.exc_info()[2]
+                    raise exc.DBAPIError.instance(
+                                None, None, e, dialect.dbapi.Error), \
+                                None, sys.exc_info()[2]
                     # end Py2K
 
             creator = kwargs.pop('creator', connect)
 
-            poolclass = (kwargs.pop('poolclass', None) or
-                         getattr(dialect_cls, 'poolclass', poollib.QueuePool))
+            poolclass = kwargs.pop('poolclass', None)
+            if poolclass is None:
+                poolclass = dialect_cls.get_pool_class(u)
             pool_args = {}
 
             # consume pool arguments from kwargs, translating a few of
@@ -100,12 +102,12 @@ class DefaultEngineStrategy(EngineStrategy):
                          'echo': 'echo_pool',
                          'timeout': 'pool_timeout',
                          'recycle': 'pool_recycle',
+                         'events':'pool_events',
                          'use_threadlocal':'pool_threadlocal'}
             for k in util.get_cls_kwargs(poolclass):
                 tk = translate.get(k, k)
                 if tk in kwargs:
                     pool_args[k] = kwargs.pop(tk)
-            pool_args.setdefault('use_threadlocal', self.pool_threadlocal)
             pool = poolclass(creator, **pool_args)
         else:
             if isinstance(pool, poollib._DBProxy):
@@ -138,18 +140,19 @@ class DefaultEngineStrategy(EngineStrategy):
         if _initialize:
             do_on_connect = dialect.on_connect()
             if do_on_connect:
-                def on_connect(conn, rec):
-                    conn = getattr(conn, '_sqla_unwrap', conn)
+                def on_connect(dbapi_connection, connection_record):
+                    conn = getattr(dbapi_connection, '_sqla_unwrap', dbapi_connection)
                     if conn is None:
                         return
                     do_on_connect(conn)
 
-                pool.add_listener({'first_connect': on_connect, 'connect':on_connect})
+                event.listen(pool, 'first_connect', on_connect)
+                event.listen(pool, 'connect', on_connect)
 
-            def first_connect(conn, rec):
-                c = base.Connection(engine, connection=conn)
+            def first_connect(dbapi_connection, connection_record):
+                c = base.Connection(engine, connection=dbapi_connection)
                 dialect.initialize(c)
-            pool.add_listener({'first_connect':first_connect})
+            event.listen(pool, 'first_connect', first_connect)
 
         return engine
 
@@ -167,7 +170,6 @@ class ThreadLocalEngineStrategy(DefaultEngineStrategy):
     """Strategy for configuring an Engine with thredlocal behavior."""
 
     name = 'threadlocal'
-    pool_threadlocal = True
     engine_cls = threadlocal.TLEngine
 
 ThreadLocalEngineStrategy()

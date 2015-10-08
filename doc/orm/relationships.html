@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-                Relationship Configuration
-             &mdash; SQLAlchemy 0.6.8 Documentation</title>
+    Relationship Configuration
+ &mdash; SQLAlchemy 0.7b1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.8',
+          VERSION:     '0.7b1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,10 +27,11 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Collection Configuration and Techniques" href="collections.html" />
         <link rel="prev" title="Mapper Configuration" href="mapper_config.html" />
+    
 
     </head>
     <body>
@@ -38,52 +39,52 @@
 
 
 
-<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+
+        <div id="search">
+        Search:
+        <form class="search" action="../search.html" method="get">
+          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        </div>
+
+        <div class="versionheader">
+            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+        </div>
+        <div class="clearboth"></div>
+
+        <div class="topnav">
+            <div id="pagecontrol">
+                <a href="../genindex.html">Index</a>
+
+                <div class="sourcelink">(<a href="../_sources/orm/relationships.txt">view source)</div>
+            </div>
+
+            <div class="navbanner">
+                <a class="totoc" href="../index.html">Table of Contents</a>
+                        » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
+                » 
+    Relationship Configuration
+ 
+
+                
+<div class="prevnext">
+        Previous:
+        <a href="mapper_config.html" title="previous chapter">Mapper Configuration</a>
+        Next:
+        <a href="collections.html" title="next chapter">Collection Configuration and Techniques</a>
 </div>
 
-<div class="versionheader">
-    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
-        <ul>
-            <li>Prev:
-            <a href="mapper_config.html" title="previous chapter">Mapper Configuration</a>
-            </li>
-            <li>Next:
-            <a href="collections.html" title="next chapter">Collection Configuration and Techniques</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/orm/relationships.txt">view source
-        </li>
-        </ul>
-    </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-        » 
-                Relationship Configuration
-             
-
-        <h2>
-            
-                Relationship Configuration
-            
-        </h2>
-        <ul>
+                <h2>
+                    
+    Relationship Configuration
+ 
+                </h2>
+            </div>
+                <ul>
 <li><a class="reference internal" href="#">Relationship Configuration</a><ul>
 <li><a class="reference internal" href="#basic-relational-patterns">Basic Relational Patterns</a><ul>
 <li><a class="reference internal" href="#one-to-many">One To Many</a></li>
@@ -111,13 +112,12 @@ Search:
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
+            <div class="clearboth"></div>
+        </div>
 
-<div class="document">
-    <div class="body">
-        
+        <div class="document">
+            <div class="body">
+                
 <span class="target" id="module-sqlalchemy.orm"></span><div class="section" id="relationship-configuration">
 <span id="relationship-config-toplevel"></span><h1>Relationship Configuration<a class="headerlink" href="#relationship-configuration" title="Permalink to this headline">¶</a></h1>
 <p>This section describes the <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> function and in depth discussion
@@ -129,7 +129,7 @@ of collections via <a class="reference internal" href="#sqlalchemy.orm.relations
 <p>A quick walkthrough of the basic relational patterns. In this section we
 illustrate the classical mapping using <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> in conjunction with
 <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>. Then (by popular demand), we illustrate the declarative
-form using the <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative" title="sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> module.</p>
+form using the <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> module.</p>
 <p>Note that <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> is historically known as
 <a class="reference internal" href="#sqlalchemy.orm.relation" title="sqlalchemy.orm.relation"><tt class="xref py py-func docutils literal"><span class="pre">relation()</span></tt></a> in older versions of SQLAlchemy.</p>
 <div class="section" id="one-to-many">
@@ -694,11 +694,11 @@ second UPDATE in order to properly populate a row (and vice versa an UPDATE
 and DELETE in order to delete without violating foreign key constraints). The
 two use cases are:</p>
 <blockquote>
-<div><ul class="simple">
+<ul class="simple">
 <li>A table contains a foreign key to itself, and a single row will have a foreign key value pointing to its own primary key.</li>
 <li>Two tables each contain a foreign key referencing the other table, with a row in each table referencing the other.</li>
 </ul>
-</div></blockquote>
+</blockquote>
 <p>For example:</p>
 <div class="highlight-python"><pre>          user
 ---------------------------------
@@ -894,12 +894,10 @@ Behavior of this attribute is described in detail at
 <li><strong>comparator_factory</strong> &#8211; a class which extends <tt class="xref py py-class docutils literal"><span class="pre">RelationshipProperty.Comparator</span></tt> which
 provides custom SQL clause generation for comparison operations.</li>
 <li><strong>doc</strong> &#8211; docstring which will be applied to the resulting descriptor.</li>
-<li><strong>extension</strong> &#8211; an <tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt> instance, or list of extensions,
+<li><strong>extension</strong> &#8211; an <a class="reference internal" href="interfaces.html#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a> instance, or list of extensions,
 which will be prepended to the list of attribute listeners for
-the resulting descriptor placed on the class.  These listeners
-will receive append and set events before the operation
-proceeds, and may be used to halt (via exception throw) or
-change the value used in the operation.</li>
+the resulting descriptor placed on the class.
+<strong>Deprecated.</strong>  Please see <a class="reference internal" href="events.html#sqlalchemy.orm.events.AttributeEvents" title="sqlalchemy.orm.events.AttributeEvents"><tt class="xref py py-class docutils literal"><span class="pre">AttributeEvents</span></tt></a>.</li>
 <li><strong>foreign_keys</strong> &#8211; <p>a list of columns which are to be used as &#8220;foreign key&#8221; columns.
 Normally, <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> uses the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a>
 and <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> objects present within the
@@ -1109,20 +1107,28 @@ place of a string argument.</p>
 </div>
 </div>
 
-    </div>
+            </div>
+        </div>
+
+        
+        
+            <div class="bottomnav">
+                
+<div class="prevnext">
+        Previous:
+        <a href="mapper_config.html" title="previous chapter">Mapper Configuration</a>
+        Next:
+        <a href="collections.html" title="next chapter">Collection Configuration and Techniques</a>
 </div>
 
+                <div class="doc_copyright">
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+                </div>
+            </div>
+        
 
-    <div class="bottomnav">
-            Previous:
-            <a href="mapper_config.html" title="previous chapter">Mapper Configuration</a>
-            Next:
-            <a href="collections.html" title="next chapter">Collection Configuration and Techniques</a>
-        <div class="doc_copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
-    </div>
+
 
 
 

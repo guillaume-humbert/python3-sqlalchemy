@@ -365,9 +365,9 @@ from sqlalchemy import schema, sql, util
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.orm import scoped_session, sessionmaker, mapper, \
                             class_mapper, relationship, session,\
-                            object_session
+                            object_session, attributes
 from sqlalchemy.orm.interfaces import MapperExtension, EXT_CONTINUE
-from sqlalchemy.exceptions import SQLAlchemyError, InvalidRequestError, ArgumentError
+from sqlalchemy.exc import SQLAlchemyError, InvalidRequestError, ArgumentError
 from sqlalchemy.sql import expression
 
 
@@ -390,7 +390,8 @@ class AutoAdd(MapperExtension):
 
     def init_instance(self, mapper, class_, oldinit, instance, args, kwargs):
         session = self.scoped_session()
-        session._save_without_cascade(instance)
+        state = attributes.instance_state(instance)
+        session._save_impl(state)
         return EXT_CONTINUE
 
     def init_failed(self, mapper, class_, oldinit, instance, args, kwargs):
@@ -619,7 +620,7 @@ class SqlSoup(object):
         self.session.expunge_all()
 
     def map_to(self, attrname, tablename=None, selectable=None, 
-                    schema=None, base=None, mapper_args=util.frozendict()):
+                    schema=None, base=None, mapper_args=util.immutabledict()):
         """Configure a mapping to the given attrname.
 
         This is the "master" method that can be used to create any 

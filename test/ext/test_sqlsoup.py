@@ -1,5 +1,5 @@
 from sqlalchemy.ext import sqlsoup
-from sqlalchemy.test.testing import TestBase, eq_, assert_raises, \
+from test.lib.testing import TestBase, eq_, assert_raises, \
     assert_raises_message
 from sqlalchemy import create_engine, or_, desc, select, func, exc, \
     Table, util, Column, Integer

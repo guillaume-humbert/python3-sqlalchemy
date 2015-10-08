@@ -101,9 +101,9 @@ class CachingQuery(Query):
         cache, cache_key = _get_cache_parameters(self)
         cache.put(cache_key, value)
 
-def query_callable(manager, query_cls=CachingQuery):
+def query_callable(manager):
     def query(*arg, **kw):
-        return query_cls(manager, *arg, **kw)
+        return CachingQuery(manager, *arg, **kw)
     return query
 
 def _get_cache_parameters(query):
@@ -123,6 +123,8 @@ def _get_cache_parameters(query):
         # cache key - the value arguments from this query's parameters.
         args = _params_from_query(query)
         cache_key = " ".join([str(x) for x in args])
+
+    assert cache_key is not None, "Cache key was None !"
 
     # get cache
     cache = query.cache_manager.get_cache_region(namespace, region)
@@ -253,13 +255,16 @@ def _params_from_query(query):
     """
     v = []
     def visit_bindparam(bind):
-        value = query._params.get(bind.key, bind.value)
 
-        # lazyloader may dig a callable in here, intended
-        # to late-evaluate params after autoflush is called.
-        # convert to a scalar value.
-        if callable(value):
-            value = value()
+        if bind.key in query._params:
+            value = query._params[bind.key]
+        elif bind.callable:
+            # lazyloader may dig a callable in here, intended
+            # to late-evaluate params after autoflush is called.
+            # convert to a scalar value.
+            value = bind.callable()
+        else:
+            value = bind.value
 
         v.append(value)
     if query._criterion is not None:

@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-                SQLAlchemy ORM
-             &mdash; SQLAlchemy 0.6.8 Documentation</title>
+    SQLAlchemy ORM
+ &mdash; SQLAlchemy 0.7b1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.8',
+          VERSION:     '0.7b1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,9 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
         <link rel="next" title="Object Relational Tutorial" href="tutorial.html" />
-        <link rel="prev" title="Overview" href="../intro.html" />
+        <link rel="prev" title="Overview / Installation" href="../intro.html" />
+    
 
     </head>
     <body>
@@ -37,57 +38,56 @@
 
 
 
-<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+
+        <div id="search">
+        Search:
+        <form class="search" action="../search.html" method="get">
+          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        </div>
+
+        <div class="versionheader">
+            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+        </div>
+        <div class="clearboth"></div>
+
+        <div class="topnav">
+            <div id="pagecontrol">
+                <a href="../genindex.html">Index</a>
+
+                <div class="sourcelink">(<a href="../_sources/orm/index.txt">view source)</div>
+            </div>
+
+            <div class="navbanner">
+                <a class="totoc" href="../index.html">Table of Contents</a>
+                » 
+    SQLAlchemy ORM
+ 
+
+                
+<div class="prevnext">
+        Previous:
+        <a href="../intro.html" title="previous chapter">Overview / Installation</a>
+        Next:
+        <a href="tutorial.html" title="next chapter">Object Relational Tutorial</a>
 </div>
 
-<div class="versionheader">
-    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
-</div>
-<div class="clearboth"></div>
+                <h2>
+                    
+    SQLAlchemy ORM
+ 
+                </h2>
+            </div>
+            <div class="clearboth"></div>
+        </div>
 
-<div id="topnav">
-    <div id="pagecontrol">
-        <ul>
-            <li>Prev:
-            <a href="../intro.html" title="previous chapter">Overview</a>
-            </li>
-            <li>Next:
-            <a href="tutorial.html" title="next chapter">Object Relational Tutorial</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/orm/index.txt">view source
-        </li>
-        </ul>
-    </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
-        » 
-                SQLAlchemy ORM
-             
-
-        <h2>
-            
-                SQLAlchemy ORM
-            
-        </h2>
-    </div>
-    <div class="clearboth"></div>
-</div>
-
-<div class="document">
-    <div class="body">
-        
+        <div class="document">
+            <div class="body">
+                
 <div class="section" id="sqlalchemy-orm">
 <span id="orm-toplevel"></span><h1>SQLAlchemy ORM<a class="headerlink" href="#sqlalchemy-orm" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
@@ -177,18 +177,22 @@ Search:
 <li class="toctree-l2"><a class="reference internal" href="loading.html#relation-loader-api">Relation Loader API</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="interfaces.html">ORM Event Interfaces</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="interfaces.html#mapper-events">Mapper Events</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interfaces.html#session-events">Session Events</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interfaces.html#attribute-events">Attribute Events</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interfaces.html#instrumentation-events-and-re-implementation">Instrumentation Events and Re-implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="events.html">ORM Events</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="events.html#attribute-events">Attribute Events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="events.html#mapper-events">Mapper Events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="events.html#instance-events">Instance Events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="events.html#session-events">Session Events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="events.html#instrumentation-events">Instrumentation Events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="events.html#alternate-class-instrumentation">Alternate Class Instrumentation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="extensions/index.html">ORM Extensions</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="extensions/associationproxy.html">Association Proxy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="extensions/declarative.html">Declarative</a></li>
+<li class="toctree-l2"><a class="reference internal" href="extensions/mutable.html">Mutation Tracking</a></li>
 <li class="toctree-l2"><a class="reference internal" href="extensions/orderinglist.html">Ordering List</a></li>
 <li class="toctree-l2"><a class="reference internal" href="extensions/horizontal_shard.html">Horizontal Sharding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="extensions/hybrid.html">Hybrid Attributes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="extensions/sqlsoup.html">SqlSoup</a></li>
 </ul>
 </li>
@@ -197,7 +201,6 @@ Search:
 <li class="toctree-l2"><a class="reference internal" href="examples.html#associations">Associations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples.html#attribute-instrumentation">Attribute Instrumentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples.html#beaker-caching">Beaker Caching</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples.html#derived-attributes">Derived Attributes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples.html#directed-graphs">Directed Graphs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples.html#dynamic-relations-as-dictionaries">Dynamic Relations as Dictionaries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples.html#horizontal-sharding">Horizontal Sharding</a></li>
@@ -211,25 +214,39 @@ Search:
 <li class="toctree-l2"><a class="reference internal" href="examples.html#xml-persistence">XML Persistence</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="interfaces.html">Deprecated ORM Event Interfaces</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="interfaces.html#mapper-events">Mapper Events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interfaces.html#session-events">Session Events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interfaces.html#attribute-events">Attribute Events</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="exceptions.html">ORM Exceptions</a></li>
 </ul>
 </div>
 </div>
 
-    </div>
+            </div>
+        </div>
+
+        
+        
+            <div class="bottomnav">
+                
+<div class="prevnext">
+        Previous:
+        <a href="../intro.html" title="previous chapter">Overview / Installation</a>
+        Next:
+        <a href="tutorial.html" title="next chapter">Object Relational Tutorial</a>
 </div>
 
+                <div class="doc_copyright">
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+                </div>
+            </div>
+        
 
-    <div class="bottomnav">
-            Previous:
-            <a href="../intro.html" title="previous chapter">Overview</a>
-            Next:
-            <a href="tutorial.html" title="next chapter">Object Relational Tutorial</a>
-        <div class="doc_copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
-    </div>
+
 
 
 

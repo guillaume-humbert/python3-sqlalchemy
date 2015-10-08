@@ -1,12 +1,13 @@
-from sqlalchemy.test.testing import assert_raises, assert_raises_message, eq_
+from test.lib.testing import assert_raises, assert_raises_message, eq_
 import sys
 from sqlalchemy import *
-from sqlalchemy.test import *
+from test.lib import *
 from sqlalchemy import util, exc
 from sqlalchemy.sql import table, column
 
 
 class CaseTest(TestBase, AssertsCompiledSQL):
+    __dialect__ = 'default'
 
     @classmethod
     def setup_class(cls):

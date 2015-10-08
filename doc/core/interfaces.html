@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-                Core Event Interfaces
-             &mdash; SQLAlchemy 0.6.8 Documentation</title>
+    Deprecated Event Interfaces
+ &mdash; SQLAlchemy 0.7b1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.8',
+          VERSION:     '0.7b1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,10 +27,11 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
-        <link rel="next" title="Custom SQL Constructs and Compilation Extension" href="compiler.html" />
-        <link rel="prev" title="Column and Data Types" href="types.html" />
+        <link rel="next" title="Core Exceptions" href="exceptions.html" />
+        <link rel="prev" title="Expression Serializer Extension" href="serializer.html" />
+    
 
     </head>
     <body>
@@ -38,79 +39,83 @@
 
 
 
-<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+
+        <div id="search">
+        Search:
+        <form class="search" action="../search.html" method="get">
+          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        </div>
+
+        <div class="versionheader">
+            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+        </div>
+        <div class="clearboth"></div>
+
+        <div class="topnav">
+            <div id="pagecontrol">
+                <a href="../genindex.html">Index</a>
+
+                <div class="sourcelink">(<a href="../_sources/core/interfaces.txt">view source)</div>
+            </div>
+
+            <div class="navbanner">
+                <a class="totoc" href="../index.html">Table of Contents</a>
+                        » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
+                » 
+    Deprecated Event Interfaces
+ 
+
+                
+<div class="prevnext">
+        Previous:
+        <a href="serializer.html" title="previous chapter">Expression Serializer Extension</a>
+        Next:
+        <a href="exceptions.html" title="next chapter">Core Exceptions</a>
 </div>
 
-<div class="versionheader">
-    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
-        <ul>
-            <li>Prev:
-            <a href="types.html" title="previous chapter">Column and Data Types</a>
-            </li>
-            <li>Next:
-            <a href="compiler.html" title="next chapter">Custom SQL Constructs and Compilation Extension</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/core/interfaces.txt">view source
-        </li>
-        </ul>
-    </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
-        » 
-                Core Event Interfaces
-             
-
-        <h2>
-            
-                Core Event Interfaces
-            
-        </h2>
-        <ul>
-<li><a class="reference internal" href="#">Core Event Interfaces</a><ul>
+                <h2>
+                    
+    Deprecated Event Interfaces
+ 
+                </h2>
+            </div>
+                <ul>
+<li><a class="reference internal" href="#">Deprecated Event Interfaces</a><ul>
 <li><a class="reference internal" href="#execution-connection-and-cursor-events">Execution, Connection and Cursor Events</a></li>
 <li><a class="reference internal" href="#connection-pool-events">Connection Pool Events</a></li>
 </ul>
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
+            <div class="clearboth"></div>
+        </div>
 
-<div class="document">
-    <div class="body">
-        
+        <div class="document">
+            <div class="body">
+                
 <div class="section" id="module-sqlalchemy.interfaces">
-<span id="core-event-interfaces"></span><span id="interfaces-core-toplevel"></span><h1>Core Event Interfaces<a class="headerlink" href="#module-sqlalchemy.interfaces" title="Permalink to this headline">¶</a></h1>
-<p>This section describes the various categories of events which can be intercepted
-in SQLAlchemy core, including execution and connection pool events.</p>
-<p>For ORM event documentation, see <a class="reference internal" href="../orm/interfaces.html"><em>ORM Event Interfaces</em></a>.</p>
-<p>A new version of this API with a significantly more flexible and consistent
-interface will be available in version 0.7.</p>
+<span id="deprecated-event-interfaces"></span><span id="dep-interfaces-core-toplevel"></span><h1>Deprecated Event Interfaces<a class="headerlink" href="#module-sqlalchemy.interfaces" title="Permalink to this headline">¶</a></h1>
+<p>This section describes the class-based core event interface introduced in
+SQLAlchemy 0.5.  The ORM analogue is described at <a class="reference internal" href="../orm/interfaces.html"><em>Deprecated ORM Event Interfaces</em></a>.</p>
+<p>As of SQLAlchemy 0.7, the new event system described in
+<a class="reference internal" href="event.html"><em>Events</em></a> replaces the extension/proxy/listener system, providing
+a consistent interface to all events without the need for subclassing.</p>
 <div class="section" id="execution-connection-and-cursor-events">
 <h2>Execution, Connection and Cursor Events<a class="headerlink" href="#execution-connection-and-cursor-events" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sqlalchemy.interfaces.ConnectionProxy">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.interfaces.</tt><tt class="descname">ConnectionProxy</tt><a class="headerlink" href="#sqlalchemy.interfaces.ConnectionProxy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Allows interception of statement execution by Connections.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.interfaces.ConnectionProxy" title="sqlalchemy.interfaces.ConnectionProxy"><tt class="xref py py-class docutils literal"><span class="pre">ConnectionProxy</span></tt></a> is deprecated.   Please
+refer to <a class="reference internal" href="events.html#sqlalchemy.events.EngineEvents" title="sqlalchemy.events.EngineEvents"><tt class="xref py py-class docutils literal"><span class="pre">EngineEvents</span></tt></a>.</p>
+</div>
 <p>Either or both of the <tt class="docutils literal"><span class="pre">execute()</span></tt> and <tt class="docutils literal"><span class="pre">cursor_execute()</span></tt>
 may be implemented to intercept compiled statement and
 cursor level executions, e.g.:</p>
@@ -210,7 +215,12 @@ the <tt class="docutils literal"><span class="pre">proxy</span></tt> argument:</
 <dl class="class">
 <dt id="sqlalchemy.interfaces.PoolListener">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.interfaces.</tt><tt class="descname">PoolListener</tt><a class="headerlink" href="#sqlalchemy.interfaces.PoolListener" title="Permalink to this definition">¶</a></dt>
-<dd><p>Hooks into the lifecycle of connections in a <tt class="docutils literal"><span class="pre">Pool</span></tt>.</p>
+<dd><p>Hooks into the lifecycle of connections in a <tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.interfaces.PoolListener" title="sqlalchemy.interfaces.PoolListener"><tt class="xref py py-class docutils literal"><span class="pre">PoolListener</span></tt></a> is deprecated.   Please
+refer to <a class="reference internal" href="events.html#sqlalchemy.events.PoolEvents" title="sqlalchemy.events.PoolEvents"><tt class="xref py py-class docutils literal"><span class="pre">PoolEvents</span></tt></a>.</p>
+</div>
 <p>Usage:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyListener</span><span class="p">(</span><span class="n">PoolListener</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbapi_con</span><span class="p">,</span> <span class="n">con_record</span><span class="p">):</span>
@@ -317,20 +327,28 @@ using the new connection.</p>
 </div>
 </div>
 
-    </div>
+            </div>
+        </div>
+
+        
+        
+            <div class="bottomnav">
+                
+<div class="prevnext">
+        Previous:
+        <a href="serializer.html" title="previous chapter">Expression Serializer Extension</a>
+        Next:
+        <a href="exceptions.html" title="next chapter">Core Exceptions</a>
 </div>
 
+                <div class="doc_copyright">
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+                </div>
+            </div>
+        
 
-    <div class="bottomnav">
-            Previous:
-            <a href="types.html" title="previous chapter">Column and Data Types</a>
-            Next:
-            <a href="compiler.html" title="next chapter">Custom SQL Constructs and Compilation Extension</a>
-        <div class="doc_copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
-    </div>
+
 
 
 
