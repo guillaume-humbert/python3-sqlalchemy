@@ -1,3 +1,9 @@
+# mssql/pymssql.py
+# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+#
+# This module is part of SQLAlchemy and is released under
+# the MIT License: http://www.opensource.org/licenses/mit-license.php
+
 """
 Support for the pymssql dialect.
 
@@ -6,10 +12,10 @@ This dialect supports pymssql 1.0 and greater.
 pymssql is available at:
 
     http://pymssql.sourceforge.net/
-    
+
 Connecting
 ^^^^^^^^^^
-    
+
 Sample connect string::
 
     mssql+pymssql://<username>:<password>@<freetds_name>
@@ -48,7 +54,7 @@ class MSDialect_pymssql(MSDialect):
     supports_sane_rowcount = False
     max_identifier_length = 30
     driver = 'pymssql'
-    
+
     colspecs = util.update_copy(
         MSDialect.colspecs,
         {
@@ -62,7 +68,7 @@ class MSDialect_pymssql(MSDialect):
         # pymmsql doesn't have a Binary method.  we use string
         # TODO: monkeypatching here is less than ideal
         module.Binary = str
-        
+
         client_ver = tuple(int(x) for x in module.__version__.split("."))
         if client_ver < (1, ):
             util.warn("The pymssql dialect expects at least "

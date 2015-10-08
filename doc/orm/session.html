@@ -7,7 +7,7 @@
         
         <title>
     Using the Session
- &mdash; SQLAlchemy 0.6.5 Documentation</title>
+ &mdash; SQLAlchemy 0.6.6 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.5',
+          VERSION:     '0.6.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.6 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Querying" href="query.html" />
         <link rel="prev" title="Mapping Class Inheritance Hierarchies" href="inheritance.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.5 Documentation</h1>
+        <h1>SQLAlchemy 0.6.6 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,24 +52,24 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
+            Version: <span class="versionnum">0.6.6</span> Last Updated: 01/08/2011 17:20:49
         </div>
         <div class="clearboth"></div>
 
         <div class="topnav">
             <div id="pagecontrol">
                 <a href="../genindex.html">Index</a>
-            
+
                 <div class="sourcelink">(<a href="../_sources/orm/session.txt">view source)</div>
             </div>
-            
+
             <div class="navbanner">
                 <a class="totoc" href="../index.html">Table of Contents</a>
                         » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
                 » 
     Using the Session
  
-                
+
                 
 <div class="prevnext">
         Previous:
@@ -113,6 +113,7 @@
 <li><a class="reference internal" href="#cascades">Cascades</a></li>
 <li><a class="reference internal" href="#managing-transactions">Managing Transactions</a><ul>
 <li><a class="reference internal" href="#using-savepoint">Using SAVEPOINT</a></li>
+<li><a class="reference internal" href="#using-subtransactions">Using Subtransactions</a></li>
 <li><a class="reference internal" href="#enabling-two-phase-commit">Enabling Two-Phase Commit</a></li>
 </ul>
 </li>
@@ -139,7 +140,7 @@
 
             <div class="clearboth"></div>
         </div>
-        
+
         <div class="document">
             <div class="body">
                 
@@ -1033,7 +1034,7 @@ statement:</p>
     <span class="n">item2</span><span class="o">.</span><span class="n">bar</span> <span class="o">=</span> <span class="s">&#39;foo&#39;</span></pre></div>
 </div>
 <div class="section" id="using-savepoint">
-<h3>Using SAVEPOINT<a class="headerlink" href="#using-savepoint" title="Permalink to this headline">¶</a></h3>
+<span id="session-begin-nested"></span><h3>Using SAVEPOINT<a class="headerlink" href="#using-savepoint" title="Permalink to this headline">¶</a></h3>
 <p>SAVEPOINT transactions, if supported by the underlying engine, may be
 delineated using the <a class="reference internal" href="#sqlalchemy.orm.session.Session.begin_nested" title="sqlalchemy.orm.session.Session.begin_nested"><tt class="xref py py-func docutils literal"><span class="pre">begin_nested()</span></tt></a>
 method:</p>
@@ -1060,6 +1061,93 @@ corresponding <a class="reference internal" href="#sqlalchemy.orm.session.Sessio
 session is expired, thus causing all subsequent attribute/instance access to
 reference the full state of the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> right
 before <a class="reference internal" href="#sqlalchemy.orm.session.Session.begin_nested" title="sqlalchemy.orm.session.Session.begin_nested"><tt class="xref py py-func docutils literal"><span class="pre">begin_nested()</span></tt></a> was called.</p>
+</div>
+<div class="section" id="using-subtransactions">
+<span id="session-subtransactions"></span><h3>Using Subtransactions<a class="headerlink" href="#using-subtransactions" title="Permalink to this headline">¶</a></h3>
+<p>A subtransaction, as offered by the <tt class="docutils literal"><span class="pre">subtransactions=True</span></tt> flag of <a class="reference internal" href="#sqlalchemy.orm.session.Session.begin" title="sqlalchemy.orm.session.Session.begin"><tt class="xref py py-meth docutils literal"><span class="pre">Session.begin()</span></tt></a>,
+is a non-transactional, delimiting construct that
+allows nesting of calls to <a class="reference internal" href="#sqlalchemy.orm.session.Session.begin" title="sqlalchemy.orm.session.Session.begin"><tt class="xref py py-meth docutils literal"><span class="pre">begin()</span></tt></a> and <a class="reference internal" href="#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">commit()</span></tt></a>.
+It&#8217;s purpose is to allow the construction of code that can function within a transaction
+both independently of any external code that starts a transaction,
+as well as within a block that has already demarcated a transaction.  By &#8220;non-transactional&#8221;, we
+mean that no actual transactional dialogue with the database is generated by this flag beyond that of
+a single call to <a class="reference internal" href="#sqlalchemy.orm.session.Session.begin" title="sqlalchemy.orm.session.Session.begin"><tt class="xref py py-meth docutils literal"><span class="pre">begin()</span></tt></a>, regardless of how many times the method
+is called within a transaction.</p>
+<p>The subtransaction feature is in fact intrinsic to any call to <a class="reference internal" href="#sqlalchemy.orm.session.Session.flush" title="sqlalchemy.orm.session.Session.flush"><tt class="xref py py-meth docutils literal"><span class="pre">flush()</span></tt></a>, which uses
+it internally to ensure that the series of flush steps are enclosed within a transaction,
+regardless of the setting of <tt class="docutils literal"><span class="pre">autocommit</span></tt> or the presence of an existing transactional context.
+However, explicit usage of the <tt class="docutils literal"><span class="pre">subtransactions=True</span></tt> flag is generally only useful with an
+application that uses the
+<a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> in &#8220;autocommit=True&#8221; mode, and calls <a class="reference internal" href="#sqlalchemy.orm.session.Session.begin" title="sqlalchemy.orm.session.Session.begin"><tt class="xref py py-meth docutils literal"><span class="pre">begin()</span></tt></a> explicitly
+in order to demarcate transactions.  For this reason the subtransaction feature is not
+commonly used in an explicit way, except for apps that integrate SQLAlchemy-level transaction control with
+the transaction control of another library or subsystem.  For true, general purpose &#8220;nested&#8221;
+transactions, where a rollback affects only a portion of the work which has proceeded,
+savepoints should be used, documented in <a class="reference internal" href="#session-begin-nested"><em>Using SAVEPOINT</em></a>.</p>
+<p>The feature is the ORM equivalent to the pattern described at <a class="reference internal" href="../core/connections.html#connections-nested-transactions"><em>Nesting of Transaction Blocks</em></a>,
+where any number of functions can call <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection.begin" title="sqlalchemy.engine.base.Connection.begin"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.begin()</span></tt></a> and <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Transaction.commit" title="sqlalchemy.engine.base.Transaction.commit"><tt class="xref py py-meth docutils literal"><span class="pre">Transaction.commit()</span></tt></a>
+as though they are the initiator of the transaction, but in fact may be participating
+in an already ongoing transaction.</p>
+<p>As is the case with the non-ORM <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a> object,
+calling <a class="reference internal" href="#sqlalchemy.orm.session.Session.rollback" title="sqlalchemy.orm.session.Session.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">Session.rollback()</span></tt></a> rolls back the <strong>entire</strong>
+transaction, which was initiated by the first call to
+<a class="reference internal" href="#sqlalchemy.orm.session.Session.begin" title="sqlalchemy.orm.session.Session.begin"><tt class="xref py py-meth docutils literal"><span class="pre">Session.begin()</span></tt></a> (whether this call was explicit by the
+end user, or implicit in an <tt class="docutils literal"><span class="pre">autocommit=False</span></tt> scenario).
+However, the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> still considers itself to be in a
+&#8220;partially rolled back&#8221; state until <a class="reference internal" href="#sqlalchemy.orm.session.Session.rollback" title="sqlalchemy.orm.session.Session.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">Session.rollback()</span></tt></a> is
+called explicitly for each call that was made to
+<a class="reference internal" href="#sqlalchemy.orm.session.Session.begin" title="sqlalchemy.orm.session.Session.begin"><tt class="xref py py-meth docutils literal"><span class="pre">Session.begin()</span></tt></a>, where &#8220;partially rolled back&#8221; means that
+no further SQL operations can proceed until each level
+of the transaction has been acounted for, unless the <a class="reference internal" href="#sqlalchemy.orm.session.Session.close" title="sqlalchemy.orm.session.Session.close"><tt class="xref py py-meth docutils literal"><span class="pre">close()</span></tt></a> method
+is called which cancels all transactional markers. For a full exposition on
+the rationale for this,
+please see &#8220;<a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/FAQ#ButwhyisnttheoneautomaticcalltoROLLBACKenoughWhymustIROLLBACKagain">But why isn&#8217;t the one automatic call to ROLLBACK
+enough ? Why must I ROLLBACK again?</a>&#8220;.
+The general theme is that if subtransactions are used as intended, that is, as a means to nest multiple
+begin/commit pairs, the appropriate rollback calls naturally occur in any case, and allow the session&#8217;s
+nesting of transactional pairs to function in a simple and predictable way
+without the need to guess as to what level is active.</p>
+<p>An example of <tt class="docutils literal"><span class="pre">subtransactions=True</span></tt> is nearly identical to
+that of the non-ORM technique. The nesting of transactions, as
+well as the natural presence of &#8220;rollback&#8221; for all transactions
+should an exception occur, is illustrated:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># method_a starts a transaction and calls method_b</span>
+<span class="k">def</span> <span class="nf">method_a</span><span class="p">(</span><span class="n">session</span><span class="p">):</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="n">subtransactions</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c"># open a transaction.  If there was</span>
+                                        <span class="c"># no previous call to begin(), this will</span>
+                                        <span class="c"># begin a real transaction (meaning, a</span>
+                                        <span class="c"># DBAPI connection is procured, which as</span>
+                                        <span class="c"># per the DBAPI specification is in a transactional</span>
+                                        <span class="c"># state ready to be committed or rolled back)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">method_b</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>  <span class="c"># transaction is committed here</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span> <span class="c"># rolls back the transaction</span>
+        <span class="k">raise</span>
+
+<span class="c"># method_b also starts a transaction</span>
+<span class="k">def</span> <span class="nf">method_b</span><span class="p">(</span><span class="n">connection</span><span class="p">):</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="n">subtransactions</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c"># open a transaction - this</span>
+                                        <span class="c"># runs in the context of method_a()&#39;s</span>
+                                        <span class="c"># transaction</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">SomeObject</span><span class="p">(</span><span class="s">&#39;bat&#39;</span><span class="p">,</span> <span class="s">&#39;lala&#39;</span><span class="p">))</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>  <span class="c"># transaction is not committed yet</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span> <span class="c"># rolls back the transaction, in this case</span>
+                           <span class="c"># the one that was initiated in method_a().</span>
+        <span class="k">raise</span>
+
+<span class="c"># create a Session and call method_a</span>
+<span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">(</span><span class="n">autocommit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">method_a</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+<span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></pre></div>
+</div>
+<p>Since the <a class="reference internal" href="#sqlalchemy.orm.session.Session.flush" title="sqlalchemy.orm.session.Session.flush"><tt class="xref py py-meth docutils literal"><span class="pre">Session.flush()</span></tt></a> method uses a subtransaction, a failed flush
+will always issue a rollback which then affects the state of the outermost transaction (unless a SAVEPOINT
+is in use).   This forces the need to issue <a class="reference internal" href="#sqlalchemy.orm.session.Session.rollback" title="sqlalchemy.orm.session.Session.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">rollback()</span></tt></a> for the full operation
+before subsequent SQL operations can proceed.</p>
 </div>
 <div class="section" id="enabling-two-phase-commit">
 <h3>Enabling Two-Phase Commit<a class="headerlink" href="#enabling-two-phase-commit" title="Permalink to this headline">¶</a></h3>
@@ -1375,18 +1463,12 @@ is <tt class="docutils literal"><span class="pre">expunge()</span></tt>.</p>
 <p>If this Session is already within a transaction, either a plain
 transaction or nested transaction, an error is raised, unless
 <tt class="docutils literal"><span class="pre">subtransactions=True</span></tt> or <tt class="docutils literal"><span class="pre">nested=True</span></tt> is specified.</p>
-<p>The <tt class="docutils literal"><span class="pre">subtransactions=True</span></tt> flag indicates that this <tt class="docutils literal"><span class="pre">begin()</span></tt> can
-create a subtransaction if a transaction is already in progress.  A
-subtransaction is a non-transactional, delimiting construct that
-allows matching begin()/commit() pairs to be nested together, with
-only the outermost begin/commit pair actually affecting transactional
-state.  When a rollback is issued, the subtransaction will directly
-roll back the innermost real transaction, however each subtransaction
-still must be explicitly rolled back to maintain proper stacking of
-subtransactions.</p>
-<p>If no transaction is in progress, then a real transaction is begun.</p>
+<p>The <tt class="docutils literal"><span class="pre">subtransactions=True</span></tt> flag indicates that this <a class="reference internal" href="#sqlalchemy.orm.session.Session.begin" title="sqlalchemy.orm.session.Session.begin"><tt class="xref py py-meth docutils literal"><span class="pre">begin()</span></tt></a> 
+can create a subtransaction if a transaction is already in progress.
+For documentation on subtransactions, please see <a class="reference internal" href="#session-subtransactions"><em>Using Subtransactions</em></a>.</p>
 <p>The <tt class="docutils literal"><span class="pre">nested</span></tt> flag begins a SAVEPOINT transaction and is equivalent
-to calling <tt class="docutils literal"><span class="pre">begin_nested()</span></tt>.</p>
+to calling <a class="reference internal" href="#sqlalchemy.orm.session.Session.begin_nested" title="sqlalchemy.orm.session.Session.begin_nested"><tt class="xref py py-meth docutils literal"><span class="pre">begin_nested()</span></tt></a>. For documentation on SAVEPOINT
+transactions, please see <a class="reference internal" href="#session-begin-nested"><em>Using SAVEPOINT</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1395,10 +1477,8 @@ to calling <tt class="docutils literal"><span class="pre">begin_nested()</span><
 <dd><p>Begin a <cite>nested</cite> transaction on this Session.</p>
 <p>The target database(s) must support SQL SAVEPOINTs or a
 SQLAlchemy-supported vendor implementation of the idea.</p>
-<p>The nested transaction is a real transation, unlike a &#8220;subtransaction&#8221;
-which corresponds to multiple <tt class="docutils literal"><span class="pre">begin()</span></tt> calls.  The next
-<tt class="docutils literal"><span class="pre">rollback()</span></tt> or <tt class="docutils literal"><span class="pre">commit()</span></tt> call will operate upon this nested
-transaction.</p>
+<p>For documentation on SAVEPOINT
+transactions, please see <a class="reference internal" href="#session-begin-nested"><em>Using SAVEPOINT</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1452,7 +1532,7 @@ not use any connection resources until they are first needed.</p>
 <p>If no transaction is in progress, this method raises an
 InvalidRequestError.</p>
 <p>By default, the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> also expires all database
-loaded state on all ORM-managed attributes after transaction commit.  
+loaded state on all ORM-managed attributes after transaction commit.
 This so that subsequent operations load the most recent 
 data from the database.   This behavior can be disabled using
 the <tt class="docutils literal"><span class="pre">expire_on_commit=False</span></tt> option to <a class="reference internal" href="#sqlalchemy.orm.session.sessionmaker" title="sqlalchemy.orm.session.sessionmaker"><tt class="xref py py-func docutils literal"><span class="pre">sessionmaker()</span></tt></a> or
@@ -2373,7 +2453,7 @@ Non-initialized attributes should be initialized to an empty value.</p>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
                 </div>
             </div>

@@ -15,13 +15,13 @@ Note that all patterns here apply both to the usage of explicit
 takes a form such as::
 
     mapper(User, users_table, primary_key=[users_table.c.id])
-    
+
 Would translate into declarative as::
 
     class User(Base):
         __table__ = users_table
         __mapper_args__ = {
-            'primary_key':users_table.c.id
+            'primary_key':[users_table.c.id]
         }
 
 Or if using ``__tablename__``, :class:`.Column` objects are declared inline
@@ -29,11 +29,11 @@ with the class definition. These are usable as is within ``__mapper_args__``::
 
     class User(Base):
         __tablename__ = 'users'
-        
+
         id = Column(Integer)
-        
+
         __mapper_args__ = {
-            'primary_key':id
+            'primary_key':[id]
         }
 
 
@@ -52,7 +52,7 @@ use the ``include_properties`` or ``exclude_properties`` arguments. For
 example::
 
     mapper(User, users_table, include_properties=['user_id', 'user_name'])
-    
+
 ...will map the ``User`` class to the ``users_table`` table, only including
 the "user_id" and "user_name" columns - the rest are not refererenced.
 Similarly::
@@ -77,7 +77,7 @@ collections (new feature as of 0.6.4)::
 
     mapper(UserAddress, users_table.join(addresses_table),
                 exclude_properties=[addresses_table.c.id],
-                primary_key=users_table.c.id
+                primary_key=[users_table.c.id]
             )
 
 It should be noted that insert and update defaults configured on individal
@@ -106,7 +106,7 @@ using the desired attribute name in the class definition::
 
     from sqlalchemy.ext.declarative import declarative_base
     Base = declarative_base()
-    
+
     class User(Base):
         __tablename__ = 'user'
         id = Column('user_id', Integer, primary_key=True)
@@ -130,7 +130,7 @@ key relationship or join condition into the same mapped attribute, put them
 together using a list, as below where we map to a :func:`~.expression.join`::
 
     from sqlalchemy.sql import join
-    
+
     # join users and addresses
     usersaddresses = join(users_table, addresses_table, \
         users_table.c.user_id == addresses_table.c.user_id)
@@ -141,6 +141,33 @@ together using a list, as below where we map to a :func:`~.expression.join`::
     })
 
 For further examples on this particular use case, see :ref:`maptojoin`.
+
+column_property API
+~~~~~~~~~~~~~~~~~~~
+
+The establishment of a :class:`.Column` on a :func:`.mapper` can be further
+customized using the :func:`.column_property` function, as specified
+to the ``properties`` dictionary.   This function is 
+usually invoked implicitly for each mapped :class:`.Column`.  Explicit usage
+looks like::
+
+    from sqlalchemy.orm import mapper, column_property
+
+    mapper(User, users, properties={
+        'name':column_property(users.c.name, active_history=True)
+    })
+
+or with declarative::
+
+    class User(Base):
+        __tablename__ = 'users'
+
+        id = Column(Integer, primary_key=True)
+        name = column_property(Column(String(50)), active_history=True)
+
+Further examples of :func:`.column_property` are at :ref:`mapper_sql_expressions`.
+
+.. autofunction:: column_property
 
 .. _deferred:
 
@@ -177,7 +204,7 @@ With declarative, :class:`.Column` objects can be declared directly inside of :f
 
     class Book(Base):
         __tablename__ = 'books'
-        
+
         book_id = Column(Integer, primary_key=True)
         title = Column(String(200), nullable=False)
         summary = Column(String(2000))
@@ -246,7 +273,7 @@ scalar-returning
 used.  Unlike older versions of SQLAlchemy, there is no :func:`~.sql.expression.label` requirement::
 
     from sqlalchemy.orm import column_property
-    
+
     mapper(User, users_table, properties={
         'fullname': column_property(
             users_table.c.firstname + " " + users_table.c.lastname
@@ -257,7 +284,7 @@ Correlated subqueries may be used as well::
 
     from sqlalchemy.orm import column_property
     from sqlalchemy import select, func
-    
+
     mapper(User, users_table, properties={
         'address_count': column_property(
                 select([func.count(addresses_table.c.address_id)]).\
@@ -266,8 +293,6 @@ Correlated subqueries may be used as well::
     })
 
 The declarative form of the above is described in :ref:`declarative_sql_expressions`.
-
-.. autofunction:: column_property
 
 Note that :func:`.column_property` is used to provide the effect of a SQL
 expression that is actively rendered into the SELECT generated for a
@@ -280,7 +305,7 @@ loaded::
         @property
         def fullname(self):
             return self.firstname + " " + self.lastname
-            
+
 To invoke a SQL statement from an instance that's already been loaded, the
 session associated with the instance can be acquired using
 :func:`~.session.object_session` which will provide the appropriate
@@ -288,7 +313,7 @@ transactional context from which to emit a statement::
 
     from sqlalchemy.orm import object_session
     from sqlalchemy import select, func
-    
+
     class User(object):
         @property
         def address_count(self):
@@ -318,9 +343,9 @@ attribute extensions, are only called by normal userland code; they are not
 issued when the ORM is populating the object.
 
 .. sourcecode:: python+sql
-    
+
     from sqlalchemy.orm import validates
-    
+
     addresses_table = Table('addresses', metadata,
         Column('id', Integer, primary_key=True),
         Column('email', String)
@@ -358,11 +383,11 @@ plain descriptor, and to have it read/write from a mapped attribute with a
 different name. Below we illustrate this using Python 2.6-style properties::
 
     class EmailAddress(object):
-        
+
         @property
         def email(self):
             return self._email
-            
+
         @email.setter
         def email(self, email):
             self._email = email
@@ -431,7 +456,7 @@ do case-insensitive comparison::
 
     from sqlalchemy.orm.properties import ColumnProperty
     from sqlalchemy.sql import func
-    
+
     class MyComparator(ColumnProperty.Comparator):
         def __eq__(self, other):
             return func.lower(self.__clause_element__()) == func.lower(other)
@@ -466,11 +491,11 @@ Composite Column Types
 Sets of columns can be associated with a single user-defined datatype.  The ORM provides a single attribute which represents the group of columns 
 using the class you provide.
 
-A simple example represents pairs of columns as a "Point" object.  
+A simple example represents pairs of columns as a "Point" object.
 Starting with a table that represents two points as x1/y1 and x2/y2::
 
     from sqlalchemy import Table, Column
-    
+
     vertices = Table('vertices', metadata,
         Column('id', Integer, primary_key=True),
         Column('x1', Integer),
@@ -570,8 +595,9 @@ passed in to a mapper as the table.
 
 .. sourcecode:: python+sql
 
+    from sqlalchemy.orm import mapper
     from sqlalchemy.sql import join
-    
+
     class AddressUser(object):
         pass
 
@@ -584,9 +610,29 @@ passed in to a mapper as the table.
         'user_id': [users_table.c.user_id, addresses_table.c.user_id]
     })
 
-A second example:
+Note that the list of columns is equivalent to the usage of :func:`.column_property`
+with multiple columns::
 
-.. sourcecode:: python+sql
+    from sqlalchemy.orm import mapper, column_property
+
+    mapper(AddressUser, j, properties={
+        'user_id': column_property(users_table.c.user_id, addresses_table.c.user_id)
+    })
+
+The usage of :func:`.column_property` is required when using declarative to map 
+to multiple columns, since the declarative class parser won't recognize a plain 
+list of columns::
+
+    from sqlalchemy.ext.declarative import declarative_base
+
+    Base = declarative_base()
+
+    class AddressUser(Base):
+        __table__ = j
+
+        user_id = column_property(users_table.c.user_id, addresses_table.c.user_id)
+
+A second example::
 
     from sqlalchemy.sql import join
 
@@ -610,6 +656,7 @@ In both examples above, "composite" columns were added as properties to the
 mappers; these are aggregations of multiple columns into one mapper property,
 which instructs the mapper to keep both of those columns set at the same
 value.
+
 
 Mapping a Class against Arbitrary Selects
 ------------------------------------------

@@ -7,7 +7,7 @@
         
         <title>
     SQL Statements and Expressions
- &mdash; SQLAlchemy 0.6.5 Documentation</title>
+ &mdash; SQLAlchemy 0.6.6 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.5',
+          VERSION:     '0.6.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.6 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Engine Configuration" href="engines.html" />
         <link rel="prev" title="SQL Expression Language Tutorial" href="tutorial.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.5 Documentation</h1>
+        <h1>SQLAlchemy 0.6.6 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,24 +52,24 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
+            Version: <span class="versionnum">0.6.6</span> Last Updated: 01/08/2011 17:20:49
         </div>
         <div class="clearboth"></div>
 
         <div class="topnav">
             <div id="pagecontrol">
                 <a href="../genindex.html">Index</a>
-            
+
                 <div class="sourcelink">(<a href="../_sources/core/expression_api.txt">view source)</div>
             </div>
-            
+
             <div class="navbanner">
                 <a class="totoc" href="../index.html">Table of Contents</a>
                         » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
                 » 
     SQL Statements and Expressions
  
-                
+
                 
 <div class="prevnext">
         Previous:
@@ -95,7 +95,7 @@
 
             <div class="clearboth"></div>
         </div>
-        
+
         <div class="document">
             <div class="body">
                 
@@ -745,7 +745,7 @@ constructs which specify the type for a given name:</p>
             <span class="n">bindparams</span><span class="o">=</span><span class="p">[</span><span class="n">bindparam</span><span class="p">(</span><span class="s">&#39;updated&#39;</span><span class="p">,</span> <span class="n">DateTime</span><span class="p">())]</span>
         <span class="p">)</span></pre></div>
 </div>
-<p>Typing during result row processing is also an important concern.   
+<p>Typing during result row processing is also an important concern.
 Result column types
 are specified using the <tt class="docutils literal"><span class="pre">typemap</span></tt> dictionary, where the keys
 match the names of columns.  These names are taken from what
@@ -837,7 +837,7 @@ expression typing and against received result values.</p>
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">None</span>
-    
+
     <span class="k">def</span> <span class="nf">process_result_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
@@ -1113,6 +1113,30 @@ elements replaced with values taken from the given dictionary:</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="sqlalchemy.sql.expression.ClauseElement.self_group">
+<tt class="descname">self_group</tt><big>(</big><em>against=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ClauseElement.self_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply a &#8216;grouping&#8217; to this <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>.</p>
+<p>This method is overridden by subclasses to return a 
+&#8220;grouping&#8221; construct, i.e. parenthesis.   In particular
+it&#8217;s used by &#8220;binary&#8221; expressions to provide a grouping
+around themselves when placed into a larger expression, 
+as well as by <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> constructs when placed into
+the FROM clause of another <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>.  (Note that 
+subqueries should be normally created using the 
+<tt class="xref py py-func docutils literal"><span class="pre">Select.alias()</span></tt> method, as many platforms require
+nested SELECT statements to be named).</p>
+<p>As expressions are composed together, the application of
+<a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement.self_group" title="sqlalchemy.sql.expression.ClauseElement.self_group"><tt class="xref py py-meth docutils literal"><span class="pre">self_group()</span></tt></a> is automatic - end-user code should never 
+need to use this method directly.  Note that SQLAlchemy&#8217;s
+clause constructs take operator precedence into account - 
+so parenthesis might not be needed, for example, in 
+an expression like <tt class="docutils literal"><span class="pre">x</span> <span class="pre">OR</span> <span class="pre">(y</span> <span class="pre">AND</span> <span class="pre">z)</span></tt> - AND takes precedence
+over OR.</p>
+<p>The base <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement.self_group" title="sqlalchemy.sql.expression.ClauseElement.self_group"><tt class="xref py py-meth docutils literal"><span class="pre">self_group()</span></tt></a> method of <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>
+just returns self.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="sqlalchemy.sql.expression.ClauseElement.unique_params">
 <tt class="descname">unique_params</tt><big>(</big><em>*optionaldict</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ClauseElement.unique_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a copy with <a class="reference internal" href="#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> elments replaced.</p>
@@ -1313,12 +1337,14 @@ instances.</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression._CompareMixin.in_">
 <tt class="descname">in_</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression._CompareMixin.in_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Compare this element to the given element or collection using IN.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.expression._CompareMixin.label">
 <tt class="descname">label</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression._CompareMixin.label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Produce a column label, i.e. <tt class="docutils literal"><span class="pre">&lt;columnname&gt;</span> <span class="pre">AS</span> <span class="pre">&lt;name&gt;</span></tt>.</p>
+<p>This is a shortcut to the <a class="reference internal" href="#sqlalchemy.sql.expression.label" title="sqlalchemy.sql.expression.label"><tt class="xref py py-func docutils literal"><span class="pre">label()</span></tt></a> function.</p>
 <p>if &#8216;name&#8217; is None, an anonymous label name will be generated.</p>
 </dd></dl>
 
@@ -1384,7 +1410,7 @@ example:</p>
 <dl class="attribute">
 <dt id="sqlalchemy.sql.expression.ColumnOperators.__init__">
 <tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnOperators.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>x.__init__(...) initializes x; see x.__class__.__doc__ for signature</p>
+<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
 </dd></dl>
 
 <dl class="method">
@@ -1608,7 +1634,7 @@ clause of a <tt class="docutils literal"><span class="pre">SELECT</span></tt> st
 <tt class="descname">alias</tt><big>(</big><em>name=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.FromClause.alias" title="Permalink to this definition">¶</a></dt>
 <dd><p>return an alias of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
 <p>For table objects, this has the effect of the table being rendered
-as <tt class="docutils literal"><span class="pre">tablename</span> <span class="pre">AS</span> <span class="pre">aliasname</span></tt> in a SELECT statement.  
+as <tt class="docutils literal"><span class="pre">tablename</span> <span class="pre">AS</span> <span class="pre">aliasname</span></tt> in a SELECT statement.
 For select objects, the effect is that of creating a named
 subquery, i.e. <tt class="docutils literal"><span class="pre">(select</span> <span class="pre">...)</span> <span class="pre">AS</span> <span class="pre">aliasname</span></tt>.
 The <a class="reference internal" href="#sqlalchemy.sql.expression.alias" title="sqlalchemy.sql.expression.alias"><tt class="xref py py-func docutils literal"><span class="pre">alias()</span></tt></a> method is the general way to create
@@ -2424,7 +2450,7 @@ return types are in use.</p>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
                 </div>
             </div>

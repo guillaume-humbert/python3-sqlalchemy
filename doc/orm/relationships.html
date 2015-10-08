@@ -7,7 +7,7 @@
         
         <title>
     Relationship Configuration
- &mdash; SQLAlchemy 0.6.5 Documentation</title>
+ &mdash; SQLAlchemy 0.6.6 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.5',
+          VERSION:     '0.6.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.6 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Collection Configuration and Techniques" href="collections.html" />
         <link rel="prev" title="Mapper Configuration" href="mapper_config.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.5 Documentation</h1>
+        <h1>SQLAlchemy 0.6.6 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,24 +52,24 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
+            Version: <span class="versionnum">0.6.6</span> Last Updated: 01/08/2011 17:20:49
         </div>
         <div class="clearboth"></div>
 
         <div class="topnav">
             <div id="pagecontrol">
                 <a href="../genindex.html">Index</a>
-            
+
                 <div class="sourcelink">(<a href="../_sources/orm/relationships.txt">view source)</div>
             </div>
-            
+
             <div class="navbanner">
                 <a class="totoc" href="../index.html">Table of Contents</a>
                         » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
                 » 
     Relationship Configuration
  
-                
+
                 
 <div class="prevnext">
         Previous:
@@ -114,7 +114,7 @@
 
             <div class="clearboth"></div>
         </div>
-        
+
         <div class="document">
             <div class="body">
                 
@@ -829,6 +829,14 @@ be used for a table that is not otherwise expressed in any class
 mapping. In particular, using the Association Object Pattern is
 generally mutually exclusive with the use of the <em>secondary</em>
 keyword argument.</li>
+<li><strong>active_history=False</strong> &#8211; When <tt class="xref docutils literal"><span class="pre">True</span></tt>, indicates that the &#8220;previous&#8221; value for a
+many-to-one reference should be loaded when replaced, if
+not already loaded. Normally, history tracking logic for
+simple many-to-ones only needs to be aware of the &#8220;new&#8221;
+value in order to perform a flush. This flag is available
+for applications that make use of
+<a class="reference internal" href="session.html#sqlalchemy.orm.attributes.get_history" title="sqlalchemy.orm.attributes.get_history"><tt class="xref py py-func docutils literal"><span class="pre">attributes.get_history()</span></tt></a> which also need to know
+the &#8220;previous&#8221; value of the attribute. (New in 0.6.6)</li>
 <li><strong>backref</strong> &#8211; indicates the string name of a property to be placed on the related
 mapper&#8217;s class that will handle this relationship in the other
 direction. The other property will be created automatically 
@@ -1116,7 +1124,7 @@ place of a string argument.</p>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
                 </div>
             </div>

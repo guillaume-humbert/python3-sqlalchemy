@@ -169,7 +169,7 @@ CREATE DOMAIN DOM_ID INTEGER NOT NULL
 CREATE TABLE A (
 ID DOM_ID /* INTEGER NOT NULL */ DEFAULT 0 )
 """
-    
+
     # the 'default' keyword is lower case here
     TABLE_B = """\
 CREATE TABLE B (
@@ -222,14 +222,14 @@ ID DOM_ID /* INTEGER NOT NULL */ default 0 )
         table_a = Table('a', metadata, autoload=True)
 
         eq_(table_a.c.id.server_default.arg.text, "0")
-    
+
     def test_lowercase_default_name(self):
         metadata = MetaData(testing.db)
 
         table_b = Table('b', metadata, autoload=True)
 
         eq_(table_b.c.id.server_default.arg.text, "0")
-        
+
 
 class CompileTest(TestBase, AssertsCompiledSQL):
 
@@ -318,6 +318,20 @@ class CompileTest(TestBase, AssertsCompiledSQL):
                    'VARCHAR(1) CHARACTER SET OCTETS')]
         for type_, args, kw, res in columns:
             self.assert_compile(type_(*args, **kw), res)
+
+class TypesTest(TestBase):
+    __only_on__ = 'firebird'
+
+    @testing.provide_metadata
+    def test_infinite_float(self):
+        t = Table('t', metadata, 
+            Column('data', Float)
+        )
+        metadata.create_all()
+        t.insert().execute(data=float('inf'))
+        eq_(t.select().execute().fetchall(),
+            [(float('inf'),)]
+        )
 
 class MiscTest(TestBase):
 

@@ -7,7 +7,7 @@
         
         <title>
     Engine Configuration
- &mdash; SQLAlchemy 0.6.5 Documentation</title>
+ &mdash; SQLAlchemy 0.6.6 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.5',
+          VERSION:     '0.6.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.6 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Working with Engines and Connections" href="connections.html" />
         <link rel="prev" title="SQL Statements and Expressions" href="expression_api.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.5 Documentation</h1>
+        <h1>SQLAlchemy 0.6.6 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,24 +52,24 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
+            Version: <span class="versionnum">0.6.6</span> Last Updated: 01/08/2011 17:20:49
         </div>
         <div class="clearboth"></div>
 
         <div class="topnav">
             <div id="pagecontrol">
                 <a href="../genindex.html">Index</a>
-            
+
                 <div class="sourcelink">(<a href="../_sources/core/engines.txt">view source)</div>
             </div>
-            
+
             <div class="navbanner">
                 <a class="totoc" href="../index.html">Table of Contents</a>
                         » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
                 » 
     Engine Configuration
  
-                
+
                 
 <div class="prevnext">
         Previous:
@@ -97,7 +97,7 @@
 
             <div class="clearboth"></div>
         </div>
-        
+
         <div class="document">
             <div class="body">
                 
@@ -115,7 +115,8 @@ which together interpret the DBAPI&#8217;s module functions as well as the behav
 of the database.</p>
 <p>Creating an engine is just a matter of issuing a single call,
 <a class="reference internal" href="#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://scott:tiger@localhost:5432/mydatabase&#39;</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://scott:tiger@localhost:5432/mydatabase&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>The above engine invokes the <tt class="docutils literal"><span class="pre">postgresql</span></tt> dialect and a connection pool
 which references <tt class="docutils literal"><span class="pre">localhost:5432</span></tt>.</p>
@@ -310,7 +311,7 @@ information on current support.</li>
 <tr><td><a class="reference external" href="https://launchpad.net/myconnpy">MySQL Connector/Python</a></td>
 <td><tt class="docutils literal"><span class="pre">mysql+mysqlconnector</span></tt></td>
 <td>yes</td>
-<td>partial</td>
+<td>yes</td>
 <td>no</td>
 <td>yes</td>
 <td>yes</td>
@@ -326,7 +327,7 @@ information on current support.</li>
 <tr><td><a class="reference external" href="http://packages.python.org/oursql/">OurSQL</a></td>
 <td><tt class="docutils literal"><span class="pre">mysql+oursql</span></tt></td>
 <td>yes</td>
-<td>partial</td>
+<td>yes</td>
 <td>no</td>
 <td>yes</td>
 <td>yes</td>
@@ -445,7 +446,7 @@ information on current support.</li>
 </tr>
 <tr><td><a class="reference external" href="http://python-sybase.sourceforge.net/">python-sybase</a></td>
 <td><tt class="docutils literal"><span class="pre">sybase+pysybase</span></tt></td>
-<td>partial</td>
+<td>yes <a class="footnote-reference" href="#id2" id="id1">[1]</a></td>
 <td>development</td>
 <td>no</td>
 <td>yes</td>
@@ -453,7 +454,13 @@ information on current support.</li>
 </tr>
 </tbody>
 </table>
-<p>Further detail on dialects is available at <em class="xref std std-ref">sqlalchemy.dialects_toplevel</em>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>The Sybase dialect currently lacks the ability to reflect tables.</td></tr>
+</tbody>
+</table>
+<p>Further detail on dialects is available at <a class="reference internal" href="../dialects/index.html"><em>Dialects</em></a>
 as well as additional notes on the wiki at <a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/DatabaseNotes">Database Notes</a></p>
 </div>
 <div class="section" id="database-engine-options">
@@ -534,6 +541,14 @@ the <tt class="docutils literal"><span class="pre">Unicode</span></tt> type obje
 <li><strong>execution_options</strong> &#8211; Dictionary execution options which will
 be applied to all connections.  See
 <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection.execution_options" title="sqlalchemy.engine.base.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">execution_options()</span></tt></a></li>
+<li><strong>implicit_returning=True</strong> &#8211; When <tt class="xref docutils literal"><span class="pre">True</span></tt>, a RETURNING-
+compatible construct, if available, will be used to
+fetch newly generated primary key values when a single row
+INSERT statement is emitted with no existing returning() 
+clause.  This applies to those backends which support RETURNING 
+or a compatible construct, including Postgresql, Firebird, Oracle, 
+Microsoft SQL Server.   Set this to <tt class="xref docutils literal"><span class="pre">False</span></tt> to disable
+the automatic usage of RETURNING.</li>
 <li><strong>label_length=None</strong> &#8211; optional integer value which limits
 the size of dynamically generated column labels to that many
 characters. If less than 6, labels are generated as
@@ -835,7 +850,7 @@ string. To set this to a specific name, use the &#8220;logging_name&#8221; and
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
                 </div>
             </div>

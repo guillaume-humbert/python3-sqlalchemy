@@ -1,3 +1,9 @@
+# mssql/mxodbc.py
+# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+#
+# This module is part of SQLAlchemy and is released under
+# the MIT License: http://www.opensource.org/licenses/mit-license.php
+
 """
 Support for MS-SQL via mxODBC.
 
@@ -14,7 +20,7 @@ Connecting
 Connection is via DSN::
 
     mssql+mxodbc://<username>:<password>@<dsnname>
-    
+
 Execution Modes
 ~~~~~~~~~~~~~~~
 
@@ -70,7 +76,7 @@ class MSExecutionContext_mxodbc(MSExecutionContext_pyodbc):
     #       won't work.
 
 class MSDialect_mxodbc(MxODBCConnector, MSDialect):
-    
+
     # TODO: may want to use this only if FreeTDS is not in use,
     # since FreeTDS doesn't seem to use native binds.
     statement_compiler = MSSQLStrictCompiler

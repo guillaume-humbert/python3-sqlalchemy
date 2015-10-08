@@ -21,6 +21,7 @@ of the database.
 Creating an engine is just a matter of issuing a single call,
 :func:`.create_engine()`::
 
+    from sqlalchemy import create_engine
     engine = create_engine('postgresql://scott:tiger@localhost:5432/mydatabase')
 
 The above engine invokes the ``postgresql`` dialect and a connection pool
@@ -45,9 +46,9 @@ SQLAlchemy dialect always requires that an appropriate DBAPI driver is installed
 The table below summarizes the state of DBAPI support in SQLAlchemy 0.6.  The values 
 translate as:
 
-* yes / Python platform - The SQLAlchemy dialect is mostly or fully operational on the target platform.   
+* yes / Python platform - The SQLAlchemy dialect is mostly or fully operational on the target platform.
 * yes / OS platform - The DBAPI supports that platform.
-* no / Python platform - The DBAPI does not support that platform, or there is no SQLAlchemy dialect support.  
+* no / Python platform - The DBAPI does not support that platform, or there is no SQLAlchemy dialect support.
 * no / OS platform - The DBAPI does not support that platform.
 * partial - the DBAPI is partially usable on the target platform but has major unresolved issues.
 * development - a development version of the dialect exists, but is not yet usable.
@@ -76,9 +77,9 @@ pyodbc_                    ``mssql+pyodbc``\*           yes          development
 pymssql_                   ``mssql+pymssql``            yes          development   no           yes                yes
 **MySQL**
 `MySQL Connector/J`_       ``mysql+zxjdbc``             no           no            yes          yes                yes
-`MySQL Connector/Python`_  ``mysql+mysqlconnector``     yes          partial       no           yes                yes
+`MySQL Connector/Python`_  ``mysql+mysqlconnector``     yes          yes           no           yes                yes
 mysql-python_              ``mysql+mysqldb``\*          yes          development   no           yes                yes
-OurSQL_                    ``mysql+oursql``             yes          partial       no           yes                yes
+OurSQL_                    ``mysql+oursql``             yes          yes           no           yes                yes
 **Oracle**
 cx_oracle_                 ``oracle+cx_oracle``\*       yes          development   no           yes                yes
 `Oracle JDBC Driver`_      ``oracle+zxjdbc``            no           no            yes          yes                yes
@@ -93,9 +94,10 @@ sqlite3_                   ``sqlite+pysqlite``\*        yes          yes        
 **Sybase ASE**
 mxodbc_                    ``sybase+mxodbc``            development  development   no           yes                yes
 pyodbc_                    ``sybase+pyodbc``\*          partial      development   no           unknown            unknown
-python-sybase_             ``sybase+pysybase``          partial      development   no           yes                yes
+python-sybase_             ``sybase+pysybase``          yes [1]_     development   no           yes                yes
 =========================  ===========================  ===========  ===========   ===========  =================  ============
 
+.. [1] The Sybase dialect currently lacks the ability to reflect tables.
 .. _psycopg2: http://www.initd.org/
 .. _pg8000: http://pybrary.net/pg8000/
 .. _pypostgresql: http://python.projects.postgresql.org/
@@ -120,7 +122,7 @@ python-sybase_             ``sybase+pysybase``          partial      development
 .. _sapdb: http://www.sapdb.org/sapdbapi.html
 .. _python-sybase: http://python-sybase.sourceforge.net/
 
-Further detail on dialects is available at :ref:`sqlalchemy.dialects_toplevel`
+Further detail on dialects is available at :ref:`dialect_toplevel`
 as well as additional notes on the wiki at `Database Notes
 <http://www.sqlalchemy.org/trac/wiki/DatabaseNotes>`_
 
@@ -277,7 +279,7 @@ namespace of SA loggers that can be turned on is as follows:
 * ``sqlalchemy.engine`` - controls SQL echoing.  set to ``logging.INFO`` for SQL query output, ``logging.DEBUG`` for query + result set output.
 * ``sqlalchemy.dialects`` - controls custom logging for SQL dialects.  See the documentation of individual dialects for details. 
 * ``sqlalchemy.pool`` - controls connection pool logging.  set to ``logging.INFO`` or lower to log connection pool checkouts/checkins.
-* ``sqlalchemy.orm`` - controls logging of various ORM functions.  set to ``logging.INFO`` for information on mapper configurations.   
+* ``sqlalchemy.orm`` - controls logging of various ORM functions.  set to ``logging.INFO`` for information on mapper configurations.
 
 For example, to log SQL queries using Python logging instead of the ``echo=True`` flag::
 

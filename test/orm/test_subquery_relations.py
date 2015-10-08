@@ -4,7 +4,7 @@ from sqlalchemy.test.schema import Table, Column
 from sqlalchemy import Integer, String, ForeignKey, bindparam
 from sqlalchemy.orm import backref, subqueryload, subqueryload_all, \
     mapper, relationship, clear_mappers, create_session, lazyload, \
-    aliased, joinedload, deferred, undefer
+    aliased, joinedload, deferred, undefer, eagerload_all
 from sqlalchemy.test.testing import eq_, assert_raises, \
     assert_raises_message
 from sqlalchemy.test.assertsql import CompiledSQL
@@ -14,7 +14,7 @@ import sqlalchemy as sa
 class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
     run_inserts = 'once'
     run_deletes = None
-    
+
     @testing.resolve_artifact_names
     def test_basic(self):
         mapper(User, users, properties={
@@ -23,24 +23,77 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
                             order_by=Address.id)
         })
         sess = create_session()
-        
+
         q = sess.query(User).options(subqueryload(User.addresses))
-        
+
         def go():
             eq_(
                     [User(id=7, addresses=[
                             Address(id=1, email_address='jack@bean.com')])],
                     q.filter(User.id==7).all()
             )
-        
+
         self.assert_sql_count(testing.db, go, 2)
-        
+
         def go(): 
             eq_(
                 self.static.user_address_result, 
                 q.order_by(User.id).all()
             )
         self.assert_sql_count(testing.db, go, 2)
+
+    @testing.resolve_artifact_names
+    def test_from_aliased(self):
+        mapper(Dingaling, dingalings)
+        mapper(Address, addresses, properties={
+            'dingalings':relationship(Dingaling, order_by=Dingaling.id)
+        })
+        mapper(User, users, properties={
+            'addresses':relationship(
+                            Address,
+                            order_by=Address.id)
+        })
+        sess = create_session()
+
+        u = aliased(User)
+
+        q = sess.query(u).options(subqueryload(u.addresses))
+
+        def go():
+            eq_(
+                    [User(id=7, addresses=[
+                            Address(id=1, email_address='jack@bean.com')])],
+                    q.filter(u.id==7).all()
+            )
+
+        self.assert_sql_count(testing.db, go, 2)
+
+        def go(): 
+            eq_(
+                self.static.user_address_result, 
+                q.order_by(u.id).all()
+            )
+        self.assert_sql_count(testing.db, go, 2)
+
+        q = sess.query(u).\
+                        options(subqueryload_all(u.addresses, Address.dingalings))
+
+        def go():
+            eq_(
+                [
+                    User(id=8, addresses=[
+                        Address(id=2, email_address='ed@wood.com', dingalings=[Dingaling()]),
+                        Address(id=3, email_address='ed@bettyboop.com'),
+                        Address(id=4, email_address='ed@lala.com'),
+                    ]),
+                    User(id=9, addresses=[
+                        Address(id=5, dingalings=[Dingaling()])
+                    ]),
+                ],
+                q.filter(u.id.in_([8, 9])).all()
+            )
+        self.assert_sql_count(testing.db, go, 3)
+
 
     @testing.resolve_artifact_names
     def test_from_get(self):
@@ -50,7 +103,7 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
                             order_by=Address.id)
         })
         sess = create_session()
-        
+
         q = sess.query(User).options(subqueryload(User.addresses))
         def go():
             eq_(
@@ -58,7 +111,7 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
                             Address(id=1, email_address='jack@bean.com')]),
                     q.get(7)
             )
-        
+
         self.assert_sql_count(testing.db, go, 2)
 
     @testing.resolve_artifact_names
@@ -79,7 +132,7 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             )
 
         self.assert_sql_count(testing.db, go, 2)
-        
+
     @testing.resolve_artifact_names
     def test_disable_dynamic(self):
         """test no subquery option on a dynamic."""
@@ -89,7 +142,7 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
         })
         mapper(Address, addresses)
         sess = create_session()
-        
+
         # previously this would not raise, but would emit
         # the query needlessly and put the result nowhere.
         assert_raises_message(
@@ -97,7 +150,7 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "User.addresses' does not support object population - eager loading cannot be applied.",
             sess.query(User).options(subqueryload(User.addresses)).first,
         )
-        
+
     @testing.resolve_artifact_names
     def test_many_to_many(self):
         mapper(Keyword, keywords)
@@ -237,10 +290,10 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
 
     def test_options_pathing(self):
         self._do_options_test(self._pathing_runs)
-    
+
     def test_mapper_pathing(self):
         self._do_mapper_test(self._pathing_runs)
-    
+
     @testing.resolve_artifact_names
     def _do_options_test(self, configs):
         mapper(User, users, properties={
@@ -256,12 +309,12 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
                                         order_by=keywords.c.id) #m2m
         })
         mapper(Keyword, keywords)
-        
+
         callables = {
                         'joinedload':joinedload, 
                     'subqueryload':subqueryload
                 }
-        
+
         for o, i, k, count in configs:
             options = []
             if o in callables:
@@ -296,12 +349,12 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
                                             order_by=keywords.c.id)
             })
             mapper(Keyword, keywords)
-            
+
             try:
                 self._do_query_tests([], count)
             finally:
                 clear_mappers()
-    
+
     @testing.resolve_artifact_names
     def _do_query_tests(self, opts, count):
         sess = create_session()
@@ -325,8 +378,8 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
                     order_by(User.id).all(),
             self.static.user_item_keyword_result[0:1]
         )
-        
-    
+
+
     @testing.resolve_artifact_names
     def test_cyclical(self):
         """A circular eager relationship breaks the cycle with a lazy loader"""
@@ -657,7 +710,7 @@ class SelfReferentialTest(_base.MappedTest):
         n2.append(Node(data='n21'))
         n2.children[0].append(Node(data='n211'))
         n2.children[0].append(Node(data='n212'))
-        
+
         sess.add(n1)
         sess.add(n2)
         sess.flush()
@@ -837,4 +890,4 @@ class SelfReferentialTest(_base.MappedTest):
             ], d)
         self.assert_sql_count(testing.db, go, 4)
 
-    
+

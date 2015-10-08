@@ -7,7 +7,7 @@
         
         <title>
     Working with Engines and Connections
- &mdash; SQLAlchemy 0.6.5 Documentation</title>
+ &mdash; SQLAlchemy 0.6.6 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.5',
+          VERSION:     '0.6.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.6 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Connection Pooling" href="pooling.html" />
         <link rel="prev" title="Engine Configuration" href="engines.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.5 Documentation</h1>
+        <h1>SQLAlchemy 0.6.6 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,24 +52,24 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
+            Version: <span class="versionnum">0.6.6</span> Last Updated: 01/08/2011 17:20:49
         </div>
         <div class="clearboth"></div>
 
         <div class="topnav">
             <div id="pagecontrol">
                 <a href="../genindex.html">Index</a>
-            
+
                 <div class="sourcelink">(<a href="../_sources/core/connections.txt">view source)</div>
             </div>
-            
+
             <div class="navbanner">
                 <a class="totoc" href="../index.html">Table of Contents</a>
                         » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
                 » 
     Working with Engines and Connections
  
-                
+
                 
 <div class="prevnext">
         Previous:
@@ -87,7 +87,10 @@
                 <ul>
 <li><a class="reference internal" href="#">Working with Engines and Connections</a><ul>
 <li><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
-<li><a class="reference internal" href="#using-transactions">Using Transactions</a></li>
+<li><a class="reference internal" href="#using-transactions">Using Transactions</a><ul>
+<li><a class="reference internal" href="#nesting-of-transaction-blocks">Nesting of Transaction Blocks</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#understanding-autocommit">Understanding Autocommit</a></li>
 <li><a class="reference internal" href="#connectionless-execution-implicit-execution">Connectionless Execution, Implicit Execution</a></li>
 <li><a class="reference internal" href="#using-the-threadlocal-execution-strategy">Using the Threadlocal Execution Strategy</a></li>
@@ -97,7 +100,7 @@
 
             <div class="clearboth"></div>
         </div>
-        
+
         <div class="document">
             <div class="body">
                 
@@ -489,7 +492,7 @@ to provide contextual behavior.</p>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>close_with_result</strong> &#8211; When True, the first <a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy" title="sqlalchemy.engine.base.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> created
 by the <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> will call the <a class="reference internal" href="#sqlalchemy.engine.base.Connection.close" title="sqlalchemy.engine.base.Connection.close"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.close()</span></tt></a> method
-of that connection as soon as any pending result rows are exhausted.  
+of that connection as soon as any pending result rows are exhausted.
 This is used to supply the &#8220;connectionless execution&#8221; behavior provided
 by the <a class="reference internal" href="#sqlalchemy.engine.base.Engine.execute" title="sqlalchemy.engine.base.Engine.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.execute()</span></tt></a> method.</li>
 </ul>
@@ -526,7 +529,7 @@ suite that is creating multiple engines.</li>
 </blockquote>
 <p>It is critical to note that <a class="reference internal" href="#sqlalchemy.engine.base.Engine.dispose" title="sqlalchemy.engine.base.Engine.dispose"><tt class="xref py py-meth docutils literal"><span class="pre">dispose()</span></tt></a> does <strong>not</strong> guarantee
 that the application will release all open database connections - only
-those connections that are checked into the pool are closed.   
+those connections that are checked into the pool are closed.
 Connections which remain checked out or have been detached from
 the engine are not affected.</p>
 </dd></dl>
@@ -871,6 +874,8 @@ guaranteed to <tt class="docutils literal"><span class="pre">rollback()</span></
     <span class="n">trans</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
     <span class="k">raise</span></pre></div>
 </div>
+<div class="section" id="nesting-of-transaction-blocks">
+<span id="connections-nested-transactions"></span><h3>Nesting of Transaction Blocks<a class="headerlink" href="#nesting-of-transaction-blocks" title="Permalink to this headline">¶</a></h3>
 <p>The <a class="reference internal" href="#sqlalchemy.engine.base.Transaction" title="sqlalchemy.engine.base.Transaction"><tt class="xref py py-class docutils literal"><span class="pre">Transaction</span></tt></a> object also handles &#8220;nested&#8221;
 behavior by keeping track of the outermost begin/commit pair. In this example,
 two functions both issue a transaction on a Connection, but only the outermost
@@ -953,6 +958,7 @@ an enclosing transaction.</p>
 
 </dd></dl>
 
+</div>
 </div>
 <div class="section" id="understanding-autocommit">
 <h2>Understanding Autocommit<a class="headerlink" href="#understanding-autocommit" title="Permalink to this headline">¶</a></h2>
@@ -1120,7 +1126,7 @@ that any ongoing transactions are rolled back or committed.</p>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
                 </div>
             </div>

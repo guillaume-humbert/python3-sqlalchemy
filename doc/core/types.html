@@ -7,7 +7,7 @@
         
         <title>
     Column and Data Types
- &mdash; SQLAlchemy 0.6.5 Documentation</title>
+ &mdash; SQLAlchemy 0.6.6 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.5',
+          VERSION:     '0.6.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.6 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Core Event Interfaces" href="interfaces.html" />
         <link rel="prev" title="Schema Definition Language" href="schema.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.5 Documentation</h1>
+        <h1>SQLAlchemy 0.6.6 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,24 +52,24 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
+            Version: <span class="versionnum">0.6.6</span> Last Updated: 01/08/2011 17:20:49
         </div>
         <div class="clearboth"></div>
 
         <div class="topnav">
             <div id="pagecontrol">
                 <a href="../genindex.html">Index</a>
-            
+
                 <div class="sourcelink">(<a href="../_sources/core/types.txt">view source)</div>
             </div>
-            
+
             <div class="navbanner">
                 <a class="totoc" href="../index.html">Table of Contents</a>
                         » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
                 » 
     Column and Data Types
  
-                
+
                 
 <div class="prevnext">
         Previous:
@@ -91,7 +91,12 @@
 <li><a class="reference internal" href="#vendor-specific-types">Vendor-Specific Types</a></li>
 <li><a class="reference internal" href="#custom-types">Custom Types</a><ul>
 <li><a class="reference internal" href="#overriding-type-compilation">Overriding Type Compilation</a></li>
-<li><a class="reference internal" href="#augmenting-existing-types">Augmenting Existing Types</a></li>
+<li><a class="reference internal" href="#augmenting-existing-types">Augmenting Existing Types</a><ul>
+<li><a class="reference internal" href="#rounding-numerics">Rounding Numerics</a></li>
+<li><a class="reference internal" href="#backend-agnostic-guid-type">Backend-agnostic GUID Type</a></li>
+<li><a class="reference internal" href="#marshal-json-strings">Marshal JSON Strings</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#creating-new-types">Creating New Types</a></li>
 </ul>
 </li>
@@ -102,7 +107,7 @@
 
             <div class="clearboth"></div>
         </div>
-        
+
         <div class="document">
             <div class="body">
                 
@@ -318,7 +323,7 @@ currently is a manual procedure (such as via
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>native</strong> &#8211; when True, use the actual
 INTERVAL type provided by the database, if
-supported (currently Postgresql, Oracle).  
+supported (currently Postgresql, Oracle).
 Otherwise, represent the interval data as 
 an epoch value regardless.</li>
 <li><strong>second_precision</strong> &#8211; For native interval types
@@ -943,7 +948,7 @@ the underlying type is kept in place.</p>
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="n">impl</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">Unicode</span>
-    
+
     <span class="k">def</span> <span class="nf">process_bind_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
         <span class="k">return</span> <span class="s">&quot;PREFIX:&quot;</span> <span class="o">+</span> <span class="n">value</span>
 
@@ -976,12 +981,12 @@ incoming Python type to something new - <tt class="docutils literal"><span class
 we define an &#8220;epoch&#8221; type that stores a date value as an integer:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyEpochType</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">TypeDecorator</span><span class="p">):</span>
     <span class="n">impl</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">Integer</span>
-    
+
     <span class="n">epoch</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="mi">1970</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    
+
     <span class="k">def</span> <span class="nf">process_bind_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">value</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">epoch</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
-    
+
     <span class="k">def</span> <span class="nf">process_result_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">epoch</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">value</span><span class="p">)</span></pre></div>
 </div>
@@ -1104,6 +1109,119 @@ type per-dialect.</p>
 
 </dd></dl>
 
+<p>A few key <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a> recipes follow.</p>
+<div class="section" id="rounding-numerics">
+<h4>Rounding Numerics<a class="headerlink" href="#rounding-numerics" title="Permalink to this headline">¶</a></h4>
+<p>Some database connectors like those of SQL Server choke if a Decimal is passed with too
+many decimal places.   Here&#8217;s a recipe that rounds them down:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.types</span> <span class="kn">import</span> <span class="n">TypeDecorator</span><span class="p">,</span> <span class="n">Numeric</span>
+<span class="kn">from</span> <span class="nn">decimal</span> <span class="kn">import</span> <span class="n">Decimal</span>
+
+<span class="k">class</span> <span class="nc">SafeNumeric</span><span class="p">(</span><span class="n">TypeDecorator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Adds quantization to Numeric.&quot;&quot;&quot;</span>
+
+    <span class="n">impl</span> <span class="o">=</span> <span class="n">Numeric</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">arg</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="n">TypeDecorator</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">arg</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quantize_int</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">precision</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">scale</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quantize</span> <span class="o">=</span> <span class="n">Decimal</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantize_int</span>
+
+    <span class="k">def</span> <span class="nf">process_bind_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Decimal</span><span class="p">)</span> <span class="ow">and</span> \
+            <span class="n">value</span><span class="o">.</span><span class="n">as_tuple</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantize_int</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">quantize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quantize</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span></pre></div>
+</div>
+</div>
+<div class="section" id="backend-agnostic-guid-type">
+<h4>Backend-agnostic GUID Type<a class="headerlink" href="#backend-agnostic-guid-type" title="Permalink to this headline">¶</a></h4>
+<p>Receives and returns Python uuid() objects.  Uses the PG UUID type
+when using Postgresql, CHAR(32) on other backends, storing them
+in stringified hex format.   Can be modified to store
+binary in CHAR(16) if desired:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.types</span> <span class="kn">import</span> <span class="n">TypeDecorator</span><span class="p">,</span> <span class="n">CHAR</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.dialects.postgresql</span> <span class="kn">import</span> <span class="n">UUID</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="k">class</span> <span class="nc">GUID</span><span class="p">(</span><span class="n">TypeDecorator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Platform-independent GUID type.</span>
+
+<span class="sd">    Uses Postgresql&#39;s UUID type, otherwise uses</span>
+<span class="sd">    CHAR(32), storing as stringified hex values.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">impl</span> <span class="o">=</span> <span class="n">CHAR</span>
+
+    <span class="k">def</span> <span class="nf">load_dialect_impl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">dialect</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;postgresql&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">dialect</span><span class="o">.</span><span class="n">type_descriptor</span><span class="p">(</span><span class="n">UUID</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">dialect</span><span class="o">.</span><span class="n">type_descriptor</span><span class="p">(</span><span class="n">CHAR</span><span class="p">(</span><span class="mi">32</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">process_bind_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span>
+        <span class="k">elif</span> <span class="n">dialect</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;postgresql&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">):</span>
+                <span class="k">return</span> <span class="s">&quot;</span><span class="si">%.32x</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># hexstring</span>
+                <span class="k">return</span> <span class="s">&quot;</span><span class="si">%.32x</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">process_result_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></pre></div>
+</div>
+</div>
+<div class="section" id="marshal-json-strings">
+<h4>Marshal JSON Strings<a class="headerlink" href="#marshal-json-strings" title="Permalink to this headline">¶</a></h4>
+<p>This type uses <tt class="docutils literal"><span class="pre">simplejson</span></tt> to marshal Python data structures
+to/from JSON.   Can be modified to use Python&#8217;s builtin json encoder.</p>
+<p>Note that the base type is not &#8220;mutable&#8221;, meaning in-place changes to
+the value will not be detected by the ORM - you instead would need to
+replace the existing value with a new one to detect changes.
+The subtype <tt class="docutils literal"><span class="pre">MutableJSONEncodedDict</span></tt>
+adds &#8220;mutability&#8221; to allow this, but note that &#8220;mutable&#8221; types add
+a significant performance penalty to the ORM&#8217;s flush process:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.types</span> <span class="kn">import</span> <span class="n">TypeDecorator</span><span class="p">,</span> <span class="n">MutableType</span><span class="p">,</span> <span class="n">VARCHAR</span>
+<span class="kn">import</span> <span class="nn">simplejson</span>
+
+<span class="k">class</span> <span class="nc">JSONEncodedDict</span><span class="p">(</span><span class="n">TypeDecorator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Represents an immutable structure as a json-encoded string.</span>
+
+<span class="sd">    Usage::</span>
+
+<span class="sd">        JSONEncodedDict(255)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">impl</span> <span class="o">=</span> <span class="n">VARCHAR</span>
+
+    <span class="k">def</span> <span class="nf">process_bind_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">simplejson</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">use_decimal</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">process_result_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">simplejson</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">use_decimal</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+<span class="k">class</span> <span class="nc">MutableJSONEncodedDict</span><span class="p">(</span><span class="n">MutableType</span><span class="p">,</span> <span class="n">JSONEncodedDict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Adds mutability to JSONEncodedDict.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">copy_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">simplejson</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span>
+                    <span class="n">simplejson</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">use_decimal</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+                    <span class="n">use_decimal</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="creating-new-types">
 <h3>Creating New Types<a class="headerlink" href="#creating-new-types" title="Permalink to this headline">¶</a></h3>
@@ -1461,7 +1579,7 @@ changes.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.types.MutableType.__init__">
 <tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.types.MutableType.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>x.__init__(...) initializes x; see x.__class__.__doc__ for signature</p>
+<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
 </dd></dl>
 
 <dl class="method">
@@ -1495,7 +1613,7 @@ typically strings.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.types.Concatenable.__init__">
 <tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.types.Concatenable.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>x.__init__(...) initializes x; see x.__class__.__doc__ for signature</p>
+<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
 </dd></dl>
 
 </dd></dl>
@@ -1532,7 +1650,7 @@ encountered during a <tt class="xref py py-meth docutils literal"><span class="p
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
                 </div>
             </div>
