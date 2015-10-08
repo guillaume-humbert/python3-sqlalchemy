@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.6',
+          VERSION:     '0.7.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
+        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
 
 
     </div>
@@ -342,6 +342,32 @@ specific return arguments.</td>
 <dt id="sqlalchemy.events.ConnectionEvents.commit_twophase">
 <tt class="descname">commit_twophase</tt><big>(</big><em>conn</em>, <em>xid</em>, <em>is_prepared</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.commit_twophase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Intercept commit_twophase() events.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.events.ConnectionEvents.dbapi_error">
+<tt class="descname">dbapi_error</tt><big>(</big><em>conn</em>, <em>cursor</em>, <em>statement</em>, <em>parameters</em>, <em>context</em>, <em>exception</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.ConnectionEvents.dbapi_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Intercept a raw DBAPI error.</p>
+<p>This event is called with the DBAPI exception instance 
+received from the DBAPI itself, <em>before</em> SQLAlchemy wraps the 
+exception with it&#8217;s own exception wrappers, and before any
+other operations are performed on the DBAPI cursor; the
+existing transaction remains in effect as well as any state
+on the cursor.</p>
+<p>The use case here is to inject low-level exception handling
+into an <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, typically for logging and
+debugging purposes.   In general, user code should <strong>not</strong> modify
+any state or throw any exceptions here as this will
+interfere with SQLAlchemy&#8217;s cleanup and error handling
+routines.</p>
+<p>Subsequent to this hook, SQLAlchemy may attempt any
+number of operations on the connection/cursor, including
+closing the cursor, rolling back of the transaction in the 
+case of connectionless execution, and disposing of the entire
+connection pool if a &#8220;disconnect&#8221; was detected.   The
+exception is then wrapped in a SQLAlchemy DBAPI exception
+wrapper and re-thrown.</p>
+<p>New in 0.7.7.</p>
 </dd></dl>
 
 <dl class="method">

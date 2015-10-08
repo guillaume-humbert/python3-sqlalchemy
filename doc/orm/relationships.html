@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.6',
+          VERSION:     '0.7.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
+        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
 
 
     </div>
@@ -1477,14 +1477,16 @@ should artificially not be considered as foreign.</p>
 which is evaluated at mapper initialization time, and may be passed as a 
 Python-evaluable string when using Declarative.</p>
 </li>
-<li><strong>innerjoin=False</strong> &#8211; when <tt class="docutils literal"><span class="pre">True</span></tt>, joined eager loads will use an inner join to join
+<li><strong>innerjoin=False</strong> &#8211; <p>when <tt class="docutils literal"><span class="pre">True</span></tt>, joined eager loads will use an inner join to join
 against related tables instead of an outer join.  The purpose
-of this option is strictly one of performance, as inner joins
-generally perform better than outer joins.  This flag can
-be set to <tt class="docutils literal"><span class="pre">True</span></tt> when the relationship references an object
-via many-to-one using local foreign keys that are not nullable,
-or when the reference is one-to-one or a collection that is 
-guaranteed to have one or at least one entry.</li>
+of this option is generally one of performance, as inner joins
+generally perform better than outer joins. Another reason can be
+the use of <tt class="docutils literal"><span class="pre">with_lockmode</span></tt>, which does not support outer joins.</p>
+<p>This flag can be set to <tt class="docutils literal"><span class="pre">True</span></tt> when the relationship references an
+object via many-to-one using local foreign keys that are not nullable,
+or when the reference is one-to-one or a collection that is guaranteed
+to have one or at least one entry.</p>
+</li>
 <li><strong>join_depth</strong> &#8211; when non-<tt class="docutils literal"><span class="pre">None</span></tt>, an integer value indicating how many levels
 deep &#8220;eager&#8221; loaders should join on a self-referring or cyclical 
 relationship.  The number counts how many times the same Mapper 
@@ -1520,7 +1522,7 @@ operations, onto which further filtering operations can be
 applied before iterating the results.  See
 the section <a class="reference internal" href="collections.html#dynamic-relationship"><em>Dynamic Relationship Loaders</em></a> for more details.</li>
 <li>True - a synonym for &#8216;select&#8217;</li>
-<li>False - a synonyn for &#8216;joined&#8217;</li>
+<li>False - a synonym for &#8216;joined&#8217;</li>
 <li>None - a synonym for &#8216;noload&#8217;</li>
 </ul>
 <p>Detailed discussion of loader strategies is at <a class="reference internal" href="loading.html"><em>Relationship Loading Techniques</em></a>.</p>

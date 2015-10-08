@@ -96,10 +96,6 @@ class DefaultDialect(base.Dialect):
     # and denormalize_name() must be provided.
     requires_name_normalize = False
 
-    # a hook for SQLite's translation of 
-    # result column names
-    _translate_colname = None
-
     reflection_options = ()
 
     def __init__(self, convert_unicode=False, assert_unicode=False,
@@ -264,7 +260,7 @@ class DefaultDialect(base.Dialect):
         return insp.reflecttable(table, include_columns, exclude_columns)
 
     def get_pk_constraint(self, conn, table_name, schema=None, **kw):
-        """Compatiblity method, adapts the result of get_primary_keys()
+        """Compatibility method, adapts the result of get_primary_keys()
         for those dialects which don't implement get_pk_constraint().
 
         """
@@ -341,7 +337,7 @@ class DefaultDialect(base.Dialect):
         return False
 
     def reset_isolation_level(self, dbapi_conn):
-        # default_isolation_level is read from the first conenction 
+        # default_isolation_level is read from the first connection 
         # after the initial set of 'isolation_level', if any, so is 
         # the configured default of this dialect.
         self.set_isolation_level(dbapi_conn, self.default_isolation_level)
@@ -357,6 +353,10 @@ class DefaultExecutionContext(base.ExecutionContext):
     statement = None
     _is_implicit_returning = False
     _is_explicit_returning = False
+
+    # a hook for SQLite's translation of 
+    # result column names
+    _translate_colname = None
 
     @classmethod
     def _init_ddl(cls, dialect, connection, dbapi_connection, compiled_ddl):

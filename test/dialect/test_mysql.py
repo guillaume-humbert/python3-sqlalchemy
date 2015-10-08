@@ -108,6 +108,7 @@ class DialectTest(fixtures.TestBase):
             }
         )
 
+
 class TypesTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiledSQL):
     "Test MySQL column types"
 
@@ -1119,6 +1120,12 @@ class ReflectionTest(fixtures.TestBase, AssertsExecutionResults):
         finally:
             meta.drop_all()
 
+    @testing.exclude('mysql', '<', (5, 0, 0), 'no information_schema support')
+    def test_system_views(self):
+        dialect = testing.db.dialect
+        connection = testing.db.connect()
+        view_names = dialect.get_view_names(connection, "information_schema")
+        self.assert_('TABLES' in view_names)
 
 
 class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
@@ -1372,6 +1379,21 @@ class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
                     dialect=dialect
             )
 
+    def test_cast_grouped_expression_non_castable(self):
+        self.assert_compile(
+            cast(sql.column('x') + sql.column('y'), Float),
+            "(x + y)"
+        )
+
+    def test_cast_grouped_expression_pre_4(self):
+        dialect = mysql.dialect()
+        dialect.server_version_info = (3, 2, 3)
+        self.assert_compile(
+            cast(sql.column('x') + sql.column('y'), Integer),
+            "(x + y)",
+            dialect=dialect
+        )
+
     def test_extract(self):
         t = sql.table('t', sql.column('col1'))
 
@@ -1411,7 +1433,7 @@ class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
                             'CREATE TABLE sometable (assigned_id '
                             'INTEGER NOT NULL, id INTEGER NOT NULL '
                             'AUTO_INCREMENT, PRIMARY KEY (assigned_id, '
-                            'id), KEY `idx_autoinc_id`(`id`))ENGINE=Inn'
+                            'id), KEY idx_autoinc_id (id))ENGINE=Inn'
                             'oDB')
 
         t1 = Table('sometable', MetaData(), Column('assigned_id',
@@ -1423,6 +1445,22 @@ class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
                             'INTEGER NOT NULL AUTO_INCREMENT, id '
                             'INTEGER NOT NULL, PRIMARY KEY '
                             '(assigned_id, id))ENGINE=InnoDB')
+
+    def test_innodb_autoincrement_reserved_word_column_name(self):
+        t1 = Table(
+            'sometable', MetaData(),
+            Column('id', Integer(), primary_key=True, autoincrement=False),
+            Column('order', Integer(), primary_key=True, autoincrement=True),
+            mysql_engine='InnoDB')
+        self.assert_compile(
+            schema.CreateTable(t1),
+            'CREATE TABLE sometable ('
+            'id INTEGER NOT NULL, '
+            '`order` INTEGER NOT NULL AUTO_INCREMENT, '
+            'PRIMARY KEY (id, `order`), '
+            'KEY idx_autoinc_order (`order`)'
+            ')ENGINE=InnoDB')
+
 
 class SQLModeDetectionTest(fixtures.TestBase):
     __only_on__ = 'mysql'

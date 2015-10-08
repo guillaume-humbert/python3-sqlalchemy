@@ -344,9 +344,9 @@ class _FloatType(_NumericType, sqltypes.Float):
                 (precision is None and scale is not None) or
                 (precision is not None and scale is None)
             ):
-           raise exc.ArgumentError(
-               "You must specify both precision and scale or omit "
-               "both altogether.")
+            raise exc.ArgumentError(
+                "You must specify both precision and scale or omit "
+                "both altogether.")
 
         super(_FloatType, self).__init__(precision=precision, asdecimal=asdecimal, **kw)
         self.scale = scale
@@ -1273,11 +1273,11 @@ class MySQLCompiler(compiler.SQLCompiler):
     def visit_cast(self, cast, **kwargs):
         # No cast until 4, no decimals until 5.
         if not self.dialect._supports_cast:
-            return self.process(cast.clause)
+            return self.process(cast.clause.self_group())
 
         type_ = self.process(cast.typeclause)
         if type_ is None:
-            return self.process(cast.clause)
+            return self.process(cast.clause.self_group())
 
         return 'CAST(%s AS %s)' % (self.process(cast.clause), type_)
 
@@ -1395,8 +1395,12 @@ class MySQLDDLCompiler(compiler.DDLCompiler):
                 auto_inc_column is not list(table.primary_key)[0]:
             if constraint_string:
                 constraint_string += ", \n\t"
-            constraint_string += "KEY `idx_autoinc_%s`(`%s`)" % (auto_inc_column.name, \
-                            self.preparer.format_column(auto_inc_column))
+            constraint_string += "KEY %s (%s)" % (
+                        self.preparer.quote(
+                            "idx_autoinc_%s" % auto_inc_column.name, None
+                        ), 
+                        self.preparer.format_column(auto_inc_column)
+                    )
 
         return constraint_string
 
@@ -2017,7 +2021,6 @@ class MySQLDialect(default.DefaultDialect):
 
     @reflection.cache
     def get_view_names(self, connection, schema=None, **kw):
-        charset = self._connection_charset
         if self.server_version_info < (5, 0, 2):
             raise NotImplementedError
         if schema is None:
@@ -2028,7 +2031,7 @@ class MySQLDialect(default.DefaultDialect):
         rp = connection.execute("SHOW FULL TABLES FROM %s" %
                 self.identifier_preparer.quote_identifier(schema))
         return [row[0] for row in self._compat_fetchall(rp, charset=charset)\
-                                                    if row[1] == 'VIEW']
+                                                    if row[1] in ('VIEW', 'SYSTEM VIEW')]
 
     @reflection.cache
     def get_table_options(self, connection, table_name, schema=None, **kw):

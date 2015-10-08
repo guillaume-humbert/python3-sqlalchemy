@@ -500,6 +500,7 @@ test/orm/test_joins.py
 test/orm/test_lazy_relations.py
 test/orm/test_legacy_mutable.py
 test/orm/test_load_on_fks.py
+test/orm/test_lockmode.py
 test/orm/test_manytomany.py
 test/orm/test_mapper.py
 test/orm/test_merge.py
