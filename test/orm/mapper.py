@@ -519,7 +519,7 @@ class MapperTest(_fixtures.FixtureTest):
                       users.c.id == addresses.c.user_id,
                       group_by=[c for c in users.c]).alias('myselect')
 
-        mapper(User, s, order_by=s.default_order_by())
+        mapper(User, s, order_by=s.c.id)
         sess = create_session()
         l = sess.query(User).all()
 
@@ -975,9 +975,9 @@ class OptionsTest(_fixtures.FixtureTest):
 
         mapper(User, users, properties=dict(
             addresses=relation(Address, lazy=False,
-                               order_by=addresses.default_order_by()),
+                               order_by=addresses.c.id),
             orders=relation(Order, lazy=False,
-                            order_by=orders.default_order_by())))
+                            order_by=orders.c.id)))
 
         sess = create_session()
 
@@ -1021,14 +1021,14 @@ class DeepOptionsTest(_fixtures.FixtureTest):
 
         mapper(Item, items, properties=dict(
             keywords=relation(Keyword, item_keywords,
-                              order_by=item_keywords.default_order_by())))
+                              order_by=item_keywords.c.item_id)))
 
         mapper(Order, orders, properties=dict(
             items=relation(Item, order_items,
-                           order_by=items.default_order_by())))
+                           order_by=items.c.id)))
 
-        mapper(User, users, order_by=users.default_order_by(), properties=dict(
-            orders=relation(Order, order_by=orders.default_order_by())))
+        mapper(User, users, order_by=users.c.id, properties=dict(
+            orders=relation(Order, order_by=orders.c.id)))
 
     @testing.resolve_artifact_names
     def test_deep_options_1(self):
@@ -1637,7 +1637,14 @@ class CompositeTypesTest(_base.MappedTest):
 
         g2 = sess.query(Graph).get(Version(1, 1))
         eq_(g.version, g2.version)
+
+        # test pk mutation
+        g2.version = Version(2, 1)
+        sess.flush()
+        g3 = sess.query(Graph).get(Version(2, 1))
+        eq_(g2.version, g3.version)
         
+        # test pk with one column NULL
         # TODO: can't seem to get NULL in for a PK value
         # in either mysql or postgres, autoincrement=False etc.
         # notwithstanding

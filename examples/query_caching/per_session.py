@@ -1,11 +1,14 @@
-"""Example of caching objects in a global cache."""
+"""Example of caching objects in a per-session cache.
+
+
+This approach is faster in that objects don't need to be detached/remerged
+between sessions, but is slower in that the cache is empty at the start
+of each session's lifespan.
+
+"""
 
 from sqlalchemy.orm.query import Query, _generative
 from sqlalchemy.orm.session import Session
-
-# the cache.  This would be replaced with the caching mechanism of
-# choice, i.e. LRU cache, memcached, etc.
-_cache = {}
 
 class CachingQuery(Query):
     
@@ -15,19 +18,20 @@ class CachingQuery(Query):
     def with_cache_key(self, cachekey):
         self.cachekey = cachekey
 
-    # single point of object loading is __iter__().  objects in the cache are not associated
-    # with a session and are never returned directly; only merged copies.
     def __iter__(self):
         if hasattr(self, 'cachekey'):
             try:
-                ret = _cache[self.cachekey]
+                cache = self.session._cache
+            except AttributeError:
+                self.session._cache = cache = {}
+                
+            try:
+                ret = cache[self.cachekey]
             except KeyError:
                 ret = list(Query.__iter__(self))
-                for x in ret:
-                    self.session.expunge(x)
-                _cache[self.cachekey] = ret
+                cache[self.cachekey] = ret
 
-            return iter(self.session.merge(x, dont_load=True) for x in ret)
+            return iter(ret)
 
         else:
             return Query.__iter__(self)
@@ -61,10 +65,6 @@ if __name__ == '__main__':
     
     # cache two user objects
     sess.query(User).with_cache_key('u2andu3').filter(User.name.in_(['u2', 'u3'])).all()
-    
-    sess.close()
-    
-    sess = Session()
     
     # pull straight from cache
     print sess.query(User).with_cache_key('u2andu3').all()

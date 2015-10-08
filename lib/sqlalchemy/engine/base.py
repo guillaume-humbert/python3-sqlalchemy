@@ -128,23 +128,6 @@ class Dialect(object):
 
         raise NotImplementedError()
 
-    def oid_column_name(self, column):
-        """Return the oid column name for this Dialect
-
-        May return ``None`` if the dialect can't o won't support
-        OID/ROWID features.
-
-        The [sqlalchemy.schema#Column] instance which represents OID
-        for the query being compiled is passed, so that the dialect
-        can inspect the column and its parent selectable to determine
-        if OID/ROWID is not selected for a particular selectable
-        (i.e. Oracle doesnt support ROWID for UNION, GROUP BY,
-        DISTINCT, etc.)
-        """
-
-        raise NotImplementedError()
-
-
 
     def server_version_info(self, connection):
         """Return a tuple of the database's version number."""
@@ -322,9 +305,6 @@ class ExecutionContext(object):
     should_autocommit
       True if the statement is a "committable" statement
 
-    returns_rows
-      True if the statement should return result rows
-
     postfetch_cols
      a list of Column objects for which a server-side default
      or inline SQL expression value was fired off.  applies to inserts and updates.
@@ -369,11 +349,6 @@ class ExecutionContext(object):
 
         Returns a ResultProxy.
         """
-
-        raise NotImplementedError()
-
-    def get_rowcount(self):
-        """Return the count of rows updated/deleted for an UPDATE/DELETE statement."""
 
         raise NotImplementedError()
 
@@ -857,7 +832,7 @@ class Connection(Connectable):
         context = self.__create_execution_context(statement=statement, parameters=parameters)
         self.__execute_raw(context)
         self._autocommit(context)
-        return context.result()
+        return context.get_result_proxy()
 
     def __distill_params(self, multiparams, params):
         """given arguments from the calling form *multiparams, **params, return a list
@@ -911,7 +886,7 @@ class Connection(Connectable):
         self.__execute_raw(context)
         context.post_execution()
         self._autocommit(context)
-        return context.result()
+        return context.get_result_proxy()
 
     def __execute_raw(self, context):
         if context.executemany:
@@ -1318,7 +1293,7 @@ class RowProxy(object):
 
         self.__parent = parent
         self.__row = row
-        if self.__parent._ResultProxy__echo:
+        if self.__parent._echo:
             self.__parent.context.engine.logger.debug("Row " + repr(row))
 
     def close(self):
@@ -1414,20 +1389,12 @@ class ResultProxy(object):
         self.closed = False
         self.cursor = context.cursor
         self.connection = context.root_connection
-        self.__echo = context.engine._should_log_info
-        if context.returns_rows:
-            self._init_metadata()
-            self._rowcount = None
-        else:
-            self._rowcount = context.get_rowcount()
-            self.close()
+        self._echo = context.engine._should_log_info
+        self._init_metadata()
     
     @property
     def rowcount(self):
-        if self._rowcount is not None:
-            return self._rowcount
-        else:
-            return self.context.get_rowcount()
+        return self.context.get_rowcount()
 
     @property
     def lastrowid(self):
@@ -1438,92 +1405,98 @@ class ResultProxy(object):
         return self.context.out_parameters
 
     def _init_metadata(self):
-        self.__props = {}
-        self._key_cache = self._create_key_cache()
-        self.keys = []
         metadata = self.cursor.description
+        if metadata is None:
+            # no results, close
+            self.close()
+            return
+            
+        self._props = util.PopulateDict(None)
+        self._props.creator = self.__key_fallback()
+        self.keys = []
 
-        if metadata is not None:
-            typemap = self.dialect.dbapi_type_map
+        typemap = self.dialect.dbapi_type_map
 
-            for i, item in enumerate(metadata):
-                colname = item[0].decode(self.dialect.encoding)
+        for i, item in enumerate(metadata):
+            colname = item[0].decode(self.dialect.encoding)
 
-                if '.' in colname:
-                    # sqlite will in some circumstances prepend table name to colnames, so strip
-                    origname = colname
-                    colname = colname.split('.')[-1]
-                else:
-                    origname = None
+            if '.' in colname:
+                # sqlite will in some circumstances prepend table name to colnames, so strip
+                origname = colname
+                colname = colname.split('.')[-1]
+            else:
+                origname = None
 
-                if self.context.result_map:
-                    try:
-                        (name, obj, type_) = self.context.result_map[colname.lower()]
-                    except KeyError:
-                        (name, obj, type_) = (colname, None, typemap.get(item[1], types.NULLTYPE))
-                else:
+            if self.context.result_map:
+                try:
+                    (name, obj, type_) = self.context.result_map[colname.lower()]
+                except KeyError:
                     (name, obj, type_) = (colname, None, typemap.get(item[1], types.NULLTYPE))
+            else:
+                (name, obj, type_) = (colname, None, typemap.get(item[1], types.NULLTYPE))
 
-                rec = (type_, type_.dialect_impl(self.dialect).result_processor(self.dialect), i)
+            rec = (type_, type_.dialect_impl(self.dialect).result_processor(self.dialect), i)
 
-                if self.__props.setdefault(name.lower(), rec) is not rec:
-                    self.__props[name.lower()] = (type_, self.__ambiguous_processor(name), 0)
+            if self._props.setdefault(name.lower(), rec) is not rec:
+                self._props[name.lower()] = (type_, self.__ambiguous_processor(name), 0)
 
-                # store the "origname" if we truncated (sqlite only)
-                if origname:
-                    if self.__props.setdefault(origname.lower(), rec) is not rec:
-                        self.__props[origname.lower()] = (type_, self.__ambiguous_processor(origname), 0)
+            # store the "origname" if we truncated (sqlite only)
+            if origname:
+                if self._props.setdefault(origname.lower(), rec) is not rec:
+                    self._props[origname.lower()] = (type_, self.__ambiguous_processor(origname), 0)
 
-                self.keys.append(colname)
-                self.__props[i] = rec
-                if obj:
-                    for o in obj:
-                        self.__props[o] = rec
+            self.keys.append(colname)
+            self._props[i] = rec
+            if obj:
+                for o in obj:
+                    self._props[o] = rec
 
-            if self.__echo:
-                self.context.engine.logger.debug(
-                    "Col " + repr(tuple(x[0] for x in metadata)))
-
-    def _create_key_cache(self):
-        # local copies to avoid circular ref against 'self'
-        props = self.__props
-        def lookup_key(key):
-            """Given a key, which could be a ColumnElement, string, etc.,
-            matches it to the appropriate key we got from the result set's
-            metadata; then cache it locally for quick re-access."""
-
+        if self._echo:
+            self.context.engine.logger.debug(
+                "Col " + repr(tuple(x[0] for x in metadata)))
+    
+    def __key_fallback(self):
+        # create a closure without 'self' to avoid circular references
+        props = self._props
+        
+        def fallback(key):
             if isinstance(key, basestring):
                 key = key.lower()
-            try:
-                rec = props[key]
-            except KeyError:
-                # fallback for targeting a ColumnElement to a textual expression
-                # this is a rare use case which only occurs when matching text()
-                # constructs to ColumnElements
-                if isinstance(key, expression.ColumnElement):
-                    if key._label and key._label.lower() in props:
-                        return props[key._label.lower()]
-                    elif hasattr(key, 'name') and key.name.lower() in props:
-                        return props[key.name.lower()]
-                raise exc.NoSuchColumnError("Could not locate column in row for column '%s'" % (str(key)))
+                if key in props:
+                    return props[key]
 
-            return rec
-        return util.PopulateDict(lookup_key)
+            # fallback for targeting a ColumnElement to a textual expression
+            # this is a rare use case which only occurs when matching text()
+            # constructs to ColumnElements
+            if isinstance(key, expression.ColumnElement):
+                if key._label and key._label.lower() in props:
+                    return props[key._label.lower()]
+                elif hasattr(key, 'name') and key.name.lower() in props:
+                    return props[key.name.lower()]
+
+            raise exc.NoSuchColumnError("Could not locate column in row for column '%s'" % (str(key)))
+        return fallback
 
     def __ambiguous_processor(self, colname):
         def process(value):
-            raise exc.InvalidRequestError("Ambiguous column name '%s' in result set! try 'use_labels' option on select statement." % colname)
+            raise exc.InvalidRequestError("Ambiguous column name '%s' in result set! "
+                        "try 'use_labels' option on select statement." % colname)
         return process
 
     def close(self):
-        """Close this ResultProxy, and the underlying DB-API cursor corresponding to the execution.
+        """Close this ResultProxy.
+        
+        Closes the underlying DBAPI cursor corresponding to the execution.
 
         If this ResultProxy was generated from an implicit execution,
         the underlying Connection will also be closed (returns the
-        underlying DB-API connection to the connection pool.)
+        underlying DBAPI connection to the connection pool.)
 
-        This method is also called automatically when all result rows
-        are exhausted.
+        This method is called automatically when:
+        
+            * all result rows are exhausted using the fetchXXX() methods.
+            * cursor.description is None.
+        
         """
         if not self.closed:
             self.closed = True
@@ -1535,7 +1508,7 @@ class ResultProxy(object):
         try:
             # _key_cache uses __missing__ in 2.5, so not much alternative
             # to catching KeyError
-            self._key_cache[key]
+            self._props[key]
             return True
         except KeyError:
             return False
@@ -1603,7 +1576,7 @@ class ResultProxy(object):
 
     def _get_col(self, row, key):
         try:
-            type_, processor, index = self._key_cache[key]
+            type_, processor, index = self._props[key]
         except TypeError:
             # the 'slice' use case is very infrequent,
             # so we use an exception catch to reduce conditionals in _get_col
@@ -1694,7 +1667,9 @@ class BufferedRowResultProxy(ResultProxy):
     The pre-fetching behavior fetches only one row initially, and then
     grows its buffer size by a fixed amount with each successive need
     for additional rows up to a size of 100.
+    
     """
+
     def _init_metadata(self):
         self.__buffer_rows()
         super(BufferedRowResultProxy, self)._init_metadata()
@@ -1747,12 +1722,14 @@ class BufferedColumnResultProxy(ResultProxy):
     of scope unless explicitly fetched.  Currently this includes just
     cx_Oracle LOB objects, but this behavior is known to exist in
     other DB-APIs as well (Pygresql, currently unsupported).
+    
     """
+
     _process_row = BufferedColumnRow
 
     def _get_col(self, row, key):
         try:
-            rec = self._key_cache[key]
+            rec = self._props[key]
             return row[rec[2]]
         except TypeError:
             # the 'slice' use case is very infrequent,
@@ -1788,8 +1765,8 @@ class SchemaIterator(schema.SchemaVisitor):
     """A visitor that can gather text into a buffer and execute the contents of the buffer."""
 
     def __init__(self, connection):
-        """Construct a new SchemaIterator.
-        """
+        """Construct a new SchemaIterator."""
+        
         self.connection = connection
         self.buffer = StringIO.StringIO()
 
@@ -1814,6 +1791,7 @@ class DefaultRunner(schema.SchemaVisitor):
     DefaultRunners are used internally by Engines and Dialects.
     Specific database modules should provide their own subclasses of
     DefaultRunner to allow database-specific behavior.
+
     """
 
     def __init__(self, context):
@@ -1834,19 +1812,9 @@ class DefaultRunner(schema.SchemaVisitor):
             return None
 
     def visit_passive_default(self, default):
-        """Do nothing.
-
-        Passive defaults by definition return None on the app side,
-        and are post-fetched to get the DB-side value.
-        """
-
         return None
 
     def visit_sequence(self, seq):
-        """Do nothing.
-
-        """
-
         return None
 
     def exec_default_sql(self, default):
@@ -1855,8 +1823,8 @@ class DefaultRunner(schema.SchemaVisitor):
         return conn._execute_compiled(c).scalar()
 
     def execute_string(self, stmt, params=None):
-        """execute a string statement, using the raw cursor,
-        and return a scalar result."""
+        """execute a string statement, using the raw cursor, and return a scalar result."""
+        
         conn = self.context._connection
         if isinstance(stmt, unicode) and not self.dialect.supports_unicode_statements:
             stmt = stmt.encode(self.dialect.encoding)

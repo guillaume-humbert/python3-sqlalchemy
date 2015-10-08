@@ -3,6 +3,7 @@ from sqlalchemy import *
 from sqlalchemy.sql import table, column
 from sqlalchemy.databases import oracle
 from testlib import *
+from testlib.testing import eq_
 from testlib.engines import testing_engine
 import os
 
@@ -60,7 +61,7 @@ class CompileTest(TestBase, AssertsCompiledSQL):
         
         s = select([t]).limit(10).offset(20)
 
-        self.assert_compile(s, "SELECT col1, col2 FROM (SELECT /*+ FIRST_ROWS(10) */ col1, col2, ROWNUM AS ora_rn "
+        self.assert_compile(s, "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM AS ora_rn "
             "FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 "
             "FROM sometable) WHERE ROWNUM <= :ROWNUM_1) WHERE ora_rn > :ora_rn_1"
         )
@@ -72,14 +73,14 @@ class CompileTest(TestBase, AssertsCompiledSQL):
         
         s = select([s.c.col1, s.c.col2])
 
-        self.assert_compile(s, "SELECT col1, col2 FROM (SELECT col1, col2 FROM (SELECT /*+ FIRST_ROWS(10) */ col1, col2, ROWNUM AS ora_rn FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 FROM sometable) WHERE ROWNUM <= :ROWNUM_1) WHERE ora_rn > :ora_rn_1)")
+        self.assert_compile(s, "SELECT col1, col2 FROM (SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM AS ora_rn FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 FROM sometable) WHERE ROWNUM <= :ROWNUM_1) WHERE ora_rn > :ora_rn_1)")
 
         # testing this twice to ensure oracle doesn't modify the original statement
-        self.assert_compile(s, "SELECT col1, col2 FROM (SELECT col1, col2 FROM (SELECT /*+ FIRST_ROWS(10) */ col1, col2, ROWNUM AS ora_rn FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 FROM sometable) WHERE ROWNUM <= :ROWNUM_1) WHERE ora_rn > :ora_rn_1)")
+        self.assert_compile(s, "SELECT col1, col2 FROM (SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM AS ora_rn FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 FROM sometable) WHERE ROWNUM <= :ROWNUM_1) WHERE ora_rn > :ora_rn_1)")
 
         s = select([t]).limit(10).offset(20).order_by(t.c.col2)
 
-        self.assert_compile(s, "SELECT col1, col2 FROM (SELECT /*+ FIRST_ROWS(10) */ col1, col2, ROWNUM "
+        self.assert_compile(s, "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM "
             "AS ora_rn FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 FROM sometable "
             "ORDER BY sometable.col2) WHERE ROWNUM <= :ROWNUM_1) WHERE ora_rn > :ora_rn_1")
 
@@ -129,16 +130,16 @@ AND mytable.myid = myothertable.otherid(+)",
 
         query = table1.join(table2, table1.c.myid==table2.c.otherid).outerjoin(table3, table3.c.userid==table2.c.otherid)
 
-        self.assert_compile(query.select().order_by(table1.oid_column).limit(10).offset(5), 
+        self.assert_compile(query.select().order_by(table1.c.name).limit(10).offset(5), 
         
             "SELECT myid, name, description, otherid, othername, userid, "
-            "otherstuff FROM (SELECT /*+ FIRST_ROWS(10) */ myid, name, description, "
+            "otherstuff FROM (SELECT myid, name, description, "
             "otherid, othername, userid, otherstuff, ROWNUM AS ora_rn FROM (SELECT "
             "mytable.myid AS myid, mytable.name AS name, mytable.description AS description, "
             "myothertable.otherid AS otherid, myothertable.othername AS othername, "
             "thirdtable.userid AS userid, thirdtable.otherstuff AS otherstuff FROM mytable, "
             "myothertable, thirdtable WHERE thirdtable.userid(+) = myothertable.otherid AND "
-            "mytable.myid = myothertable.otherid ORDER BY mytable.rowid) WHERE "
+            "mytable.myid = myothertable.otherid ORDER BY mytable.name) WHERE "
             "ROWNUM <= :ROWNUM_1) WHERE ora_rn > :ora_rn_1", dialect=oracle.dialect(use_ansi=False))
 
     def test_alias_outer_join(self):
@@ -157,11 +158,11 @@ AND mytable.myid = myothertable.otherid(+)",
         s = select([at_alias, addresses]).\
             select_from(addresses.outerjoin(at_alias, addresses.c.address_type_id==at_alias.c.id)).\
             where(addresses.c.user_id==7).\
-            order_by(addresses.oid_column, address_types.oid_column)
+            order_by(addresses.c.id, address_types.c.id)
         self.assert_compile(s, "SELECT address_types_1.id, address_types_1.name, addresses.id, addresses.user_id, "
             "addresses.address_type_id, addresses.email_address FROM addresses LEFT OUTER JOIN address_types address_types_1 "
-            "ON addresses.address_type_id = address_types_1.id WHERE addresses.user_id = :user_id_1 ORDER BY addresses.rowid, "
-            "address_types.rowid")
+            "ON addresses.address_type_id = address_types_1.id WHERE addresses.user_id = :user_id_1 ORDER BY addresses.id, "
+            "address_types.id")
 
 class MultiSchemaTest(TestBase, AssertsCompiledSQL):
     """instructions:
@@ -311,6 +312,19 @@ class TypesTest(TestBase, AssertsCompiledSQL):
         finally:
             testing.db.execute("DROP TABLE Z_TEST")
 
+    def test_raw_lobs(self):
+        engine = testing_engine(options=dict(auto_convert_lobs=False))
+        metadata = MetaData()
+        t = Table("z_test", metadata, Column('id', Integer, primary_key=True), 
+                 Column('data', Text), Column('bindata', Binary))
+        t.create(engine)
+        try:
+            engine.execute(t.insert(), id=1, data='this is text', bindata='this is binary')
+            row = engine.execute(t.select()).fetchone()
+            eq_(row['data'].read(), 'this is text')
+            eq_(row['bindata'].read(), 'this is binary')
+        finally:
+            t.drop(engine)
 class BufferedColumnTest(TestBase, AssertsCompiledSQL):
     __only_on__ = 'oracle'
 

@@ -5,6 +5,7 @@ from sqlalchemy import exc as sa_exc, util
 from sqlalchemy.sql import compiler
 from sqlalchemy.engine import default
 from sqlalchemy.orm import *
+from sqlalchemy.orm import attributes
 
 from testlib import *
 from orm import _base
@@ -39,6 +40,9 @@ class QueryTest(FixtureTest):
             'keywords':relation(Keyword, secondary=item_keywords) #m2m
         })
         mapper(Keyword, keywords)
+
+        compile_mappers()
+        #class_mapper(User).add_property('addresses', relation(Address, primaryjoin=User.id==Address.user_id, order_by=Address.id, backref='user'))
 
 class UnicodeSchemaTest(QueryTest):
     keep_mappers = False
@@ -334,7 +338,16 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
                         "WHERE users.id = addresses.user_id AND addresses.id = :id_1)"
                     )
 
-        self._test(Address.user == User(id=7), ":param_1 = addresses.user_id")
+        u7 = User(id=7)
+        attributes.instance_state(u7).commit_all()
+        
+        self._test(Address.user == u7, ":param_1 = addresses.user_id")
+
+        self._test(Address.user != u7, "addresses.user_id != :user_id_1 OR addresses.user_id IS NULL")
+
+        self._test(Address.user == None, "addresses.user_id IS NULL")
+
+        self._test(Address.user != None, "addresses.user_id IS NOT NULL")
 
     def test_selfref_relation(self):
         nalias = aliased(Node)
@@ -346,11 +359,11 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
                 "nodes.id = nodes_1.parent_id AND nodes_1.data = :data_1)"
         )
 
-        # fails, needs autoaliasing
-        #self._test(
-        #    Node.children==None, 
-        #    "NOT (EXISTS (SELECT 1 FROM nodes AS nodes_1 WHERE nodes.id = nodes_1.parent_id))"
-        #)
+        # needs autoaliasing
+        self._test(
+            Node.children==None, 
+            "NOT (EXISTS (SELECT 1 FROM nodes AS nodes_1 WHERE nodes.id = nodes_1.parent_id))"
+        )
         
         self._test(
             Node.parent==None,
@@ -362,44 +375,27 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
             "nodes_1.parent_id IS NULL"
         )
 
-        # fails, needs autoaliasing
-        #self._test(
-        #    Node.children==[Node(id=1), Node(id=2)],
-        #    "(EXISTS (SELECT 1 FROM nodes AS nodes_1 WHERE nodes.id = nodes_1.parent_id AND nodes_1.id = :id_1)) "
-        #    "AND (EXISTS (SELECT 1 FROM nodes AS nodes_1 WHERE nodes.id = nodes_1.parent_id AND nodes_1.id = :id_2))"
-        #)
-
-        # fails, overaliases
-        #self._test(
-        #    nalias.children==[Node(id=1), Node(id=2)],
-        #    "(EXISTS (SELECT 1 FROM nodes AS nodes_1 WHERE nodes.id = nodes_1.parent_id AND nodes_1.id = :id_1)) "
-        #    "AND (EXISTS (SELECT 1 FROM nodes AS nodes_1 WHERE nodes.id = nodes_1.parent_id AND nodes_1.id = :id_2))"
-        #)
+        self._test(
+            nalias.children==None, 
+            "NOT (EXISTS (SELECT 1 FROM nodes WHERE nodes_1.id = nodes.parent_id))"
+        )
         
-        # fails, overaliases
-        #self._test(
-        #    nalias.children==None, 
-        #    "NOT (EXISTS (SELECT 1 FROM nodes AS nodes WHERE nodes_1.id = nodes.parent_id))"
-        #)
+        self._test(
+                nalias.children.any(Node.data=='some data'), 
+                "EXISTS (SELECT 1 FROM nodes WHERE "
+                "nodes_1.id = nodes.parent_id AND nodes.data = :data_1)")
         
-        # fails
-        #self._test(
-        #        nalias.children.any(Node.data=='some data'), 
-        #        "EXISTS (SELECT 1 FROM nodes WHERE "
-        #        "nodes_1.id = nodes.parent_id AND nodes.data = :data_1)")
-        
-        # fails
+        # fails, but I think I want this to fail
         #self._test(
         #        Node.children.any(nalias.data=='some data'), 
         #        "EXISTS (SELECT 1 FROM nodes AS nodes_1 WHERE "
         #        "nodes.id = nodes_1.parent_id AND nodes_1.data = :data_1)"
         #        )
 
-        # fails, overaliases
-        #self._test(
-        #    nalias.parent.has(Node.data=='some data'), 
-        #   "EXISTS (SELECT 1 FROM nodes WHERE nodes.id = nodes_1.parent_id AND nodes.data = :data_1)"
-        #)
+        self._test(
+            nalias.parent.has(Node.data=='some data'), 
+           "EXISTS (SELECT 1 FROM nodes WHERE nodes.id = nodes_1.parent_id AND nodes.data = :data_1)"
+        )
 
         self._test(
             Node.parent.has(Node.data=='some data'), 
@@ -416,12 +412,10 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
             ":param_1 = nodes_1.parent_id"
         )
 
-        # fails
-        # (also why are we doing an EXISTS for this??)
-        #self._test(
-        #    nalias.parent != Node(id=7), 
-        #    'NOT (EXISTS (SELECT 1 FROM nodes WHERE nodes.id = nodes_1.parent_id AND nodes.id = :id_1))'
-        #)
+        self._test(
+            nalias.parent != Node(id=7), 
+            'nodes_1.parent_id != :parent_id_1 OR nodes_1.parent_id IS NULL'
+        )
         
         self._test(
             nalias.children.contains(Node(id=7)), "nodes_1.id = :param_1"
@@ -441,8 +435,7 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
     def test_selfref_between(self):
         ualias = aliased(User)
         self._test(User.id.between(ualias.id, ualias.id), "users.id BETWEEN users_1.id AND users_1.id")
-        # fails:
-        # self._test(ualias.id.between(User.id, User.id), "users_1.id BETWEEN users.id AND users.id")
+        self._test(ualias.id.between(User.id, User.id), "users_1.id BETWEEN users.id AND users.id")
 
     def test_clauses(self):
         for (expr, compare) in (
@@ -559,6 +552,31 @@ class TextTest(QueryTest):
     def test_binds(self):
         assert [User(id=8), User(id=9)] == create_session().query(User).filter("id in (:id1, :id2)").params(id1=8, id2=9).all()
 
+
+class FooTest(FixtureTest):
+    keep_data = True
+        
+    def test_filter_by(self):
+        clear_mappers()
+        sess = create_session(bind=testing.db)
+        from sqlalchemy.ext.declarative import declarative_base
+        Base = declarative_base(bind=testing.db)
+        class User(Base, _base.ComparableEntity):
+            __table__ = users
+        
+        class Address(Base, _base.ComparableEntity):
+            __table__ = addresses
+
+        compile_mappers()
+#        Address.user = relation(User, primaryjoin="User.id==Address.user_id")
+        Address.user = relation(User, primaryjoin=User.id==Address.user_id)
+#        Address.user = relation(User, primaryjoin=users.c.id==addresses.c.user_id)
+        compile_mappers()
+#        Address.user.property.primaryjoin = User.id==Address.user_id
+        user = sess.query(User).get(8)
+        print sess.query(Address).filter_by(user=user).all()
+        assert [Address(id=2), Address(id=3), Address(id=4)] == sess.query(Address).filter_by(user=user).all()
+    
 class FilterTest(QueryTest):
     def test_basic(self):
         assert [User(id=7), User(id=8), User(id=9),User(id=10)] == create_session().query(User).all()
@@ -911,7 +929,17 @@ class JoinTest(QueryTest):
             sess.query(User).join([('orders', orderalias), ('items', itemalias)]).filter(orderalias.user_id==9).filter(itemalias.description=='item 4').all(),
             []
         )
-
+    
+    def test_multiple_with_aliases(self):
+        sess = create_session()
+        
+        ualias = aliased(User)
+        oalias1 = aliased(Order)
+        oalias2 = aliased(Order)
+        result = sess.query(ualias).join((oalias1, ualias.orders), (oalias2, ualias.orders)).\
+                filter(or_(oalias1.user_id==9, oalias2.user_id==7)).all()
+        self.assertEquals(result, [User(id=7,name=u'jack'), User(id=9,name=u'fred')])
+        
     def test_orderby_arg_bug(self):
         sess = create_session()
         # no arg error
@@ -966,6 +994,24 @@ class JoinTest(QueryTest):
             [('jack',)]
         )
 
+        # explicit onclause with from_self(), means
+        # the onclause must be aliased against the query's custom
+        # FROM object
+        self.assertEquals(
+            sess.query(User).offset(2).from_self().join(
+                (Order, User.id==Order.user_id)
+            ).all(),
+            [User(name='fred')]
+        )
+
+        # same with an explicit select_from()
+        self.assertEquals(
+            sess.query(User).select_from(select([users]).offset(2).alias()).join(
+                (Order, User.id==Order.user_id)
+            ).all(),
+            [User(name='fred')]
+        )
+        
         
     def test_aliased_classes(self):
         sess = create_session()
@@ -982,7 +1028,7 @@ class JoinTest(QueryTest):
         q = sess.query(User)
         AdAlias = aliased(Address)
         q = q.add_entity(AdAlias).select_from(outerjoin(User, AdAlias))
-        l = q.all()
+        l = q.order_by(User.id, AdAlias.id).all()
         self.assertEquals(l, expected)
 
         sess.clear()
@@ -1106,12 +1152,12 @@ class JoinTest(QueryTest):
         assert q.count() == 1
         assert [User(id=7)] == q.all()
 
-
         # test the control version - same joins but not aliased.  rows are not returned because order 3 does not have item 1
         q = sess.query(User).join('orders').filter(Order.description=="order 3").join(['orders', 'items']).filter(Item.description=="item 1")
         assert [] == q.all()
         assert q.count() == 0
 
+        # the left half of the join condition of the any() is aliased.
         q = sess.query(User).join('orders', aliased=True).filter(Order.items.any(Item.description=='item 4'))
         assert [User(id=7)] == q.all()
         
@@ -1263,7 +1309,7 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
         adalias = addresses.alias()
         q = sess.query(User).select_from(users.outerjoin(adalias)).options(contains_eager(User.addresses, alias=adalias))
         def go():
-            assert fixtures.user_address_result == q.all()
+            self.assertEquals(fixtures.user_address_result, q.order_by(User.id).all())
         self.assert_sql_count(testing.db, go, 1)
         sess.clear()
 
@@ -1341,7 +1387,7 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
         ialias = aliased(Item)
         def go():
             l = q.options(contains_eager(User.orders, alias=oalias), contains_eager(User.orders, Order.items, alias=ialias)).\
-                outerjoin((oalias, User.orders), (ialias, Order.items)).order_by(User.id, oalias.id, ialias.id)
+                outerjoin((oalias, User.orders), (ialias, oalias.items)).order_by(User.id, oalias.id, ialias.id)
             assert fixtures.user_order_result == l.all()
         self.assert_sql_count(testing.db, go, 1)
         sess.clear()
@@ -1659,7 +1705,7 @@ class MixedEntitiesTest(QueryTest):
         q = sess.query(User)
         adalias = addresses.alias('adalias')
         q = q.add_entity(Address, alias=adalias).select_from(users.outerjoin(adalias))
-        l = q.all()
+        l = q.order_by(User.id, adalias.c.id).all()
         assert l == expected
 
         sess.clear()
@@ -1800,10 +1846,30 @@ class ImmediateTest(_fixtures.FixtureTest):
         self.assertRaises(sa.orm.exc.MultipleResultsFound,
                           sess.query(User, Address).join(User.addresses).one)
 
-
     @testing.future
     def test_getslice(self):
         assert False
+
+    @testing.resolve_artifact_names
+    def test_scalar(self):
+        sess = create_session()
+
+        eq_(sess.query(User.id).filter_by(id=7).scalar(), 7)
+        eq_(sess.query(User.id, User.name).filter_by(id=7).scalar(), 7)
+        eq_(sess.query(User.id).filter_by(id=0).scalar(), None)
+        eq_(sess.query(User).filter_by(id=7).scalar(),
+            sess.query(User).filter_by(id=7).one())
+
+    @testing.resolve_artifact_names
+    def test_value(self):
+        sess = create_session()
+
+        eq_(sess.query(User).filter_by(id=7).value(User.id), 7)
+        eq_(sess.query(User.id, User.name).filter_by(id=7).value(User.id), 7)
+        eq_(sess.query(User).filter_by(id=0).value(User.id), None)
+
+        sess.bind = sa.testing.db
+        eq_(sess.query().value(sa.literal_column('1').label('x')), 1)
 
 
 class SelectFromTest(QueryTest):
@@ -2277,7 +2343,6 @@ class ExternalColumnsTest(QueryTest):
             Address(id=4, user=User(id=8, concat=16, count=3)),
             Address(id=5, user=User(id=9, concat=18, count=1))
         ]
-
         self.assertEquals(sess.query(Address).all(), address_result)
 
         # run the eager version twice to test caching of aliased clauses
@@ -2294,7 +2359,7 @@ class ExternalColumnsTest(QueryTest):
         )
 
         self.assertEquals(
-                sess.query(Address, ualias.count).join(('user', ualias)).join('user', aliased=True).all(),
+                sess.query(Address, ualias.count).join(('user', ualias)).join('user', aliased=True).order_by(Address.id).all(),
                 [
                     (Address(id=1), 1),
                     (Address(id=2), 3),
@@ -2304,7 +2369,7 @@ class ExternalColumnsTest(QueryTest):
                 ]
             )
 
-        self.assertEquals(sess.query(Address, ualias.concat, ualias.count).join(('user', ualias)).join('user', aliased=True).all(),
+        self.assertEquals(sess.query(Address, ualias.concat, ualias.count).join(('user', ualias)).join('user', aliased=True).order_by(Address.id).all(),
             [
                 (Address(id=1), 14, 1),
                 (Address(id=2), 16, 3),
