@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.types</title>
+	<title>SQLAlchemy 0.5 Documentation - module sqlalchemy.types</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.4 Documentation</h1>
+<h1>SQLAlchemy 0.5 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
+<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
 
 
 
@@ -353,6 +353,8 @@ can be considered 'not changed' by identity alone.</p>
     <h3>class BLOB(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Binary">Binary</a>)</h3>
     
     
+    <div class="darkcell"><p>The SQL BLOB type.</p>
+</div>
     
 
 
@@ -375,6 +377,8 @@ can be considered 'not changed' by identity alone.</p>
     <h3>class BOOLEAN(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Boolean">Boolean</a>)</h3>
     
     
+    <div class="darkcell"><p>The SQL BOOLEAN type.</p>
+</div>
     
 
 
@@ -482,6 +486,8 @@ can be considered 'not changed' by identity alone.</p>
     <h3>class CHAR(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_String">String</a>)</h3>
     
     
+    <div class="darkcell"><p>The SQL CHAR type.</p>
+</div>
     
 
 
@@ -504,6 +510,8 @@ can be considered 'not changed' by identity alone.</p>
     <h3>class CLOB(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Text">Text</a>)</h3>
     
     
+    <div class="darkcell"><p>The SQL CLOB type.</p>
+</div>
     
 
 
@@ -526,6 +534,8 @@ can be considered 'not changed' by identity alone.</p>
     <h3>class DATE(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Date">Date</a>)</h3>
     
     
+    <div class="darkcell"><p>The SQL DATE type.</p>
+</div>
     
 
 
@@ -548,6 +558,8 @@ can be considered 'not changed' by identity alone.</p>
     <h3>class DATETIME(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_DateTime">DateTime</a>)</h3>
     
     
+    <div class="darkcell"><p>The SQL DATETIME type.</p>
+</div>
     
 
 
@@ -570,6 +582,8 @@ can be considered 'not changed' by identity alone.</p>
     <h3>class DECIMAL(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Numeric">Numeric</a>)</h3>
     
     
+    <div class="darkcell"><p>The SQL DECIMAL type.</p>
+</div>
     
 
 
@@ -681,6 +695,8 @@ can be considered 'not changed' by identity alone.</p>
     <h3>class FLOAT(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Float">Float</a>)</h3>
     
     
+    <div class="darkcell"><p>The SQL FLOAT type.</p>
+</div>
     
 
 
@@ -746,6 +762,8 @@ can be considered 'not changed' by identity alone.</p>
     <h3>class INT(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Integer">Integer</a>)</h3>
     
     
+    <div class="darkcell"><p>The SQL INT or INTEGER type.</p>
+</div>
     
 
 
@@ -874,6 +892,8 @@ and result_processor to actual conversion code</p>
     <h3>class NCHAR(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Unicode">Unicode</a>)</h3>
     
     
+    <div class="darkcell"><p>The SQL NCHAR type.</p>
+</div>
     
 
 
@@ -896,6 +916,8 @@ and result_processor to actual conversion code</p>
     <h3>class NUMERIC(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Numeric">Numeric</a>)</h3>
     
     
+    <div class="darkcell"><p>The SQL NUMERIC type.</p>
+</div>
     
 
 
@@ -1076,6 +1098,8 @@ and result_processor to actual conversion code</p>
     <h3>class SMALLINT(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_SmallInteger">SmallInteger</a>)</h3>
     
     
+    <div class="darkcell"><p>The SQL SMALLINT type.</p>
+</div>
     
 
 
@@ -1123,11 +1147,12 @@ and result_processor to actual conversion code</p>
     
     
     <div class="darkcell"><p>A sized string type.</p>
-<p>Usually corresponds to VARCHAR.  Can also take Python unicode objects
+<p>In SQL, corresponds to VARCHAR.  Can also take Python unicode objects
 and encode to the database's encoding in bind params (and the reverse for
 result sets.)</p>
-<p>a String with no length will adapt itself automatically to a Text
-object at the dialect level (this behavior is deprecated in 0.4).</p>
+<p>The <cite>length</cite> field is usually required when the <cite>String</cite> type is used within a
+CREATE TABLE statement, since VARCHAR requires a length on most databases.
+Currently SQLite is an exception to this.</p>
 </div>
     
 
@@ -1166,27 +1191,7 @@ object at the dialect level (this behavior is deprecated in 0.4).</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def dialect_impl(<i>self</i>, <i>dialect</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def get_dbapi_type(<i>self</i>, <i>dbapi</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def get_search_list(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1222,6 +1227,8 @@ object at the dialect level (this behavior is deprecated in 0.4).</p>
     <h3>class TIME(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Time">Time</a>)</h3>
     
     
+    <div class="darkcell"><p>The SQL TIME type.</p>
+</div>
     
 
 
@@ -1244,6 +1251,8 @@ object at the dialect level (this behavior is deprecated in 0.4).</p>
     <h3>class TIMESTAMP(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_DateTime">DateTime</a>)</h3>
     
     
+    <div class="darkcell"><p>The SQL TIMESTAMP type.</p>
+</div>
     
 
 
@@ -1692,6 +1701,8 @@ when adapting this type to a dialect-specific type.</p>
     <h3>class VARCHAR(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_String">String</a>)</h3>
     
     
+    <div class="darkcell"><p>The SQL VARCHAR type.</p>
+</div>
     
 
 

@@ -1,7 +1,7 @@
 import testenv; testenv.configure_for_tests()
 from sqlalchemy import *
 from sqlalchemy.databases import firebird
-from sqlalchemy.exceptions import ProgrammingError
+from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.sql import table, column
 from testlib import *
 
@@ -56,11 +56,11 @@ class DomainReflectionTest(TestBase, AssertsExecutionResults):
         self.assertEquals(table.c.question.primary_key, True)
         self.assertEquals(table.c.question.sequence.name, 'gen_testtable_id')
         self.assertEquals(table.c.question.type.__class__, firebird.FBInteger)
-        self.assertEquals(table.c.question.default.arg.text, "42")
+        self.assertEquals(table.c.question.server_default.arg.text, "42")
         self.assertEquals(table.c.answer.type.__class__, firebird.FBString)
-        self.assertEquals(table.c.answer.default.arg.text, "'no answer'")
+        self.assertEquals(table.c.answer.server_default.arg.text, "'no answer'")
         self.assertEquals(table.c.remark.type.__class__, firebird.FBText)
-        self.assertEquals(table.c.remark.default.arg.text, "''")
+        self.assertEquals(table.c.remark.server_default.arg.text, "''")
         self.assertEquals(table.c.photo.type.__class__, firebird.FBBinary)
         # The following assume a Dialect 3 database
         self.assertEquals(table.c.d.type.__class__, firebird.FBDate)
@@ -89,8 +89,114 @@ class CompileTest(TestBase, AssertsCompiledSQL):
         self.assert_compile(func.substring('abc', 1, 2), "SUBSTRING(:substring_1 FROM :substring_2 FOR :substring_3)")
         self.assert_compile(func.substring('abc', 1), "SUBSTRING(:substring_1 FROM :substring_2)")
 
-class MiscFBTests(TestBase):
+    def test_update_returning(self):
+        table1 = table('mytable',
+            column('myid', Integer),
+            column('name', String(128)),
+            column('description', String(128)),
+        )
 
+        u = update(table1, values=dict(name='foo'), firebird_returning=[table1.c.myid, table1.c.name])
+        self.assert_compile(u, "UPDATE mytable SET name=:name RETURNING mytable.myid, mytable.name")
+
+        u = update(table1, values=dict(name='foo'), firebird_returning=[table1])
+        self.assert_compile(u, "UPDATE mytable SET name=:name "\
+            "RETURNING mytable.myid, mytable.name, mytable.description")
+
+        u = update(table1, values=dict(name='foo'), firebird_returning=[func.length(table1.c.name)])
+        self.assert_compile(u, "UPDATE mytable SET name=:name RETURNING char_length(mytable.name)")
+
+    def test_insert_returning(self):
+        table1 = table('mytable',
+            column('myid', Integer),
+            column('name', String(128)),
+            column('description', String(128)),
+        )
+
+        i = insert(table1, values=dict(name='foo'), firebird_returning=[table1.c.myid, table1.c.name])
+        self.assert_compile(i, "INSERT INTO mytable (name) VALUES (:name) RETURNING mytable.myid, mytable.name")
+
+        i = insert(table1, values=dict(name='foo'), firebird_returning=[table1])
+        self.assert_compile(i, "INSERT INTO mytable (name) VALUES (:name) "\
+            "RETURNING mytable.myid, mytable.name, mytable.description")
+
+        i = insert(table1, values=dict(name='foo'), firebird_returning=[func.length(table1.c.name)])
+        self.assert_compile(i, "INSERT INTO mytable (name) VALUES (:name) RETURNING char_length(mytable.name)")
+
+
+class ReturningTest(TestBase, AssertsExecutionResults):
+    __only_on__ = 'firebird'
+
+    @testing.exclude('firebird', '<', (2, 1), '2.1+ feature')
+    def test_update_returning(self):
+        meta = MetaData(testing.db)
+        table = Table('tables', meta,
+            Column('id', Integer, Sequence('gen_tables_id'), primary_key=True),
+            Column('persons', Integer),
+            Column('full', Boolean)
+        )
+        table.create()
+        try:
+            table.insert().execute([{'persons': 5, 'full': False}, {'persons': 3, 'full': False}])
+
+            result = table.update(table.c.persons > 4, dict(full=True), firebird_returning=[table.c.id]).execute()
+            self.assertEqual(result.fetchall(), [(1,)])
+
+            result2 = select([table.c.id, table.c.full]).order_by(table.c.id).execute()
+            self.assertEqual(result2.fetchall(), [(1,True),(2,False)])
+        finally:
+            table.drop()
+
+    @testing.exclude('firebird', '<', (2, 0), '2.0+ feature')
+    def test_insert_returning(self):
+        meta = MetaData(testing.db)
+        table = Table('tables', meta,
+            Column('id', Integer, Sequence('gen_tables_id'), primary_key=True),
+            Column('persons', Integer),
+            Column('full', Boolean)
+        )
+        table.create()
+        try:
+            result = table.insert(firebird_returning=[table.c.id]).execute({'persons': 1, 'full': False})
+
+            self.assertEqual(result.fetchall(), [(1,)])
+
+            # Multiple inserts only return the last row
+            result2 = table.insert(firebird_returning=[table]).execute(
+                 [{'persons': 2, 'full': False}, {'persons': 3, 'full': True}])
+
+            self.assertEqual(result2.fetchall(), [(3,3,True)])
+
+            result3 = table.insert(firebird_returning=[table.c.id]).execute({'persons': 4, 'full': False})
+            self.assertEqual([dict(row) for row in result3], [{'ID':4}])
+
+            result4 = testing.db.execute('insert into tables (id, persons, "full") values (5, 10, 1) returning persons')
+            self.assertEqual([dict(row) for row in result4], [{'PERSONS': 10}])
+        finally:
+            table.drop()
+
+    @testing.exclude('firebird', '<', (2, 1), '2.1+ feature')
+    def test_delete_returning(self):
+        meta = MetaData(testing.db)
+        table = Table('tables', meta,
+            Column('id', Integer, Sequence('gen_tables_id'), primary_key=True),
+            Column('persons', Integer),
+            Column('full', Boolean)
+        )
+        table.create()
+        try:
+            table.insert().execute([{'persons': 5, 'full': False}, {'persons': 3, 'full': False}])
+
+            result = table.delete(table.c.persons > 4, firebird_returning=[table.c.id]).execute()
+            self.assertEqual(result.fetchall(), [(1,)])
+
+            result2 = select([table.c.id, table.c.full]).order_by(table.c.id).execute()
+            self.assertEqual(result2.fetchall(), [(2,False),])
+        finally:
+            table.drop()
+
+
+class MiscFBTests(TestBase):
     __only_on__ = 'firebird'
 
     def test_strlen(self):
@@ -116,6 +222,7 @@ class MiscFBTests(TestBase):
     def test_server_version_info(self):
         version = testing.db.dialect.server_version_info(testing.db.connect())
         assert len(version) == 3, "Got strange version info: %s" % repr(version)
+
 
 if __name__ == '__main__':
     testenv.main()

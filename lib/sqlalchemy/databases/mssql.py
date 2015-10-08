@@ -37,10 +37,9 @@ Known issues / TODO:
   does **not** work around
 
 """
-
 import datetime, operator, re, sys
 
-from sqlalchemy import sql, schema, exceptions, util
+from sqlalchemy import sql, schema, exc, util
 from sqlalchemy.sql import compiler, expression, operators as sqlops, functions as sql_functions
 from sqlalchemy.engine import default, base
 from sqlalchemy import types as sqltypes
@@ -115,7 +114,7 @@ class MSDateTime(sqltypes.DateTime):
 
 class MSSmallDate(sqltypes.Date):
     def __init__(self, *a, **kw):
-        super(MSSmallDate, self).__init__(False)
+        super(MSDate, self).__init__(False)
 
     def get_col_spec(self):
         return "SMALLDATETIME"
@@ -440,7 +439,7 @@ class MSSQLDialect(default.DefaultDialect):
                 dialect_cls = dialect_mapping[module_name]
                 return dialect_cls.import_dbapi()
             except KeyError:
-                raise exceptions.InvalidRequestError("Unsupported MSSQL module '%s' requested (must be adodbpi, pymssql or pyodbc)" % module_name)
+                raise exc.InvalidRequestError("Unsupported MSSQL module '%s' requested (must be adodbpi, pymssql or pyodbc)" % module_name)
         else:
             for dialect_cls in [MSSQLDialect_pyodbc, MSSQLDialect_pymssql, MSSQLDialect_adodbapi]:
                 try:
@@ -512,7 +511,7 @@ class MSSQLDialect(default.DefaultDialect):
             self.context.rowcount = c.rowcount
             c.DBPROP_COMMITPRESERVE = "Y"
         except Exception, e:
-            raise exceptions.DBAPIError.instance(statement, parameters, e)
+            raise exc.DBAPIError.instance(statement, parameters, e)
 
     def table_names(self, connection, schema):
         from sqlalchemy.databases import information_schema as ischema
@@ -602,14 +601,14 @@ class MSSQLDialect(default.DefaultDialect):
                 elif coltype in (MSNVarchar, AdoMSNVarchar) and charlen == -1:
                     args[0] = None
                 coltype = coltype(*args)
-            colargs= []
+            colargs = []
             if default is not None:
-                colargs.append(schema.PassiveDefault(sql.text(default)))
+                colargs.append(schema.DefaultClause(sql.text(default)))
 
             table.append_column(schema.Column(name, coltype, nullable=nullable, autoincrement=False, *colargs))
 
         if not found_table:
-            raise exceptions.NoSuchTableError(table.name)
+            raise exc.NoSuchTableError(table.name)
 
         # We also run an sp_columns to check for identity columns:
         cursor = connection.execute("sp_columns @table_name = '%s', @table_owner = '%s'" % (table.name, current_schema))
@@ -633,8 +632,8 @@ class MSSQLDialect(default.DefaultDialect):
                 row = cursor.fetchone()
                 cursor.close()
                 if not row is None:
-                    ic.sequence.start=int(row[0])
-                    ic.sequence.increment=int(row[1])
+                    ic.sequence.start = int(row[0])
+                    ic.sequence.increment = int(row[1])
             except:
                 # ignoring it, works just like before
                 pass
@@ -684,13 +683,15 @@ class MSSQLDialect(default.DefaultDialect):
                 
             if rfknm != fknm:
                 if fknm:
-                    table.append_constraint(schema.ForeignKeyConstraint(scols, [_gen_fkref(table,s,t,c) for s,t,c in rcols], fknm))
+                    table.append_constraint(schema.ForeignKeyConstraint(scols, [_gen_fkref(table, s, t, c) for s, t, c in rcols], fknm))
                 fknm, scols, rcols = (rfknm, [], [])
-            if (not scol in scols): scols.append(scol)
-            if (not (rschema, rtbl, rcol) in rcols): rcols.append((rschema, rtbl, rcol))
+            if not scol in scols:
+                scols.append(scol)
+            if not (rschema, rtbl, rcol) in rcols:
+                rcols.append((rschema, rtbl, rcol))
 
         if fknm and scols:
-            table.append_constraint(schema.ForeignKeyConstraint(scols, [_gen_fkref(table,s,t,c) for s,t,c in rcols], fknm))
+            table.append_constraint(schema.ForeignKeyConstraint(scols, [_gen_fkref(table, s, t, c) for s, t, c in rcols], fknm))
 
 
 class MSSQLDialect_pymssql(MSSQLDialect):
@@ -895,7 +896,7 @@ class MSSQLCompiler(compiler.DefaultCompiler):
             if select._limit:
                 s += "TOP %s " % (select._limit,)
             if select._offset:
-                raise exceptions.InvalidRequestError('MSSQL does not support LIMIT with an offset')
+                raise exc.InvalidRequestError('MSSQL does not support LIMIT with an offset')
             return s
         return compiler.DefaultCompiler.get_select_precolumns(self, select)
 
@@ -1005,7 +1006,7 @@ class MSSQLCompiler(compiler.DefaultCompiler):
 
 class MSSQLSchemaGenerator(compiler.SchemaGenerator):
     def get_column_specification(self, column, **kwargs):
-        colspec = self.preparer.format_column(column) + " " + column.type.dialect_impl(self.dialect, _for_ddl=column).get_col_spec()
+        colspec = self.preparer.format_column(column) + " " + column.type.dialect_impl(self.dialect).get_col_spec()
 
         # install a IDENTITY Sequence if we have an implicit IDENTITY column
         if (not getattr(column.table, 'has_sequence', False)) and column.primary_key and \
@@ -1030,7 +1031,7 @@ class MSSQLSchemaDropper(compiler.SchemaDropper):
     def visit_index(self, index):
         self.append("\nDROP INDEX %s.%s" % (
             self.preparer.quote_identifier(index.table.name),
-            self.preparer.quote(index, self._validate_identifier(index.name, False))
+            self.preparer.quote_identifier(index.name)
             ))
         self.execute()
 

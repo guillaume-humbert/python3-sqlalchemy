@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.4 Documentation - Overview / Installation</title>
+	<title>SQLAlchemy 0.5 Documentation - Overview / Installation</title>
 	
     <link rel="stylesheet" href="style.css"></link>
     <link rel="stylesheet" href="docs.css"></link>
@@ -23,11 +23,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.4 Documentation</h1>
+<h1>SQLAlchemy 0.5 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
+<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
 
 
 
@@ -82,38 +82,8 @@
 
 	        </li>
         
-        <li><a style="" href="intro.html#overview_migration">0.3 to 0.4 Migration</a></li>
+        <li><a style="" href="intro.html#overview_migration">0.4 to 0.5 Migration</a></li>
 
-	        <li>
-                
-    <ul>
-        
-        <li><a style="" href="intro.html#overview_migration_imports">ORM Package is now sqlalchemy.orm</a></li>
-
-        
-        <li><a style="" href="intro.html#overview_migration_metadata">BoundMetaData is now MetaData</a></li>
-
-        
-        <li><a style="" href="intro.html#overview_migration_global">"Magic" Global MetaData removed</a></li>
-
-        
-        <li><a style="" href="intro.html#overview_migration_generative">Some existing select() methods become generative</a></li>
-
-        
-        <li><a style="" href="intro.html#overview_migration_collection">collection_class behavior is changed</a></li>
-
-        
-        <li><a style="" href="intro.html#overview_migration_bind">All "engine", "bind_to", "connectable" Keyword Arguments Changed to "bind"</a></li>
-
-        
-        <li><a style="" href="intro.html#overview_migration_type">All "type" Keyword Arguments Changed to "type_"</a></li>
-
-        
-        <li><a style="" href="intro.html#overview_migration_mapper">Mapper Extensions must return EXT_CONTINUE to continue execution to the next mapper</a></li>
-
-    </ul>
-
-	        </li>
     </ul>
 
 	</div>
@@ -302,7 +272,7 @@
  </li>
 
  <li>
-     MS-SQL:  <a href='http://pyodbc.sourceforge.net/'>pyodbc</a> (recommended), <a href='http://adodbapi.sourceforge.net/'>adodbapi</a>  or <a href='http://pymssql.sourceforge.net/'>pymssql</a>
+     MS-SQL, MSAccess:  <a href='http://pyodbc.sourceforge.net/'>pyodbc</a> (recommended), <a href='http://adodbapi.sourceforge.net/'>adodbapi</a>  or <a href='http://pymssql.sourceforge.net/'>pymssql</a>
  </li>
 
  <li>
@@ -311,6 +281,18 @@
 
  <li>
      Informix:  <a href='http://informixdb.sourceforge.net/'>informixdb</a>
+ </li>
+
+ <li>
+     DB2/Informix IDS: <a href='http://code.google.com/p/ibm-db/'>ibm-db</a>
+ </li>
+
+ <li>
+     Sybase:   TODO
+ </li>
+
+ <li>
+     MAXDB:    TODO
  </li>
 </ul>
 
@@ -330,7 +312,7 @@
     
     
 
-<p>This documentation covers SQLAlchemy version 0.4.  If you're working on a system that already has SQLAlchemy installed, check the version from your Python prompt like this:
+<p>This documentation covers SQLAlchemy version 0.5.  If you're working on a system that already has SQLAlchemy installed, check the version from your Python prompt like this:
 </p>
 
     
@@ -339,7 +321,7 @@
         <pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">
 </span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">__version__ </span><span class="python_operator">
-</span><span class="python_number">0.4.0</span><span class="python_operator">
+</span><span class="python_number">0.5.0</span><span class="python_operator">
 </span></pre>
     </div>
 
@@ -360,255 +342,17 @@
     
     <div class="sectionL2">
 
-    <h3>0.3 to 0.4 Migration</h3>
+    <h3>0.4 to 0.5 Migration</h3>
     
     
 
-<p>From version 0.3 to version 0.4 of SQLAlchemy, some conventions have changed.  Most of these conventions are available in the most recent releases of the 0.3 series starting with version 0.3.9, so that you can make a 0.3 application compatible with 0.4 in most cases.
-</p>
-<p>This section will detail only those things that have changed in a backwards-incompatible manner.  For a full overview of everything that's new and changed, see <a href='http://www.sqlalchemy.org/trac/wiki/WhatsNewIn04'>WhatsNewIn04</a>.
-</p>
-
-
-    
-    <A name="overview_migration_imports"></a>
-    
-    <div class="sectionL3">
-
-    <h3>ORM Package is now sqlalchemy.orm</h3>
-    
-    
-
-<p>All symbols related to the SQLAlchemy Object Relational Mapper, i.e. names like <code>mapper()</code>, <code>relation()</code>, <code>backref()</code>, <code>create_session()</code> <code>synonym()</code>, <code>eagerload()</code>, etc. are now only in the <code>sqlalchemy.orm</code> package, and <strong>not</strong> in <code>sqlalchemy</code>.  So if you were previously importing everything on an asterisk:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_keyword">from </span><span class="python_name">sqlalchemy </span><span class="python_keyword">import </span><span class="python_operator">*
-</span></pre>
-    </div>
-<p>You should now import separately from orm:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_keyword">from </span><span class="python_name">sqlalchemy </span><span class="python_keyword">import </span><span class="python_operator">*
-</span><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">orm </span><span class="python_keyword">import </span><span class="python_operator">*
-</span></pre>
-    </div>
-<p>Or more commonly, just pull in the names you'll need:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_keyword">from </span><span class="python_name">sqlalchemy </span><span class="python_keyword">import </span><span class="python_name">create_engine</span><span class="python_operator">, </span><span class="python_name">MetaData</span><span class="python_operator">, </span><span class="python_name">Table</span><span class="python_operator">, </span><span class="python_name">Column</span><span class="python_operator">, </span><span class="python_name">types</span><span class="python_operator">
-</span><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">orm </span><span class="python_keyword">import </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">relation</span><span class="python_operator">, </span><span class="python_name">backref</span><span class="python_operator">, </span><span class="python_name">create_session</span><span class="python_operator">
-</span></pre>
-    </div>
-
-
-
-            <a href="#top" class="totoc">back to section top</a>
-    </div>
-
-
-
-    
-    <A name="overview_migration_metadata"></a>
-    
-    <div class="sectionL3">
-
-    <h3>BoundMetaData is now MetaData</h3>
-    
-    
-
-<p>The <code>BoundMetaData</code> name is removed.  Now, you just use <code>MetaData</code>.  Additionally, the <code>engine</code> parameter/attribute is now called <code>bind</code>, and <code>connect()</code> is deprecated:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_comment"># plain metadata
-</span><span class="python_name">meta </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">()</span><span class="python_operator">
-</span>
-<span class="python_comment"># metadata bound to an engine
-</span><span class="python_name">meta </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># bind metadata to an engine later
-</span><span class="python_name">meta</span><span class="python_operator">.</span><span class="python_name">bind </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">
-</span></pre>
-    </div>
-<p>Additionally, <code>DynamicMetaData</code> is now known as <code>ThreadLocalMetaData</code>.
-</p>
-
-
-
-            <a href="#top" class="totoc">back to section top</a>
-    </div>
-
-
-
-    
-    <A name="overview_migration_global"></a>
-    
-    <div class="sectionL3">
-
-    <h3>"Magic" Global MetaData removed</h3>
-    
-    
-
-<p>There was an old way to specify <code>Table</code> objects using an implicit, global <code>MetaData</code> object.  To do this you'd omit the second positional argument, and specify <code>Table('tablename', Column(...))</code>.  This no longer exists in 0.4 and the second <code>MetaData</code> positional argument is required, i.e. <code>Table('tablename', meta, Column(...))</code>.
-</p>
-
-
-
-            <a href="#top" class="totoc">back to section top</a>
-    </div>
-
-
-
-    
-    <A name="overview_migration_generative"></a>
-    
-    <div class="sectionL3">
-
-    <h3>Some existing select() methods become generative</h3>
-    
-    
-
-<p>The methods <code>correlate()</code>, <code>order_by()</code>, and <code>group_by()</code> on the <code>select()</code> construct now return a <strong>new</strong> select object, and do not change the original one.  Additionally, the generative methods <code>where()</code>, <code>column()</code>, <code>distinct()</code>, and several others have been added:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">table</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">order_by</span><span class="python_enclosure">(</span><span class="python_name">table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">where</span><span class="python_enclosure">(</span><span class="python_name">table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">x</span><span class="python_operator">==</span><span class="python_number">7</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">s</span><span class="python_enclosure">)</span><span class="python_operator">
-</span></pre>
-    </div>
-
-
-
-            <a href="#top" class="totoc">back to section top</a>
-    </div>
-
-
-
-    
-    <A name="overview_migration_collection"></a>
-    
-    <div class="sectionL3">
-
-    <h3>collection_class behavior is changed</h3>
-    
-    
-
-<p>If you've been using the <code>collection_class</code> option on <code>mapper()</code>, the requirements for instrumented collections have changed.  For an overview, see <a href="mappers.html#advdatamapping_relation_collections">Alternate Collection Implementations</a>.
-</p>
-
-
-
-            <a href="#top" class="totoc">back to section top</a>
-    </div>
-
-
-
-    
-    <A name="overview_migration_bind"></a>
-    
-    <div class="sectionL3">
-
-    <h3>All "engine", "bind_to", "connectable" Keyword Arguments Changed to "bind"</h3>
-    
-    
-
-<p>This is for create/drop statements, sessions, SQL constructs, metadatas:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_name">myengine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite://'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_name">meta </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">(</span><span class="python_name">myengine</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_name">meta2 </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_name">meta2</span><span class="python_operator">.</span><span class="python_name">bind </span><span class="python_operator">= </span><span class="python_name">myengine</span><span class="python_operator">
-</span>
-<span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">myengine</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_name">statement </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">table</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">myengine</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_name">meta</span><span class="python_operator">.</span><span class="python_name">create_all</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">myengine</span><span class="python_enclosure">)</span><span class="python_operator">
-</span></pre>
-    </div>
-
-
-
-            <a href="#top" class="totoc">back to section top</a>
-    </div>
-
-
-
-    
-    <A name="overview_migration_type"></a>
-    
-    <div class="sectionL3">
-
-    <h3>All "type" Keyword Arguments Changed to "type_"</h3>
-    
-    
-
-<p>This mostly applies to SQL constructs where you pass a type in:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">mytable</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">x</span><span class="python_operator">=</span><span class="python_name">bindparam</span><span class="python_enclosure">(</span><span class="python_name">y</span><span class="python_operator">, </span><span class="python_name">type_</span><span class="python_operator">=</span><span class="python_name">DateTime</span><span class="python_enclosure">))</span><span class="python_operator">
-</span>
-<span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">now</span><span class="python_enclosure">(</span><span class="python_name">type_</span><span class="python_operator">=</span><span class="python_name">DateTime</span><span class="python_enclosure">)</span><span class="python_operator">
-</span></pre>
-    </div>
-
-
-
-            <a href="#top" class="totoc">back to section top</a>
-    </div>
-
-
-
-    
-    <A name="overview_migration_mapper"></a>
-    
-    <div class="sectionL3">
-
-    <h3>Mapper Extensions must return EXT_CONTINUE to continue execution to the next mapper</h3>
-    
-    
-
-<p>If you extend the mapper, the methods in your mapper extension must return EXT_CONTINUE to continue executing additional mappers.
+<p>Notes on what's changed from 0.4 to 0.5 is available on the SQLAlchemy wiki at <a href='http://www.sqlalchemy.org/trac/wiki/05Migration'>05Migration</a>.
 </p>
 
 
 
 
             <a href="#top" class="totoc">back to section top</a>
-    </div>
-
-
-
-
     </div>
 
 

@@ -5,6 +5,11 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 import inspect
+import sys
+
+import sqlalchemy.exc as exceptions
+sys.modules['sqlalchemy.exceptions'] = exceptions
+
 from sqlalchemy.types import \
     BLOB, BOOLEAN, CHAR, CLOB, DATE, DATETIME, DECIMAL, FLOAT, INT, \
     NCHAR, NUMERIC, SMALLINT, TEXT, TIME, TIMESTAMP, VARCHAR, \
@@ -24,11 +29,13 @@ from sqlalchemy.schema import \
     MetaData, ThreadLocalMetaData, Table, Column, ForeignKey, \
     Sequence, Index, ForeignKeyConstraint, PrimaryKeyConstraint, \
     CheckConstraint, UniqueConstraint, Constraint, \
-    PassiveDefault, ColumnDefault, DDL
+    DefaultClause, FetchedValue, PassiveDefault, ColumnDefault, DDL
 
 from sqlalchemy.engine import create_engine, engine_from_config
 
 __all__ = [ name for name, obj in locals().items()
             if not (name.startswith('_') or inspect.ismodule(obj)) ]
 
-__version__ = '0.4.8'
+__version__ = '0.5.0beta1'
+
+del inspect, sys

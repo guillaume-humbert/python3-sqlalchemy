@@ -1,38 +1,47 @@
 import testenv; testenv.configure_for_tests()
 import gc
-from sqlalchemy import MetaData, Integer, String, ForeignKey
-from sqlalchemy.orm import mapper, relation, clear_mappers, create_session
-from sqlalchemy.orm.mapper import Mapper, _mapper_registry
-from sqlalchemy.orm.session import _sessions 
-from testlib import *
-from testlib.fixtures import Base
+from sqlalchemy.orm import mapper, relation, create_session, clear_mappers
+from sqlalchemy.orm.mapper import _mapper_registry
+from sqlalchemy.orm.session import _sessions
 
-class A(Base):pass
-class B(Base):pass
+from testlib import testing
+from testlib.sa import MetaData, Table, Column, Integer, String, ForeignKey
+from orm import _base
+
+
+class A(_base.ComparableEntity):
+    pass
+class B(_base.ComparableEntity):
+    pass
 
 def profile_memory(func):
     # run the test 50 times.  if length of gc.get_objects()
     # keeps growing, assert false
     def profile(*args):
-        samples = []
+        gc.collect()
+        samples = [0 for x in range(0, 50)]
         for x in range(0, 50):
             func(*args)
             gc.collect()
-            samples.append(len(gc.get_objects()))
+            samples[x] = len(gc.get_objects())
         print "sample gc sizes:", samples
 
         assert len(_sessions) == 0
-
-        # TODO: this test only finds pure "growing" tests.
-        # if a drop is detected, it's assumed that GC is able
-        # to reduce memory.  better methodology would
-        # make this more accurate.
-        for i, x in enumerate(samples):
-            if i < len(samples) - 1 and x < samples[i+1]:
-                continue
+        
+        for x in samples[-4:]:
+            if x != samples[-5]:
+                flatline = False
+                break
         else:
-            return
-        assert False, repr(samples)
+            flatline = True
+
+        if not flatline and samples[-1] > samples[0]:  # object count is bigger than when it started
+            for x in samples[1:-2]:
+                if x > samples[-1]:     # see if a spike bigger than the endpoint exists
+                    break
+            else:
+                assert False, repr(samples) + " " + repr(flatline)
+
     return profile
 
 def assert_no_mappers():
@@ -40,36 +49,47 @@ def assert_no_mappers():
     gc.collect()
     assert len(_mapper_registry) == 0
 
-class EnsureZeroed(TestBase, AssertsExecutionResults):
+class EnsureZeroed(_base.ORMTest):
     def setUp(self):
         _sessions.clear()
         _mapper_registry.clear()
-        
-class MemUsageTest(EnsureZeroed):
 
+class MemUsageTest(EnsureZeroed):
+    
+    # ensure a pure growing test trips the assertion
+    @testing.fails_if(lambda:True)
+    def test_fixture(self):
+        class Foo(object):
+            pass
+            
+        x = []
+        @profile_memory
+        def go():
+            x[-1:] = [Foo(), Foo(), Foo(), Foo(), Foo(), Foo()]
+        go()
+            
     def test_session(self):
         metadata = MetaData(testing.db)
 
         table1 = Table("mytable", metadata,
             Column('col1', Integer, primary_key=True),
-            Column('col2', String(30))
-            )
+            Column('col2', String(30)))
 
         table2 = Table("mytable2", metadata,
             Column('col1', Integer, primary_key=True),
             Column('col2', String(30)),
-            Column('col3', Integer, ForeignKey("mytable.col1"))
-            )
+            Column('col3', Integer, ForeignKey("mytable.col1")))
 
         metadata.create_all()
 
         m1 = mapper(A, table1, properties={
-            "bs":relation(B, cascade="all, delete")
-        })
+            "bs":relation(B, cascade="all, delete", order_by=table2.c.col1)},
+            order_by=table1.c.col1)
         m2 = mapper(B, table2)
 
         m3 = mapper(A, table1, non_primary=True)
 
+        @profile_memory
         def go():
             sess = create_session()
             a1 = A(col2="a1")
@@ -79,7 +99,7 @@ class MemUsageTest(EnsureZeroed):
             a1.bs.append(B(col2="b2"))
             a3.bs.append(B(col2="b3"))
             for x in [a1,a2,a3]:
-                sess.save(x)
+                sess.add(x)
             sess.flush()
             sess.clear()
 
@@ -95,7 +115,6 @@ class MemUsageTest(EnsureZeroed):
             for a in alist:
                 sess.delete(a)
             sess.flush()
-        go = profile_memory(go)
         go()
 
         metadata.drop_all()
@@ -107,18 +126,17 @@ class MemUsageTest(EnsureZeroed):
 
         table1 = Table("mytable", metadata,
             Column('col1', Integer, primary_key=True),
-            Column('col2', String(30))
-            )
+            Column('col2', String(30)))
 
         table2 = Table("mytable2", metadata,
             Column('col1', Integer, primary_key=True),
             Column('col2', String(30)),
-            Column('col3', Integer, ForeignKey("mytable.col1"))
-            )
+            Column('col3', Integer, ForeignKey("mytable.col1")))
 
+        @profile_memory
         def go():
             m1 = mapper(A, table1, properties={
-                "bs":relation(B)
+                "bs":relation(B, order_by=table2.c.col1)
             })
             m2 = mapper(B, table2)
 
@@ -132,11 +150,11 @@ class MemUsageTest(EnsureZeroed):
             a1.bs.append(B(col2="b2"))
             a3.bs.append(B(col2="b3"))
             for x in [a1,a2,a3]:
-                sess.save(x)
+                sess.add(x)
             sess.flush()
             sess.clear()
 
-            alist = sess.query(A).all()
+            alist = sess.query(A).order_by(A.col1).all()
             self.assertEquals(
                 [
                     A(col2="a1", bs=[B(col2="b1"), B(col2="b2")]),
@@ -150,7 +168,6 @@ class MemUsageTest(EnsureZeroed):
             sess.flush()
             sess.close()
             clear_mappers()
-        go = profile_memory(go)
 
         metadata.create_all()
         try:
@@ -168,18 +185,24 @@ class MemUsageTest(EnsureZeroed):
             )
 
         table2 = Table("mytable2", metadata,
-            Column('col1', Integer, ForeignKey('mytable.col1'), primary_key=True),
+            Column('col1', Integer, ForeignKey('mytable.col1'),
+                   primary_key=True),
             Column('col3', String(30)),
             )
 
+        @profile_memory
         def go():
-            class A(Base):
+            class A(_base.ComparableEntity):
                 pass
             class B(A):
                 pass
 
-            mapper(A, table1, polymorphic_on=table1.c.col2, polymorphic_identity='a')
-            mapper(B, table2, inherits=A, polymorphic_identity='b')
+            mapper(A, table1,
+                   polymorphic_on=table1.c.col2,
+                   polymorphic_identity='a')
+            mapper(B, table2,
+                   inherits=A,
+                   polymorphic_identity='b')
 
             sess = create_session()
             a1 = A()
@@ -187,11 +210,11 @@ class MemUsageTest(EnsureZeroed):
             b1 = B(col3='b1')
             b2 = B(col3='b2')
             for x in [a1,a2,b1, b2]:
-                sess.save(x)
+                sess.add(x)
             sess.flush()
             sess.clear()
 
-            alist = sess.query(A).all()
+            alist = sess.query(A).order_by(A.col1).all()
             self.assertEquals(
                 [
                     A(), A(), B(col3='b1'), B(col3='b2')
@@ -205,7 +228,6 @@ class MemUsageTest(EnsureZeroed):
             # dont need to clear_mappers()
             del B
             del A
-        go = profile_memory(go)
 
         metadata.create_all()
         try:
@@ -232,14 +254,15 @@ class MemUsageTest(EnsureZeroed):
             Column('t2', Integer, ForeignKey('mytable2.col1')),
             )
 
+        @profile_memory
         def go():
-            class A(Base):
+            class A(_base.ComparableEntity):
                 pass
-            class B(Base):
+            class B(_base.ComparableEntity):
                 pass
 
             mapper(A, table1, properties={
-                'bs':relation(B, secondary=table3, backref='as')
+                'bs':relation(B, secondary=table3, backref='as', order_by=table3.c.t1)
             })
             mapper(B, table2)
 
@@ -251,11 +274,11 @@ class MemUsageTest(EnsureZeroed):
             a1.bs.append(b1)
             a2.bs.append(b2)
             for x in [a1,a2]:
-                sess.save(x)
+                sess.add(x)
             sess.flush()
             sess.clear()
 
-            alist = sess.query(A).all()
+            alist = sess.query(A).order_by(A.col1).all()
             self.assertEquals(
                 [
                     A(bs=[B(col2='b1')]), A(bs=[B(col2='b2')])
@@ -269,7 +292,6 @@ class MemUsageTest(EnsureZeroed):
             # dont need to clear_mappers()
             del B
             del A
-        go = profile_memory(go)
 
         metadata.create_all()
         try:

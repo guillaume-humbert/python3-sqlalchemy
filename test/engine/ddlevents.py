@@ -1,9 +1,9 @@
 import testenv; testenv.configure_for_tests()
-from sqlalchemy import *
-from sqlalchemy import exceptions
 from sqlalchemy.schema import DDL
-import sqlalchemy
-from testlib import *
+from sqlalchemy import create_engine
+from testlib.sa import MetaData, Table, Column, Integer, String
+import testlib.sa as tsa
+from testlib import TestBase, testing
 
 
 class DDLEventTest(TestBase):
@@ -163,6 +163,7 @@ class DDLEventTest(TestBase):
         metadata.drop_all(bind)
         assert canary.state == 'after-create'
 
+    @testing.future
     def test_metadata_table_isolation(self):
         metadata, table, bind = self.metadata, self.table, self.bind
 
@@ -176,7 +177,6 @@ class DDLEventTest(TestBase):
         # path that metadata.create_all() does
         self.table.create(self.bind)
         assert metadata_canary.state == None
-    test_metadata_table_isolation = testing.future(test_metadata_table_isolation)
 
     def test_append_listener(self):
         metadata, table, bind = self.metadata, self.table, self.bind
@@ -294,7 +294,7 @@ class DDLExecutionTest(TestBase):
             try:
                 r = eval(py)
                 assert False
-            except exceptions.UnboundExecutionError:
+            except tsa.exc.UnboundExecutionError:
                 pass
 
         for bind in engine, cx:
@@ -310,7 +310,7 @@ class DDLTest(TestBase):
         engine = create_engine(testing.db.name + '://',
                                strategy='mock', executor=executor)
         engine.dialect.identifier_preparer = \
-           sqlalchemy.sql.compiler.IdentifierPreparer(engine.dialect)
+           tsa.sql.compiler.IdentifierPreparer(engine.dialect)
         return engine
 
     def test_tokens(self):
@@ -324,7 +324,7 @@ class DDLTest(TestBase):
         ddl = DDL('%(schema)s-%(table)s-%(fullname)s')
 
         self.assertEquals(ddl._expand(sane_alone, bind), '-t-t')
-        self.assertEquals(ddl._expand(sane_schema, bind), '"s"-t-s.t')
+        self.assertEquals(ddl._expand(sane_schema, bind), 's-t-s.t')
         self.assertEquals(ddl._expand(insane_alone, bind), '-"t t"-"t t"')
         self.assertEquals(ddl._expand(insane_schema, bind),
                           '"s s"-"t t"-"s s"."t t"')

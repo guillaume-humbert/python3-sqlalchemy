@@ -7,7 +7,7 @@
 
 import datetime, re, time
 
-from sqlalchemy import schema, exceptions, pool, PassiveDefault
+from sqlalchemy import schema, exc, pool, DefaultClause
 from sqlalchemy.engine import default
 import sqlalchemy.types as sqltypes
 import sqlalchemy.util as util
@@ -32,19 +32,6 @@ class SLNumeric(sqltypes.Numeric):
         else:
             return "NUMERIC(%(precision)s, %(length)s)" % {'precision': self.precision, 'length' : self.length}
 
-class SLFloat(sqltypes.Float):
-    def bind_processor(self, dialect):
-        type_ = self.asdecimal and str or float
-        def process(value):
-            if value is not None:
-                return type_(value)
-            else:
-                return value
-        return process
-
-    def get_col_spec(self):
-        return "FLOAT"
-    
 class SLInteger(sqltypes.Integer):
     def get_col_spec(self):
         return "INTEGER"
@@ -55,8 +42,7 @@ class SLSmallInteger(sqltypes.Smallinteger):
 
 class DateTimeMixin(object):
     __format__ = "%Y-%m-%d %H:%M:%S"
-    __legacy_microseconds__ = True
-    
+
     def bind_processor(self, dialect):
         def process(value):
             if isinstance(value, basestring):
@@ -64,12 +50,9 @@ class DateTimeMixin(object):
                 return value
             elif value is not None:
                 if self.__microsecond__ and getattr(value, 'microsecond', None) is not None:
-                    if self.__legacy_microseconds__:
-                        return util.strftime(value, self.__format__ + '.' + str(value.microsecond))
-                    else:
-                        return util.strftime(value, self.__format__ + ('.%06d' % value.microsecond))
+                    return value.strftime(self.__format__ + "." + str(value.microsecond))
                 else:
-                    return util.strftime(value, self.__format__)
+                    return value.strftime(self.__format__)
             else:
                 return None
         return process
@@ -79,15 +62,12 @@ class DateTimeMixin(object):
             return None
         try:
             (value, microsecond) = value.split('.')
-            if self.__legacy_microseconds__:
-                microsecond = int(microsecond)
-            else:
-                microsecond = int((microsecond + '000000')[0:6])
+            microsecond = int(microsecond)
         except ValueError:
             microsecond = 0
         return time.strptime(value, self.__format__)[0:6] + (microsecond,)
 
-class SLDateTime(DateTimeMixin,sqltypes.DateTime):
+class SLDateTime(DateTimeMixin, sqltypes.DateTime):
     __format__ = "%Y-%m-%d %H:%M:%S"
     __microsecond__ = True
 
@@ -126,45 +106,17 @@ class SLTime(DateTimeMixin, sqltypes.Time):
             return tup and datetime.time(*tup[3:7])
         return process
 
-class SLUnicodeMixin(object):
-    def bind_processor(self, dialect):
-        if self.convert_unicode or dialect.convert_unicode:
-            if self.assert_unicode is None:
-                assert_unicode = dialect.assert_unicode
-            else:
-                assert_unicode = self.assert_unicode
-
-            if not assert_unicode:
-                return None
-
-            def process(value):
-                if not isinstance(value, (unicode, sqltypes.NoneType)):
-                    if assert_unicode == 'warn':
-                        util.warn("Unicode type received non-unicode bind "
-                                  "param value %r" % value)
-                        return value
-                    else:
-                        raise exceptions.InvalidRequestError("Unicode type received non-unicode bind param value %r" % value)
-                else:
-                    return value
-            return process
-        else:
-            return None
-
-    def result_processor(self, dialect):
-        return None
-
-class SLText(SLUnicodeMixin, sqltypes.Text):
+class SLText(sqltypes.Text):
     def get_col_spec(self):
         return "TEXT"
 
-class SLString(SLUnicodeMixin, sqltypes.String):
+class SLString(sqltypes.String):
     def get_col_spec(self):
-        return "VARCHAR(%(length)s)" % {'length' : self.length}
+        return "VARCHAR" + (self.length and "(%d)" % self.length or "")
 
-class SLChar(SLUnicodeMixin, sqltypes.CHAR):
+class SLChar(sqltypes.CHAR):
     def get_col_spec(self):
-        return "CHAR(%(length)s)" % {'length' : self.length}
+        return "CHAR" + (self.length and "(%d)" % self.length or "")
 
 class SLBinary(sqltypes.Binary):
     def get_col_spec(self):
@@ -194,7 +146,7 @@ colspecs = {
     sqltypes.CHAR: SLChar,
     sqltypes.Date: SLDate,
     sqltypes.DateTime: SLDateTime,
-    sqltypes.Float: SLFloat,
+    sqltypes.Float: SLNumeric,
     sqltypes.Integer: SLInteger,
     sqltypes.NCHAR: SLChar,
     sqltypes.Numeric: SLNumeric,
@@ -251,7 +203,7 @@ class SQLiteDialect(default.DefaultDialect):
             return tuple([int(x) for x in num.split('.')])
         if self.dbapi is not None:
             sqlite_ver = self.dbapi.version_info
-            if sqlite_ver < (2,1,'3'):
+            if sqlite_ver < (2, 1, '3'):
                 util.warn(
                     ("The installed version of pysqlite2 (%s) is out-dated "
                      "and will cause errors in some cases.  Version 2.1.3 "
@@ -275,7 +227,7 @@ class SQLiteDialect(default.DefaultDialect):
 
     def create_connect_args(self, url):
         if url.username or url.password or url.host or url.port:
-            raise exceptions.ArgumentError(
+            raise exc.ArgumentError(
                 "Invalid SQLite URL: %s\n"
                 "Valid SQLite URL forms are:\n"
                 " sqlite:///:memory: (or, sqlite://)\n"
@@ -318,7 +270,7 @@ class SQLiteDialect(default.DefaultDialect):
                      "  SELECT * FROM sqlite_temp_master) "
                      "WHERE type='table' ORDER BY name")
                 rs = connection.execute(s)
-            except exceptions.DBAPIError:
+            except exc.DBAPIError:
                 raise
                 s = ("SELECT name FROM sqlite_master "
                      "WHERE type='table' ORDER BY name")
@@ -382,13 +334,13 @@ class SQLiteDialect(default.DefaultDialect):
                 args = re.findall(r'(\d+)', args)
                 coltype = coltype(*[int(a) for a in args])
 
-            colargs= []
+            colargs = []
             if has_default:
-                colargs.append(PassiveDefault('?'))
+                colargs.append(DefaultClause('?'))
             table.append_column(schema.Column(name, coltype, primary_key = primary_key, nullable = nullable, *colargs))
 
         if not found_table:
-            raise exceptions.NoSuchTableError(table.name)
+            raise exc.NoSuchTableError(table.name)
 
         c = connection.execute("%sforeign_key_list(%s)" % (pragma, qtable))
         fks = {}
@@ -403,7 +355,7 @@ class SQLiteDialect(default.DefaultDialect):
             try:
                 fk = fks[constraint_name]
             except KeyError:
-                fk = ([],[])
+                fk = ([], [])
                 fks[constraint_name] = fk
 
             # look up the table based on the given table's engine, not 'self',
@@ -441,7 +393,8 @@ class SQLiteCompiler(compiler.DefaultCompiler):
     functions = compiler.DefaultCompiler.functions.copy()
     functions.update (
         {
-            sql_functions.now: 'CURRENT_TIMESTAMP'
+            sql_functions.now: 'CURRENT_TIMESTAMP',
+            sql_functions.char_length: 'length%(expr)s'
         }
     )
 
@@ -486,7 +439,7 @@ class SQLiteCompiler(compiler.DefaultCompiler):
 class SQLiteSchemaGenerator(compiler.SchemaGenerator):
 
     def get_column_specification(self, column, **kwargs):
-        colspec = self.preparer.format_column(column) + " " + column.type.dialect_impl(self.dialect, _for_ddl=column).get_col_spec()
+        colspec = self.preparer.format_column(column) + " " + column.type.dialect_impl(self.dialect).get_col_spec()
         default = self.get_column_default_string(column)
         if default is not None:
             colspec += " DEFAULT " + default

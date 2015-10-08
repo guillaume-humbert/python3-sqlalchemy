@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.engine.threadlocal</title>
+	<title>SQLAlchemy 0.5 Documentation - module sqlalchemy.engine.threadlocal</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.4 Documentation</h1>
+<h1>SQLAlchemy 0.5 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
+<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
 
 
 
@@ -120,7 +120,7 @@ invoked automatically when the threadlocal engine strategy is used.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>session</i>, <i>connection</i>, <i>close_with_result</i>)</b>
+    <b>def __init__(<i>self</i>, <i>session</i>, <i>connection</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">TLConnection</span></tt>.</p>
 
@@ -132,6 +132,16 @@ invoked automatically when the threadlocal engine strategy is used.</p>
     
     <A name=""></a>
     <b>def begin(<i>self</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def begin_nested(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
@@ -219,6 +229,16 @@ you get that same connection repeatedly.</p>
     
     <A name=""></a>
     <b>def begin(<i>self</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def begin_nested(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
@@ -474,7 +494,7 @@ you get that same connection repeatedly.</p>
                     
          <div class="darkcell">
          <A name=""></a>
-         <b>connection = property()</b>
+         <b>is_active = property()</b>
          <div class="docstring">
          
          </div> 
@@ -483,7 +503,7 @@ you get that same connection repeatedly.</p>
                     
          <div class="darkcell">
          <A name=""></a>
-         <b>is_active = property()</b>
+         <b>connection = property()</b>
          <div class="docstring">
          
          </div> 

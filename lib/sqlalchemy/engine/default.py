@@ -12,11 +12,10 @@ as the base class for their own corresponding classes.
 
 """
 
-
 import re, random
 from sqlalchemy.engine import base
 from sqlalchemy.sql import compiler, expression
-from sqlalchemy import exceptions
+
 
 AUTOCOMMIT_REGEXP = re.compile(r'\s*(?:UPDATE|INSERT|CREATE|DELETE|DROP|ALTER)',
                                re.I | re.UNICODE)
@@ -57,16 +56,6 @@ class DefaultDialect(base.Dialect):
         self.positional = self.paramstyle in ('qmark', 'format', 'numeric')
         self.identifier_preparer = self.preparer(self)
 
-        # preexecute_sequences was renamed preexecute_pk_sequences.  If a
-        # subclass has the older property, proxy the new name to the subclass's
-        # property.
-        # TODO: remove @ 0.5.0
-        if (hasattr(self, 'preexecute_sequences') and
-            isinstance(getattr(type(self), 'preexecute_pk_sequences'), bool)):
-            setattr(type(self), 'preexecute_pk_sequences',
-                    property(lambda s: s.preexecute_sequences, doc=(
-                      "Proxy to deprecated preexecute_sequences attribute.")))
-
     def create_execution_context(self, connection, **kwargs):
         return DefaultExecutionContext(self, connection, **kwargs)
 
@@ -81,10 +70,7 @@ class DefaultDialect(base.Dialect):
             typeobj = typeobj()
         return typeobj
 
-    def validate_identifier(self, ident):
-        if len(ident) > self.max_identifier_length:
-            raise exceptions.IdentifierError("Identifier '%s' exceeds maximum length of %d characters" % (ident, self.max_identifier_length))
-        
+
     def oid_column_name(self, column):
         return None
 
@@ -115,7 +101,7 @@ class DefaultDialect(base.Dialect):
         This id will be passed to do_begin_twophase(), do_rollback_twophase(),
         do_commit_twophase().  Its format is unspecified."""
 
-        return "_sa_%032x" % random.randint(0,2**128)
+        return "_sa_%032x" % random.randint(0, 2 ** 128)
 
     def do_savepoint(self, connection, name):
         connection.execute(expression.SavepointClause(name))
@@ -334,9 +320,9 @@ class DefaultExecutionContext(base.ExecutionContext):
         if self.dialect.positional:
             inputsizes = []
             for key in self.compiled.positiontup:
-               typeengine = types[key]
-               dbtype = typeengine.dialect_impl(self.dialect).get_dbapi_type(self.dialect.dbapi)
-               if dbtype is not None:
+                typeengine = types[key]
+                dbtype = typeengine.dialect_impl(self.dialect).get_dbapi_type(self.dialect.dbapi)
+                if dbtype is not None:
                     inputsizes.append(dbtype)
             try:
                 self.cursor.setinputsizes(*inputsizes)

@@ -4,11 +4,12 @@ from sqlalchemy import sql
 from sqlalchemy.sql import compiler
 from testlib import *
 
-class QuoteTest(TestBase):
+
+class QuoteTest(TestBase, AssertsCompiledSQL):
     def setUpAll(self):
-        # TODO: figure out which databases/which identifiers allow special characters to be used,
-        # such as:  spaces, quote characters, punctuation characters, set up tests for those as
-        # well.
+        # TODO: figure out which databases/which identifiers allow special
+        # characters to be used, such as: spaces, quote characters,
+        # punctuation characters, set up tests for those as well.
         global table1, table2, table3
         metadata = MetaData(testing.db)
         table1 = Table('WorstCase1', metadata,
@@ -68,6 +69,62 @@ class QuoteTest(TestBase):
         print res2
         assert(res2==[(1,2,3),(2,2,3),(4,3,2)])
 
+    def test_quote_flag(self):
+        metadata = MetaData()
+        t1 = Table('TableOne', metadata,
+            Column('ColumnOne', Integer), schema="FooBar")
+        self.assert_compile(t1.select(), '''SELECT "FooBar"."TableOne"."ColumnOne" FROM "FooBar"."TableOne"''')
+
+        metadata = MetaData()
+        t1 = Table('t1', metadata,
+            Column('col1', Integer, quote=True), quote=True, schema="foo", quote_schema=True)
+        self.assert_compile(t1.select(), '''SELECT "foo"."t1"."col1" FROM "foo"."t1"''')
+
+        self.assert_compile(t1.select().apply_labels(), '''SELECT "foo"."t1"."col1" AS "foo_t1_col1" FROM "foo"."t1"''')
+        a = t1.select().alias('anon')
+        b = select([1], a.c.col1==2, from_obj=a)
+        self.assert_compile(b, 
+            '''SELECT 1 FROM (SELECT "foo"."t1"."col1" AS "col1" FROM '''\
+            '''"foo"."t1") AS anon WHERE anon."col1" = :col1_1'''
+        )
+        
+        metadata = MetaData()
+        t1 = Table('TableOne', metadata,
+            Column('ColumnOne', Integer, quote=False), quote=False, schema="FooBar", quote_schema=False)
+        self.assert_compile(t1.select(), "SELECT FooBar.TableOne.ColumnOne FROM FooBar.TableOne")
+
+        self.assert_compile(t1.select().apply_labels(), 
+            "SELECT FooBar.TableOne.ColumnOne AS "\
+            "FooBar_TableOne_ColumnOne FROM FooBar.TableOne"   # TODO: is this what we really want here ?  what if table/schema 
+                                                               # *are* quoted?  
+        )
+
+        a = t1.select().alias('anon')
+        b = select([1], a.c.ColumnOne==2, from_obj=a)
+        self.assert_compile(b, 
+            "SELECT 1 FROM (SELECT FooBar.TableOne.ColumnOne AS "\
+            "ColumnOne FROM FooBar.TableOne) AS anon WHERE anon.ColumnOne = :ColumnOne_1"
+        )
+
+
+
+    def test_table_quote_flag(self):
+        metadata = MetaData()
+        t1 = Table('TableOne', metadata,
+                   Column('id', Integer),
+                   quote=False)
+        t2 = Table('TableTwo', metadata,
+                   Column('id', Integer),
+                   Column('t1_id', Integer, ForeignKey('TableOne.id')),
+                   quote=False)
+
+        self.assert_compile(
+            t2.join(t1).select(),
+            "SELECT TableTwo.id, TableTwo.t1_id, TableOne.id "
+            "FROM TableTwo JOIN TableOne ON TableOne.id = TableTwo.t1_id")
+
+    @testing.crashes('oracle', 'FIXME: unknown, verify not fails_on')
+    @testing.requires.subqueries
     def testlabels(self):
         """test the quoting of labels.
 
@@ -79,23 +136,25 @@ class QuoteTest(TestBase):
         where the "UPPERCASE" column of "LaLa" doesnt exist.
         """
         x = table1.select(distinct=True).alias("LaLa").select().scalar()
-    testlabels = testing.unsupported('oracle')(testlabels)
 
     def testlabels2(self):
         metadata = MetaData()
         table = Table("ImATable", metadata,
             Column("col1", Integer))
         x = select([table.c.col1.label("ImATable_col1")]).alias("SomeAlias")
-        assert str(select([x.c.ImATable_col1])) == '''SELECT "SomeAlias"."ImATable_col1" \nFROM (SELECT "ImATable".col1 AS "ImATable_col1" \nFROM "ImATable") AS "SomeAlias"'''
+        self.assert_compile(select([x.c.ImATable_col1]),
+            '''SELECT "SomeAlias"."ImATable_col1" FROM (SELECT "ImATable".col1 AS "ImATable_col1" FROM "ImATable") AS "SomeAlias"''')
 
         # note that 'foo' and 'FooCol' are literals already quoted
         x = select([sql.literal_column("'foo'").label("somelabel")], from_obj=[table]).alias("AnAlias")
         x = x.select()
-        assert str(x) == '''SELECT "AnAlias".somelabel \nFROM (SELECT 'foo' AS somelabel \nFROM "ImATable") AS "AnAlias"'''
+        self.assert_compile(x,
+            '''SELECT "AnAlias".somelabel FROM (SELECT 'foo' AS somelabel FROM "ImATable") AS "AnAlias"''')
 
         x = select([sql.literal_column("'FooCol'").label("SomeLabel")], from_obj=[table])
         x = x.select()
-        assert str(x) == '''SELECT "SomeLabel" \nFROM (SELECT 'FooCol' AS "SomeLabel" \nFROM "ImATable")'''
+        self.assert_compile(x,
+            '''SELECT "SomeLabel" FROM (SELECT 'FooCol' AS "SomeLabel" FROM "ImATable")''')
 
 
 class PreparerTest(TestBase):

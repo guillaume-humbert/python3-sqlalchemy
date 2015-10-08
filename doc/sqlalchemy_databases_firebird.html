@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.databases.firebird</title>
+	<title>SQLAlchemy 0.5 Documentation - module sqlalchemy.databases.firebird</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.4 Documentation</h1>
+<h1>SQLAlchemy 0.5 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
+<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
 
 
 
@@ -53,10 +53,10 @@
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_databases_mssql.html">module sqlalchemy.databases.mssql</a>
+            Previous: <a href="sqlalchemy_databases_access.html">module sqlalchemy.databases.access</a>
 
                |   
-            Next: <a href="sqlalchemy_databases_sybase.html">module sqlalchemy.databases.sybase</a>
+            Next: <a href="sqlalchemy_databases_maxdb.html">module sqlalchemy.databases.maxdb</a>
     </div>
 
         <h2>module sqlalchemy.databases.firebird</h2>
@@ -214,6 +214,17 @@ from sqlalchemy.databases.firebird import dialect
 
 # Force SA to use a single connection per thread
 dialect.poolclass = pool.SingletonThreadPool
+</pre>
+</div>
+<div class="section">
+<h1><a id="returning-support" name="returning-support">RETURNING support</a></h1>
+<p>Firebird 2.0 supports returning a result set from inserts, and 2.1 extends
+that to deletes and updates.</p>
+<p>To use this pass the column/expression list to the <tt class="docutils literal"><span class="pre">firebird_returning</span></tt>
+parameter when creating the queries:</p>
+<pre class="literal-block">
+raises = tbl.update(empl.c.sales &gt; 100, values=dict(salary=empl.c.salary * 1.1),
+                    firebird_returning=[empl.c.id, empl.c.salary]).execute().fetchall()
 </pre>
 <table class="docutils footnote" frame="void" id="id2" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
@@ -441,7 +452,37 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def visit_delete(<i>self</i>, <i>delete_stmt</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def visit_insert(<i>self</i>, <i>insert_stmt</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def visit_sequence(<i>self</i>, <i>seq</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def visit_update(<i>self</i>, <i>update_stmt</i>)</b>
     <div class="docstring">
     
     </div>
@@ -752,6 +793,26 @@ representing the version of the attached server.</p>
     
     
     
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def returns_rows_compiled(<i>self</i>, <i>compiled</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def returns_rows_text(<i>self</i>, <i>statement</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
 
 
     
@@ -1148,10 +1209,10 @@ representing the version of the attached server.</p>
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_databases_mssql.html">module sqlalchemy.databases.mssql</a>
+            Previous: <a href="sqlalchemy_databases_access.html">module sqlalchemy.databases.access</a>
 
                |   
-            Next: <a href="sqlalchemy_databases_sybase.html">module sqlalchemy.databases.sybase</a>
+            Next: <a href="sqlalchemy_databases_maxdb.html">module sqlalchemy.databases.maxdb</a>
     </div>
 
     </div>

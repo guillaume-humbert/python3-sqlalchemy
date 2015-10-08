@@ -6,7 +6,11 @@ import sharding.alltests as sharding
 
 def suite():
     modules_to_test = (
-    'orm.attributes',
+    'orm.memusage',
+        'orm.attributes',
+        'orm.bind',
+        'orm.extendedattr',
+        'orm.instrumentation',
         'orm.query',
         'orm.lazy_relations',
         'orm.eager_relations',
@@ -19,15 +23,16 @@ def suite():
         'orm.assorted_eager',
 
         'orm.naturalpks',
-        'orm.sessioncontext',
         'orm.unitofwork',
         'orm.session',
+        'orm.transaction',
+        'orm.scoping',
         'orm.cascade',
         'orm.relationships',
         'orm.association',
         'orm.merge',
         'orm.pickled',
-        'orm.memusage',
+        'orm.utils',
 
         'orm.cycles',
 
@@ -36,6 +41,8 @@ def suite():
         'orm.manytomany',
         'orm.onetoone',
         'orm.dynamic',
+
+        'orm.deprecations',
         )
     alltests = unittest.TestSuite()
     for name in modules_to_test:

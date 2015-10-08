@@ -1,13 +1,14 @@
-"""tests the "bind" attribute/argument across schema, SQL, and ORM sessions,
+"""tests the "bind" attribute/argument across schema and SQL,
 including the deprecated versions of these arguments"""
 
 import testenv; testenv.configure_for_tests()
-from sqlalchemy import *
-from sqlalchemy import engine, exceptions
-from testlib import *
+from sqlalchemy import engine, exc
+from sqlalchemy import MetaData, ThreadLocalMetaData
+from testlib.sa import Table, Column, Integer, text
+from testlib import sa, testing
 
 
-class BindTest(TestBase):
+class BindTest(testing.TestBase):
     def test_create_drop_explicit(self):
         metadata = MetaData()
         table = Table('test_table', metadata,
@@ -41,7 +42,7 @@ class BindTest(TestBase):
             try:
                 meth()
                 assert False
-            except exceptions.UnboundExecutionError, e:
+            except exc.UnboundExecutionError, e:
                 self.assertEquals(
                     str(e),
                     "The MetaData "
@@ -59,7 +60,7 @@ class BindTest(TestBase):
             try:
                 meth()
                 assert False
-            except exceptions.UnboundExecutionError, e:
+            except exc.UnboundExecutionError, e:
                 self.assertEquals(
                     str(e),
                     "The Table 'test_table' "
@@ -69,7 +70,12 @@ class BindTest(TestBase):
                     "assign this Table's .metadata.bind to enable implicit "
                     "execution.")
 
+    @testing.future
     def test_create_drop_err2(self):
+        metadata = MetaData()
+        table = Table('test_table', metadata,
+            Column('foo', Integer))
+
         for meth in [
             table.exists,
             table.create,
@@ -78,7 +84,7 @@ class BindTest(TestBase):
             try:
                 meth()
                 assert False
-            except exceptions.UnboundExecutionError, e:
+            except exc.UnboundExecutionError, e:
                 self.assertEquals(
                     str(e),
                     "The Table 'test_table' "
@@ -87,8 +93,8 @@ class BindTest(TestBase):
                     "against.  Either execute with an explicit connection or "
                     "assign this Table's .metadata.bind to enable implicit "
                     "execution.")
-    test_create_drop_err2 = testing.future(test_create_drop_err2)
 
+    @testing.uses_deprecated('//connect')
     def test_create_drop_bound(self):
 
         for meta in (MetaData,ThreadLocalMetaData):
@@ -123,7 +129,6 @@ class BindTest(TestBase):
                 assert not table.exists()
                 if isinstance(bind, engine.Connection):
                     bind.close()
-    test_create_drop_bound = testing.uses_deprecated('//connect')(test_create_drop_bound)
 
     def test_create_drop_constructor_bound(self):
         for bind in (
@@ -180,7 +185,7 @@ class BindTest(TestBase):
         try:
             for elem in [
                 table.select,
-                lambda **kwargs:func.current_timestamp(**kwargs).select(),
+                lambda **kwargs: sa.func.current_timestamp(**kwargs).select(),
 #                func.current_timestamp().select,
                 lambda **kwargs:text("select * from test_table", **kwargs)
             ]:
@@ -201,55 +206,13 @@ class BindTest(TestBase):
                     assert e.bind is None
                     e.execute()
                     assert False
-                except exceptions.UnboundExecutionError, e:
+                except exc.UnboundExecutionError, e:
                     assert str(e).endswith(
                         'is not bound and does not support direct '
                         'execution. Supply this statement to a Connection or '
                         'Engine for execution. Or, assign a bind to the '
                         'statement or the Metadata of its underlying tables to '
                         'enable implicit execution via this method.')
-        finally:
-            if isinstance(bind, engine.Connection):
-                bind.close()
-            metadata.drop_all(bind=testing.db)
-
-    def test_session(self):
-        from sqlalchemy.orm import create_session, mapper
-        metadata = MetaData()
-        table = Table('test_table', metadata,
-            Column('foo', Integer, Sequence('foo_seq', optional=True), primary_key=True),
-            Column('data', String(30)))
-        class Foo(object):
-            pass
-        mapper(Foo, table)
-        metadata.create_all(bind=testing.db)
-        try:
-            for bind in (testing.db,
-                testing.db.connect()
-                ):
-                try:
-                    for args in ({'bind':bind},):
-                        sess = create_session(**args)
-                        assert sess.bind is bind
-                        f = Foo()
-                        sess.save(f)
-                        sess.flush()
-                        assert sess.get(Foo, f.foo) is f
-                finally:
-                    if isinstance(bind, engine.Connection):
-                        bind.close()
-
-                if isinstance(bind, engine.Connection):
-                    bind.close()
-
-            sess = create_session()
-            f = Foo()
-            sess.save(f)
-            try:
-                sess.flush()
-                assert False
-            except exceptions.InvalidRequestError, e:
-                assert str(e).startswith("Could not locate any Engine or Connection bound to mapper")
         finally:
             if isinstance(bind, engine.Connection):
                 bind.close()

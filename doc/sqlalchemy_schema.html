@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.schema</title>
+	<title>SQLAlchemy 0.5 Documentation - module sqlalchemy.schema</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.4 Documentation</h1>
+<h1>SQLAlchemy 0.5 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
+<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
 
 
 
@@ -81,7 +81,13 @@
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_DDL">class DDL(object)</a></li>
 
         
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_DefaultClause">class DefaultClause(FetchedValue)</a></li>
+
+        
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_DefaultGenerator">class DefaultGenerator(SchemaItem)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_FetchedValue">class FetchedValue(object)</a></li>
 
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_ForeignKey">class ForeignKey(SchemaItem)</a></li>
@@ -94,9 +100,6 @@
 
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_MetaData">class MetaData(SchemaItem)</a></li>
-
-        
-        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_PassiveDefault">class PassiveDefault(DefaultGenerator)</a></li>
 
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_PrimaryKeyConstraint">class PrimaryKeyConstraint(Constraint)</a></li>
@@ -294,6 +297,26 @@ representing the <em>default value</em> for this column, which will be
 invoked upon insert if this column is not present in the insert
 list or is given a value of None.  The default expression will be
 converted into a <tt class="docutils literal"><span class="pre">ColumnDefault</span></tt> object upon initialization.</dd>
+<dt>server_default</dt>
+<dd><p class="first">Defaults to None: A FetchedValue instance, str, Unicode or
+sqlalchemy.text() string representing the DDL DEFAULT value for
+the column.</p>
+<p>String types will be emitted as-is, surrounded by single quotes:</p>
+<pre class="literal-block">
+Column('x', Text, server_default=&quot;val&quot;)
+
+x TEXT DEFAULT 'val'
+</pre>
+<p>A sqlalchemy.text() expression will be rendered as-is, without
+quotes:</p>
+<pre class="literal-block">
+Column('y', DateTime, server_default=text('NOW()'))0
+
+y DATETIME DEFAULT NOW()
+</pre>
+<p class="last">Strings and text() will be converted into a <tt class="docutils literal"><span class="pre">DefaultClause</span></tt>
+object upon initialization.</p>
+</dd>
 <dt>_is_oid</dt>
 <dd>Defaults to False: used internally to indicate that this column is
 used as the quasi-hidden &quot;oid&quot; column</dd>
@@ -321,14 +344,18 @@ and will also affect the behavior of some dialects during
 <tt class="docutils literal"><span class="pre">INSERT</span></tt> statement execution such that they will assume primary
 key values are created in this manner.  If a <tt class="docutils literal"><span class="pre">Column</span></tt> has an
 explicit <tt class="docutils literal"><span class="pre">ColumnDefault</span></tt> object (such as via the <cite>default</cite>
-keyword, or a <tt class="docutils literal"><span class="pre">Sequence</span></tt> or <tt class="docutils literal"><span class="pre">PassiveDefault</span></tt>), then the value
+keyword, or a <tt class="docutils literal"><span class="pre">Sequence</span></tt> or <tt class="docutils literal"><span class="pre">DefaultClause</span></tt>), then the value
 of <cite>autoincrement</cite> is ignored and is assumed to be False.
 <cite>autoincrement</cite> value is only significant for a column with a type
 or subtype of Integer.</dd>
 <dt>quote</dt>
-<dd>When True, indicates that the Column identifier must be quoted.
-This flag does <em>not</em> disable quoting; for case-insensitive names,
-use an all lower case identifier.</dd>
+<dd>Force quoting of the identifier on or off, based on <cite>True</cite> or
+<cite>False</cite>.  Defaults to <cite>None</cite>.  This flag is rarely needed,
+as quoting is normally applied
+automatically for known reserved words, as well as for
+&quot;case sensitive&quot; identifiers.  An identifier is &quot;case sensitive&quot;
+if it contains non-lowercase letters, otherwise it's
+considered to be &quot;case insensitive&quot;.</dd>
 </dl>
 </dd>
 </dl>
@@ -383,7 +410,7 @@ use an all lower case identifier.</dd>
     <A name=""></a>
     <b>def references(<i>self</i>, <i>column</i>)</b>
     <div class="docstring">
-    <p>Return True if this references the given column via a foreign key.</p>
+    <p>Return True if this Column references the given column via foreign key.</p>
 
     </div>
     </div>
@@ -477,6 +504,16 @@ issuing DDL for this constraint.</dd>
 for this constraint.</dd>
 </dl>
 
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def contains_column(<i>self</i>, <i>col</i>)</b>
+    <div class="docstring">
+    
     </div>
     </div>
 
@@ -731,6 +768,41 @@ in a future release.</p>
 
     
     
+    <A name="docstrings_sqlalchemy.schema_DefaultClause"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class DefaultClause(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_FetchedValue">FetchedValue</a>)</h3>
+    
+    
+    <div class="darkcell"><p>A DDL-specified DEFAULT column value.</p>
+</div>
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>arg</i>, <i>for_update=False</i>)</b>
+    <div class="docstring">
+    <p>Construct a new <tt class="docutils literal"><span class="pre">DefaultClause</span></tt>.</p>
+
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
     <A name="docstrings_sqlalchemy.schema_DefaultGenerator"></a>
     
     <div class="sectionL3">
@@ -760,6 +832,41 @@ in a future release.</p>
     <b>def execute(<i>self</i>, <i>bind=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.schema_FetchedValue"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class FetchedValue(object)</h3>
+    
+    
+    <div class="darkcell"><p>A default that takes effect on the database side.</p>
+</div>
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>for_update=False</i>)</b>
+    <div class="docstring">
+    <p>Construct a new <tt class="docutils literal"><span class="pre">FetchedValue</span></tt>.</p>
+
     </div>
     </div>
 
@@ -1340,41 +1447,6 @@ arguments and should return a true value for any table to reflect.</p>
 
     
     
-    <A name="docstrings_sqlalchemy.schema_PassiveDefault"></a>
-    
-    <div class="sectionL3">
-
-    <h3>class PassiveDefault(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_DefaultGenerator">DefaultGenerator</a>)</h3>
-    
-    
-    <div class="darkcell"><p>A default that takes effect on the database side.</p>
-</div>
-    
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>arg</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>Construct a new <tt class="docutils literal"><span class="pre">PassiveDefault</span></tt>.</p>
-
-    </div>
-    </div>
-
-
-    
-
-            <a href="#top" class="totoc">back to section top</a>
-    </div>
-
-
-
-            
-    
-
-    
-    
     <A name="docstrings_sqlalchemy.schema_PrimaryKeyConstraint"></a>
     
     <div class="sectionL3">
@@ -1418,7 +1490,7 @@ for this constraint.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def add(<i>self</i>, <i>col</i>)</b>
+    <b>def append_column(<i>self</i>, <i>col</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1499,16 +1571,6 @@ for this constraint.</dd>
     
 
                     
-         <div class="darkcell">
-         <A name=""></a>
-         <b>bind = property()</b>
-         <div class="docstring">
-         <p>Return the connectable associated with this SchemaItem.</p>
-
-         </div> 
-         </div>
-
-                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -1525,6 +1587,16 @@ for this constraint.</dd>
          <b>info = property()</b>
          <div class="docstring">
          
+         </div> 
+         </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>bind = property()</b>
+         <div class="docstring">
+         <p>Return the connectable associated with this SchemaItem.</p>
+
          </div> 
          </div>
 
@@ -1580,7 +1652,7 @@ for this constraint.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>name</i>, <i>start=None</i>, <i>increment=None</i>, <i>schema=None</i>, <i>optional=False</i>, <i>quote=False</i>, <i>**kwargs</i>)</b>
+    <b>def __init__(<i>self</i>, <i>name</i>, <i>start=None</i>, <i>increment=None</i>, <i>schema=None</i>, <i>optional=False</i>, <i>quote=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">Sequence</span></tt>.</p>
 
@@ -1687,14 +1759,19 @@ constructor arguments.</dd>
 <dt>owner</dt>
 <dd>Deprecated; this is an oracle-only argument - &quot;schema&quot; should
 be used in its place.</dd>
+</dl>
+</dd>
 <dt>quote</dt>
-<dd>When True, indicates that the Table identifier must be quoted.
-This flag does <em>not</em> disable quoting; for case-insensitive names,
-use an all lower case identifier.</dd>
+<dd><p class="first">Force quoting of the identifier on or off, based on <cite>True</cite> or
+<cite>False</cite>.  Defaults to <cite>None</cite>.  This flag is rarely needed,
+as quoting is normally applied
+automatically for known reserved words, as well as for
+&quot;case sensitive&quot; identifiers.  An identifier is &quot;case sensitive&quot;
+if it contains non-lowercase letters, otherwise it's
+considered to be &quot;case insensitive&quot;.</p>
+<dl class="last docutils">
 <dt>quote_schema</dt>
-<dd>When True, indicates that the schema identifier must be quoted.
-This flag does <em>not</em> disable quoting; for case-insensitive names,
-use an all lower case identifier.</dd>
+<dd>same as 'quote' but applies to the schema identifier.</dd>
 </dl>
 </dd>
 </dl>

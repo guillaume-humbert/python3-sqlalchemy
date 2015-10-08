@@ -1,6 +1,6 @@
 import sys, types, weakref
 from testlib import config
-from testlib.compat import *
+from testlib.compat import set, _function_named, deque
 
 
 class ConnectionKiller(object):
@@ -87,10 +87,7 @@ class ReconnectFixture(object):
 def reconnecting_engine(url=None, options=None):
     url = url or config.db_url
     dbapi = config.db.dialect.dbapi
-    if not options:
-        options = {}
-    options['module'] = ReconnectFixture(dbapi)
-    engine = testing_engine(url, options)
+    engine = testing_engine(url, {'module':ReconnectFixture(dbapi)})
     engine.test_shutdown = engine.dialect.dbapi.shutdown
     return engine
 

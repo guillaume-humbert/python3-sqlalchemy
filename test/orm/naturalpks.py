@@ -1,17 +1,18 @@
+"""
+Primary key changing capabilities and passive/non-passive cascading updates.
+
+"""
 import testenv; testenv.configure_for_tests()
-from sqlalchemy import *
-from sqlalchemy.orm import *
-from sqlalchemy import exceptions
+from testlib import sa, testing
+from testlib.sa import Table, Column, Integer, String, ForeignKey
+from testlib.sa.orm import mapper, relation, create_session
+from testlib.testing import eq_
+from testlib.compat import sorted
+from orm import _base
 
-from testlib.fixtures import *
-from testlib import *
+class NaturalPKTest(_base.MappedTest):
 
-"""test primary key changing capabilities and passive/non-passive cascading updates."""
-
-class NaturalPKTest(ORMTest):
     def define_tables(self, metadata):
-        global users, addresses, items, users_to_items
-
         users = Table('users', metadata,
             Column('username', String(50), primary_key=True),
             Column('fullname', String(100)))
@@ -24,67 +25,75 @@ class NaturalPKTest(ORMTest):
             Column('itemname', String(50), primary_key=True),
             Column('description', String(100)))
 
-        users_to_items = Table('userstoitems', metadata,
+        users_to_items = Table('users_to_items', metadata,
             Column('username', String(50), ForeignKey('users.username', onupdate='cascade'), primary_key=True),
             Column('itemname', String(50), ForeignKey('items.itemname', onupdate='cascade'), primary_key=True),
         )
 
+    def setup_classes(self):
+        class User(_base.ComparableEntity):
+            pass
+        class Address(_base.ComparableEntity):
+            pass
+        class Item(_base.ComparableEntity):
+            pass
+
+    @testing.resolve_artifact_names
     def test_entity(self):
         mapper(User, users)
 
         sess = create_session()
         u1 = User(username='jack', fullname='jack')
 
-        sess.save(u1)
+        sess.add(u1)
         sess.flush()
-        assert sess.get(User, 'jack') is u1
+        assert sess.query(User).get('jack') is u1
 
         u1.username = 'ed'
         sess.flush()
 
         def go():
-            assert sess.get(User, 'ed') is u1
+            assert sess.query(User).get('ed') is u1
         self.assert_sql_count(testing.db, go, 0)
 
-        assert sess.get(User, 'jack') is None
+        assert sess.query(User).get('jack') is None
 
         sess.clear()
         u1 = sess.query(User).get('ed')
         self.assertEquals(User(username='ed', fullname='jack'), u1)
 
+    @testing.resolve_artifact_names
     def test_expiry(self):
         mapper(User, users)
 
         sess = create_session()
         u1 = User(username='jack', fullname='jack')
 
-        sess.save(u1)
+        sess.add(u1)
         sess.flush()
-        assert sess.get(User, 'jack') is u1
+        assert sess.query(User).get('jack') is u1
 
-        users.update(values={u1.c.username:'jack'}).execute(username='ed')
+        users.update(values={User.username:'jack'}).execute(username='ed')
 
-        try:
-            # expire/refresh works off of primary key.  the PK is gone
-            # in this case so theres no way to look it up.  criterion-
-            # based session invalidation could solve this [ticket:911]
-            sess.expire(u1)
-            u1.username
-            assert False
-        except exceptions.InvalidRequestError, e:
-            assert "Could not refresh instance" in str(e)
+        # expire/refresh works off of primary key.  the PK is gone
+        # in this case so theres no way to look it up.  criterion-
+        # based session invalidation could solve this [ticket:911]
+        sess.expire(u1)
+        self.assertRaises(sa.orm.exc.ObjectDeletedError, getattr, u1, 'username')
 
         sess.clear()
-        assert sess.get(User, 'jack') is None
-        assert sess.get(User, 'ed').fullname == 'jack'
+        assert sess.query(User).get('jack') is None
+        assert sess.query(User).get('ed').fullname == 'jack'
 
+    @testing.fails_on('mysql')
+    @testing.fails_on('sqlite')
     def test_onetomany_passive(self):
         self._test_onetomany(True)
-    test_onetomany_passive = testing.unsupported('sqlite','mysql')(test_onetomany_passive)
 
     def test_onetomany_nonpassive(self):
         self._test_onetomany(False)
 
+    @testing.resolve_artifact_names
     def _test_onetomany(self, passive_updates):
         mapper(User, users, properties={
             'addresses':relation(Address, passive_updates=passive_updates)
@@ -95,10 +104,10 @@ class NaturalPKTest(ORMTest):
         u1 = User(username='jack', fullname='jack')
         u1.addresses.append(Address(email='jack1'))
         u1.addresses.append(Address(email='jack2'))
-        sess.save(u1)
+        sess.add(u1)
         sess.flush()
 
-        assert sess.get(Address, 'jack1') is u1.addresses[0]
+        assert sess.query(Address).get('jack1') is u1.addresses[0]
 
         u1.username = 'ed'
         sess.flush()
@@ -107,7 +116,7 @@ class NaturalPKTest(ORMTest):
         sess.clear()
         self.assertEquals([Address(username='ed'), Address(username='ed')], sess.query(Address).all())
 
-        u1 = sess.get(User, 'ed')
+        u1 = sess.query(User).get('ed')
         u1.username = 'jack'
         def go():
             sess.flush()
@@ -116,24 +125,26 @@ class NaturalPKTest(ORMTest):
         else:
             self.assert_sql_count(testing.db, go, 1) # test passive_updates=True; update user
         sess.clear()
-        assert User(username='jack', addresses=[Address(username='jack'), Address(username='jack')]) == sess.get(User, 'jack')
+        assert User(username='jack', addresses=[Address(username='jack'), Address(username='jack')]) == sess.query(User).get('jack')
 
-        u1 = sess.get(User, 'jack')
+        u1 = sess.query(User).get('jack')
         u1.addresses = []
         u1.username = 'fred'
         sess.flush()
         sess.clear()
-        assert sess.get(Address, 'jack1').username is None
-        u1 = sess.get(User, 'fred')
+        assert sess.query(Address).get('jack1').username is None
+        u1 = sess.query(User).get('fred')
         self.assertEquals(User(username='fred', fullname='jack'), u1)
 
+    @testing.fails_on('sqlite')
+    @testing.fails_on('mysql')
     def test_manytoone_passive(self):
         self._test_manytoone(True)
-    test_manytoone_passive = testing.unsupported('sqlite', 'mysql')(test_manytoone_passive)
 
     def test_manytoone_nonpassive(self):
         self._test_manytoone(False)
 
+    @testing.resolve_artifact_names
     def _test_manytoone(self, passive_updates):
         mapper(User, users)
         mapper(Address, addresses, properties={
@@ -147,14 +158,14 @@ class NaturalPKTest(ORMTest):
         u1 = User(username='jack', fullname='jack')
         a1.user = u1
         a2.user = u1
-        sess.save(a1)
-        sess.save(a2)
+        sess.add(a1)
+        sess.add(a2)
         sess.flush()
 
         u1.username = 'ed'
 
         print id(a1), id(a2), id(u1)
-        print u1._state.parents
+        print sa.orm.attributes.instance_state(u1).parents
         def go():
             sess.flush()
         if passive_updates:
@@ -170,18 +181,20 @@ class NaturalPKTest(ORMTest):
         sess.clear()
         self.assertEquals([Address(username='ed'), Address(username='ed')], sess.query(Address).all())
 
+    @testing.fails_on('sqlite')
+    @testing.fails_on('mysql')
     def test_bidirectional_passive(self):
         self._test_bidirectional(True)
-    test_bidirectional_passive = testing.unsupported('sqlite', 'mysql')(test_bidirectional_passive)
 
     def test_bidirectional_nonpassive(self):
         self._test_bidirectional(False)
 
+    @testing.resolve_artifact_names
     def _test_bidirectional(self, passive_updates):
         mapper(User, users)
         mapper(Address, addresses, properties={
-            'user':relation(User, passive_updates=passive_updates, backref='addresses')
-        })
+            'user':relation(User, passive_updates=passive_updates,
+                            backref='addresses')})
 
         sess = create_session()
         a1 = Address(email='jack1')
@@ -190,8 +203,8 @@ class NaturalPKTest(ORMTest):
         u1 = User(username='jack', fullname='jack')
         a1.user = u1
         a2.user = u1
-        sess.save(a1)
-        sess.save(a2)
+        sess.add(a1)
+        sess.add(a2)
         sess.flush()
 
         u1.username = 'ed'
@@ -207,7 +220,7 @@ class NaturalPKTest(ORMTest):
         sess.clear()
         self.assertEquals([Address(username='ed'), Address(username='ed')], sess.query(Address).all())
 
-        u1 = sess.get(User, 'ed')
+        u1 = sess.query(User).get('ed')
         assert len(u1.addresses) == 2    # load addresses
         u1.username = 'fred'
         print "--------------------------------"
@@ -222,17 +235,19 @@ class NaturalPKTest(ORMTest):
         self.assertEquals([Address(username='fred'), Address(username='fred')], sess.query(Address).all())
 
 
+    @testing.fails_on('sqlite')
+    @testing.fails_on('mysql')
     def test_manytomany_passive(self):
         self._test_manytomany(True)
-    test_manytomany_passive = testing.unsupported('sqlite', 'mysql')(test_manytomany_passive)
 
     def test_manytomany_nonpassive(self):
         self._test_manytomany(False)
 
+    @testing.resolve_artifact_names
     def _test_manytomany(self, passive_updates):
         mapper(User, users, properties={
-            'items':relation(Item, secondary=users_to_items, backref='users', passive_updates=passive_updates)
-        })
+            'items':relation(Item, secondary=users_to_items, backref='users',
+                             passive_updates=passive_updates)})
         mapper(Item, items)
 
         sess = create_session()
@@ -244,12 +259,13 @@ class NaturalPKTest(ORMTest):
         u1.items.append(i1)
         u1.items.append(i2)
         i2.users.append(u2)
-        sess.save(u1)
-        sess.save(u2)
+        sess.add(u1)
+        sess.add(u2)
         sess.flush()
 
         r = sess.query(Item).all()
-        # fixtures.Base can't handle a comparison with the backrefs involved....
+        # ComparableEntity can't handle a comparison with the backrefs
+        # involved....
         self.assertEquals(Item(itemname='item1'), r[0])
         self.assertEquals(['jack'], [u.username for u in r[0].users])
         self.assertEquals(Item(itemname='item2'), r[1])
@@ -270,85 +286,97 @@ class NaturalPKTest(ORMTest):
         self.assertEquals(Item(itemname='item2'), r[1])
         self.assertEquals(['ed', 'jack'], sorted([u.username for u in r[1].users]))
 
-class SelfRefTest(ORMTest):
+class SelfRefTest(_base.MappedTest):
     def define_tables(self, metadata):
-        global nodes, Node
+        Table('nodes', metadata,
+              Column('name', String(50), primary_key=True),
+              Column('parent', String(50),
+                     ForeignKey('nodes.name', onupdate='cascade')))
 
-        nodes = Table('nodes', metadata,
-            Column('name', String(50), primary_key=True),
-            Column('parent', String(50), ForeignKey('nodes.name', onupdate='cascade'))
-            )
-
-        class Node(Base):
+    def setup_classes(self):
+        class Node(_base.ComparableEntity):
             pass
 
+    @testing.resolve_artifact_names
     def test_onetomany(self):
         mapper(Node, nodes, properties={
-            'children':relation(Node, backref=backref('parentnode', remote_side=nodes.c.name, passive_updates=False), passive_updates=False)
-        })
+            'children': relation(Node,
+                                 backref=sa.orm.backref('parentnode',
+                                                        remote_side=nodes.c.name,
+                                                        passive_updates=False),
+                                 passive_updates=False)})
 
         sess = create_session()
         n1 = Node(name='n1')
         n1.children.append(Node(name='n11'))
         n1.children.append(Node(name='n12'))
         n1.children.append(Node(name='n13'))
-        sess.save(n1)
+        sess.add(n1)
         sess.flush()
 
         n1.name = 'new n1'
         sess.flush()
-        self.assertEquals(n1.children[1].parent, 'new n1')
-        self.assertEquals(['new n1', 'new n1', 'new n1'], [n.parent for n in sess.query(Node).filter(Node.name.in_(['n11', 'n12', 'n13']))])
+        eq_(n1.children[1].parent, 'new n1')
+        eq_(['new n1', 'new n1', 'new n1'],
+            [n.parent
+             for n in sess.query(Node).filter(
+                 Node.name.in_(['n11', 'n12', 'n13']))])
 
 
-class NonPKCascadeTest(ORMTest):
+class NonPKCascadeTest(_base.MappedTest):
     def define_tables(self, metadata):
-        global users, addresses
-
-        users = Table('users', metadata,
+        Table('users', metadata,
             Column('id', Integer, primary_key=True),
             Column('username', String(50), unique=True),
             Column('fullname', String(100)))
 
-        addresses = Table('addresses', metadata,
-            Column('id', Integer, primary_key=True),
-            Column('email', String(50)),
-            Column('username', String(50), ForeignKey('users.username', onupdate="cascade")))
+        Table('addresses', metadata,
+              Column('id', Integer, primary_key=True),
+              Column('email', String(50)),
+              Column('username', String(50),
+                     ForeignKey('users.username', onupdate="cascade")))
 
+    def setup_classes(self):
+        class User(_base.ComparableEntity):
+            pass
+        class Address(_base.ComparableEntity):
+            pass
+
+    @testing.fails_on('sqlite')
+    @testing.fails_on('mysql')
     def test_onetomany_passive(self):
         self._test_onetomany(True)
-    test_onetomany_passive = testing.unsupported('sqlite','mysql')(test_onetomany_passive)
 
     def test_onetomany_nonpassive(self):
         self._test_onetomany(False)
 
+    @testing.resolve_artifact_names
     def _test_onetomany(self, passive_updates):
         mapper(User, users, properties={
-            'addresses':relation(Address, passive_updates=passive_updates)
-        })
+            'addresses':relation(Address, passive_updates=passive_updates)})
         mapper(Address, addresses)
 
         sess = create_session()
         u1 = User(username='jack', fullname='jack')
         u1.addresses.append(Address(email='jack1'))
         u1.addresses.append(Address(email='jack2'))
-        sess.save(u1)
+        sess.add(u1)
         sess.flush()
         a1 = u1.addresses[0]
 
-        self.assertEquals(select([addresses.c.username]).execute().fetchall(), [('jack',), ('jack',)])
+        self.assertEquals(sa.select([addresses.c.username]).execute().fetchall(), [('jack',), ('jack',)])
 
-        assert sess.get(Address, a1.id) is u1.addresses[0]
+        assert sess.query(Address).get(a1.id) is u1.addresses[0]
 
         u1.username = 'ed'
         sess.flush()
         assert u1.addresses[0].username == 'ed'
-        self.assertEquals(select([addresses.c.username]).execute().fetchall(), [('ed',), ('ed',)])
+        self.assertEquals(sa.select([addresses.c.username]).execute().fetchall(), [('ed',), ('ed',)])
 
         sess.clear()
         self.assertEquals([Address(username='ed'), Address(username='ed')], sess.query(Address).all())
 
-        u1 = sess.get(User, u1.id)
+        u1 = sess.query(User).get(u1.id)
         u1.username = 'jack'
         def go():
             sess.flush()
@@ -357,20 +385,20 @@ class NonPKCascadeTest(ORMTest):
         else:
             self.assert_sql_count(testing.db, go, 1) # test passive_updates=True; update user
         sess.clear()
-        assert User(username='jack', addresses=[Address(username='jack'), Address(username='jack')]) == sess.get(User, u1.id)
+        assert User(username='jack', addresses=[Address(username='jack'), Address(username='jack')]) == sess.query(User).get(u1.id)
         sess.clear()
 
-        u1 = sess.get(User, u1.id)
+        u1 = sess.query(User).get(u1.id)
         u1.addresses = []
         u1.username = 'fred'
         sess.flush()
         sess.clear()
-        a1 = sess.get(Address, a1.id)
+        a1 = sess.query(Address).get(a1.id)
         self.assertEquals(a1.username, None)
 
-        self.assertEquals(select([addresses.c.username]).execute().fetchall(), [(None,), (None,)])
+        self.assertEquals(sa.select([addresses.c.username]).execute().fetchall(), [(None,), (None,)])
 
-        u1 = sess.get(User, u1.id)
+        u1 = sess.query(User).get(u1.id)
         self.assertEquals(User(username='fred', fullname='jack'), u1)
 
 

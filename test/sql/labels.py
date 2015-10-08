@@ -1,6 +1,5 @@
 import testenv; testenv.configure_for_tests()
 from sqlalchemy import *
-from sqlalchemy import exceptions
 from testlib import *
 from sqlalchemy.engine import default
 
@@ -39,14 +38,6 @@ class LongLabelsTest(TestBase, AssertsCompiledSQL):
         metadata.drop_all()
         testing.db.dialect.max_identifier_length = maxlen
 
-    def test_too_long_name_disallowed(self):
-        m = MetaData(testing.db)
-        t1 = Table("this_name_is_too_long_for_what_were_doing_in_this_test", m, Column('foo', Integer))
-        self.assertRaises(exceptions.IdentifierError, m.create_all)
-        self.assertRaises(exceptions.IdentifierError, m.drop_all)
-        self.assertRaises(exceptions.IdentifierError, t1.create)
-        self.assertRaises(exceptions.IdentifierError, t1.drop)
-        
     def test_result(self):
         table1.insert().execute(**{"this_is_the_primarykey_column":1, "this_is_the_data_column":"data1"})
         table1.insert().execute(**{"this_is_the_primarykey_column":2, "this_is_the_data_column":"data2"})
@@ -108,30 +99,34 @@ class LongLabelsTest(TestBase, AssertsCompiledSQL):
         table1.insert().execute(**{"this_is_the_data_column":"data3"})
         table1.insert().execute(**{"this_is_the_data_column":"data4"})
 
+    @testing.requires.subqueries
     def test_subquery(self):
-      # this is the test that fails if the "max identifier length" is shorter than the
-      # length of the actual columns created, because the column names get truncated.
-      # if you try to separate "physical columns" from "labels", and only truncate the labels,
-      # the compiler.DefaultCompiler.visit_select() logic which auto-labels columns in a subquery (for the purposes of sqlite compat) breaks the code,
-      # since it is creating "labels" on the fly but not affecting derived columns, which think they are
-      # still "physical"
-      q = table1.select(table1.c.this_is_the_primarykey_column == 4).alias('foo')
-      x = select([q])
-      print x.execute().fetchall()
+        # this is the test that fails if the "max identifier length" is
+        # shorter than the length of the actual columns created, because the
+        # column names get truncated.  if you try to separate "physical
+        # columns" from "labels", and only truncate the labels, the
+        # compiler.DefaultCompiler.visit_select() logic which auto-labels
+        # columns in a subquery (for the purposes of sqlite compat) breaks the
+        # code, since it is creating "labels" on the fly but not affecting
+        # derived columns, which think they are still "physical"
+        q = table1.select(table1.c.this_is_the_primarykey_column == 4).alias('foo')
+        x = select([q])
+        print x.execute().fetchall()
 
+    @testing.requires.subqueries
     def test_anon_alias(self):
-      compile_dialect = default.DefaultDialect()
-      compile_dialect.max_identifier_length = IDENT_LENGTH
+        compile_dialect = default.DefaultDialect()
+        compile_dialect.max_identifier_length = IDENT_LENGTH
 
-      q = table1.select(table1.c.this_is_the_primarykey_column == 4).alias()
-      x = select([q], use_labels=True)
+        q = table1.select(table1.c.this_is_the_primarykey_column == 4).alias()
+        x = select([q], use_labels=True)
 
-      self.assert_compile(x, "SELECT anon_1.this_is_the_primarykey_column AS anon_1_this_is_the_prim_1, anon_1.this_is_the_data_column AS anon_1_this_is_the_data_2 "
+        self.assert_compile(x, "SELECT anon_1.this_is_the_primarykey_column AS anon_1_this_is_the_prim_1, anon_1.this_is_the_data_column AS anon_1_this_is_the_data_2 "
             "FROM (SELECT some_large_named_table.this_is_the_primarykey_column AS this_is_the_primarykey_column, some_large_named_table.this_is_the_data_column AS this_is_the_data_column "
             "FROM some_large_named_table "
             "WHERE some_large_named_table.this_is_the_primarykey_column = :this_is_the_primarykey__1) AS anon_1", dialect=compile_dialect)
 
-      print x.execute().fetchall()
+        print x.execute().fetchall()
 
     def test_oid(self):
         """test that a primary key column compiled as the 'oid' column gets proper length truncation"""

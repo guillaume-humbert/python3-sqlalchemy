@@ -196,6 +196,7 @@ class InheritTest3(ORMTest):
         found = repr(l[0]) + repr(sorted([repr(o) for o in l[0].foos]))
         self.assertEqual(found, compare)
 
+    @testing.fails_on('maxdb')
     def testadvanced(self):
         class Foo(object):
             def __init__(self, data=None):
@@ -239,7 +240,6 @@ class InheritTest3(ORMTest):
         x = sess.query(Blub).filter_by(id=blubid).one()
         print x
         self.assert_(repr(x) == compare)
-    testadvanced = testing.fails_on('maxdb')(testadvanced)
 
 
 if __name__ == "__main__":

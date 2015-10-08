@@ -5,7 +5,7 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-from sqlalchemy import sql, schema, types, exceptions, pool
+from sqlalchemy import sql, schema, types, exc, pool
 from sqlalchemy.sql import compiler, expression
 from sqlalchemy.engine import default, base
 
@@ -22,7 +22,7 @@ class AcNumeric(types.Numeric):
             else:
                 return str(value)
         return process
-        
+
     def get_col_spec(self):
         return "NUMERIC"
 
@@ -37,7 +37,7 @@ class AcFloat(types.Float):
                 return str(value)
             return None
         return process
-        
+
 class AcInteger(types.Integer):
     def get_col_spec(self):
         return "INTEGER"
@@ -83,7 +83,7 @@ class AcUnicode(types.Unicode):
         return None
 
 class AcChar(types.CHAR):
-    def get_col_spec(self):        
+    def get_col_spec(self):
         return "TEXT" + (self.length and ("(%d)" % self.length) or "")
 
 class AcBinary(types.Binary):
@@ -100,7 +100,7 @@ class AcBoolean(types.Boolean):
                 return None
             return value and True or False
         return process
-        
+
     def bind_processor(self, dialect):
         def process(value):
             if value is True:
@@ -112,7 +112,7 @@ class AcBoolean(types.Boolean):
             else:
                 return value and True or False
         return process
-        
+
 class AcTimeStamp(types.TIMESTAMP):
     def get_col_spec(self):
         return "TIMESTAMP"
@@ -202,7 +202,7 @@ class AccessDialect(default.DefaultDialect):
                 except pythoncom.com_error:
                     pass
             else:
-                raise exceptions.InvalidRequestError("Can't find a DB engine. Check http://support.microsoft.com/kb/239114 for details.")
+                raise exc.InvalidRequestError("Can't find a DB engine. Check http://support.microsoft.com/kb/239114 for details.")
 
         import pyodbc as module
         return module
@@ -236,7 +236,7 @@ class AccessDialect(default.DefaultDialect):
             c.execute(statement, parameters)
             self.context.rowcount = c.rowcount
         except Exception, e:
-            raise exceptions.DBAPIError.instance(statement, parameters, e)
+            raise exc.DBAPIError.instance(statement, parameters, e)
 
     def has_table(self, connection, tablename, schema=None):
         # This approach seems to be more reliable that using DAO
@@ -246,7 +246,7 @@ class AccessDialect(default.DefaultDialect):
         except Exception, e:
             return False
 
-    def reflecttable(self, connection, table, include_columns):        
+    def reflecttable(self, connection, table, include_columns):
         # This is defined in the function, as it relies on win32com constants,
         # that aren't imported until dbapi method is called
         if not hasattr(self, 'ischema_names'):
@@ -262,17 +262,17 @@ class AccessDialect(default.DefaultDialect):
                 const.dbBoolean:    AcBoolean,
                 const.dbText:       AcUnicode, # All Access strings are unicode
             }
-            
+
         # A fresh DAO connection is opened for each reflection
         # This is necessary, so we get the latest updates
         dtbs = daoEngine.OpenDatabase(connection.engine.url.database)
-        
+
         try:
             for tbl in dtbs.TableDefs:
                 if tbl.Name.lower() == table.name.lower():
                     break
             else:
-                raise exceptions.NoSuchTableError(table.name)
+                raise exc.NoSuchTableError(table.name)
 
             for col in tbl.Fields:
                 coltype = self.ischema_names[col.Type]
@@ -290,7 +290,7 @@ class AccessDialect(default.DefaultDialect):
                 elif default:
                     if col.Type == const.dbBoolean:
                         default = default == 'Yes' and '1' or '0'
-                    colargs['default'] = schema.PassiveDefault(sql.text(default))
+                    colargs['server_default'] = schema.DefaultClause(sql.text(default))
 
                 table.append_column(schema.Column(col.Name, coltype, **colargs))
 
@@ -316,7 +316,7 @@ class AccessDialect(default.DefaultDialect):
                             col.unique = idx.Unique
                     else:
                         pass # TBD: multi-column indexes
-                
+
 
             for fk in dtbs.Relations:
                 if fk.ForeignTable != table.name:
@@ -333,7 +333,7 @@ class AccessDialect(default.DefaultDialect):
         # This is necessary, so we get the latest updates
         dtbs = daoEngine.OpenDatabase(connection.engine.url.database)
 
-        names = [t.Name for t in dtbs.TableDefs if t.Name[:4] != "MSys" and t.Name[:4] <> "~TMP"]
+        names = [t.Name for t in dtbs.TableDefs if t.Name[:4] != "MSys" and t.Name[:4] != "~TMP"]
         dtbs.Close()
         return names
 
@@ -345,7 +345,7 @@ class AccessCompiler(compiler.DefaultCompiler):
         if select.limit:
             s += "TOP %s " % (select.limit)
         if select.offset:
-            raise exceptions.InvalidRequestError('Access does not support LIMIT with an offset')
+            raise exc.InvalidRequestError('Access does not support LIMIT with an offset')
         return s
 
     def limit_clause(self, select):
@@ -378,14 +378,14 @@ class AccessCompiler(compiler.DefaultCompiler):
     # Strip schema
     def visit_table(self, table, asfrom=False, **kwargs):
         if asfrom:
-            return self.preparer.quote(table, table.name)
+            return self.preparer.quote(table.name, table.quote)
         else:
             return ""
 
 
 class AccessSchemaGenerator(compiler.SchemaGenerator):
     def get_column_specification(self, column, **kwargs):
-        colspec = self.preparer.format_column(column) + " " + column.type.dialect_impl(self.dialect, _for_ddl=column).get_col_spec()
+        colspec = self.preparer.format_column(column) + " " + column.type.dialect_impl(self.dialect).get_col_spec()
 
         # install a sequence if we have an implicit IDENTITY column
         if (not getattr(column.table, 'has_sequence', False)) and column.primary_key and \
@@ -408,8 +408,7 @@ class AccessSchemaGenerator(compiler.SchemaGenerator):
 
 class AccessSchemaDropper(compiler.SchemaDropper):
     def visit_index(self, index):
-        
-        self.append("\nDROP INDEX [%s].[%s]" % (index.table.name, self._validate_identifier(index.name, False)))
+        self.append("\nDROP INDEX [%s].[%s]" % (index.table.name, index.name))
         self.execute()
 
 class AccessDefaultRunner(base.DefaultRunner):

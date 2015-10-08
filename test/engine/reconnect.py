@@ -1,9 +1,9 @@
 import testenv; testenv.configure_for_tests()
-import sys, weakref
-from sqlalchemy import create_engine, exceptions, select, MetaData, Table, Column, Integer, String
-from testlib import *
-import time
-import gc
+import weakref
+from testlib.sa import select, MetaData, Table, Column, Integer, String
+import testlib.sa as tsa
+from testlib import TestBase, testing, engines
+
 
 class MockDisconnect(Exception):
     pass
@@ -44,13 +44,14 @@ class MockCursor(object):
     def close(self):
         pass
 
+db, dbapi = None, None
 class MockReconnectTest(TestBase):
     def setUp(self):
         global db, dbapi
         dbapi = MockDBAPI()
 
         # create engine using our current dburi
-        db = create_engine('postgres://foo:bar@localhost/test', module=dbapi)
+        db = tsa.create_engine('postgres://foo:bar@localhost/test', module=dbapi)
 
         # monkeypatch disconnect checker
         db.dialect.is_disconnect = lambda e: isinstance(e, MockDisconnect)
@@ -81,7 +82,7 @@ class MockReconnectTest(TestBase):
         try:
             conn.execute(select([1]))
             assert False
-        except exceptions.DBAPIError:
+        except tsa.exc.DBAPIError:
             pass
 
         # assert was invalidated
@@ -94,7 +95,6 @@ class MockReconnectTest(TestBase):
         assert id(db.pool) != pid
 
         # ensure all connections closed (pool was recycled)
-        gc.collect()
         assert len(dbapi.connections) == 0
 
         conn =db.connect()
@@ -110,11 +110,10 @@ class MockReconnectTest(TestBase):
         try:
             conn.execute(select([1]))
             assert False
-        except exceptions.DBAPIError:
+        except tsa.exc.DBAPIError:
             pass
 
         # assert was invalidated
-        gc.collect()
         assert len(dbapi.connections) == 0
         assert not conn.closed
         assert conn.invalidated
@@ -123,7 +122,7 @@ class MockReconnectTest(TestBase):
         try:
             conn.execute(select([1]))
             assert False
-        except exceptions.InvalidRequestError, e:
+        except tsa.exc.InvalidRequestError, e:
             assert str(e) == "Can't reconnect until invalid transaction is rolled back"
 
         assert trans.is_active
@@ -131,7 +130,7 @@ class MockReconnectTest(TestBase):
         try:
             trans.commit()
             assert False
-        except exceptions.InvalidRequestError, e:
+        except tsa.exc.InvalidRequestError, e:
             assert str(e) == "Can't reconnect until invalid transaction is rolled back"
 
         assert trans.is_active
@@ -157,14 +156,13 @@ class MockReconnectTest(TestBase):
         try:
             conn.execute(select([1]))
             assert False
-        except exceptions.DBAPIError:
+        except tsa.exc.DBAPIError:
             pass
 
         assert not conn.closed
         assert conn.invalidated
 
         # ensure all connections closed (pool was recycled)
-        gc.collect()
         assert len(dbapi.connections) == 0
 
         # test reconnects
@@ -172,7 +170,7 @@ class MockReconnectTest(TestBase):
         assert not conn.invalidated
         assert len(dbapi.connections) == 1
 
-
+engine = None
 class RealReconnectTest(TestBase):
     def setUp(self):
         global engine
@@ -192,7 +190,7 @@ class RealReconnectTest(TestBase):
         try:
             conn.execute(select([1]))
             assert False
-        except exceptions.DBAPIError, e:
+        except tsa.exc.DBAPIError, e:
             if not e.connection_invalidated:
                 raise
 
@@ -208,7 +206,7 @@ class RealReconnectTest(TestBase):
         try:
             conn.execute(select([1]))
             assert False
-        except exceptions.DBAPIError, e:
+        except tsa.exc.DBAPIError, e:
             if not e.connection_invalidated:
                 raise
         assert conn.invalidated
@@ -216,7 +214,7 @@ class RealReconnectTest(TestBase):
         assert not conn.invalidated
 
         conn.close()
-    
+
     def test_close(self):
         conn = engine.connect()
         self.assertEquals(conn.execute(select([1])).scalar(), 1)
@@ -227,7 +225,7 @@ class RealReconnectTest(TestBase):
         try:
             conn.execute(select([1]))
             assert False
-        except exceptions.DBAPIError, e:
+        except tsa.exc.DBAPIError, e:
             if not e.connection_invalidated:
                 raise
 
@@ -248,7 +246,7 @@ class RealReconnectTest(TestBase):
         try:
             conn.execute(select([1]))
             assert False
-        except exceptions.DBAPIError, e:
+        except tsa.exc.DBAPIError, e:
             if not e.connection_invalidated:
                 raise
 
@@ -259,7 +257,7 @@ class RealReconnectTest(TestBase):
         try:
             conn.execute(select([1]))
             assert False
-        except exceptions.InvalidRequestError, e:
+        except tsa.exc.InvalidRequestError, e:
             assert str(e) == "Can't reconnect until invalid transaction is rolled back"
 
         assert trans.is_active
@@ -267,7 +265,7 @@ class RealReconnectTest(TestBase):
         try:
             trans.commit()
             assert False
-        except exceptions.InvalidRequestError, e:
+        except tsa.exc.InvalidRequestError, e:
             assert str(e) == "Can't reconnect until invalid transaction is rolled back"
 
         assert trans.is_active
@@ -279,22 +277,7 @@ class RealReconnectTest(TestBase):
         self.assertEquals(conn.execute(select([1])).scalar(), 1)
         assert not conn.invalidated
 
-class RecycleTest(TestBase):
-    def test_basic(self):
-        for threadlocal in (False, True):
-            engine = engines.reconnecting_engine(options={'pool_recycle':1, 'pool_threadlocal':threadlocal})
-        
-            conn = engine.contextual_connect()
-            self.assertEquals(conn.execute(select([1])).scalar(), 1)
-            conn.close()
-
-            engine.test_shutdown()
-            time.sleep(2)
-    
-            conn = engine.contextual_connect()
-            self.assertEquals(conn.execute(select([1])).scalar(), 1)
-            conn.close()
-    
+meta, table, engine = None, None, None
 class InvalidateDuringResultTest(TestBase):
     def setUp(self):
         global meta, table, engine
@@ -307,28 +290,28 @@ class InvalidateDuringResultTest(TestBase):
         table.insert().execute(
             [{'id':i, 'name':'row %d' % i} for i in range(1, 100)]
         )
-        
+
     def tearDown(self):
         meta.drop_all()
         engine.dispose()
-    
+
+    @testing.fails_on('mysql')
     def test_invalidate_on_results(self):
         conn = engine.connect()
-        
+
         result = conn.execute("select * from sometable")
         for x in xrange(20):
             result.fetchone()
-        
+
         engine.test_shutdown()
         try:
             result.fetchone()
             assert False
-        except exceptions.DBAPIError, e:
+        except tsa.exc.DBAPIError, e:
             if not e.connection_invalidated:
                 raise
 
         assert conn.invalidated
-    test_invalidate_on_results = testing.fails_on('mysql')    (test_invalidate_on_results)
-        
+
 if __name__ == '__main__':
     testenv.main()
