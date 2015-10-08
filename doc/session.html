@@ -7,7 +7,7 @@
         
         <title>
     Using the Session
- &mdash; SQLAlchemy 0.5.4p2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.5 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.4p2',
+          VERSION:     '0.5.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.4p2 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.5 Documentation" href="index.html" />
         <link rel="next" title="Database Engines" href="dbengine.html" />
         <link rel="prev" title="Mapper Configuration" href="mappers.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.4p2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.4p2</span> Last Updated: 05/26/2009 16:24:44
+            Version: <span class="versionnum">0.5.5</span> Last Updated: 07/13/2009 15:02:35
         </div>
         <div class="clearboth"></div>
 
@@ -360,17 +360,19 @@
 </div>
 <div class="section" id="flushing">
 <h3>Flushing<a class="headerlink" href="#flushing" title="Permalink to this headline">¶</a></h3>
-<p>When the <tt class="docutils literal"><span class="pre">Session</span></tt> is used with its default configuration, the flush step is nearly always done transparently.  Specifically, the flush occurs before any individual <tt class="docutils literal"><span class="pre">Query</span></tt> is issued, as well as within the <tt class="docutils literal"><span class="pre">commit()</span></tt> call before the transaction is committed.  It also occurs before a SAVEPOINT is issued when <tt class="docutils literal"><span class="pre">begin_nested()</span></tt> is used.  The &#8220;flush-on-Query&#8221; aspect of the behavior can be disabled by constructing <tt class="docutils literal"><span class="pre">sessionmaker()</span></tt> with the flag <tt class="docutils literal"><span class="pre">autoflush=False</span></tt>.</p>
+<p>When the <tt class="docutils literal"><span class="pre">Session</span></tt> is used with its default configuration, the flush step is nearly always done transparently.  Specifically, the flush occurs before any individual <tt class="docutils literal"><span class="pre">Query</span></tt> is issued, as well as within the <tt class="docutils literal"><span class="pre">commit()</span></tt> call before the transaction is committed.  It also occurs before a SAVEPOINT is issued when <tt class="docutils literal"><span class="pre">begin_nested()</span></tt> is used.</p>
 <p>Regardless of the autoflush setting, a flush can always be forced by issuing <tt class="docutils literal"><span class="pre">flush()</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></pre></div>
 </div>
-<p><tt class="docutils literal"><span class="pre">flush()</span></tt> also supports the ability to flush a subset of objects which are present in the session, by passing a list of objects:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># saves only user1 and address2.  all other modified</span>
-<span class="c"># objects remain present in the session.</span>
-<span class="n">session</span><span class="o">.</span><span class="n">flush</span><span class="p">([</span><span class="n">user1</span><span class="p">,</span> <span class="n">address2</span><span class="p">])</span></pre></div>
+<p>The &#8220;flush-on-Query&#8221; aspect of the behavior can be disabled by constructing <tt class="docutils literal"><span class="pre">sessionmaker()</span></tt> with the flag <tt class="docutils literal"><span class="pre">autoflush=False</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">autoflush</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span></pre></div>
 </div>
-<p>This second form of flush should be used carefully as it currently does not cascade, meaning that it will not necessarily affect other objects directly associated with the objects given.</p>
-<p>The flush process <em>always</em> occurs within a transaction, even if the <tt class="docutils literal"><span class="pre">Session</span></tt> has been configured with <tt class="docutils literal"><span class="pre">autocommit=True</span></tt>, a setting that disables the session&#8217;s persistent transactional state.  If no transaction is present, <tt class="docutils literal"><span class="pre">flush()</span></tt> creates its own transaction and commits it.  Any failures during flush will always result in a rollback of whatever transaction is present.</p>
+<p>Additionally, autoflush can be temporarily disabled by setting the <tt class="docutils literal"><span class="pre">autoflush</span></tt> flag at any time:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mysession</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
+<span class="n">mysession</span><span class="o">.</span><span class="n">autoflush</span> <span class="o">=</span> <span class="bp">False</span></pre></div>
+</div>
+<p>Some autoflush-disable recipes are available at <a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/UsageRecipes/DisableAutoflush">DisableAutoFlush</a>.</p>
+<p>The flush process <em>always</em> occurs within a transaction, even if the <tt class="docutils literal"><span class="pre">Session</span></tt> has been configured with <tt class="docutils literal"><span class="pre">autocommit=True</span></tt>, a setting that disables the session&#8217;s persistent transactional state.  If no transaction is present, <tt class="docutils literal"><span class="pre">flush()</span></tt> creates its own transaction and commits it.  Any failures during flush will always result in a rollback of whatever transaction is present.  If the Session is not in <tt class="docutils literal"><span class="pre">autocommit=True</span></tt> mode, an explicit call to <tt class="docutils literal"><span class="pre">rollback()</span></tt> is required after a flush fails, even though the underlying transaction will have been rolled back already - this is so that the overall nesting pattern of so-called &#8220;subtransactions&#8221; is consistently maintained.</p>
 </div>
 <div class="section" id="committing">
 <h3>Committing<a class="headerlink" href="#committing" title="Permalink to this headline">¶</a></h3>

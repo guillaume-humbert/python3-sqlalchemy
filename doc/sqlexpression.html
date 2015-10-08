@@ -7,7 +7,7 @@
         
         <title>
     SQL Expression Language Tutorial
- &mdash; SQLAlchemy 0.5.4p2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.5 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.4p2',
+          VERSION:     '0.5.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.4p2 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.5 Documentation" href="index.html" />
         <link rel="next" title="Mapper Configuration" href="mappers.html" />
         <link rel="prev" title="Object Relational Tutorial" href="ormtutorial.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.4p2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.4p2</span> Last Updated: 05/26/2009 16:24:44
+            Version: <span class="versionnum">0.5.5</span> Last Updated: 07/13/2009 15:02:35
         </div>
         <div class="clearboth"></div>
 
@@ -676,7 +676,11 @@ WHERE users.name LIKE ? || '%' OR addresses.email_address LIKE ? || '@%'
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">func</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="s">&#39;y&#39;</span><span class="p">)</span>
 <span class="go">concat(:param_1, :param_2)</span></pre></div>
 </div>
-<p>Certain functions are marked as &#8220;ANSI&#8221; functions, which mean they don&#8217;t get the parenthesis added after them, such as CURRENT_TIMESTAMP:</p>
+<p>By &#8220;generates&#8221;, we mean that <strong>any</strong> SQL function is created based on the word you choose:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">func</span><span class="o">.</span><span class="n">xyz_my_goofy_function</span><span class="p">()</span>
+<span class="go">xyz_my_goofy_function()</span></pre></div>
+</div>
+<p>Certain function names are known by SQLAlchemy, allowing special behavioral rules to be applied.   Some for example are &#8220;ANSI&#8221; functions, which mean they don&#8217;t get the parenthesis added after them, such as CURRENT_TIMESTAMP:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">func</span><span class="o">.</span><span class="n">current_timestamp</span><span class="p">()</span>
 <span class="go">CURRENT_TIMESTAMP</span></pre></div>
 </div>

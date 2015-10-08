@@ -7,7 +7,7 @@
         
         <title>
     Database Engines
- &mdash; SQLAlchemy 0.5.4p2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.5 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.4p2',
+          VERSION:     '0.5.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.4p2 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.5 Documentation" href="index.html" />
         <link rel="next" title="Database Meta Data" href="metadata.html" />
         <link rel="prev" title="Using the Session" href="session.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.4p2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.4p2</span> Last Updated: 05/26/2009 16:24:44
+            Version: <span class="versionnum">0.5.5</span> Last Updated: 07/13/2009 15:02:35
         </div>
         <div class="clearboth"></div>
 
@@ -148,10 +148,10 @@ connect() &lt;--|   Engine    |---x                       x----| DBAPI  |---| da
 <p>The <tt class="docutils literal"><span class="pre">Engine</span></tt> and <tt class="docutils literal"><span class="pre">Connection</span></tt> can do a lot more than what we illustrated above; SQL strings are only its most rudimentary function.  Later chapters will describe how &#8220;constructed SQL&#8221; expressions can be used with engines; in many cases, you don&#8217;t have to deal with the <tt class="docutils literal"><span class="pre">Engine</span></tt> at all after it&#8217;s created.  The Object Relational Mapper (ORM), an optional feature of SQLAlchemy, also uses the <tt class="docutils literal"><span class="pre">Engine</span></tt> in order to get at connections; that&#8217;s also a case where you can often create the engine once, and then forget about it.</p>
 <div class="section" id="supported-databases">
 <span id="supported-dbapis"></span><h2>Supported Databases<a class="headerlink" href="#supported-databases" title="Permalink to this headline">¶</a></h2>
-<p>Recall that the <tt class="docutils literal"><span class="pre">Dialect</span></tt> is used to describe how to talk to a specific kind of database.  Dialects are included with SQLAlchemy for SQLite, Postgres, MySQL, MS-SQL, Firebird, Informix, and Oracle; these can each be seen as a Python module present in the :mod:<tt class="docutils literal"><span class="pre">~sqlalchemy.databases</span></tt> package.  Each dialect requires the appropriate DBAPI drivers to be installed separately.</p>
+<p>Recall that the <tt class="docutils literal"><span class="pre">Dialect</span></tt> is used to describe how to talk to a specific kind of database.  Dialects are included with SQLAlchemy for SQLite, PostgreSQL, MySQL, MS-SQL, Firebird, Informix, and Oracle; these can each be seen as a Python module present in the :mod:<tt class="docutils literal"><span class="pre">~sqlalchemy.databases</span></tt> package.  Each dialect requires the appropriate DBAPI drivers to be installed separately.</p>
 <p>Downloads for each DBAPI at the time of this writing are as follows:</p>
 <ul class="simple">
-<li>Postgres:  <a class="reference external" href="http://www.initd.org/tracker/psycopg/wiki/PsycopgTwo">psycopg2</a></li>
+<li>PostgreSQL:  <a class="reference external" href="http://www.initd.org/tracker/psycopg/wiki/PsycopgTwo">psycopg2</a></li>
 <li>SQLite:  <a class="reference external" href="http://www.python.org/doc/2.5.2/lib/module-sqlite3.html">sqlite3</a> (included in Python 2.5 or greater) <a class="reference external" href="http://initd.org/tracker/pysqlite">pysqlite</a></li>
 <li>MySQL:   <a class="reference external" href="http://sourceforge.net/projects/mysql-python">MySQLDB</a></li>
 <li>Oracle:  <a class="reference external" href="http://cx-oracle.sourceforge.net/">cx_Oracle</a></li>

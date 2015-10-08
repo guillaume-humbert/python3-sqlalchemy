@@ -7,7 +7,7 @@
         
         <title>
     Sessions
- &mdash; SQLAlchemy 0.5.4p2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.5 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.4p2',
+          VERSION:     '0.5.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.4p2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.5 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Interfaces" href="interfaces.html" />
         <link rel="prev" title="Querying" href="query.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.4p2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.4p2</span> Last Updated: 05/26/2009 16:24:44
+            Version: <span class="versionnum">0.5.5</span> Last Updated: 07/13/2009 15:02:35
         </div>
         <div class="clearboth"></div>
 
@@ -774,14 +774,9 @@ instances if the relation is mapped with <tt class="docutils literal"><span clas
 class </em><tt class="descclassname">sqlalchemy.orm.scoping.</tt><tt class="descname">ScopedSession</tt><big>(</big><em>session_factory</em>, <em>scopefunc=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.scoping.ScopedSession" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provides thread-local management of Sessions.</p>
 <p>Usage:</p>
-<div class="highlight-python"><pre>Session = scoped_session(sessionmaker(autoflush=True))
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Session</span> <span class="o">=</span> <span class="n">scoped_session</span><span class="p">(</span><span class="n">sessionmaker</span><span class="p">(</span><span class="n">autoflush</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
 
-To map classes so that new instances are saved in the current
-Session automatically, as well as to provide session-aware
-class attributes such as "query":
-
-mapper = Session.mapper
-mapper(Class, table, ...)</pre>
+<span class="o">...</span> <span class="n">use</span> <span class="n">session</span> <span class="n">normally</span><span class="o">.</span></pre></div>
 </div>
 <dl class="method">
 <dt id="sqlalchemy.orm.scoping.ScopedSession.__init__">
@@ -796,7 +791,10 @@ mapper(Class, table, ...)</pre>
 <dl class="method">
 <dt id="sqlalchemy.orm.scoping.ScopedSession.mapper">
 <tt class="descname">mapper</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.scoping.ScopedSession.mapper" title="Permalink to this definition">¶</a></dt>
-<dd>return a mapper() function which associates this ScopedSession with the Mapper.</dd></dl>
+<dd><p>return a mapper() function which associates this ScopedSession with the Mapper.</p>
+<p>Session.mapper is deprecated.  Please see <a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/UsageRecipes/SessionAwareMapper">http://www.sqlalchemy.org/trac/wiki/UsageRecipes/SessionAwareMapper</a> for information on how to replicate its behavior.</p>
+<p>DEPRECATED.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.scoping.ScopedSession.query_property">

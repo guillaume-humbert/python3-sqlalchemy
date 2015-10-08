@@ -7,7 +7,7 @@
         
         <title>
     associationproxy
- &mdash; SQLAlchemy 0.5.4p2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.5 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.4p2',
+          VERSION:     '0.5.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.4p2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.5 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.ext" href="index.html" />
         <link rel="next" title="orderinglist" href="orderinglist.html" />
         <link rel="prev" title="declarative" href="declarative.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.4p2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.4p2</span> Last Updated: 05/26/2009 16:24:44
+            Version: <span class="versionnum">0.5.5</span> Last Updated: 07/13/2009 15:02:35
         </div>
         <div class="clearboth"></div>
 
@@ -261,10 +261,12 @@ relation.</p>
 <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="s">&#39;log&#39;</span><span class="p">)</span>
 <span class="n">kw1</span>  <span class="o">=</span> <span class="n">Keyword</span><span class="p">(</span><span class="s">&#39;new_from_blammo&#39;</span><span class="p">)</span>
 
-<span class="c"># Adding a Keyword requires creating a UserKeyword association object</span>
-<span class="n">user</span><span class="o">.</span><span class="n">user_keywords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">UserKeyword</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">kw1</span><span class="p">))</span>
+<span class="c"># Creating a UserKeyword association object will add a Keyword.</span>
+<span class="c"># the &quot;user&quot; reference assignment in the UserKeyword() constructor</span>
+<span class="c"># populates &quot;user_keywords&quot; via backref.</span>
+<span class="n">UserKeyword</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">kw1</span><span class="p">)</span>
 
-<span class="c"># And accessing Keywords requires traversing UserKeywords</span>
+<span class="c"># Accessing Keywords requires traversing UserKeywords</span>
 <span class="k">print</span> <span class="n">user</span><span class="o">.</span><span class="n">user_keywords</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span>
 <span class="c"># &lt;__main__.UserKeyword object at 0xb79bbbec&gt;</span>
 

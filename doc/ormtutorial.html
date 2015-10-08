@@ -7,7 +7,7 @@
         
         <title>
     Object Relational Tutorial
- &mdash; SQLAlchemy 0.5.4p2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.5 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.4p2',
+          VERSION:     '0.5.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.4p2 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.5 Documentation" href="index.html" />
         <link rel="next" title="SQL Expression Language Tutorial" href="sqlexpression.html" />
         <link rel="prev" title="Overview / Installation" href="intro.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.4p2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.4p2</span> Last Updated: 05/26/2009 16:24:44
+            Version: <span class="versionnum">0.5.5</span> Last Updated: 07/13/2009 15:02:35
         </div>
         <div class="clearboth"></div>
 
@@ -172,7 +172,7 @@ CREATE TABLE users (
 ()
 COMMIT</div></pre></div>
 </div>
-<p>Users familiar with the syntax of CREATE TABLE may notice that the VARCHAR columns were generated without a length; on SQLite, this is a valid datatype, but on most databases it&#8217;s not allowed.  So if running this tutorial on a database such as Postgres or MySQL, and you wish to use SQLAlchemy to generate the tables, a &#8220;length&#8221; may be provided to the <tt class="docutils literal"><span class="pre">String</span></tt> type as below:</p>
+<p>Users familiar with the syntax of CREATE TABLE may notice that the VARCHAR columns were generated without a length; on SQLite, this is a valid datatype, but on most databases it&#8217;s not allowed.  So if running this tutorial on a database such as PostgreSQL or MySQL, and you wish to use SQLAlchemy to generate the tables, a &#8220;length&#8221; may be provided to the <tt class="docutils literal"><span class="pre">String</span></tt> type as below:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mf">50</span><span class="p">))</span></pre></div>
 </div>
 <p>The length field on <tt class="docutils literal"><span class="pre">String</span></tt>, as well as similar precision/scale fields available on <tt class="docutils literal"><span class="pre">Integer</span></tt>, <tt class="docutils literal"><span class="pre">Numeric</span></tt>, etc. are not referenced by SQLAlchemy other than when creating tables.</p>
@@ -607,7 +607,7 @@ COMMIT</div></pre></div>
 </div>
 <div class="section" id="working-with-related-objects">
 <h2>Working with Related Objects<a class="headerlink" href="#working-with-related-objects" title="Permalink to this headline">¶</a></h2>
-<p>Now when we create a <tt class="docutils literal"><span class="pre">User</span></tt>, a blank <tt class="docutils literal"><span class="pre">addresses</span></tt> collection will be present.  Various collection types, such as sets and dictionaries, are possible here (see <a class="reference external" href="mappers.html#advdatamapping-entitycollections"><em>Custom Collection Implementations</em></a> for details), but by default, the collection is a Python list.</p>
+<p>Now when we create a <tt class="docutils literal"><span class="pre">User</span></tt>, a blank <tt class="docutils literal"><span class="pre">addresses</span></tt> collection will be present.  Various collection types, such as sets and dictionaries, are possible here (see <a class="reference external" href="mappers.html#advdatamapping-entitycollections"><em>Alternate Collection Implementations</em></a> for details), but by default, the collection is a Python list.</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="s">&#39;jack&#39;</span><span class="p">,</span> <span class="s">&#39;Jack Bean&#39;</span><span class="p">,</span> <span class="s">&#39;gjffdd&#39;</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span><span class="o">.</span><span class="n">addresses</span>
 <span class="p">[]</span></pre></div>

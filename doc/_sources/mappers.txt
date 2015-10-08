@@ -883,6 +883,7 @@ Multiple extensions will be chained together and processed in order; they are sp
 
 Relation Configuration 
 =======================
+
 Basic Relational Patterns 
 --------------------------
 
@@ -1205,8 +1206,24 @@ Eager loading of relations occurs using joins or outerjoins from parent to child
 Specifying Alternate Join Conditions to relation() 
 ---------------------------------------------------
 
+The ``relation()`` function uses the foreign key relationship between the parent and child tables to formulate the **primary join condition** between parent and child; in the case of a many-to-many relationship it also formulates the **secondary join condition**::
 
-The ``relation()`` function uses the foreign key relationship between the parent and child tables to formulate the **primary join condition** between parent and child; in the case of a many-to-many relationship it also formulates the **secondary join condition**.  If you are working with a ``Table`` which has no ``ForeignKey`` objects on it (which can be the case when using reflected tables with MySQL), or if the join condition cannot be expressed by a simple foreign key relationship, use the ``primaryjoin`` and possibly ``secondaryjoin`` conditions to create the appropriate relationship.
+      one to many/many to one:
+      ------------------------
+      
+      parent_table -->  parent_table.c.id == child_table.c.parent_id -->  child_table
+                                     primaryjoin
+      
+      many to many:
+      -------------
+                                
+      parent_table -->  parent_table.c.id == secondary_table.c.parent_id -->  
+                                     primaryjoin
+                                 
+                        secondary_table.c.child_id == child_table.c.id --> child_table
+                                    secondaryjoin
+
+If you are working with a ``Table`` which has no ``ForeignKey`` objects on it (which can be the case when using reflected tables with MySQL), or if the join condition cannot be expressed by a simple foreign key relationship, use the ``primaryjoin`` and possibly ``secondaryjoin`` conditions to create the appropriate relationship.
 
 In this example we create a relation ``boston_addresses`` which will only load the user addresses with a city of "Boston":
 
@@ -1287,9 +1304,46 @@ Theres no restriction on how many times you can relate from parent to child.  SQ
 
 .. _alternate_collection_implementations:
 
+Rows that point to themselves / Mutually Dependent Rows
+-------------------------------------------------------
+
+This is a very specific case where relation() must perform an INSERT and a second UPDATE in order to properly populate a row (and vice versa an UPDATE and DELETE in order to delete without violating foreign key constraints).   The two use cases are:
+
+ * A table contains a foreign key to itself, and a single row will have a foreign key value pointing to its own primary key.
+ * Two tables each contain a foreign key referencing the other table, with a row in each table referencing the other.
+
+For example::
+
+              user
+    ---------------------------------
+    user_id    name   related_user_id
+       1       'ed'          1
+
+Or::
+
+                 widget                                                  entry
+    -------------------------------------------             ---------------------------------
+    widget_id     name        favorite_entry_id             entry_id      name      widget_id
+       1       'somewidget'          5                         5       'someentry'     1
+
+In the first case, a row points to itself.  Technically, a database that uses sequences such as PostgreSQL or Oracle can INSERT the row at once using a previously generated value, but databases which rely upon autoincrement-style primary key identifiers cannot.  The ``relation()`` always assumes a "parent/child" model of row population during flush, so unless you are populating the primary key/foreign key columns directly, ``relation()`` needs to use two statements.
+
+In the second case, the "widget" row must be inserted before any referring "entry" rows, but then the "favorite_entry_id" column of that "widget" row cannot be set until the "entry" rows have been generated.  In this case, it's typically impossible to insert the "widget" and "entry" rows using just two INSERT statements; an UPDATE must be performed in order to keep foreign key constraints fulfilled.   The exception is if the foreign keys are configured as "deferred until commit" (a feature some databases support) and if the identifiers were populated manually (again essentially bypassing ``relation()``).
+
+To enable the UPDATE after INSERT / UPDATE before DELETE behavior on ``relation()``, use the ``post_update`` flag on *one* of the relations, preferably the many-to-one side::
+
+    mapper(Widget, widget, properties={
+        'entries':relation(Entry, primaryjoin=widget.c.widget_id==entry.c.widget_id),
+        'favorite_entry':relation(Entry, primaryjoin=widget.c.favorite_entry_id==entry.c.entry_id, post_update=True)
+    })
+
+When a structure using the above mapping is flushed, the "widget" row will be INSERTed minus the "favorite_entry_id" value, then all the "entry" rows will be INSERTed referencing the parent "widget" row, and then an UPDATE statement will populate the "favorite_entry_id" column of the "widget" table (it's one row at a time for the time being).
+
+
+.. _advdatamapping_entitycollections:
+
 Alternate Collection Implementations 
 -------------------------------------
-
 
 Mapping a one-to-many or many-to-many relationship results in a collection of values accessible through an attribute on the parent instance.  By default, this collection is a ``list``:
 
@@ -1303,7 +1357,7 @@ Mapping a one-to-many or many-to-many relationship results in a collection of va
     parent.children.append(Child())
     print parent.children[0]
 
-Collections are not limited to lists.  Sets, mutable sequences and almost any other Python object that can act as a container can be used in place of the default list.
+Collections are not limited to lists.  Sets, mutable sequences and almost any other Python object that can act as a container can be used in place of the default list, by specifying the ``collection_class`` option on ``relation()``.
 
 .. sourcecode:: python+sql
 
@@ -1317,7 +1371,6 @@ Collections are not limited to lists.  Sets, mutable sequences and almost any ot
     parent.children.add(child)
     assert child in parent.children
 
-.. _advdatamapping_entitycollections:
 
 Custom Collection Implementations 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1473,8 +1526,7 @@ The collections package provides additional decorators and support for authoring
 Configuring Loader Strategies: Lazy Loading, Eager Loading 
 -----------------------------------------------------------
 
-
-In the `datamapping`, we introduced the concept of **Eager Loading**.  We used an ``option`` in conjunction with the ``Query`` object in order to indicate that a relation should be loaded at the same time as the parent, within a single SQL query:
+In the :ref:`ormtutorial_toplevel`, we introduced the concept of **Eager Loading**.  We used an ``option`` in conjunction with the ``Query`` object in order to indicate that a relation should be loaded at the same time as the parent, within a single SQL query:
 
 .. sourcecode:: python+sql
 
@@ -1486,7 +1538,7 @@ In the `datamapping`, we introduced the concept of **Eager Loading**.  We used a
     WHERE users.name = ?
     ['jack']
 
-By default, all relations are **lazy loading**.  The scalar or collection attribute associated with a ``relation()`` contains a trigger which fires the first time the attribute is accessed, which issues a SQL call at that point:
+By default, all inter-object relationships are **lazy loading**.  The scalar or collection attribute associated with a ``relation()`` contains a trigger which fires the first time the attribute is accessed, which issues a SQL call at that point:
 
 .. sourcecode:: python+sql
 

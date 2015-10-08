@@ -7,7 +7,7 @@
         
         <title>
     Database Meta Data
- &mdash; SQLAlchemy 0.5.4p2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.5 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.4p2',
+          VERSION:     '0.5.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.4p2 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.5 Documentation" href="index.html" />
         <link rel="next" title="API Reference" href="reference/index.html" />
         <link rel="prev" title="Database Engines" href="dbengine.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.4p2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.4p2</span> Last Updated: 05/26/2009 16:24:44
+            Version: <span class="versionnum">0.5.5</span> Last Updated: 07/13/2009 15:02:35
         </div>
         <div class="clearboth"></div>
 
@@ -450,7 +450,7 @@ CREATE TABLE user_prefs(
 <p>The above SQL functions are usually executed &#8220;inline&#8221; with the INSERT or UPDATE statement being executed.  In some cases, the function is &#8220;pre-executed&#8221; and its result pre-fetched explicitly.  This happens under the following circumstances:</p>
 <ul class="simple">
 <li>the column is a primary key column</li>
-<li>the database dialect does not support a usable <tt class="docutils literal"><span class="pre">cursor.lastrowid</span></tt> accessor (or equivalent); this currently includes Postgres, Oracle, and Firebird.</li>
+<li>the database dialect does not support a usable <tt class="docutils literal"><span class="pre">cursor.lastrowid</span></tt> accessor (or equivalent); this currently includes PostgreSQL, Oracle, and Firebird.</li>
 <li>the statement is a single execution, i.e. only supplies one set of parameters and doesn&#8217;t use &#8220;executemany&#8221; behavior</li>
 <li>the <tt class="docutils literal"><span class="pre">inline=True</span></tt> flag is not set on the <tt class="docutils literal"><span class="pre">Insert()</span></tt> or <tt class="docutils literal"><span class="pre">Update()</span></tt> construct.</li>
 </ul>
@@ -493,7 +493,7 @@ CREATE TABLE user_prefs(
 </div>
 <p>The <tt class="docutils literal"><span class="pre">Sequence</span></tt> object works a lot like the <tt class="docutils literal"><span class="pre">default</span></tt> keyword on <tt class="docutils literal"><span class="pre">Column</span></tt>, except that it only takes effect on a database which supports sequences.  When used with a database that does not support sequences, the <tt class="docutils literal"><span class="pre">Sequence</span></tt> object has no effect; therefore it&#8217;s safe to place on a table which is used against multiple database backends.  The same rules for pre- and inline execution apply.</p>
 <p>When the <tt class="docutils literal"><span class="pre">Sequence</span></tt> is associated with a table, CREATE and DROP statements issued for that table will also issue CREATE/DROP for the sequence object as well, thus &#8220;bundling&#8221; the sequence object with its parent table.</p>
-<p>The flag <tt class="docutils literal"><span class="pre">optional=True</span></tt> on <tt class="docutils literal"><span class="pre">Sequence</span></tt> will produce a sequence that is only used on databases which have no &#8220;autoincrementing&#8221; capability.  For example, Postgres supports primary key generation using the SERIAL keyword, whereas Oracle has no such capability.  Therefore, a <tt class="docutils literal"><span class="pre">Sequence</span></tt> placed on a primary key column with <tt class="docutils literal"><span class="pre">optional=True</span></tt> will only be used with an Oracle backend but not Postgres.</p>
+<p>The flag <tt class="docutils literal"><span class="pre">optional=True</span></tt> on <tt class="docutils literal"><span class="pre">Sequence</span></tt> will produce a sequence that is only used on databases which have no &#8220;autoincrementing&#8221; capability.  For example, PostgreSQL supports primary key generation using the SERIAL keyword, whereas Oracle has no such capability.  Therefore, a <tt class="docutils literal"><span class="pre">Sequence</span></tt> placed on a primary key column with <tt class="docutils literal"><span class="pre">optional=True</span></tt> will only be used with an Oracle backend but not PostgreSQL.</p>
 <p>A sequence can also be executed standalone, using an <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt>, returning its next value in a database-independent fashion:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">seq</span> <span class="o">=</span> <span class="n">Sequence</span><span class="p">(</span><span class="s">&#39;some_sequence&#39;</span><span class="p">)</span>
 <span class="n">nextid</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span></pre></div>

@@ -1,7 +1,9 @@
-from testlib.sa import MetaData, Table, Column, Integer, String, ForeignKey
-from testlib.sa.orm import attributes
-from testlib.testing import fixture
-from orm import _base
+from sqlalchemy import MetaData, Integer, String, ForeignKey
+from sqlalchemy.test.schema import Table
+from sqlalchemy.test.schema import Column
+from sqlalchemy.orm import attributes
+from sqlalchemy.test.testing import fixture
+from test.orm import _base
 
 __all__ = ()
 
@@ -163,6 +165,18 @@ nodes = fixture_table(
     ('id', 'parent_id', 'data')
 )
 
+composite_pk_table = fixture_table(
+    Table('composite_pk_table', fixture_metadata,
+        Column('i', Integer, primary_key=True),
+        Column('j', Integer, primary_key=True),
+        Column('k', Integer, nullable=False),                    
+    ),
+    ('i', 'j', 'k'),
+    (1, 2, 3),
+    (2, 1, 4),
+    (1, 1, 5),
+    (2, 2,6))
+
 
 def _load_fixtures():
     for table in fixture_metadata.sorted_tables:
@@ -201,6 +215,9 @@ class Dingaling(Base):
 
 class Node(Base):
     pass
+
+class CompositePk(Base):
+    pass
     
 class FixtureTest(_base.MappedTest):
     """A MappedTest pre-configured for fixtures.
@@ -227,34 +244,21 @@ class FixtureTest(_base.MappedTest):
                            Address=Address,
                            Dingaling=Dingaling)
 
-    def setUpAll(self):
-        assert not hasattr(self, 'refresh_data')
-        assert not hasattr(self, 'only_tables')
-        #refresh_data = False
-        #only_tables = False
-
-        #if type(self) is not FixtureTest:
-        #    setattr(type(self), 'classes', _base.adict(self.classes))
-
-        #if self.run_setup_classes:
-        #    for cls in self.classes.values():
-        #        self.register_class(cls)
-        super(FixtureTest, self).setUpAll()
-
-        #if not self.only_tables and self.keep_data:
-        #    _registry.load()
-
-    def define_tables(self, metadata):
+    @classmethod
+    def define_tables(cls, metadata):
         pass
 
-    def setup_classes(self):
-        for cls in self.fixture_classes.values():
-            self.register_class(cls)
+    @classmethod
+    def setup_classes(cls):
+        for cl in cls.fixture_classes.values():
+            cls.register_class(cl)
 
-    def setup_mappers(self):
+    @classmethod
+    def setup_mappers(cls):
         pass
 
-    def insert_data(self):
+    @classmethod
+    def insert_data(cls):
         _load_fixtures()
 
 
