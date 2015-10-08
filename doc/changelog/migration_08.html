@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.7',
+          VERSION:     '0.9.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -71,6 +71,9 @@
 
 
 
+
+
+
 <div id="docs-container">
 
 
@@ -80,7 +83,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
+        Release: <span class="version-num">0.9.8</span> | Release Date: October 13, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -147,6 +150,7 @@
 </li>
 <li><a class="reference internal" href="#new-core-features">New Core Features</a><ul>
 <li><a class="reference internal" href="#fully-extensible-type-level-operator-support-in-core">Fully extensible, type-level operator support in Core</a></li>
+<li><a class="reference internal" href="#multiple-values-support-for-insert">Multiple-VALUES support for Insert</a></li>
 <li><a class="reference internal" href="#type-expressions">Type Expressions</a></li>
 <li><a class="reference internal" href="#core-inspection-system">Core Inspection System</a></li>
 <li><a class="reference internal" href="#new-method-select-correlate-except">New Method <tt class="docutils literal"><span class="pre">Select.correlate_except()</span></tt></a></li>
@@ -806,6 +810,26 @@ as more string, integer and date operators.</p>
 <p class="last"><a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.HSTORE" title="sqlalchemy.dialects.postgresql.HSTORE"><tt class="xref py py-class docutils literal"><span class="pre">HSTORE</span></tt></a></p>
 </div>
 <p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2547">#2547</a></p>
+</div>
+<div class="section" id="multiple-values-support-for-insert">
+<span id="feature-2623"></span><h3>Multiple-VALUES support for Insert<a class="headerlink" href="#multiple-values-support-for-insert" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="../core/dml.html#sqlalchemy.sql.expression.Insert.values" title="sqlalchemy.sql.expression.Insert.values"><tt class="xref py py-meth docutils literal"><span class="pre">Insert.values()</span></tt></a> method now supports a list of dictionaries,
+which will render a multi-VALUES statement such as
+<tt class="docutils literal"><span class="pre">VALUES</span> <span class="pre">(&lt;row1&gt;),</span> <span class="pre">(&lt;row2&gt;),</span> <span class="pre">...</span></tt>.  This is only relevant to backends which
+support this syntax, including Postgresql, SQLite, and MySQL.  It is
+not the same thing as the usual <tt class="docutils literal"><span class="pre">executemany()</span></tt> style of INSERT which
+remains unchanged:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">users</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">([</span>
+                    <span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;some name&quot;</span><span class="p">},</span>
+                    <span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;some other name&quot;</span><span class="p">},</span>
+                    <span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;yet another name&quot;</span><span class="p">},</span>
+                <span class="p">])</span></pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../core/dml.html#sqlalchemy.sql.expression.Insert.values" title="sqlalchemy.sql.expression.Insert.values"><tt class="xref py py-meth docutils literal"><span class="pre">Insert.values()</span></tt></a></p>
+</div>
+<p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2623">#2623</a></p>
 </div>
 <div class="section" id="type-expressions">
 <h3>Type Expressions<a class="headerlink" href="#type-expressions" title="Permalink to this headline">¶</a></h3>

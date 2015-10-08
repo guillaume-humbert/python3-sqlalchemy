@@ -179,7 +179,7 @@ class SuiteRequirements(Requirements):
 
         return exclusions.only_if(
             lambda config: config.db.dialect.implicit_returning,
-            "'returning' not supported by database"
+            "%(database)s %(does_support)s 'returning'"
         )
 
     @property
@@ -581,6 +581,14 @@ class SuiteRequirements(Requirements):
     def unicode_connections(self):
         """Target driver must support non-ASCII characters being passed at
         all.
+        """
+        return exclusions.open()
+
+    @property
+    def graceful_disconnects(self):
+        """Target driver must raise a DBAPI-level exception, such as
+        InterfaceError, when the underlying connection has been closed
+        and the execute() method is called.
         """
         return exclusions.open()
 

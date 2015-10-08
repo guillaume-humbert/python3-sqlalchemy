@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.7',
+          VERSION:     '0.9.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -71,6 +71,9 @@
 
 
 
+
+
+
 <div id="docs-container">
 
 
@@ -80,7 +83,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
+        Release: <span class="version-num">0.9.8</span> | Release Date: October 13, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -693,8 +696,9 @@ quoting rules applied regardless of case sensitive settings. the
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a></p>
 <p><a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a></p>
+<p><a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.table" title="sqlalchemy.sql.expression.table"><tt class="xref py py-func docutils literal"><span class="pre">table()</span></tt></a></p>
 <p><a class="reference internal" href="#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a></p>
-<p class="last"><a class="reference internal" href="metadata.html"><em>Describing Databases with MetaData</em></a></p>
+<p class="last"><a class="reference internal" href="tutorial.html#sqlexpression-literal-column"><em>Using More Specific Text with table(), literal_column(), and column()</em></a></p>
 </div>
 </dd></dl>
 
@@ -821,7 +825,7 @@ that don&#8217;t support true/false constants.</p>
 
 <dl class="data">
 <dt id="sqlalchemy.sql.expression.func">
-<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.functions._FunctionGenerator object at 0x103499410&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.functions._FunctionGenerator object at 0x10371c4d0&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate SQL function expressions.</p>
 <p><a class="reference internal" href="#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a> is a special object instance which generates SQL
 functions based on name-based attributes, e.g.:</p>
@@ -938,13 +942,14 @@ will provide bind-parameter translation for this literal.</li>
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.literal_column">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">literal_column</tt><big>(</big><em>text</em>, <em>type_=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.literal_column" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a textual column expression, as would be in the columns
-clause of a <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement.</p>
-<p>The object returned supports further expressions in the same way as any
-other column object, including comparison, math and string operations.
-The type_ parameter is important to determine proper expression behavior
-(such as, &#8216;+&#8217; means string concatenation or numerical addition based on
-the type).</p>
+<dd><p>Produce a <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a> object that has the
+<a class="reference internal" href="#sqlalchemy.sql.expression.column.params.is_literal" title="sqlalchemy.sql.expression.column"><tt class="xref py py-paramref docutils literal"><span class="pre">column.is_literal</span></tt></a> flag set to True.</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> is similar to <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a>, except that
+it is more often used as a &#8220;standalone&#8221; column expression that renders
+exactly as stated; while <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> stores a string name that
+will be assumed to be part of a table and may be quoted as such,
+<a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> can be that, or any other arbitrary column-oriented
+expression.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -963,6 +968,12 @@ this column. If left as None the type will be NullType.</li>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="tutorial.html#sqlexpression-literal-column"><em>Using More Specific Text with table(), literal_column(), and column()</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -1674,7 +1685,7 @@ version of <a class="reference internal" href="metadata.html#sqlalchemy.schema.C
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.ColumnCollection">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ColumnCollection</tt><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnCollection" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">ColumnCollection</tt><big>(</big><em>*columns</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnCollection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.util._collections.OrderedProperties</span></tt></p>
 <p>An ordered dictionary that stores a list of ColumnElement
 instances.</p>
@@ -1994,6 +2005,11 @@ or uses the <tt class="docutils literal"><span class="pre">concat()</span></tt> 
 <p>Produce a <a class="reference internal" href="#sqlalchemy.sql.expression.desc" title="sqlalchemy.sql.expression.desc"><tt class="xref py py-func docutils literal"><span class="pre">desc()</span></tt></a> clause against the
 parent object.</p>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.expression.ColumnElement.description">
+<tt class="descname">description</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnElement.description" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.ColumnElement.distinct">

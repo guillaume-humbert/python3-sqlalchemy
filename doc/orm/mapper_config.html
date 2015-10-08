@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.7',
+          VERSION:     '0.9.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -71,6 +71,9 @@
 
 
 
+
+
+
 <div id="docs-container">
 
 
@@ -80,7 +83,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
+        Release: <span class="version-num">0.9.8</span> | Release Date: October 13, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -501,7 +504,7 @@ should be included or excluded:</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">insert and update defaults configured on individual
-<a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects, i.e. those described at <em class="xref std std-ref">metadata_defaults</em>
+<a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects, i.e. those described at <a class="reference internal" href="../core/defaults.html#metadata-defaults"><em>Column Insert/Update Defaults</em></a>
 including those configured by the <tt class="docutils literal"><span class="pre">default</span></tt>, <tt class="docutils literal"><span class="pre">update</span></tt>,
 <tt class="docutils literal"><span class="pre">server_default</span></tt> and <tt class="docutils literal"><span class="pre">server_onupdate</span></tt> arguments, will continue to
 function normally even if those <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects are not mapped.
@@ -2344,6 +2347,12 @@ looks like:</p>
 for the mapped class to the <tt class="docutils literal"><span class="pre">discriminator</span></tt> attribute,
 thus persisting the value to the <tt class="docutils literal"><span class="pre">discriminator</span></tt> column
 in the database.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Currently, <strong>only one discriminator column may be set</strong>, typically
+on the base-most class in the hierarchy. &#8220;Cascading&#8221; polymorphic
+columns are not yet supported.</p>
+</div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="inheritance.html"><em>Mapping Class Inheritance Hierarchies</em></a></p>

@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.7',
+          VERSION:     '0.9.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -71,6 +71,9 @@
 
 
 
+
+
+
 <div id="docs-container">
 
 
@@ -80,7 +83,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
+        Release: <span class="version-num">0.9.8</span> | Release Date: October 13, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -211,6 +214,31 @@ types.</p>
 <dd><p>Construct a <a class="reference internal" href="#sqlalchemy.sql.functions.FunctionElement" title="sqlalchemy.sql.functions.FunctionElement"><tt class="xref py py-class docutils literal"><span class="pre">FunctionElement</span></tt></a>.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="sqlalchemy.sql.functions.FunctionElement.alias">
+<tt class="descname">alias</tt><big>(</big><em>name=None</em>, <em>flat=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.functions.FunctionElement.alias" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Alias" title="sqlalchemy.sql.expression.Alias"><tt class="xref py py-class docutils literal"><span class="pre">Alias</span></tt></a> construct against this
+<a class="reference internal" href="#sqlalchemy.sql.functions.FunctionElement" title="sqlalchemy.sql.functions.FunctionElement"><tt class="xref py py-class docutils literal"><span class="pre">FunctionElement</span></tt></a>.</p>
+<p>This construct wraps the function in a named alias which
+is suitable for the FROM clause.</p>
+<p>e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">column</span>
+
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">column</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">)])</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span>
+    <span class="n">func</span><span class="o">.</span><span class="n">unnest</span><span class="p">(</span><span class="n">Table</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s">&#39;data_view&#39;</span><span class="p">)</span>
+<span class="p">)</span></pre></div>
+</div>
+<p>Would produce:</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">SELECT</span> <span class="k">data</span>
+<span class="k">FROM</span> <span class="k">unnest</span><span class="p">(</span><span class="n">sometable</span><span class="p">.</span><span class="k">data</span><span class="p">)</span> <span class="k">AS</span> <span class="n">data_view</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.8: </span>The <a class="reference internal" href="#sqlalchemy.sql.functions.FunctionElement.alias" title="sqlalchemy.sql.functions.FunctionElement.alias"><tt class="xref py py-meth docutils literal"><span class="pre">FunctionElement.alias()</span></tt></a> method
+is now supported.  Previously, this method&#8217;s behavior was
+undefined and did not behave consistently across versions.</p>
+</div>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="sqlalchemy.sql.functions.FunctionElement.clauses">
 <tt class="descname">clauses</tt><a class="headerlink" href="#sqlalchemy.sql.functions.FunctionElement.clauses" title="Permalink to this definition">¶</a></dt>
@@ -221,8 +249,17 @@ the arguments for this <a class="reference internal" href="#sqlalchemy.sql.funct
 <dl class="attribute">
 <dt id="sqlalchemy.sql.functions.FunctionElement.columns">
 <tt class="descname">columns</tt><a class="headerlink" href="#sqlalchemy.sql.functions.FunctionElement.columns" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fulfill the &#8216;columns&#8217; contract of <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>.</p>
-<p>Returns a single-element list consisting of this object.</p>
+<dd><p>The set of columns exported by this <a class="reference internal" href="#sqlalchemy.sql.functions.FunctionElement" title="sqlalchemy.sql.functions.FunctionElement"><tt class="xref py py-class docutils literal"><span class="pre">FunctionElement</span></tt></a>.</p>
+<p>Function objects currently have no result column names built in;
+this method returns a single-element column collection with
+an anonymously named column.</p>
+<p>An interim approach to providing named columns for a function
+as a FROM clause is to build a <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> with the
+desired columns:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">column</span>
+
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">),</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;y&#39;</span><span class="p">)])</span><span class="o">.</span>                <span class="n">select_from</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">myfunction</span><span class="p">())</span></pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -566,7 +603,7 @@ emits COUNT *.</p>
 
 <dl class="data">
 <dt id="sqlalchemy.sql.functions.func">
-<tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.functions._FunctionGenerator object at 0x103499410&gt;</em><a class="headerlink" href="#sqlalchemy.sql.functions.func" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.sql.functions.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.functions._FunctionGenerator object at 0x10371c4d0&gt;</em><a class="headerlink" href="#sqlalchemy.sql.functions.func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate SQL function expressions.</p>
 <p><a class="reference internal" href="#sqlalchemy.sql.functions.func" title="sqlalchemy.sql.functions.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a> is a special object instance which generates SQL
 functions based on name-based attributes, e.g.:</p>

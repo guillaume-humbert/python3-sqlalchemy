@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.7',
+          VERSION:     '0.9.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -71,6 +71,9 @@
 
 
 
+
+
+
 <div id="docs-container">
 
 
@@ -80,7 +83,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
+        Release: <span class="version-num">0.9.8</span> | Release Date: October 13, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -129,8 +132,12 @@
 <li><a class="reference internal" href="#dialect-sqlite">Support for the SQLite database.</a></li>
 <li><a class="reference internal" href="#date-and-time-types">Date and Time Types</a></li>
 <li><a class="reference internal" href="#sqlite-auto-incrementing-behavior">SQLite Auto Incrementing Behavior</a></li>
+<li><a class="reference internal" href="#database-locking-behavior-concurrency">Database Locking Behavior / Concurrency</a><ul>
 <li><a class="reference internal" href="#transaction-isolation-level">Transaction Isolation Level</a></li>
-<li><a class="reference internal" href="#database-locking-behavior-concurrency">Database Locking Behavior / Concurrency</a></li>
+<li><a class="reference internal" href="#savepoint-support">SAVEPOINT Support</a></li>
+<li><a class="reference internal" href="#transactional-ddl">Transactional DDL</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#foreign-key-support">Foreign Key Support</a></li>
 <li><a class="reference internal" href="#type-reflection">Type Reflection</a></li>
 <li><a class="reference internal" href="#sqlite-data-types">SQLite Data Types</a></li>
@@ -146,7 +153,7 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#unicode">Unicode</a></li>
-<li><a class="reference internal" href="#serializable-transaction-isolation">Serializable Transaction Isolation</a></li>
+<li><a class="reference internal" href="#serializable-isolation-savepoints-transactional-ddl">Serializable isolation / Savepoints / Transactional DDL</a></li>
 </ul>
 </li>
 </ul>
@@ -206,43 +213,100 @@ construct:</p>
         <span class="n">sqlite_autoincrement</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
 </div>
-<div class="section" id="transaction-isolation-level">
-<h2>Transaction Isolation Level<a class="headerlink" href="#transaction-isolation-level" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> accepts an <tt class="docutils literal"><span class="pre">isolation_level</span></tt> parameter which results
-in the command <tt class="docutils literal"><span class="pre">PRAGMA</span> <span class="pre">read_uncommitted</span> <span class="pre">&lt;level&gt;</span></tt> being invoked for every new
-connection. Valid values for this parameter are <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt> and <tt class="docutils literal"><span class="pre">READ</span>
-<span class="pre">UNCOMMITTED</span></tt> corresponding to a value of 0 and 1, respectively. See the
-section <a class="reference internal" href="#pysqlite-serializable"><em>Serializable Transaction Isolation</em></a> for an important workaround when using
-serializable isolation with Pysqlite.</p>
-</div>
 <div class="section" id="database-locking-behavior-concurrency">
-<h2>Database Locking Behavior / Concurrency<a class="headerlink" href="#database-locking-behavior-concurrency" title="Permalink to this headline">¶</a></h2>
-<p>Note that SQLite is not designed for a high level of concurrency. The database
-itself, being a file, is locked completely during write operations and within
-transactions, meaning exactly one connection has exclusive access to the
-database during this period - all other connections will be blocked during
-this time.</p>
+<span id="sqlite-concurrency"></span><h2>Database Locking Behavior / Concurrency<a class="headerlink" href="#database-locking-behavior-concurrency" title="Permalink to this headline">¶</a></h2>
+<p>SQLite is not designed for a high level of write concurrency. The database
+itself, being a file, is locked completely during write operations within
+transactions, meaning exactly one &#8220;connection&#8221; (in reality a file handle)
+has exclusive access to the database during this period - all other
+&#8220;connections&#8221; will be blocked during this time.</p>
 <p>The Python DBAPI specification also calls for a connection model that is
-always in a transaction; there is no BEGIN method, only commit and rollback.
-This implies that a SQLite DBAPI driver would technically allow only
-serialized access to a particular database file at all times. The pysqlite
-driver attempts to ameliorate this by deferring the actual BEGIN statement
-until the first DML (INSERT, UPDATE, or DELETE) is received within a
-transaction. While this breaks serializable isolation, it at least delays the
-exclusive locking inherent in SQLite&#8217;s design.</p>
-<p>SQLAlchemy&#8217;s default mode of usage with the ORM is known as
-&#8220;autocommit=False&#8221;, which means the moment the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> begins to be
-used, a transaction is begun. As the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is used, the autoflush
-feature, also on by default, will flush out pending changes to the database
-before each query. The effect of this is that a <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> used in its
-default mode will often emit DML early on, long before the transaction is
-actually committed. This again will have the effect of serializing access to
-the SQLite database. If highly concurrent reads are desired against the SQLite
-database, it is advised that the autoflush feature be disabled, and
-potentially even that autocommit be re-enabled, which has the effect of each
-SQL statement and flush committing changes immediately.</p>
-<p>For more information on SQLite&#8217;s lack of concurrency by design, please see
+always in a transaction; there is no <tt class="docutils literal"><span class="pre">connection.begin()</span></tt> method,
+only <tt class="docutils literal"><span class="pre">connection.commit()</span></tt> and <tt class="docutils literal"><span class="pre">connection.rollback()</span></tt>, upon which a
+new transaction is to be begun immediately.  This may seem to imply
+that the SQLite driver would in theory allow only a single filehandle on a
+particular database file at any time; however, there are several
+factors both within SQlite itself as well as within the pysqlite driver
+which loosen this restriction significantly.</p>
+<p>However, no matter what locking modes are used, SQLite will still always
+lock the database file once a transaction is started and DML (e.g. INSERT,
+UPDATE, DELETE) has at least been emitted, and this will block
+other transactions at least at the point that they also attempt to emit DML.
+By default, the length of time on this block is very short before it times out
+with an error.</p>
+<p>This behavior becomes more critical when used in conjunction with the
+SQLAlchemy ORM.  SQLAlchemy&#8217;s <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> object by default runs
+within a transaction, and with its autoflush model, may emit DML preceding
+any SELECT statement.   This may lead to a SQLite database that locks
+more quickly than is expected.   The locking mode of SQLite and the pysqlite
+driver can be manipulated to some degree, however it should be noted that
+achieving a high degree of write-concurrency with SQLite is a losing battle.</p>
+<p>For more information on SQLite&#8217;s lack of write concurrency by design, please
+see
 <a class="reference external" href="http://www.sqlite.org/whentouse.html">Situations Where Another RDBMS May Work Better - High Concurrency</a> near the bottom of the page.</p>
+<p>The following subsections introduce areas that are impacted by SQLite&#8217;s
+file-based architecture and additionally will usually require workarounds to
+work when using the pysqlite driver.</p>
+<div class="section" id="transaction-isolation-level">
+<h3>Transaction Isolation Level<a class="headerlink" href="#transaction-isolation-level" title="Permalink to this headline">¶</a></h3>
+<p>SQLite supports &#8220;transaction isolation&#8221; in a non-standard way, along two
+axes.  One is that of the <a class="reference external" href="http://www.sqlite.org/pragma.html#pragma_read_uncommitted">PRAGMA read_uncommitted</a>
+instruction.   This setting can essentially switch SQLite between its
+default mode of <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt> isolation, and a &#8220;dirty read&#8221; isolation
+mode normally referred to as <tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt>.</p>
+<p>SQLAlchemy ties into this PRAGMA statement using the
+<a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine.params.isolation_level" title="sqlalchemy.create_engine"><tt class="xref py py-paramref docutils literal"><span class="pre">create_engine.isolation_level</span></tt></a> parameter of <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>.
+Valid values for this parameter when used with SQLite are <tt class="docutils literal"><span class="pre">&quot;SERIALIZABLE&quot;</span></tt>
+and <tt class="docutils literal"><span class="pre">&quot;READ</span> <span class="pre">UNCOMMITTED&quot;</span></tt> corresponding to a value of 0 and 1, respectively.
+SQLite defaults to <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt>, however its behavior is impacted by
+the pysqlite driver&#8217;s default behavior.</p>
+<p>The other axis along which SQLite&#8217;s transactional locking is impacted is
+via the nature of the <tt class="docutils literal"><span class="pre">BEGIN</span></tt> statement used.   The three varieties
+are &#8220;deferred&#8221;, &#8220;immediate&#8221;, and &#8220;exclusive&#8221;, as described at
+<a class="reference external" href="http://sqlite.org/lang_transaction.html">BEGIN TRANSACTION</a>.   A straight
+<tt class="docutils literal"><span class="pre">BEGIN</span></tt> statement uses the &#8220;deferred&#8221; mode, where the the database file is
+not locked until the first read or write operation, and read access remains
+open to other transactions until the first write operation.  But again,
+it is critical to note that the pysqlite driver interferes with this behavior
+by <em>not even emitting BEGIN</em> until the first write operation.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">SQLite&#8217;s transactional scope is impacted by unresolved
+issues in the pysqlite driver, which defers BEGIN statements to a greater
+degree than is often feasible. See the section <a class="reference internal" href="#pysqlite-serializable"><em>Serializable isolation / Savepoints / Transactional DDL</em></a>
+for techniques to work around this behavior.</p>
+</div>
+</div>
+<div class="section" id="savepoint-support">
+<h3>SAVEPOINT Support<a class="headerlink" href="#savepoint-support" title="Permalink to this headline">¶</a></h3>
+<p>SQLite supports SAVEPOINTs, which only function once a transaction is
+begun.   SQLAlchemy&#8217;s SAVEPOINT support is available using the
+<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Connection.begin_nested" title="sqlalchemy.engine.Connection.begin_nested"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.begin_nested()</span></tt></a> method at the Core level, and
+<a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session.begin_nested" title="sqlalchemy.orm.session.Session.begin_nested"><tt class="xref py py-meth docutils literal"><span class="pre">Session.begin_nested()</span></tt></a> at the ORM level.   However, SAVEPOINTs
+won&#8217;t work at all with pysqlite unless workarounds are taken.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">SQLite&#8217;s SAVEPOINT feature is impacted by unresolved
+issues in the pysqlite driver, which defers BEGIN statements to a greater
+degree than is often feasible. See the section <a class="reference internal" href="#pysqlite-serializable"><em>Serializable isolation / Savepoints / Transactional DDL</em></a>
+for techniques to work around this behavior.</p>
+</div>
+</div>
+<div class="section" id="transactional-ddl">
+<h3>Transactional DDL<a class="headerlink" href="#transactional-ddl" title="Permalink to this headline">¶</a></h3>
+<p>The SQLite database supports transactional <a class="reference internal" href="../glossary.html#term-ddl"><em class="xref std std-term">DDL</em></a> as well.
+In this case, the pysqlite driver is not only failing to start transactions,
+it also is ending any existing transction when DDL is detected, so again,
+workarounds are required.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">SQLite&#8217;s transactional DDL is impacted by unresolved issues
+in the pysqlite driver, which fails to emit BEGIN and additionally
+forces a COMMIT to cancel any transaction when DDL is encountered.
+See the section <a class="reference internal" href="#pysqlite-serializable"><em>Serializable isolation / Savepoints / Transactional DDL</em></a>
+for techniques to work around this behavior.</p>
+</div>
+</div>
 </div>
 <div class="section" id="foreign-key-support">
 <span id="sqlite-foreign-keys"></span><h2>Foreign Key Support<a class="headerlink" href="#foreign-key-support" title="Permalink to this headline">¶</a></h2>
@@ -633,26 +697,57 @@ require unicode, however, so that non-<tt class="docutils literal"><span class="
 will emit a warning.  Pysqlite will emit an error if a non-<tt class="docutils literal"><span class="pre">unicode</span></tt> string
 is passed containing non-ASCII characters.</p>
 </div>
-<div class="section" id="serializable-transaction-isolation">
-<span id="pysqlite-serializable"></span><h3>Serializable Transaction Isolation<a class="headerlink" href="#serializable-transaction-isolation" title="Permalink to this headline">¶</a></h3>
-<p>The pysqlite DBAPI driver has a long-standing bug in which transactional
-state is not begun until the first DML statement, that is INSERT, UPDATE
-or DELETE, is emitted.  A SELECT statement will not cause transactional
-state to begin.   While this mode of usage is fine for typical situations
-and has the advantage that the SQLite database file is not prematurely
-locked, it breaks serializable transaction isolation, which requires
-that the database file be locked upon any SQL being emitted.</p>
-<p>To work around this issue, the <tt class="docutils literal"><span class="pre">BEGIN</span></tt> keyword can be emitted
-at the start of each transaction.   The following recipe establishes
-a <a class="reference internal" href="../core/events.html#sqlalchemy.events.ConnectionEvents.begin" title="sqlalchemy.events.ConnectionEvents.begin"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.begin()</span></tt></a> handler to achieve this:</p>
+<div class="section" id="serializable-isolation-savepoints-transactional-ddl">
+<span id="pysqlite-serializable"></span><h3>Serializable isolation / Savepoints / Transactional DDL<a class="headerlink" href="#serializable-isolation-savepoints-transactional-ddl" title="Permalink to this headline">¶</a></h3>
+<p>In the section <a class="reference internal" href="#sqlite-concurrency"><em>Database Locking Behavior / Concurrency</em></a>, we refer to the pysqlite
+driver&#8217;s assortment of issues that prevent several features of SQLite
+from working correctly.  The pysqlite DBAPI driver has several
+long-standing bugs which impact the correctness of its transactional
+behavior.   In its default mode of operation, SQLite features such as
+SERIALIZABLE isolation, transactional DDL, and SAVEPOINT support are
+non-functional, and in order to use these features, workarounds must
+be taken.</p>
+<p>The issue is essentially that the driver attempts to second-guess the user&#8217;s
+intent, failing to start transactions and sometimes ending them prematurely, in
+an effort to minimize the SQLite databases&#8217;s file locking behavior, even
+though SQLite itself uses &#8220;shared&#8221; locks for read-only activities.</p>
+<p>SQLAlchemy chooses to not alter this behavior by default, as it is the
+long-expected behavior of the pysqlite driver; if and when the pysqlite
+driver attempts to repair these issues, that will be more of a driver towards
+defaults for SQLAlchemy.</p>
+<p>The good news is that with a few events, we can implement transactional
+support fully, by disabling pysqlite&#8217;s feature entirely and emitting BEGIN
+ourselves. This is achieved using two event listeners:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">event</span>
 
-<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;sqlite:///myfile.db&quot;</span><span class="p">,</span>
-                       <span class="n">isolation_level</span><span class="o">=</span><span class="s">&#39;SERIALIZABLE&#39;</span><span class="p">)</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;sqlite:///myfile.db&quot;</span><span class="p">)</span>
+
+<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s">&quot;connect&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">do_connect</span><span class="p">(</span><span class="n">dbapi_connection</span><span class="p">,</span> <span class="n">connection_record</span><span class="p">):</span>
+    <span class="c"># disable pysqlite&#39;s emitting of the BEGIN statement entirely.</span>
+    <span class="c"># also stops it from emitting COMMIT before any DDL.</span>
+    <span class="n">dbapi_connection</span><span class="o">.</span><span class="n">isolation_level</span> <span class="o">=</span> <span class="bp">None</span>
 
 <span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s">&quot;begin&quot;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">do_begin</span><span class="p">(</span><span class="n">conn</span><span class="p">):</span>
+    <span class="c"># emit our own BEGIN</span>
     <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;BEGIN&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>Above, we intercept a new pysqlite connection and disable any transactional
+integration.   Then, at the point at which SQLAlchemy knows that transaction
+scope is to begin, we emit <tt class="docutils literal"><span class="pre">&quot;BEGIN&quot;</span></tt> ourselves.</p>
+<p>When we take control of <tt class="docutils literal"><span class="pre">&quot;BEGIN&quot;</span></tt>, we can also control directly SQLite&#8217;s
+locking modes, introduced at <a class="reference external" href="http://sqlite.org/lang_transaction.html">BEGIN TRANSACTION</a>,
+by adding the desired locking mode to our <tt class="docutils literal"><span class="pre">&quot;BEGIN&quot;</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s">&quot;begin&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">do_begin</span><span class="p">(</span><span class="n">conn</span><span class="p">):</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;BEGIN EXCLUSIVE&quot;</span><span class="p">)</span></pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference external" href="http://sqlite.org/lang_transaction.html">BEGIN TRANSACTION</a> - on the SQLite site</p>
+<p><a class="reference external" href="http://bugs.python.org/issue9924">sqlite3 SELECT does not BEGIN a transaction</a> - on the Python bug tracker</p>
+<p class="last"><a class="reference external" href="http://bugs.python.org/issue10740">sqlite3 module breaks transactions and potentially corrupts data</a> - on the Python bug tracker</p>
 </div>
 </div>
 </div>

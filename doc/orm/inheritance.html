@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.7',
+          VERSION:     '0.9.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -71,6 +71,9 @@
 
 
 
+
+
+
 <div id="docs-container">
 
 
@@ -80,7 +83,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
+        Release: <span class="version-num">0.9.8</span> | Release Date: October 13, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -196,6 +199,12 @@ for each attribute that&#8217;s represented by <tt class="docutils literal"><spa
 this column is to act as the <strong>discriminator</strong>, and stores a value
 which indicates the type of object represented within the row. The column may
 be of any datatype, though string and integer are the most common.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Currently, <strong>only one discriminator column may be set</strong>, typically
+on the base-most class in the hierarchy. &#8220;Cascading&#8221; polymorphic columns
+are not yet supported.</p>
+</div>
 <p>The discriminator column is only needed if polymorphic loading is
 desired, as is usually the case.   It is not strictly necessary that
 it be present directly on the base mapped table, and can instead be defined on a
@@ -647,7 +656,8 @@ with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.j
 </div>
 <div class="section" id="eager-loading-of-specific-or-polymorphic-subtypes">
 <h3>Eager Loading of Specific or Polymorphic Subtypes<a class="headerlink" href="#eager-loading-of-specific-or-polymorphic-subtypes" title="Permalink to this headline">¶</a></h3>
-<p>The <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> and <a class="reference internal" href="loading.html#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a> options also support
+<p>The <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a>, <a class="reference internal" href="loading.html#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a>, <a class="reference internal" href="loading.html#sqlalchemy.orm.contains_eager" title="sqlalchemy.orm.contains_eager"><tt class="xref py py-func docutils literal"><span class="pre">contains_eager()</span></tt></a> and
+other loading-related options also support
 paths which make use of <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator.of_type" title="sqlalchemy.orm.interfaces.PropComparator.of_type"><tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt></a>.
 Below we load <tt class="docutils literal"><span class="pre">Company</span></tt> rows while eagerly loading related <tt class="docutils literal"><span class="pre">Engineer</span></tt>
 objects, querying the <tt class="docutils literal"><span class="pre">employee</span></tt> and <tt class="docutils literal"><span class="pre">engineer</span></tt> tables simultaneously:</p>
@@ -673,7 +683,8 @@ session.query(Company).\
     )</pre>
 </div>
 <div class="versionadded">
-<p><span>New in version 0.8: </span><a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> and <a class="reference internal" href="loading.html#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a> support
+<p><span>New in version 0.8: </span><a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a>, <a class="reference internal" href="loading.html#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a>, <a class="reference internal" href="loading.html#sqlalchemy.orm.contains_eager" title="sqlalchemy.orm.contains_eager"><tt class="xref py py-func docutils literal"><span class="pre">contains_eager()</span></tt></a>
+and related loader options support
 paths that are qualified with
 <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator.of_type" title="sqlalchemy.orm.interfaces.PropComparator.of_type"><tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt></a>, supporting
 single target types as well as <a class="reference internal" href="#sqlalchemy.orm.with_polymorphic" title="sqlalchemy.orm.with_polymorphic"><tt class="xref py py-func docutils literal"><span class="pre">orm.with_polymorphic()</span></tt></a> targets.</p>

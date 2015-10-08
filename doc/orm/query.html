@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.7',
+          VERSION:     '0.9.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -71,6 +71,9 @@
 
 
 
+
+
+
 <div id="docs-container">
 
 
@@ -80,7 +83,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
+        Release: <span class="version-num">0.9.8</span> | Release Date: October 13, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -524,6 +527,17 @@ of the form EXISTS (SELECT 1 FROM ... WHERE ...).</p>
     SELECT 1 FROM users WHERE users.name = :name_1
 ) AS anon_1</pre>
 </div>
+<p>The EXISTS construct is usually used in the WHERE clause:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">exists</span><span class="p">())</span><span class="o">.</span><span class="n">scalar</span><span class="p">()</span></pre></div>
+</div>
+<p>Note that some databases such as SQL Server don&#8217;t allow an
+EXISTS expression to be present in the columns clause of a
+SELECT.    To select a simple boolean value based on the exists
+as a WHERE, use <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.literal" title="sqlalchemy.sql.expression.literal"><tt class="xref py py-func docutils literal"><span class="pre">literal()</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">literal</span>
+
+<span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">literal</span><span class="p">(</span><span class="bp">True</span><span class="p">))</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">exists</span><span class="p">())</span><span class="o">.</span><span class="n">scalar</span><span class="p">()</span></pre></div>
+</div>
 <div class="versionadded">
 <p><span>New in version 0.8.1.</span></p>
 </div>
@@ -601,9 +615,15 @@ those being selected.</p>
 <dd><p>Execute the given SELECT statement and return results.</p>
 <p>This method bypasses all internal statement compilation, and the
 statement is executed without modification.</p>
-<p>The statement argument is either a string, a <tt class="docutils literal"><span class="pre">select()</span></tt> construct,
-or a <tt class="docutils literal"><span class="pre">text()</span></tt> construct, and should return the set of columns
-appropriate to the entity class represented by this <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+<p>The statement is typically either a <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a>
+or <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct, and should return the set
+of columns
+appropriate to the entity class represented by this <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="tutorial.html#orm-tutorial-literal-sql"><em>Using Literal SQL</em></a> - usage examples in the
+ORM tutorial</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1640,22 +1660,41 @@ objects.  See the example at <a class="reference internal" href="extensions/hybr
 <dt id="sqlalchemy.orm.query.Query.yield_per">
 <tt class="descname">yield_per</tt><big>(</big><em>count</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.yield_per" title="Permalink to this definition">¶</a></dt>
 <dd><p>Yield only <tt class="docutils literal"><span class="pre">count</span></tt> rows at a time.</p>
-<p>WARNING: use this method with caution; if the same instance is present
-in more than one batch of rows, end-user changes to attributes will be
-overwritten.</p>
-<p>In particular, it&#8217;s usually impossible to use this setting with
-eagerly loaded collections (i.e. any lazy=&#8217;joined&#8217; or &#8216;subquery&#8217;)
-since those collections will be cleared for a new load when
-encountered in a subsequent result batch.   In the case of &#8216;subquery&#8217;
-loading, the full result for all rows is fetched which generally
-defeats the purpose of <a class="reference internal" href="#sqlalchemy.orm.query.Query.yield_per" title="sqlalchemy.orm.query.Query.yield_per"><tt class="xref py py-meth docutils literal"><span class="pre">yield_per()</span></tt></a>.</p>
-<p>Also note that while <a class="reference internal" href="#sqlalchemy.orm.query.Query.yield_per" title="sqlalchemy.orm.query.Query.yield_per"><tt class="xref py py-meth docutils literal"><span class="pre">yield_per()</span></tt></a>
-will set the <tt class="docutils literal"><span class="pre">stream_results</span></tt> execution option to True, currently
+<p>The purpose of this method is when fetching very large result sets
+(&gt; 10K rows), to batch results in sub-collections and yield them
+out partially, so that the Python interpreter doesn&#8217;t need to declare
+very large areas of memory which is both time consuming and leads
+to excessive memory use.   The performance from fetching hundreds of
+thousands of rows can often double when a suitable yield-per setting
+(e.g. approximately 1000) is used, even with DBAPIs that buffer
+rows (which are most).</p>
+<p>The <a class="reference internal" href="#sqlalchemy.orm.query.Query.yield_per" title="sqlalchemy.orm.query.Query.yield_per"><tt class="xref py py-meth docutils literal"><span class="pre">yield_per()</span></tt></a> method <strong>is not compatible with most
+eager loading schemes, including joinedload and subqueryload</strong>.
+See the warning below.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>Use this method with caution; if the same instance is
+present in more than one batch of rows, end-user changes
+to attributes will be overwritten.</p>
+<p>In particular, it&#8217;s usually impossible to use this setting
+with eagerly loaded collections (i.e. any lazy=&#8217;joined&#8217; or
+&#8216;subquery&#8217;) since those collections will be cleared for a
+new load when encountered in a subsequent result batch.
+In the case of &#8216;subquery&#8217; loading, the full result for all
+rows is fetched which generally defeats the purpose of
+<a class="reference internal" href="#sqlalchemy.orm.query.Query.yield_per" title="sqlalchemy.orm.query.Query.yield_per"><tt class="xref py py-meth docutils literal"><span class="pre">yield_per()</span></tt></a>.</p>
+<p class="last">Also note that while
+<a class="reference internal" href="#sqlalchemy.orm.query.Query.yield_per" title="sqlalchemy.orm.query.Query.yield_per"><tt class="xref py py-meth docutils literal"><span class="pre">yield_per()</span></tt></a> will set the
+<tt class="docutils literal"><span class="pre">stream_results</span></tt> execution option to True, currently
 this is only understood by
-<a class="reference internal" href="../dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg2" title="sqlalchemy.dialects.postgresql.psycopg2"><tt class="xref py py-mod docutils literal"><span class="pre">psycopg2</span></tt></a> dialect which will
-stream results using server side cursors instead of pre-buffer all
-rows for this query. Other DBAPIs pre-buffer all rows before making
-them available.</p>
+<a class="reference internal" href="../dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg2" title="sqlalchemy.dialects.postgresql.psycopg2"><tt class="xref py py-mod docutils literal"><span class="pre">psycopg2</span></tt></a> dialect
+which will stream results using server side cursors
+instead of pre-buffer all rows for this query. Other
+DBAPIs <strong>pre-buffer all rows</strong> before making them
+available.  The memory use of raw database rows is much less
+than that of an ORM-mapped object, but should still be taken into
+consideration when benchmarking.</p>
+</div>
 </dd></dl>
 
 </dd></dl>
