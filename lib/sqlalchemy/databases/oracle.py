@@ -5,15 +5,13 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 
-import re, warnings, random
+import datetime, random, re
 
 from sqlalchemy import util, sql, schema, exceptions, logging
 from sqlalchemy.engine import default, base
 from sqlalchemy.sql import compiler, visitors
-from sqlalchemy.sql import operators as sql_operators
+from sqlalchemy.sql import operators as sql_operators, functions as sql_functions
 from sqlalchemy import types as sqltypes
-
-import datetime
 
 
 class OracleNumeric(sqltypes.Numeric):
@@ -44,11 +42,11 @@ class OracleDate(sqltypes.Date):
             else:
                 return value.date()
         return process
-        
+
 class OracleDateTime(sqltypes.DateTime):
     def get_col_spec(self):
         return "DATE"
-        
+
     def result_processor(self, dialect):
         def process(value):
             if value is None or isinstance(value,datetime.datetime):
@@ -58,7 +56,7 @@ class OracleDateTime(sqltypes.DateTime):
                 return datetime.datetime(value.year,value.month,
                     value.day,value.hour, value.minute, value.second)
         return process
-        
+
 # Note:
 # Oracle DATE == DATETIME
 # Oracle does not allow milliseconds in DATE
@@ -135,7 +133,7 @@ class OracleBinary(sqltypes.Binary):
             else:
                 return value
         return process
-        
+
 class OracleBoolean(sqltypes.Boolean):
     def get_col_spec(self):
         return "SMALLINT"
@@ -146,7 +144,7 @@ class OracleBoolean(sqltypes.Boolean):
                 return None
             return value and True or False
         return process
-        
+
     def bind_processor(self, dialect):
         def process(value):
             if value is True:
@@ -158,7 +156,7 @@ class OracleBoolean(sqltypes.Boolean):
             else:
                 return value and True or False
         return process
-        
+
 colspecs = {
     sqltypes.Integer : OracleInteger,
     sqltypes.Smallinteger : OracleSmallInteger,
@@ -230,7 +228,7 @@ class OracleExecutionContext(default.DefaultExecutionContext):
                 type_code = column[1]
                 if type_code in self.dialect.ORACLE_BINARY_TYPES:
                     return base.BufferedColumnResultProxy(self)
-        
+
         return base.ResultProxy(self)
 
 class OracleDialect(default.DefaultDialect):
@@ -258,9 +256,9 @@ class OracleDialect(default.DefaultDialect):
             # etc. leads to a little too much magic, reflection doesn't know if it should
             # expect encoded strings or unicodes, etc.
             self.dbapi_type_map = {
-                self.dbapi.CLOB: OracleText(), 
-                self.dbapi.BLOB: OracleBinary(), 
-                self.dbapi.BINARY: OracleRaw(), 
+                self.dbapi.CLOB: OracleText(),
+                self.dbapi.BLOB: OracleBinary(),
+                self.dbapi.BINARY: OracleRaw(),
             }
             self.ORACLE_BINARY_TYPES = [getattr(self.dbapi, k) for k in ["BFILE", "CLOB", "NCLOB", "BLOB"] if hasattr(self.dbapi, k)]
 
@@ -268,7 +266,7 @@ class OracleDialect(default.DefaultDialect):
         import cx_Oracle
         return cx_Oracle
     dbapi = classmethod(dbapi)
-    
+
     def create_connect_args(self, url):
         dialect_opts = dict(url.query)
         for opt in ('use_ansi', 'auto_setinputsizes', 'auto_convert_lobs',
@@ -340,10 +338,10 @@ class OracleDialect(default.DefaultDialect):
 
     def do_begin_twophase(self, connection, xid):
         connection.connection.begin(*xid)
-        
+
     def do_prepare_twophase(self, connection, xid):
         connection.connection.prepare()
-        
+
     def do_rollback_twophase(self, connection, xid, is_prepared=True, recover=False):
         self.do_rollback(connection.connection)
 
@@ -352,7 +350,7 @@ class OracleDialect(default.DefaultDialect):
 
     def do_recover_twophase(self, connection):
         pass
-        
+
     def create_execution_context(self, *args, **kwargs):
         return OracleExecutionContext(self, *args, **kwargs)
 
@@ -433,7 +431,7 @@ class OracleDialect(default.DefaultDialect):
             return name.lower().decode(self.encoding)
         else:
             return name.decode(self.encoding)
-    
+
     def _denormalize_name(self, name):
         if name is None:
             return None
@@ -441,7 +439,7 @@ class OracleDialect(default.DefaultDialect):
             return name.upper().encode(self.encoding)
         else:
             return name.encode(self.encoding)
-    
+
     def get_default_schema_name(self,connection):
         try:
             return self._default_schema_name
@@ -469,7 +467,7 @@ class OracleDialect(default.DefaultDialect):
 
         c = connection.execute ("select COLUMN_NAME, DATA_TYPE, DATA_LENGTH, DATA_PRECISION, DATA_SCALE, NULLABLE, DATA_DEFAULT from ALL_TAB_COLUMNS%(dblink)s where TABLE_NAME = :table_name and OWNER = :owner" % {'dblink':dblink}, {'table_name':actual_name, 'owner':owner})
 
-                
+
         while True:
             row = c.fetchone()
             if row is None:
@@ -501,7 +499,8 @@ class OracleDialect(default.DefaultDialect):
                 try:
                     coltype = ischema_names[coltype]
                 except KeyError:
-                    warnings.warn(RuntimeWarning("Did not recognize type '%s' of column '%s'" % (coltype, colname)))
+                    util.warn("Did not recognize type '%s' of column '%s'" %
+                              (coltype, colname))
                     coltype = sqltypes.NULLTYPE
 
             colargs = []
@@ -551,7 +550,10 @@ class OracleDialect(default.DefaultDialect):
                    fks[cons_name] = fk
                 if remote_table is None:
                     # ticket 363
-                    warnings.warn("Got 'None' querying 'table_name' from all_cons_columns%(dblink)s - does the user have proper rights to the table?" % {'dblink':dblink})
+                    util.warn(
+                        ("Got 'None' querying 'table_name' from "
+                         "all_cons_columns%(dblink)s - does the user have "
+                         "proper rights to the table?") % {'dblink':dblink})
                     continue
                 refspec = ".".join([remote_table, remote_column])
                 schema.Table(remote_table, table.metadata, autoload=True, autoload_with=connection, owner=remote_owner)
@@ -570,7 +572,7 @@ class _OuterJoinColumn(sql.ClauseElement):
     __visit_name__ = 'outer_join_column'
     def __init__(self, column):
         self.column = column
-        
+
 class OracleCompiler(compiler.DefaultCompiler):
     """Oracle compiler modifies the lexical structure of Select
     statements to work under non-ANSI configured Oracle databases, if
@@ -584,10 +586,17 @@ class OracleCompiler(compiler.DefaultCompiler):
         }
     )
 
+    functions = compiler.DefaultCompiler.functions.copy()
+    functions.update (
+        {
+            sql_functions.now : 'CURRENT_TIMESTAMP'
+        }
+    )
+
     def __init__(self, *args, **kwargs):
         super(OracleCompiler, self).__init__(*args, **kwargs)
         self.__wheres = {}
-        
+
     def default_from(self):
         """Called when a ``SELECT`` statement has no froms, and no ``FROM`` clause is to be appended.
 
@@ -612,7 +621,7 @@ class OracleCompiler(compiler.DefaultCompiler):
                         binary.left = _OuterJoinColumn(binary.left)
                     elif binary.right.table is join.right:
                         binary.right = _OuterJoinColumn(binary.right)
-        
+
         if join.isouter:
             if where is not None:
                 self.__wheres[join.left] = self.__wheres[parentjoin] = (sql.and_(VisitOn().traverse(join.onclause, clone=True), where), parentjoin)
@@ -623,24 +632,24 @@ class OracleCompiler(compiler.DefaultCompiler):
                 self.__wheres[join.left] = self.__wheres[parentjoin] = (sql.and_(join.onclause, where), parentjoin)
             else:
                 self.__wheres[join.left] = self.__wheres[join] = (join.onclause, join)
-            
+
         return self.process(join.left, asfrom=True) + ", " + self.process(join.right, asfrom=True)
-    
+
     def get_whereclause(self, f):
         if f in self.__wheres:
             return self.__wheres[f][0]
         else:
             return None
-            
+
     def visit_outer_join_column(self, vc):
         return self.process(vc.column) + "(+)"
-        
+
     def visit_sequence(self, seq):
         return self.dialect.identifier_preparer.format_sequence(seq) + ".nextval"
-        
+
     def visit_alias(self, alias, asfrom=False, **kwargs):
         """Oracle doesn't like ``FROM table AS alias``.  Is the AS standard SQL??"""
-        
+
         if asfrom:
             return self.process(alias.original, asfrom=asfrom, **kwargs) + " " + self.preparer.format_alias(alias, self._anonymize(alias.name))
         else:
@@ -661,11 +670,11 @@ class OracleCompiler(compiler.DefaultCompiler):
             if not orderby:
                 orderby = list(select.oid_column.proxies)[0]
                 orderby = self.process(orderby)
-                
+
             oldselect = select
             select = select.column(sql.literal_column("ROW_NUMBER() OVER (ORDER BY %s)" % orderby).label("ora_rn")).order_by(None)
             select._oracle_visit = True
-                
+
             limitselect = sql.select([c for c in select.c if c.key!='ora_rn'])
             if select._offset is not None:
                 limitselect.append_whereclause("ora_rn>%d" % select._offset)
@@ -673,7 +682,7 @@ class OracleCompiler(compiler.DefaultCompiler):
                     limitselect.append_whereclause("ora_rn<=%d" % (select._limit + select._offset))
             else:
                 limitselect.append_whereclause("ora_rn<=%d" % select._limit)
-            return self.process(limitselect, **kwargs)
+            return self.process(limitselect, iswrapper=True, **kwargs)
         else:
             return compiler.DefaultCompiler.visit_select(self, select, **kwargs)
 
@@ -690,7 +699,7 @@ class OracleCompiler(compiler.DefaultCompiler):
 class OracleSchemaGenerator(compiler.SchemaGenerator):
     def get_column_specification(self, column, **kwargs):
         colspec = self.preparer.format_column(column)
-        colspec += " " + column.type.dialect_impl(self.dialect, _for_ddl=True).get_col_spec()
+        colspec += " " + column.type.dialect_impl(self.dialect, _for_ddl=column).get_col_spec()
         default = self.get_column_default_string(column)
         if default is not None:
             colspec += " DEFAULT " + default
@@ -719,7 +728,7 @@ class OracleIdentifierPreparer(compiler.IdentifierPreparer):
         name = re.sub(r'^_+', '', savepoint.ident)
         return super(OracleIdentifierPreparer, self).format_savepoint(savepoint, name)
 
-    
+
 dialect = OracleDialect
 dialect.statement_compiler = OracleCompiler
 dialect.schemagenerator = OracleSchemaGenerator

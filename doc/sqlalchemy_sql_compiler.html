@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.2p3   Last Updated: 01/09/08 16:39:03</div>
+<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
 
 
 
@@ -47,7 +47,7 @@
 
     
     <div class="navbanner">
-        <a href="index.html">Table of Contents</a>
+        <a href="index.html" class="totoc">Table of Contents</a>
         
     <div class="prevnext">
             Up: <a href="docstrings.html">API Documentation</a>
@@ -67,19 +67,19 @@
     <ul>
         
         <li><a style="" href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_DDLBase">class DDLBase(SchemaIterator)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_DefaultCompiler">class DefaultCompiler(Compiled)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_IdentifierPreparer">class IdentifierPreparer(object)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_SchemaDropper">class SchemaDropper(DDLBase)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_SchemaGenerator">class SchemaGenerator(DDLBase)</a></li>
-        
+
     </ul>
 
 	</div>
@@ -138,7 +138,7 @@ is otherwise internal to SQLAlchemy.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -220,6 +220,17 @@ statement.</dd>
     <div class="docstring">
     <p>Called when a SELECT statement has no froms, and no FROM clause is to be appended.</p>
 <p>Gives Oracle a chance to tack on a <tt class="docutils literal"><span class="pre">FROM</span> <span class="pre">DUAL</span></tt> to the string output.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def escape_literal_column(<i>self</i>, <i>text</i>)</b>
+    <div class="docstring">
+    <p>provide escaping for the literal_column() construct.</p>
 
     </div>
     </div>
@@ -414,7 +425,7 @@ constructs in non-ansi mode.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_column(<i>self</i>, <i>column</i>, <i>result_map=None</i>, <i>**kwargs</i>)</b>
+    <b>def visit_column(<i>self</i>, <i>column</i>, <i>result_map=None</i>, <i>use_schema=False</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -554,7 +565,7 @@ constructs in non-ansi mode.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_select(<i>self</i>, <i>select</i>, <i>asfrom=False</i>, <i>parens=True</i>, <i>**kwargs</i>)</b>
+    <b>def visit_select(<i>self</i>, <i>select</i>, <i>asfrom=False</i>, <i>parens=True</i>, <i>iswrapper=False</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -623,7 +634,7 @@ constructs in non-ansi mode.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -805,7 +816,7 @@ quoting behavior.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -878,7 +889,7 @@ quoting behavior.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -913,6 +924,16 @@ quoting behavior.</p>
     
     <A name=""></a>
     <b>def add_foreignkey(<i>self</i>, <i>constraint</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def define_constraint_deferrability(<i>self</i>, <i>constraint</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1051,7 +1072,7 @@ quoting behavior.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 

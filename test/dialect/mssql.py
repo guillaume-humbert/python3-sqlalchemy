@@ -1,13 +1,14 @@
-import testbase
+import testenv; testenv.configure_for_tests()
 import re
 from sqlalchemy import *
+from sqlalchemy.orm import *
+from sqlalchemy import exceptions
 from sqlalchemy.sql import table, column
 from sqlalchemy.databases import mssql
 from testlib import *
 
-# TODO: migrate all MS-SQL tests here
 
-class CompileTest(SQLCompileTest):
+class CompileTest(TestBase, AssertsCompiledSQL):
     __dialect__ = mssql.MSSQLDialect()
 
     def test_insert(self):
@@ -21,6 +22,44 @@ class CompileTest(SQLCompileTest):
     def test_count(self):
         t = table('sometable', column('somecolumn'))
         self.assert_compile(t.count(), "SELECT count(sometable.somecolumn) AS tbl_row_count FROM sometable")
+
+    def test_noorderby_insubquery(self):
+        """test that the ms-sql dialect removes ORDER BY clauses from subqueries"""
+
+        table1 = table('mytable',
+            column('myid', Integer),
+            column('name', String),
+            column('description', String),
+        )
+
+        q = select([table1.c.myid], order_by=[table1.c.myid]).alias('foo')
+        crit = q.c.myid == table1.c.myid
+        self.assert_compile(select(['*'], crit), """SELECT * FROM (SELECT mytable.myid AS myid FROM mytable) AS foo, mytable WHERE foo.myid = mytable.myid""")
+
+    def test_aliases_schemas(self):
+        metadata = MetaData()
+        table1 = table('mytable',
+            column('myid', Integer),
+            column('name', String),
+            column('description', String),
+        )
+
+        table4 = Table(
+            'remotetable', metadata,
+            Column('rem_id', Integer, primary_key=True),
+            Column('datatype_id', Integer),
+            Column('value', String(20)),
+            schema = 'remote_owner'
+        )
+
+        self.assert_compile(table4.select(), "SELECT remotetable_1.rem_id, remotetable_1.datatype_id, remotetable_1.value FROM remote_owner.remotetable AS remotetable_1")
+
+        self.assert_compile(table1.join(table4, table1.c.myid==table4.c.rem_id).select(), "SELECT mytable.myid, mytable.name, mytable.description, remotetable_1.rem_id, remotetable_1.datatype_id, remotetable_1.value FROM mytable JOIN remote_owner.remotetable AS remotetable_1 ON remotetable_1.rem_id = mytable.myid")
+
+    def test_delete_schema(self):
+        metadata = MetaData()
+        tbl = Table('test', metadata, Column('id', Integer, primary_key=True), schema='paj')
+        self.assert_compile(tbl.delete(tbl.c.id == 1), "DELETE FROM paj.test WHERE paj.test.id = :test_id_1")
 
     def test_union(self):
         t1 = table('t1',
@@ -55,18 +94,18 @@ class CompileTest(SQLCompileTest):
         t = Table('sometable', m, Column('col1', Integer), Column('col2', Integer))
         self.assert_compile(select([func.max(t.c.col1)]), "SELECT max(sometable.col1) AS max_1 FROM sometable")
 
-class ReflectionTest(PersistTest):
+class ReflectionTest(TestBase):
     __only_on__ = 'mssql'
 
     def testidentity(self):
-        meta = MetaData(testbase.db)
+        meta = MetaData(testing.db)
         table = Table(
             'identity_test', meta,
             Column('col1', Integer, Sequence('fred', 2, 3), primary_key=True)
         )
         table.create()
 
-        meta2 = MetaData(testbase.db)
+        meta2 = MetaData(testing.db)
         try:
             table2 = Table('identity_test', meta2, autoload=True)
             assert table2.c['col1'].sequence.start == 2
@@ -75,11 +114,11 @@ class ReflectionTest(PersistTest):
             table.drop()
 
 
-class QueryTest(PersistTest):
+class QueryTest(TestBase):
     __only_on__ = 'mssql'
 
     def test_fetchid_trigger(self):
-        meta = MetaData(testbase.db)
+        meta = MetaData(testing.db)
         t1 = Table('t1', meta,
                 Column('id', Integer, Sequence('fred', 100, 1), primary_key=True),
                 Column('descr', String(200)))
@@ -87,7 +126,7 @@ class QueryTest(PersistTest):
                 Column('id', Integer, Sequence('fred', 200, 1), primary_key=True),
                 Column('descr', String(200)))
         meta.create_all()
-        con = testbase.db.connect()
+        con = testing.db.connect()
         con.execute("""create trigger paj on t1 for insert as
             insert into t2 (descr) select descr from inserted""")
 
@@ -104,8 +143,8 @@ class QueryTest(PersistTest):
             meta.drop_all()
 
     def test_insertid_schema(self):
-        meta = MetaData(testbase.db)
-        con = testbase.db.connect()
+        meta = MetaData(testing.db)
+        con = testing.db.connect()
         con.execute('create schema paj')
         tbl = Table('test', meta, Column('id', Integer, primary_key=True), schema='paj')
         tbl.create()
@@ -115,22 +154,35 @@ class QueryTest(PersistTest):
             tbl.drop()
             con.execute('drop schema paj')
 
+    def test_delete_schema(self):
+        meta = MetaData(testing.db)
+        con = testing.db.connect()
+        con.execute('create schema paj')
+        tbl = Table('test', meta, Column('id', Integer, primary_key=True), schema='paj')
+        tbl.create()
+        try:
+            tbl.insert().execute({'id':1})
+            tbl.delete(tbl.c.id == 1).execute()
+        finally:
+            tbl.drop()
+            con.execute('drop schema paj')
+
     def test_insertid_reserved(self):
-        meta = MetaData(testbase.db)
+        meta = MetaData(testing.db)
         table = Table(
             'select', meta,
             Column('col', Integer, primary_key=True)
         )
         table.create()
 
-        meta2 = MetaData(testbase.db)
+        meta2 = MetaData(testing.db)
         try:
             table.insert().execute(col=7)
         finally:
             table.drop()
 
     def test_select_limit_nooffset(self):
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
 
         users = Table('query_users', metadata,
             Column('user_id', INT, primary_key = True),
@@ -152,12 +204,17 @@ class QueryTest(PersistTest):
         finally:
             metadata.drop_all()
 
-class GenerativeQueryTest(PersistTest):
+class Foo(object):
+    def __init__(self, **kw):
+        for k in kw:
+            setattr(self, k, kw[k])
+
+class GenerativeQueryTest(TestBase):
     __only_on__ = 'mssql'
 
     def setUpAll(self):
         global foo, metadata
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         foo = Table('foo', metadata,
                     Column('id', Integer, Sequence('foo_id_seq'),
                            primary_key=True),
@@ -167,7 +224,7 @@ class GenerativeQueryTest(PersistTest):
         mapper(Foo, foo)
         metadata.create_all()
 
-        sess = create_session(bind=testbase.db)
+        sess = create_session(bind=testing.db)
         for i in range(100):
             sess.save(Foo(bar=i, range=i%10))
         sess.flush()
@@ -177,7 +234,7 @@ class GenerativeQueryTest(PersistTest):
         clear_mappers()
 
     def test_slice_mssql(self):
-        sess = create_session(bind=testbase.db)
+        sess = create_session(bind=testing.db)
         query = sess.query(Foo)
         orig = query.all()
         assert list(query[:10]) == orig[:10]
@@ -185,4 +242,4 @@ class GenerativeQueryTest(PersistTest):
 
 
 if __name__ == "__main__":
-    testbase.main()
+    testenv.main()

@@ -1,4 +1,4 @@
-import testbase
+import testenv; testenv.configure_for_tests()
 import datetime
 from sqlalchemy import *
 from sqlalchemy import exceptions, sql
@@ -6,11 +6,11 @@ from sqlalchemy.engine import default
 from testlib import *
 
 
-class QueryTest(PersistTest):
+class QueryTest(TestBase):
 
     def setUpAll(self):
         global users, addresses, metadata
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         users = Table('query_users', metadata,
             Column('user_id', INT, primary_key = True),
             Column('user_name', VARCHAR(20)),
@@ -28,7 +28,7 @@ class QueryTest(PersistTest):
     def tearDownAll(self):
         metadata.drop_all()
 
-    def testinsert(self):
+    def test_insert(self):
         users.insert().execute(user_id = 7, user_name = 'jack')
         assert users.count().scalar() == 1
 
@@ -40,7 +40,7 @@ class QueryTest(PersistTest):
         )
         assert users.select().execute().fetchall() == [(7, 'jack'), (8, 'ed'), (9, None)]
 
-    def testupdate(self):
+    def test_update(self):
         users.insert().execute(user_id = 7, user_name = 'jack')
         assert users.count().scalar() == 1
 
@@ -119,7 +119,7 @@ class QueryTest(PersistTest):
                 {'id':'id1', 'bar':'hi'},
             ),
         ]:
-            if testbase.db.name in supported['unsupported']:
+            if testing.db.name in supported['unsupported']:
                 continue
             try:
                 table.create()
@@ -128,15 +128,43 @@ class QueryTest(PersistTest):
             finally:
                 table.drop()
 
-    def testrowiteration(self):
-        users.insert().execute(user_id = 7, user_name = 'jack')
-        users.insert().execute(user_id = 8, user_name = 'ed')
-        users.insert().execute(user_id = 9, user_name = 'fred')
+    def test_row_iteration(self):
+        users.insert().execute(
+            {'user_id':7, 'user_name':'jack'},
+            {'user_id':8, 'user_name':'ed'},
+            {'user_id':9, 'user_name':'fred'},
+        )
         r = users.select().execute()
         l = []
         for row in r:
             l.append(row)
         self.assert_(len(l) == 3)
+
+    def test_anonymous_rows(self):
+        users.insert().execute(
+            {'user_id':7, 'user_name':'jack'},
+            {'user_id':8, 'user_name':'ed'},
+            {'user_id':9, 'user_name':'fred'},
+        )
+
+        sel = select([users.c.user_id]).where(users.c.user_name=='jack').as_scalar()
+        for row in select([sel + 1, sel + 3], bind=users.bind).execute():
+            assert row['anon_1'] == 8
+            assert row['anon_2'] == 10
+
+    def test_row_comparison(self):
+        users.insert().execute(user_id = 7, user_name = 'jack')
+        rp = users.select().execute().fetchone()
+
+        self.assert_(rp == rp)
+        self.assert_(not(rp != rp))
+
+        equal = (7, 'jack')
+
+        self.assert_(rp == equal)
+        self.assert_(equal == rp)
+        self.assert_(not (rp != equal))
+        self.assert_(not (equal != equal))
 
     def test_fetchmany(self):
         users.insert().execute(user_id = 7, user_name = 'jack')
@@ -148,16 +176,33 @@ class QueryTest(PersistTest):
             l.append(row)
         self.assert_(len(l) == 2, "fetchmany(size=2) got %s rows" % len(l))
 
+    def test_ilike(self):
+        users.insert().execute(
+            {'user_id':1, 'user_name':'one'},
+            {'user_id':2, 'user_name':'TwO'},
+            {'user_id':3, 'user_name':'ONE'},
+            {'user_id':4, 'user_name':'OnE'},
+        )
+
+        self.assertEquals(select([users.c.user_id]).where(users.c.user_name.ilike('one')).execute().fetchall(), [(1, ), (3, ), (4, )])
+
+        self.assertEquals(select([users.c.user_id]).where(users.c.user_name.ilike('TWO')).execute().fetchall(), [(2, )])
+
+        if testing.against('postgres'):
+            self.assertEquals(select([users.c.user_id]).where(users.c.user_name.like('one')).execute().fetchall(), [(1, )])
+            self.assertEquals(select([users.c.user_id]).where(users.c.user_name.like('TWO')).execute().fetchall(), [])
+
+
     def test_compiled_execute(self):
         users.insert().execute(user_id = 7, user_name = 'jack')
         s = select([users], users.c.user_id==bindparam('id')).compile()
-        c = testbase.db.connect()
+        c = testing.db.connect()
         assert c.execute(s, id=7).fetchall()[0]['user_id'] == 7
 
     def test_compiled_insert_execute(self):
         users.insert().compile().execute(user_id = 7, user_name = 'jack')
         s = select([users], users.c.user_id==bindparam('id')).compile()
-        c = testbase.db.connect()
+        c = testing.db.connect()
         assert c.execute(s, id=7).fetchall()[0]['user_id'] == 7
 
     def test_repeated_bindparams(self):
@@ -181,14 +226,14 @@ class QueryTest(PersistTest):
 
     def test_bindparams_in_params(self):
         """test that a _BindParamClause itself can be a key in the params dict"""
-        
+
         users.insert().execute(user_id = 7, user_name = 'jack')
         users.insert().execute(user_id = 8, user_name = 'fred')
 
         u = bindparam('userid')
         r = users.select(users.c.user_name==u).execute({u:'fred'}).fetchall()
         assert len(r) == 1
-        
+
     def test_bindparam_shortname(self):
         """test the 'shortname' field on BindParamClause."""
         users.insert().execute(user_id = 7, user_name = 'jack')
@@ -229,7 +274,7 @@ class QueryTest(PersistTest):
         a_eq(prep(r"(\:that$other)"), "(:that$other)")
         a_eq(prep(r".\:that$ :other."), ".:that$ ?.")
 
-    def testdelete(self):
+    def test_delete(self):
         users.insert().execute(user_id = 7, user_name = 'jack')
         users.insert().execute(user_id = 8, user_name = 'fred')
         print repr(users.select().execute().fetchall())
@@ -238,7 +283,7 @@ class QueryTest(PersistTest):
 
         print repr(users.select().execute().fetchall())
 
-    def testselectlimit(self):
+    def test_select_limit(self):
         users.insert().execute(user_id=1, user_name='john')
         users.insert().execute(user_id=2, user_name='jack')
         users.insert().execute(user_id=3, user_name='ed')
@@ -251,7 +296,7 @@ class QueryTest(PersistTest):
 
     @testing.unsupported('mssql')
     @testing.fails_on('maxdb')
-    def testselectlimitoffset(self):
+    def test_select_limit_offset(self):
         users.insert().execute(user_id=1, user_name='john')
         users.insert().execute(user_id=2, user_name='jack')
         users.insert().execute(user_id=3, user_name='ed')
@@ -275,7 +320,7 @@ class QueryTest(PersistTest):
         datetable.create()
         try:
             datetable.insert().execute(id=1, today=datetime.datetime(2006, 5, 12, 12, 0, 0))
-            s = select([datetable.alias('x').c.today], scalar=True)
+            s = select([datetable.alias('x').c.today]).as_scalar()
             s2 = select([datetable.c.id, s.label('somelabel')])
             #print s2.c.somelabel.type
             assert isinstance(s2.execute().fetchone()['somelabel'], datetime.datetime)
@@ -353,27 +398,27 @@ class QueryTest(PersistTest):
         self.assert_(r.user_id == r['user_id'] == r[users.c.user_id] == 2)
         self.assert_(r.user_name == r['user_name'] == r[users.c.user_name] == 'jack')
 
-        r = text("select * from query_users where user_id=2", bind=testbase.db).execute().fetchone()
+        r = text("select * from query_users where user_id=2", bind=testing.db).execute().fetchone()
         self.assert_(r.user_id == r['user_id'] == r[users.c.user_id] == 2)
         self.assert_(r.user_name == r['user_name'] == r[users.c.user_name] == 'jack')
 
         # test slices
-        r = text("select * from query_addresses", bind=testbase.db).execute().fetchone()
+        r = text("select * from query_addresses", bind=testing.db).execute().fetchone()
         self.assert_(r[0:1] == (1,))
         self.assert_(r[1:] == (2, 'foo@bar.com'))
         self.assert_(r[:-1] == (1, 2))
-        
+
         # test a little sqlite weirdness - with the UNION, cols come back as "query_users.user_id" in cursor.description
         r = text("select query_users.user_id, query_users.user_name from query_users "
-            "UNION select query_users.user_id, query_users.user_name from query_users", bind=testbase.db).execute().fetchone()
+            "UNION select query_users.user_id, query_users.user_name from query_users", bind=testing.db).execute().fetchone()
         self.assert_(r['user_id']) == 1
         self.assert_(r['user_name']) == "john"
 
         # test using literal tablename.colname
-        r = text('select query_users.user_id AS "query_users.user_id", query_users.user_name AS "query_users.user_name" from query_users', bind=testbase.db).execute().fetchone()
+        r = text('select query_users.user_id AS "query_users.user_id", query_users.user_name AS "query_users.user_name" from query_users', bind=testing.db).execute().fetchone()
         self.assert_(r['query_users.user_id']) == 1
         self.assert_(r['query_users.user_name']) == "john"
-        
+
 
     def test_ambiguous_column(self):
         users.insert().execute(user_id=1, user_name='john')
@@ -411,10 +456,10 @@ class QueryTest(PersistTest):
         r = users.select().execute().fetchone()
         self.assertEqual(len(r), 2)
         r.close()
-        r = testbase.db.execute('select user_name, user_id from query_users', {}).fetchone()
+        r = testing.db.execute('select user_name, user_id from query_users', {}).fetchone()
         self.assertEqual(len(r), 2)
         r.close()
-        r = testbase.db.execute('select user_name from query_users', {}).fetchone()
+        r = testing.db.execute('select user_name from query_users', {}).fetchone()
         self.assertEqual(len(r), 1)
         r.close()
 
@@ -438,7 +483,7 @@ class QueryTest(PersistTest):
     def test_column_order_with_text_query(self):
         # should return values in query order
         users.insert().execute(user_id=1, user_name='foo')
-        r = testbase.db.execute('select user_name, user_id from query_users', {}).fetchone()
+        r = testing.db.execute('select user_name, user_id from query_users', {}).fetchone()
         self.assertEqual(r[0], 'foo')
         self.assertEqual(r[1], 1)
         self.assertEqual([x.lower() for x in r.keys()], ['user_name', 'user_id'])
@@ -446,7 +491,7 @@ class QueryTest(PersistTest):
 
     @testing.unsupported('oracle', 'firebird', 'maxdb')
     def test_column_accessor_shadow(self):
-        meta = MetaData(testbase.db)
+        meta = MetaData(testing.db)
         shadowed = Table('test_shadowed', meta,
                          Column('shadow_id', INT, primary_key = True),
                          Column('shadow_name', VARCHAR(20)),
@@ -526,12 +571,12 @@ class QueryTest(PersistTest):
         assert len(r) == 1
 
 
-class CompoundTest(PersistTest):
+class CompoundTest(TestBase):
     """test compound statements like UNION, INTERSECT, particularly their ability to nest on
     different databases."""
     def setUpAll(self):
         global metadata, t1, t2, t3
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         t1 = Table('t1', metadata,
             Column('col1', Integer, Sequence('t1pkseq'), primary_key=True),
             Column('col2', String(30)),
@@ -724,7 +769,7 @@ class CompoundTest(PersistTest):
         self.assertEquals(found, wanted)
 
 
-class JoinTest(PersistTest):
+class JoinTest(TestBase):
     """Tests join execution.
 
     The compiled SQL emitted by the dialect might be ANSI joins or
@@ -738,7 +783,7 @@ class JoinTest(PersistTest):
         global metadata
         global t1, t2, t3
 
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         t1 = Table('t1', metadata,
                    Column('t1_id', Integer, primary_key=True),
                    Column('name', String(32)))
@@ -769,7 +814,9 @@ class JoinTest(PersistTest):
     def assertRows(self, statement, expected):
         """Execute a statement and assert that rows returned equal expected."""
 
-        found = exec_sorted(statement)
+        found = sorted([tuple(row)
+                       for row in statement.execute().fetchall()])
+
         self.assertEquals(found, sorted(expected))
 
     def test_join_x1(self):
@@ -992,10 +1039,10 @@ class JoinTest(PersistTest):
             self.assertRows(expr, [(10, 20, 30)])
 
 
-class OperatorTest(PersistTest):
+class OperatorTest(TestBase):
     def setUpAll(self):
         global metadata, flds
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         flds = Table('flds', metadata,
             Column('idcol', Integer, Sequence('t1pkseq'), primary_key=True),
             Column('intcol', Integer),
@@ -1020,12 +1067,6 @@ class OperatorTest(PersistTest):
         )
 
 
-def exec_sorted(statement, *args, **kw):
-    """Executes a statement and returns a sorted list plain tuple rows."""
-
-    return sorted([tuple(row)
-                   for row in statement.execute(*args, **kw).fetchall()])
-
 
 if __name__ == "__main__":
-    testbase.main()
+    testenv.main()

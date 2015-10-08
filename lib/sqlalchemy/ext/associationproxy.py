@@ -408,7 +408,13 @@ class _AssociationList(object):
         except TypeError:
             return NotImplemented
         return list(self) + other
-    __radd__ = __add__
+
+    def __radd__(self, iterable):
+        try:
+            other = list(iterable)
+        except TypeError:
+            return NotImplemented
+        return other + list(self)
 
     def __mul__(self, n):
         if not isinstance(n, int):
@@ -686,7 +692,7 @@ class _AssociationSet(object):
             self.add(value)
 
     def __ior__(self, other):
-        if util.duck_type_collection(other) is not set:
+        if util.duck_type_collection(other) is not util.Set:
             return NotImplemented
         for value in other:
             self.add(value)
@@ -710,7 +716,7 @@ class _AssociationSet(object):
             self.discard(value)
 
     def __isub__(self, other):
-        if util.duck_type_collection(other) is not set:
+        if util.duck_type_collection(other) is not util.Set:
             return NotImplemented
         for value in other:
             self.discard(value)
@@ -732,7 +738,7 @@ class _AssociationSet(object):
             self.add(value)
 
     def __iand__(self, other):
-        if util.duck_type_collection(other) is not set:
+        if util.duck_type_collection(other) is not util.Set:
             return NotImplemented
         want, have = self.intersection(other), util.Set(self)
 
@@ -760,7 +766,7 @@ class _AssociationSet(object):
             self.add(value)
 
     def __ixor__(self, other):
-        if util.duck_type_collection(other) is not set:
+        if util.duck_type_collection(other) is not util.Set:
             return NotImplemented
         want, have = self.symmetric_difference(other), util.Set(self)
 

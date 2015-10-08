@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.2p3   Last Updated: 01/09/08 16:39:03</div>
+<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
 
 
 
@@ -47,7 +47,7 @@
 
     
     <div class="navbanner">
-        <a href="index.html">Table of Contents</a>
+        <a href="index.html" class="totoc">Table of Contents</a>
         
     <div class="prevnext">
             Up: <a href="docstrings.html">API Documentation</a>
@@ -67,7 +67,7 @@
     <ul>
         
         <li><a style="" href="sqlalchemy_orm_query.html#docstrings_sqlalchemy.orm.query_Query">class Query(object)</a></li>
-        
+
     </ul>
 
 	</div>
@@ -85,13 +85,15 @@
     <h3>module sqlalchemy.orm.query</h3>
     
     
-    <div class="darkcell"><p>Defines the <a href="sqlalchemy_orm_query.html#docstrings_sqlalchemy.orm.query_Query">Query</a> class, the central
-construct used by the ORM to construct database queries.</p>
-<p>The <tt class="docutils literal"><span class="pre">Query</span></tt> class should not be confused with the <a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Select">Select</a>
-class, which defines database SELECT operations at the SQL (non-ORM) level.
-<tt class="docutils literal"><span class="pre">Query</span></tt> differs from <tt class="docutils literal"><span class="pre">Select</span></tt> in that it returns ORM-mapped objects and interacts
-with an ORM session, whereas the <tt class="docutils literal"><span class="pre">Select</span></tt> construct interacts directly with the database
-to return iterable result sets.</p>
+    <div class="darkcell"><p>The Query class and support.</p>
+<p>Defines the <a href="sqlalchemy_orm_query.html#docstrings_sqlalchemy.orm.query_Query">Query</a> class, the central construct used by
+the ORM to construct database queries.</p>
+<p>The <tt class="docutils literal"><span class="pre">Query</span></tt> class should not be confused with the
+<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Select">Select</a> class, which defines database SELECT
+operations at the SQL (non-ORM) level.  <tt class="docutils literal"><span class="pre">Query</span></tt> differs from <tt class="docutils literal"><span class="pre">Select</span></tt> in
+that it returns ORM-mapped objects and interacts with an ORM session, whereas
+the <tt class="docutils literal"><span class="pre">Select</span></tt> construct interacts directly with the database to return
+iterable result sets.</p>
 </div>
     
 
@@ -129,22 +131,21 @@ to return iterable result sets.</p>
     <A name=""></a>
     <b>def add_column(<i>self</i>, <i>column</i>, <i>id=None</i>)</b>
     <div class="docstring">
-    <p>add a SQL ColumnElement to the list of result columns to be returned.</p>
-<p>This will have the effect of all result-returning methods returning a tuple
-of results, the first element being an instance of the primary class for this
-Query, and subsequent elements matching columns or entities which were
-specified via add_column or add_entity.</p>
-<p>When adding columns to the result, its generally desireable to add
+    <p>Add a SQL ColumnElement to the list of result columns to be returned.</p>
+<p>This will have the effect of all result-returning methods returning a
+tuple of results, the first element being an instance of the primary
+class for this Query, and subsequent elements matching columns or
+entities which were specified via add_column or add_entity.</p>
+<p>When adding columns to the result, its generally desirable to add
 limiting criterion to the query which can associate the primary entity
-of this Query along with the additional columns, if the column is based on a
-table or selectable that is not the primary mapped selectable.  The Query selects
-from all tables with no joining criterion by default.</p>
-<blockquote>
+of this Query along with the additional columns, if the column is
+based on a table or selectable that is not the primary mapped
+selectable.  The Query selects from all tables with no joining
+criterion by default.</p>
 <dl class="docutils">
 <dt>column</dt>
 <dd>a string column name or sql.ColumnElement to be added to the results.</dd>
 </dl>
-</blockquote>
 
     </div>
     </div>
@@ -160,7 +161,7 @@ from all tables with no joining criterion by default.</p>
 of results, the first element being an instance of the primary class for this
 Query, and subsequent elements matching columns or entities which were
 specified via add_column or add_entity.</p>
-<p>When adding entities to the result, its generally desireable to add
+<p>When adding entities to the result, its generally desirable to add
 limiting criterion to the query which can associate the primary entity
 of this Query along with the additional entities.  The Query selects
 from all tables with no joining criterion by default.</p>
@@ -377,11 +378,9 @@ appropriate to the entity class represented by this <tt class="docutils literal"
     <A name=""></a>
     <b>def get(<i>self</i>, <i>ident</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>Return an instance of the object based on the given
-identifier, or None if not found.</p>
-<p>The <cite>ident</cite> argument is a scalar or tuple of primary key
-column values in the order of the table def's primary key
-columns.</p>
+    <p>Return an instance of the object based on the given identifier, or None if not found.</p>
+<p>The <cite>ident</cite> argument is a scalar or tuple of primary key column values
+in the order of the table def's primary key columns.</p>
 
     </div>
     </div>
@@ -414,7 +413,7 @@ columns.</p>
     <A name=""></a>
     <b>def having(<i>self</i>, <i>criterion</i>)</b>
     <div class="docstring">
-    <p>apply a HAVING criterion to the quer and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+    <p>apply a HAVING criterion to the query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
 
     </div>
     </div>
@@ -445,10 +444,26 @@ columns.</p>
     <A name=""></a>
     <b>def join(<i>self</i>, <i>prop</i>, <i>id=None</i>, <i>aliased=False</i>, <i>from_joinpoint=False</i>)</b>
     <div class="docstring">
-    <p>create a join of this <tt class="docutils literal"><span class="pre">Query</span></tt> object's criterion
-to a relationship and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
-<p>'prop' may be a string property name or a list of string
-property names.</p>
+    <p>Create a join against this <tt class="docutils literal"><span class="pre">Query</span></tt> object's criterion
+and apply generatively, retunring the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+<dl class="docutils">
+<dt>'prop' may be one of:</dt>
+<dd><ul class="first last simple">
+<li>a string property name, i.e. &quot;rooms&quot;</li>
+<li>a class-mapped attribute, i.e. Houses.rooms</li>
+<li>a 2-tuple containing one of the above, combined with a selectable
+which derives from the properties' mapped table</li>
+<li>a list (not a tuple) containing a combination of any of the above.</li>
+</ul>
+</dd>
+</dl>
+<p>e.g.:</p>
+<pre class="literal-block">
+session.query(Company).join('employees')
+session.query(Company).join(['employees', 'tasks'])
+session.query(Houses).join([Colonials.rooms, Room.closets])
+session.query(Company).join([('employees', people.join(engineers)), Engineer.computers])
+</pre>
 
     </div>
     </div>
@@ -515,13 +530,11 @@ property names.</p>
     <A name=""></a>
     <b>def load(<i>self</i>, <i>ident</i>, <i>raiseerr=True</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>Return an instance of the object based on the given
-identifier.</p>
-<p>If not found, raises an exception.  The method will <strong>remove
-all pending changes</strong> to the object already existing in the
-Session.  The <cite>ident</cite> argument is a scalar or tuple of primary
-key column values in the order of the table def's primary key
-columns.</p>
+    <p>Return an instance of the object based on the given identifier.</p>
+<p>If not found, raises an exception.  The method will <strong>remove all
+pending changes</strong> to the object already existing in the Session.  The
+<cite>ident</cite> argument is a scalar or tuple of primary key column values in
+the order of the table def's primary key columns.</p>
 
     </div>
     </div>
@@ -601,10 +614,26 @@ MapperOptions.</p>
     <A name=""></a>
     <b>def outerjoin(<i>self</i>, <i>prop</i>, <i>id=None</i>, <i>aliased=False</i>, <i>from_joinpoint=False</i>)</b>
     <div class="docstring">
-    <p>create a left outer join of this <tt class="docutils literal"><span class="pre">Query</span></tt> object's criterion
-to a relationship and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
-<p>'prop' may be a string property name or a list of string
-property names.</p>
+    <p>Create a left outer join against this <tt class="docutils literal"><span class="pre">Query</span></tt> object's criterion
+and apply generatively, retunring the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+<dl class="docutils">
+<dt>'prop' may be one of:</dt>
+<dd><ul class="first last simple">
+<li>a string property name, i.e. &quot;rooms&quot;</li>
+<li>a class-mapped attribute, i.e. Houses.rooms</li>
+<li>a 2-tuple containing one of the above, combined with a selectable
+which derives from the properties' mapped table</li>
+<li>a list (not a tuple) containing a combination of any of the above.</li>
+</ul>
+</dd>
+</dl>
+<p>e.g.:</p>
+<pre class="literal-block">
+session.query(Company).outerjoin('employees')
+session.query(Company).outerjoin(['employees', 'tasks'])
+session.query(Houses).outerjoin([Colonials.rooms, Room.closets])
+session.query(Company).join([('employees', people.join(engineers)), Engineer.computers])
+</pre>
 
     </div>
     </div>
@@ -630,11 +659,11 @@ convenient, however some parameter dictionaries contain unicode keys in which ca
     <A name=""></a>
     <b>def populate_existing(<i>self</i>)</b>
     <div class="docstring">
-    <p>return a Query that will refresh all instances loaded.</p>
-<p>this includes all entities accessed from the database, including
+    <p>Return a Query that will refresh all instances loaded.</p>
+<p>This includes all entities accessed from the database, including
 secondary entities, eagerly-loaded collection items.</p>
-<p>All changes present on entities which are already present in the session will
-be reset and the entities will all be marked &quot;clean&quot;.</p>
+<p>All changes present on entities which are already present in the
+session will be reset and the entities will all be marked &quot;clean&quot;.</p>
 <p>This is essentially the en-masse version of load().</p>
 
     </div>
@@ -655,21 +684,24 @@ be reset and the entities will all be marked &quot;clean&quot;.</p>
     <A name=""></a>
     <b>def query_from_parent(<i>cls</i>, <i>instance</i>, <i>property</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>return a newly constructed Query object, with criterion corresponding to
-a relationship to the given parent instance.</p>
-<blockquote>
+    <p>Return a new Query with criterion corresponding to a parent instance.</p>
+<p>Return a newly constructed Query object, with criterion corresponding
+to a relationship to the given parent instance.</p>
 <dl class="docutils">
 <dt>instance</dt>
-<dd>a persistent or detached instance which is related to class represented
-by this query.</dd>
+<dd><blockquote class="first">
+a persistent or detached instance which is related to class
+represented by this query.</blockquote>
+<dl class="last docutils">
 <dt>property</dt>
 <dd>string name of the property which relates this query's class to the
 instance.</dd>
 <dt>**kwargs</dt>
-<dd>all extra keyword arguments are propigated to the constructor of
+<dd>all extra keyword arguments are propagated to the constructor of
 Query.</dd>
 </dl>
-</blockquote>
+</dd>
+</dl>
 
     </div>
     </div>
@@ -882,14 +914,14 @@ future may be enhanced to work across a chain of parent mappers.</p>
     <A name=""></a>
     <b>def yield_per(<i>self</i>, <i>count</i>)</b>
     <div class="docstring">
-    <p>yield only <tt class="docutils literal"><span class="pre">count</span></tt> rows at a time.</p>
-<p>WARNING: use this method with caution; if the same instance
-is present in more than one batch of rows, end-user changes
-to attributes will be overwritten.
-In particular, it's usually impossible to use this setting with
+    <p>Yield only <tt class="docutils literal"><span class="pre">count</span></tt> rows at a time.</p>
+<p>WARNING: use this method with caution; if the same instance is present
+in more than one batch of rows, end-user changes to attributes will be
+overwritten.</p>
+<p>In particular, it's usually impossible to use this setting with
 eagerly loaded collections (i.e. any lazy=False) since those
-collections will be cleared for a new load when encountered
-in a subsequent result batch.</p>
+collections will be cleared for a new load when encountered in a
+subsequent result batch.</p>
 
     </div>
     </div>
@@ -917,7 +949,7 @@ in a subsequent result batch.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 

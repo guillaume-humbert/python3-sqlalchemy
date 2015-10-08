@@ -6,8 +6,9 @@
 
 from sqlalchemy import sql, util, exceptions
 from sqlalchemy.sql import util as sql_util
+from sqlalchemy.sql.util import row_adapter as create_row_adapter
 from sqlalchemy.sql import visitors
-from sqlalchemy.orm.interfaces import MapperExtension, EXT_CONTINUE, build_path
+from sqlalchemy.orm.interfaces import MapperExtension, EXT_CONTINUE
 
 all_cascades = util.Set(["delete", "delete-orphan", "all", "merge",
                          "expunge", "save-update", "refresh-expire", "none"])
@@ -188,58 +189,14 @@ class AliasedClauses(object):
         """
         return create_row_adapter(self.alias, self.mapped_table)
 
-def create_row_adapter(from_, to, equivalent_columns=None):
-    """create a row adapter between two selectables.
-    
-    The returned adapter is a class that can be instantiated repeatedly for any number
-    of rows; this is an inexpensive process.  However, the creation of the row
-    adapter class itself *is* fairly expensive so caching should be used to prevent
-    repeated calls to this function.
-    """
-    
-    map = {}
-    for c in to.c:
-        corr = from_.corresponding_column(c)
-        if corr:
-            map[c] = corr
-        elif equivalent_columns:
-            if c in equivalent_columns:
-                for c2 in equivalent_columns[c]:
-                    corr = from_.corresponding_column(c2)
-                    if corr:
-                        map[c] = corr
-                        break
-
-    class AliasedRow(object):
-        def __init__(self, row):
-            self.row = row
-        def __contains__(self, key):
-            if key in map:
-                return map[key] in self.row
-            else:
-                return key in self.row
-        def has_key(self, key):
-            return key in self
-        def __getitem__(self, key):
-            if key in map:
-                key = map[key]
-            return self.row[key]
-        def keys(self):
-            return map.keys()
-    AliasedRow.map = map
-    return AliasedRow
 
 class PropertyAliasedClauses(AliasedClauses):
     """extends AliasedClauses to add support for primary/secondary joins on a relation()."""
     
-    def __init__(self, prop, primaryjoin, secondaryjoin, parentclauses=None):
-        super(PropertyAliasedClauses, self).__init__(prop.select_table)
+    def __init__(self, prop, primaryjoin, secondaryjoin, parentclauses=None, alias=None):
+        super(PropertyAliasedClauses, self).__init__(prop.select_table, alias=alias)
             
         self.parentclauses = parentclauses
-        if parentclauses is not None:
-            self.path = build_path(prop.parent, prop.key, parentclauses.path)
-        else:
-            self.path = build_path(prop.parent, prop.key)
 
         self.prop = prop
         
@@ -261,6 +218,7 @@ class PropertyAliasedClauses(AliasedClauses):
                 aliasizer.chain(sql_util.ClauseAdapter(parentclauses.alias, exclude=prop.remote_side))
             else:
                 aliasizer = sql_util.ClauseAdapter(self.alias, exclude=prop.local_side)
+
             self.primaryjoin = aliasizer.traverse(primaryjoin, clone=True)
             self.secondary = None
             self.secondaryjoin = None
@@ -273,9 +231,6 @@ class PropertyAliasedClauses(AliasedClauses):
     mapper = property(lambda self:self.prop.mapper)
     table = property(lambda self:self.prop.select_table)
     
-    def __str__(self):
-        return "->".join([str(s) for s in self.path])
-
 
 def instance_str(instance):
     """Return a string describing an instance."""

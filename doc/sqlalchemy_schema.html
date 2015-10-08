@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.2p3   Last Updated: 01/09/08 16:39:03</div>
+<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
 
 
 
@@ -47,7 +47,7 @@
 
     
     <div class="navbanner">
-        <a href="index.html">Table of Contents</a>
+        <a href="index.html" class="totoc">Table of Contents</a>
         
     <div class="prevnext">
             Up: <a href="docstrings.html">API Documentation</a>
@@ -67,55 +67,58 @@
     <ul>
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_CheckConstraint">class CheckConstraint(Constraint)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Column">class Column(SchemaItem,_ColumnClause)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_ColumnDefault">class ColumnDefault(DefaultGenerator)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Constraint">class Constraint(SchemaItem)</a></li>
+
         
+        <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_DDL">class DDL(object)</a></li>
+
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_DefaultGenerator">class DefaultGenerator(SchemaItem)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_ForeignKey">class ForeignKey(SchemaItem)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_ForeignKeyConstraint">class ForeignKeyConstraint(Constraint)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Index">class Index(SchemaItem)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_MetaData">class MetaData(SchemaItem)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_PassiveDefault">class PassiveDefault(DefaultGenerator)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_PrimaryKeyConstraint">class PrimaryKeyConstraint(Constraint)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">class SchemaItem(object)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaVisitor">class SchemaVisitor(ClauseVisitor)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Sequence">class Sequence(DefaultGenerator)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Table">class Table(SchemaItem,TableClause)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_ThreadLocalMetaData">class ThreadLocalMetaData(MetaData)</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_UniqueConstraint">class UniqueConstraint(Constraint)</a></li>
-        
+
     </ul>
 
 	</div>
@@ -170,7 +173,7 @@ SQL expression language, they are usable as components in SQL expressions.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>sqltext</i>, <i>name=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>sqltext</i>, <i>name=None</i>, <i>deferrable=None</i>, <i>initially=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">CheckConstraint</span></tt>.</p>
 
@@ -199,7 +202,7 @@ SQL expression language, they are usable as components in SQL expressions.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -374,7 +377,7 @@ required.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -420,7 +423,7 @@ clause.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -447,7 +450,7 @@ list of underying columns.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>name=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>name=None</i>, <i>deferrable=None</i>, <i>initially=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">Constraint</span></tt>.</p>
 
@@ -517,7 +520,165 @@ list of underying columns.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.schema_DDL"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class DDL(object)</h3>
+    
+    
+    <div class="darkcell"><p>A literal DDL statement.</p>
+<p>Specifies literal SQL DDL to be executed by the database.  DDL objects can
+be attached to <tt class="docutils literal"><span class="pre">Tables</span></tt> or <tt class="docutils literal"><span class="pre">MetaData</span></tt> instances, conditionally
+executing SQL as part of the DDL lifecycle of those schema items.  Basic
+templating support allows a single DDL instance to handle repetitive tasks
+for multiple tables.</p>
+<p>Examples:</p>
+<pre class="literal-block">
+tbl = Table('users', metadata, Column('uid', Integer)) # ...
+DDL('DROP TRIGGER users_trigger').execute_at('before-create', tbl)
+
+spow = DDL('ALTER TABLE %(table)s SET secretpowers TRUE', on='somedb')
+spow.execute_at('after-create', tbl)
+
+drop_spow = DDL('ALTER TABLE users SET secretpowers FALSE')
+connection.execute(drop_spow)
+</pre>
+</div>
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>statement</i>, <i>on=None</i>, <i>context=None</i>)</b>
+    <div class="docstring">
+    <p>Create a DDL statement.</p>
+<dl class="docutils">
+<dt>statement</dt>
+<dd><p class="first">A string or unicode string to be executed.  Statements will
+be processed with Python's string formatting operator.  See the
+<tt class="docutils literal"><span class="pre">context</span></tt> argument and the <tt class="docutils literal"><span class="pre">execute_at</span></tt> method.</p>
+<p>A literal '%' in a statement must be escaped as '%%'.</p>
+<p class="last">Bind parameters are not available in DDL statements.</p>
+</dd>
+<dt>on</dt>
+<dd><p class="first">Optional filtering criteria.  May be a string or a callable
+predicate.  If a string, it will be compared to the name of the
+executing database dialect:</p>
+<pre class="literal-block">
+DDL('something', on='postgres')
+</pre>
+<p>If a callable, it will be invoked with three positional arguments:</p>
+<blockquote>
+<dl class="docutils">
+<dt>event</dt>
+<dd>The name of the event that has triggered this DDL, such
+as 'after-create'  Will be None if the DDL is executed
+explicitly.</dd>
+<dt>schema_item</dt>
+<dd>A SchemaItem instance, such as <tt class="docutils literal"><span class="pre">Table</span></tt> or <tt class="docutils literal"><span class="pre">MetaData</span></tt>. May
+be None if the DDL is executed explicitly.</dd>
+<dt>connection</dt>
+<dd>The <tt class="docutils literal"><span class="pre">Connection</span></tt> being used for DDL execution</dd>
+</dl>
+</blockquote>
+<p class="last">If the callable returns a true value, the DDL statement will
+be executed.</p>
+</dd>
+<dt>context</dt>
+<dd>Optional dictionary, defaults to None.  These values will be
+available for use in string substitutions on the DDL statement.</dd>
+</dl>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def execute(<i>self</i>, <i>bind</i>, <i>schema_item=None</i>)</b>
+    <div class="docstring">
+    <p>Execute this DDL immediately.</p>
+<p>Executes the DDL statement in isolation using the supplied
+<tt class="docutils literal"><span class="pre">Connectable</span></tt>.  If the DDL has a conditional <tt class="docutils literal"><span class="pre">on</span></tt> criteria, it
+will be invoked with None as the event.</p>
+<dl class="docutils">
+<dt>bind</dt>
+<dd>An Engine or Connection</dd>
+<dt>schema_item</dt>
+<dd>Optional, defaults to None.  Will be passed to the <tt class="docutils literal"><span class="pre">on</span></tt> callable
+criteria, if any, and may provide string expansion data for the
+statement. See <tt class="docutils literal"><span class="pre">execute_at</span></tt> for more information.</dd>
+</dl>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def execute_at(<i>self</i>, <i>event</i>, <i>schema_item</i>)</b>
+    <div class="docstring">
+    <p>Link execution of this DDL to the DDL lifecycle of a SchemaItem.</p>
+<p>Links this <tt class="docutils literal"><span class="pre">DDL</span></tt> to a <tt class="docutils literal"><span class="pre">Table</span></tt> or <tt class="docutils literal"><span class="pre">MetaData</span></tt> instance, executing
+it when that schema item is created or dropped.</p>
+<dl class="docutils">
+<dt>event</dt>
+<dd>One of the events defined in the schema item's <tt class="docutils literal"><span class="pre">.ddl_events</span></tt>;
+e.g. 'before-create', 'after-create', 'before-drop' or 'after-drop'</dd>
+<dt>schema_item</dt>
+<dd>A Table or MetaData instance</dd>
+</dl>
+<p>When operating on Table events, the following additional <tt class="docutils literal"><span class="pre">statement</span></tt>
+string substitions are available:</p>
+<pre class="literal-block">
+%(table)s  - the Table name, with any required quoting applied
+%(schema)s - the schema name, with any required quoting applied
+%(fullname)s - the Table name including schema, quoted if needed
+</pre>
+<p>The DDL's <tt class="docutils literal"><span class="pre">context</span></tt>, if any, will be combined with the standard
+substutions noted above.  Keys present in the context will override
+the standard substitutions.</p>
+<p>A DDL instance can be linked to any number of schema items. The
+statement subsitution support allows for DDL instances to be used in a
+template fashion.</p>
+<p><tt class="docutils literal"><span class="pre">execute_at</span></tt> builds on the <tt class="docutils literal"><span class="pre">append_ddl_listener</span></tt> interface of
+MetaDta and Table objects.</p>
+<p>Caveat: Creating or dropping a Table in isolation will also trigger
+any DDL set to <tt class="docutils literal"><span class="pre">execute_at</span></tt> that Table's MetaData.  This may change
+in a future release.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __call__(<i>self</i>, <i>event</i>, <i>schema_item</i>, <i>bind</i>)</b>
+    <div class="docstring">
+    <p>Execute the DDL as a ddl_listener.</p>
+
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -562,7 +723,7 @@ list of underying columns.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -591,7 +752,7 @@ constraint definition.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>column</i>, <i>constraint=None</i>, <i>use_alter=False</i>, <i>name=None</i>, <i>onupdate=None</i>, <i>ondelete=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>column</i>, <i>constraint=None</i>, <i>use_alter=False</i>, <i>name=None</i>, <i>onupdate=None</i>, <i>ondelete=None</i>, <i>deferrable=None</i>, <i>initially=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">ForeignKey</span></tt> object.</p>
 <dl class="docutils">
@@ -654,7 +815,7 @@ None if this <tt class="docutils literal"><span class="pre">ForeignKey</span></t
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -679,7 +840,7 @@ None if this <tt class="docutils literal"><span class="pre">ForeignKey</span></t
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>columns</i>, <i>refcolumns</i>, <i>name=None</i>, <i>onupdate=None</i>, <i>ondelete=None</i>, <i>use_alter=False</i>)</b>
+    <b>def __init__(<i>self</i>, <i>columns</i>, <i>refcolumns</i>, <i>name=None</i>, <i>onupdate=None</i>, <i>ondelete=None</i>, <i>use_alter=False</i>, <i>deferrable=None</i>, <i>initially=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">ForeignKeyConstraint</span></tt>.</p>
 
@@ -709,7 +870,7 @@ None if this <tt class="docutils literal"><span class="pre">ForeignKey</span></t
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -791,7 +952,7 @@ the same table, and no column may appear more than once.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -847,6 +1008,47 @@ Defaults to False. <tt class="docutils literal"><span class="pre">bind</span></t
 set.  For finer control over loaded tables, use the <tt class="docutils literal"><span class="pre">reflect</span></tt>
 method of <tt class="docutils literal"><span class="pre">MetaData</span></tt>.</dd>
 </dl>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def append_ddl_listener(<i>self</i>, <i>event</i>, <i>listener</i>)</b>
+    <div class="docstring">
+    <p>Append a DDL event listener to this <tt class="docutils literal"><span class="pre">MetaData</span></tt>.</p>
+<p>The <tt class="docutils literal"><span class="pre">listener</span></tt> callable will be triggered when this <tt class="docutils literal"><span class="pre">MetaData</span></tt> is
+involved in DDL creates or drops, and will be invoked either before
+all Table-related actions or after.</p>
+<p>Arguments are:</p>
+<dl class="docutils">
+<dt>event</dt>
+<dd>One of <tt class="docutils literal"><span class="pre">MetaData.ddl_events</span></tt>; 'before-create', 'after-create',
+'before-drop' or 'after-drop'.</dd>
+<dt>listener</dt>
+<dd><p class="first">A callable, invoked with three positional arguments:</p>
+<dl class="last docutils">
+<dt>event</dt>
+<dd>The event currently being handled</dd>
+<dt>schema_item</dt>
+<dd>The <tt class="docutils literal"><span class="pre">MetaData</span></tt> object being operated upon</dd>
+<dt>bind</dt>
+<dd>The <tt class="docutils literal"><span class="pre">Connection</span></tt> bueing used for DDL execution.</dd>
+</dl>
+</dd>
+</dl>
+<p>Listeners are added to the MetaData's <tt class="docutils literal"><span class="pre">ddl_listeners</span></tt> attribute.</p>
+<p>Note: MetaData listeners are invoked even when <tt class="docutils literal"><span class="pre">Tables</span></tt> are created
+in isolation.  This may change in a future release. I.e.:</p>
+<pre class="literal-block">
+# triggers all MetaData and Table listeners:
+metadata.create_all()
+
+# triggers MetaData listeners too:
+some.table.create()
+</pre>
 
     </div>
     </div>
@@ -1018,7 +1220,7 @@ arguments and should return a true value for any table to reflect.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1053,7 +1255,7 @@ arguments and should return a true value for any table to reflect.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1146,7 +1348,7 @@ arguments and should return a true value for any table to reflect.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1200,7 +1402,7 @@ arguments and should return a true value for any table to reflect.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1224,7 +1426,7 @@ arguments and should return a true value for any table to reflect.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1281,7 +1483,7 @@ arguments and should return a true value for any table to reflect.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1402,6 +1604,39 @@ behavior.</dd>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def append_ddl_listener(<i>self</i>, <i>event</i>, <i>listener</i>)</b>
+    <div class="docstring">
+    <p>Append a DDL event listener to this <tt class="docutils literal"><span class="pre">Table</span></tt>.</p>
+<p>The <tt class="docutils literal"><span class="pre">listener</span></tt> callable will be triggered when this <tt class="docutils literal"><span class="pre">Table</span></tt> is
+created or dropped, either directly before or after the DDL is issued
+to the database.  The listener may modify the Table, but may not abort
+the event itself.</p>
+<p>Arguments are:</p>
+<dl class="docutils">
+<dt>event</dt>
+<dd>One of <tt class="docutils literal"><span class="pre">Table.ddl_events</span></tt>; e.g. 'before-create', 'after-create',
+'before-drop' or 'after-drop'.</dd>
+<dt>listener</dt>
+<dd><p class="first">A callable, invoked with three positional arguments:</p>
+<dl class="last docutils">
+<dt>event</dt>
+<dd>The event currently being handled</dd>
+<dt>schema_item</dt>
+<dd>The <tt class="docutils literal"><span class="pre">Table</span></tt> object being created or dropped</dd>
+<dt>bind</dt>
+<dd>The <tt class="docutils literal"><span class="pre">Connection</span></tt> bueing used for DDL execution.</dd>
+</dl>
+</dd>
+</dl>
+<p>Listeners are added to the Table's <tt class="docutils literal"><span class="pre">ddl_listeners</span></tt> attribute.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def create(<i>self</i>, <i>bind=None</i>, <i>checkfirst=False</i>)</b>
     <div class="docstring">
     <p>Issue a <tt class="docutils literal"><span class="pre">CREATE</span></tt> statement for this table.</p>
@@ -1475,7 +1710,7 @@ behavior.</dd>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1576,7 +1811,7 @@ Otherwise connects directly to the given <tt class="docutils literal"><span clas
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1629,7 +1864,7 @@ Otherwise connects directly to the given <tt class="docutils literal"><span clas
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 

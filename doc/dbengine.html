@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.2p3   Last Updated: 01/09/08 16:39:03</div>
+<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
 
 
 
@@ -42,7 +42,7 @@
 
     
     <div class="navbanner">
-        <a href="index.html">Table of Contents</a>
+        <a href="index.html" class="totoc">Table of Contents</a>
         
     <div class="prevnext">
 
@@ -61,52 +61,52 @@
     <ul>
         
         <li><a style="" href="dbengine.html#dbengine_supported">Supported Databases</a></li>
-        
+
         
         <li><a style="" href="dbengine.html#dbengine_establishing">create_engine() URL Arguments</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="dbengine.html#dbengine_establishing_custom">Custom DBAPI connect() arguments</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="dbengine.html#dbengine_options">Database Engine Options</a></li>
-        
+
         
         <li><a style="" href="dbengine.html#dbengine_connections">More On Connections</a></li>
-        
+
         
         <li><a style="" href="dbengine.html#dbengine_transactions">Using Transactions with Connection</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="dbengine.html#dbengine_transactions_understanding">Understanding Autocommit</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="dbengine.html#dbengine_implicit">Connectionless Execution, Implicit Execution</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="dbengine.html#dbengine_implicit_strategies">Using the Threadlocal Execution Strategy</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="dbengine.html#dbengine_logging">Configuring Logging</a></li>
-        
+
     </ul>
 
 	</div>
@@ -194,9 +194,9 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     </div>
 <p>Where above, the <code>execute()</code> method on the <code>Engine</code> does the <code>connect()</code> part for you, and returns the <code>ResultProxy</code> directly.  The actual <code>Connection</code> is <em>inside</em> the <code>ResultProxy</code>, waiting for you to finish reading the result.  In this case, when you <code>close()</code> the <code>ResultProxy</code>, the underlying <code>Connection</code> is closed, which returns the DBAPI connection to the pool. 
 </p>
-<p>To summarize the above two examples, when you use a <code>Connection</code> object, its known as <strong>explicit execution</strong>.  When you don't see the <code>Connection</code> object, but you still use the <code>execute()</code> method on the <code>Engine</code>, its called <strong>explicit, connectionless execution</strong>.   A third variant of execution also exists called <strong>implicit execution</strong>; this will be described later.
+<p>To summarize the above two examples, when you use a <code>Connection</code> object, it's known as <strong>explicit execution</strong>.  When you don't see the <code>Connection</code> object, but you still use the <code>execute()</code> method on the <code>Engine</code>, it's called <strong>explicit, connectionless execution</strong>.   A third variant of execution also exists called <strong>implicit execution</strong>; this will be described later.
 </p>
-<p>The <code>Engine</code> and <code>Connection</code> can do a lot more than what we illustrated above; SQL strings are only its most rudimental function.  Later chapters will describe how "constructed SQL" expressions can be used with engines; in many cases, you don't have to deal with the <code>Engine</code> at all after it's created.  The Object Relational Mapper (ORM), an optional feature of SQLAlchemy, also uses the <code>Engine</code> in order to get at connections; that's also a case where you can often create the engine once, and then forget about it.
+<p>The <code>Engine</code> and <code>Connection</code> can do a lot more than what we illustrated above; SQL strings are only its most rudimentary function.  Later chapters will describe how "constructed SQL" expressions can be used with engines; in many cases, you don't have to deal with the <code>Engine</code> at all after it's created.  The Object Relational Mapper (ORM), an optional feature of SQLAlchemy, also uses the <code>Engine</code> in order to get at connections; that's also a case where you can often create the engine once, and then forget about it.
 </p>
 
 
@@ -247,7 +247,7 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -341,7 +341,7 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -374,7 +374,7 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 </p>
 <ul>
  <li>
-     <strong>assert_unicode=False</strong> - When set to <code>True</code> alongside convert_unicode=<code>True</code>, asserts that incoming string bind parameters are instances of <code>unicode</code>, otherwise raises an error.  Only takes effect when <code>convert_unicode==True</code>.  This flag is also available on the <code>String</code> type and its decsendants. New in 0.4.2.  <br></br>
+     <strong>assert_unicode=False</strong> - When set to <code>True</code> alongside convert_unicode=<code>True</code>, asserts that incoming string bind parameters are instances of <code>unicode</code>, otherwise raises an error.  Only takes effect when <code>convert_unicode==True</code>.  This flag is also available on the <code>String</code> type and its descendants. New in 0.4.2.  <br></br>
  </li>
 
  <li>
@@ -402,7 +402,7 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
  </li>
 
  <li>
-     <strong>module=None</strong> - used by database implementations which support multiple DBAPI modules, this is a reference to a DBAPI2 module to be used instead of the engine's default module.  For Postgres, the default is psycopg2.  For Oracle, its cx_Oracle.
+     <strong>module=None</strong> - used by database implementations which support multiple DBAPI modules, this is a reference to a DBAPI2 module to be used instead of the engine's default module.  For Postgres, the default is psycopg2.  For Oracle, it's cx_Oracle.
  </li>
 
  <li>
@@ -448,7 +448,7 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -516,7 +516,7 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -621,7 +621,7 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -640,9 +640,9 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     
     
 
-<p>Recall from the first section we mentioned executing with and without a <code>Connection</code>.  <code>Connectionless</code> execution refers to calling the <code>execute()</code> method on an object which is not a <code>Connection</code>, which could be on the the <code>Engine</code> itself, or could be a constructed SQL object.  When we say "implicit", we mean that we are calling the <code>execute()</code> method on an object which is neither a <code>Connection</code> nor an <code>Engine</code> object; this can only be used with constructed SQL objects which have their own <code>execute()</code> method, and can be "bound" to an <code>Engine</code>.  A description of "constructed SQL objects" may be found in <a href="sqlexpression.html">SQL Expression Language Tutorial</a>.
+<p>Recall from the first section we mentioned executing with and without a <code>Connection</code>.  <code>Connectionless</code> execution refers to calling the <code>execute()</code> method on an object which is not a <code>Connection</code>, which could be on the <code>Engine</code> itself, or could be a constructed SQL object.  When we say "implicit", we mean that we are calling the <code>execute()</code> method on an object which is neither a <code>Connection</code> nor an <code>Engine</code> object; this can only be used with constructed SQL objects which have their own <code>execute()</code> method, and can be "bound" to an <code>Engine</code>.  A description of "constructed SQL objects" may be found in <a href="sqlexpression.html">SQL Expression Language Tutorial</a>.
 </p>
-<p>A summary of all three methods follows below.  First, assume the usage of the following <code>MetaData</code> and <code>Table</code> objects; while we haven't yet introduced these concepts, for now you only need to know that we are representing a database table, and are creating an "executeable" SQL construct which issues a statement to the database.  These objects are described in <a href="metadata.html">Database Meta Data</a>.
+<p>A summary of all three methods follows below.  First, assume the usage of the following <code>MetaData</code> and <code>Table</code> objects; while we haven't yet introduced these concepts, for now you only need to know that we are representing a database table, and are creating an "executable" SQL construct which issues a statement to the database.  These objects are described in <a href="metadata.html">Database Meta Data</a>.
 </p>
 
     
@@ -772,7 +772,7 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     </div>
 <p>Where above, we again have two result sets in scope at the same time, but because they are present in the same thread, there is only <strong>one DBAPI connection in use</strong>.
 </p>
-<p>While the above distinction may not seem like much, it has several potentially desireable effects.  One is that you can in some cases reduce the number of concurrent connections checked out from the connection pool, in the case that a <code>ResultProxy</code> is still opened and a second statement is issued.  A second advantage is that by limiting the number of checked out connections in a thread to just one, you eliminate the issue of deadlocks within a single thread, such as when connection A locks a table, and connection B attempts to read from the same table in the same thread, it will "deadlock" on waiting for connection A to release its lock; the <code>threadlocal</code> strategy eliminates this possibility.
+<p>While the above distinction may not seem like much, it has several potentially desirable effects.  One is that you can in some cases reduce the number of concurrent connections checked out from the connection pool, in the case that a <code>ResultProxy</code> is still opened and a second statement is issued.  A second advantage is that by limiting the number of checked out connections in a thread to just one, you eliminate the issue of deadlocks within a single thread, such as when connection A locks a table, and connection B attempts to read from the same table in the same thread, it will "deadlock" on waiting for connection A to release its lock; the <code>threadlocal</code> strategy eliminates this possibility.
 </p>
 <p>A third advantage to the <code>threadlocal</code> strategy is that it allows the <code>Transaction</code> object to be used in combination with connectionless execution.  Recall from the section on transactions, that the <code>Transaction</code> is returned by the <code>begin()</code> method on a <code>Connection</code>; all statements which wish to participate in this transaction must be executed by the same <code>Connection</code>, thereby forcing the usage of an explicit connection.  However, the <code>TLEngine</code> provides a <code>Transaction</code> that is local to the current thread;  using it, one can issue many "connectionless" statements within a thread and they will all automatically partake in the current transaction, as in the example below:
 </p>
@@ -833,7 +833,7 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
     </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
-<p>In the above example, the program calls three functions <code>dosomethingimplicit()</code>, <code>dosomethingelse()</code> and <code>dosomethingtransactional()</code>.  All three functions use either connectionless execution, or a special function <code>contextual_connect()</code> which we will describe in a moment.  These two styles of execution both indicate that all executions will use the same connection object.  Additionally, the method <code>dosomethingtransactional()</code> begins and commits its own <code>Transaction</code>.  But only one transaction is used, too; it's controlled completely by the <code>engine.begin()</code>/<code>engine.commit()</code> calls at the bottom.  Recall that <code>Transaction</code> supports "nesting" behavior, whereby transactions begun on a <code>Connection</code> which already has a tranasaction open, will "nest" into the enclosing transaction.  Since the transaction opened in <code>dosomethingtransactional()</code> occurs using the same connection which already has a transaction begun, it "nests" into that transaction and therefore has no effect on the actual transaction scope (unless it calls <code>rollback()</code>).
+<p>In the above example, the program calls three functions <code>dosomethingimplicit()</code>, <code>dosomethingelse()</code> and <code>dosomethingtransactional()</code>.  All three functions use either connectionless execution, or a special function <code>contextual_connect()</code> which we will describe in a moment.  These two styles of execution both indicate that all executions will use the same connection object.  Additionally, the method <code>dosomethingtransactional()</code> begins and commits its own <code>Transaction</code>.  But only one transaction is used, too; it's controlled completely by the <code>engine.begin()</code>/<code>engine.commit()</code> calls at the bottom.  Recall that <code>Transaction</code> supports "nesting" behavior, whereby transactions begun on a <code>Connection</code> which already has a transaction open, will "nest" into the enclosing transaction.  Since the transaction opened in <code>dosomethingtransactional()</code> occurs using the same connection which already has a transaction begun, it "nests" into that transaction and therefore has no effect on the actual transaction scope (unless it calls <code>rollback()</code>).
 </p>
 <p>Some of the functions in the above example make use of a method called <code>engine.contextual_connect()</code>.  This method is available on both <code>Engine</code> as well as <code>TLEngine</code>, and returns the <code>Connection</code> that applies to the current <strong>connection context</strong>.  When using the <code>TLEngine</code>, this is just another term for the "thread local connection" that is being used for all connectionless executions.  When using just the regular <code>Engine</code> (i.e. the "default" strategy), <code>contextual_connect()</code> is synonymous with <code>connect()</code>.  Below we illustrate that two connections opened via <code>contextual_connect()</code> at the same time, both reference the same underlying DBAPI connection:
 </p>
@@ -853,7 +853,7 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 </span><span class="python_name">True</span><span class="python_operator">
 </span></pre>
     </div>
-<p>The basic idea of <code>contextual_connect()</code> is that its the "connection used by connectionless execution".  It's different from the <code>connect()</code> method in that <code>connect()</code> is always used when handling an explicit <code>Connection</code>, which will always reference distinct DBAPI connection.  Using <code>connect()</code> in combination with <code>TLEngine</code> allows one to "circumvent" the current thread local context, as in this example where a single statement issues data to the database externally to the current transaction:
+<p>The basic idea of <code>contextual_connect()</code> is that it's the "connection used by connectionless execution".  It's different from the <code>connect()</code> method in that <code>connect()</code> is always used when handling an explicit <code>Connection</code>, which will always reference distinct DBAPI connection.  Using <code>connect()</code> in combination with <code>TLEngine</code> allows one to "circumvent" the current thread local context, as in this example where a single statement issues data to the database externally to the current transaction:
 </p>
 
     
@@ -872,7 +872,7 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -951,7 +951,7 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 

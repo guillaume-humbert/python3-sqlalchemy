@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.2p3   Last Updated: 01/09/08 16:39:03</div>
+<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
 
 
 
@@ -42,7 +42,7 @@
 
     
     <div class="navbanner">
-        <a href="index.html">Table of Contents</a>
+        <a href="index.html" class="totoc">Table of Contents</a>
         
     <div class="prevnext">
 
@@ -61,82 +61,82 @@
     <ul>
         
         <li><a style="" href="metadata.html#metadata_tables">Describing Databases with MetaData</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="metadata.html#metadata_tables_binding">Binding MetaData to an Engine or Connection</a></li>
-        
+
         
         <li><a style="" href="metadata.html#metadata_tables_reflecting">Reflecting Tables</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="metadata.html#metadata_tables_reflecting_overriding">Overriding Reflected Columns</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="metadata.html#metadata_tables_schema">Specifying the Schema Name</a></li>
-        
+
         
         <li><a style="" href="metadata.html#metadata_tables_onupdate">ON UPDATE and ON DELETE</a></li>
-        
+
         
         <li><a style="" href="metadata.html#metadata_tables_options">Other Options</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="metadata.html#metadata_creating">Creating and Dropping Database Tables</a></li>
-        
+
         
         <li><a style="" href="metadata.html#metadata_defaults">Column Insert/Update Defaults</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="metadata.html#metadata_defaults_preexecute_functions">Pre-Executed Python Functions</a></li>
-        
+
         
         <li><a style="" href="metadata.html#metadata_defaults_sqlexpression">Pre-executed and Inline SQL Expressions</a></li>
-        
+
         
         <li><a style="" href="metadata.html#metadata_defaults_passive">DDL-Level Defaults</a></li>
-        
+
         
         <li><a style="" href="metadata.html#metadata_defaults_sequences">Defining Sequences</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="metadata.html#metadata_constraints">Defining Constraints and Indexes</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="metadata.html#metadata_constraints_unique">UNIQUE Constraint</a></li>
-        
+
         
         <li><a style="" href="metadata.html#metadata_constraints_check">CHECK Constraint</a></li>
-        
+
         
         <li><a style="" href="metadata.html#metadata_constraints_indexes">Indexes</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="metadata.html#metadata_adapting">Adapting Tables to Alternate Metadata</a></li>
-        
+
     </ul>
 
 	</div>
@@ -370,7 +370,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -408,7 +408,7 @@
 </span><span class="python_name">True</span><span class="python_operator">
 </span></pre>
     </div>
-<p>To get direct access to 'shopping_carts', simply instantiate it via the <code>Table</code> constructor.  <code>Table</code> uses a special contructor that will return the already created <code>Table</code> instance if its already present:
+<p>To get direct access to 'shopping_carts', simply instantiate it via the <code>Table</code> constructor.  <code>Table</code> uses a special contructor that will return the already created <code>Table</code> instance if it's already present:
 </p>
 
     
@@ -418,7 +418,7 @@
 <span class="python_name">shopping_carts </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'shopping_carts'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Of course, its a good idea to use <code>autoload=True</code> with the above table regardless.  This is so that if it hadn't been loaded already, the operation will load the table.  The autoload operation only occurs for the table if it hasn't already been loaded; once loaded, new calls to <code>Table</code> will not re-issue any reflection queries.
+<p>Of course, it's a good idea to use <code>autoload=True</code> with the above table regardless.  This is so that if it hadn't been loaded already, the operation will load the table.  The autoload operation only occurs for the table if it hasn't already been loaded; once loaded, new calls to <code>Table</code> will not re-issue any reflection queries.
 </p>
 
     
@@ -445,7 +445,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -483,7 +483,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -515,7 +515,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -547,7 +547,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -652,7 +652,7 @@ CREATE TABLE user_prefs(<br/>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -722,7 +722,7 @@ CREATE TABLE user_prefs(<br/>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -785,7 +785,7 @@ CREATE TABLE user_prefs(<br/>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -828,7 +828,7 @@ CREATE TABLE test (
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -876,7 +876,7 @@ CREATE TABLE test (
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -930,7 +930,7 @@ CREATE TABLE test (
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -946,7 +946,7 @@ CREATE TABLE test (
 
 <p>Check constraints can be named or unnamed and can be created at the Column or Table level, using the <code>CheckConstraint</code> construct.  The text of the check constraint is passed directly through to the database, so there is limited "database independent" behavior.  Column level check constraints generally should only refer to the column to which they are placed, while table level constraints can refer to any columns in the table.
 </p>
-<p>Note that some databases do not actively support check constraints such as MySQL and sqlite.
+<p>Note that some databases do not actively support check constraints such as MySQL and SQLite.
 </p>
 
     
@@ -970,7 +970,7 @@ CREATE TABLE test (
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1035,7 +1035,7 @@ CREATE TABLE test (
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1076,7 +1076,7 @@ CREATE TABLE test (
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 

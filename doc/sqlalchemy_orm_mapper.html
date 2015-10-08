@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.2p3   Last Updated: 01/09/08 16:39:03</div>
+<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
 
 
 
@@ -47,7 +47,7 @@
 
     
     <div class="navbanner">
-        <a href="index.html">Table of Contents</a>
+        <a href="index.html" class="totoc">Table of Contents</a>
         
     <div class="prevnext">
             Up: <a href="docstrings.html">API Documentation</a>
@@ -67,22 +67,22 @@
     <ul>
         
         <li><a style="" href="sqlalchemy_orm_mapper.html#docstrings_sqlalchemy.orm.mapper_modfunc">Module Functions</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="sqlalchemy_orm_mapper.html#docstrings_sqlalchemy.orm.mapper_modfunc_class_mapper">class_mapper()</a></li>
-        
+
         
         <li><a style="" href="sqlalchemy_orm_mapper.html#docstrings_sqlalchemy.orm.mapper_modfunc_object_mapper">object_mapper()</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="sqlalchemy_orm_mapper.html#docstrings_sqlalchemy.orm.mapper_Mapper">class Mapper(object)</a></li>
-        
+
     </ul>
 
 	</div>
@@ -103,7 +103,7 @@
     <div class="darkcell"><p>Defines the <a href="sqlalchemy_orm_mapper.html#docstrings_sqlalchemy.orm.mapper_Mapper">Mapper</a> class, the central configurational
 unit which associates a class with a database table.</p>
 <p>This is a semi-private module; the main configurational API of the ORM is
-avaiable in <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm">module sqlalchemy.orm</a>.</p>
+available in <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm">module sqlalchemy.orm</a>.</p>
 </div>
     
 
@@ -120,7 +120,7 @@ avaiable in <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm">module sqlal
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm.mapper_modfunc_class_mapper"></a>
-    <b>def class_mapper(<i>class_</i>, <i>entity_name=None</i>, <i>compile=True</i>)</b>
+    <b>def class_mapper(<i>class_</i>, <i>entity_name=None</i>, <i>compile=True</i>, <i>raiseerror=True</i>)</b>
     <div class="docstring">
     <p>Given a class and optional entity_name, return the primary Mapper associated with the key.</p>
 <p>If no mapper can be located, raises <tt class="docutils literal"><span class="pre">InvalidRequestError</span></tt>.</p>
@@ -180,7 +180,7 @@ columns.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>class_</i>, <i>local_table</i>, <i>properties=None</i>, <i>primary_key=None</i>, <i>non_primary=False</i>, <i>inherits=None</i>, <i>inherit_condition=None</i>, <i>inherit_foreign_keys=None</i>, <i>extension=None</i>, <i>order_by=False</i>, <i>allow_column_override=False</i>, <i>entity_name=None</i>, <i>always_refresh=False</i>, <i>version_id_col=None</i>, <i>polymorphic_on=None</i>, <i>_polymorphic_map=None</i>, <i>polymorphic_identity=None</i>, <i>polymorphic_fetch=None</i>, <i>concrete=False</i>, <i>select_table=None</i>, <i>allow_null_pks=False</i>, <i>batch=True</i>, <i>column_prefix=None</i>, <i>include_properties=None</i>, <i>exclude_properties=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>class_</i>, <i>local_table</i>, <i>properties=None</i>, <i>primary_key=None</i>, <i>non_primary=False</i>, <i>inherits=None</i>, <i>inherit_condition=None</i>, <i>inherit_foreign_keys=None</i>, <i>extension=None</i>, <i>order_by=False</i>, <i>allow_column_override=False</i>, <i>entity_name=None</i>, <i>always_refresh=False</i>, <i>version_id_col=None</i>, <i>polymorphic_on=None</i>, <i>_polymorphic_map=None</i>, <i>polymorphic_identity=None</i>, <i>polymorphic_fetch=None</i>, <i>concrete=False</i>, <i>select_table=None</i>, <i>allow_null_pks=False</i>, <i>batch=True</i>, <i>column_prefix=None</i>, <i>include_properties=None</i>, <i>exclude_properties=None</i>, <i>eager_defaults=False</i>)</b>
     <div class="docstring">
     <p>Construct a new mapper.</p>
 <p>Mappers are normally constructed via the <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_mapper">mapper()</a>
@@ -207,7 +207,7 @@ using <cite>add_property</cite>.</p>
     <A name=""></a>
     <b>def add_property(<i>self</i>, <i>key</i>, <i>prop</i>)</b>
     <div class="docstring">
-    <p>Add an indiviual MapperProperty to this mapper.</p>
+    <p>Add an individual MapperProperty to this mapper.</p>
 <p>If the mapper has not been compiled yet, just adds the
 property to the initial properties dictionary sent to the
 constructor.  If this Mapper has already been compiled, then
@@ -489,7 +489,7 @@ populate an instance using an alternate mapper.</p>
 
     
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 

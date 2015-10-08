@@ -113,6 +113,8 @@ examples/polymorph/concrete.py
 examples/polymorph/polymorph.py
 examples/polymorph/single.py
 examples/sharding/attribute_shard.py
+examples/vertical/dictlike-polymorphic.py
+examples/vertical/dictlike.py
 examples/vertical/vertical.py
 lib/SQLAlchemy.egg-info/PKG-INFO
 lib/SQLAlchemy.egg-info/SOURCES.txt
@@ -186,8 +188,9 @@ test/__init__.py
 test/alltests.py
 test/binary_data_one.dat
 test/binary_data_two.dat
+test/clone.py
 test/pickleable.py
-test/testbase.py
+test/testenv.py
 test/base/__init__.py
 test/base/alltests.py
 test/base/dependency.py
@@ -208,6 +211,7 @@ test/dialect/sybase.py
 test/engine/__init__.py
 test/engine/alltests.py
 test/engine/bind.py
+test/engine/ddlevents.py
 test/engine/execute.py
 test/engine/metadata.py
 test/engine/parseconnect.py
@@ -280,6 +284,7 @@ test/perf/objselectspeed.py
 test/perf/objupdatespeed.py
 test/perf/ormsession.py
 test/perf/poolload.py
+test/perf/sessions.py
 test/perf/threaded_compile.py
 test/perf/wsgi.py
 test/profiling/__init__.py
@@ -303,9 +308,11 @@ test/sql/selectable.py
 test/sql/testtypes.py
 test/sql/unicode.py
 test/testlib/__init__.py
+test/testlib/compat.py
 test/testlib/config.py
 test/testlib/coverage.py
 test/testlib/engines.py
+test/testlib/filters.py
 test/testlib/fixtures.py
 test/testlib/orm.py
 test/testlib/profiling.py

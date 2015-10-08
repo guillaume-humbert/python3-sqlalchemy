@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.2p3   Last Updated: 01/09/08 16:39:03</div>
+<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
 
 
 
@@ -42,7 +42,7 @@
 
     
     <div class="navbanner">
-        <a href="index.html">Table of Contents</a>
+        <a href="index.html" class="totoc">Table of Contents</a>
         
     <div class="prevnext">
 
@@ -61,55 +61,55 @@
     <ul>
         
         <li><a style="" href="ormtutorial.html#datamapping_version">Version Check</a></li>
-        
+
         
         <li><a style="" href="ormtutorial.html#datamapping_connecting">Connecting</a></li>
-        
+
         
         <li><a style="" href="ormtutorial.html#datamapping_tables">Define and Create a Table</a></li>
-        
+
         
         <li><a style="" href="ormtutorial.html#datamapping_mapping">Define a Python Class to be Mapped</a></li>
-        
+
         
         <li><a style="" href="ormtutorial.html#datamapping_setting">Setting up the Mapping</a></li>
-        
+
         
         <li><a style="" href="ormtutorial.html#datamapping_creating">Creating a Session</a></li>
-        
+
         
         <li><a style="" href="ormtutorial.html#datamapping_saving">Saving Objects</a></li>
-        
+
         
         <li><a style="" href="ormtutorial.html#datamapping_querying">Querying</a></li>
-        
+
         
         <li><a style="" href="ormtutorial.html#datamapping_onetomany">Building a One-to-Many Relation</a></li>
-        
+
         
         <li><a style="" href="ormtutorial.html#datamapping_relation_backref">Working with Related Objects and Backreferences</a></li>
-        
+
         
         <li><a style="" href="ormtutorial.html#datamapping_joins">Querying with Joins</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="ormtutorial.html#datamapping_joins_relation">Relation Operators</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="ormtutorial.html#datamapping_deleting">Deleting</a></li>
-        
+
         
         <li><a style="" href="ormtutorial.html#datamapping_manytomany">Building a Many To Many Relation</a></li>
-        
+
         
         <li><a style="" href="ormtutorial.html#datamapping_further">Further Reference</a></li>
-        
+
     </ul>
 
 	</div>
@@ -160,7 +160,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -190,7 +190,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -204,7 +204,7 @@
     
     
 
-<p>Next we want to tell SQLAlchemy about our tables.  We will start with just a single table called <code>users</code>, which will store records for the end-users using our application (lets assume its a website).  We define our tables all within a catalog called <code>MetaData</code>, using the <code>Table</code> construct, which resembles regular SQL CREATE TABLE syntax:
+<p>Next we want to tell SQLAlchemy about our tables.  We will start with just a single table called <code>users</code>, which will store records for the end-users using our application (lets assume it's a website).  We define our tables all within a catalog called <code>MetaData</code>, using the <code>Table</code> construct, which resembles regular SQL CREATE TABLE syntax:
 </p>
 
     
@@ -223,7 +223,7 @@
     </div>
 <p>All about how to define <code>Table</code> objects, as well as how to create them from an existing database automatically, is described in <a href="metadata.html">Database Meta Data</a>.
 </p>
-<p>Next, to tell the <code>MetaData</code> we'd actually like to create our <code>users_table</code> for real inside the SQLite database, we use <code>create_all()</code>, passing it the <code>engine</code> instance which points to our database.  This will check for the presence of a table first before creating, so its safe to call multiple times:
+<p>Next, to tell the <code>MetaData</code> we'd actually like to create our <code>users_table</code> for real inside the SQLite database, we use <code>create_all()</code>, passing it the <code>engine</code> instance which points to our database.  This will check for the presence of a table first before creating, so it's safe to call multiple times:
 </p>
 
     
@@ -247,7 +247,7 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -261,7 +261,7 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
     
     
 
-<p>So lets create a rudimental <code>User</code> object to be mapped in the database.  This object will for starters have three attributes, <code>name</code>, <code>fullname</code> and <code>password</code>.  It only need subclass Python's built-in <code>object</code> class (i.e. its a new style class).  We will give it a constructor so that it may conveniently be instantiated with its attributes at once, as well as a <code>__repr__</code> method so that we can get a nice string representation of it:
+<p>So lets create a rudimentary <code>User</code> object to be mapped in the database.  This object will for starters have three attributes, <code>name</code>, <code>fullname</code> and <code>password</code>.  It only need subclass Python's built-in <code>object</code> class (i.e. it's a new style class).  We will give it a constructor so that it may conveniently be instantiated with its attributes at once, as well as a <code>__repr__</code> method so that we can get a nice string representation of it:
 </p>
 
     
@@ -281,7 +281,7 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -323,12 +323,12 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
 </span><span class="python_literal">'None'</span><span class="python_operator">
 </span></pre>
     </div>
-<p>What was that last <code>id</code> attribute?  That was placed there by the <code>Mapper</code>, to track the value of the <code>id</code> column in the <code>users_table</code>.  Since our <code>User</code> doesn't exist in the database, it's id is <code>None</code>.  When we save the object, it will get populated automatically with its new id.
+<p>What was that last <code>id</code> attribute?  That was placed there by the <code>Mapper</code>, to track the value of the <code>id</code> column in the <code>users_table</code>.  Since our <code>User</code> doesn't exist in the database, its id is <code>None</code>.  When we save the object, it will get populated automatically with its new id.
 </p>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -383,12 +383,12 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
-<p>The above <code>Session</code> is associated with our SQLite <code>engine</code>, but it hasn't opened any connections yet.  When it's first used, it retrieves a connection from a pool of connections maintained by the <code>engine</code>, and holds onto it until we commit all changes and/or close the session object.  Because we configured <code>transactional=True</code>, theres also a transaction in progress (one notable exception to this is MySQL, when you use its default table style of MyISAM).  There's options available to modify this behavior but we'll go with this straightforward version to start.    <br></br>
+<p>The above <code>Session</code> is associated with our SQLite <code>engine</code>, but it hasn't opened any connections yet.  When it's first used, it retrieves a connection from a pool of connections maintained by the <code>engine</code>, and holds onto it until we commit all changes and/or close the session object.  Because we configured <code>transactional=True</code>, there's also a transaction in progress (one notable exception to this is MySQL, when you use its default table style of MyISAM).  There's options available to modify this behavior but we'll go with this straightforward version to start.    <br></br>
 </p>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -412,7 +412,7 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">ed_user</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>But yo'll notice nothing has happened yet.  Well, lets pretend something did, and try to query for our user.  This is done using the <code>query()</code> method on <code>Session</code>.  We create a new query representing the set of all <code>User</code> objects first.  Then we narrow the results by "filtering" down to the user we want; that is, the user whose <code>name</code> attribute is <code>&quot;ed&quot;</code>.  Finally we call <code>first()</code> which tells <code>Query</code>, "we'd like the first result in this list".
+<p>But you'll notice nothing has happened yet.  Well, lets pretend something did, and try to query for our user.  This is done using the <code>query()</code> method on <code>Session</code>.  We create a new query representing the set of all <code>User</code> objects first.  Then we narrow the results by "filtering" down to the user we want; that is, the user whose <code>name</code> attribute is <code>&quot;ed&quot;</code>.  Finally we call <code>first()</code> which tells <code>Query</code>, "we'd like the first result in this list".
 </p>
 
     
@@ -429,7 +429,7 @@ WHERE users.name = ? ORDER BY users.oid <br/>
 ['ed']</div><pre><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'ed'</span><span class="python_operator">,</span><span class="python_literal">'Ed Jones'</span><span class="python_operator">, </span><span class="python_literal">'edspassword'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;
 </span></pre>
     </div>
-<p>And we get back our new user.  If you view the generated SQL, yo'll see that the <code>Session</code> issued an <code>INSERT</code> statement before querying.  The <code>Session</code> stores whatever you put into it in memory, and at certain points it issues a <strong>flush</strong>, which issues SQL to the database to store all pending new objects and changes to existing objects.  You can manually invoke the flush operation using <code>flush()</code>; however when the <code>Session</code> is configured to <code>autoflush</code>, its usually not needed.
+<p>And we get back our new user.  If you view the generated SQL, you'll see that the <code>Session</code> issued an <code>INSERT</code> statement before querying.  The <code>Session</code> stores whatever you put into it in memory, and at certain points it issues a <strong>flush</strong>, which issues SQL to the database to store all pending new objects and changes to existing objects.  You can manually invoke the flush operation using <code>flush()</code>; however when the <code>Session</code> is configured to <code>autoflush</code>, it's usually not needed.
 </p>
 <p>OK, let's do some more operations.  We'll create and save three more users:
 </p>
@@ -485,7 +485,7 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
     </div>
 <p>After each <code>INSERT</code> operation, the <code>Session</code> assigns all newly generated ids and column defaults to the mapped object instance.  For column defaults which are database-generated and are not part of the table's primary key, they'll be loaded when you first reference the attribute on the instance.
 </p>
-<p>One crucial thing to note about the <code>Session</code> is that each object instance is cached within the Session, based on its primary key identitifer.  The reason for this cache is not as much for performance as it is for maintaining an <strong>identity map</strong> of instances.  This map guarantees that whenever you work with a particular <code>User</code> object in a session, <strong>you always get the same instance back</strong>.  As below, reloading Ed gives us the same instance back:
+<p>One crucial thing to note about the <code>Session</code> is that each object instance is cached within the Session, based on its primary key identifier.  The reason for this cache is not as much for performance as it is for maintaining an <strong>identity map</strong> of instances.  This map guarantees that whenever you work with a particular <code>User</code> object in a session, <strong>you always get the same instance back</strong>.  As below, reloading Ed gives us the same instance back:
 </p>
 
     
@@ -514,7 +514,7 @@ LIMIT 2 OFFSET 0<br/>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -792,7 +792,7 @@ FROM users ORDER BY users.oid<br/>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -806,7 +806,7 @@ FROM users ORDER BY users.oid<br/>
     
     
 
-<p>We've spent a lot of time dealing with just one class, and one table.  Let's now look at how SQLAlchemy deals with two tables, which have a relationship to each other.   Let's say that the users in our system also can store any number of email addresses associated with their username.  This implies a basic one to many association from the <code>users_table</code> to a new table which stores email addresess, which we will call <code>addresses</code>.  We will also create a relationship between this new table to the users table, using a <code>ForeignKey</code>:
+<p>We've spent a lot of time dealing with just one class, and one table.  Let's now look at how SQLAlchemy deals with two tables, which have a relationship to each other.   Let's say that the users in our system also can store any number of email addresses associated with their username.  This implies a basic one to many association from the <code>users_table</code> to a new table which stores email addresses, which we will call <code>addresses</code>.  We will also create a relationship between this new table to the users table, using a <code>ForeignKey</code>:
 </p>
 
     
@@ -892,7 +892,7 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1028,7 +1028,7 @@ addresses_1.user_id AS addresses_1_user_id <br/>
 </span><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;, &lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'j25@yahoo.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
 </span></pre>
     </div>
-<p>If you think that query is elaborate, it is !  But SQLAlchemy is just getting started.  Note that when using eager loading, <em>nothing</em> changes as far as the ultimate results returned.  The "loading strategy", as its called, is designed to be completely transparent in all cases, and is for optimization purposes only.  Any query criterion you use to load objects, including ordering, limiting, other joins, etc., should return identical results regardless of the combination of lazily- and eagerly- loaded relationships present.
+<p>If you think that query is elaborate, it is !  But SQLAlchemy is just getting started.  Note that when using eager loading, <em>nothing</em> changes as far as the ultimate results returned.  The "loading strategy", as it's called, is designed to be completely transparent in all cases, and is for optimization purposes only.  Any query criterion you use to load objects, including ordering, limiting, other joins, etc., should return identical results regardless of the combination of lazily- and eagerly- loaded relationships present.
 </p>
 <p>An eagerload targeting across multiple relations can use dot separated names:
 </p>
@@ -1053,7 +1053,7 @@ addresses_1.user_id AS addresses_1_user_id <br/>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1167,7 +1167,7 @@ WHERE addresses_1.email_address = ? AND addresses_2.email_address = ? ORDER BY u
 ['jack@google.com', 'j25@yahoo.com']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
 </span></pre>
     </div>
-<p>The key thing which occured above is that our SQL criterion were <strong>aliased</strong> as appropriate corresponding to the alias generated in the most recent <code>join()</code> call.
+<p>The key thing which occurred above is that our SQL criterion were <strong>aliased</strong> as appropriate corresponding to the alias generated in the most recent <code>join()</code> call.
 </p>
 <p>The next section describes some "higher level" operators, including <code>any()</code> and <code>has()</code>, which make patterns like joining to multiple aliases unnecessary in most cases.
 </p>
@@ -1433,7 +1433,7 @@ WHERE users.id = addresses.user_id AND addresses.id = ?)) ORDER BY users.oid<br/
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1487,7 +1487,7 @@ WHERE addresses.email_address IN (?, ?)<br/>
 ['jack@google.com', 'j25@yahoo.com']</div><pre><span class="python_number">2</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Uh oh, they're still there !  Anaylzing the flush SQL, we can see that the <code>user_id</code> column of each addresss was set to NULL, but the rows weren't deleted.  SQLAlchemy doesn't assume that deletes cascade, you have to tell it so.
+<p>Uh oh, they're still there !  Analyzing the flush SQL, we can see that the <code>user_id</code> column of each address was set to NULL, but the rows weren't deleted.  SQLAlchemy doesn't assume that deletes cascade, you have to tell it so.
 </p>
 <p>So let's rollback our work, and start fresh with new mappers that express the relationship the way we want:
 </p>
@@ -1579,7 +1579,7 @@ WHERE addresses.email_address IN (?, ?)<br/>
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1791,7 +1791,7 @@ WHERE posts.id = post_keywords.post_id AND keywords.id = post_keywords.keyword_i
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -1817,7 +1817,7 @@ WHERE posts.id = post_keywords.post_id AND keywords.id = post_keywords.keyword_i
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 

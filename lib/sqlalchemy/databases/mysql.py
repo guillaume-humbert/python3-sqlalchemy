@@ -95,6 +95,16 @@ by supplying ``--sql-mode`` to ``mysqld``.  You can also use a ``Pool`` hook
 to issue a ``SET SESSION sql_mode='...'`` on connect to configure each
 connection.
 
+If you do not specify 'use_ansiquotes', the regular MySQL quoting style is
+used by default.  Table reflection operations will query the server 
+
+If you do issue a 'SET sql_mode' through SQLAlchemy, the dialect must be
+updated if the quoting style is changed.  Again, this change will affect all
+connections::
+
+  connection.execute('SET sql_mode="ansi"')
+  connection.dialect.use_ansiquotes = True
+
 For normal SQLAlchemy usage, loading this module is unnescesary.  It will be
 loaded on-demand when a MySQL connection is needed.  The generic column types
 like ``String`` and ``Integer`` will automatically be adapted to the optimal
@@ -143,7 +153,7 @@ Notes page on the wiki at http://www.sqlalchemy.org is a good resource for
 timely information affecting MySQL in SQLAlchemy.
 """
 
-import re, datetime, inspect, warnings, sys
+import datetime, inspect, re, sys
 from array import array as _array
 
 from sqlalchemy import exceptions, logging, schema, sql, util
@@ -1401,13 +1411,9 @@ class MySQLDialect(default.DefaultDialect):
     max_identifier_length = 255
     supports_sane_rowcount = True
 
-    def __init__(self, use_ansiquotes=False, **kwargs):
+    def __init__(self, use_ansiquotes=None, **kwargs):
         self.use_ansiquotes = use_ansiquotes
         kwargs.setdefault('default_paramstyle', 'format')
-        if self.use_ansiquotes:
-            self.preparer = MySQLANSIIdentifierPreparer
-        else:
-            self.preparer = MySQLIdentifierPreparer
         default.DefaultDialect.__init__(self, **kwargs)
 
     def dbapi(cls):
@@ -1546,6 +1552,7 @@ class MySQLDialect(default.DefaultDialect):
         """Return a Unicode SHOW TABLES from a given schema."""
 
         charset = self._detect_charset(connection)
+        self._autoset_identifier_style(connection)
         rp = connection.execute("SHOW TABLES FROM %s" %
             self.identifier_preparer.quote_identifier(schema))
         return [row[0] for row in _compat_fetchall(rp, charset=charset)]
@@ -1558,7 +1565,10 @@ class MySQLDialect(default.DefaultDialect):
         # based on platform.  DESCRIBE is slower.
 
         # [ticket:726]
-        # full_name = self.identifier_preparer.format_table(table, use_schema=True)
+        # full_name = self.identifier_preparer.format_table(table,
+        #                                                   use_schema=True)
+
+        self._autoset_identifier_style(connection)
 
         full_name = '.'.join(self.identifier_preparer._quote_free_identifiers(
             schema, table_name))
@@ -1627,12 +1637,18 @@ class MySQLDialect(default.DefaultDialect):
         """Load column definitions from the server."""
 
         charset = self._detect_charset(connection)
+        self._autoset_identifier_style(connection)
 
         try:
             reflector = self.reflector
         except AttributeError:
-            self.reflector = reflector = \
-                MySQLSchemaReflector(self.identifier_preparer)
+            preparer = self.identifier_preparer
+            if (self.server_version_info(connection) < (4, 1) and
+                self.use_ansiquotes):
+                # ANSI_QUOTES doesn't affect SHOW CREATE TABLE on < 4.1
+                preparer = MySQLIdentifierPreparer(self)
+
+            self.reflector = reflector = MySQLSchemaReflector(preparer)
 
         sql = self._show_create_table(connection, table, charset)
         if sql.startswith('CREATE ALGORITHM'):
@@ -1695,10 +1711,10 @@ class MySQLDialect(default.DefaultDialect):
             if 'character_set' in opts:
                 return opts['character_set']
             else:
-                warnings.warn(RuntimeWarning(
+                util.warn(
                     "Could not detect the connection character set with this "
                     "combination of MySQL server and MySQL-python. "
-                    "MySQL-python >= 1.2.2 is recommended.  Assuming latin1."))
+                    "MySQL-python >= 1.2.2 is recommended.  Assuming latin1.")
                 return 'latin1'
 
     def _detect_casing(self, connection, charset=None):
@@ -1749,6 +1765,49 @@ class MySQLDialect(default.DefaultDialect):
                     collations[row[0]] = row[1]
             connection.info['collations'] = collations
             return collations
+
+    def use_ansiquotes(self, useansi):
+        self._use_ansiquotes = useansi
+        if useansi:
+            self.preparer = MySQLANSIIdentifierPreparer
+        else:
+            self.preparer = MySQLIdentifierPreparer
+        # icky
+        if hasattr(self, 'identifier_preparer'):
+            self.identifier_preparer = self.preparer(self)
+        if hasattr(self, 'reflector'):
+            del self.reflector
+
+    use_ansiquotes = property(lambda s: s._use_ansiquotes, use_ansiquotes,
+                              doc="True if ANSI_QUOTES is in effect.")
+
+    def _autoset_identifier_style(self, connection, charset=None):
+        """Detect and adjust for the ANSI_QUOTES sql mode.
+
+        If the dialect's use_ansiquotes is unset, query the server's sql mode
+        and reset the identifier style.
+
+        Note that this currently *only* runs during reflection.  Ideally this
+        would run the first time a connection pool connects to the database,
+        but the infrastructure for that is not yet in place.
+        """
+
+        if self.use_ansiquotes is not None:
+            return
+
+        row = _compat_fetchone(
+            connection.execute("SHOW VARIABLES LIKE 'sql_mode'",
+                               charset=charset))
+        if not row:
+            mode = ''
+        else:
+            mode = row[1] or ''
+            # 4.0
+            if mode.isdigit():
+                mode_no = int(mode)
+                mode = (mode_no | 4 == mode_no) and 'ANSI_QUOTES' or ''
+
+        self.use_ansiquotes = 'ANSI_QUOTES' in mode
 
     def _show_create_table(self, connection, table, charset=None,
                            full_name=None):
@@ -1956,7 +2015,8 @@ class MySQLSchemaGenerator(compiler.SchemaGenerator):
         """Builds column DDL."""
 
         colspec = [self.preparer.format_column(column),
-                   column.type.dialect_impl(self.dialect, _for_ddl=True).get_col_spec()]
+                   column.type.dialect_impl(self.dialect,
+                                            _for_ddl=column).get_col_spec()]
 
         default = self.get_column_default_string(column)
         if default is not None:
@@ -2067,9 +2127,7 @@ class MySQLSchemaReflector(object):
             else:
                 type_, spec = self.parse_constraints(line)
                 if type_ is None:
-                    warnings.warn(
-                        RuntimeWarning("Unknown schema content: %s" %
-                                       repr(line)))
+                    util.warn("Unknown schema content: %r" % line)
                 elif type_ == 'key':
                     keys.append(spec)
                 elif type_ == 'constraint':
@@ -2097,12 +2155,10 @@ class MySQLSchemaReflector(object):
     def _add_column(self, table, line, charset, only=None):
         spec = self.parse_column(line)
         if not spec:
-            warnings.warn(RuntimeWarning(
-                "Unknown column definition %s" % line))
+            util.warn("Unknown column definition %r" % line)
             return
         if not spec['full']:
-            warnings.warn(RuntimeWarning(
-                "Incomplete reflection of column definition %s" % line))
+            util.warn("Incomplete reflection of column definition %r" % line)
 
         name, type_, args, notnull = \
               spec['name'], spec['coltype'], spec['arg'], spec['notnull']
@@ -2120,9 +2176,8 @@ class MySQLSchemaReflector(object):
         try:
             col_type = ischema_names[type_]
         except KeyError:
-            warnings.warn(RuntimeWarning(
-                "Did not recognize type '%s' of column '%s'" %
-                (type_, name)))
+            util.warn("Did not recognize type '%s' of column '%s'" %
+                      (type_, name))
             col_type = sqltypes.NullType
 
         # Column type positional arguments eg. varchar(32)
@@ -2160,7 +2215,7 @@ class MySQLSchemaReflector(object):
         default = spec.get('default', None)
         if default is not None and default != 'NULL':
             # Defaults should be in the native charset for the moment
-            default = default.decode(charset)
+            default = default.encode(charset)
             if type_ == 'timestamp':
                 # can't be NULL for TIMESTAMPs
                 if (default[0], default[-1]) != ("'", "'"):

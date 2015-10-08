@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.2p3   Last Updated: 01/09/08 16:39:03</div>
+<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
 
 
 
@@ -42,7 +42,7 @@
 
     
     <div class="navbanner">
-        <a href="index.html">Table of Contents</a>
+        <a href="index.html" class="totoc">Table of Contents</a>
         
     <div class="prevnext">
 
@@ -61,46 +61,46 @@
     <ul>
         
         <li><a style="" href="plugins.html#plugins_associationproxy">associationproxy</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="plugins.html#plugins_associationproxy_simplifying">Simplifying Relations</a></li>
-        
+
         
         <li><a style="" href="plugins.html#plugins_associationproxy_simplifying">Simplifying Association Object Relations</a></li>
-        
+
         
         <li><a style="" href="plugins.html#plugins_associationproxy_building">Building Complex Views</a></li>
-        
+
     </ul>
 
 	        </li>
         
         <li><a style="" href="plugins.html#plugins_orderinglist">orderinglist</a></li>
-        
+
         
         <li><a style="" href="plugins.html#plugins_sqlsoup">SqlSoup</a></li>
-        
+
         
         <li><a style="" href="plugins.html#plugins_deprecated">Deprecated Extensions</a></li>
-        
+
 	        <li>
                 
     <ul>
         
         <li><a style="" href="plugins.html#plugins_deprecated_selectresults">SelectResults</a></li>
-        
+
         
         <li><a style="" href="plugins.html#plugins_deprecated_sessioncontext">SessionContext</a></li>
-        
+
         
         <li><a style="" href="plugins.html#plugins_deprecated_assignmapper">assignmapper</a></li>
-        
+
         
         <li><a style="" href="plugins.html#plugins_deprecated_activemapper">ActiveMapper</a></li>
-        
+
     </ul>
 
 	        </li>
@@ -155,6 +155,8 @@
     
     
 
+<p>Consider this "association object" mapping:
+</p>
 
     
 
@@ -278,7 +280,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -346,7 +348,7 @@
 <span class="python_comment"># Adding a Keyword requires creating a UserKeyword association object
 </span><span class="python_name">user</span><span class="python_operator">.</span><span class="python_name">user_keywords</span><span class="python_operator">.</span><span class="python_name">append</span><span class="python_enclosure">(</span><span class="python_name">UserKeyword</span><span class="python_enclosure">(</span><span class="python_name">user</span><span class="python_operator">, </span><span class="python_name">kw1</span><span class="python_enclosure">))</span><span class="python_operator">
 </span>
-<span class="python_comment"># And accessing Keywords requires traverrsing UserKeywords
+<span class="python_comment"># And accessing Keywords requires traversing UserKeywords
 </span><span class="python_keyword">print </span><span class="python_name">user</span><span class="python_operator">.</span><span class="python_name">user_keywords</span><span class="python_enclosure">[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator">
 </span><span class="python_comment"># &lt;__main__.UserKeyword object at 0xb79bbbec&gt;
 </span>
@@ -366,7 +368,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -501,7 +503,7 @@
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -611,7 +613,7 @@ documentation</a> for more
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -647,7 +649,7 @@ documentation</a> for more
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -676,7 +678,7 @@ documentation</a> for more
 
 <p><strong>Author:</strong> Jonas Borgström
 </p>
-<p><em>NOTE:</em> As of verison 0.3.6 of SQLAlchemy, most behavior of <code>SelectResults</code> has been rolled into the base <code>Query</code> object.  Explicit usage of <code>SelectResults</code> is therefore no longer needed.
+<p><em>NOTE:</em> As of version 0.3.6 of SQLAlchemy, most behavior of <code>SelectResults</code> has been rolled into the base <code>Query</code> object.  Explicit usage of <code>SelectResults</code> is therefore no longer needed.
 </p>
 <p><code>SelectResults</code> gives transformative behavior to the results returned from the <code>select</code> and <code>select_by</code> methods of <code>Query</code>. 
 </p>
@@ -751,7 +753,7 @@ documentation</a> for more
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -774,7 +776,7 @@ documentation</a> for more
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -797,7 +799,7 @@ documentation</a> for more
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 
@@ -875,7 +877,7 @@ documentation</a> for more
 
 
 
-            <a href="#top">back to section top</a>
+            <a href="#top" class="totoc">back to section top</a>
     </div>
 
 

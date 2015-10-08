@@ -1,4 +1,4 @@
-import testbase
+import testenv; testenv.configure_for_tests()
 import datetime
 from sqlalchemy import *
 from sqlalchemy import exceptions, types
@@ -7,7 +7,7 @@ from sqlalchemy.orm import collections
 from sqlalchemy.orm.collections import collection
 from testlib import *
 
-class RelationTest(PersistTest):
+class RelationTest(TestBase):
     """An extended topological sort test
 
     This is essentially an extension of the "dependency.py" topological sort
@@ -27,27 +27,27 @@ class RelationTest(PersistTest):
         metadata = MetaData()
         tbl_a = Table("tbl_a", metadata,
             Column("id", Integer, primary_key=True),
-            Column("name", String),
+            Column("name", String(128)),
         )
         tbl_b = Table("tbl_b", metadata,
             Column("id", Integer, primary_key=True),
-            Column("name", String),
+            Column("name", String(128)),
         )
         tbl_c = Table("tbl_c", metadata,
             Column("id", Integer, primary_key=True),
             Column("tbl_a_id", Integer, ForeignKey("tbl_a.id"), nullable=False),
-            Column("name", String),
+            Column("name", String(128)),
         )
         tbl_d = Table("tbl_d", metadata,
             Column("id", Integer, primary_key=True),
             Column("tbl_c_id", Integer, ForeignKey("tbl_c.id"), nullable=False),
             Column("tbl_b_id", Integer, ForeignKey("tbl_b.id")),
-            Column("name", String),
+            Column("name", String(128)),
         )
     def setUp(self):
         global session
-        session = create_session(bind=testbase.db)
-        conn = testbase.db.connect()
+        session = create_session(bind=testing.db)
+        conn = testing.db.connect()
         conn.create(tbl_a)
         conn.create(tbl_b)
         conn.create(tbl_c)
@@ -64,11 +64,11 @@ class RelationTest(PersistTest):
 
         D.mapper = mapper(D, tbl_d)
         C.mapper = mapper(C, tbl_c, properties=dict(
-            d_rows=relation(D, private=True, backref="c_row"),
+            d_rows=relation(D, cascade="all, delete-orphan", backref="c_row"),
         ))
         B.mapper = mapper(B, tbl_b)
         A.mapper = mapper(A, tbl_a, properties=dict(
-            c_rows=relation(C, private=True, backref="a_row"),
+            c_rows=relation(C, cascade="all, delete-orphan", backref="a_row"),
         ))
         D.mapper.add_property("b_row", relation(B))
 
@@ -85,14 +85,14 @@ class RelationTest(PersistTest):
         session.save_or_update(b)
 
     def tearDown(self):
-        conn = testbase.db.connect()
+        conn = testing.db.connect()
         conn.drop(tbl_d)
         conn.drop(tbl_c)
         conn.drop(tbl_b)
         conn.drop(tbl_a)
 
     def tearDownAll(self):
-        metadata.drop_all(testbase.db)
+        metadata.drop_all(testing.db)
 
     def testDeleteRootTable(self):
         session.flush()
@@ -104,7 +104,7 @@ class RelationTest(PersistTest):
         session.delete(c) # fails
         session.flush()
 
-class RelationTest2(PersistTest):
+class RelationTest2(TestBase):
     """Tests a relationship on a column included in multiple foreign keys.
 
     This test tests a relationship on a column that is included in multiple
@@ -114,7 +114,7 @@ class RelationTest2(PersistTest):
 
     def setUpAll(self):
         global metadata, company_tbl, employee_tbl
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
 
         company_tbl = Table('company', metadata,
              Column('company_id', Integer, primary_key=True),
@@ -133,8 +133,9 @@ class RelationTest2(PersistTest):
     def tearDownAll(self):
         metadata.drop_all()
 
-    def testexplicit(self):
+    def test_explicit(self):
         """test with mappers that have fairly explicit join conditions"""
+
         class Company(object):
             pass
         class Employee(object):
@@ -152,7 +153,8 @@ class RelationTest2(PersistTest):
                     employee_tbl.c.emp_id==employee_tbl.c.reports_to_id,
                     employee_tbl.c.company_id==employee_tbl.c.company_id
                 ),
-                foreignkey=[employee_tbl.c.company_id, employee_tbl.c.emp_id],
+                remote_side=[employee_tbl.c.emp_id, employee_tbl.c.company_id],
+                foreign_keys=[employee_tbl.c.reports_to_id],
                 backref='employees')
         })
 
@@ -181,7 +183,7 @@ class RelationTest2(PersistTest):
         assert sess.query(Employee).get([c1.company_id, 3]).reports_to.name == 'emp1'
         assert sess.query(Employee).get([c2.company_id, 3]).reports_to.name == 'emp5'
 
-    def testimplicit(self):
+    def test_implicit(self):
         """test with mappers that have the most minimal arguments"""
         class Company(object):
             pass
@@ -196,7 +198,8 @@ class RelationTest2(PersistTest):
         mapper(Employee, employee_tbl, properties= {
             'company':relation(Company, backref='employees'),
             'reports_to':relation(Employee,
-                foreignkey=[employee_tbl.c.company_id, employee_tbl.c.emp_id],
+                remote_side=[employee_tbl.c.emp_id, employee_tbl.c.company_id],
+                foreign_keys=[employee_tbl.c.reports_to_id],
                 backref='employees')
         })
 
@@ -225,11 +228,11 @@ class RelationTest2(PersistTest):
         assert sess.query(Employee).get([c1.company_id, 3]).reports_to.name == 'emp1'
         assert sess.query(Employee).get([c2.company_id, 3]).reports_to.name == 'emp5'
 
-class RelationTest3(PersistTest):
+class RelationTest3(TestBase):
     def setUpAll(self):
         global jobs, pageversions, pages, metadata, Job, Page, PageVersion, PageComment
         import datetime
-        metadata = MetaData(testbase.db)
+        metadata = MetaData(testing.db)
         jobs = Table("jobs", metadata,
                         Column("jobno", Unicode(15), primary_key=True),
                         Column("created", DateTime, nullable=False, default=datetime.datetime.now),
@@ -254,7 +257,7 @@ class RelationTest3(PersistTest):
             Column("jobno", Unicode(15), primary_key=True),
             Column("pagename", Unicode(30), primary_key=True),
             Column("comment_id", Integer, primary_key=True, autoincrement=False),
-            Column("content", Unicode),
+            Column("content", UnicodeText),
             ForeignKeyConstraint(["jobno", "pagename"], ["pages.jobno", "pages.pagename"])
         )
 
@@ -295,7 +298,7 @@ class RelationTest3(PersistTest):
         mapper(Page, pages, properties={
             'job': relation(Job, backref=backref('pages', cascade="all, delete-orphan", order_by=pages.c.pagename)),
             'currentversion': relation(PageVersion,
-                            foreignkey=pages.c.current_version,
+                            foreign_keys=[pages.c.current_version],
                             primaryjoin=and_(pages.c.jobno==pageversions.c.jobno,
                                              pages.c.pagename==pageversions.c.pagename,
                                              pages.c.current_version==pageversions.c.version),
@@ -344,18 +347,18 @@ class RelationTest3(PersistTest):
 
         s.save(j1)
         s.save(j2)
-        
+
         s.flush()
 
         s.clear()
-        j = s.query(Job).get_by(jobno=u'somejob')
+        j = s.query(Job).filter_by(jobno=u'somejob').one()
         oldp = list(j.pages)
         j.pages = []
 
         s.flush()
 
         s.clear()
-        j = s.query(Job).get_by(jobno=u'somejob2')
+        j = s.query(Job).filter_by(jobno=u'somejob2').one()
         j.pages[1].current_version = 12
         s.delete(j)
         s.flush()
@@ -580,7 +583,7 @@ class RelationTest5(ORMTest):
             session.save(li)
         session.flush()
         session.clear()
-        newcon = session.query(Container).selectfirst()
+        newcon = session.query(Container).first()
         assert con.policyNum == newcon.policyNum
         assert len(newcon.lineItems) == 10
         for old, new in zip(con.lineItems, newcon.lineItems):
@@ -996,13 +999,17 @@ class CustomCollectionsTest(ORMTest):
             pass
 
         class MyCollection(object):
-            def __init__(self): self.data = []
+            def __init__(self):
+                self.data = []
             @collection.appender
-            def append(self, value): self.data.append(value)
+            def append(self, value):
+                self.data.append(value)
             @collection.remover
-            def remove(self, value): self.data.remove(value)
+            def remove(self, value):
+                self.data.remove(value)
             @collection.iterator
-            def __iter__(self): return iter(self.data)
+            def __iter__(self):
+                return iter(self.data)
 
         mapper(Parent, sometable, properties={
             'children':relation(Child, collection_class=MyCollection)
@@ -1139,4 +1146,4 @@ class ViewOnlyTest2(ORMTest):
 
 
 if __name__ == "__main__":
-    testbase.main()
+    testenv.main()

@@ -1,13 +1,13 @@
 # coding: utf-8
 """verrrrry basic unicode column name testing"""
 
-import testbase
+import testenv; testenv.configure_for_tests()
 from sqlalchemy import *
 from testlib import *
 from testlib.engines import utf8_engine
+from sqlalchemy.sql import column
 
-
-class UnicodeSchemaTest(PersistTest):
+class UnicodeSchemaTest(TestBase):
     @testing.unsupported('maxdb', 'oracle', 'sybase')
     def setUpAll(self):
         global unicode_bind, metadata, t1, t2, t3
@@ -61,13 +61,13 @@ class UnicodeSchemaTest(PersistTest):
             t3.delete().execute()
             t2.delete().execute()
             t1.delete().execute()
-        
+
     @testing.unsupported('maxdb', 'oracle', 'sybase')
     def tearDownAll(self):
         global unicode_bind
         metadata.drop_all()
         del unicode_bind
-        
+
     @testing.unsupported('maxdb', 'oracle', 'sybase')
     def test_insert(self):
         t1.insert().execute({u'méil':1, u'\u6e2c\u8a66':5})
@@ -80,7 +80,7 @@ class UnicodeSchemaTest(PersistTest):
         assert t1.select().execute().fetchall() == [(1, 5)]
         assert t2.select().execute().fetchall() == [(1, 1)]
         assert t3.select().execute().fetchall() == [(1, 5, 1, 1)]
-    
+
     @testing.unsupported('maxdb', 'oracle', 'sybase')
     def test_reflect(self):
         t1.insert().execute({u'méil':2, u'\u6e2c\u8a66':7})
@@ -111,8 +111,32 @@ class UnicodeSchemaTest(PersistTest):
                      [(2, 7, 2, 2), (1, 5, 1, 1)])
         meta.drop_all()
         metadata.create_all()
-        
+
+class EscapesDefaultsTest(testing.TestBase):
+    def test_default_exec(self):
+        metadata = MetaData(testing.db)
+        t1 = Table('t1', metadata,
+            Column(u'special_col', Integer, Sequence('special_col'), primary_key=True),
+            Column('data', String(50)) # to appease SQLite without DEFAULT VALUES
+            )
+        t1.create()
+
+        try:
+            engine = metadata.bind
+            
+            # reset the identifier preparer, so that we can force it to cache
+            # a unicode identifier
+            engine.dialect.identifier_preparer = engine.dialect.preparer(engine.dialect)
+            select([column(u'special_col')]).select_from(t1).execute()
+            assert isinstance(engine.dialect.identifier_preparer.format_sequence(Sequence('special_col')), unicode)
+            
+            # now execute, run the sequence.  it should run in u"Special_col.nextid" or similar as 
+            # a unicode object; cx_oracle asserts that this is None or a String (postgres lets it pass thru).
+            # ensure that base.DefaultRunner is encoding.
+            t1.insert().execute(data='foo')
+        finally:
+            t1.drop()
 
 
 if __name__ == '__main__':
-    testbase.main()
+    testenv.main()

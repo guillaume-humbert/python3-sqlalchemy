@@ -1,15 +1,15 @@
-import testbase
+import testenv; testenv.configure_for_tests()
 from sqlalchemy import *
 from sqlalchemy.sql import table, column
 from sqlalchemy.databases import oracle
 from testlib import *
 
 
-class OutParamTest(AssertMixin):
+class OutParamTest(TestBase, AssertsExecutionResults):
     __only_on__ = 'oracle'
 
     def setUpAll(self):
-        testbase.db.execute("""
+        testing.db.execute("""
 create or replace procedure foo(x_in IN number, x_out OUT number, y_out OUT number) IS
   retval number;
     begin
@@ -20,15 +20,15 @@ create or replace procedure foo(x_in IN number, x_out OUT number, y_out OUT numb
         """)
 
     def test_out_params(self):
-        result = testbase.db.execute(text("begin foo(:x, :y, :z); end;", bindparams=[bindparam('x', Numeric), outparam('y', Numeric), outparam('z', Numeric)]), x=5)
+        result = testing.db.execute(text("begin foo(:x, :y, :z); end;", bindparams=[bindparam('x', Numeric), outparam('y', Numeric), outparam('z', Numeric)]), x=5)
         assert result.out_parameters == {'y':10, 'z':75}, result.out_parameters
         print result.out_parameters
 
     def tearDownAll(self):
-         testbase.db.execute("DROP PROCEDURE foo")
+         testing.db.execute("DROP PROCEDURE foo")
 
 
-class CompileTest(SQLCompileTest):
+class CompileTest(TestBase, AssertsCompiledSQL):
     __dialect__ = oracle.OracleDialect()
 
     def test_subquery(self):
@@ -41,12 +41,21 @@ class CompileTest(SQLCompileTest):
     def test_limit(self):
         t = table('sometable', column('col1'), column('col2'))
 
+        s = select([t])
+        c = s.compile(dialect=oracle.OracleDialect())
+        assert t.c.col1 in set(c.result_map['col1'][1])
+        
         s = select([t]).limit(10).offset(20)
 
         self.assert_compile(s, "SELECT col1, col2 FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2, "
             "ROW_NUMBER() OVER (ORDER BY sometable.rowid) AS ora_rn FROM sometable) WHERE ora_rn>20 AND ora_rn<=30"
         )
 
+        # assert that despite the subquery, the columns from the table,
+        # not the select, get put into the "result_map"
+        c = s.compile(dialect=oracle.OracleDialect())
+        assert t.c.col1 in set(c.result_map['col1'][1])
+        
         s = select([s.c.col1, s.c.col2])
 
         self.assert_compile(s, "SELECT col1, col2 FROM (SELECT col1, col2 FROM (SELECT sometable.col1 AS col1, "
@@ -126,7 +135,7 @@ myothertable.othername != :myothertable_othername_1 OR EXISTS (select yay from f
             "ON addresses.address_type_id = address_types_1.id WHERE addresses.user_id = :addresses_user_id_1 ORDER BY addresses.rowid, "
             "address_types.rowid")
 
-class TypesTest(SQLCompileTest):
+class TypesTest(TestBase, AssertsCompiledSQL):
     __only_on__ = 'oracle'
 
     def test_no_clobs_for_string_params(self):
@@ -149,7 +158,7 @@ class TypesTest(SQLCompileTest):
 
     def test_reflect_raw(self):
         types_table = Table(
-        'all_types', MetaData(testbase.db),
+        'all_types', MetaData(testing.db),
             Column('owner', String(30), primary_key=True),
             Column('type_name', String(30), primary_key=True),
             autoload=True,
@@ -157,8 +166,8 @@ class TypesTest(SQLCompileTest):
         [[row[k] for k in row.keys()] for row in types_table.select().execute().fetchall()]
 
     def test_longstring(self):
-        metadata = MetaData(testbase.db)
-        testbase.db.execute("""
+        metadata = MetaData(testing.db)
+        testing.db.execute("""
         CREATE TABLE Z_TEST
         (
           ID        NUMERIC(22) PRIMARY KEY,
@@ -170,9 +179,9 @@ class TypesTest(SQLCompileTest):
             t.insert().execute(id=1.0, add_user='foobar')
             assert t.select().execute().fetchall() == [(1, 'foobar')]
         finally:
-            testbase.db.execute("DROP TABLE Z_TEST")
+            testing.db.execute("DROP TABLE Z_TEST")
 
-class SequenceTest(SQLCompileTest):
+class SequenceTest(TestBase, AssertsCompiledSQL):
     def test_basic(self):
         seq = Sequence("my_seq_no_schema")
         dialect = oracle.OracleDialect()
@@ -186,4 +195,4 @@ class SequenceTest(SQLCompileTest):
 
 
 if __name__ == '__main__':
-    testbase.main()
+    testenv.main()

@@ -4,7 +4,7 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-"""MapperProperty implementations.  
+"""MapperProperty implementations.
 
 This is a private module which defines the behavior of
 invidual ORM-mapped attributes.
@@ -18,9 +18,11 @@ from sqlalchemy.orm import session as sessionlib
 from sqlalchemy.orm.util import CascadeOptions
 from sqlalchemy.orm.interfaces import StrategizedProperty, PropComparator, MapperProperty
 from sqlalchemy.exceptions import ArgumentError
-import warnings
+import weakref
 
-__all__ = ['ColumnProperty', 'CompositeProperty', 'SynonymProperty', 'PropertyLoader', 'BackRef']
+__all__ = ('ColumnProperty', 'CompositeProperty', 'SynonymProperty',
+           'PropertyLoader', 'BackRef')
+
 
 class ColumnProperty(StrategizedProperty):
     """Describes an object attribute that corresponds to a table column."""
@@ -40,7 +42,7 @@ class ColumnProperty(StrategizedProperty):
         for col in columns:
             if not isinstance(col, ColumnElement):
                 raise ArgumentError('column_property() must be given a ColumnElement as its argument.  Try .label() or .as_scalar() for Selectables to fix this.')
-        
+
     def create_strategy(self):
         if self.deferred:
             return strategies.DeferredColumnLoader(self)
@@ -50,11 +52,16 @@ class ColumnProperty(StrategizedProperty):
     def do_init(self):
         super(ColumnProperty, self).do_init()
         if len(self.columns) > 1 and self.parent.primary_key.issuperset(self.columns):
-            warnings.warn(RuntimeWarning("On mapper %s, primary key column '%s' is being combined with distinct primary key column '%s' in attribute '%s'.  Use explicit properties to give each column its own mapped attribute name." % (str(self.parent), str(self.columns[1]), str(self.columns[0]), self.key)))
-        
+            util.warn(
+                ("On mapper %s, primary key column '%s' is being combined "
+                 "with distinct primary key column '%s' in attribute '%s'.  "
+                 "Use explicit properties to give each column its own mapped "
+                 "attribute name.") % (str(self.parent), str(self.columns[1]),
+                                       str(self.columns[0]), self.key))
+
     def copy(self):
         return ColumnProperty(deferred=self.deferred, group=self.group, *self.columns)
-    
+
     def getattr(self, state, column):
         return getattr(state.class_, self.key).impl.get(state)
 
@@ -63,7 +70,7 @@ class ColumnProperty(StrategizedProperty):
 
     def setattr(self, state, value, column):
         getattr(state.class_, self.key).impl.set(state, value, None)
-        
+
     def merge(self, session, source, dest, dont_load, _recursive):
         value = attributes.get_as_list(source._state, self.key, passive=True)
         if value:
@@ -71,14 +78,14 @@ class ColumnProperty(StrategizedProperty):
         else:
             # TODO: lazy callable should merge to the new instance
             dest._state.expire_attributes([self.key])
-            
+
     def get_col_value(self, column, value):
         return value
 
     class ColumnComparator(PropComparator):
         def clause_element(self):
             return self.prop.columns[0]
-            
+
         def operate(self, op, *other):
             return op(self.prop.columns[0], *other)
 
@@ -90,7 +97,7 @@ ColumnProperty.logger = logging.class_logger(ColumnProperty)
 
 class CompositeProperty(ColumnProperty):
     """subclasses ColumnProperty to provide composite type support."""
-    
+
     def __init__(self, class_, *columns, **kwargs):
         super(CompositeProperty, self).__init__(*columns, **kwargs)
         self.composite_class = class_
@@ -99,7 +106,7 @@ class CompositeProperty(ColumnProperty):
     def do_init(self):
         super(ColumnProperty, self).do_init()
         # TODO: similar PK check as ColumnProperty does ?
-        
+
     def copy(self):
         return CompositeProperty(deferred=self.deferred, group=self.group, composite_class=self.composite_class, *self.columns)
 
@@ -117,11 +124,11 @@ class CompositeProperty(ColumnProperty):
         if obj is None:
             obj = self.composite_class(*[None for c in self.columns])
             getattr(state.class_, self.key).impl.set(state, obj, None)
-            
+
         for a, b in zip(self.columns, value.__composite_values__()):
             if a is column:
                 setattr(obj, b, value)
-        
+
     def get_col_value(self, column, value):
         for a, b in zip(self.columns, value.__composite_values__()):
             if a is column:
@@ -146,7 +153,7 @@ class SynonymProperty(MapperProperty):
         self.name = name
         self.map_column=map_column
         self.instrument = None
-        
+
     def setup(self, querycontext, **kwargs):
         pass
 
@@ -169,7 +176,7 @@ class SynonymProperty(MapperProperty):
                         return s
                     return getattr(obj, self.name)
             self.instrument = SynonymProp()
-            
+
         sessionlib.register_attribute(class_, self.key, uselist=False, proxy_property=self.instrument, useobject=False, comparator=comparator)
 
     def merge(self, session, source, dest, _recursive):
@@ -201,11 +208,12 @@ class PropertyLoader(StrategizedProperty):
         self.passive_updates = passive_updates
         self.remote_side = util.to_set(remote_side)
         self.enable_typechecks = enable_typechecks
-        self._parent_join_cache = {}
+        self.__parent_join_cache = weakref.WeakKeyDictionary()
         self.comparator = PropertyLoader.Comparator(self)
         self.join_depth = join_depth
         self.strategy_class = strategy_class
-
+        self._reverse_property = None
+        
         if cascade is not None:
             self.cascade = CascadeOptions(cascade)
         else:
@@ -214,7 +222,7 @@ class PropertyLoader(StrategizedProperty):
                 self.cascade = CascadeOptions("all, delete-orphan")
             else:
                 self.cascade = CascadeOptions("save-update, merge")
-        
+
         if self.passive_deletes == 'all' and ("delete" in self.cascade or "delete-orphan" in self.cascade):
             raise exceptions.ArgumentError("Can't set passive_deletes='all' in conjunction with 'delete' or 'delete-orphan' cascade")
 
@@ -255,9 +263,9 @@ class PropertyLoader(StrategizedProperty):
                             sql.exists([1], j & sql.and_(*[x==y for (x, y) in zip(self.prop.mapper.primary_key, self.prop.mapper.primary_key_from_instance(o))]))
                         )
                     return sql.and_(*clauses)
-            else:  
+            else:
                 return self.prop._optimized_compare(other)
-        
+
         def any(self, criterion=None, **kwargs):
             if not self.prop.uselist:
                 raise exceptions.InvalidRequestError("'any()' not implemented for scalar attributes. Use has().")
@@ -271,7 +279,7 @@ class PropertyLoader(StrategizedProperty):
                 else:
                     criterion = criterion & crit
             return sql.exists([1], j & criterion)
-        
+
         def has(self, criterion=None, **kwargs):
             if self.prop.uselist:
                 raise exceptions.InvalidRequestError("'has()' not implemented for collections.  Use any().")
@@ -285,7 +293,7 @@ class PropertyLoader(StrategizedProperty):
                 else:
                     criterion = criterion & crit
             return sql.exists([1], j & criterion)
-                
+
         def contains(self, other):
             if not self.prop.uselist:
                 raise exceptions.InvalidRequestError("'contains' not implemented for scalar attributes.  Use ==")
@@ -301,12 +309,12 @@ class PropertyLoader(StrategizedProperty):
         def __ne__(self, other):
             if self.prop.uselist and not hasattr(other, '__iter__'):
                 raise exceptions.InvalidRequestError("Can only compare a collection to an iterable object")
-                
+
             j = self.prop.primaryjoin
             if self.prop.secondaryjoin:
                 j = j & self.prop.secondaryjoin
             return ~sql.exists([1], j & sql.and_(*[x==y for (x, y) in zip(self.prop.mapper.primary_key, self.prop.mapper.primary_key_from_instance(other))]))
-            
+
     def compare(self, op, value, value_is_parent=False):
         if op == operators.eq:
             if value is None:
@@ -318,10 +326,10 @@ class PropertyLoader(StrategizedProperty):
                 return self._optimized_compare(value, value_is_parent=value_is_parent)
         else:
             return op(self.comparator, value)
-    
+
     def _optimized_compare(self, value, value_is_parent=False):
         return self._get_strategy(strategies.LazyLoader).lazy_clause(value, reverse_direction=not value_is_parent)
-    
+
     def private(self):
         return self.cascade.delete_orphan
     private = property(private)
@@ -342,17 +350,22 @@ class PropertyLoader(StrategizedProperty):
         return str(self.parent.class_.__name__) + "." + self.key + " (" + str(self.mapper.class_.__name__)  + ")"
 
     def merge(self, session, source, dest, dont_load, _recursive):
+        if not dont_load and self._reverse_property and (source, self._reverse_property) in _recursive:
+            return
+            
         if not "merge" in self.cascade:
             # TODO: lazy callable should merge to the new instance
             dest._state.expire_attributes([self.key])
             return
+
         instances = attributes.get_as_list(source._state, self.key, passive=True)
         if not instances:
             return
+        
         if self.uselist:
-            # sets a blank collection according to the correct list class
             dest_list = attributes.init_collection(dest, self.key)
             for current in instances:
+                _recursive[(current, self)] = True
                 obj = session.merge(current, entity_name=self.mapper.entity_name, dont_load=dont_load, _recursive=_recursive)
                 if obj is not None:
                     if dont_load:
@@ -362,6 +375,7 @@ class PropertyLoader(StrategizedProperty):
         else:
             current = instances[0]
             if current is not None:
+                _recursive[(current, self)] = True
                 obj = session.merge(current, entity_name=self.mapper.entity_name, dont_load=dont_load, _recursive=_recursive)
                 if obj is not None:
                     if dont_load:
@@ -383,7 +397,7 @@ class PropertyLoader(StrategizedProperty):
                     recursive.add(c)
 
                     # cascade using the mapper local to this object, so that its individual properties are located
-                    instance_mapper = object_mapper(c, entity_name=mapper.entity_name)  
+                    instance_mapper = object_mapper(c, entity_name=mapper.entity_name)
                     yield (c, instance_mapper)
                     for (c2, m) in instance_mapper.cascade_iterator(type, c._state, recursive):
                         yield (c2, m)
@@ -421,7 +435,11 @@ class PropertyLoader(StrategizedProperty):
         if not self.parent.concrete:
             for inheriting in self.parent.iterate_to_root():
                 if inheriting is not self.parent and inheriting._get_property(self.key, raiseerr=False):
-                    warnings.warn(RuntimeWarning("Warning: relation '%s' on mapper '%s' supercedes the same relation on inherited mapper '%s'; this can cause dependency issues during flush" % (self.key, self.parent, inheriting)))
+                    util.warn(
+                        ("Warning: relation '%s' on mapper '%s' supercedes "
+                         "the same relation on inherited mapper '%s'; this "
+                         "can cause dependency issues during flush") %
+                        (self.key, self.parent, inheriting))
 
         if self.association is not None:
             if isinstance(self.association, type):
@@ -441,17 +459,17 @@ class PropertyLoader(StrategizedProperty):
         if self.secondaryjoin is not None and self.secondary is None:
             raise exceptions.ArgumentError("Property '" + self.key + "' specified with secondary join condition but no secondary argument")
         # if join conditions were not specified, figure them out based on foreign keys
-        
+
         def _search_for_join(mapper, table):
             """find a join between the given mapper's mapped table and the given table.
-            will try the mapper's local table first for more specificity, then if not 
+            will try the mapper's local table first for more specificity, then if not
             found will try the more general mapped table, which in the case of inheritance
             is a join."""
             try:
                 return sql.join(mapper.local_table, table)
             except exceptions.ArgumentError, e:
                 return sql.join(mapper.mapped_table, table)
-        
+
         try:
             if self.secondary is not None:
                 if self.secondaryjoin is None:
@@ -476,18 +494,18 @@ class PropertyLoader(StrategizedProperty):
             if vis.result:
                 raise exceptions.ArgumentError("In relationship '%s', primary and secondary join conditions must not include columns from the polymorphic 'select_table' argument as of SA release 0.3.4.  Construct join conditions using the base tables of the related mappers." % (str(self)))
 
+    def _col_is_part_of_mappings(self, column):
+        if self.secondary is None:
+            return self.parent.mapped_table.c.contains_column(column) or \
+                self.target.c.contains_column(column)
+        else:
+            return self.parent.mapped_table.c.contains_column(column) or \
+                self.target.c.contains_column(column) or \
+                self.secondary.c.contains_column(column) is not None
+        
     def _determine_fks(self):
         if self._legacy_foreignkey and not self._is_self_referential():
             self.foreign_keys = self._legacy_foreignkey
-
-        def col_is_part_of_mappings(col):
-            if self.secondary is None:
-                return self.parent.mapped_table.corresponding_column(col) is not None or \
-                    self.target.corresponding_column(col) is not None
-            else:
-                return self.parent.mapped_table.corresponding_column(col) is not None or \
-                    self.target.corresponding_column(col) is not None or \
-                    self.secondary.corresponding_column(col) is not None
 
         if self.foreign_keys:
             self._opposite_side = util.Set()
@@ -511,9 +529,9 @@ class PropertyLoader(StrategizedProperty):
                 # this check is for when the user put the "view_only" flag on and has tables that have nothing
                 # to do with the relationship's parent/child mappings in the join conditions.  we dont want cols
                 # or clauses related to those external tables dealt with.  see orm.relationships.ViewOnlyTest
-                if not col_is_part_of_mappings(binary.left) or not col_is_part_of_mappings(binary.right):
+                if not self._col_is_part_of_mappings(binary.left) or not self._col_is_part_of_mappings(binary.right):
                     return
-                        
+
                 for f in binary.left.foreign_keys:
                     if f.references(binary.right.table):
                         self.foreign_keys.add(binary.left)
@@ -607,7 +625,7 @@ class PropertyLoader(StrategizedProperty):
             # as we will be using the polymorphic selectables (i.e. select_table argument to Mapper) to figure this out,
             # first create maps of all the "equivalent" columns, since polymorphic selectables will often munge
             # several "equivalent" columns (such as parent/child fk cols) into just one column.
-            target_equivalents = self.mapper._get_equivalent_columns()
+            target_equivalents = self.mapper._equivalent_columns
 
             if self.secondaryjoin:
                 self.polymorphic_secondaryjoin = ClauseAdapter(self.mapper.select_table).traverse(self.secondaryjoin, clone=True)
@@ -624,7 +642,7 @@ class PropertyLoader(StrategizedProperty):
             for c in list(self.remote_side):
                 if self.secondary and self.secondary.columns.contains_column(c):
                     continue
-                for equiv in [c] + (c in target_equivalents and list(target_equivalents[c]) or []): 
+                for equiv in [c] + (c in target_equivalents and list(target_equivalents[c]) or []):
                     corr = self.mapper.select_table.corresponding_column(equiv)
                     if corr:
                         self.remote_side.add(corr)
@@ -671,51 +689,66 @@ class PropertyLoader(StrategizedProperty):
     def _is_self_referential(self):
         return self.parent.mapped_table is self.target or self.parent.select_table is self.target
 
-    def get_join(self, parent, primary=True, secondary=True, polymorphic_parent=True):
-        """return a join condition from the given parent mapper to this PropertyLoader's mapper.
+    def primary_join_against(self, mapper, selectable=None):
+        return self.__cached_join_against(mapper, selectable, True, False)
         
-           The resulting ClauseElement object is cached and should not be modified directly.
+    def secondary_join_against(self, mapper):
+        return self.__cached_join_against(mapper, None, False, True)
         
-            parent
-              a mapper which has a relation() to this PropertyLoader.  A PropertyLoader can 
-              have multiple "parents" when its actual parent mapper has inheriting mappers.
-              
-            primary
-              include the primary join condition in the resulting join.
-              
-            secondary
-              include the secondary join condition in the resulting join.  If both primary
-              and secondary are returned, they are joined via AND.
-              
-            polymorphic_parent
-              if True, use the parent's 'select_table' instead of its 'mapped_table' to produce the join.
-        """
-        
+    def full_join_against(self, mapper, selectable=None):
+        return self.__cached_join_against(mapper, selectable, True, True)
+    
+    def __cached_join_against(self, mapper, selectable, primary, secondary):
+        if selectable is None:
+            selectable = mapper.local_table
+            
         try:
-            return self._parent_join_cache[(parent, primary, secondary, polymorphic_parent)]
+            rec = self.__parent_join_cache[selectable]
         except KeyError:
-            parent_equivalents = parent._get_equivalent_columns()
-            secondaryjoin = self.polymorphic_secondaryjoin
-            if polymorphic_parent:
-                # adapt the "parent" side of our join condition to the "polymorphic" select of the parent
-                if self.direction is sync.ONETOMANY:
-                    primaryjoin = ClauseAdapter(parent.select_table, exclude=self.foreign_keys, equivalents=parent_equivalents).traverse(self.polymorphic_primaryjoin, clone=True)
-                elif self.direction is sync.MANYTOONE:
-                    primaryjoin = ClauseAdapter(parent.select_table, include=self.foreign_keys, equivalents=parent_equivalents).traverse(self.polymorphic_primaryjoin, clone=True)
-                elif self.secondaryjoin:
-                    primaryjoin = ClauseAdapter(parent.select_table, exclude=self.foreign_keys, equivalents=parent_equivalents).traverse(self.polymorphic_primaryjoin, clone=True)
+            self.__parent_join_cache[selectable] = rec = {}
 
-            if secondaryjoin is not None:
-                if secondary and not primary:
-                    j = secondaryjoin
-                elif primary and secondary:
-                    j = primaryjoin & secondaryjoin
-                elif primary and not secondary:
-                    j = primaryjoin
+        key = (mapper, primary, secondary)
+        if key in rec:
+            return rec[key]
+        
+        parent_equivalents = mapper._equivalent_columns
+        
+        if primary:
+            if selectable is not mapper.local_table:
+                if self.direction is sync.ONETOMANY:
+                    primaryjoin = ClauseAdapter(selectable, exclude=self.foreign_keys, equivalents=parent_equivalents).traverse(self.polymorphic_primaryjoin)
+                elif self.direction is sync.MANYTOONE:
+                    primaryjoin = ClauseAdapter(selectable, include=self.foreign_keys, equivalents=parent_equivalents).traverse(self.polymorphic_primaryjoin)
+                elif self.secondaryjoin:
+                    primaryjoin = ClauseAdapter(selectable, exclude=self.foreign_keys, equivalents=parent_equivalents).traverse(self.polymorphic_primaryjoin)
             else:
-                j = primaryjoin
-            self._parent_join_cache[(parent, primary, secondary, polymorphic_parent)] = j
-            return j
+                primaryjoin = self.polymorphic_primaryjoin
+                
+            if secondary:
+                secondaryjoin = self.polymorphic_secondaryjoin
+                rec[key] = ret = primaryjoin & secondaryjoin
+            else:
+                rec[key] = ret = primaryjoin
+            return ret
+        
+        elif secondary:
+            rec[key] = ret = self.polymorphic_secondaryjoin
+            return ret
+
+        else:
+            raise AssertionError("illegal condition")
+        
+    def get_join(self, parent, primary=True, secondary=True, polymorphic_parent=True):
+        """deprecated.  use primary_join_against(), secondary_join_against(), full_join_against()"""
+        
+        if primary and secondary:
+            return self.full_join_against(parent, parent.select_table)
+        elif primary:
+            return self.primary_join_against(parent, parent.select_table)
+        elif secondary:
+            return self.secondary_join_against(parent)
+        else:
+            raise AssertionError("illegal condition")
 
     def register_dependencies(self, uowcommit):
         if not self.viewonly:
@@ -725,7 +758,7 @@ PropertyLoader.logger = logging.class_logger(PropertyLoader)
 
 class BackRef(object):
     """Attached to a PropertyLoader to indicate a complementary reverse relationship.
-    
+
     Can optionally create the complementing PropertyLoader if one does not exist already."""
 
     def __init__(self, key, _prop=None, **kwargs):
@@ -736,9 +769,9 @@ class BackRef(object):
     def compile(self, prop):
         if self.prop:
             return
-        
+
         self.prop = prop
-        
+
         mapper = prop.mapper.primary_mapper()
         if mapper._get_property(self.key, raiseerr=False) is None:
             pj = self.kwargs.pop('primaryjoin', None)
@@ -747,16 +780,16 @@ class BackRef(object):
             parent = prop.parent.primary_mapper()
             self.kwargs.setdefault('viewonly', prop.viewonly)
             self.kwargs.setdefault('post_update', prop.post_update)
-                
+
             relation = PropertyLoader(parent, prop.secondary, pj, sj,
-                                      backref=BackRef(prop.key, _prop=prop), 
+                                      backref=BackRef(prop.key, _prop=prop),
                                       is_backref=True,
                                       **self.kwargs)
-                                      
+
             mapper._compile_property(self.key, relation);
 
-            prop.reverse_property = mapper._get_property(self.key)
-            mapper._get_property(self.key).reverse_property = prop
+            prop._reverse_property = mapper._get_property(self.key)
+            mapper._get_property(self.key)._reverse_property = prop
 
         else:
             raise exceptions.ArgumentError("Error creating backref '%s' on relation '%s': property of that name exists on mapper '%s'" % (self.key, prop, mapper))

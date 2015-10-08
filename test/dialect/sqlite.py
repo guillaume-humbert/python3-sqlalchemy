@@ -1,6 +1,6 @@
 """SQLite-specific tests."""
 
-import testbase
+import testenv; testenv.configure_for_tests()
 import datetime
 from sqlalchemy import *
 from sqlalchemy import exceptions
@@ -8,11 +8,11 @@ from sqlalchemy.databases import sqlite
 from testlib import *
 
 
-class TestTypes(AssertMixin):
+class TestTypes(TestBase, AssertsExecutionResults):
     __only_on__ = 'sqlite'
 
     def test_date(self):
-        meta = MetaData(testbase.db)
+        meta = MetaData(testing.db)
         t = Table('testdate', meta,
                   Column('id', Integer, primary_key=True),
                   Column('adate', Date),
@@ -31,8 +31,76 @@ class TestTypes(AssertMixin):
         finally:
             meta.drop_all()
 
+    @testing.uses_deprecated('Using String type with no length')
+    def test_type_reflection(self):
+        # (ask_for, roundtripped_as_if_different)
+        specs = [( String(), sqlite.SLText(), ),
+                 ( String(1), sqlite.SLString(1), ),
+                 ( String(3), sqlite.SLString(3), ),
+                 ( Text(), sqlite.SLText(), ),
+                 ( Unicode(), sqlite.SLText(), ),
+                 ( Unicode(1), sqlite.SLString(1), ),
+                 ( Unicode(3), sqlite.SLString(3), ),
+                 ( UnicodeText(), sqlite.SLText(), ),
+                 ( CLOB, sqlite.SLText(), ),
+                 ( sqlite.SLChar(1), ),
+                 ( CHAR(3), sqlite.SLChar(3), ),
+                 ( NCHAR(2), sqlite.SLChar(2), ),
+                 ( SmallInteger(), sqlite.SLSmallInteger(), ),
+                 ( sqlite.SLSmallInteger(), ),
+                 ( Binary(3), sqlite.SLBinary(), ),
+                 ( Binary(), sqlite.SLBinary() ),
+                 ( sqlite.SLBinary(3), sqlite.SLBinary(), ),
+                 ( NUMERIC, sqlite.SLNumeric(), ),
+                 ( NUMERIC(10,2), sqlite.SLNumeric(10,2), ),
+                 ( Numeric, sqlite.SLNumeric(), ),
+                 ( Numeric(10, 2), sqlite.SLNumeric(10, 2), ),
+                 ( DECIMAL, sqlite.SLNumeric(), ),
+                 ( DECIMAL(10, 2), sqlite.SLNumeric(10, 2), ),
+                 ( Float, sqlite.SLNumeric(), ),
+                 ( sqlite.SLNumeric(), ),
+                 ( INT, sqlite.SLInteger(), ),
+                 ( Integer, sqlite.SLInteger(), ),
+                 ( sqlite.SLInteger(), ),
+                 ( TIMESTAMP, sqlite.SLDateTime(), ),
+                 ( DATETIME, sqlite.SLDateTime(), ),
+                 ( DateTime, sqlite.SLDateTime(), ),
+                 ( sqlite.SLDateTime(), ),
+                 ( DATE, sqlite.SLDate(), ),
+                 ( Date, sqlite.SLDate(), ),
+                 ( sqlite.SLDate(), ),
+                 ( TIME, sqlite.SLTime(), ),
+                 ( Time, sqlite.SLTime(), ),
+                 ( sqlite.SLTime(), ),
+                 ( BOOLEAN, sqlite.SLBoolean(), ),
+                 ( Boolean, sqlite.SLBoolean(), ),
+                 ( sqlite.SLBoolean(), ),
+                 ]
+        columns = [Column('c%i' % (i + 1), t[0]) for i, t in enumerate(specs)]
 
-class DialectTest(AssertMixin):
+        db = testing.db
+        m = MetaData(db)
+        t_table = Table('types', m, *columns)
+        try:
+            m.create_all()
+
+            m2 = MetaData(db)
+            rt = Table('types', m2, autoload=True)
+            try:
+                db.execute('CREATE VIEW types_v AS SELECT * from types')
+                rv = Table('types_v', m2, autoload=True)
+
+                expected = [len(c) > 1 and c[1] or c[0] for c in specs]
+                for table in rt, rv:
+                    for i, reflected in enumerate(table.c):
+                        print reflected.type, type(expected[i])
+                        assert isinstance(reflected.type, type(expected[i]))
+            finally:
+                db.execute('DROP VIEW types_v')
+        finally:
+            m.drop_all()
+
+class DialectTest(TestBase, AssertsExecutionResults):
     __only_on__ = 'sqlite'
 
     def test_extra_reserved_words(self):
@@ -44,7 +112,7 @@ class DialectTest(AssertMixin):
         is updated in the future.
         """
 
-        meta = MetaData(testbase.db)
+        meta = MetaData(testing.db)
         t = Table('reserved', meta,
                   Column('safe', Integer),
                   Column('true', Integer),
@@ -62,12 +130,12 @@ class DialectTest(AssertMixin):
         """Tests autoload of tables created with quoted column names."""
 
         # This is quirky in sqlite.
-        testbase.db.execute("""CREATE TABLE "django_content_type" (
+        testing.db.execute("""CREATE TABLE "django_content_type" (
             "id" integer NOT NULL PRIMARY KEY,
             "django_stuff" text NULL
         )
         """)
-        testbase.db.execute("""
+        testing.db.execute("""
         CREATE TABLE "django_admin_log" (
             "id" integer NOT NULL PRIMARY KEY,
             "action_time" datetime NOT NULL,
@@ -77,17 +145,78 @@ class DialectTest(AssertMixin):
         )
         """)
         try:
-            meta = MetaData(testbase.db)
+            meta = MetaData(testing.db)
             table1 = Table("django_admin_log", meta, autoload=True)
             table2 = Table("django_content_type", meta, autoload=True)
             j = table1.join(table2)
             assert j.onclause == table1.c.content_type_id==table2.c.id
         finally:
-            testbase.db.execute("drop table django_admin_log")
-            testbase.db.execute("drop table django_content_type")
+            testing.db.execute("drop table django_admin_log")
+            testing.db.execute("drop table django_content_type")
 
 
-class InsertTest(AssertMixin):
+    def test_attached_as_schema(self):
+        cx = testing.db.connect()
+        try:
+            cx.execute('ATTACH DATABASE ":memory:" AS  alt_schema')
+            dialect = cx.dialect
+            assert dialect.table_names(cx, 'alt_schema') == []
+
+            meta = MetaData(cx)
+            Table('created', meta, Column('id', Integer),
+                  schema='alt_schema')
+            alt_master = Table('sqlite_master', meta, autoload=True,
+                               schema='alt_schema')
+            meta.create_all(cx)
+
+            self.assertEquals(dialect.table_names(cx, 'alt_schema'),
+                              ['created'])
+            assert len(alt_master.c) > 0
+
+            meta.clear()
+            reflected = Table('created', meta, autoload=True,
+                              schema='alt_schema')
+            assert len(reflected.c) == 1
+
+            cx.execute(reflected.insert(), dict(id=1))
+            r = cx.execute(reflected.select()).fetchall()
+            assert list(r) == [(1,)]
+
+            cx.execute(reflected.update(), dict(id=2))
+            r = cx.execute(reflected.select()).fetchall()
+            assert list(r) == [(2,)]
+
+            cx.execute(reflected.delete(reflected.c.id==2))
+            r = cx.execute(reflected.select()).fetchall()
+            assert list(r) == []
+
+            # note that sqlite_master is cleared, above
+            meta.drop_all()
+
+            assert dialect.table_names(cx, 'alt_schema') == []
+        finally:
+            cx.execute('DETACH DATABASE alt_schema')
+
+    @testing.exclude('sqlite', '<', (2, 6))
+    def test_temp_table_reflection(self):
+        cx = testing.db.connect()
+        try:
+            cx.execute('CREATE TEMPORARY TABLE tempy (id INT)')
+
+            assert 'tempy' in cx.dialect.table_names(cx, None)
+
+            meta = MetaData(cx)
+            tempy = Table('tempy', meta, autoload=True)
+            assert len(tempy.c) == 1
+            meta.drop_all()
+        except:
+            try:
+                cx.execute('DROP TABLE tempy')
+            except exceptions.DBAPIError:
+                pass
+            raise
+
+class InsertTest(TestBase, AssertsExecutionResults):
     """Tests inserts and autoincrement."""
 
     __only_on__ = 'sqlite'
@@ -112,7 +241,7 @@ class InsertTest(AssertMixin):
     @testing.exclude('sqlite', '<', (3, 4))
     def test_empty_insert_pk1(self):
         self._test_empty_insert(
-            Table('a', MetaData(testbase.db),
+            Table('a', MetaData(testing.db),
                   Column('id', Integer, primary_key=True)))
 
     @testing.exclude('sqlite', '<', (3, 4))
@@ -120,7 +249,7 @@ class InsertTest(AssertMixin):
         self.assertRaises(
             exceptions.DBAPIError,
             self._test_empty_insert,
-            Table('b', MetaData(testbase.db),
+            Table('b', MetaData(testing.db),
                   Column('x', Integer, primary_key=True),
                   Column('y', Integer, primary_key=True)))
 
@@ -129,7 +258,7 @@ class InsertTest(AssertMixin):
         self.assertRaises(
             exceptions.DBAPIError,
             self._test_empty_insert,
-            Table('c', MetaData(testbase.db),
+            Table('c', MetaData(testing.db),
                   Column('x', Integer, primary_key=True),
                   Column('y', Integer, PassiveDefault('123'),
                          primary_key=True)))
@@ -137,20 +266,20 @@ class InsertTest(AssertMixin):
     @testing.exclude('sqlite', '<', (3, 4))
     def test_empty_insert_pk4(self):
         self._test_empty_insert(
-            Table('d', MetaData(testbase.db),
+            Table('d', MetaData(testing.db),
                   Column('x', Integer, primary_key=True),
                   Column('y', Integer, PassiveDefault('123'))))
 
     @testing.exclude('sqlite', '<', (3, 4))
     def test_empty_insert_nopk1(self):
         self._test_empty_insert(
-            Table('e', MetaData(testbase.db),
+            Table('e', MetaData(testing.db),
                   Column('id', Integer)))
 
     @testing.exclude('sqlite', '<', (3, 4))
     def test_empty_insert_nopk2(self):
         self._test_empty_insert(
-            Table('f', MetaData(testbase.db),
+            Table('f', MetaData(testing.db),
                   Column('x', Integer),
                   Column('y', Integer)))
 
@@ -171,4 +300,4 @@ class InsertTest(AssertMixin):
 
 
 if __name__ == "__main__":
-    testbase.main()
+    testenv.main()

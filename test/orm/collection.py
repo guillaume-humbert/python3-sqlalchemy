@@ -1,4 +1,6 @@
-import testbase
+import testenv; testenv.configure_for_tests()
+import sys
+from operator import and_
 from sqlalchemy import *
 import sqlalchemy.exceptions as exceptions
 from sqlalchemy.orm import create_session, mapper, relation, \
@@ -6,8 +8,13 @@ from sqlalchemy.orm import create_session, mapper, relation, \
 import sqlalchemy.orm.collections as collections
 from sqlalchemy.orm.collections import collection
 from sqlalchemy import util
-from operator import and_
 from testlib import *
+
+try:
+    py_set = __builtins__.set
+except AttributeError:
+    import sets
+    py_set = sets.Set
 
 class Canary(interfaces.AttributeExtension):
     def __init__(self):
@@ -48,7 +55,7 @@ def dictable_entity(a=None, b=None, c=None):
     return Entity(a or str(_id), b or 'value %s' % _id, c)
 
 
-class CollectionsTest(PersistTest):
+class CollectionsTest(TestBase):
     def _test_adapter(self, typecallable, creator=entity_maker,
                       to_set=None):
         class Foo(object):
@@ -703,7 +710,7 @@ class CollectionsTest(PersistTest):
 
     def test_set_emulates(self):
         class SetIsh(object):
-            __emulates__ = set
+            __emulates__ = py_set
             def __init__(self):
                 self.data = set()
             def add(self, item):
@@ -839,10 +846,11 @@ class CollectionsTest(PersistTest):
             control.update(d)
             assert_eq()
 
-            kw = dict([(ee.a, ee) for ee in [e, creator()]])
-            direct.update(**kw)
-            control.update(**kw)
-            assert_eq()
+            if sys.version_info >= (2, 4):
+                kw = dict([(ee.a, ee) for ee in [e, creator()]])
+                direct.update(**kw)
+                control.update(**kw)
+                assert_eq()
 
     def _test_dict_bulk(self, typecallable, creator=dictable_entity):
         class Foo(object):
@@ -1280,14 +1288,14 @@ class DictHelpersTest(ORMTest):
 
         parents = Table('parents', metadata,
                         Column('id', Integer, primary_key=True),
-                        Column('label', String))
+                        Column('label', String(128)))
         children = Table('children', metadata,
                          Column('id', Integer, primary_key=True),
                          Column('parent_id', Integer, ForeignKey('parents.id'),
                                 nullable=False),
-                         Column('a', String),
-                         Column('b', String),
-                         Column('c', String))
+                         Column('a', String(128)),
+                         Column('b', String(128)),
+                         Column('c', String(128)))
 
         class Parent(object):
             def __init__(self, label=None):
@@ -1429,4 +1437,4 @@ class DictHelpersTest(ORMTest):
         self._test_composite_mapped(collection_class)
 
 if __name__ == "__main__":
-    testbase.main()
+    testenv.main()

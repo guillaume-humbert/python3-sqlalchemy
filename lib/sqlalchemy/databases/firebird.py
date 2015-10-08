@@ -88,7 +88,6 @@ connections are active, the following setting may alleviate the problem::
 
 
 import datetime
-import warnings
 
 from sqlalchemy import exceptions, schema, types as sqltypes, sql, util
 from sqlalchemy.engine import base, default
@@ -392,6 +391,8 @@ class FBDialect(default.DefaultDialect):
     def is_disconnect(self, e):
         if isinstance(e, self.dbapi.OperationalError):
             return 'Unable to complete network request to host' in str(e)
+        elif isinstance(e, self.dbapi.ProgrammingError):
+            return 'Invalid connection state' in str(e)
         else:
             return False
 
@@ -433,6 +434,22 @@ class FBDialect(default.DefaultDialect):
         WHERE rc.rdb$constraint_type=? AND rc.rdb$relation_name=?
         ORDER BY se.rdb$index_name, se.rdb$field_position
         """
+        # Heuristic-query to determine the generator associated to a PK field
+        genqry = """
+        SELECT trigdep.rdb$depended_on_name AS fgenerator
+        FROM rdb$dependencies tabdep
+             JOIN rdb$dependencies trigdep ON (tabdep.rdb$dependent_name=trigdep.rdb$dependent_name
+                                               AND trigdep.rdb$depended_on_type=14
+                                               AND trigdep.rdb$dependent_type=2)
+             JOIN rdb$triggers trig ON (trig.rdb$trigger_name=tabdep.rdb$dependent_name)
+        WHERE tabdep.rdb$depended_on_name=?
+          AND tabdep.rdb$depended_on_type=0
+          AND trig.rdb$trigger_type=1
+          AND tabdep.rdb$field_name=?
+          AND (SELECT count(*)
+               FROM rdb$dependencies trigdep2
+               WHERE trigdep2.rdb$dependent_name = trigdep.rdb$dependent_name) = 2
+        """
 
         tablename = self._denormalize_name(table.name)
 
@@ -456,10 +473,11 @@ class FBDialect(default.DefaultDialect):
             args = [name]
 
             kw = {}
-            # get the data types and lengths
+            # get the data type
             coltype = ischema_names.get(row['ftype'].rstrip())
             if coltype is None:
-                warnings.warn(RuntimeWarning("Did not recognize type '%s' of column '%s'" % (str(row['ftype']), name)))
+                util.warn("Did not recognize type '%s' of column '%s'" %
+                          (str(row['ftype']), name))
                 coltype = sqltypes.NULLTYPE
             else:
                 coltype = coltype(row)
@@ -474,10 +492,21 @@ class FBDialect(default.DefaultDialect):
             # does it have a default value?
             if row['fdefault'] is not None:
                 # the value comes down as "DEFAULT 'value'"
+                assert row['fdefault'].startswith('DEFAULT ')
                 defvalue = row['fdefault'][8:]
                 args.append(schema.PassiveDefault(sql.text(defvalue)))
 
-            table.append_column(schema.Column(*args, **kw))
+            col = schema.Column(*args, **kw)
+            if kw['primary_key']:
+                # if the PK is a single field, try to see if its linked to
+                # a sequence thru a trigger
+                if len(pkfields)==1:
+                    genc = connection.execute(genqry, [tablename, row['fname']])
+                    genr = genc.fetchone()
+                    if genr is not None:
+                        col.sequence = schema.Sequence(self._normalize_name(genr['fgenerator']))
+
+            table.append_column(col)
 
         if not found_table:
             raise exceptions.NoSuchTableError(table.name)
@@ -585,7 +614,7 @@ class FBSchemaGenerator(sql.compiler.SchemaGenerator):
 
     def get_column_specification(self, column, **kwargs):
         colspec = self.preparer.format_column(column)
-        colspec += " " + column.type.dialect_impl(self.dialect, _for_ddl=True).get_col_spec()
+        colspec += " " + column.type.dialect_impl(self.dialect, _for_ddl=column).get_col_spec()
 
         default = self.get_column_default_string(column)
         if default is not None:

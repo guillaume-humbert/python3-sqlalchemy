@@ -4,10 +4,11 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-import itertools, sys, warnings, sets, weakref
+import inspect, itertools, sets, sys, warnings, weakref
 import __builtin__
+types = __import__('types')
 
-from sqlalchemy import exceptions, logging
+from sqlalchemy import exceptions
 
 try:
     import thread, threading
@@ -19,8 +20,49 @@ try:
     Set = set
     set_types = set, sets.Set
 except NameError:
-    Set = sets.Set
     set_types = sets.Set,
+    # layer some of __builtin__.set's binop behavior onto sets.Set
+    class Set(sets.Set):
+        def _binary_sanity_check(self, other):
+            pass
+
+        def issubset(self, iterable):
+            other = type(self)(iterable)
+            return sets.Set.issubset(self, other)
+        def __le__(self, other):
+            sets.Set._binary_sanity_check(self, other)
+            return sets.Set.__le__(self, other)
+        def issuperset(self, iterable):
+            other = type(self)(iterable)
+            return sets.Set.issuperset(self, other)
+        def __ge__(self, other):
+            sets.Set._binary_sanity_check(self, other)
+            return sets.Set.__ge__(self, other)
+
+        # lt and gt still require a BaseSet
+        def __lt__(self, other):
+            sets.Set._binary_sanity_check(self, other)
+            return sets.Set.__lt__(self, other)
+        def __gt__(self, other):
+            sets.Set._binary_sanity_check(self, other)
+            return sets.Set.__gt__(self, other)
+
+        def __ior__(self, other):
+            if not isinstance(other, sets.BaseSet):
+                return NotImplemented
+            return sets.Set.__ior__(self, other)
+        def __iand__(self, other):
+            if not isinstance(other, sets.BaseSet):
+                return NotImplemented
+            return sets.Set.__iand__(self, other)
+        def __ixor__(self, other):
+            if not isinstance(other, sets.BaseSet):
+                return NotImplemented
+            return sets.Set.__ixor__(self, other)
+        def __isub__(self, other):
+            if not isinstance(other, sets.BaseSet):
+                return NotImplemented
+            return sets.Set.__isub__(self, other)
 
 try:
     import cPickle as pickle
@@ -45,9 +87,8 @@ try:
 except ImportError:
     def Decimal(arg):
         if Decimal.warn:
-            warnings.warn(RuntimeWarning(
-                "True Decimal types not available on this Python, "
-                "falling back to floats."))
+            warn("True Decimal types not available on this Python, "
+                "falling back to floats.")
             Decimal.warn = False
         return float(arg)
     Decimal.warn = True
@@ -84,6 +125,44 @@ else:
                 self[key] = value = self.creator(key)
                 return value
 
+try:
+    from collections import defaultdict
+except ImportError:
+    class defaultdict(dict):
+        def __init__(self, default_factory=None, *a, **kw):
+            if (default_factory is not None and
+                not hasattr(default_factory, '__call__')):
+                raise TypeError('first argument must be callable')
+            dict.__init__(self, *a, **kw)
+            self.default_factory = default_factory
+        def __getitem__(self, key):
+            try:
+                return dict.__getitem__(self, key)
+            except KeyError:
+                return self.__missing__(key)
+        def __missing__(self, key):
+            if self.default_factory is None:
+                raise KeyError(key)
+            self[key] = value = self.default_factory()
+            return value
+        def __reduce__(self):
+            if self.default_factory is None:
+                args = tuple()
+            else:
+                args = self.default_factory,
+            return type(self), args, None, None, self.iteritems()
+        def copy(self):
+            return self.__copy__()
+        def __copy__(self):
+            return type(self)(self.default_factory, self)
+        def __deepcopy__(self, memo):
+            import copy
+            return type(self)(self.default_factory,
+                              copy.deepcopy(self.items()))
+        def __repr__(self):
+            return 'defaultdict(%s, %s)' % (self.default_factory,
+                                            dict.__repr__(self))
+
 def to_list(x, default=None):
     if x is None:
         return default
@@ -99,6 +178,16 @@ def to_set(x):
         return Set(to_list(x))
     else:
         return x
+
+def to_ascii(x):
+    """Convert Unicode or a string with unknown encoding into ASCII."""
+
+    if isinstance(x, str):
+        return x.encode('string_escape')
+    elif isinstance(x, unicode):
+        return x.encode('unicode_escape')
+    else:
+        raise TypeError
 
 def flatten_iterator(x):
     """Given an iterator of which further sub-elements may also be
@@ -131,20 +220,37 @@ class ArgSingleton(type):
             return instance
 
 def get_cls_kwargs(cls):
-    """Return the full set of legal kwargs for the given `cls`."""
+    """Return the full set of inherited kwargs for the given `cls`.
 
-    kw = []
+    Probes a class's __init__ method, collecting all named arguments.  If the
+    __init__ defines a **kwargs catch-all, then the constructor is presumed to
+    pass along unrecognized keywords to it's base classes, and the collection
+    process is repeated recursively on each of the bases.
+    """
+
     for c in cls.__mro__:
-        cons = c.__init__
-        if hasattr(cons, 'func_code'):
-            for vn in cons.func_code.co_varnames:
-                if vn != 'self':
-                    kw.append(vn)
-    return kw
+        if '__init__' in c.__dict__:
+            stack = Set([c])
+            break
+    else:
+        return []
+
+    args = Set()
+    while stack:
+        class_ = stack.pop()
+        ctr = class_.__dict__.get('__init__', False)
+        if not ctr or not isinstance(ctr, types.FunctionType):
+            continue
+        names, _, has_kw, _ = inspect.getargspec(ctr)
+        args.update(names)
+        if has_kw:
+            stack.update(class_.__bases__)
+    args.discard('self')
+    return list(args)
 
 def get_func_kwargs(func):
     """Return the full set of legal kwargs for the given `func`."""
-    return [vn for vn in func.func_code.co_varnames]
+    return inspect.getargspec(func)[0]
 
 # from paste.deploy.converters
 def asbool(obj):
@@ -177,11 +283,16 @@ def duck_type_collection(specimen, default=None):
     """
 
     if hasattr(specimen, '__emulates__'):
-        return specimen.__emulates__
+        # canonicalize set vs sets.Set to a standard: util.Set
+        if (specimen.__emulates__ is not None and
+            issubclass(specimen.__emulates__, set_types)):
+            return Set
+        else:
+            return specimen.__emulates__
 
     isa = isinstance(specimen, type) and issubclass or isinstance
     if isa(specimen, list): return list
-    if isa(specimen, Set): return Set
+    if isa(specimen, set_types): return Set
     if isa(specimen, dict): return dict
 
     if hasattr(specimen, 'append'):
@@ -231,7 +342,7 @@ def warn_exception(func, *args, **kwargs):
     try:
         return func(*args, **kwargs)
     except:
-        warnings.warn(RuntimeWarning("%s('%s') ignored" % sys.exc_info()[0:2]))
+        warn("%s('%s') ignored" % sys.exc_info()[0:2])
 
 class SimpleProperty(object):
     """A *default* property accessor."""
@@ -340,7 +451,8 @@ class OrderedDict(dict):
     def __init__(self, ____sequence=None, **kwargs):
         self._list = []
         if ____sequence is None:
-            self.update(**kwargs)
+            if kwargs:
+                self.update(**kwargs)
         else:
             self.update(____sequence, **kwargs)
 
@@ -530,6 +642,14 @@ class OrderedSet(Set):
 
     __isub__ = difference_update
 
+    if hasattr(Set, '__getstate__'):
+        def __getstate__(self):
+            base = Set.__getstate__(self)
+            return base, self._list
+
+        def __setstate__(self, state):
+            Set.__setstate__(self, state[0])
+            self._list = state[1]
 
 class IdentitySet(object):
     """A set that considers only object id() for uniqueness.
@@ -538,9 +658,10 @@ class IdentitySet(object):
     two 'foo' strings in one of these sets, for example.  Use sparingly.
     """
 
+    _working_set = Set
+
     def __init__(self, iterable=None):
         self._members = _IterableUpdatableDict()
-        self._tempset = Set
         if iterable:
             for o in iterable:
                 self.add(o)
@@ -596,12 +717,12 @@ class IdentitySet(object):
         return True
 
     def __le__(self, other):
-        if not isinstance(other, set_types + (IdentitySet,)):
+        if not isinstance(other, IdentitySet):
             return NotImplemented
         return self.issubset(other)
 
     def __lt__(self, other):
-        if not isinstance(other, set_types + (IdentitySet,)):
+        if not isinstance(other, IdentitySet):
             return NotImplemented
         return len(self) < len(other) and self.issubset(other)
 
@@ -617,12 +738,12 @@ class IdentitySet(object):
         return True
 
     def __ge__(self, other):
-        if not isinstance(other, set_types + (IdentitySet,)):
+        if not isinstance(other, IdentitySet):
             return NotImplemented
         return self.issuperset(other)
 
     def __gt__(self, other):
-        if not isinstance(other, set_types + (IdentitySet,)):
+        if not isinstance(other, IdentitySet):
             return NotImplemented
         return len(self) > len(other) and self.issuperset(other)
 
@@ -630,20 +751,19 @@ class IdentitySet(object):
         result = type(self)()
         # testlib.pragma exempt:__hash__
         result._members.update(
-            self._tempset(self._members.iteritems()).union(_iter_id(iterable)))
+            self._working_set(self._members.iteritems()).union(_iter_id(iterable)))
         return result
 
     def __or__(self, other):
-        if not isinstance(other, set_types + (IdentitySet,)):
+        if not isinstance(other, IdentitySet):
             return NotImplemented
         return self.union(other)
-    __ror__ = __or__
 
     def update(self, iterable):
         self._members = self.union(iterable)._members
 
     def __ior__(self, other):
-        if not isinstance(other, set_types + (IdentitySet,)):
+        if not isinstance(other, IdentitySet):
             return NotImplemented
         self.update(other)
         return self
@@ -652,20 +772,19 @@ class IdentitySet(object):
         result = type(self)()
         # testlib.pragma exempt:__hash__
         result._members.update(
-            self._tempset(self._members.iteritems()).difference(_iter_id(iterable)))
+            self._working_set(self._members.iteritems()).difference(_iter_id(iterable)))
         return result
 
     def __sub__(self, other):
-        if not isinstance(other, set_types + (IdentitySet,)):
+        if not isinstance(other, IdentitySet):
             return NotImplemented
         return self.difference(other)
-    __rsub__ = __sub__
 
     def difference_update(self, iterable):
         self._members = self.difference(iterable)._members
 
     def __isub__(self, other):
-        if not isinstance(other, set_types + (IdentitySet,)):
+        if not isinstance(other, IdentitySet):
             return NotImplemented
         self.difference_update(other)
         return self
@@ -674,20 +793,19 @@ class IdentitySet(object):
         result = type(self)()
         # testlib.pragma exempt:__hash__
         result._members.update(
-            self._tempset(self._members.iteritems()).intersection(_iter_id(iterable)))
+            self._working_set(self._members.iteritems()).intersection(_iter_id(iterable)))
         return result
 
     def __and__(self, other):
-        if not isinstance(other, set_types + (IdentitySet,)):
+        if not isinstance(other, IdentitySet):
             return NotImplemented
         return self.intersection(other)
-    __rand__ = __and__
 
     def intersection_update(self, iterable):
         self._members = self.intersection(iterable)._members
 
     def __iand__(self, other):
-        if not isinstance(other, set_types + (IdentitySet,)):
+        if not isinstance(other, IdentitySet):
             return NotImplemented
         self.intersection_update(other)
         return self
@@ -696,20 +814,19 @@ class IdentitySet(object):
         result = type(self)()
         # testlib.pragma exempt:__hash__
         result._members.update(
-            self._tempset(self._members.iteritems()).symmetric_difference(_iter_id(iterable)))
+            self._working_set(self._members.iteritems()).symmetric_difference(_iter_id(iterable)))
         return result
 
     def __xor__(self, other):
-        if not isinstance(other, set_types + (IdentitySet,)):
+        if not isinstance(other, IdentitySet):
             return NotImplemented
         return self.symmetric_difference(other)
-    __rxor__ = __xor__
 
     def symmetric_difference_update(self, iterable):
         self._members = self.symmetric_difference(iterable)._members
 
     def __ixor__(self, other):
-        if not isinstance(other, set_types + (IdentitySet,)):
+        if not isinstance(other, IdentitySet):
             return NotImplemented
         self.symmetric_difference(other)
         return self
@@ -751,10 +868,16 @@ def _iter_id(iterable):
 
 
 class OrderedIdentitySet(IdentitySet):
+    class _working_set(OrderedSet):
+        # a testing pragma: exempt the OIDS working set from the test suite's
+        # "never call the user's __hash__" assertions.  this is a big hammer,
+        # but it's safe here: IDS operates on (id, instance) tuples in the
+        # working set.
+        __sa_hash_exempt__ = True
+
     def __init__(self, iterable=None):
         IdentitySet.__init__(self)
         self._members = OrderedDict()
-        self._tempset = OrderedSet
         if iterable:
             for o in iterable:
                 self.add(o)
@@ -829,16 +952,45 @@ class ScopedRegistry(object):
     def _get_key(self):
         return self.scopefunc()
 
+def warn(msg):
+    if isinstance(msg, basestring):
+        warnings.warn(msg, exceptions.SAWarning, stacklevel=3)
+    else:
+        warnings.warn(msg, stacklevel=3)
 
 def warn_deprecated(msg):
-    warnings.warn(logging.SADeprecationWarning(msg), stacklevel=3)
+    warnings.warn(msg, exceptions.SADeprecationWarning, stacklevel=3)
 
-def deprecated(func, add_deprecation_to_docstring=True):
+def deprecated(func, message=None, add_deprecation_to_docstring=True):
+    """Decorates a function and issues a deprecation warning on use.
+
+    message
+      If provided, issue message in the warning.  A sensible default
+      is used if not provided.
+
+    add_deprecation_to_docstring
+      Default True.  If False, the wrapped function's __doc__ is left
+      as-is.  If True, the 'message' is prepended to the docs if
+      provided, or sensible default if message is omitted.
+    """
+
+    if message is not None:
+        warning = message % dict(func=func.__name__)
+    else:
+        warning = "Call to deprecated function %s" % func.__name__
+
     def func_with_warning(*args, **kwargs):
-        warnings.warn(logging.SADeprecationWarning("Call to deprecated function %s" % func.__name__),
+        warnings.warn(exceptions.SADeprecationWarning(warning),
                       stacklevel=2)
         return func(*args, **kwargs)
-    func_with_warning.__doc__ = (add_deprecation_to_docstring and 'Deprecated.\n' or '') + str(func.__doc__)
+
+    doc = func.__doc__ is not None and func.__doc__ or ''
+
+    if add_deprecation_to_docstring:
+        header = message is not None and warning or 'Deprecated.'
+        doc = '\n'.join((header.rstrip(), doc))
+
+    func_with_warning.__doc__ = doc
     func_with_warning.__dict__.update(func.__dict__)
     try:
         func_with_warning.__name__ = func.__name__
