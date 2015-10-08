@@ -28,8 +28,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum">0.5.0rc3</span>
-  Last Updated: 11/07/08 13:55:35
+  Version: <span class="versionnum">0.5.0rc4</span>
+  Last Updated: 11/14/08 16:38:11
 </div>
 
 
@@ -279,15 +279,15 @@
 </span><span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">sessionmaker</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">some_engine</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># create a Session
-</span><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_comment"># work with sess
 </span><span class="python_name">myobject </span><span class="python_operator">= </span><span class="python_name">MyObject</span><span class="python_enclosure">(</span><span class="python_literal">'foo'</span><span class="python_operator">, </span><span class="python_literal">'bar'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">add</span><span class="python_enclosure">(</span><span class="python_name">myobject</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">add</span><span class="python_enclosure">(</span><span class="python_name">myobject</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_comment"># close when finished
-</span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
 <p>Above, the <code>sessionmaker</code> call creates a class for us, which we assign to the name <code>Session</code>.  This class is a subclass of the actual <code>sqlalchemy.orm.session.Session</code> class, which will instantiate with a particular bound engine.
@@ -328,7 +328,7 @@
 </span><span class="python_name">Session</span><span class="python_operator">.</span><span class="python_name">configure</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># work with the session
-</span><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
 <p>It's actually entirely optional to bind a Session to an engine.  If the underlying mapped <code>Table</code> objects use "bound" metadata, the <code>Session</code> will make use of the bound engine instead (or will even use multiple engines if multiple binds are present within the mapped tables).  "Bound" metadata is described at <a href="metadata.html#metadata_tables_binding">Binding MetaData to an Engine or Connection</a>.
@@ -372,7 +372,7 @@
 </span><span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_comment"># bind an individual Session to the connection
-</span><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">connection</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">connection</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
 
@@ -474,7 +474,7 @@
 
  </li>
 
- <li><p><em>Detached</em> - an instance which has a record in the database, but is not in any session.  Theres nothing wrong with this, and you can use objects normally when they're detached, <strong>except</strong> they will not be able to issue any SQL in order to load collections or attributes which are not yet loaded, or were marked as "expired".
+ <li><p><em>Detached</em> - an instance which has a record in the database, but is not in any session.  There's nothing wrong with this, and you can use objects normally when they're detached, <strong>except</strong> they will not be able to issue any SQL in order to load collections or attributes which are not yet loaded, or were marked as "expired".
 </p>
 
  </li>
@@ -1080,7 +1080,7 @@
     </div>
 <p>The above mapper specifies two relations, <code>items</code> and <code>customer</code>.  The <code>items</code> relationship specifies "all, delete-orphan" as its <code>cascade</code> value, indicating that all  <code>add</code>, <code>merge</code>, <code>expunge</code>, <code>refresh</code> <code>delete</code> and <code>expire</code> operations performed on a parent <code>Order</code> instance should also be performed on the child <code>Item</code> instances attached to it.  The <code>delete-orphan</code> cascade value additionally indicates that if an <code>Item</code> instance is no longer associated with an <code>Order</code>, it should also be deleted.  The "all, delete-orphan" cascade argument allows a so-called <em>lifecycle</em> relationship between an <code>Order</code> and an <code>Item</code> object.
 </p>
-<p>The <code>customer</code> relationship specifies only the "save-update" cascade value, indicating most operations will not be cascaded from a parent <code>Order</code> instance to a child <code>User</code> instance except for the <code>add()</code> operation.  "save-update" cascade indicates that an <code>add()</code> on the parent will casade to all child items, and also that items added to a parent which is already present in the sessio will also be added.
+<p>The <code>customer</code> relationship specifies only the "save-update" cascade value, indicating most operations will not be cascaded from a parent <code>Order</code> instance to a child <code>User</code> instance except for the <code>add()</code> operation.  "save-update" cascade indicates that an <code>add()</code> on the parent will cascade to all child items, and also that items added to a parent which is already present in the session will also be added.
 </p>
 <p>The default value for <code>cascade</code> on <code>relation()</code>s is <code>save-update, merge</code>.
 </p>
@@ -1103,7 +1103,7 @@
 
 <p>The <code>Session</code> manages transactions across all engines associated with it.  As the <code>Session</code> receives requests to execute SQL statements using a particular <code>Engine</code> or <code>Connection</code>, it adds each individual <code>Engine</code> encountered to its transactional state and maintains an open connection for each one (note that a simple application normally has just one <code>Engine</code>).  At commit time, all unflushed data is flushed, and each individual transaction is committed.  If the underlying databases support two-phase semantics, this may be used by the Session as well if two-phase transactions are enabled.
 </p>
-<p>Normal operation ends the transactional state using the <code>rolback()</code> or <code>commit()</code> methods.  After either is called, the <code>Session</code> starts a new transaction.
+<p>Normal operation ends the transactional state using the <code>rollback()</code> or <code>commit()</code> methods.  After either is called, the <code>Session</code> starts a new transaction.
 </p>
 
     
@@ -1111,18 +1111,18 @@
     <div class="sliding_code">
         <pre>
 <span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">sessionmaker</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_keyword">try</span><span class="python_operator">:
-    </span><span class="python_name">item1 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">1</span><span class="python_enclosure">)</span><span class="python_operator">
-    </span><span class="python_name">item2 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">item1 </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">1</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">item2 </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">
     </span><span class="python_name">item1</span><span class="python_operator">.</span><span class="python_name">foo </span><span class="python_operator">= </span><span class="python_literal">'bar'</span><span class="python_operator">
     </span><span class="python_name">item2</span><span class="python_operator">.</span><span class="python_name">bar </span><span class="python_operator">= </span><span class="python_literal">'foo'</span><span class="python_operator">
 </span>
     <span class="python_comment"># commit- will immediately go into a new transaction afterwards
-    </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
+    </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_keyword">except</span><span class="python_operator">:
     </span><span class="python_comment"># rollback - will immediately go into a new transaction afterwards.
-</span><span class="python_operator">    </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_operator">    </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
 <p>A session which is configured with <code>autocommit=True</code> may be placed into a transaction using <code>begin()</code>.  With an <code>autocommit=True</code> session that's been placed into a transaction using <code>begin()</code>, the session releases all connection resources after a <code>commit()</code> or <code>rollback()</code> and remains transaction-less (with the exception of flushes) until the next <code>begin()</code> call:
@@ -1133,16 +1133,16 @@
     <div class="sliding_code">
         <pre>
 <span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">sessionmaker</span><span class="python_enclosure">(</span><span class="python_name">autocommit</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_keyword">try</span><span class="python_operator">:
-    </span><span class="python_name">item1 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">1</span><span class="python_enclosure">)</span><span class="python_operator">
-    </span><span class="python_name">item2 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">item1 </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">1</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">item2 </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">
     </span><span class="python_name">item1</span><span class="python_operator">.</span><span class="python_name">foo </span><span class="python_operator">= </span><span class="python_literal">'bar'</span><span class="python_operator">
     </span><span class="python_name">item2</span><span class="python_operator">.</span><span class="python_name">bar </span><span class="python_operator">= </span><span class="python_literal">'foo'</span><span class="python_operator">
-    </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
+    </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_keyword">except</span><span class="python_operator">:
-    </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
+    </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
     </span><span class="python_keyword">raise</span><span class="python_operator">
 </span></pre>
     </div>
@@ -1154,10 +1154,10 @@
     <div class="sliding_code">
         <pre>
 <span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">sessionmaker</span><span class="python_enclosure">(</span><span class="python_name">autocommit</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_keyword">with </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">:
-    </span><span class="python_name">item1 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">1</span><span class="python_enclosure">)</span><span class="python_operator">
-    </span><span class="python_name">item2 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_keyword">with </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">:
+    </span><span class="python_name">item1 </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">1</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">item2 </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">
     </span><span class="python_name">item1</span><span class="python_operator">.</span><span class="python_name">foo </span><span class="python_operator">= </span><span class="python_literal">'bar'</span><span class="python_operator">
     </span><span class="python_name">item2</span><span class="python_operator">.</span><span class="python_name">bar </span><span class="python_operator">= </span><span class="python_literal">'foo'</span><span class="python_operator">
 </span></pre>
@@ -1181,15 +1181,15 @@
     <div class="sliding_code">
         <pre>
 <span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">sessionmaker</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">add</span><span class="python_enclosure">(</span><span class="python_name">u1</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">add</span><span class="python_enclosure">(</span><span class="python_name">u2</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">add</span><span class="python_enclosure">(</span><span class="python_name">u1</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">add</span><span class="python_enclosure">(</span><span class="python_name">u2</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">begin_nested</span><span class="python_enclosure">() </span><span class="python_comment"># establish a savepoint</span><span class="python_operator">
-</span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">add</span><span class="python_enclosure">(</span><span class="python_name">u3</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()  </span><span class="python_comment"># rolls back u3, keeps u1 and u2</span><span class="python_operator">
+<span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">begin_nested</span><span class="python_enclosure">() </span><span class="python_comment"># establish a savepoint</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">add</span><span class="python_enclosure">(</span><span class="python_name">u3</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()  </span><span class="python_comment"># rolls back u3, keeps u1 and u2</span><span class="python_operator">
 </span>
-<span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">() </span><span class="python_comment"># commits u1 and u2</span><span class="python_operator">
+<span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">() </span><span class="python_comment"># commits u1 and u2</span><span class="python_operator">
 </span></pre>
     </div>
 <p><code>begin_nested()</code> may be called any number of times, which will issue a new SAVEPOINT with a unique identifier for each call.  For each <code>begin_nested()</code> call, a corresponding <code>rollback()</code> or <code>commit()</code> must be issued.  <br></br>
@@ -1213,7 +1213,7 @@
     
     
 
-<p>Finally, for MySQL, Postgres, and soon Oracle as well, the session can be instructed to use two-phase commit semantics. This will coordinate the commiting of transactions across databases so that the transaction is either committed or rolled back in all databases. You can also <code>prepare()</code> the session for interacting with transactions not managed by SQLAlchemy. To use two phase transactions set the flag <code>twophase=True</code> on the session:
+<p>Finally, for MySQL, PostgreSQL, and soon Oracle as well, the session can be instructed to use two-phase commit semantics. This will coordinate the committing of transactions across databases so that the transaction is either committed or rolled back in all databases. You can also <code>prepare()</code> the session for interacting with transactions not managed by SQLAlchemy. To use two phase transactions set the flag <code>twophase=True</code> on the session:
 </p>
 
     
@@ -1228,13 +1228,13 @@
 <span class="python_comment"># bind User operations to engine 1, Account operations to engine 2
 </span><span class="python_name">Session</span><span class="python_operator">.</span><span class="python_name">configure</span><span class="python_enclosure">(</span><span class="python_name">binds</span><span class="python_operator">=</span><span class="python_enclosure">{</span><span class="python_name">User</span><span class="python_operator">:</span><span class="python_name">engine1</span><span class="python_operator">, </span><span class="python_name">Account</span><span class="python_operator">:</span><span class="python_name">engine2</span><span class="python_enclosure">})</span><span class="python_operator">
 </span>
-<span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
+<span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_comment"># .... work with accounts and users
 </span>
 <span class="python_comment"># commit.  session will issue a flush to all DBs, and a prepare step to all DBs,
 # before committing both transactions
-</span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
 
@@ -1306,13 +1306,13 @@
     <div class="sliding_code">
         <pre>
 <span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">sessionmaker</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_comment"># execute a string statement
-</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"select * from table where id=:id"</span><span class="python_operator">, </span><span class="python_enclosure">{</span><span class="python_literal">'id'</span><span class="python_operator">:</span><span class="python_number">7</span><span class="python_enclosure">})</span><span class="python_operator">
+</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"select * from table where id=:id"</span><span class="python_operator">, </span><span class="python_enclosure">{</span><span class="python_literal">'id'</span><span class="python_operator">:</span><span class="python_number">7</span><span class="python_enclosure">})</span><span class="python_operator">
 </span>
 <span class="python_comment"># execute a SQL expression construct
-</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">mytable</span><span class="python_enclosure">])</span><span class="python_operator">.</span><span class="python_name">where</span><span class="python_enclosure">(</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">==</span><span class="python_number">7</span><span class="python_enclosure">))</span><span class="python_operator">
+</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">mytable</span><span class="python_enclosure">])</span><span class="python_operator">.</span><span class="python_name">where</span><span class="python_enclosure">(</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">==</span><span class="python_number">7</span><span class="python_enclosure">))</span><span class="python_operator">
 </span></pre>
     </div>
 <p>The current <code>Connection</code> held by the <code>Session</code> is accessible using the <code>connection()</code> method:
@@ -1322,7 +1322,7 @@
 
     <div class="sliding_code">
         <pre>
-<span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">connection</span><span class="python_enclosure">()</span><span class="python_operator">
+<span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">connection</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
 <p>The examples above deal with a <code>Session</code> that's bound to a single <code>Engine</code> or <code>Connection</code>.  To execute statements using a <code>Session</code> which is bound either to multiple engines, or none at all (i.e. relies upon bound metadata), both <code>execute()</code> and <code>connection()</code> accept a <code>mapper</code> keyword argument, which is passed a mapped class or <code>Mapper</code> instance, which is used to locate the proper context for the desired engine:
@@ -1333,14 +1333,14 @@
     <div class="sliding_code">
         <pre>
 <span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">sessionmaker</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_comment"># need to specify mapper or class when executing
-</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"select * from table where id=:id"</span><span class="python_operator">, </span><span class="python_enclosure">{</span><span class="python_literal">'id'</span><span class="python_operator">:</span><span class="python_number">7</span><span class="python_enclosure">}</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">=</span><span class="python_name">MyMappedClass</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"select * from table where id=:id"</span><span class="python_operator">, </span><span class="python_enclosure">{</span><span class="python_literal">'id'</span><span class="python_operator">:</span><span class="python_number">7</span><span class="python_enclosure">}</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">=</span><span class="python_name">MyMappedClass</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">mytable</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">==</span><span class="python_number">7</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">=</span><span class="python_name">MyMappedClass</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">mytable</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_operator">==</span><span class="python_number">7</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">=</span><span class="python_name">MyMappedClass</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">connection</span><span class="python_enclosure">(</span><span class="python_name">MyMappedClass</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">connection</span><span class="python_enclosure">(</span><span class="python_name">MyMappedClass</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
 
@@ -1374,17 +1374,17 @@
 </span><span class="python_name">trans </span><span class="python_operator">= </span><span class="python_name">conn</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_comment"># create a Session, bind to the connection
-</span><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">conn</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">conn</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># ... work with session
 </span>
-<span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">() </span><span class="python_comment"># commit the session</span><span class="python_operator">
-</span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()  </span><span class="python_comment"># close it out, prohibit further actions</span><span class="python_operator">
+<span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">() </span><span class="python_comment"># commit the session</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()  </span><span class="python_comment"># close it out, prohibit further actions</span><span class="python_operator">
 </span>
 <span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">() </span><span class="python_comment"># commit the actual transaction</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Note that above, we issue a <code>commit()</code> both on the <code>Session</code> as well as the <code>Transaction</code>.  This is an example of where we take advantage of <code>Connection</code>'s ability to maintain <em>subtransactions</em>, or nested begin/commit pairs.  The <code>Session</code> is used exactly as though it were managing the transaction on its own; its <code>commit()</code> method issues its <code>flush()</code>, and commits the subtransaction.   The subsequent transaction the <code>Session</code> starts after commit will not begin until it's next used.  Above we issue a <code>close()</code> to prevent this from occuring.  Finally, the actual transaction is committed using <code>Transaction.commit()</code>.
+<p>Note that above, we issue a <code>commit()</code> both on the <code>Session</code> as well as the <code>Transaction</code>.  This is an example of where we take advantage of <code>Connection</code>'s ability to maintain <em>subtransactions</em>, or nested begin/commit pairs.  The <code>Session</code> is used exactly as though it were managing the transaction on its own; its <code>commit()</code> method issues its <code>flush()</code>, and commits the subtransaction.   The subsequent transaction the <code>Session</code> starts after commit will not begin until it's next used.  Above we issue a <code>close()</code> to prevent this from occurring.  Finally, the actual transaction is committed using <code>Transaction.commit()</code>.
 </p>
 <p>When using the <code>threadlocal</code> engine context, the process above is simplified; the <code>Session</code> uses the same connection/transaction as everyone else in the current thread, whether or not you explicitly bind it:
 </p>
@@ -1396,7 +1396,7 @@
 <span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://mydb'</span><span class="python_operator">, </span><span class="python_name">strategy</span><span class="python_operator">=</span><span class="python_literal">"threadlocal"</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
-<span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()  </span><span class="python_comment"># session takes place in the transaction like everyone else</span><span class="python_operator">
+<span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()  </span><span class="python_comment"># session takes place in the transaction like everyone else</span><span class="python_operator">
 </span>
 <span class="python_comment"># ... go nuts
 </span>
@@ -1452,13 +1452,13 @@
     <div class="sliding_code">
         <pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_comment"># call Session() the first time.  the new Session instance is created.</span><span class="python_operator">
-</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_comment"># later, in the same application thread, someone else calls Session()</span><span class="python_operator">
-</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">sess2 </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">session2 </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_comment"># the two Session objects are *the same* object</span><span class="python_operator">
-</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">sess </span><span class="python_keyword">is </span><span class="python_name">sess2</span><span class="python_operator">
+</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">session </span><span class="python_keyword">is </span><span class="python_name">session2</span><span class="python_operator">
 </span><span class="python_name">True</span><span class="python_operator">
 </span></pre>
     </div>
@@ -1526,16 +1526,16 @@ Web Server          Web Framework        User-defined Controller Call
 web request    -> 
                     call controller ->   # call Session().  this establishes a new,
                                          # contextual Session.
-                                         sess = Session()
+                                         session = Session()
 
                                          # load some objects, save some changes
-                                         objects = sess.query(MyClass).all()
+                                         objects = session.query(MyClass).all()
 
                                          # some other code calls Session, it's the 
                                          # same contextual session as "sess"
-                                         sess2 = Session()
-                                         sess2.add(foo)
-                                         sess2.commit()
+                                         session2 = Session()
+                                         session2.add(foo)
+                                         session2.commit()
 
                                          # generate content to be returned
                                          return generate_content()
@@ -1618,7 +1618,7 @@ web response   <-
 <span class="python_comment"># bind User operations to engine 1, Account operations to engine 2
 </span><span class="python_name">Session</span><span class="python_operator">.</span><span class="python_name">configure</span><span class="python_enclosure">(</span><span class="python_name">binds</span><span class="python_operator">=</span><span class="python_enclosure">{</span><span class="python_name">User</span><span class="python_operator">:</span><span class="python_name">engine1</span><span class="python_operator">, </span><span class="python_name">Account</span><span class="python_operator">:</span><span class="python_name">engine2</span><span class="python_enclosure">})</span><span class="python_operator">
 </span>
-<span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
+<span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
 
@@ -1687,7 +1687,7 @@ web response   <-
 
     <div class="sliding_code">
         <pre>
-<span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">extension</span><span class="python_operator">=</span><span class="python_name">MySessionExtension</span><span class="python_enclosure">())</span><span class="python_operator">
+<span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">extension</span><span class="python_operator">=</span><span class="python_name">MySessionExtension</span><span class="python_enclosure">())</span><span class="python_operator">
 </span></pre>
     </div>
 <p>The same <code>SessionExtension</code> instance can be used with any number of sessions.

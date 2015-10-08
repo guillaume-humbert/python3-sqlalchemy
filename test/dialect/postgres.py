@@ -98,7 +98,6 @@ class ReturningTest(TestBase, AssertsExecutionResults):
             # Multiple inserts only return the last row
             result2 = table.insert(postgres_returning=[table]).execute(
                  [{'persons': 2, 'full': False}, {'persons': 3, 'full': True}])
-
             self.assertEqual(result2.fetchall(), [(3,3,True)])
 
             result3 = table.insert(postgres_returning=[(table.c.id*2).label('double_id')]).execute({'persons': 4, 'full': False})

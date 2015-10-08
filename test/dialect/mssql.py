@@ -20,6 +20,16 @@ class CompileTest(TestBase, AssertsCompiledSQL):
         t = table('sometable', column('somecolumn'))
         self.assert_compile(t.update(t.c.somecolumn==7), "UPDATE sometable SET somecolumn=:somecolumn WHERE sometable.somecolumn = :somecolumn_1", dict(somecolumn=10))
 
+    def test_in_with_subqueries(self):
+        """Test that when using subqueries in a binary expression
+        the == and != are changed to IN and NOT IN respectively.
+
+        """
+
+        t = table('sometable', column('somecolumn'))
+        self.assert_compile(t.select().where(t.c.somecolumn==t.select()), "SELECT sometable.somecolumn FROM sometable WHERE sometable.somecolumn IN (SELECT sometable.somecolumn FROM sometable)")
+        self.assert_compile(t.select().where(t.c.somecolumn!=t.select()), "SELECT sometable.somecolumn FROM sometable WHERE sometable.somecolumn NOT IN (SELECT sometable.somecolumn FROM sometable)")
+
     def test_count(self):
         t = table('sometable', column('somecolumn'))
         self.assert_compile(t.count(), "SELECT count(sometable.somecolumn) AS tbl_row_count FROM sometable")
@@ -72,6 +82,9 @@ class CompileTest(TestBase, AssertsCompiledSQL):
         metadata = MetaData()
         tbl = Table('test', metadata, Column('id', Integer, primary_key=True), schema='paj')
         self.assert_compile(tbl.delete(tbl.c.id == 1), "DELETE FROM paj.test WHERE paj.test.id = :id_1")
+
+        s = select([tbl.c.id]).where(tbl.c.id==1)
+        self.assert_compile(tbl.delete().where(tbl.c.id==(s)), "DELETE FROM paj.test WHERE paj.test.id IN (SELECT test_1.id FROM paj.test AS test_1 WHERE test_1.id = :id_1)")
 
     def test_union(self):
         t1 = table('t1',
@@ -197,28 +210,6 @@ class QueryTest(TestBase):
         finally:
             table.drop()
 
-    def test_select_limit_nooffset(self):
-        metadata = MetaData(testing.db)
-
-        users = Table('query_users', metadata,
-            Column('user_id', INT, primary_key = True),
-            Column('user_name', VARCHAR(20)),
-        )
-        addresses = Table('query_addresses', metadata,
-            Column('address_id', Integer, primary_key=True),
-            Column('user_id', Integer, ForeignKey('query_users.user_id')),
-            Column('address', String(30)))
-        metadata.create_all()
-
-        try:
-            try:
-                r = users.select(limit=3, offset=2,
-                                 order_by=[users.c.user_id]).execute().fetchall()
-                assert False # InvalidRequestError should have been raised
-            except exc.InvalidRequestError:
-                pass
-        finally:
-            metadata.drop_all()
 
 class Foo(object):
     def __init__(self, **kw):
@@ -377,6 +368,40 @@ class ParseConnectTest(TestBase, AssertsCompiledSQL):
         dialect = mssql.MSSQLDialect_pyodbc()
         connection = dialect.create_connect_args(u)
         self.assertEquals([['DRIVER={SQL Server};Server=hostspec;Database=database;UID=username;PWD=password;foo=bar;LANGUAGE=us_english'], {}], connection)
+
+class TypesTest(TestBase):
+    __only_on__ = 'mssql'
+
+    def setUpAll(self):
+        global numeric_table, metadata
+        metadata = MetaData(testing.db)
+        numeric_table = Table('numeric_table', metadata,
+            Column('id', Integer, Sequence('numeric_id_seq', optional=True), primary_key=True),
+            Column('numericcol', Numeric(asdecimal=False))
+        )
+        metadata.create_all()
+
+    def tearDownAll(self):
+        metadata.drop_all()
+
+    def tearDown(self):
+        numeric_table.delete().execute()
+
+    def test_decimal_e_notation(self):
+        from decimal import Decimal
+
+        try:
+            numeric_table.insert().execute(numericcol=Decimal('4.1'))
+            numeric_table.insert().execute(numericcol=Decimal('1E-1'))
+            numeric_table.insert().execute(numericcol=Decimal('1E-2'))
+            numeric_table.insert().execute(numericcol=Decimal('1E-3'))
+            numeric_table.insert().execute(numericcol=Decimal('1E-4'))
+            numeric_table.insert().execute(numericcol=Decimal('1E-5'))
+            numeric_table.insert().execute(numericcol=Decimal('1E-6'))
+            numeric_table.insert().execute(numericcol=Decimal('1E-7'))
+            numeric_table.insert().execute(numericcol=Decimal('1E-8'))
+        except:
+            assert False 
 
 if __name__ == "__main__":
     testenv.main()

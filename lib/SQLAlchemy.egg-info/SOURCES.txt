@@ -59,7 +59,9 @@ doc/sqlalchemy_pool.html
 doc/sqlalchemy_schema.html
 doc/sqlalchemy_sql_compiler.html
 doc/sqlalchemy_sql_expression.html
+doc/sqlalchemy_sql_visitors.html
 doc/sqlalchemy_types.html
+doc/sqlalchemy_util.html
 doc/sqlexpression.html
 doc/style.css
 doc/syntaxhighlight.css
