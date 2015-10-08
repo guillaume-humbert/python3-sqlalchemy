@@ -1,6 +1,6 @@
 import sys
 sys.path.insert(0, './lib/')
-
+import os
 import unittest
 import StringIO
 import sqlalchemy.engine as engine
@@ -38,16 +38,17 @@ def parse_argv():
     PROXY = False
 
 
-    parser = optparse.OptionParser(usage = "usage: %prog [options] files...")
+    parser = optparse.OptionParser(usage = "usage: %prog [options] [tests...]")
     parser.add_option("--dburi", action="store", dest="dburi", help="database uri (overrides --db)")
     parser.add_option("--db", action="store", dest="db", default="sqlite", help="prefab database uri (sqlite, sqlite_file, postgres, mysql, oracle, oracle8, mssql, firebird)")
-    parser.add_option("--mockpool", action="store_true", dest="mockpool", help="use mock pool")
-    parser.add_option("--verbose", action="store_true", dest="verbose", help="full debug echoing")
-    parser.add_option("--quiet", action="store_true", dest="quiet", help="be totally quiet")
+    parser.add_option("--mockpool", action="store_true", dest="mockpool", help="use mock pool (asserts only one connection used)")
+    parser.add_option("--verbose", action="store_true", dest="verbose", help="enable stdout echoing/printing")
+    parser.add_option("--quiet", action="store_true", dest="quiet", help="suppress unittest output")
     parser.add_option("--log-info", action="append", dest="log_info", help="turn on info logging for <LOG> (multiple OK)")
     parser.add_option("--log-debug", action="append", dest="log_debug", help="turn on debug logging for <LOG> (multiple OK)")
     parser.add_option("--nothreadlocal", action="store_true", dest="nothreadlocal", help="dont use thread-local mod")
-    parser.add_option("--enginestrategy", action="store", default=None, dest="enginestrategy", help="engine strategy (plain or threadlocal, defaults to SA default)")
+    parser.add_option("--enginestrategy", action="store", default=None, dest="enginestrategy", help="engine strategy (plain or threadlocal, defaults to plain)")
+    parser.add_option("--coverage", action="store_true", dest="coverage", help="Dump a full coverage report after running")
 
     (options, args) = parser.parse_args()
     sys.argv[1:] = args
@@ -91,12 +92,15 @@ def parse_argv():
     global quiet
     quiet = options.quiet
     
+    global with_coverage
+    with_coverage = options.coverage
+    
     if options.enginestrategy is not None:
         opts['strategy'] = options.enginestrategy    
     if options.mockpool:
-        db = engine.create_engine(db_uri, default_ordering=True, poolclass=MockPool, **opts)
+        db = engine.create_engine(db_uri, poolclass=pool.AssertionPool, **opts)
     else:
-        db = engine.create_engine(db_uri, default_ordering=True, **opts)
+        db = engine.create_engine(db_uri, **opts)
     db = EngineAssert(db)
 
     import logging
@@ -156,32 +160,7 @@ class PersistTest(unittest.TestCase):
         """overridden to not return docstrings"""
         return None
 
-class MockPool(pool.Pool):
-    """this pool is hardcore about only one connection being used at a time."""
-    def __init__(self, creator, **params):
-        pool.Pool.__init__(self, creator, **params)
-        self.connection = pool._ConnectionRecord(self)
-        self._conn = self.connection
-        
-    def status(self):
-        return "MockPool"
 
-    def create_connection(self):
-        raise "Invalid"
-
-    def do_return_conn(self, conn):
-        assert conn is self._conn and self.connection is None
-        self.connection = conn
-
-    def do_return_invalid(self, conn):
-        pass
-        raise "Invalid"
-
-    def do_get(self):
-        assert self.connection is not None
-        c = self.connection
-        self.connection = None
-        return c
 
 class AssertMixin(PersistTest):
     """given a list-based structure of keys/properties which represent information within an object structure, and
@@ -366,8 +345,33 @@ parse_argv()
 def runTests(suite):
     sys.stdout = Logger()    
     runner = unittest.TextTestRunner(verbosity = quiet and 1 or 2)
-    runner.run(suite)
-    
+    if with_coverage:
+        return cover(lambda:runner.run(suite))
+    else:
+        return runner.run(suite)
+
+def covered_files():
+    for rec in os.walk(os.path.dirname(sqlalchemy.__file__)):                          
+        for x in rec[2]:
+            if x.endswith('.py'):
+                yield os.path.join(rec[0], x)
+
+def cover(callable_):
+    import coverage
+    coverage_client = coverage.the_coverage
+    coverage_client.get_ready()
+    coverage_client.exclude('#pragma[: ]+[nN][oO] [cC][oO][vV][eE][rR]')
+    coverage_client.erase()
+    coverage_client.start()
+    try:
+        return callable_()
+    finally:
+        global echo
+        echo=True
+        coverage_client.stop()
+        coverage_client.save()
+        coverage_client.report(list(covered_files()), show_missing=False, ignore_errors=False)
+
 def main():
     
     if len(sys.argv[1:]):
@@ -375,7 +379,7 @@ def main():
     else:
         suite = unittest.TestLoader().loadTestsFromModule(__import__('__main__'))
 
-
-    runTests(suite)
+    result = runTests(suite)
+    sys.exit(not result.wasSuccessful())
 
 

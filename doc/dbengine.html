@@ -19,7 +19,7 @@
 <div class="docheader">
 
 <h1>SQLAlchemy 0.3 Documentation</h1>
-<div class="">Version: 0.3.0   Last Updated: 10/22/06 14:17:49</div>
+<div class="">Version: 0.3.1   Last Updated: 11/12/06 18:46:51</div>
 </div>
 
 
@@ -289,7 +289,7 @@ Next: <a href="metadata.html">Database Meta Data</a>
 
 
 <div class="sliding_code">
-<pre><span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://scott:tiger@localhost/test'</span><span class="python_operator">, </span><span class="python_name">create_args </span><span class="python_operator">= </span><span class="python_enclosure">{</span><span class="python_literal">'argument1'</span><span class="python_operator">:</span><span class="python_number">17</span><span class="python_operator">, </span><span class="python_literal">'argument2'</span><span class="python_operator">:</span><span class="python_literal">'bar'</span><span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
+<pre><span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://scott:tiger@localhost/test'</span><span class="python_operator">, </span><span class="python_name">connect_args </span><span class="python_operator">= </span><span class="python_enclosure">{</span><span class="python_literal">'argument1'</span><span class="python_operator">:</span><span class="python_number">17</span><span class="python_operator">, </span><span class="python_literal">'argument2'</span><span class="python_operator">:</span><span class="python_literal">'bar'</span><span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
 <p>The most customizable connection method of all is to pass a <code>creator</code> argument, which specifies a callable that returns a DBAPI connection:
 </p>
 

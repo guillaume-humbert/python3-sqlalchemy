@@ -6,11 +6,9 @@
 
 
 
-import sqlalchemy.sql as sql
-import sqlalchemy.schema as schema
-from sqlalchemy.exceptions import *
+from sqlalchemy import sql, schema, exceptions
 from sqlalchemy import logging
-import util as mapperutil
+from sqlalchemy.orm import util as mapperutil
 
 """contains the ClauseSynchronizer class, which is used to map attributes between two objects
 in a manner corresponding to a SQL clause that compares column values."""
@@ -54,7 +52,7 @@ class ClauseSynchronizer(object):
                         source_column = binary.right
                         dest_column = binary.left
                     else:
-                        raise ArgumentError("Can't locate a primary key column in self-referential equality clause '%s'" % str(binary))
+                        raise exceptions.ArgumentError("Can't locate a primary key column in self-referential equality clause '%s'" % str(binary))
                 # for other relationships we are more flexible
                 # and go off the 'foreignkey' property
                 elif binary.left in foreignkey:
@@ -88,7 +86,7 @@ class ClauseSynchronizer(object):
         processor = BinaryVisitor(compile_binary)
         sqlclause.accept_visitor(processor)
         if len(self.syncrules) == rules_added:
-            raise ArgumentError("No syncrules generated for join criterion " + str(sqlclause))
+            raise exceptions.ArgumentError("No syncrules generated for join criterion " + str(sqlclause))
     
     def dest_columns(self):
         return [r.dest_column for r in self.syncrules if r.dest_column is not None]
@@ -137,7 +135,7 @@ class SyncRule(object):
             dest[self.dest_column.key] = value
         else:
             if clearkeys and self.dest_primary_key():
-                raise exceptions.AssertionError("Dependency rule tried to blank-out a primary key column")
+                raise exceptions.AssertionError("Dependency rule tried to blank-out primary key column '%s' on instance '%s'" % (str(self.dest_column), mapperutil.instance_str(dest)))
                 
             if logging.is_debug_enabled(self.logger):
                 self.logger.debug("execute() instances: %s(%s)->%s(%s) ('%s')" % (mapperutil.instance_str(source), str(self.source_column), mapperutil.instance_str(dest), str(self.dest_column), value))

@@ -6,38 +6,15 @@
 
 
 from sqlalchemy import schema, exceptions, util, sql, types
-import sqlalchemy.pool
 import StringIO, sys, re
-import base
+from sqlalchemy.engine import base
 
 """provides default implementations of the engine interfaces"""
 
 
 class PoolConnectionProvider(base.ConnectionProvider):
-    def __init__(self, dialect, url, poolclass=None, pool=None, **kwargs):
-        (cargs, cparams) = dialect.create_connect_args(url)
-        cparams.update(kwargs.pop('connect_args', {}))
-        
-        if pool is None:
-            kwargs.setdefault('echo', False)
-            kwargs.setdefault('use_threadlocal',True)
-            if poolclass is None:
-                poolclass = sqlalchemy.pool.QueuePool
-            dbapi = dialect.dbapi()
-            if dbapi is None:
-                raise exceptions.InvalidRequestError("Cant get DBAPI module for dialect '%s'" % dialect)
-            def connect():
-                try:
-                    return dbapi.connect(*cargs, **cparams)
-                except Exception, e:
-                    raise exceptions.DBAPIError("Connection failed", e)
-            creator = kwargs.pop('creator', connect)
-            self._pool = poolclass(creator, **kwargs)
-        else:
-            if isinstance(pool, sqlalchemy.pool.DBProxy):
-                self._pool = pool.get_pool(*cargs, **cparams)
-            else:
-                self._pool = pool
+    def __init__(self, pool):
+        self._pool = pool
     def get_connection(self):
         return self._pool.connect()
     def dispose(self):

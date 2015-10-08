@@ -11,7 +11,7 @@ except ImportError:
     import dummy_thread as thread
     import dummy_threading as threading
 
-from exceptions import *
+from sqlalchemy.exceptions import *
 import __builtin__
 
 try:
@@ -57,7 +57,18 @@ class ArgSingleton(type):
             instance = type.__call__(self, *args)
             ArgSingleton.instances[hashkey] = instance
             return instance
-        
+
+def get_cls_kwargs(cls):
+    """return the full set of legal kwargs for the given cls"""
+    kw = []
+    for c in cls.__mro__:
+        cons = c.__init__
+        if hasattr(cons, 'func_code'):
+            for vn in cons.func_code.co_varnames:
+                if vn != 'self':
+                    kw.append(vn)
+    return kw
+                        
 class SimpleProperty(object):
     """a "default" property accessor."""
     def __init__(self, key):

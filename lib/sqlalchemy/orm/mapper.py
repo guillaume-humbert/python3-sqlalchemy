@@ -6,14 +6,12 @@
 
 from sqlalchemy import sql, schema, util, exceptions, logging
 from sqlalchemy import sql_util as sqlutil
-import util as mapperutil
-import sync
-from interfaces import MapperProperty, MapperOption, OperationContext
-import query as querylib
-import session as sessionlib
+from sqlalchemy.orm import util as mapperutil
+from sqlalchemy.orm import sync
+from sqlalchemy.orm.interfaces import MapperProperty, MapperOption, OperationContext
 import weakref
 
-__all__ = ['Mapper', 'MapperExtension', 'class_mapper', 'object_mapper', 'EXT_PASS']
+__all__ = ['Mapper', 'MapperExtension', 'class_mapper', 'object_mapper', 'EXT_PASS', 'mapper_registry', 'ExtensionOption']
 
 # a dictionary mapping classes to their primary mappers
 mapper_registry = weakref.WeakKeyDictionary()
@@ -162,6 +160,7 @@ class Mapper(object):
         # "polymorphic identity" of the row, which indicates which Mapper should be used
         # to construct a new object instance from that row.
         self.polymorphic_on = polymorphic_on
+        self._eager_loaders = util.Set()
         
         # our 'polymorphic identity', a string name that when located in a result set row
         # indicates this Mapper should be used to construct the object instance for that row.
@@ -221,12 +220,20 @@ class Mapper(object):
     def _is_orphan(self, obj):
         optimistic = has_identity(obj)
         for (key,klass) in self.delete_orphans:
-            if not getattr(klass, key).hasparent(obj, optimistic=optimistic):
-                if not has_identity(obj):
-                    raise exceptions.FlushError("instance %s is an unsaved, pending instance and is an orphan (is not attached to any parent '%s' instance via that classes' '%s' attribute)" % (obj, klass.__name__, key))
-                return True
+            if getattr(klass, key).hasparent(obj, optimistic=optimistic):
+               return False
         else:
-            return False
+            if len(self.delete_orphans):
+                if not has_identity(obj):
+                    raise exceptions.FlushError("instance %s is an unsaved, pending instance and is an orphan (is not attached to %s)" %
+                    (
+                        obj, 
+                        ", nor ".join(["any parent '%s' instance via that classes' '%s' attribute" % (klass.__name__, key) for (key,klass) in self.delete_orphans])
+                    ))
+                else:
+                    return True
+            else:
+                return False
             
     def _get_props(self):
         self.compile()
@@ -317,6 +324,9 @@ class Mapper(object):
                 self.inherits = self.inherits._do_compile()
             if not issubclass(self.class_, self.inherits.class_):
                 raise exceptions.ArgumentError("Class '%s' does not inherit from '%s'" % (self.class_.__name__, self.inherits.class_.__name__))
+            if self._is_primary_mapper() != self.inherits._is_primary_mapper():
+                np = self._is_primary_mapper() and "primary" or "non-primary"
+                raise exceptions.ArgumentError("Inheritance of %s mapper for class '%s' is only allowed from a %s mapper" % (np, self.class_.__name__, np))
             # inherit_condition is optional.
             if self.local_table is None:
                 self.local_table = self.inherits.local_table
@@ -516,7 +526,7 @@ class Mapper(object):
         if not self.non_primary and (mapper_registry.has_key(self.class_key)):
              raise exceptions.ArgumentError("Class '%s' already has a primary mapper defined with entity name '%s'.  Use non_primary=True to create a non primary Mapper, or to create a new primary mapper, remove this mapper first via sqlalchemy.orm.clear_mapper(mapper), or preferably sqlalchemy.orm.clear_mappers() to clear all mappers." % (self.class_, self.entity_name))
 
-        sessionlib.attribute_manager.reset_class_managed(self.class_)
+        attribute_manager.reset_class_managed(self.class_)
     
         oldinit = self.class_.__init__
         def init(self, *args, **kwargs):
@@ -527,7 +537,7 @@ class Mapper(object):
 
                 # this gets the AttributeManager to do some pre-initialization,
                 # in order to save on KeyErrors later on
-                sessionlib.attribute_manager.init_attr(self)
+                attribute_manager.init_attr(self)
 
             if kwargs.has_key('_sa_session'):
                 session = kwargs.pop('_sa_session')
@@ -593,13 +603,17 @@ class Mapper(object):
             m = m.inherits
     
     def polymorphic_iterator(self):
-        m = self.base_mapper()
+        """iterates through the collection including this mapper and all descendant mappers.
+        
+        this includes not just the immediately inheriting mappers but all their inheriting mappers as well.
+        
+        To iterate through an entire hierarchy, use mapper.base_mapper().polymorphic_iterator()."""
         def iterate(m):
             yield m
             for mapper in m._inheriting_mappers:
                 for x in iterate(mapper):
                     yield x
-        return iterate(m)
+        return iterate(self)
                 
     def add_properties(self, dict_of_properties):
         """adds the given dictionary of properties to this mapper, using add_property."""
@@ -710,11 +724,12 @@ class Mapper(object):
     
     def has_eager(self):
         """return True if one of the properties attached to this Mapper is eager loading"""
-        return getattr(self, '_has_eager', False)
+        return len(self._eager_loaders) > 0
     
     def instances(self, cursor, session, *mappers, **kwargs):
         """return a list of mapped instances corresponding to the rows in a given ResultProxy."""
-        return querylib.Query(self, session).instances(cursor, *mappers, **kwargs)
+        import sqlalchemy.orm.query
+        return sqlalchemy.orm.Query(self, session).instances(cursor, *mappers, **kwargs)
 
     def identity_key_from_row(self, row):
         """return an identity-map key for use in storing/retrieving an item from the identity map.
@@ -828,7 +843,7 @@ class Mapper(object):
         updated_objects = util.Set()
         
         table_to_mapper = {}
-        for mapper in self.polymorphic_iterator():
+        for mapper in self.base_mapper().polymorphic_iterator():
             for t in mapper.tables:
                 table_to_mapper.setdefault(t, mapper)
 
@@ -1134,8 +1149,8 @@ class Mapper(object):
             if populate_existing or context.session.is_expired(instance, unexpire=True):
                 if not context.identity_map.has_key(identitykey):
                     context.identity_map[identitykey] = instance
-                for prop in self.__props.values():
-                    prop.execute(context, instance, row, identitykey, True)
+		if self.extension.populate_instance(self, context, row, instance, identitykey, True) is EXT_PASS:
+		    self.populate_instance(context, instance, row, identitykey, True)
             if self.extension.append_result(self, context, row, instance, identitykey, result, isnew) is EXT_PASS:
                 if result is not None:
                     result.append(instance)
@@ -1186,7 +1201,7 @@ class Mapper(object):
         
         # this gets the AttributeManager to do some pre-initialization,
         # in order to save on KeyErrors later on
-        sessionlib.attribute_manager.init_attr(obj)
+        attribute_manager.init_attr(obj)
 
         return obj
 
@@ -1351,7 +1366,7 @@ class _ExtensionCarrier(MapperExtension):
         else:
             return EXT_PASS
     
-class ExtensionOption(MapperExtension):
+class ExtensionOption(MapperOption):
     def __init__(self, ext):
         self.ext = ext
     def process_query(self, query):

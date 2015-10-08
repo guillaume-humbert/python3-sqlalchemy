@@ -8,7 +8,6 @@
 from sqlalchemy import util, exceptions
 from sqlalchemy import types as sqltypes
 import string, re, random, sets
-types = __import__('types')
 
 __all__ = ['text', 'table', 'column', 'func', 'select', 'update', 'insert', 'delete', 'join', 'and_', 'or_', 'not_', 'between_', 'case', 'cast', 'union', 'union_all', 'null', 'desc', 'asc', 'outerjoin', 'alias', 'subquery', 'literal', 'bindparam', 'exists', 'extract','AbstractDialect', 'ClauseParameters', 'ClauseVisitor', 'Executor', 'Compiled', 'ClauseElement', 'ColumnElement', 'ColumnCollection', 'FromClause', 'TableClause', 'Select', 'Alias', 'CompoundSelect','Join', 'Selectable']
 
@@ -1456,6 +1455,7 @@ class Select(_SelectBaseMixin, FromClause):
         self._correlator = Select._CorrelatedVisitor(self, False)
         self._wherecorrelator = Select._CorrelatedVisitor(self, True)
 
+
         self.group_by(*(group_by or [None]))
         self.order_by(*(order_by or [None]))
         
@@ -1544,8 +1544,9 @@ class Select(_SelectBaseMixin, FromClause):
     def _locate_oid_column(self):
         for f in self._froms.values():
             if f is self:
-                # TODO: why would we be in our own _froms list ?
-                raise exceptions.AssertionError("Select statement should not be in its own _froms list")
+                # we might be in our own _froms list if a column with us as the parent is attached,
+                # which includes textual columns. 
+                continue
             oid = f.oid_column
             if oid is not None:
                 return oid

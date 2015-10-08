@@ -56,7 +56,10 @@ doc/build/lib/toc.py
 examples/README
 examples/adjacencytree/basic_tree.py
 examples/adjacencytree/byroot_tree.py
+examples/association/basic_association.py
+examples/association/proxied_association.py
 examples/backref/backref_tree.py
+examples/graphs/graph1.py
 examples/polymorph/concrete.py
 examples/polymorph/polymorph.py
 examples/polymorph/single.py
@@ -94,6 +97,7 @@ lib/sqlalchemy/engine/url.py
 lib/sqlalchemy/ext/__init__.py
 lib/sqlalchemy/ext/activemapper.py
 lib/sqlalchemy/ext/assignmapper.py
+lib/sqlalchemy/ext/associationproxy.py
 lib/sqlalchemy/ext/proxy.py
 lib/sqlalchemy/ext/selectresults.py
 lib/sqlalchemy/ext/sessioncontext.py
@@ -117,6 +121,9 @@ lib/sqlalchemy/orm/uowdumper.py
 lib/sqlalchemy/orm/util.py
 test/__init__.py
 test/alltests.py
+test/binary_data_one.dat
+test/binary_data_two.dat
+test/coverage.py
 test/pickleable.py
 test/rundocs.py
 test/tables.py
@@ -162,6 +169,7 @@ test/orm/polymorph.py
 test/orm/relationships.py
 test/orm/session.py
 test/orm/sessioncontext.py
+test/orm/single.py
 test/orm/unitofwork.py
 test/perf/masscreate.py
 test/perf/masscreate2.py
