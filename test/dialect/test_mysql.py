@@ -13,6 +13,46 @@ from sqlalchemy.test.testing import eq_
 from sqlalchemy.test import *
 from sqlalchemy.test.engines import utf8_engine
 import datetime
+from sqlalchemy.engine.url import make_url
+
+
+class CompileTest(TestBase, AssertsCompiledSQL):
+
+    __dialect__ = mysql.dialect()
+
+    def test_reserved_words(self):
+        table = Table("mysql_table", MetaData(),
+            Column("col1", Integer),
+            Column("master_ssl_verify_server_cert", Integer))
+        x = select([table.c.col1, table.c.master_ssl_verify_server_cert])
+
+        self.assert_compile(x, 
+            '''SELECT mysql_table.col1, mysql_table.`master_ssl_verify_server_cert` FROM mysql_table''')
+
+class DialectTest(TestBase):
+    __only_on__ = 'mysql'
+
+    @testing.only_on(['mysql+mysqldb', 'mysql+oursql'], 
+                    'requires particular SSL arguments')
+    def test_ssl_arguments(self):
+        dialect = testing.db.dialect
+        kwarg = dialect.create_connect_args(
+            make_url("mysql://scott:tiger@localhost:3306/test"
+                "?ssl_ca=/ca.pem&ssl_cert=/cert.pem&ssl_key=/key.pem")
+        )[1]
+        # args that differ among mysqldb and oursql
+        for k in ('use_unicode', 'found_rows', 'client_flag'):
+            kwarg.pop(k, None)
+        eq_(
+            kwarg, 
+            {
+                'passwd': 'tiger', 'db': 'test', 
+                'ssl': {'ca': '/ca.pem', 'cert': '/cert.pem', 
+                        'key': '/key.pem'}, 
+                'host': 'localhost', 'user': 'scott', 
+                'port': 3306
+            }
+        )
 
 class TypesTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
     "Test MySQL column types"
@@ -358,7 +398,7 @@ class TypesTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
             meta.drop_all()
 
     def test_boolean(self):
-        """Test BOOL/TINYINT(1) compatability and reflection."""
+        """Test BOOL/TINYINT(1) compatibility and reflection."""
 
         meta = MetaData(testing.db)
         bool_table = Table(
@@ -531,7 +571,6 @@ class TypesTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
                 eq_(colspec(table.c.y5), 'y5 YEAR(4)')
         finally:
             meta.drop_all()
-
 
     def test_set(self):
         """Exercise the SET type."""

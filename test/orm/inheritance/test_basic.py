@@ -1346,6 +1346,49 @@ class OptimizedLoadTest(_base.MappedTest):
 
 
 
+class NoPKOnSubTableWarningTest(testing.TestBase):
+
+    def _fixture(self):
+        metadata = MetaData()
+        parent = Table('parent', metadata,
+            Column('id', Integer, primary_key=True)
+        )
+        child = Table('child', metadata,
+            Column('id', Integer, ForeignKey('parent.id'))
+        )
+        return parent, child
+
+    def tearDown(self):
+        clear_mappers()
+
+    def test_warning_on_sub(self):
+        parent, child = self._fixture()
+
+        class P(object):
+            pass
+        class C(P):
+            pass
+
+        mapper(P, parent)
+        assert_raises_message(
+            sa_exc.SAWarning,
+            "Could not assemble any primary keys for locally mapped "
+            "table 'child' - no rows will be persisted in this Table.",
+            mapper, C, child, inherits=P
+        )
+
+    def test_no_warning_with_explicit(self):
+        parent, child = self._fixture()
+
+        class P(object):
+            pass
+        class C(P):
+            pass
+
+        mapper(P, parent)
+        mc = mapper(C, child, inherits=P, primary_key=[parent.c.id])
+        eq_(mc.primary_key, (parent.c.id,))
+
 class PKDiscriminatorTest(_base.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
@@ -1399,6 +1442,66 @@ class PKDiscriminatorTest(_base.MappedTest):
         assert a.name=='a1new'
         assert p.name=='p1new'
 
+class NoPolyIdentInMiddleTest(_base.MappedTest):
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('base', metadata,
+            Column('id', Integer, primary_key=True, 
+                            test_needs_autoincrement=True),
+            Column('type', String(50), nullable=False),
+        )
+
+    @classmethod
+    def setup_classes(cls):
+        class A(_base.ComparableEntity):
+            pass
+        class B(A):
+            pass
+        class C(B):
+            pass
+        class D(B):
+            pass
+        class E(A):
+            pass
+
+    @classmethod
+    @testing.resolve_artifact_names
+    def setup_mappers(cls):
+        mapper(A, base, polymorphic_on=base.c.type)
+        mapper(B, inherits=A, )
+        mapper(C, inherits=B, polymorphic_identity='c')
+        mapper(D, inherits=B, polymorphic_identity='d')
+        mapper(E, inherits=A, polymorphic_identity='e')
+
+    @testing.resolve_artifact_names
+    def test_load_from_middle(self):
+        s = Session()
+        s.add(C())
+        o = s.query(B).first()
+        eq_(o.type, 'c')
+        assert isinstance(o, C)
+
+    @testing.resolve_artifact_names
+    def test_load_from_base(self):
+        s = Session()
+        s.add(C())
+        o = s.query(A).first()
+        eq_(o.type, 'c')
+        assert isinstance(o, C)
+
+    @testing.resolve_artifact_names
+    def test_discriminator(self):
+        assert class_mapper(B).polymorphic_on is base.c.type
+        assert class_mapper(C).polymorphic_on is base.c.type
+
+    @testing.resolve_artifact_names
+    def test_load_multiple_from_middle(self):
+        s = Session()
+        s.add_all([C(), D(), E()])
+        eq_(
+            s.query(B).order_by(base.c.type).all(),
+            [C(), D()]
+        )
 
 class DeleteOrphanTest(_base.MappedTest):
     @classmethod

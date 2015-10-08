@@ -3,6 +3,174 @@
 =======
 CHANGES
 =======
+0.6.7
+=====
+- orm
+  - Tightened the iterate vs. remove mutex around the 
+    identity map iteration, attempting to reduce the 
+    chance of an (extremely rare) reentrant gc operation 
+    causing a deadlock.  Might remove the mutex in
+    0.7.  [ticket:2087]
+
+  - Added a `name` argument to `Query.subquery()`, to allow
+    a fixed name to be assigned to the alias object.
+    [ticket:2030]
+
+  - A warning is emitted when a joined-table inheriting mapper
+    has no primary keys on the locally mapped table
+    (but has pks on the superclass table).  [ticket:2019]
+
+  - Fixed bug where "middle" class in a polymorphic hierarchy
+    would have no 'polymorphic_on' column if it didn't also
+    specify a 'polymorphic_identity', leading to strange
+    errors upon refresh, wrong class loaded when querying
+    from that target. Also emits the correct WHERE criterion
+    when using single table inheritance. [ticket:2038]
+
+ - Fixed bug where a column with a SQL or server side default
+   that was excluded from a mapping with include_properties
+   or exclude_properties would result in UnmappedColumnError.
+   [ticket:1995]
+
+  - A warning is emitted in the unusual case that an 
+    append or similar event on a collection occurs after
+    the parent object has been dereferenced, which 
+    prevents the parent from being marked as "dirty" 
+    in the session.  This will be an exception in 0.7.
+    [ticket:2046]
+
+  - Fixed bug in query.options() whereby a path 
+    applied to a lazyload using string keys could 
+    overlap a same named attribute on the wrong 
+    entity.  Note 0.7 has an updated version of this
+    fix.  [ticket:2098]
+
+  - Reworded the exception raised when a flush
+    is attempted of a subclass that is not polymorphic
+    against the supertype.  [ticket:2063]
+
+  - Some fixes to the state handling regarding 
+    backrefs, typically when autoflush=False, where
+    the back-referenced collection wouldn't 
+    properly handle add/removes with no net 
+    change.  Thanks to Richard Murri for the 
+    test case + patch.  [ticket:2123]
+
+  - a "having" clause would be copied from the
+    inside to the outside query if from_self()
+    were used. [ticket:2130].
+
+- sql
+  - Column.copy(), as used in table.tometadata(), copies the 
+    'doc' attribute.  [ticket:2028]
+
+  - Added some defs to the resultproxy.c extension so that
+    the extension compiles and runs on Python 2.4.
+    [ticket:2023]
+
+  - The compiler extension now supports overriding the default
+    compilation of expression._BindParamClause including that
+    the auto-generated binds within the VALUES/SET clause
+    of an insert()/update() statement will also use the new
+    compilation rules. [ticket:2042]
+
+  - Added accessors to ResultProxy "returns_rows", "is_insert"
+    [ticket:2089]
+
+  - The limit/offset keywords to select() as well
+    as the value passed to select.limit()/offset()
+    will be coerced to integer.  [ticket:2116]
+
+- engine
+  - Fixed bug in QueuePool, SingletonThreadPool whereby
+    connections that were discarded via overflow or periodic
+    cleanup() were not explicitly closed, leaving garbage 
+    collection to the task instead.   This generally only
+    affects non-reference-counting backends like Jython
+    and Pypy.  Thanks to Jaimy Azle for spotting
+    this.  [ticket:2102]
+
+- sqlite
+  - Fixed bug where reflection of foreign key
+    created as "REFERENCES <tablename>" without
+    col name would fail.  [ticket:2115]
+
+- postgresql
+  - When explicit sequence execution derives the name 
+    of the auto-generated sequence of a SERIAL column, 
+    which currently only occurs if implicit_returning=False, 
+    now accommodates if the table + column name is greater 
+    than 63 characters using the same logic Postgresql uses.  
+    [ticket:1083]
+
+  - Added an additional libpq message to the list of "disconnect"
+    exceptions, "could not receive data from server"
+    [ticket:2044]
+
+  - Added RESERVED_WORDS for postgresql dialect. [ticket:2092]
+
+  - Fixed the BIT type to allow a "length" parameter, "varying"
+    parameter.  Reflection also fixed.  [ticket:2073]
+
+- informix
+
+  - Added RESERVED_WORDS informix dialect. [ticket:2092]
+
+- mssql
+  - Rewrote the query used to get the definition of a view,
+    typically when using the Inspector interface, to
+    use sys.sql_modules instead of the information schema,
+    thereby allowing views definitions longer than 4000 
+    characters to be fully returned.  [ticket:2071]
+
+- mysql
+  - oursql dialect accepts the same "ssl" arguments in 
+    create_engine() as that of MySQLdb.  [ticket:2047]
+
+- firebird
+  - The "implicit_returning" flag on create_engine() is
+    honored if set to False.  [ticket:2083]
+
+- oracle
+  - Using column names that would require quotes
+    for the column itself or for a name-generated
+    bind parameter, such as names with special
+    characters, underscores, non-ascii characters,
+    now properly translate bind parameter keys when
+    talking to cx_oracle.  [ticket:2100]
+
+  - Oracle dialect adds use_binds_for_limits=False
+    create_engine() flag, will render the LIMIT/OFFSET
+    values inline instead of as binds, reported to
+    modify the execution plan used by Oracle.
+    [ticket:2116]
+
+- ext
+  - The horizontal_shard ShardedSession class accepts the common
+    Session argument "query_cls" as a constructor argument,
+    to enable further subclassing of ShardedQuery.
+    [ticket:2090]
+
+- declarative
+  - Added an explicit check for the case that the name
+    'metadata' is used for a column attribute on a 
+    declarative class. [ticket:2050]
+
+  - Fix error message referencing old @classproperty
+    name to reference @declared_attr [ticket:2061]
+
+  - Arguments in __mapper_args__ that aren't "hashable"
+    aren't mistaken for always-hashable, possibly-column
+    arguments.  [ticket:2091]
+
+- documentation
+  - Documented SQLite DATE/TIME/DATETIME types.
+    [ticket:2029]
+
+- examples
+  - The Beaker caching example allows a "query_cls" argument
+    to the query_callable() function.  [ticket:2090]
+
 0.6.6
 =====
 - orm

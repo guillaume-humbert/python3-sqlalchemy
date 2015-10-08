@@ -815,7 +815,6 @@ class CollectionAttributeImpl(AttributeImpl):
         state.commit(dict_, [self.key])
 
         if self.key in state.pending:
-
             # pending items exist.  issue a modified event,
             # add/remove new items.
             state.modified_event(dict_, self, True, user_data)
@@ -1300,7 +1299,7 @@ class _ClassInstrumentationAdapter(ClassManager):
 
 class History(tuple):
     """A 3-tuple of added, unchanged and deleted values,
-    representing the changes which have occured on an instrumented
+    representing the changes which have occurred on an instrumented
     attribute.
 
     Each tuple member is an iterable sequence.

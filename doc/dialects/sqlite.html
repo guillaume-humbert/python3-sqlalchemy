@@ -7,7 +7,7 @@
         
         <title>
     SQLite
- &mdash; SQLAlchemy 0.6.6 Documentation</title>
+ &mdash; SQLAlchemy 0.6.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.6',
+          VERSION:     '0.6.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.6 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.7 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="Sybase" href="sybase.html" />
         <link rel="prev" title="PostgreSQL" href="postgresql.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.6 Documentation</h1>
+        <h1>SQLAlchemy 0.6.7 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.6</span> Last Updated: 01/08/2011 17:20:49
+            Version: <span class="versionnum">0.6.7</span> Last Updated: 04/13/2011 20:06:58
         </div>
         <div class="clearboth"></div>
 
@@ -161,6 +161,129 @@ they originate from <a class="reference internal" href="../core/types.html#modul
             <span class="n">INTEGER</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SMALLINT</span><span class="p">,</span> <span class="n">TEXT</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">TIMESTAMP</span><span class="p">,</span> \
             <span class="n">VARCHAR</span></pre></div>
 </div>
+<span class="target" id="module-sqlalchemy.dialects.sqlite"></span><dl class="class">
+<dt id="sqlalchemy.dialects.sqlite.DATETIME">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.sqlite.</tt><tt class="descname">DATETIME</tt><big>(</big><em>storage_format=None</em>, <em>regexp=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.sqlite.DATETIME" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represent a Python datetime object in SQLite using a string.</p>
+<p>The default string storage format is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="s">&quot;</span><span class="si">%04d</span><span class="s">-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s"> </span><span class="si">%02d</span><span class="s">:</span><span class="si">%02d</span><span class="s">:</span><span class="si">%02d</span><span class="s">.</span><span class="si">%06d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> 
+                        <span class="n">value</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">day</span><span class="p">,</span>
+                        <span class="n">value</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span> 
+                        <span class="n">value</span><span class="o">.</span><span class="n">second</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">microsecond</span><span class="p">)</span></pre></div>
+</div>
+<p>e.g.:</p>
+<div class="highlight-python"><pre>2011-03-15 12:05:57.10558</pre>
+</div>
+<p>The storage format can be customized to some degree using the 
+<tt class="docutils literal"><span class="pre">storage_format</span></tt> and <tt class="docutils literal"><span class="pre">regexp</span></tt> parameters, such as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.dialects.sqlite</span> <span class="kn">import</span> <span class="n">DATETIME</span>
+
+<span class="n">dt</span> <span class="o">=</span> <span class="n">DATETIME</span><span class="p">(</span>
+        <span class="n">storage_format</span><span class="o">=</span><span class="s">&quot;</span><span class="si">%04d</span><span class="s">/</span><span class="si">%02d</span><span class="s">/</span><span class="si">%02d</span><span class="s"> </span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%06d</span><span class="s">&quot;</span><span class="p">,</span>
+        <span class="n">regexp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;(\d+)/(\d+)/(\d+) (\d+)-(\d+)-(\d+)(?:-(\d+))?&quot;</span><span class="p">)</span>
+    <span class="p">)</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>storage_format</strong> &#8211; format string which will be appled to the 
+tuple <tt class="docutils literal"><span class="pre">(value.year,</span> <span class="pre">value.month,</span> <span class="pre">value.day,</span> <span class="pre">value.hour,</span>
+<span class="pre">value.minute,</span> <span class="pre">value.second,</span> <span class="pre">value.microsecond)</span></tt>, given a
+Python datetime.datetime() object.</li>
+<li><strong>regexp</strong> &#8211; regular expression which will be applied to 
+incoming result rows. The resulting match object is appled to
+the Python datetime() constructor via <tt class="docutils literal"><span class="pre">*map(int,</span>
+<span class="pre">match_obj.groups(0))</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.dialects.sqlite.DATE">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.sqlite.</tt><tt class="descname">DATE</tt><big>(</big><em>storage_format=None</em>, <em>regexp=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.sqlite.DATE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represent a Python date object in SQLite using a string.</p>
+<p>The default string storage format is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="s">&quot;</span><span class="si">%04d</span><span class="s">-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">day</span><span class="p">)</span></pre></div>
+</div>
+<p>e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="mi">2011</span><span class="o">-</span><span class="mo">03</span><span class="o">-</span><span class="mi">15</span></pre></div>
+</div>
+<p>The storage format can be customized to some degree using the 
+<tt class="docutils literal"><span class="pre">storage_format</span></tt> and <tt class="docutils literal"><span class="pre">regexp</span></tt> parameters, such as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.dialects.sqlite</span> <span class="kn">import</span> <span class="n">DATE</span>
+
+<span class="n">d</span> <span class="o">=</span> <span class="n">DATE</span><span class="p">(</span>
+        <span class="n">storage_format</span><span class="o">=</span><span class="s">&quot;</span><span class="si">%02d</span><span class="s">/</span><span class="si">%02d</span><span class="s">/</span><span class="si">%02d</span><span class="s">&quot;</span><span class="p">,</span>
+        <span class="n">regexp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;(\d+)/(\d+)/(\d+)&quot;</span><span class="p">)</span>
+    <span class="p">)</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>storage_format</strong> &#8211; format string which will be appled to the 
+tuple <tt class="docutils literal"><span class="pre">(value.year,</span> <span class="pre">value.month,</span> <span class="pre">value.day)</span></tt>,
+given a Python datetime.date() object.</li>
+<li><strong>regexp</strong> &#8211; regular expression which will be applied to 
+incoming result rows. The resulting match object is appled to
+the Python date() constructor via <tt class="docutils literal"><span class="pre">*map(int,</span>
+<span class="pre">match_obj.groups(0))</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.dialects.sqlite.TIME">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.sqlite.</tt><tt class="descname">TIME</tt><big>(</big><em>storage_format=None</em>, <em>regexp=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.sqlite.TIME" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represent a Python time object in SQLite using a string.</p>
+<p>The default string storage format is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="s">&quot;</span><span class="si">%02d</span><span class="s">:</span><span class="si">%02d</span><span class="s">:</span><span class="si">%02d</span><span class="s">.</span><span class="si">%06d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span> 
+                        <span class="n">value</span><span class="o">.</span><span class="n">second</span><span class="p">,</span>
+                         <span class="n">value</span><span class="o">.</span><span class="n">microsecond</span><span class="p">)</span></pre></div>
+</div>
+<p>e.g.:</p>
+<div class="highlight-python"><pre>12:05:57.10558</pre>
+</div>
+<p>The storage format can be customized to some degree using the 
+<tt class="docutils literal"><span class="pre">storage_format</span></tt> and <tt class="docutils literal"><span class="pre">regexp</span></tt> parameters, such as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.dialects.sqlite</span> <span class="kn">import</span> <span class="n">TIME</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">TIME</span><span class="p">(</span>
+        <span class="n">storage_format</span><span class="o">=</span><span class="s">&quot;</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%06d</span><span class="s">&quot;</span><span class="p">,</span>
+        <span class="n">regexp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;(\d+)-(\d+)-(\d+)-(?:-(\d+))?&quot;</span><span class="p">)</span>
+    <span class="p">)</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>storage_format</strong> &#8211; format string which will be appled 
+to the tuple <tt class="docutils literal"><span class="pre">(value.hour,</span> <span class="pre">value.minute,</span> <span class="pre">value.second,</span>
+<span class="pre">value.microsecond)</span></tt>, given a Python datetime.time() object.</li>
+<li><strong>regexp</strong> &#8211; regular expression which will be applied to 
+incoming result rows. The resulting match object is appled to
+the Python time() constructor via <tt class="docutils literal"><span class="pre">*map(int,</span>
+<span class="pre">match_obj.groups(0))</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 <div class="section" id="module-sqlalchemy.dialects.sqlite.pysqlite">
 <span id="pysqlite"></span><h2>Pysqlite<a class="headerlink" href="#module-sqlalchemy.dialects.sqlite.pysqlite" title="Permalink to this headline">¶</a></h2>

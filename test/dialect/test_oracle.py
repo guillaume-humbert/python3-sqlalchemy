@@ -132,6 +132,49 @@ class CompileTest(TestBase, AssertsCompiledSQL):
                             ':ROWNUM_1) WHERE ora_rn > :ora_rn_1 FOR '
                             'UPDATE')
 
+    def test_use_binds_for_limits_disabled(self):
+        t = table('sometable', column('col1'), column('col2'))
+        dialect = oracle.OracleDialect(use_binds_for_limits = False)
+
+        self.assert_compile(select([t]).limit(10),
+                "SELECT col1, col2 FROM (SELECT sometable.col1 AS col1, "
+                "sometable.col2 AS col2 FROM sometable) WHERE ROWNUM <= 10",
+                dialect=dialect)
+
+        self.assert_compile(select([t]).offset(10),
+                "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM AS ora_rn "
+                "FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 "
+                "FROM sometable)) WHERE ora_rn > 10",
+                dialect=dialect)
+
+        self.assert_compile(select([t]).limit(10).offset(10),
+                "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM AS ora_rn "
+                "FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 "
+                "FROM sometable) WHERE ROWNUM <= 20) WHERE ora_rn > 10",
+                dialect=dialect)
+
+    def test_use_binds_for_limits_enabled(self):
+        t = table('sometable', column('col1'), column('col2'))
+        dialect = oracle.OracleDialect(use_binds_for_limits = True)
+
+        self.assert_compile(select([t]).limit(10),
+                "SELECT col1, col2 FROM (SELECT sometable.col1 AS col1, "
+                "sometable.col2 AS col2 FROM sometable) WHERE ROWNUM "
+                "<= :ROWNUM_1",
+                dialect=dialect)
+
+        self.assert_compile(select([t]).offset(10),
+                "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM AS ora_rn "
+                "FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 "
+                "FROM sometable)) WHERE ora_rn > :ora_rn_1",
+                dialect=dialect)
+
+        self.assert_compile(select([t]).limit(10).offset(10),
+                "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM AS ora_rn "
+                "FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 "
+                "FROM sometable) WHERE ROWNUM <= :ROWNUM_1) WHERE ora_rn > "
+                ":ora_rn_1",
+                dialect=dialect)
 
     def test_long_labels(self):
         dialect = default.DefaultDialect()
@@ -1302,5 +1345,39 @@ class ExecuteTest(TestBase):
             "ORA-02014",
             t.select(for_update=True).limit(2).offset(3).execute
         )
+
+
+class UnicodeSchemaTest(TestBase):
+    __only_on__ = 'oracle'
+
+    @testing.provide_metadata
+    def test_quoted_column_non_unicode(self):
+        table=Table("atable", metadata,
+            Column("_underscorecolumn", Unicode(255), primary_key=True),
+        )
+        metadata.create_all()
+
+        table.insert().execute(
+            {'_underscorecolumn': u'’é'},
+        )
+        result = testing.db.execute(
+            table.select().where(table.c._underscorecolumn==u'’é')
+        ).scalar()
+        eq_(result, u'’é')
+
+    @testing.provide_metadata
+    def test_quoted_column_unicode(self):
+        table=Table("atable", metadata,
+            Column(u"méil", Unicode(255), primary_key=True),
+        )
+        metadata.create_all()
+
+        table.insert().execute(
+            {u'méil': u'’é'},
+        )
+        result = testing.db.execute(
+            table.select().where(table.c[u'méil']==u'’é')
+        ).scalar()
+        eq_(result, u'’é')
 
 

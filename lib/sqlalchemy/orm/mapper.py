@@ -20,7 +20,7 @@ import operator
 from itertools import chain, groupby
 deque = __import__('collections').deque
 
-from sqlalchemy import sql, util, log, exc as sa_exc
+from sqlalchemy import sql, util, log, exc as sa_exc, schema
 from sqlalchemy.sql import expression, visitors, operators, util as sqlutil
 from sqlalchemy.orm import attributes, sync, exc as orm_exc, unitofwork
 from sqlalchemy.orm.interfaces import (
@@ -303,16 +303,17 @@ class Mapper(object):
 
             if self.polymorphic_identity is not None:
                 self.polymorphic_map[self.polymorphic_identity] = self
-                if self.polymorphic_on is None:
-                    for mapper in self.iterate_to_root():
-                        # try to set up polymorphic on using
-                        # correesponding_column(); else leave
-                        # as None
-                        if mapper.polymorphic_on is not None:
-                            self.polymorphic_on = \
-                                    self.mapped_table.corresponding_column(
-                                                        mapper.polymorphic_on)
-                            break
+
+            if self.polymorphic_on is None:
+                for mapper in self.iterate_to_root():
+                    # try to set up polymorphic on using
+                    # correesponding_column(); else leave
+                    # as None
+                    if mapper.polymorphic_on is not None:
+                        self.polymorphic_on = \
+                                self.mapped_table.corresponding_column(
+                                                    mapper.polymorphic_on)
+                        break
         else:
             self._all_tables = set()
             self.base_mapper = self
@@ -497,6 +498,12 @@ class Mapper(object):
                         "Mapper %s could not assemble any primary "
                         "key columns for mapped table '%s'" % 
                         (self, self.mapped_table.description))
+        elif self.local_table not in self._pks_by_table and \
+            isinstance(self.local_table, schema.Table):
+            util.warn("Could not assemble any primary "
+                        "keys for locally mapped table '%s' - "
+                        "no rows will be persisted in this Table." 
+                        % self.local_table.description)
 
         if self.inherits and \
                 not self.concrete and \
@@ -1013,8 +1020,7 @@ class Mapper(object):
     def _single_table_criterion(self):
         if self.single and \
             self.inherits and \
-            self.polymorphic_on is not None and \
-            self.polymorphic_identity is not None:
+            self.polymorphic_on is not None:
             return self.polymorphic_on.in_(
                 m.polymorphic_identity
                 for m in self.self_and_descendants)
@@ -1947,7 +1953,8 @@ class Mapper(object):
         if postfetch_cols:
             sessionlib._expire_state(state, state.dict, 
                                 [self._columntoproperty[c].key 
-                                for c in postfetch_cols]
+                                for c in postfetch_cols if c in 
+                                self._columntoproperty]
                             )
 
         # synchronize newly inserted ids from one table to the next

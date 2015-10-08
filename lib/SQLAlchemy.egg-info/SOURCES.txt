@@ -82,6 +82,7 @@ doc/build/conf.py
 doc/build/copyright.rst
 doc/build/index.rst
 doc/build/intro.rst
+doc/build/requirements.txt
 doc/build/sqla_arch_small.png
 doc/build/testdocs.py
 doc/build/builder/__init__.py

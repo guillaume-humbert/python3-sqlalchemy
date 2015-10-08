@@ -103,6 +103,24 @@ from sqlalchemy.types import INTEGER, BIGINT, SMALLINT, VARCHAR, \
         CHAR, TEXT, FLOAT, NUMERIC, \
         DATE, BOOLEAN
 
+RESERVED_WORDS = set(
+    ["all", "analyse", "analyze", "and", "any", "array", "as", "asc",
+    "asymmetric", "both", "case", "cast", "check", "collate", "column",
+    "constraint", "create", "current_catalog", "current_date",
+    "current_role", "current_time", "current_timestamp", "current_user",
+    "default", "deferrable", "desc", "distinct", "do", "else", "end",
+    "except", "false", "fetch", "for", "foreign", "from", "grant", "group",
+    "having", "in", "initially", "intersect", "into", "leading", "limit",
+    "localtime", "localtimestamp", "new", "not", "null", "off", "offset",
+    "old", "on", "only", "or", "order", "placing", "primary", "references",
+    "returning", "select", "session_user", "some", "symmetric", "table",
+    "then", "to", "trailing", "true", "union", "unique", "user", "using",
+    "variadic", "when", "where", "window", "with", "authorization",
+    "between", "binary", "cross", "current_schema", "freeze", "full",
+    "ilike", "inner", "is", "isnull", "join", "left", "like", "natural",
+    "notnull", "outer", "over", "overlaps", "right", "similar", "verbose"
+    ])
+
 _DECIMAL_TYPES = (1231, 1700)
 _FLOAT_TYPES = (700, 701, 1021, 1022)
 _INT_TYPES = (20, 21, 23, 26, 1005, 1007, 1016)
@@ -164,6 +182,15 @@ PGInterval = INTERVAL
 
 class BIT(sqltypes.TypeEngine):
     __visit_name__ = 'BIT'
+
+    def __init__(self, length=None, varying=False):
+        if not varying:
+            # BIT without VARYING defaults to length 1
+            self.length = length or 1
+        else:
+            # but BIT VARYING can be unlimited-length, so no default
+            self.length = length
+        self.varying = varying
 PGBit = BIT
 
 class UUID(sqltypes.TypeEngine):
@@ -397,7 +424,8 @@ ischema_names = {
     'inet': INET,
     'cidr': CIDR,
     'uuid': UUID,
-    'bit':BIT,
+    'bit': BIT,
+    'bit varying': BIT,
     'macaddr': MACADDR,
     'double precision' : DOUBLE_PRECISION,
     'timestamp' : TIMESTAMP,
@@ -639,7 +667,13 @@ class PGTypeCompiler(compiler.GenericTypeCompiler):
             return "INTERVAL"
 
     def visit_BIT(self, type_):
-        return "BIT"
+        if type_.varying:
+            compiled = "BIT VARYING"
+            if type_.length is not None:
+                compiled += "(%d)" % type_.length
+        else:
+            compiled = "BIT(%d)" % type_.length
+        return compiled
 
     def visit_UUID(self, type_):
         return "UUID"
@@ -658,6 +692,9 @@ class PGTypeCompiler(compiler.GenericTypeCompiler):
 
 
 class PGIdentifierPreparer(compiler.IdentifierPreparer):
+
+    reserved_words = RESERVED_WORDS
+
     def _unquote_identifier(self, value):
         if value[0] == self.initial_quote:
             value = value[1:-1].\
@@ -715,14 +752,23 @@ class PGExecutionContext(default.DefaultExecutionContext):
                 # execute the sequence associated with a SERIAL primary 
                 # key column. for non-primary-key SERIAL, the ID just
                 # generates server side.
-                sch = column.table.schema
 
+                try:
+                    seq_name = column._postgresql_seq_name
+                except AttributeError:
+                    tab = column.table.name 
+                    col = column.name 
+                    tab = tab[0:29 + max(0, (29 - len(col)))] 
+                    col = col[0:29 + max(0, (29 - len(tab)))] 
+                    column._postgresql_seq_name = seq_name = "%s_%s_seq" % (tab, col)
+
+                sch = column.table.schema
                 if sch is not None:
-                    exc = "select nextval('\"%s\".\"%s_%s_seq\"')" % \
-                            (sch, column.table.name, column.name)
+                    exc = "select nextval('\"%s\".\"%s\"')" % \
+                            (sch, seq_name)
                 else:
-                    exc = "select nextval('\"%s_%s_seq\"')" % \
-                            (column.table.name, column.name)
+                    exc = "select nextval('\"%s\"')" % \
+                            (seq_name, )
 
                 return self._execute_scalar(exc)
 
@@ -1084,6 +1130,7 @@ class PGDialect(default.DefaultDialect):
             if charlen:
                 charlen = charlen.group(1)
             kwargs = {}
+            args = None
 
             if attype == 'numeric':
                 if charlen:
@@ -1107,6 +1154,12 @@ class PGDialect(default.DefaultDialect):
                 if charlen:
                     kwargs['precision'] = int(charlen)
                 args = ()
+            elif attype == 'bit varying':
+                kwargs['varying'] = True
+                if charlen:
+                    args = (int(charlen),)
+                else:
+                    args = ()
             elif attype in ('interval','interval year to month',
                                 'interval day to second'):
                 if charlen:

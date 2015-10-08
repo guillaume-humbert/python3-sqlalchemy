@@ -617,7 +617,7 @@ class ExecutionContext(object):
         raise NotImplementedError()
 
     def handle_dbapi_exception(self, e):
-        """Receive a DBAPI exception which occured upon execute, result 
+        """Receive a DBAPI exception which occurred upon execute, result 
         fetch, etc."""
 
         raise NotImplementedError()
@@ -2313,6 +2313,36 @@ class ResultProxy(object):
 
         """
         return self._saved_cursor.lastrowid
+
+    @property
+    def returns_rows(self):
+        """True if this :class:`.ResultProxy` returns rows.
+        
+        I.e. if it is legal to call the methods 
+        :meth:`~.ResultProxy.fetchone`, 
+        :meth:`~.ResultProxy.fetchmany`
+        :meth:`~.ResultProxy.fetchall`.
+        
+        New in 0.6.7.
+
+        """
+        return self._metadata is not None
+
+    @property
+    def is_insert(self):
+        """True if this :class:`.ResultProxy` is the result
+        of a executing an expression language compiled 
+        :func:`.expression.insert` construct.
+        
+        When True, this implies that the 
+        :attr:`inserted_primary_key` attribute is accessible,
+        assuming the statement did not include
+        a user defined "returning" construct.
+
+        New in 0.6.7.
+        
+        """
+        return self.context.isinsert
 
     def _cursor_description(self):
         """May be overridden by subclasses."""

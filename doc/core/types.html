@@ -7,7 +7,7 @@
         
         <title>
     Column and Data Types
- &mdash; SQLAlchemy 0.6.6 Documentation</title>
+ &mdash; SQLAlchemy 0.6.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.6',
+          VERSION:     '0.6.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.6 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.7 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Core Event Interfaces" href="interfaces.html" />
         <link rel="prev" title="Schema Definition Language" href="schema.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.6 Documentation</h1>
+        <h1>SQLAlchemy 0.6.7 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.6</span> Last Updated: 01/08/2011 17:20:49
+            Version: <span class="versionnum">0.6.7</span> Last Updated: 04/13/2011 20:06:58
         </div>
         <div class="clearboth"></div>
 
@@ -919,10 +919,27 @@ such as <cite>collation</cite> and <cite>charset</cite>:</p>
 as well as to provide new ones.</p>
 <div class="section" id="overriding-type-compilation">
 <h3>Overriding Type Compilation<a class="headerlink" href="#overriding-type-compilation" title="Permalink to this headline">¶</a></h3>
-<p>The string produced by any type object, when rendered in a CREATE TABLE
-statement or other SQL function like CAST, can be changed.  See the
-section <a class="reference internal" href="compiler.html#type-compilation-extension"><em>Changing Compilation of Types</em></a>, a subsection of
-<a class="reference internal" href="compiler.html"><em>Custom SQL Constructs and Compilation Extension</em></a>, for a short example.</p>
+<p>A frequent need is to force the &#8220;string&#8221; version of a type, that is
+the one rendered in a CREATE TABLE statement or other SQL function
+like CAST, to be changed.   For example, an application may want
+to force the rendering of <tt class="docutils literal"><span class="pre">BINARY</span></tt> for all platforms
+except for one, in which is wants <tt class="docutils literal"><span class="pre">BLOB</span></tt> to be rendered.  Usage
+of an existing generic type, in this case <a class="reference internal" href="#sqlalchemy.types.LargeBinary" title="sqlalchemy.types.LargeBinary"><tt class="xref py py-class docutils literal"><span class="pre">LargeBinary</span></tt></a>, is
+preferred for most use cases.  But to control
+types more accurately, a compilation directive that is per-dialect
+can be associated with any type:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.compiler</span> <span class="kn">import</span> <span class="n">compiles</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.types</span> <span class="kn">import</span> <span class="n">BINARY</span>
+
+<span class="nd">@compiles</span><span class="p">(</span><span class="n">BINARY</span><span class="p">,</span> <span class="s">&quot;sqlite&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">compile_binary_sqlite</span><span class="p">(</span><span class="n">type_</span><span class="p">,</span> <span class="n">compiler</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&quot;BLOB&quot;</span></pre></div>
+</div>
+<p>The above code allows the usage of <a class="reference internal" href="#sqlalchemy.types.BINARY" title="sqlalchemy.types.BINARY"><tt class="xref py py-class docutils literal"><span class="pre">types.BINARY</span></tt></a>, which
+will produce the string <tt class="docutils literal"><span class="pre">BINARY</span></tt> against all backends except SQLite,
+in which case it will produce <tt class="docutils literal"><span class="pre">BLOB</span></tt>.</p>
+<p>See the section <a class="reference internal" href="compiler.html#type-compilation-extension"><em>Changing Compilation of Types</em></a>, a subsection of
+<a class="reference internal" href="compiler.html"><em>Custom SQL Constructs and Compilation Extension</em></a>, for additional examples.</p>
 </div>
 <div class="section" id="augmenting-existing-types">
 <h3>Augmenting Existing Types<a class="headerlink" href="#augmenting-existing-types" title="Permalink to this headline">¶</a></h3>
@@ -1006,17 +1023,39 @@ value is assumed to be a date and will be treated as a <tt class="docutils liter
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Construct a <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>.</p>
+<p>Arguments sent here are passed to the constructor 
+of the class assigned to the <tt class="docutils literal"><span class="pre">impl</span></tt> class level attribute,
+where the <tt class="docutils literal"><span class="pre">self.impl</span></tt> attribute is assigned an instance
+of the implementation type.  If <tt class="docutils literal"><span class="pre">impl</span></tt> at the class level
+is already an instance, then it&#8217;s assigned to <tt class="docutils literal"><span class="pre">self.impl</span></tt>
+as is.</p>
+<p>Subclasses can override this to customize the generation
+of <tt class="docutils literal"><span class="pre">self.impl</span></tt>.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.adapt">
 <tt class="descname">adapt</tt><big>(</big><em>cls</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.adapt" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Produce an &#8220;adapted&#8221; form of this type, given an &#8220;impl&#8221; class 
+to work with.</p>
+<p>This method is used internally to associate generic 
+types with &#8220;implementation&#8221; types that are specific to a particular
+dialect.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.bind_processor">
 <tt class="descname">bind_processor</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.bind_processor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Provide a bound value processing function for the given <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt>.</p>
+<p>This is the method that fulfills the <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> 
+contract for bound value conversion.   <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>
+will wrap a user-defined implementation of 
+<a class="reference internal" href="#sqlalchemy.types.TypeDecorator.process_bind_param" title="sqlalchemy.types.TypeDecorator.process_bind_param"><tt class="xref py py-meth docutils literal"><span class="pre">process_bind_param()</span></tt></a> here.</p>
+<p>User-defined code can override this method directly,
+though its likely best to use <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.process_bind_param" title="sqlalchemy.types.TypeDecorator.process_bind_param"><tt class="xref py py-meth docutils literal"><span class="pre">process_bind_param()</span></tt></a> so that
+the processing provided by <tt class="docutils literal"><span class="pre">self.impl</span></tt> is maintained.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.coerce_compared_value">
@@ -1037,32 +1076,78 @@ be used for <tt class="docutils literal"><span class="pre">35</span></tt> for th
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.compare_values">
 <tt class="descname">compare_values</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.compare_values" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Given two values, compare them for equality.</p>
+<p>By default this calls upon <a class="reference internal" href="#sqlalchemy.types.TypeEngine.compare_values" title="sqlalchemy.types.TypeEngine.compare_values"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.compare_values()</span></tt></a> 
+of the underlying &#8220;impl&#8221;, which in turn usually
+uses the Python equals operator <tt class="docutils literal"><span class="pre">==</span></tt>.</p>
+<p>This function is used by the ORM to compare
+an original-loaded value with an intercepted
+&#8220;changed&#8221; value, to determine if a net change
+has occurred.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.compile">
 <tt class="descname">compile</tt><big>(</big><em>dialect=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.compile" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Produce a string-compiled form of this <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a>.</p>
+<p>When called with no arguments, uses a &#8220;default&#8221; dialect
+to produce a string result.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dialect</strong> &#8211; a <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> instance.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.copy">
 <tt class="descname">copy</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.copy" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Produce a copy of this <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a> instance.</p>
+<p>This is a shallow copy and is provided to fulfill part of 
+the <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> contract.  It usually does not
+need to be overridden unless the user-defined <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>
+has local state that should be deep-copied.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.copy_value">
 <tt class="descname">copy_value</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.copy_value" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Given a value, produce a copy of it.</p>
+<p>By default this calls upon <a class="reference internal" href="#sqlalchemy.types.TypeEngine.copy_value" title="sqlalchemy.types.TypeEngine.copy_value"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.copy_value()</span></tt></a> 
+of the underlying &#8220;impl&#8221;.</p>
+<p><a class="reference internal" href="#sqlalchemy.types.TypeDecorator.copy_value" title="sqlalchemy.types.TypeDecorator.copy_value"><tt class="xref py py-meth docutils literal"><span class="pre">copy_value()</span></tt></a> will return the object
+itself, assuming &#8220;mutability&#8221; is not enabled.  
+Only the <a class="reference internal" href="#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a> mixin provides a copy 
+function that actually produces a new object.
+The copying function is used by the ORM when
+&#8220;mutable&#8221; types are used, to memoize the original
+version of an object as loaded from the database,
+which is then compared to the possibly mutated
+version to check for changes.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.dialect_impl">
 <tt class="descname">dialect_impl</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.dialect_impl" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return a dialect-specific implementation for this <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a>.</p>
+<p>See also <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.type_engine" title="sqlalchemy.types.TypeDecorator.type_engine"><tt class="xref py py-meth docutils literal"><span class="pre">type_engine()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.load_dialect_impl" title="sqlalchemy.types.TypeDecorator.load_dialect_impl"><tt class="xref py py-meth docutils literal"><span class="pre">load_dialect_impl()</span></tt></a>.
+<a class="reference internal" href="#sqlalchemy.types.TypeDecorator.load_dialect_impl" title="sqlalchemy.types.TypeDecorator.load_dialect_impl"><tt class="xref py py-meth docutils literal"><span class="pre">load_dialect_impl()</span></tt></a> is an end-user overrideable
+hook.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.get_dbapi_type">
 <tt class="descname">get_dbapi_type</tt><big>(</big><em>dbapi</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.get_dbapi_type" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return the DBAPI type object represented by this <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>.</p>
+<p>By default this calls upon <a class="reference internal" href="#sqlalchemy.types.TypeEngine.get_dbapi_type" title="sqlalchemy.types.TypeEngine.get_dbapi_type"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.get_dbapi_type()</span></tt></a> of the 
+underlying &#8220;impl&#8221;.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.is_mutable">
@@ -1081,30 +1166,83 @@ is recommended as a helper.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.load_dialect_impl">
 <tt class="descname">load_dialect_impl</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.load_dialect_impl" title="Permalink to this definition">¶</a></dt>
-<dd><p>User hook which can be overridden to provide a different &#8216;impl&#8217;
-type per-dialect.</p>
-<p>by default returns self.impl.</p>
+<dd><p>Return a <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> object corresponding to a dialect.</p>
+<p>This is an end-user override hook that can be used to provide
+differing types depending on the given dialect.  It is used
+by the <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a> implementation of <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.type_engine" title="sqlalchemy.types.TypeDecorator.type_engine"><tt class="xref py py-meth docutils literal"><span class="pre">type_engine()</span></tt></a> 
+and <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.dialect_impl" title="sqlalchemy.types.TypeDecorator.dialect_impl"><tt class="xref py py-meth docutils literal"><span class="pre">dialect_impl()</span></tt></a> to help determine what type should ultimately be returned
+for a given <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>.</p>
+<p>By default returns <tt class="docutils literal"><span class="pre">self.impl</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.process_bind_param">
 <tt class="descname">process_bind_param</tt><big>(</big><em>value</em>, <em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.process_bind_param" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Receive a bound parameter value to be converted.</p>
+<p>Subclasses override this method to return the
+value that should be passed along to the underlying
+<a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> object, and from there to the 
+DBAPI <tt class="docutils literal"><span class="pre">execute()</span></tt> method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>value</strong> &#8211; the value.  Can be None.</li>
+<li><strong>dialect</strong> &#8211; the <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> in use.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.process_result_value">
 <tt class="descname">process_result_value</tt><big>(</big><em>value</em>, <em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.process_result_value" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Receive a result-row column value to be converted.</p>
+<p>Subclasses override this method to return the
+value that should be passed back to the application,
+given a value that is already processed by
+the underlying <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> object, originally
+from the DBAPI cursor method <tt class="docutils literal"><span class="pre">fetchone()</span></tt> or similar.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>value</strong> &#8211; the value.  Can be None.</li>
+<li><strong>dialect</strong> &#8211; the <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> in use.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.result_processor">
 <tt class="descname">result_processor</tt><big>(</big><em>dialect</em>, <em>coltype</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.result_processor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Provide a result value processing function for the given <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt>.</p>
+<p>This is the method that fulfills the <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> 
+contract for result value conversion.   <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>
+will wrap a user-defined implementation of 
+<a class="reference internal" href="#sqlalchemy.types.TypeDecorator.process_result_value" title="sqlalchemy.types.TypeDecorator.process_result_value"><tt class="xref py py-meth docutils literal"><span class="pre">process_result_value()</span></tt></a> here.</p>
+<p>User-defined code can override this method directly,
+though its likely best to use <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.process_result_value" title="sqlalchemy.types.TypeDecorator.process_result_value"><tt class="xref py py-meth docutils literal"><span class="pre">process_result_value()</span></tt></a> so that
+the processing provided by <tt class="docutils literal"><span class="pre">self.impl</span></tt> is maintained.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.type_engine">
 <tt class="descname">type_engine</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.type_engine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a TypeEngine instance for this TypeDecorator.</p>
+<dd><p>Return a dialect-specific <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> instance 
+for this <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>.</p>
+<p>In most cases this returns a dialect-adapted form of
+the <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> type represented by <tt class="docutils literal"><span class="pre">self.impl</span></tt>.
+Makes usage of <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.dialect_impl" title="sqlalchemy.types.TypeDecorator.dialect_impl"><tt class="xref py py-meth docutils literal"><span class="pre">dialect_impl()</span></tt></a> but also traverses
+into wrapped <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a> instances.
+Behavior can be customized here by overriding <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.load_dialect_impl" title="sqlalchemy.types.TypeDecorator.load_dialect_impl"><tt class="xref py py-meth docutils literal"><span class="pre">load_dialect_impl()</span></tt></a>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1298,7 +1436,21 @@ send to the DB-API.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.UserDefinedType.compile">
 <tt class="descname">compile</tt><big>(</big><em>dialect=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.UserDefinedType.compile" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Produce a string-compiled form of this <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a>.</p>
+<p>When called with no arguments, uses a &#8220;default&#8221; dialect
+to produce a string result.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dialect</strong> &#8211; a <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> instance.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.UserDefinedType.copy_value">
@@ -1308,7 +1460,8 @@ send to the DB-API.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.UserDefinedType.dialect_impl">
 <tt class="descname">dialect_impl</tt><big>(</big><em>dialect</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.UserDefinedType.dialect_impl" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return a dialect-specific implementation for this <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a>.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.UserDefinedType.get_dbapi_type">
@@ -1384,7 +1537,21 @@ to return to the user.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.AbstractType.compile">
 <tt class="descname">compile</tt><big>(</big><em>dialect=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType.compile" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Produce a string-compiled form of this <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a>.</p>
+<p>When called with no arguments, uses a &#8220;default&#8221; dialect
+to produce a string result.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dialect</strong> &#8211; a <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> instance.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.AbstractType.copy_value">
@@ -1468,7 +1635,21 @@ send to the DB-API.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.compile">
 <tt class="descname">compile</tt><big>(</big><em>dialect=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.compile" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Produce a string-compiled form of this <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a>.</p>
+<p>When called with no arguments, uses a &#8220;default&#8221; dialect
+to produce a string result.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dialect</strong> &#8211; a <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> instance.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.copy_value">
@@ -1478,7 +1659,8 @@ send to the DB-API.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.dialect_impl">
 <tt class="descname">dialect_impl</tt><big>(</big><em>dialect</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.dialect_impl" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return a dialect-specific implementation for this <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a>.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.get_dbapi_type">
@@ -1532,7 +1714,7 @@ performance impact, described below.</p>
 <tt class="docutils literal"><span class="pre">mutable=True</span></tt> to enable/disable the &#8220;mutability&#8221; flag,
 represented on this class by <a class="reference internal" href="#sqlalchemy.types.MutableType.is_mutable" title="sqlalchemy.types.MutableType.is_mutable"><tt class="xref py py-meth docutils literal"><span class="pre">is_mutable()</span></tt></a>.  Examples 
 include <a class="reference internal" href="#sqlalchemy.types.PickleType" title="sqlalchemy.types.PickleType"><tt class="xref py py-class docutils literal"><span class="pre">PickleType</span></tt></a> and 
-<a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.base.ARRAY" title="sqlalchemy.dialects.postgresql.base.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">ARRAY</span></tt></a>.  Setting
+<tt class="xref py py-class docutils literal"><span class="pre">ARRAY</span></tt>.  Setting
 this flag to <tt class="xref docutils literal"><span class="pre">False</span></tt> effectively disables any mutability-
 specific behavior by the ORM.</p>
 <p><a class="reference internal" href="#sqlalchemy.types.MutableType.copy_value" title="sqlalchemy.types.MutableType.copy_value"><tt class="xref py py-meth docutils literal"><span class="pre">copy_value()</span></tt></a> and <a class="reference internal" href="#sqlalchemy.types.MutableType.compare_values" title="sqlalchemy.types.MutableType.compare_values"><tt class="xref py py-meth docutils literal"><span class="pre">compare_values()</span></tt></a> represent a copy

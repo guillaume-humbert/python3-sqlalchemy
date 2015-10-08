@@ -7,7 +7,7 @@
         
         <title>
     Working with Engines and Connections
- &mdash; SQLAlchemy 0.6.6 Documentation</title>
+ &mdash; SQLAlchemy 0.6.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.6',
+          VERSION:     '0.6.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.6 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.7 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Connection Pooling" href="pooling.html" />
         <link rel="prev" title="Engine Configuration" href="engines.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.6 Documentation</h1>
+        <h1>SQLAlchemy 0.6.7 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.6</span> Last Updated: 01/08/2011 17:20:49
+            Version: <span class="versionnum">0.6.7</span> Last Updated: 04/13/2011 20:06:58
         </div>
         <div class="clearboth"></div>
 
@@ -723,6 +723,19 @@ Else the cursor is automatically closed and None is returned.</p>
 did not explicitly specify returning().</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="sqlalchemy.engine.base.ResultProxy.is_insert">
+<tt class="descname">is_insert</tt><a class="headerlink" href="#sqlalchemy.engine.base.ResultProxy.is_insert" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if this <a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy" title="sqlalchemy.engine.base.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> is the result
+of a executing an expression language compiled 
+<a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">expression.insert()</span></tt></a> construct.</p>
+<p>When True, this implies that the 
+<a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy.inserted_primary_key" title="sqlalchemy.engine.base.ResultProxy.inserted_primary_key"><tt class="xref py py-attr docutils literal"><span class="pre">inserted_primary_key</span></tt></a> attribute is accessible,
+assuming the statement did not include
+a user defined &#8220;returning&#8221; construct.</p>
+<p>New in 0.6.7.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="sqlalchemy.engine.base.ResultProxy.keys">
 <tt class="descname">keys</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.ResultProxy.keys" title="Permalink to this definition">¶</a></dt>
@@ -780,6 +793,17 @@ regardless of database backend.</p>
 <tt class="descname">postfetch_cols</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.ResultProxy.postfetch_cols" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return <tt class="docutils literal"><span class="pre">postfetch_cols()</span></tt> from the underlying ExecutionContext.</p>
 <p>See ExecutionContext for details.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.base.ResultProxy.returns_rows">
+<tt class="descname">returns_rows</tt><a class="headerlink" href="#sqlalchemy.engine.base.ResultProxy.returns_rows" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if this <a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy" title="sqlalchemy.engine.base.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> returns rows.</p>
+<p>I.e. if it is legal to call the methods 
+<a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy.fetchone" title="sqlalchemy.engine.base.ResultProxy.fetchone"><tt class="xref py py-meth docutils literal"><span class="pre">fetchone()</span></tt></a>, 
+<a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy.fetchmany" title="sqlalchemy.engine.base.ResultProxy.fetchmany"><tt class="xref py py-meth docutils literal"><span class="pre">fetchmany()</span></tt></a>
+<a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy.fetchall" title="sqlalchemy.engine.base.ResultProxy.fetchall"><tt class="xref py py-meth docutils literal"><span class="pre">fetchall()</span></tt></a>.</p>
+<p>New in 0.6.7.</p>
 </dd></dl>
 
 <dl class="attribute">

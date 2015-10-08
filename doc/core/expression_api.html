@@ -7,7 +7,7 @@
         
         <title>
     SQL Statements and Expressions
- &mdash; SQLAlchemy 0.6.6 Documentation</title>
+ &mdash; SQLAlchemy 0.6.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.6',
+          VERSION:     '0.6.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.6 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.7 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Engine Configuration" href="engines.html" />
         <link rel="prev" title="SQL Expression Language Tutorial" href="tutorial.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.6 Documentation</h1>
+        <h1>SQLAlchemy 0.6.7 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.6</span> Last Updated: 01/08/2011 17:20:49
+            Version: <span class="versionnum">0.6.7</span> Last Updated: 04/13/2011 20:06:58
         </div>
         <div class="clearboth"></div>
 
@@ -113,18 +113,38 @@ see <a class="reference internal" href="tutorial.html"><em>SQL Expression Langua
 <p>An <a class="reference internal" href="#sqlalchemy.sql.expression.Alias" title="sqlalchemy.sql.expression.Alias"><tt class="xref py py-class docutils literal"><span class="pre">Alias</span></tt></a> represents any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
 with an alternate name assigned within SQL, typically using the <tt class="docutils literal"><span class="pre">AS</span></tt>
 clause when generated, e.g. <tt class="docutils literal"><span class="pre">SELECT</span> <span class="pre">*</span> <span class="pre">FROM</span> <span class="pre">table</span> <span class="pre">AS</span> <span class="pre">aliasname</span></tt>.</p>
-<p>Similar functionality is available via the <a class="reference internal" href="#sqlalchemy.sql.expression.alias" title="sqlalchemy.sql.expression.alias"><tt class="xref py py-func docutils literal"><span class="pre">alias()</span></tt></a> method
+<p>Similar functionality is available via the 
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.alias" title="sqlalchemy.sql.expression.FromClause.alias"><tt class="xref py py-meth docutils literal"><span class="pre">alias()</span></tt></a> method
 available on all <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> subclasses.</p>
-<blockquote>
-<dl class="docutils">
-<dt>selectable</dt>
-<dd>any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> subclass, such as a table, select
-statement, etc..</dd>
-<dt>alias</dt>
-<dd>string name to be assigned as the alias.  If <tt class="xref docutils literal"><span class="pre">None</span></tt>, a
-random name will be generated.</dd>
-</dl>
-</blockquote>
+<p>When an <a class="reference internal" href="#sqlalchemy.sql.expression.Alias" title="sqlalchemy.sql.expression.Alias"><tt class="xref py py-class docutils literal"><span class="pre">Alias</span></tt></a> is created from a <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object,
+this has the effect of the table being rendered
+as <tt class="docutils literal"><span class="pre">tablename</span> <span class="pre">AS</span> <span class="pre">aliasname</span></tt> in a SELECT statement.</p>
+<p>For <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> objects, the effect is that of creating a named
+subquery, i.e. <tt class="docutils literal"><span class="pre">(select</span> <span class="pre">...)</span> <span class="pre">AS</span> <span class="pre">aliasname</span></tt>.</p>
+<p>The <tt class="docutils literal"><span class="pre">alias</span></tt> parameter is optional, and provides the name
+to use in the rendered SQL.  If blank, an &#8220;anonymous&#8221; name
+will be deterministically generated at compile time.  
+Deterministic means the name is guaranteed to be unique against
+other constructs used in the same statement, and will also be the
+same name for each successive compilation of the same statement
+object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>selectable</strong> &#8211; any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> subclass,
+such as a table, select statement, etc.</li>
+<li><strong>alias</strong> &#8211; string name to be assigned as the alias.
+If <tt class="xref docutils literal"><span class="pre">None</span></tt>, a name will be deterministically generated
+at compile time.
+<strong>Deprecated</strong> - this argument is called <tt class="docutils literal"><span class="pre">name</span></tt> in 
+0.7 for consistency with the other aliasing methods.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -354,7 +374,7 @@ condition of the <tt class="docutils literal"><span class="pre">UPDATE</span></t
 <dd><p>Return the clause <tt class="docutils literal"><span class="pre">extract(field</span> <span class="pre">FROM</span> <span class="pre">expr)</span></tt>.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="data">
 <dt id="sqlalchemy.sql.expression.func">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate SQL function expressions.</p>
@@ -946,7 +966,7 @@ against the <tt class="docutils literal"><span class="pre">UPDATE</span></tt> st
 sub-select within a SQL statement using the <tt class="docutils literal"><span class="pre">AS</span></tt> keyword (or
 without the keyword on certain databases such as Oracle).</p>
 <p>This object is constructed from the <a class="reference internal" href="#sqlalchemy.sql.expression.alias" title="sqlalchemy.sql.expression.alias"><tt class="xref py py-func docutils literal"><span class="pre">alias()</span></tt></a> module level
-function as well as the <a class="reference internal" href="#sqlalchemy.sql.expression.alias" title="sqlalchemy.sql.expression.alias"><tt class="xref py py-func docutils literal"><span class="pre">alias()</span></tt></a> method available on all
+function as well as the <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.alias" title="sqlalchemy.sql.expression.FromClause.alias"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.alias()</span></tt></a> method available on all
 <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> subclasses.</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Alias.__init__">
@@ -1633,16 +1653,11 @@ clause of a <tt class="docutils literal"><span class="pre">SELECT</span></tt> st
 <dt id="sqlalchemy.sql.expression.FromClause.alias">
 <tt class="descname">alias</tt><big>(</big><em>name=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.FromClause.alias" title="Permalink to this definition">¶</a></dt>
 <dd><p>return an alias of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
-<p>For table objects, this has the effect of the table being rendered
-as <tt class="docutils literal"><span class="pre">tablename</span> <span class="pre">AS</span> <span class="pre">aliasname</span></tt> in a SELECT statement.
-For select objects, the effect is that of creating a named
-subquery, i.e. <tt class="docutils literal"><span class="pre">(select</span> <span class="pre">...)</span> <span class="pre">AS</span> <span class="pre">aliasname</span></tt>.
-The <a class="reference internal" href="#sqlalchemy.sql.expression.alias" title="sqlalchemy.sql.expression.alias"><tt class="xref py py-func docutils literal"><span class="pre">alias()</span></tt></a> method is the general way to create
-a &#8220;subquery&#8221; out of an existing SELECT.</p>
-<p>The <tt class="docutils literal"><span class="pre">name</span></tt> parameter is optional, and if left blank an 
-&#8220;anonymous&#8221; name will be generated at compile time, guaranteed
-to be unique against other anonymous constructs used in the
-same statement.</p>
+<p>This is shorthand for calling:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">alias</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">alias</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></pre></div>
+</div>
+<p>See <a class="reference internal" href="#sqlalchemy.sql.expression.alias" title="sqlalchemy.sql.expression.alias"><tt class="xref py py-func docutils literal"><span class="pre">alias()</span></tt></a> for details.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1746,7 +1761,7 @@ primary key of this FromClause.</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.FromClause.replace_selectable">
 <tt class="descname">replace_selectable</tt><big>(</big><em>old</em>, <em>alias</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.FromClause.replace_selectable" title="Permalink to this definition">¶</a></dt>
-<dd><p>replace all occurences of FromClause &#8216;old&#8217; with the given Alias 
+<dd><p>replace all occurrences of FromClause &#8216;old&#8217; with the given Alias 
 object, returning a copy of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
 </dd></dl>
 
@@ -1803,20 +1818,50 @@ off all <a class="reference internal" href="#sqlalchemy.sql.expression.FromClaus
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Join.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>left</em>, <em>right</em>, <em>onclause=None</em>, <em>isouter=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Join.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Construct a new <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a>.</p>
+<p>The usual entrypoint here is the <a class="reference internal" href="#sqlalchemy.sql.expression.join" title="sqlalchemy.sql.expression.join"><tt class="xref py py-func docutils literal"><span class="pre">join()</span></tt></a>
+function or the <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> method of any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Join.alias">
 <tt class="descname">alias</tt><big>(</big><em>name=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Join.alias" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> out of this <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> clause and
-return an <a class="reference internal" href="#sqlalchemy.sql.expression.Alias" title="sqlalchemy.sql.expression.Alias"><tt class="xref py py-class docutils literal"><span class="pre">Alias</span></tt></a> of it.</p>
-<p>The <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> is not correlating.</p>
+<dd><p>return an alias of this <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a>.</p>
+<p>Used against a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> object,
+<a class="reference internal" href="#sqlalchemy.sql.expression.Join.alias" title="sqlalchemy.sql.expression.Join.alias"><tt class="xref py py-meth docutils literal"><span class="pre">alias()</span></tt></a> calls the <a class="reference internal" href="#sqlalchemy.sql.expression.Join.select" title="sqlalchemy.sql.expression.Join.select"><tt class="xref py py-meth docutils literal"><span class="pre">select()</span></tt></a>
+method first so that a subquery against a 
+<a class="reference internal" href="#sqlalchemy.sql.expression.Join.select" title="sqlalchemy.sql.expression.Join.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct is generated.
+the <tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt> construct also has the 
+<tt class="docutils literal"><span class="pre">correlate</span></tt> flag set to <tt class="xref docutils literal"><span class="pre">False</span></tt> and will not
+auto-correlate inside an enclosing <tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt>
+construct.</p>
+<p>The equivalent long-hand form, given a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> object
+<tt class="docutils literal"><span class="pre">j</span></tt>, is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">select</span><span class="p">,</span> <span class="n">alias</span>
+<span class="n">j</span> <span class="o">=</span> <span class="n">alias</span><span class="p">(</span>
+    <span class="n">select</span><span class="p">([</span><span class="n">j</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">j</span><span class="o">.</span><span class="n">right</span><span class="p">])</span><span class="o">.</span>\
+        <span class="n">select_from</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="o">.</span>\
+        <span class="n">with_labels</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span>\
+        <span class="n">correlate</span><span class="p">(</span><span class="bp">False</span><span class="p">),</span>
+    <span class="n">name</span>
+<span class="p">)</span></pre></div>
+</div>
+<p>See <a class="reference internal" href="#sqlalchemy.sql.expression.alias" title="sqlalchemy.sql.expression.alias"><tt class="xref py py-func docutils literal"><span class="pre">alias()</span></tt></a> for further details on 
+aliases.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Join.select">
 <tt class="descname">select</tt><big>(</big><em>whereclause=None</em>, <em>fold_equivalents=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Join.select" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> from this <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a>.</p>
+<p>The equivalent long-hand form, given a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> object
+<tt class="docutils literal"><span class="pre">j</span></tt>, is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">select</span>
+<span class="n">j</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">j</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">j</span><span class="o">.</span><span class="n">right</span><span class="p">],</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span><span class="o">.</span>\
+            <span class="n">where</span><span class="p">(</span><span class="n">whereclause</span><span class="p">)</span><span class="o">.</span>\
+            <span class="n">select_from</span><span class="p">(</span><span class="n">j</span><span class="p">)</span></pre></div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
