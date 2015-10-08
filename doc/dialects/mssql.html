@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-    Microsoft SQL Server
- &mdash; SQLAlchemy 0.6.7 Documentation</title>
+                Microsoft SQL Server
+             &mdash; SQLAlchemy 0.6.8 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.7',
+          VERSION:     '0.6.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,11 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="MySQL" href="mysql.html" />
         <link rel="prev" title="Microsoft Access" href="access.html" />
-    
 
     </head>
     <body>
@@ -39,52 +38,52 @@
 
 
 
+<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-        <h1>SQLAlchemy 0.6.7 Documentation</h1>
-
-        <div id="search">
-        Search:
-        <form class="search" action="../search.html" method="get">
-          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-          <input type="hidden" name="check_keywords" value="yes" />
-          <input type="hidden" name="area" value="default" />
-        </form>
-        </div>
-
-        <div class="versionheader">
-            Version: <span class="versionnum">0.6.7</span> Last Updated: 04/13/2011 20:06:58
-        </div>
-        <div class="clearboth"></div>
-
-        <div class="topnav">
-            <div id="pagecontrol">
-                <a href="../genindex.html">Index</a>
-
-                <div class="sourcelink">(<a href="../_sources/dialects/mssql.txt">view source)</div>
-            </div>
-
-            <div class="navbanner">
-                <a class="totoc" href="../index.html">Table of Contents</a>
-                        » <a href="index.html" title="Dialects">Dialects</a>
-                » 
-    Microsoft SQL Server
- 
-
-                
-<div class="prevnext">
-        Previous:
-        <a href="access.html" title="previous chapter">Microsoft Access</a>
-        Next:
-        <a href="mysql.html" title="next chapter">MySQL</a>
+<div id="search">
+Search:
+<form class="search" action="../search.html" method="get">
+  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
 </div>
 
-                <h2>
-                    
-    Microsoft SQL Server
- 
-                </h2>
-            </div>
-                <ul>
+<div class="versionheader">
+    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
+</div>
+<div class="clearboth"></div>
+
+<div id="topnav">
+    <div id="pagecontrol">
+        <ul>
+            <li>Prev:
+            <a href="access.html" title="previous chapter">Microsoft Access</a>
+            </li>
+            <li>Next:
+            <a href="mysql.html" title="next chapter">MySQL</a>
+            </li>
+
+        <li>
+            <a href="../contents.html">Table of Contents</a> |
+            <a href="../genindex.html">Index</a>
+            | <a href="../_sources/dialects/mssql.txt">view source
+        </li>
+        </ul>
+    </div>
+    <div id="navbanner">
+        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
+                » <a href="index.html" title="Dialects">Dialects</a>
+        » 
+                Microsoft SQL Server
+             
+
+        <h2>
+            
+                Microsoft SQL Server
+            
+        </h2>
+        <ul>
 <li><a class="reference internal" href="#">Microsoft SQL Server</a><ul>
 <li><a class="reference internal" href="#connecting">Connecting</a></li>
 <li><a class="reference internal" href="#auto-increment-behavior">Auto Increment Behavior</a></li>
@@ -121,12 +120,13 @@
 </li>
 </ul>
 
-            <div class="clearboth"></div>
-        </div>
+    </div>
+    <div class="clearboth"></div>
+</div>
 
-        <div class="document">
-            <div class="body">
-                
+<div class="document">
+    <div class="body">
+        
 <div class="section" id="module-sqlalchemy.dialects.mssql.base">
 <span id="microsoft-sql-server"></span><h1>Microsoft SQL Server<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.base" title="Permalink to this headline">¶</a></h1>
 <p>Support for the Microsoft SQL Server database.</p>
@@ -276,7 +276,7 @@ SQL Server 2005</li>
 <h2>SQL Server Data Types<a class="headerlink" href="#sql-server-data-types" title="Permalink to this headline">¶</a></h2>
 <p>As with all SQLAlchemy dialects, all UPPERCASE types that are known to be
 valid with SQL server are importable from the top level dialect, whether
-they originate from <a class="reference internal" href="../core/types.html#module-sqlalchemy.types"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.types</span></tt></a> or from the local dialect:</p>
+they originate from <a class="reference internal" href="../core/types.html#module-sqlalchemy.types" title="sqlalchemy.types"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.types</span></tt></a> or from the local dialect:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.dialects.mssql</span> <span class="kn">import</span> \
     <span class="n">BIGINT</span><span class="p">,</span> <span class="n">BINARY</span><span class="p">,</span> <span class="n">BIT</span><span class="p">,</span> <span class="n">CHAR</span><span class="p">,</span> <span class="n">DATE</span><span class="p">,</span> <span class="n">DATETIME</span><span class="p">,</span> <span class="n">DATETIME2</span><span class="p">,</span> \
     <span class="n">DATETIMEOFFSET</span><span class="p">,</span> <span class="n">DECIMAL</span><span class="p">,</span> <span class="n">FLOAT</span><span class="p">,</span> <span class="n">IMAGE</span><span class="p">,</span> <span class="n">INTEGER</span><span class="p">,</span> <span class="n">MONEY</span><span class="p">,</span> \
@@ -368,17 +368,14 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>length</strong> &#8211; optional, a length for the column for use in
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
 May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <em>length</em> for use in DDL, and will raise an exception when
-the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</li>
-</ul>
-</td>
+the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</td>
 </tr>
 </tbody>
 </table>
@@ -438,11 +435,8 @@ characters.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
-value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>collation</strong> &#8211; Optional, a column-level collation for this string
+value. Accepts a Windows Collation Name or a SQL Collation Name.</td>
 </tr>
 </tbody>
 </table>
@@ -535,11 +529,8 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
-value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>collation</strong> &#8211; Optional, a column-level collation for this string
+value. Accepts a Windows Collation Name or a SQL Collation Name.</td>
 </tr>
 </tbody>
 </table>
@@ -623,7 +614,7 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
 <p>Support for MS-SQL via pyodbc.</p>
 <p>pyodbc is available at:</p>
 <blockquote>
-<a class="reference external" href="http://pypi.python.org/pypi/pyodbc/">http://pypi.python.org/pypi/pyodbc/</a></blockquote>
+<div><a class="reference external" href="http://pypi.python.org/pypi/pyodbc/">http://pypi.python.org/pypi/pyodbc/</a></div></blockquote>
 <div class="section" id="id1">
 <h3>Connecting<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <p>Examples of pyodbc connection string URLs:</p>
@@ -692,7 +683,7 @@ the python shell. For example:</p>
 <p>Support for MS-SQL via mxODBC.</p>
 <p>mxODBC is available at:</p>
 <blockquote>
-<a class="reference external" href="http://www.egenix.com/">http://www.egenix.com/</a></blockquote>
+<div><a class="reference external" href="http://www.egenix.com/">http://www.egenix.com/</a></div></blockquote>
 <p>This was tested with mxODBC 3.1.2 and the SQL Server Native
 Client connected to MSSQL 2005 and 2008 Express Editions.</p>
 <div class="section" id="id2">
@@ -732,13 +723,13 @@ of <tt class="xref docutils literal"><span class="pre">False</span></tt> will un
 <p>This dialect supports pymssql 1.0 and greater.</p>
 <p>pymssql is available at:</p>
 <blockquote>
-<a class="reference external" href="http://pymssql.sourceforge.net/">http://pymssql.sourceforge.net/</a></blockquote>
+<div><a class="reference external" href="http://pymssql.sourceforge.net/">http://pymssql.sourceforge.net/</a></div></blockquote>
 <div class="section" id="id3">
 <h3>Connecting<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>Sample connect string:</p>
 <div class="highlight-python"><pre>mssql+pymssql://&lt;username&gt;:&lt;password&gt;@&lt;freetds_name&gt;</pre>
 </div>
-<p>Adding &#8220;?charset=utf8&#8221; or similar will cause pymssql to return
+<p>Adding &#8221;?charset=utf8&#8221; or similar will cause pymssql to return
 strings as Python unicode objects.   This can potentially improve 
 performance in some scenarios as decoding of strings is 
 handled natively.</p>
@@ -779,28 +770,20 @@ properties to the underlying JDBC driver.</p>
 </div>
 </div>
 
-            </div>
-        </div>
-
-        
-        
-            <div class="bottomnav">
-                
-<div class="prevnext">
-        Previous:
-        <a href="access.html" title="previous chapter">Microsoft Access</a>
-        Next:
-        <a href="mysql.html" title="next chapter">MySQL</a>
+    </div>
 </div>
 
-                <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
-                </div>
-            </div>
-        
 
-
+    <div class="bottomnav">
+            Previous:
+            <a href="access.html" title="previous chapter">Microsoft Access</a>
+            Next:
+            <a href="mysql.html" title="next chapter">MySQL</a>
+        <div class="doc_copyright">
+            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+        </div>
+    </div>
 
 
 

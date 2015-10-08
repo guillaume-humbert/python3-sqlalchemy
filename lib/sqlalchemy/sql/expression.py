@@ -757,20 +757,25 @@ def column(text, type_=None):
     """Return a textual column clause, as would be in the columns clause of a
     ``SELECT`` statement.
 
-    The object returned is an instance of
-    :class:`ColumnClause`, which represents the
-    "syntactical" portion of the schema-level
-    :class:`~sqlalchemy.schema.Column` object.
+    The object returned is an instance of :class:`.ColumnClause`, which
+    represents the "syntactical" portion of the schema-level
+    :class:`~sqlalchemy.schema.Column` object.  It is often used directly
+    within :func:`~.expression.select` constructs or with lightweight :func:`~.expression.table`
+    constructs.
+    
+    Note that the :func:`~.expression.column` function is not part of
+    the ``sqlalchemy`` namespace.  It must be imported from the ``sql`` package::
+    
+        from sqlalchemy.sql import table, column
 
-    text
-      the name of the column.  Quoting rules will be applied to the
-      clause like any other column name.  For textual column
-      constructs that are not to be quoted, use the
-      :func:`literal_column` function.
+    :param text: the name of the column.  Quoting rules will be applied 
+      to the clause like any other column name. For textual column constructs
+      that are not to be quoted, use the :func:`literal_column` function.
 
-    type\_
-      an optional :class:`~sqlalchemy.types.TypeEngine` object which will
-      provide result-set translation for this column.
+    :param type\_: an optional :class:`~sqlalchemy.types.TypeEngine` object 
+      which will provide result-set translation for this column.
+
+    See :class:`.ColumnClause` for further examples.
 
     """
     return ColumnClause(text, type_=type_)
@@ -785,14 +790,12 @@ def literal_column(text, type_=None):
     (such as, '+' means string concatenation or numerical addition based on
     the type).
 
-    text
-      the text of the expression; can be any SQL expression.  Quoting rules
-      will not be applied.  To specify a column-name expression which should
-      be subject to quoting rules, use the
-      :func:`column` function.
+    :param text: the text of the expression; can be any SQL expression.  
+      Quoting rules will not be applied. To specify a column-name expression
+      which should be subject to quoting rules, use the :func:`column`
+      function.
 
-    type\_
-      an optional :class:`~sqlalchemy.types.TypeEngine` object which will
+    :param type\_: an optional :class:`~sqlalchemy.types.TypeEngine` object which will
       provide result-set translation and additional expression semantics for
       this column. If left as None the type will be NullType.
 
@@ -800,11 +803,23 @@ def literal_column(text, type_=None):
     return ColumnClause(text, type_=type_, is_literal=True)
 
 def table(name, *columns):
-    """Return a :class:`TableClause` object.
+    """Represent a textual table clause.
 
-    This is a primitive version of the :class:`~sqlalchemy.schema.Table` object,
-    which is a subclass of this object.
-
+    The object returned is an instance of :class:`.TableClause`, which represents the
+    "syntactical" portion of the schema-level :class:`~.schema.Table` object. 
+    It may be used to construct lightweight table constructs. 
+    
+    Note that the :func:`~.expression.table` function is not part of
+    the ``sqlalchemy`` namespace.  It must be imported from the ``sql`` package::
+    
+        from sqlalchemy.sql import table, column
+    
+    :param name: Name of the table.
+    
+    :param columns: A collection of :func:`~.expression.column` constructs.
+    
+    See :class:`.TableClause` for further examples.
+    
     """
     return TableClause(name, *columns)
 
@@ -1035,6 +1050,15 @@ def _escape_for_generated(x):
         return x
     else:
         return x.replace('%', '%%')
+
+def _string_or_unprintable(element):
+    if isinstance(element, basestring):
+        return element
+    else:
+        try:
+            return str(element)
+        except:
+            return "unprintable element %r" % element
 
 def _clone(element):
     return element._clone()
@@ -3478,11 +3502,7 @@ class _Label(ColumnElement):
         return self.element._from_objects
 
     def _make_proxy(self, selectable, name = None):
-        if isinstance(self.element, (Selectable, ColumnElement)):
-            e = self.element._make_proxy(selectable, name=self.name)
-        else:
-            e = column(self.name)._make_proxy(selectable=selectable)
-
+        e = self.element._make_proxy(selectable, name=name or self.name)
         e.proxies.append(self)
         return e
 
@@ -3491,26 +3511,56 @@ class ColumnClause(_Immutable, ColumnElement):
 
     This includes columns associated with tables, aliases and select
     statements, but also any arbitrary text.  May or may not be bound
-    to an underlying :class:`Selectable`.  :class:`ColumnClause` is usually
-    created publically via the :func:`column()` function or the
-    :func:`literal_column()` function.
+    to an underlying :class:`.Selectable`.
+    
+    :class:`.ColumnClause` is constructed by itself typically via
+    the :func:`~.expression.column` function.  It may be placed directly
+    into constructs such as :func:`.select` constructs::
+    
+        from sqlalchemy.sql import column, select
+        
+        c1, c2 = column("c1"), column("c2")
+        s = select([c1, c2]).where(c1==5)
+    
+    There is also a variant on :func:`~.expression.column` known
+    as :func:`~.expression.literal_column` - the difference is that 
+    in the latter case, the string value is assumed to be an exact
+    expression, rather than a column name, so that no quoting rules
+    or similar are applied::
+    
+        from sqlalchemy.sql import literal_column, select
+        
+        s = select([literal_column("5 + 7")])
+    
+    :class:`.ColumnClause` can also be used in a table-like 
+    fashion by combining the :func:`~.expression.column` function 
+    with the :func:`~.expression.table` function, to produce
+    a "lightweight" form of table metadata::
+    
+        from sqlalchemy.sql import table, column
 
-    text
-      the text of the element.
+        user = table("user",
+                column("id"),
+                column("name"),
+                column("description"),
+        )
+    
+    The above construct can be created in an ad-hoc fashion and is
+    not associated with any :class:`.schema.MetaData`, unlike it's
+    more full fledged :class:`.schema.Table` counterpart.
 
-    selectable
-      parent selectable.
+    :param text: the text of the element.
 
-    type
-      ``TypeEngine`` object which can associate this :class:`ColumnClause`
-      with a type.
+    :param selectable: parent selectable.
 
-    is_literal
-      if True, the :class:`ColumnClause` is assumed to be an exact
-      expression that will be delivered to the output with no quoting
-      rules applied regardless of case sensitive settings.  the
+    :param type: :class:`.types.TypeEngine` object which can associate 
+      this :class:`.ColumnClause` with a type.
+
+    :param is_literal: if True, the :class:`.ColumnClause` is assumed to 
+      be an exact expression that will be delivered to the output with no
+      quoting rules applied regardless of case sensitive settings. the
       :func:`literal_column()` function is usually used to create such a
-      :class:`ColumnClause`.
+      :class:`.ColumnClause`.
 
     """
     __visit_name__ = 'column'
@@ -3561,6 +3611,12 @@ class ColumnClause(_Immutable, ColumnElement):
             return self.name
 
     def label(self, name):
+        # currently, anonymous labels don't occur for 
+        # ColumnClause.   The use at the moment
+        # is that they do not generate nicely for 
+        # is_literal clauses.   We would like to change
+        # this so that label(None) acts as would be expected.
+        # See [ticket:2168].
         if name is None:
             return self
         else:
@@ -3595,11 +3651,32 @@ class ColumnClause(_Immutable, ColumnElement):
         return c
 
 class TableClause(_Immutable, FromClause):
-    """Represents a "table" construct.
-
-    Note that this represents tables only as another syntactical
-    construct within SQL expressions; it does not provide schema-level
-    functionality.
+    """Represents a minimal "table" construct.
+    
+    The constructor for :class:`.TableClause` is the
+    :func:`~.expression.table` function.   This produces 
+    a lightweight table object that has only a name and a 
+    collection of columns, which are typically produced
+    by the :func:`~.expression.column` function::
+    
+        from sqlalchemy.sql import table, column
+        
+        user = table("user",
+                column("id"),
+                column("name"),
+                column("description"),
+        )
+        
+    The :class:`.TableClause` construct serves as the base for
+    the more commonly used :class:`~.schema.Table` object, providing
+    the usual set of :class:`~.expression.FromClause` services including
+    the ``.c.`` collection and statement generation methods.
+    
+    It does **not** provide all the additional schema-level services
+    of :class:`~.schema.Table`, including constraints, references to other 
+    tables, or support for :class:`.MetaData`-level services.  It's useful
+    on its own as an ad-hoc construct used to generate quick SQL
+    statements when a more fully fledged :class:`~.schema.Table` is not on hand.
 
     """
 

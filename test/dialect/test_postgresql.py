@@ -289,7 +289,7 @@ class FloatCoercionTest(TablesTest, AssertsExecutionResults):
             Column('q', postgresql.ARRAY(Numeric))
         )
         metadata.create_all()
-        t1.insert().execute(x=[5], y=[5], z=[6], q=[6.4])
+        t1.insert().execute(x=[5], y=[5], z=[6], q=[decimal.Decimal("6.4")])
         row = t1.select().execute().first()
         eq_(
             row, 
@@ -1214,6 +1214,33 @@ class MiscTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
             'SELECT DISTINCT ON (mytable.id, mytable.a) mytable.id, '
             'mytable.a \nFROM mytable')
 
+    @testing.fails_if(lambda: True, "[ticket:2142]")
+    def test_distinct_on_subquery(self):
+        t1 = Table('mytable1', MetaData(testing.db), Column('id',
+                  Integer, primary_key=True), Column('a', String(8)))
+        t2 = Table('mytable2', MetaData(testing.db), Column('id',
+                  Integer, primary_key=True), Column('a', String(8)))
+
+        sq = select([t1]).alias()
+        q = select([t2.c.id,sq.c.id], distinct=sq.c.id).where(t2.c.id==sq.c.id)
+        self.assert_compile(
+            q,
+            "SELECT DISTINCT ON (anon_1.id) mytable2.id, anon_1.id "
+            "FROM mytable2, (SELECT mytable1.id AS id, mytable1.a AS a "
+            "FROM mytable1) AS anon_1 "
+            "WHERE mytable2.id = anon_1.id"
+            )
+
+        sq = select([t1]).alias('sq')
+        q = select([t2.c.id,sq.c.id], distinct=sq.c.id).where(t2.c.id==sq.c.id)
+        self.assert_compile(
+            q,
+            "SELECT DISTINCT ON (sq.id) mytable2.id, sq.id "
+            "FROM mytable2, (SELECT mytable1.id AS id, mytable1.a AS a "
+            "FROM mytable1) AS sq "
+            "WHERE mytable2.id = sq.id"
+            )
+
     def test_schema_reflection(self):
         """note: this test requires that the 'test_schema' schema be
         separate and accessible by the test user"""
@@ -1393,6 +1420,27 @@ class MiscTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
         finally:
             warnings.warn = capture_warnings._orig_showwarning
             m1.drop_all()
+
+    @testing.provide_metadata
+    def test_index_reflection_modified(self):
+        """reflect indexes when a column name has changed - PG 9 
+        does not update the name of the column in the index def.
+        [ticket:2141]
+
+        """
+
+        t1 = Table('t', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('x', Integer)
+        )
+        metadata.create_all()
+        conn = testing.db.connect().execution_options(autocommit=True)
+        conn.execute("CREATE INDEX idx1 ON t (x)")
+        conn.execute("ALTER TABLE t RENAME COLUMN x to y")
+
+        ind = testing.db.dialect.get_indexes(conn, "t", None)
+        eq_(ind, [{'unique': False, 'column_names': [u'y'], 'name': u'idx1'}])
+        conn.close()
 
     @testing.fails_on('postgresql+pypostgresql',
                       'pypostgresql bombs on multiple calls')
@@ -1717,8 +1765,6 @@ class ArrayTest(TestBase, AssertsExecutionResults):
             set(row[1] for row in r),
             set([('1', '2', '3'), ('4', '5', '6'), (('4', '5'), ('6', '7'))])
         )
-
-
 
 class TimestampTest(TestBase, AssertsExecutionResults):
     __only_on__ = 'postgresql'
@@ -2083,12 +2129,14 @@ class MatchTest(TestBase, AssertsCompiledSQL):
                 )).execute().fetchall()
         eq_([3], [r.id for r in results])
 
+    @testing.requires.english_locale_on_postgresql
     def test_simple_derivative_match(self):
         results = \
             matchtable.select().where(matchtable.c.title.match('nutshells'
                 )).execute().fetchall()
         eq_([5], [r.id for r in results])
 
+    @testing.requires.english_locale_on_postgresql
     def test_or_match(self):
         results1 = \
             matchtable.select().where(or_(matchtable.c.title.match('nutshells'
@@ -2101,6 +2149,7 @@ class MatchTest(TestBase, AssertsCompiledSQL):
                 )).order_by(matchtable.c.id).execute().fetchall()
         eq_([3, 5], [r.id for r in results2])
 
+    @testing.requires.english_locale_on_postgresql
     def test_and_match(self):
         results1 = \
             matchtable.select().where(and_(matchtable.c.title.match('python'
@@ -2113,6 +2162,7 @@ class MatchTest(TestBase, AssertsCompiledSQL):
                 )).execute().fetchall()
         eq_([5], [r.id for r in results2])
 
+    @testing.requires.english_locale_on_postgresql
     def test_match_across_joins(self):
         results = matchtable.select().where(and_(cattable.c.id
                 == matchtable.c.category_id,

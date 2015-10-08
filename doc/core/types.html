@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-    Column and Data Types
- &mdash; SQLAlchemy 0.6.7 Documentation</title>
+                Column and Data Types
+             &mdash; SQLAlchemy 0.6.8 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.7',
+          VERSION:     '0.6.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,11 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Core Event Interfaces" href="interfaces.html" />
         <link rel="prev" title="Schema Definition Language" href="schema.html" />
-    
 
     </head>
     <body>
@@ -39,52 +38,52 @@
 
 
 
+<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-        <h1>SQLAlchemy 0.6.7 Documentation</h1>
-
-        <div id="search">
-        Search:
-        <form class="search" action="../search.html" method="get">
-          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-          <input type="hidden" name="check_keywords" value="yes" />
-          <input type="hidden" name="area" value="default" />
-        </form>
-        </div>
-
-        <div class="versionheader">
-            Version: <span class="versionnum">0.6.7</span> Last Updated: 04/13/2011 20:06:58
-        </div>
-        <div class="clearboth"></div>
-
-        <div class="topnav">
-            <div id="pagecontrol">
-                <a href="../genindex.html">Index</a>
-
-                <div class="sourcelink">(<a href="../_sources/core/types.txt">view source)</div>
-            </div>
-
-            <div class="navbanner">
-                <a class="totoc" href="../index.html">Table of Contents</a>
-                        » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
-                » 
-    Column and Data Types
- 
-
-                
-<div class="prevnext">
-        Previous:
-        <a href="schema.html" title="previous chapter">Schema Definition Language</a>
-        Next:
-        <a href="interfaces.html" title="next chapter">Core Event Interfaces</a>
+<div id="search">
+Search:
+<form class="search" action="../search.html" method="get">
+  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
 </div>
 
-                <h2>
-                    
-    Column and Data Types
- 
-                </h2>
-            </div>
-                <ul>
+<div class="versionheader">
+    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
+</div>
+<div class="clearboth"></div>
+
+<div id="topnav">
+    <div id="pagecontrol">
+        <ul>
+            <li>Prev:
+            <a href="schema.html" title="previous chapter">Schema Definition Language</a>
+            </li>
+            <li>Next:
+            <a href="interfaces.html" title="next chapter">Core Event Interfaces</a>
+            </li>
+
+        <li>
+            <a href="../contents.html">Table of Contents</a> |
+            <a href="../genindex.html">Index</a>
+            | <a href="../_sources/core/types.txt">view source
+        </li>
+        </ul>
+    </div>
+    <div id="navbanner">
+        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
+                » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
+        » 
+                Column and Data Types
+             
+
+        <h2>
+            
+                Column and Data Types
+            
+        </h2>
+        <ul>
 <li><a class="reference internal" href="#">Column and Data Types</a><ul>
 <li><a class="reference internal" href="#generic-types">Generic Types</a></li>
 <li><a class="reference internal" href="#sql-standard-types">SQL Standard Types</a></li>
@@ -105,12 +104,13 @@
 </li>
 </ul>
 
-            <div class="clearboth"></div>
-        </div>
+    </div>
+    <div class="clearboth"></div>
+</div>
 
-        <div class="document">
-            <div class="body">
-                
+<div class="document">
+    <div class="body">
+        
 <div class="section" id="module-sqlalchemy.types">
 <span id="column-and-data-types"></span><span id="types-toplevel"></span><h1>Column and Data Types<a class="headerlink" href="#module-sqlalchemy.types" title="Permalink to this headline">¶</a></h1>
 <p>SQLAlchemy provides abstractions for most common database data types,
@@ -131,12 +131,12 @@ Functions that accept a type (such as <tt class="xref py py-func docutils litera
 typically accept a type class or instance; <tt class="docutils literal"><span class="pre">Integer</span></tt> is equivalent
 to <tt class="docutils literal"><span class="pre">Integer()</span></tt> with no construction arguments in this case.</p>
 <div class="section" id="generic-types">
-<h2>Generic Types<a class="headerlink" href="#generic-types" title="Permalink to this headline">¶</a></h2>
+<span id="types-generic"></span><h2>Generic Types<a class="headerlink" href="#generic-types" title="Permalink to this headline">¶</a></h2>
 <p>Generic types specify a column that can read, write and store a
 particular type of Python data.  SQLAlchemy will choose the best
 database column type available on the target database when issuing a
 <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statement.  For complete control over which column
-type is emitted in <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>, such as <tt class="docutils literal"><span class="pre">VARCHAR</span></tt> see <a class="reference external" href="#sql-standard-types">SQL
+type is emitted in <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>, such as <tt class="docutils literal"><span class="pre">VARCHAR</span></tt> see <a class="reference internal" href="#sql-standard-types">SQL
 Standard Types</a> and the other sections of this chapter.</p>
 <dl class="class">
 <dt id="sqlalchemy.types.BigInteger">
@@ -362,17 +362,14 @@ provided by each DB-API.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>length</strong> &#8211; optional, a length for the column for use in
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
 May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <em>length</em> for use in DDL, and will raise an exception when
-the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</li>
-</ul>
-</td>
+the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</td>
 </tr>
 </tbody>
 </table>
@@ -695,15 +692,12 @@ unicode-capable type being used on the backend, such as NCLOB.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>length</strong> &#8211; optional, a length for the column for use in
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <em>length</em> for use in DDL, and will raise an exception when
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.  Whether the value is
-interpreted as bytes or characters is database specific.</li>
-</ul>
-</td>
+interpreted as bytes or characters is database specific.</td>
 </tr>
 </tbody>
 </table>
@@ -713,7 +707,7 @@ interpreted as bytes or characters is database specific.</li>
 
 </div>
 <div class="section" id="sql-standard-types">
-<h2>SQL Standard Types<a class="headerlink" href="#sql-standard-types" title="Permalink to this headline">¶</a></h2>
+<span id="types-sqlstandard"></span><h2>SQL Standard Types<a class="headerlink" href="#sql-standard-types" title="Permalink to this headline">¶</a></h2>
 <p>The SQL standard types always create database column types of the same
 name when <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> is issued.  Some types may not be supported
 on all databases.</p>
@@ -866,7 +860,7 @@ on all databases.</p>
 
 </div>
 <div class="section" id="vendor-specific-types">
-<h2>Vendor-Specific Types<a class="headerlink" href="#vendor-specific-types" title="Permalink to this headline">¶</a></h2>
+<span id="types-vendor"></span><h2>Vendor-Specific Types<a class="headerlink" href="#vendor-specific-types" title="Permalink to this headline">¶</a></h2>
 <p>Database-specific types are also available for import from each
 database&#8217;s dialect module. See the <em class="xref std std-ref">sqlalchemy.dialects_toplevel</em>
 reference for the database you&#8217;re interested in.</p>
@@ -914,7 +908,7 @@ such as <cite>collation</cite> and <cite>charset</cite>:</p>
 </div>
 </div>
 <div class="section" id="custom-types">
-<h2>Custom Types<a class="headerlink" href="#custom-types" title="Permalink to this headline">¶</a></h2>
+<span id="types-custom"></span><h2>Custom Types<a class="headerlink" href="#custom-types" title="Permalink to this headline">¶</a></h2>
 <p>A variety of methods exist to redefine the behavior of existing types
 as well as to provide new ones.</p>
 <div class="section" id="overriding-type-compilation">
@@ -1096,10 +1090,7 @@ to produce a string result.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dialect</strong> &#8211; a <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> instance.</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dialect</strong> &#8211; a <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> instance.</td>
 </tr>
 </tbody>
 </table>
@@ -1443,10 +1434,7 @@ to produce a string result.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dialect</strong> &#8211; a <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> instance.</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dialect</strong> &#8211; a <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> instance.</td>
 </tr>
 </tbody>
 </table>
@@ -1469,7 +1457,7 @@ to produce a string result.</p>
 <dd><p>Return the corresponding type object from the underlying DB-API, if
 any.</p>
 <blockquote>
-This can be useful for calling <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt>, for example.</blockquote>
+<div>This can be useful for calling <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt>, for example.</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -1501,7 +1489,7 @@ to return to the user.</p>
 </div>
 </div>
 <div class="section" id="base-type-api">
-<h2>Base Type API<a class="headerlink" href="#base-type-api" title="Permalink to this headline">¶</a></h2>
+<span id="types-api"></span><h2>Base Type API<a class="headerlink" href="#base-type-api" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sqlalchemy.types.AbstractType">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">AbstractType</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.AbstractType" title="Permalink to this definition">¶</a></dt>
@@ -1519,10 +1507,7 @@ to return to the user.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dialect</strong> &#8211; Dialect instance in use.</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dialect</strong> &#8211; Dialect instance in use.</td>
 </tr>
 </tbody>
 </table>
@@ -1544,10 +1529,7 @@ to produce a string result.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dialect</strong> &#8211; a <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> instance.</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dialect</strong> &#8211; a <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> instance.</td>
 </tr>
 </tbody>
 </table>
@@ -1564,7 +1546,7 @@ to produce a string result.</p>
 <dd><p>Return the corresponding type object from the underlying DB-API, if
 any.</p>
 <blockquote>
-This can be useful for calling <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt>, for example.</blockquote>
+<div>This can be useful for calling <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt>, for example.</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -1642,10 +1624,7 @@ to produce a string result.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dialect</strong> &#8211; a <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> instance.</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dialect</strong> &#8211; a <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> instance.</td>
 </tr>
 </tbody>
 </table>
@@ -1668,7 +1647,7 @@ to produce a string result.</p>
 <dd><p>Return the corresponding type object from the underlying DB-API, if
 any.</p>
 <blockquote>
-This can be useful for calling <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt>, for example.</blockquote>
+<div>This can be useful for calling <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt>, for example.</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -1817,28 +1796,20 @@ encountered during a <tt class="xref py py-meth docutils literal"><span class="p
 </div>
 </div>
 
-            </div>
-        </div>
-
-        
-        
-            <div class="bottomnav">
-                
-<div class="prevnext">
-        Previous:
-        <a href="schema.html" title="previous chapter">Schema Definition Language</a>
-        Next:
-        <a href="interfaces.html" title="next chapter">Core Event Interfaces</a>
+    </div>
 </div>
 
-                <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
-                </div>
-            </div>
-        
 
-
+    <div class="bottomnav">
+            Previous:
+            <a href="schema.html" title="previous chapter">Schema Definition Language</a>
+            Next:
+            <a href="interfaces.html" title="next chapter">Core Event Interfaces</a>
+        <div class="doc_copyright">
+            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+        </div>
+    </div>
 
 
 

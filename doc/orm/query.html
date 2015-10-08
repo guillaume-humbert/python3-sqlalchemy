@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-    Querying
- &mdash; SQLAlchemy 0.6.7 Documentation</title>
+                Querying
+             &mdash; SQLAlchemy 0.6.8 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.7',
+          VERSION:     '0.6.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,11 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Relationship Loading Techniques" href="loading.html" />
         <link rel="prev" title="Using the Session" href="session.html" />
-    
 
     </head>
     <body>
@@ -39,52 +38,52 @@
 
 
 
+<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-        <h1>SQLAlchemy 0.6.7 Documentation</h1>
-
-        <div id="search">
-        Search:
-        <form class="search" action="../search.html" method="get">
-          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-          <input type="hidden" name="check_keywords" value="yes" />
-          <input type="hidden" name="area" value="default" />
-        </form>
-        </div>
-
-        <div class="versionheader">
-            Version: <span class="versionnum">0.6.7</span> Last Updated: 04/13/2011 20:06:58
-        </div>
-        <div class="clearboth"></div>
-
-        <div class="topnav">
-            <div id="pagecontrol">
-                <a href="../genindex.html">Index</a>
-
-                <div class="sourcelink">(<a href="../_sources/orm/query.txt">view source)</div>
-            </div>
-
-            <div class="navbanner">
-                <a class="totoc" href="../index.html">Table of Contents</a>
-                        » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-                » 
-    Querying
- 
-
-                
-<div class="prevnext">
-        Previous:
-        <a href="session.html" title="previous chapter">Using the Session</a>
-        Next:
-        <a href="loading.html" title="next chapter">Relationship Loading Techniques</a>
+<div id="search">
+Search:
+<form class="search" action="../search.html" method="get">
+  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
 </div>
 
-                <h2>
-                    
-    Querying
- 
-                </h2>
-            </div>
-                <ul>
+<div class="versionheader">
+    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
+</div>
+<div class="clearboth"></div>
+
+<div id="topnav">
+    <div id="pagecontrol">
+        <ul>
+            <li>Prev:
+            <a href="session.html" title="previous chapter">Using the Session</a>
+            </li>
+            <li>Next:
+            <a href="loading.html" title="next chapter">Relationship Loading Techniques</a>
+            </li>
+
+        <li>
+            <a href="../contents.html">Table of Contents</a> |
+            <a href="../genindex.html">Index</a>
+            | <a href="../_sources/orm/query.txt">view source
+        </li>
+        </ul>
+    </div>
+    <div id="navbanner">
+        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
+                » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
+        » 
+                Querying
+             
+
+        <h2>
+            
+                Querying
+            
+        </h2>
+        <ul>
 <li><a class="reference internal" href="#">Querying</a><ul>
 <li><a class="reference internal" href="#the-query-object">The Query Object</a></li>
 <li><a class="reference internal" href="#orm-specific-query-constructs">ORM-Specific Query Constructs</a></li>
@@ -92,12 +91,13 @@
 </li>
 </ul>
 
-            <div class="clearboth"></div>
-        </div>
+    </div>
+    <div class="clearboth"></div>
+</div>
 
-        <div class="document">
-            <div class="body">
-                
+<div class="document">
+    <div class="body">
+        
 <div class="section" id="querying">
 <span id="query-api-toplevel"></span><h1>Querying<a class="headerlink" href="#querying" title="Permalink to this headline">¶</a></h1>
 <p>This section provides API documentation for the <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object and related constructs.</p>
@@ -216,7 +216,7 @@ returned by this <tt class="xref py py-class docutils literal"><span class="pre"
 <dd><p>Return a <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> construct which will correlate the given
 FROM clauses to that of an enclosing <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> or
 <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>.</p>
-<p>The method here accepts mapped classes, <a class="reference internal" href="#sqlalchemy.orm.aliased" title="sqlalchemy.orm.aliased"><tt class="xref py py-func docutils literal"><span class="pre">aliased()</span></tt></a> constructs,
+<p>The method here accepts mapped classes, <tt class="xref py py-func docutils literal"><span class="pre">aliased()</span></tt> constructs,
 and <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> constructs as arguments, which are resolved into
 expression constructs, in addition to appropriate expression
 constructs.</p>
@@ -258,8 +258,7 @@ for an example.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>synchronize_session</strong> &#8211; <p>chooses the strategy for the removal of
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>synchronize_session</strong> &#8211; <p>chooses the strategy for the removal of
 matched objects from the session. Valid values are:</p>
 <p>False - don&#8217;t synchronize the session. This option is the most
 efficient and is reliable once the session is expired, which
@@ -278,8 +277,6 @@ implemented, an error is raised.  In that case you probably
 want to use the &#8216;fetch&#8217; strategy as a fallback.</p>
 <p>The expression evaluator currently doesn&#8217;t account for differing
 string collations between the database and Python.</p>
-</li>
-</ul>
 </td>
 </tr>
 </tbody>
@@ -417,9 +414,19 @@ appropriate to the entity class represented by this <tt class="docutils literal"
 <dt id="sqlalchemy.orm.query.Query.get">
 <tt class="descname">get</tt><big>(</big><em>ident</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an instance of the object based on the 
-given identifier, or None if not found.</p>
-<p>The <cite>ident</cite> argument is a scalar or tuple of primary key column values
-in the order of the table def&#8217;s primary key columns.</p>
+given identifier, or <tt class="xref docutils literal"><span class="pre">None</span></tt> if not found.</p>
+<p>The <tt class="docutils literal"><span class="pre">ident</span></tt> argument is a scalar or tuple of 
+primary key column values
+in the order of the mapper&#8217;s &#8220;primary key&#8221; setting, which
+defaults to the list of primary key columns for the 
+mapped <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</p>
+<p><tt class="xref py py-meth docutils literal"><span class="pre">get()</span></tt> returns only a single mapped instance, or
+<tt class="xref docutils literal"><span class="pre">None</span></tt>.  It is not intended to return rows or scalar
+column values, therefore the <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> must be 
+constructed only against a single mapper or mapped class,
+not a SQL expression or multiple entities.
+Other usages raise an error, or in the case of a single
+column a deprecation warning is raised as of 0.6.8.</p>
 </dd></dl>
 
 <dl class="method">
@@ -471,7 +478,7 @@ that method for usage examples.</p>
 and apply generatively, returning the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
 <p>Each element in *props may be:</p>
 <blockquote>
-<ul class="simple">
+<div><ul class="simple">
 <li>a string property name, i.e. &#8220;rooms&#8221;.  This will join along the
 relationship of the same name from this Query&#8217;s &#8220;primary&#8221; mapper,
 if one is present.</li>
@@ -481,7 +488,7 @@ join from &#8220;Houses&#8221; table to that of the &#8220;rooms&#8221; relation
 clause.  The ON clause can be the property name/ attribute like
 above, or a SQL expression.</li>
 </ul>
-</blockquote>
+</div></blockquote>
 <p>e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># join along string attribute names</span>
 <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&#39;employees&#39;</span><span class="p">)</span>
@@ -517,14 +524,14 @@ above, or a SQL expression.</li>
 </div>
 <p>**kwargs include:</p>
 <blockquote>
-<p>aliased - when joining, create anonymous aliases of each table.
+<div><p>aliased - when joining, create anonymous aliases of each table.
 This is used for self-referential joins or multiple joins to the
 same table. Consider usage of the aliased(SomeClass) construct as
 a more explicit approach to this.</p>
 <p>from_joinpoint - when joins are specified using string property
 names, locate the property from the mapper found in the most
 recent previous join() call, instead of from the root entity.</p>
-</blockquote>
+</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -714,13 +721,10 @@ applied to the list of selected columns unless the
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> &#8211; string name to be assigned as the alias; 
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; string name to be assigned as the alias; 
 this is passed through to <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.FromClause.alias" title="sqlalchemy.sql.expression.FromClause.alias"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.alias()</span></tt></a>.
 If <tt class="xref docutils literal"><span class="pre">None</span></tt>, a name will be deterministically generated
-at compile time.</li>
-</ul>
-</td>
+at compile time.</td>
 </tr>
 </tbody>
 </table>
@@ -1049,28 +1053,20 @@ parent/child relationship.</li>
 </div>
 </div>
 
-            </div>
-        </div>
-
-        
-        
-            <div class="bottomnav">
-                
-<div class="prevnext">
-        Previous:
-        <a href="session.html" title="previous chapter">Using the Session</a>
-        Next:
-        <a href="loading.html" title="next chapter">Relationship Loading Techniques</a>
+    </div>
 </div>
 
-                <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
-                </div>
-            </div>
-        
 
-
+    <div class="bottomnav">
+            Previous:
+            <a href="session.html" title="previous chapter">Using the Session</a>
+            Next:
+            <a href="loading.html" title="next chapter">Relationship Loading Techniques</a>
+        <div class="doc_copyright">
+            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+        </div>
+    </div>
 
 
 

@@ -3,6 +3,108 @@
 =======
 CHANGES
 =======
+0.6.8
+=====
+- orm
+  - Calling query.get() against a column-based entity is
+    invalid, this condition now raises a deprecation warning.
+    [ticket:2144]
+
+  - a non_primary mapper will inherit the _identity_class
+    of the primary mapper.  This so that a non_primary
+    established against a class that's normally in an
+    inheritance mapping will produce results that are 
+    identity-map compatible with that of the primary
+    mapper [ticket:2151]
+
+  - Backported 0.7's identity map implementation, which
+    does not use a mutex around removal.  This as some users 
+    were still getting deadlocks despite the adjustments
+    in 0.6.7; the 0.7 approach that doesn't use a mutex
+    does not appear to produce "dictionary changed size"
+    issues, the original rationale for the mutex.  
+    [ticket:2148]
+
+  - Fixed the error message emitted for "can't
+    execute syncrule for destination column 'q';
+    mapper 'X' does not map this column" to 
+    reference the correct mapper.  [ticket:2163].
+
+  - Fixed bug where determination of "self referential"
+    relationship would fail with no workaround
+    for joined-inh subclass related to itself,
+    or joined-inh subclass related to a subclass
+    of that with no cols in the sub-sub class 
+    in the join condition.  [ticket:2149]
+
+  - mapper() will ignore non-configured foreign keys
+    to unrelated tables when determining inherit
+    condition between parent and child class.
+    This is equivalent to behavior already 
+    applied to declarative.  Note that 0.7 has a 
+    more comprehensive solution to this, altering
+    how join() itself determines an FK error.
+    [ticket:2153]
+
+  - Fixed bug whereby mapper mapped to an anonymous
+    alias would fail if logging were used, due to 
+    unescaped % sign in the alias name.  [ticket:2171]
+
+  - Modify the text of the message which occurs
+    when the "identity" key isn't detected on 
+    flush, to include the common cause that
+    the Column isn't set up to detect
+    auto-increment correctly; [ticket:2170].
+
+  - Fixed bug where transaction-level "deleted"
+    collection wouldn't be cleared of expunged
+    states, raising an error if they later
+    became transient [ticket:2182]. 
+
+- sql
+  - Fixed bug whereby if FetchedValue was passed
+    to column server_onupdate, it would not
+    have its parent "column" assigned, added
+    test coverage for all column default assignment
+    patterns.  [ticket:2147]
+
+  - Fixed bug whereby nesting a label of a select()
+    with another label in it would produce incorrect
+    exported columns.   Among other things this would
+    break an ORM column_property() mapping against
+    another column_property().  [ticket:2167].
+
+- engine
+  - Adjusted the __contains__() method of 
+    a RowProxy result row such that no exception
+    throw is generated internally;  
+    NoSuchColumnError() also will generate its 
+    message regardless of whether or not the column 
+    construct can be coerced to a string.  
+    [ticket:2178].
+
+- postgresql
+
+  - Fixed bug affecting PG 9 whereby index reflection
+    would fail if against a column whose name
+    had changed.  [ticket:2141].
+
+  - Some unit test fixes regarding numeric arrays, 
+    MATCH operator.   A potential floating-point
+    inaccuracy issue was fixed, and certain tests 
+    of the MATCH operator only execute within an 
+    EN-oriented locale for now.  [ticket:2175].  
+
+- mssql
+  - Fixed bug in MSSQL dialect whereby the aliasing
+    applied to a schema-qualified table would leak
+    into enclosing select statements [ticket:2169].
+
+  - Fixed bug whereby DATETIME2 type would fail on
+    the "adapt" step when used in result sets or 
+    bound parameters.  This issue is not in 0.7.
+    [ticket:2159]
+
 0.6.7
 =====
 - orm

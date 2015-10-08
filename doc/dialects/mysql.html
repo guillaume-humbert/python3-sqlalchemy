@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-    MySQL
- &mdash; SQLAlchemy 0.6.7 Documentation</title>
+                MySQL
+             &mdash; SQLAlchemy 0.6.8 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.7',
+          VERSION:     '0.6.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,11 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="Oracle" href="oracle.html" />
         <link rel="prev" title="Microsoft SQL Server" href="mssql.html" />
-    
 
     </head>
     <body>
@@ -39,52 +38,52 @@
 
 
 
+<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-        <h1>SQLAlchemy 0.6.7 Documentation</h1>
-
-        <div id="search">
-        Search:
-        <form class="search" action="../search.html" method="get">
-          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-          <input type="hidden" name="check_keywords" value="yes" />
-          <input type="hidden" name="area" value="default" />
-        </form>
-        </div>
-
-        <div class="versionheader">
-            Version: <span class="versionnum">0.6.7</span> Last Updated: 04/13/2011 20:06:58
-        </div>
-        <div class="clearboth"></div>
-
-        <div class="topnav">
-            <div id="pagecontrol">
-                <a href="../genindex.html">Index</a>
-
-                <div class="sourcelink">(<a href="../_sources/dialects/mysql.txt">view source)</div>
-            </div>
-
-            <div class="navbanner">
-                <a class="totoc" href="../index.html">Table of Contents</a>
-                        » <a href="index.html" title="Dialects">Dialects</a>
-                » 
-    MySQL
- 
-
-                
-<div class="prevnext">
-        Previous:
-        <a href="mssql.html" title="previous chapter">Microsoft SQL Server</a>
-        Next:
-        <a href="oracle.html" title="next chapter">Oracle</a>
+<div id="search">
+Search:
+<form class="search" action="../search.html" method="get">
+  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
 </div>
 
-                <h2>
-                    
-    MySQL
- 
-                </h2>
-            </div>
-                <ul>
+<div class="versionheader">
+    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
+</div>
+<div class="clearboth"></div>
+
+<div id="topnav">
+    <div id="pagecontrol">
+        <ul>
+            <li>Prev:
+            <a href="mssql.html" title="previous chapter">Microsoft SQL Server</a>
+            </li>
+            <li>Next:
+            <a href="oracle.html" title="next chapter">Oracle</a>
+            </li>
+
+        <li>
+            <a href="../contents.html">Table of Contents</a> |
+            <a href="../genindex.html">Index</a>
+            | <a href="../_sources/dialects/mysql.txt">view source
+        </li>
+        </ul>
+    </div>
+    <div id="navbanner">
+        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
+                » <a href="index.html" title="Dialects">Dialects</a>
+        » 
+                MySQL
+             
+
+        <h2>
+            
+                MySQL
+            
+        </h2>
+        <ul>
 <li><a class="reference internal" href="#">MySQL</a><ul>
 <li><a class="reference internal" href="#supported-versions-and-features">Supported Versions and Features</a></li>
 <li><a class="reference internal" href="#connecting">Connecting</a></li>
@@ -125,12 +124,13 @@
 </li>
 </ul>
 
-            <div class="clearboth"></div>
-        </div>
+    </div>
+    <div class="clearboth"></div>
+</div>
 
-        <div class="document">
-            <div class="body">
-                
+<div class="document">
+    <div class="body">
+        
 <div class="section" id="module-sqlalchemy.dialects.mysql.base">
 <span id="mysql"></span><h1>MySQL<a class="headerlink" href="#module-sqlalchemy.dialects.mysql.base" title="Permalink to this headline">¶</a></h1>
 <p>Support for the MySQL database.</p>
@@ -363,10 +363,7 @@ type.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>length</strong> &#8211; Optional, number of bits.</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; Optional, number of bits.</td>
 </tr>
 </tbody>
 </table>
@@ -387,17 +384,14 @@ type.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>length</strong> &#8211; optional, a length for the column for use in
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
 May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <em>length</em> for use in DDL, and will raise an exception when
-the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</li>
-</ul>
-</td>
+the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</td>
 </tr>
 </tbody>
 </table>
@@ -559,7 +553,7 @@ numeric.</li>
 <dd><p>Construct an ENUM.</p>
 <p>Example:</p>
 <blockquote>
-Column(&#8216;myenum&#8217;, MSEnum(&#8220;foo&#8221;, &#8220;bar&#8221;, &#8220;baz&#8221;))</blockquote>
+<div>Column(&#8216;myenum&#8217;, MSEnum(&#8220;foo&#8221;, &#8220;bar&#8221;, &#8220;baz&#8221;))</div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1200,7 +1194,7 @@ only the collation of character data.</li>
 <p>Support for the MySQL database via the MySQL-python adapter.</p>
 <p>MySQL-Python is available at:</p>
 <blockquote>
-<a class="reference external" href="http://sourceforge.net/projects/mysql-python">http://sourceforge.net/projects/mysql-python</a></blockquote>
+<div><a class="reference external" href="http://sourceforge.net/projects/mysql-python">http://sourceforge.net/projects/mysql-python</a></div></blockquote>
 <p>At least version 1.2.1 or 1.2.2 should be used.</p>
 <div class="section" id="id1">
 <h3>Connecting<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
@@ -1240,7 +1234,7 @@ The recommended connection form with SQLAlchemy is:</p>
 <p>Support for the MySQL database via the oursql adapter.</p>
 <p>OurSQL is available at:</p>
 <blockquote>
-<a class="reference external" href="http://packages.python.org/oursql/">http://packages.python.org/oursql/</a></blockquote>
+<div><a class="reference external" href="http://packages.python.org/oursql/">http://packages.python.org/oursql/</a></div></blockquote>
 <div class="section" id="id2">
 <h3>Connecting<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <p>Connect string format:</p>
@@ -1271,7 +1265,7 @@ defaults to, there is a separate parameter:</p>
 <p>Support for the MySQL database via the MySQL Connector/Python adapter.</p>
 <p>MySQL Connector/Python is available at:</p>
 <blockquote>
-<a class="reference external" href="https://launchpad.net/myconnpy">https://launchpad.net/myconnpy</a></blockquote>
+<div><a class="reference external" href="https://launchpad.net/myconnpy">https://launchpad.net/myconnpy</a></div></blockquote>
 <div class="section" id="id4">
 <h3>Connecting<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>Connect string format:</p>
@@ -1284,7 +1278,7 @@ defaults to, there is a separate parameter:</p>
 <p>Support for the MySQL database via the pyodbc adapter.</p>
 <p>pyodbc is available at:</p>
 <blockquote>
-<a class="reference external" href="http://pypi.python.org/pypi/pyodbc/">http://pypi.python.org/pypi/pyodbc/</a></blockquote>
+<div><a class="reference external" href="http://pypi.python.org/pypi/pyodbc/">http://pypi.python.org/pypi/pyodbc/</a></div></blockquote>
 <div class="section" id="id5">
 <h3>Connecting<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <p>Connect string:</p>
@@ -1311,7 +1305,7 @@ of OurSQL, MySQLdb, or MySQL-connector/Python.</p>
 <h3>Connecting<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <p>Connect string format:</p>
 <blockquote>
-mysql+zxjdbc://&lt;user&gt;:&lt;password&gt;&#64;&lt;hostname&gt;[:&lt;port&gt;]/&lt;database&gt;</blockquote>
+<div>mysql+zxjdbc://&lt;user&gt;:&lt;password&gt;&#64;&lt;hostname&gt;[:&lt;port&gt;]/&lt;database&gt;</div></blockquote>
 </div>
 <div class="section" id="id7">
 <h3>Character Sets<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
@@ -1324,28 +1318,20 @@ overriden via a <tt class="docutils literal"><span class="pre">create_engine</sp
 </div>
 </div>
 
-            </div>
-        </div>
-
-        
-        
-            <div class="bottomnav">
-                
-<div class="prevnext">
-        Previous:
-        <a href="mssql.html" title="previous chapter">Microsoft SQL Server</a>
-        Next:
-        <a href="oracle.html" title="next chapter">Oracle</a>
+    </div>
 </div>
 
-                <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
-                </div>
-            </div>
-        
 
-
+    <div class="bottomnav">
+            Previous:
+            <a href="mssql.html" title="previous chapter">Microsoft SQL Server</a>
+            Next:
+            <a href="oracle.html" title="next chapter">Oracle</a>
+        <div class="doc_copyright">
+            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+        </div>
+    </div>
 
 
 

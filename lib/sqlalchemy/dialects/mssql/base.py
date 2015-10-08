@@ -307,6 +307,7 @@ class DATETIME2(_DateTimeBase, sqltypes.DateTime):
     __visit_name__ = 'DATETIME2'
 
     def __init__(self, precision=None, **kwargs):
+        super(DATETIME2, self).__init__(**kwargs)
         self.precision = precision
 
 
@@ -817,7 +818,6 @@ class MSSQLCompiler(compiler.SQLCompiler):
 
     def visit_alias(self, alias, **kwargs):
         # translate for schema-qualified table aliases
-        self.tablealiases[alias.original] = alias
         kwargs['mssql_aliased'] = alias.original
         return super(MSSQLCompiler, self).visit_alias(alias, **kwargs)
 

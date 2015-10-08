@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-    SQL Statements and Expressions
- &mdash; SQLAlchemy 0.6.7 Documentation</title>
+                SQL Statements and Expressions
+             &mdash; SQLAlchemy 0.6.8 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.7',
+          VERSION:     '0.6.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,11 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.8 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Engine Configuration" href="engines.html" />
         <link rel="prev" title="SQL Expression Language Tutorial" href="tutorial.html" />
-    
 
     </head>
     <body>
@@ -39,52 +38,52 @@
 
 
 
+<h1>SQLAlchemy 0.6.8 Documentation</h1>
 
-        <h1>SQLAlchemy 0.6.7 Documentation</h1>
-
-        <div id="search">
-        Search:
-        <form class="search" action="../search.html" method="get">
-          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-          <input type="hidden" name="check_keywords" value="yes" />
-          <input type="hidden" name="area" value="default" />
-        </form>
-        </div>
-
-        <div class="versionheader">
-            Version: <span class="versionnum">0.6.7</span> Last Updated: 04/13/2011 20:06:58
-        </div>
-        <div class="clearboth"></div>
-
-        <div class="topnav">
-            <div id="pagecontrol">
-                <a href="../genindex.html">Index</a>
-
-                <div class="sourcelink">(<a href="../_sources/core/expression_api.txt">view source)</div>
-            </div>
-
-            <div class="navbanner">
-                <a class="totoc" href="../index.html">Table of Contents</a>
-                        » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
-                » 
-    SQL Statements and Expressions
- 
-
-                
-<div class="prevnext">
-        Previous:
-        <a href="tutorial.html" title="previous chapter">SQL Expression Language Tutorial</a>
-        Next:
-        <a href="engines.html" title="next chapter">Engine Configuration</a>
+<div id="search">
+Search:
+<form class="search" action="../search.html" method="get">
+  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
 </div>
 
-                <h2>
-                    
-    SQL Statements and Expressions
- 
-                </h2>
-            </div>
-                <ul>
+<div class="versionheader">
+    Version: <span class="versionnum">0.6.8</span> Last Updated: 06/05/2011 13:10:26
+</div>
+<div class="clearboth"></div>
+
+<div id="topnav">
+    <div id="pagecontrol">
+        <ul>
+            <li>Prev:
+            <a href="tutorial.html" title="previous chapter">SQL Expression Language Tutorial</a>
+            </li>
+            <li>Next:
+            <a href="engines.html" title="next chapter">Engine Configuration</a>
+            </li>
+
+        <li>
+            <a href="../contents.html">Table of Contents</a> |
+            <a href="../genindex.html">Index</a>
+            | <a href="../_sources/core/expression_api.txt">view source
+        </li>
+        </ul>
+    </div>
+    <div id="navbanner">
+        <a class="totoc" href="../index.html">SQLAlchemy 0.6.8 Documentation</a>
+                » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
+        » 
+                SQL Statements and Expressions
+             
+
+        <h2>
+            
+                SQL Statements and Expressions
+            
+        </h2>
+        <ul>
 <li><a class="reference internal" href="#">SQL Statements and Expressions</a><ul>
 <li><a class="reference internal" href="#functions">Functions</a></li>
 <li><a class="reference internal" href="#classes">Classes</a></li>
@@ -93,12 +92,13 @@
 </li>
 </ul>
 
-            <div class="clearboth"></div>
-        </div>
+    </div>
+    <div class="clearboth"></div>
+</div>
 
-        <div class="document">
-            <div class="body">
-                
+<div class="document">
+    <div class="body">
+        
 <div class="section" id="module-sqlalchemy.sql.expression">
 <span id="sql-statements-and-expressions"></span><span id="expression-api-toplevel"></span><h1>SQL Statements and Expressions<a class="headerlink" href="#module-sqlalchemy.sql.expression" title="Permalink to this headline">¶</a></h1>
 <p>This section presents the API reference for the SQL Expression Language.  For a full introduction to its usage,
@@ -261,20 +261,31 @@ overall:</p>
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">column</tt><big>(</big><em>text</em>, <em>type_=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.column" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a textual column clause, as would be in the columns clause of a
 <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement.</p>
-<p>The object returned is an instance of
-<a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a>, which represents the
-&#8220;syntactical&#8221; portion of the schema-level
-<a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> object.</p>
-<dl class="docutils">
-<dt>text</dt>
-<dd>the name of the column.  Quoting rules will be applied to the
-clause like any other column name.  For textual column
-constructs that are not to be quoted, use the
-<a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> function.</dd>
-<dt>type_</dt>
-<dd>an optional <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> object which will
-provide result-set translation for this column.</dd>
-</dl>
+<p>The object returned is an instance of <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a>, which
+represents the &#8220;syntactical&#8221; portion of the schema-level
+<a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> object.  It is often used directly
+within <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> constructs or with lightweight <a class="reference internal" href="#sqlalchemy.sql.expression.table" title="sqlalchemy.sql.expression.table"><tt class="xref py py-func docutils literal"><span class="pre">table()</span></tt></a>
+constructs.</p>
+<p>Note that the <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> function is not part of
+the <tt class="docutils literal"><span class="pre">sqlalchemy</span></tt> namespace.  It must be imported from the <tt class="docutils literal"><span class="pre">sql</span></tt> package:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>text</strong> &#8211; the name of the column.  Quoting rules will be applied 
+to the clause like any other column name. For textual column constructs
+that are not to be quoted, use the <a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> function.</li>
+<li><strong>type_</strong> &#8211; an optional <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> object 
+which will provide result-set translation for this column.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>See <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a> for further examples.</p>
 </dd></dl>
 
 <dl class="function">
@@ -555,17 +566,23 @@ other column object, including comparison, math and string operations.
 The type_ parameter is important to determine proper expression behavior
 (such as, &#8216;+&#8217; means string concatenation or numerical addition based on
 the type).</p>
-<dl class="docutils">
-<dt>text</dt>
-<dd>the text of the expression; can be any SQL expression.  Quoting rules
-will not be applied.  To specify a column-name expression which should
-be subject to quoting rules, use the
-<a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> function.</dd>
-<dt>type_</dt>
-<dd>an optional <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> object which will
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>text</strong> &#8211; the text of the expression; can be any SQL expression.  
+Quoting rules will not be applied. To specify a column-name expression
+which should be subject to quoting rules, use the <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a>
+function.</li>
+<li><strong>type_</strong> &#8211; an optional <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> object which will
 provide result-set translation and additional expression semantics for
-this column. If left as None the type will be NullType.</dd>
-</dl>
+this column. If left as None the type will be NullType.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -727,16 +744,34 @@ from a <a class="reference internal" href="#sqlalchemy.sql.expression.Select" ti
 </dl>
 <p>*args, **kwargs</p>
 <blockquote>
-all other arguments are delivered to the
-<a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> function.</blockquote>
+<div>all other arguments are delivered to the
+<a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> function.</div></blockquote>
 </dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.table">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">table</tt><big>(</big><em>name</em>, <em>*columns</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.TableClause" title="sqlalchemy.sql.expression.TableClause"><tt class="xref py py-class docutils literal"><span class="pre">TableClause</span></tt></a> object.</p>
-<p>This is a primitive version of the <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object,
-which is a subclass of this object.</p>
+<dd><p>Represent a textual table clause.</p>
+<p>The object returned is an instance of <a class="reference internal" href="#sqlalchemy.sql.expression.TableClause" title="sqlalchemy.sql.expression.TableClause"><tt class="xref py py-class docutils literal"><span class="pre">TableClause</span></tt></a>, which represents the
+&#8220;syntactical&#8221; portion of the schema-level <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object. 
+It may be used to construct lightweight table constructs.</p>
+<p>Note that the <a class="reference internal" href="#sqlalchemy.sql.expression.table" title="sqlalchemy.sql.expression.table"><tt class="xref py py-func docutils literal"><span class="pre">table()</span></tt></a> function is not part of
+the <tt class="docutils literal"><span class="pre">sqlalchemy</span></tt> namespace.  It must be imported from the <tt class="docutils literal"><span class="pre">sql</span></tt> package:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; Name of the table.</li>
+<li><strong>columns</strong> &#8211; A collection of <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> constructs.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>See <a class="reference internal" href="#sqlalchemy.sql.expression.TableClause" title="sqlalchemy.sql.expression.TableClause"><tt class="xref py py-class docutils literal"><span class="pre">TableClause</span></tt></a> for further examples.</p>
 </dd></dl>
 
 <dl class="function">
@@ -1094,7 +1129,7 @@ associated with a primary key <cite>Column</cite>.</li>
 <tt class="descname">execute</tt><big>(</big><em>*multiparams</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ClauseElement.execute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compile and execute this <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>.</p>
 <p class="deprecated">
-<span class="versionmodified">Deprecated since version 0.7: </span>(pending) Only SQL expressions which subclass <a class="reference internal" href="#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a> may provide the <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement.execute" title="sqlalchemy.sql.expression.ClauseElement.execute"><tt class="xref py py-func docutils literal"><span class="pre">execute()</span></tt></a> method.</p>
+<span class="versionmodified">Deprecated since version 0.7: </span>(pending) Only SQL expressions which subclass <a class="reference internal" href="#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a> may provide the <tt class="xref py py-func docutils literal"><span class="pre">execute()</span></tt> method.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1128,7 +1163,7 @@ elements replaced with values taken from the given dictionary:</p>
 <tt class="descname">scalar</tt><big>(</big><em>*multiparams</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ClauseElement.scalar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compile and execute this <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>, returning</p>
 <p class="deprecated">
-<span class="versionmodified">Deprecated since version 0.7: </span>(pending) Only SQL expressions which subclass <a class="reference internal" href="#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a> may provide the <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement.scalar" title="sqlalchemy.sql.expression.ClauseElement.scalar"><tt class="xref py py-func docutils literal"><span class="pre">scalar()</span></tt></a> method.</p>
+<span class="versionmodified">Deprecated since version 0.7: </span>(pending) Only SQL expressions which subclass <a class="reference internal" href="#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a> may provide the <tt class="xref py py-func docutils literal"><span class="pre">scalar()</span></tt> method.</p>
 <p>the result&#8217;s scalar representation.</p>
 </dd></dl>
 
@@ -1174,24 +1209,58 @@ used.</p>
 <p>Represents a generic column expression from any textual string.</p>
 <p>This includes columns associated with tables, aliases and select
 statements, but also any arbitrary text.  May or may not be bound
-to an underlying <a class="reference internal" href="#sqlalchemy.sql.expression.Selectable" title="sqlalchemy.sql.expression.Selectable"><tt class="xref py py-class docutils literal"><span class="pre">Selectable</span></tt></a>.  <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a> is usually
-created publically via the <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> function or the
-<a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> function.</p>
-<dl class="docutils">
-<dt>text</dt>
-<dd>the text of the element.</dd>
-<dt>selectable</dt>
-<dd>parent selectable.</dd>
-<dt>type</dt>
-<dd><tt class="docutils literal"><span class="pre">TypeEngine</span></tt> object which can associate this <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a>
-with a type.</dd>
-<dt>is_literal</dt>
-<dd>if True, the <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a> is assumed to be an exact
-expression that will be delivered to the output with no quoting
-rules applied regardless of case sensitive settings.  the
+to an underlying <a class="reference internal" href="#sqlalchemy.sql.expression.Selectable" title="sqlalchemy.sql.expression.Selectable"><tt class="xref py py-class docutils literal"><span class="pre">Selectable</span></tt></a>.</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a> is constructed by itself typically via
+the <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> function.  It may be placed directly
+into constructs such as <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> constructs:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">column</span><span class="p">,</span> <span class="n">select</span>
+
+<span class="n">c1</span><span class="p">,</span> <span class="n">c2</span> <span class="o">=</span> <span class="n">column</span><span class="p">(</span><span class="s">&quot;c1&quot;</span><span class="p">),</span> <span class="n">column</span><span class="p">(</span><span class="s">&quot;c2&quot;</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">c1</span><span class="o">==</span><span class="mi">5</span><span class="p">)</span></pre></div>
+</div>
+<p>There is also a variant on <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> known
+as <a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> - the difference is that 
+in the latter case, the string value is assumed to be an exact
+expression, rather than a column name, so that no quoting rules
+or similar are applied:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">literal_column</span><span class="p">,</span> <span class="n">select</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">literal_column</span><span class="p">(</span><span class="s">&quot;5 + 7&quot;</span><span class="p">)])</span></pre></div>
+</div>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a> can also be used in a table-like 
+fashion by combining the <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> function 
+with the <a class="reference internal" href="#sqlalchemy.sql.expression.table" title="sqlalchemy.sql.expression.table"><tt class="xref py py-func docutils literal"><span class="pre">table()</span></tt></a> function, to produce
+a &#8220;lightweight&#8221; form of table metadata:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span>
+
+<span class="n">user</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">,</span>
+        <span class="n">column</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">),</span>
+        <span class="n">column</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">),</span>
+        <span class="n">column</span><span class="p">(</span><span class="s">&quot;description&quot;</span><span class="p">),</span>
+<span class="p">)</span></pre></div>
+</div>
+<p>The above construct can be created in an ad-hoc fashion and is
+not associated with any <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">schema.MetaData</span></tt></a>, unlike it&#8217;s
+more full fledged <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">schema.Table</span></tt></a> counterpart.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>text</strong> &#8211; the text of the element.</li>
+<li><strong>selectable</strong> &#8211; parent selectable.</li>
+<li><strong>type</strong> &#8211; <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">types.TypeEngine</span></tt></a> object which can associate 
+this <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a> with a type.</li>
+<li><strong>is_literal</strong> &#8211; if True, the <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a> is assumed to 
+be an exact expression that will be delivered to the output with no
+quoting rules applied regardless of case sensitive settings. the
 <a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> function is usually used to create such a
-<a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a>.</dd>
-</dl>
+<a class="reference internal" href="#sqlalchemy.sql.expression.ColumnClause" title="sqlalchemy.sql.expression.ColumnClause"><tt class="xref py py-class docutils literal"><span class="pre">ColumnClause</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.ColumnClause.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>text</em>, <em>selectable=None</em>, <em>type_=None</em>, <em>is_literal=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnClause.__init__" title="Permalink to this definition">¶</a></dt>
@@ -1227,13 +1296,13 @@ for this dictionary.</p>
 versions of this column  as well as existing columns with the
 same key.</p>
 <blockquote>
-<p>e.g.:</p>
+<div><p>e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;sometable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col1&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">))</span>
 <span class="n">t</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">Column</span><span class="p">(</span><span class="s">&#39;col1&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s">&#39;columnone&#39;</span><span class="p">))</span></pre></div>
 </div>
 <p>will remove the original &#8216;col1&#8217; from the collection, and add
 the new column under the name &#8216;columnname&#8217;.</p>
-</blockquote>
+</div></blockquote>
 <p>Used by schema.Column to override columns during table reflection.</p>
 </dd></dl>
 
@@ -1389,12 +1458,9 @@ instances.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>operator</strong> &#8211; a string which will be output as the infix operator
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>operator</strong> &#8211; a string which will be output as the infix operator
 between this <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> and the expression passed to the
-generated function.</li>
-</ul>
-</td>
+generated function.</td>
 </tr>
 </tbody>
 </table>
@@ -1605,9 +1671,9 @@ statement objects, though the effect is the same.</p>
 </ul>
 <p>See also:</p>
 <blockquote>
-<p><a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection.execution_options" title="sqlalchemy.engine.base.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">sqlalchemy.engine.base.Connection.execution_options()</span></tt></a></p>
+<div><p><a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection.execution_options" title="sqlalchemy.engine.base.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">sqlalchemy.engine.base.Connection.execution_options()</span></tt></a></p>
 <p><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">sqlalchemy.orm.query.Query.execution_options()</span></tt></a></p>
-</blockquote>
+</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -1793,7 +1859,7 @@ spaces.</p>
 <dd><p>specify the VALUES clause for an INSERT statement, or the SET
 clause for an UPDATE.</p>
 <blockquote>
-<dl class="docutils">
+<div><dl class="docutils">
 <dt>**kwargs</dt>
 <dd>key=&lt;somevalue&gt; arguments</dd>
 <dt>*args</dt>
@@ -1801,7 +1867,7 @@ clause for an UPDATE.</p>
 argument. This allows non-string based keys, such as Column
 objects, to be used.</dd>
 </dl>
-</blockquote>
+</div></blockquote>
 </dd></dl>
 
 </dd></dl>
@@ -1831,7 +1897,7 @@ function or the <a class="reference internal" href="#sqlalchemy.sql.expression.F
 <p>Used against a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> object,
 <a class="reference internal" href="#sqlalchemy.sql.expression.Join.alias" title="sqlalchemy.sql.expression.Join.alias"><tt class="xref py py-meth docutils literal"><span class="pre">alias()</span></tt></a> calls the <a class="reference internal" href="#sqlalchemy.sql.expression.Join.select" title="sqlalchemy.sql.expression.Join.select"><tt class="xref py py-meth docutils literal"><span class="pre">select()</span></tt></a>
 method first so that a subquery against a 
-<a class="reference internal" href="#sqlalchemy.sql.expression.Join.select" title="sqlalchemy.sql.expression.Join.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct is generated.
+<a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct is generated.
 the <tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt> construct also has the 
 <tt class="docutils literal"><span class="pre">correlate</span></tt> flag set to <tt class="xref docutils literal"><span class="pre">False</span></tt> and will not
 auto-correlate inside an enclosing <tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt>
@@ -2037,7 +2103,7 @@ given selectable.</p>
 <tt class="descname">locate_all_froms</tt><a class="headerlink" href="#sqlalchemy.sql.expression.Select.locate_all_froms" title="Permalink to this definition">¶</a></dt>
 <dd><p>return a Set of all FromClause elements referenced by this Select.</p>
 <blockquote>
-This set is a superset of that returned by the <tt class="docutils literal"><span class="pre">froms</span></tt> property,</blockquote>
+<div>This set is a superset of that returned by the <tt class="docutils literal"><span class="pre">froms</span></tt> property,</div></blockquote>
 <p>which is specifically for those FromClause elements that would
 actually be rendered.</p>
 </dd></dl>
@@ -2062,7 +2128,7 @@ applied to its list of FROM objects.</p>
 <dd><p>return a &#8216;grouping&#8217; construct as per the ClauseElement
 specification.</p>
 <blockquote>
-This produces an element that can be embedded in an expression. Note</blockquote>
+<div>This produces an element that can be embedded in an expression. Note</div></blockquote>
 <p>that this method is called automatically as needed when constructing
 expressions.</p>
 </dd></dl>
@@ -2183,7 +2249,7 @@ clause is eligible to be used as a scalar expression.</p>
 <tt class="descname">autocommit</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression._SelectBaseMixin.autocommit" title="Permalink to this definition">¶</a></dt>
 <dd><p>return a new selectable with the &#8216;autocommit&#8217; flag set to</p>
 <p class="deprecated">
-<span class="versionmodified">Deprecated since version 0.6: </span><a class="reference internal" href="#sqlalchemy.sql.expression._SelectBaseMixin.autocommit" title="sqlalchemy.sql.expression._SelectBaseMixin.autocommit"><tt class="xref py py-func docutils literal"><span class="pre">autocommit()</span></tt></a> is deprecated. Use <a class="reference internal" href="#sqlalchemy.sql.expression.Executable.execution_options" title="sqlalchemy.sql.expression.Executable.execution_options"><tt class="xref py py-func docutils literal"><span class="pre">Executable.execution_options()</span></tt></a> with the &#8216;autocommit&#8217; flag.</p>
+<span class="versionmodified">Deprecated since version 0.6: </span><tt class="xref py py-func docutils literal"><span class="pre">autocommit()</span></tt> is deprecated. Use <tt class="xref py py-func docutils literal"><span class="pre">Executable.execution_options()</span></tt> with the &#8216;autocommit&#8217; flag.</p>
 <p>True.</p>
 </dd></dl>
 
@@ -2233,10 +2299,29 @@ criterion.</p>
 <dt id="sqlalchemy.sql.expression.TableClause">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">TableClause</tt><big>(</big><em>name</em>, <em>*columns</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.TableClause" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression._Immutable</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.FromClause</span></tt></a></p>
-<p>Represents a &#8220;table&#8221; construct.</p>
-<p>Note that this represents tables only as another syntactical
-construct within SQL expressions; it does not provide schema-level
-functionality.</p>
+<p>Represents a minimal &#8220;table&#8221; construct.</p>
+<p>The constructor for <a class="reference internal" href="#sqlalchemy.sql.expression.TableClause" title="sqlalchemy.sql.expression.TableClause"><tt class="xref py py-class docutils literal"><span class="pre">TableClause</span></tt></a> is the
+<a class="reference internal" href="#sqlalchemy.sql.expression.table" title="sqlalchemy.sql.expression.table"><tt class="xref py py-func docutils literal"><span class="pre">table()</span></tt></a> function.   This produces 
+a lightweight table object that has only a name and a 
+collection of columns, which are typically produced
+by the <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span>
+
+<span class="n">user</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">,</span>
+        <span class="n">column</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">),</span>
+        <span class="n">column</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">),</span>
+        <span class="n">column</span><span class="p">(</span><span class="s">&quot;description&quot;</span><span class="p">),</span>
+<span class="p">)</span></pre></div>
+</div>
+<p>The <a class="reference internal" href="#sqlalchemy.sql.expression.TableClause" title="sqlalchemy.sql.expression.TableClause"><tt class="xref py py-class docutils literal"><span class="pre">TableClause</span></tt></a> construct serves as the base for
+the more commonly used <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, providing
+the usual set of <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> services including
+the <tt class="docutils literal"><span class="pre">.c.</span></tt> collection and statement generation methods.</p>
+<p>It does <strong>not</strong> provide all the additional schema-level services
+of <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, including constraints, references to other 
+tables, or support for <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>-level services.  It&#8217;s useful
+on its own as an ad-hoc construct used to generate quick SQL
+statements when a more fully fledged <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> is not on hand.</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.TableClause.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>name</em>, <em>*columns</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.TableClause.__init__" title="Permalink to this definition">¶</a></dt>
@@ -2288,7 +2373,7 @@ its WHERE clause, joined to the existing clause via AND, if any.</p>
 <dd><p>specify the VALUES clause for an INSERT statement, or the SET
 clause for an UPDATE.</p>
 <blockquote>
-<dl class="docutils">
+<div><dl class="docutils">
 <dt>**kwargs</dt>
 <dd>key=&lt;somevalue&gt; arguments</dd>
 <dt>*args</dt>
@@ -2296,7 +2381,7 @@ clause for an UPDATE.</p>
 argument. This allows non-string based keys, such as Column
 objects, to be used.</dd>
 </dl>
-</blockquote>
+</div></blockquote>
 </dd></dl>
 
 </dd></dl>
@@ -2480,28 +2565,20 @@ return types are in use.</p>
 </div>
 </div>
 
-            </div>
-        </div>
-
-        
-        
-            <div class="bottomnav">
-                
-<div class="prevnext">
-        Previous:
-        <a href="tutorial.html" title="previous chapter">SQL Expression Language Tutorial</a>
-        Next:
-        <a href="engines.html" title="next chapter">Engine Configuration</a>
+    </div>
 </div>
 
-                <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
-                </div>
-            </div>
-        
 
-
+    <div class="bottomnav">
+            Previous:
+            <a href="tutorial.html" title="previous chapter">SQL Expression Language Tutorial</a>
+            Next:
+            <a href="engines.html" title="next chapter">Engine Configuration</a>
+        <div class="doc_copyright">
+            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+        </div>
+    </div>
 
 
 
