@@ -6,6 +6,7 @@ import testenv; testenv.configure_for_tests()
 from sqlalchemy import *
 from testlib import *
 from sqlalchemy.sql import util as sql_util
+from sqlalchemy import exceptions
 
 metadata = MetaData()
 table = Table('table1', metadata,
@@ -173,6 +174,15 @@ class SelectableTest(TestBase, AssertsExecutionResults):
         print str(j)
         self.assert_(criterion.compare(j.onclause))
 
+    def test_labeled_select_correspoinding(self):
+        l1 = select([func.max(table.c.col1)]).label('foo')
+
+        s = select([l1])
+        assert s.corresponding_column(l1).name == s.c.foo
+
+        s = select([table.c.col1, l1])
+        assert s.corresponding_column(l1).name == s.c.foo
+
     def testselectaliaslabels(self):
         a = table2.select(use_labels=True).alias('a')
         print str(a.select())
@@ -222,6 +232,18 @@ class SelectableTest(TestBase, AssertsExecutionResults):
         assert u.corresponding_column(s.oid_column) is u.oid_column
         assert u.corresponding_column(s2.oid_column) is u.oid_column
     
+    def test_two_metadata_join_raises(self):
+        m = MetaData()
+        m2 = MetaData()
+
+        t1 = Table('t1', m, Column('id', Integer), Column('id2', Integer))
+        t2 = Table('t2', m, Column('id', Integer, ForeignKey('t1.id')))
+        t3 = Table('t3', m2, Column('id', Integer, ForeignKey('t1.id2')))
+
+        s = select([t2, t3], use_labels=True)
+
+        self.assertRaises(exceptions.NoReferencedTableError, s.join, t1)
+        
 class PrimaryKeyTest(TestBase, AssertsExecutionResults):
     def test_join_pk_collapse_implicit(self):
         """test that redundant columns in a join get 'collapsed' into a minimal primary key,
@@ -281,7 +303,7 @@ class PrimaryKeyTest(TestBase, AssertsExecutionResults):
         b = Table('b', meta, Column('id', Integer, ForeignKey('a.id'), primary_key=True), Column('x', Integer, primary_key=True))
 
         j = a.join(b, and_(a.c.id==b.c.id, b.c.x==5))
-        assert str(j) == "a JOIN b ON a.id = b.id AND b.x = :b_x_1", str(j)
+        assert str(j) == "a JOIN b ON a.id = b.id AND b.x = :x_1", str(j)
         assert list(j.primary_key) == [a.c.id, b.c.x]
 
     def test_onclause_direction(self):

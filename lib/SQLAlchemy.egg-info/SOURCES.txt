@@ -99,6 +99,7 @@ examples/association/basic_association.py
 examples/association/proxied_association.py
 examples/collections/large_collection.py
 examples/derived_attributes/attributes.py
+examples/dynamic_dict/dynamic_dict.py
 examples/elementtree/adjacency_list.py
 examples/elementtree/optimized_al.py
 examples/elementtree/pickle.py

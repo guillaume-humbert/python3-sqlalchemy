@@ -210,7 +210,7 @@ class PropertyLoader(StrategizedProperty):
     of items that correspond to a related database table.
     """
 
-    def __init__(self, argument, secondary=None, primaryjoin=None, secondaryjoin=None, entity_name=None, foreign_keys=None, foreignkey=None, uselist=None, private=False, association=None, order_by=False, attributeext=None, backref=None, is_backref=False, post_update=False, cascade=None, viewonly=False, lazy=True, collection_class=None, passive_deletes=False, passive_updates=True, remote_side=None, enable_typechecks=True, join_depth=None, strategy_class=None):
+    def __init__(self, argument, secondary=None, primaryjoin=None, secondaryjoin=None, entity_name=None, foreign_keys=None, foreignkey=None, uselist=None, private=False, association=None, order_by=False, attributeext=None, backref=None, is_backref=False, post_update=False, cascade=None, viewonly=False, lazy=True, collection_class=None, passive_deletes=False, passive_updates=True, remote_side=None, enable_typechecks=True, join_depth=None, strategy_class=None, _local_remote_pairs=None):
         self.uselist = uselist
         self.argument = argument
         self.entity_name = entity_name
@@ -232,6 +232,7 @@ class PropertyLoader(StrategizedProperty):
         self.enable_typechecks = enable_typechecks
         self.comparator = PropertyLoader.Comparator(self)
         self.join_depth = join_depth
+        self._arg_local_remote_pairs = _local_remote_pairs
         
         if strategy_class:
             self.strategy_class = strategy_class
@@ -287,7 +288,7 @@ class PropertyLoader(StrategizedProperty):
             
         def __eq__(self, other):
             if other is None:
-                if self.prop.direction == ONETOMANY:
+                if self.prop.direction in [ONETOMANY, MANYTOMANY]:
                     return ~sql.exists([1], self.prop.primaryjoin)
                 else:
                     return self.prop._optimized_compare(None)
@@ -306,29 +307,15 @@ class PropertyLoader(StrategizedProperty):
                     return sql.and_(*clauses)
             else:
                 return self.prop._optimized_compare(other)
-        
-        def _join_and_criterion(self, criterion=None, **kwargs):
-            adapt_against = None
 
+        def _join_and_criterion(self, criterion=None, **kwargs):
             if getattr(self, '_of_type', None):
                 target_mapper = self._of_type
-                to_selectable = target_mapper.mapped_table
-                adapt_against = to_selectable
+                to_selectable = target_mapper._with_polymorphic_selectable() #mapped_table
             else:
-                target_mapper = self.prop.mapper
                 to_selectable = None
-                adapt_against = None
-                
-            if self.prop._is_self_referential():
-                pj = self.prop.primary_join_against(self.prop.parent, None)
-                sj = self.prop.secondary_join_against(self.prop.parent, toselectable=to_selectable)
-
-                pac = PropertyAliasedClauses(self.prop, pj, sj)
-                j = pac.primaryjoin
-                if pac.secondaryjoin:
-                    j = j & pac.secondaryjoin
-            else:
-                j = self.prop.full_join_against(self.prop.parent, None, toselectable=to_selectable)
+            
+            pj, sj, source, dest, target_adapter = self.prop._create_joins(dest_polymorphic=True, dest_selectable=to_selectable)
 
             for k in kwargs:
                 crit = (getattr(self.prop.mapper.class_, k) == kwargs[k])
@@ -337,13 +324,15 @@ class PropertyLoader(StrategizedProperty):
                 else:
                     criterion = criterion & crit
             
-            if criterion:
-                if adapt_against:
-                    criterion = ClauseAdapter(adapt_against).traverse(criterion)
-                if self.prop._is_self_referential():
-                    criterion = pac.adapt_clause(criterion)
+            if sj:
+                j = pj & sj
+            else:
+                j = pj
+                
+            if criterion and target_adapter:
+                criterion = target_adapter.traverse(criterion)
             
-            return j, criterion, to_selectable
+            return j, criterion, dest
             
         def any(self, criterion=None, **kwargs):
             if not self.prop.uselist:
@@ -550,35 +539,52 @@ class PropertyLoader(StrategizedProperty):
                 self.secondary.c.contains_column(column) is not None
         
     def __determine_fks(self):
+
         if self._legacy_foreignkey and not self._refers_to_parent_table():
             self.foreign_keys = self._legacy_foreignkey
 
         arg_foreign_keys = self.foreign_keys
-        
-        eq_pairs = criterion_as_pairs(self.primaryjoin, consider_as_foreign_keys=arg_foreign_keys, any_operator=self.viewonly)
-        eq_pairs = [(l, r) for l, r in eq_pairs if self.__col_is_part_of_mappings(l) and self.__col_is_part_of_mappings(r)]
 
-        if not eq_pairs:
-            if not self.viewonly and criterion_as_pairs(self.primaryjoin, consider_as_foreign_keys=arg_foreign_keys, any_operator=True):
-                raise exceptions.ArgumentError("Could not locate any equated column pairs for primaryjoin condition '%s' on relation %s. "
-                    "If no equated pairs exist, the relation must be marked as viewonly=True." % (self.primaryjoin, self)
-                )
-            else:
-                raise exceptions.ArgumentError("Could not determine relation direction for primaryjoin condition '%s', on relation %s. "
-                "Specify the foreign_keys argument to indicate which columns on the relation are foreign." % (self.primaryjoin, self))
+        if self._arg_local_remote_pairs:
+            if not arg_foreign_keys:
+                raise exceptions.ArgumentError("foreign_keys argument is required with _local_remote_pairs argument")
+            self.foreign_keys = util.OrderedSet(arg_foreign_keys)
+            self._opposite_side = util.OrderedSet()
+            for l, r in self._arg_local_remote_pairs:
+                if r in self.foreign_keys:
+                    self._opposite_side.add(l)
+                elif l in self.foreign_keys:
+                    self._opposite_side.add(r)
+            self.synchronize_pairs = zip(self._opposite_side, self.foreign_keys)
+        else:
+            eq_pairs = criterion_as_pairs(self.primaryjoin, consider_as_foreign_keys=arg_foreign_keys, any_operator=self.viewonly)
+            eq_pairs = [(l, r) for l, r in eq_pairs if (self.__col_is_part_of_mappings(l) and self.__col_is_part_of_mappings(r)) or r in arg_foreign_keys]
+
+            if not eq_pairs:
+                if not self.viewonly and criterion_as_pairs(self.primaryjoin, consider_as_foreign_keys=arg_foreign_keys, any_operator=True):
+                    raise exceptions.ArgumentError("Could not locate any equated, locally mapped column pairs for primaryjoin condition '%s' on relation %s. "
+                        "For more relaxed rules on join conditions, the relation may be marked as viewonly=True." % (self.primaryjoin, self)
+                    )
+                else:
+                    if arg_foreign_keys:
+                        raise exceptions.ArgumentError("Could not determine relation direction for primaryjoin condition '%s', on relation %s. "
+                            "Specify _local_remote_pairs=[(local, remote), (local, remote), ...] to explicitly establish the local/remote column pairs." % (self.primaryjoin, self))
+                    else:
+                        raise exceptions.ArgumentError("Could not determine relation direction for primaryjoin condition '%s', on relation %s. "
+                            "Specify the foreign_keys argument to indicate which columns on the relation are foreign." % (self.primaryjoin, self))
         
-        self.foreign_keys = util.OrderedSet([r for l, r in eq_pairs])
-        self._opposite_side = util.OrderedSet([l for l, r in eq_pairs])
-        self.synchronize_pairs = eq_pairs
+            self.foreign_keys = util.OrderedSet([r for l, r in eq_pairs])
+            self._opposite_side = util.OrderedSet([l for l, r in eq_pairs])
+            self.synchronize_pairs = eq_pairs
         
         if self.secondaryjoin:
-            sq_pairs = criterion_as_pairs(self.secondaryjoin, consider_as_foreign_keys=arg_foreign_keys)
-            sq_pairs = [(l, r) for l, r in sq_pairs if self.__col_is_part_of_mappings(l) and self.__col_is_part_of_mappings(r)]
+            sq_pairs = criterion_as_pairs(self.secondaryjoin, consider_as_foreign_keys=arg_foreign_keys, any_operator=self.viewonly)
+            sq_pairs = [(l, r) for l, r in sq_pairs if (self.__col_is_part_of_mappings(l) and self.__col_is_part_of_mappings(r)) or r in arg_foreign_keys]
             
             if not sq_pairs:
                 if not self.viewonly and criterion_as_pairs(self.secondaryjoin, consider_as_foreign_keys=arg_foreign_keys, any_operator=True):
-                    raise exceptions.ArgumentError("Could not locate any equated column pairs for secondaryjoin condition '%s' on relation %s. "
-                        "If no equated pairs exist, the relation must be marked as viewonly=True." % (self.secondaryjoin, self)
+                    raise exceptions.ArgumentError("Could not locate any equated, locally mapped column pairs for secondaryjoin condition '%s' on relation %s. "
+                        "For more relaxed rules on join conditions, the relation may be marked as viewonly=True." % (self.secondaryjoin, self)
                     )
                 else:
                     raise exceptions.ArgumentError("Could not determine relation direction for secondaryjoin condition '%s', on relation %s. "
@@ -590,28 +596,44 @@ class PropertyLoader(StrategizedProperty):
         else:
             self.secondary_synchronize_pairs = None
     
-    def local_remote_pairs(self):
-        return zip(self.local_side, self.remote_side)
-    local_remote_pairs = property(local_remote_pairs)
-    
     def __determine_remote_side(self):
-        if self.remote_side:
+        if self._arg_local_remote_pairs:
+            if self.remote_side:
+                raise exceptions.ArgumentError("remote_side argument is redundant against more detailed _local_remote_side argument.")
+            if self.direction is MANYTOONE:
+                eq_pairs = [(r, l) for l, r in self._arg_local_remote_pairs]
+            else:
+                eq_pairs = self._arg_local_remote_pairs
+        elif self.remote_side:
             if self.direction is MANYTOONE:
                 eq_pairs = criterion_as_pairs(self.primaryjoin, consider_as_referenced_keys=self.remote_side, any_operator=True)
             else:
                 eq_pairs = criterion_as_pairs(self.primaryjoin, consider_as_foreign_keys=self.remote_side, any_operator=True)
-
-            if self.secondaryjoin:
-                sq_pairs = criterion_as_pairs(self.secondaryjoin, consider_as_foreign_keys=self.foreign_keys, any_operator=True)
-                sq_pairs = [(l, r) for l, r in sq_pairs if self.__col_is_part_of_mappings(l) and self.__col_is_part_of_mappings(r)]
-                eq_pairs += sq_pairs
         else:
-            eq_pairs = zip(self._opposite_side, self.foreign_keys)
-
+            if self.viewonly:
+                eq_pairs = self.synchronize_pairs
+            else:
+                eq_pairs = criterion_as_pairs(self.primaryjoin, consider_as_foreign_keys=self.foreign_keys, any_operator=True)
+                if self.secondaryjoin:
+                    sq_pairs = criterion_as_pairs(self.secondaryjoin, consider_as_foreign_keys=self.foreign_keys, any_operator=True)
+                    eq_pairs += sq_pairs
+                eq_pairs = [(l, r) for l, r in eq_pairs if self.__col_is_part_of_mappings(l) and self.__col_is_part_of_mappings(r)]
+        
         if self.direction is MANYTOONE:
             self.remote_side, self.local_side = [util.OrderedSet(s) for s in zip(*eq_pairs)]
+            self.local_remote_pairs = [(r, l) for l, r in eq_pairs]
         else:
             self.local_side, self.remote_side = [util.OrderedSet(s) for s in zip(*eq_pairs)]
+            self.local_remote_pairs = eq_pairs
+        
+        if self.direction is ONETOMANY:
+            for l in self.local_side:
+                if not self.__col_is_part_of_mappings(l):
+                    raise exceptions.ArgumentError("Local column '%s' is not part of mapping %s.  Specify remote_side argument to indicate which column lazy join condition should compare against." % (l, self.parent))
+        elif self.direction is MANYTOONE:
+            for r in self.remote_side:
+                if not self.__col_is_part_of_mappings(r):
+                    raise exceptions.ArgumentError("Remote column '%s' is not part of mapping %s.  Specify remote_side argument to indicate which column lazy join condition should bind." % (r, self.mapper))
             
     def __determine_direction(self):
         """Determine our *direction*, i.e. do we represent one to
@@ -630,12 +652,15 @@ class PropertyLoader(StrategizedProperty):
                         self.direction = ONETOMANY
                     else:
                         self.direction = MANYTOONE
-
+            elif self._arg_local_remote_pairs:
+                remote = util.Set([r for l, r in self._arg_local_remote_pairs])
+                if self.foreign_keys.intersection(remote):
+                    self.direction = ONETOMANY
+                else:
+                    self.direction = MANYTOONE
             elif self.remote_side:
-                for f in self.foreign_keys:
-                    if f in self.remote_side:
-                        self.direction = ONETOMANY
-                        return
+                if self.foreign_keys.intersection(self.remote_side):
+                    self.direction = ONETOMANY
                 else:
                     self.direction = MANYTOONE
             else:
@@ -702,55 +727,63 @@ class PropertyLoader(StrategizedProperty):
     
     def _is_self_referential(self):
         return self.mapper.common_parent(self.parent)
-        
-    def primary_join_against(self, mapper, selectable=None, toselectable=None):
-        return self.__join_against(mapper, selectable, toselectable, True, False)
-        
-    def secondary_join_against(self, mapper, toselectable=None):
-        return self.__join_against(mapper, None, toselectable, False, True)
-        
-    def full_join_against(self, mapper, selectable=None, toselectable=None):
-        return self.__join_against(mapper, selectable, toselectable, True, True)
     
-    def __join_against(self, frommapper, fromselectable, toselectable, primary, secondary):
-        if fromselectable is None:
-            fromselectable = frommapper.local_table
-            
-        parent_equivalents = frommapper._equivalent_columns
-        
-        if primary:
-            primaryjoin = self.primaryjoin
-            
-            if fromselectable is not frommapper.local_table:
-                if self.direction is ONETOMANY:
-                    primaryjoin = ClauseAdapter(fromselectable, exclude=self.foreign_keys, equivalents=parent_equivalents).traverse(primaryjoin)
-                elif self.direction is MANYTOONE:
-                    primaryjoin = ClauseAdapter(fromselectable, include=self.foreign_keys, equivalents=parent_equivalents).traverse(primaryjoin)
-                elif self.secondaryjoin:
-                    primaryjoin = ClauseAdapter(fromselectable, exclude=self.foreign_keys, equivalents=parent_equivalents).traverse(primaryjoin)
-                
-            if secondary:
-                secondaryjoin = self.secondaryjoin
-                return primaryjoin & secondaryjoin
+    def _create_joins(self, source_polymorphic=False, source_selectable=None, dest_polymorphic=False, dest_selectable=None):
+        if source_selectable is None:
+            if source_polymorphic and self.parent.with_polymorphic:
+                source_selectable = self.parent._with_polymorphic_selectable()
             else:
-                return primaryjoin
-        elif secondary:
-            return self.secondaryjoin
-        else:
-            raise AssertionError("illegal condition")
+                source_selectable = None
+        if dest_selectable is None:
+            if dest_polymorphic and self.mapper.with_polymorphic:
+                dest_selectable = self.mapper._with_polymorphic_selectable()
+            else:
+                dest_selectable = self.mapper.mapped_table
+            if self._is_self_referential():
+                if dest_selectable:
+                    dest_selectable = dest_selectable.alias()
+                else:
+                    dest_selectable = self.mapper.mapped_table.alias()
+                
+        primaryjoin = self.primaryjoin
+        if source_selectable:
+            if self.direction in (ONETOMANY, MANYTOMANY):
+                primaryjoin = ClauseAdapter(source_selectable, exclude=self.foreign_keys, equivalents=self.parent._equivalent_columns).traverse(primaryjoin)
+            else:
+                primaryjoin = ClauseAdapter(source_selectable, include=self.foreign_keys, equivalents=self.parent._equivalent_columns).traverse(primaryjoin)
         
-    def get_join(self, parent, primary=True, secondary=True, polymorphic_parent=True):
+        secondaryjoin = self.secondaryjoin
+        target_adapter = None
+        if dest_selectable:
+            if self.direction == ONETOMANY:
+                target_adapter = ClauseAdapter(dest_selectable, include=self.foreign_keys, equivalents=self.mapper._equivalent_columns)
+            elif self.direction == MANYTOMANY:
+                target_adapter = ClauseAdapter(dest_selectable, equivalents=self.mapper._equivalent_columns)
+            else:
+                target_adapter = ClauseAdapter(dest_selectable, exclude=self.foreign_keys, equivalents=self.mapper._equivalent_columns)
+            if secondaryjoin:
+                secondaryjoin = target_adapter.traverse(secondaryjoin)
+            else:
+                primaryjoin = target_adapter.traverse(primaryjoin)
+            target_adapter.include = target_adapter.exclude = None
+            
+        return primaryjoin, secondaryjoin, source_selectable or self.parent.local_table, dest_selectable or self.mapper.local_table, target_adapter
+        
+    def _get_join(self, parent, primary=True, secondary=True, polymorphic_parent=True):
         """deprecated.  use primary_join_against(), secondary_join_against(), full_join_against()"""
         
+        pj, sj, source, dest, adapter = self._create_joins(source_polymorphic=polymorphic_parent)
+        
         if primary and secondary:
-            return self.full_join_against(parent, parent.mapped_table)
+            return pj & sj
         elif primary:
-            return self.primary_join_against(parent, parent.mapped_table)
+            return pj
         elif secondary:
-            return self.secondary_join_against(parent)
+            return sj
         else:
             raise AssertionError("illegal condition")
-
+        
+        
     def register_dependencies(self, uowcommit):
         if not self.viewonly:
             self._dependency_processor.register_dependencies(uowcommit)

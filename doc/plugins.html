@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.5   Last Updated: 04/03/08 21:06:31</div>
+<div class="versionheader">Version: 0.4.6   Last Updated: 05/14/08 14:36:43</div>
 
 
 
@@ -160,8 +160,7 @@
         <pre>
 <span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">declarative </span><span class="python_keyword">import </span><span class="python_name">declarative_base</span><span class="python_operator">
 </span>
-<span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite://'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">Base </span><span class="python_operator">= </span><span class="python_name">declarative_base</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_name">Base </span><span class="python_operator">= </span><span class="python_name">declarative_base</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_keyword">class </span><span class="python_name">SomeClass</span><span class="python_enclosure">(</span><span class="python_name">Base</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_name">__tablename__ </span><span class="python_operator">= </span><span class="python_literal">'some_table'</span><span class="python_operator">
@@ -185,18 +184,40 @@
 </span><span class="python_name">SomeClass</span><span class="python_operator">.</span><span class="python_name">related </span><span class="python_operator">= </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">RelatedInfo</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Classes which are mapped explicitly using <code>mapper()</code> can interact freely with declarative classes. The <code>declarative_base</code> base class contains a
-   <code>MetaData</code> object as well as a dictionary of all classes created against the base. So to access the above metadata and create tables we can say:
+<p>Classes which are mapped explicitly using <code>mapper()</code> can interact freely with declarative classes. 
+</p>
+<p>The <code>declarative_base</code> base class contains a <code>MetaData</code> object where newly defined <code>Table</code> objects are collected.  This is accessed via the <code>metadata</code> class level accessor, so to create tables we can say:
 </p>
 
     
 
     <div class="sliding_code">
         <pre>
-<span class="python_name">Base</span><span class="python_operator">.</span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">create_all</span><span class="python_enclosure">()</span><span class="python_operator">
+<span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite://'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">Base</span><span class="python_operator">.</span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">create_all</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>The <code>declarative_base</code> can also receive a pre-created <code>MetaData</code> object:
+<p>The <code>Engine</code> created above may also be directly associated with the declarative base class using the <code>engine</code> keyword argument, where it will be associated with the underlying <code>MetaData</code> object and allow SQL operations involving that metadata and its tables to make use of that engine automatically:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">Base </span><span class="python_operator">= </span><span class="python_name">declarative_base</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_operator">=</span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite://'</span><span class="python_enclosure">))</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>Or, as <code>MetaData</code> allows, at any time using the <code>bind</code> attribute:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">Base</span><span class="python_operator">.</span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">bind </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite://'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>The <code>declarative_base</code> can also receive a pre-created <code>MetaData</code> object, which allows a declarative setup to be associated with an already existing traditional collection of <code>Table</code> objects:
 </p>
 
     
@@ -246,6 +267,21 @@
     </span><span class="python_name">email </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'email'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span><span class="python_operator">
     </span><span class="python_name">user_id </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'users.id'</span><span class="python_enclosure">))</span><span class="python_operator">
     </span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>When an explicit join condition or other configuration which depends 
+   on multiple classes cannot be defined immediately due to some classes
+   not yet being available, these can be defined after all classes have
+   been created.  Attributes which are added to the class after
+   its creation are associated with the Table/mapping in the same
+   way as if they had been defined inline:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">addresses </span><span class="python_operator">= </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">id</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
 <p>Synonyms are one area where <code>declarative</code> needs to slightly change the usual SQLAlchemy configurational syntax. To define a
@@ -316,7 +352,7 @@
         </span><span class="python_keyword">return </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">.</span><span class="python_name">upper</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
-<p>As an alternative to <code>__tablename__</code>, a direct <code>Table</code> construct may be used:
+<p>As an alternative to <code>__tablename__</code>, a direct <code>Table</code> construct may be used.  The <code>Column</code> objects, which in this case require their names, will be added to the mapping just like a regular mapping to a table:
 </p>
 
     

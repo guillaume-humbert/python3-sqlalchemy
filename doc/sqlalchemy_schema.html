@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.5   Last Updated: 04/03/08 21:06:31</div>
+<div class="versionheader">Version: 0.4.6   Last Updated: 05/14/08 14:36:43</div>
 
 
 
@@ -182,7 +182,7 @@ expressions.</p>
     <div class="docstring">
     <p>Construct a CHECK constraint.</p>
 <dl class="docutils">
-<dt>sqltest</dt>
+<dt>sqltext</dt>
 <dd>A string containing the constraint definition.  Will be used
 verbatim.</dd>
 <dt>name</dt>
@@ -326,10 +326,9 @@ of <cite>autoincrement</cite> is ignored and is assumed to be False.
 <cite>autoincrement</cite> value is only significant for a column with a type
 or subtype of Integer.</dd>
 <dt>quote</dt>
-<dd>Defaults to False: indicates that the Column identifier must be
-properly escaped and quoted before being sent to the database.
-This flag should normally not be required as dialects can
-auto-detect conditions where quoting is required.</dd>
+<dd>When True, indicates that the Column identifier must be quoted.
+This flag does <em>not</em> disable quoting; for case-insensitive names,
+use an all lower case identifier.</dd>
 </dl>
 </dd>
 </dl>
@@ -875,6 +874,15 @@ the key.  Useful for circular dependencies.</dd>
 
     </div>
     </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>target_fullname = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
 
 
     
@@ -1680,13 +1688,13 @@ constructor arguments.</dd>
 <dd>Deprecated; this is an oracle-only argument - &quot;schema&quot; should
 be used in its place.</dd>
 <dt>quote</dt>
-<dd>Defaults to False: indicates that the Table identifier must be
-properly escaped and quoted before being sent to the
-database. This flag overrides all other quoting behavior.</dd>
+<dd>When True, indicates that the Table identifier must be quoted.
+This flag does <em>not</em> disable quoting; for case-insensitive names,
+use an all lower case identifier.</dd>
 <dt>quote_schema</dt>
-<dd>Defaults to False: indicates that the Namespace identifier must be
-properly escaped and quoted before being sent to the
-database. This flag overrides all other quoting behavior.</dd>
+<dd>When True, indicates that the schema identifier must be quoted.
+This flag does <em>not</em> disable quoting; for case-insensitive names,
+use an all lower case identifier.</dd>
 </dl>
 </dd>
 </dl>

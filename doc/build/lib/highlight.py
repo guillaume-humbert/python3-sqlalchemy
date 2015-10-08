@@ -1,4 +1,4 @@
-# $Id: highlight.py 3151 2007-08-03 13:57:40Z ellisj $
+# $Id: highlight.py 4694 2008-05-09 14:07:28Z zzzeek $
 # highlight.py - syntax highlighting functions for Myghty 
 # Copyright (C) 2004 Michael Bayer mike_mp@zzzcomputing.com
 #

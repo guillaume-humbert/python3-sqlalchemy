@@ -6,10 +6,12 @@ transparent proxied access to the endpoint of an association object.
 See the example ``examples/association/proxied_association.py``.
 """
 
-import weakref, itertools
-import sqlalchemy.exceptions as exceptions
-import sqlalchemy.orm as orm
-import sqlalchemy.util as util
+import itertools
+import weakref
+from sqlalchemy import exceptions
+from sqlalchemy import orm
+from sqlalchemy import util
+from sqlalchemy.orm import collections
 
 
 def association_proxy(targetcollection, attr, **kw):
@@ -143,9 +145,10 @@ class AssociationProxy(object):
         return lazy_collection
 
     def __get__(self, obj, class_):
+        if self.owning_class is None:
+            self.owning_class = class_ and class_ or type(obj)
         if obj is None:
-            self.owning_class = class_
-            return
+            return None
         elif self.scalar is None:
             self.scalar = self._target_is_scalar()
             if self.scalar:
@@ -155,13 +158,20 @@ class AssociationProxy(object):
             return self._scalar_get(getattr(obj, self.target_collection))
         else:
             try:
-                return getattr(obj, self.key)
+                # If the owning instance is reborn (orm session resurrect,
+                # etc.), refresh the proxy cache.
+                creator_id, proxy = getattr(obj, self.key)
+                if id(obj) == creator_id:
+                    return proxy
             except AttributeError:
-                proxy = self._new(self._lazy_collection(weakref.ref(obj)))
-                setattr(obj, self.key, proxy)
-                return proxy
+                pass
+            proxy = self._new(self._lazy_collection(weakref.ref(obj)))
+            setattr(obj, self.key, (id(obj), proxy))
+            return proxy
 
     def __set__(self, obj, values):
+        if self.owning_class is None:
+            self.owning_class = type(obj)
         if self.scalar is None:
             self.scalar = self._target_is_scalar()
             if self.scalar:
@@ -181,6 +191,8 @@ class AssociationProxy(object):
                 self._set(proxy, values)
 
     def __delete__(self, obj):
+        if self.owning_class is None:
+            self.owning_class = type(obj)
         delattr(obj, self.key)
 
     def _initialize_scalar_accessors(self):
@@ -692,7 +704,7 @@ class _AssociationSet(object):
             self.add(value)
 
     def __ior__(self, other):
-        if util.duck_type_collection(other) is not util.Set:
+        if not collections._set_binops_check_strict(self, other):
             return NotImplemented
         for value in other:
             self.add(value)
@@ -716,7 +728,7 @@ class _AssociationSet(object):
             self.discard(value)
 
     def __isub__(self, other):
-        if util.duck_type_collection(other) is not util.Set:
+        if not collections._set_binops_check_strict(self, other):
             return NotImplemented
         for value in other:
             self.discard(value)
@@ -738,7 +750,7 @@ class _AssociationSet(object):
             self.add(value)
 
     def __iand__(self, other):
-        if util.duck_type_collection(other) is not util.Set:
+        if not collections._set_binops_check_strict(self, other):
             return NotImplemented
         want, have = self.intersection(other), util.Set(self)
 
@@ -766,7 +778,7 @@ class _AssociationSet(object):
             self.add(value)
 
     def __ixor__(self, other):
-        if util.duck_type_collection(other) is not util.Set:
+        if not collections._set_binops_check_strict(self, other):
             return NotImplemented
         want, have = self.symmetric_difference(other), util.Set(self)
 

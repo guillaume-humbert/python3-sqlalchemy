@@ -183,14 +183,14 @@ class Table(SchemaItem, expression.TableClause):
             be used in its place.
 
           quote
-            Defaults to False: indicates that the Table identifier must be
-            properly escaped and quoted before being sent to the
-            database. This flag overrides all other quoting behavior.
+            When True, indicates that the Table identifier must be quoted.
+            This flag does *not* disable quoting; for case-insensitive names,
+            use an all lower case identifier.
 
           quote_schema
-            Defaults to False: indicates that the Namespace identifier must be
-            properly escaped and quoted before being sent to the
-            database. This flag overrides all other quoting behavior.
+            When True, indicates that the schema identifier must be quoted.
+            This flag does *not* disable quoting; for case-insensitive names,
+            use an all lower case identifier.
         """
 
         super(Table, self).__init__(name)
@@ -275,11 +275,6 @@ class Table(SchemaItem, expression.TableClause):
     def key(self):
         return _get_table_key(self.name, self.schema)
     key = property(key)
-
-    def _export_columns(self, columns=None):
-        # override FromClause's collection initialization logic; Table
-        # implements it differently
-        pass
 
     def _set_primary_key(self, pk):
         if getattr(self, '_primary_key', None) in self.constraints:
@@ -493,10 +488,9 @@ class Column(SchemaItem, expression._ColumnClause):
             or subtype of Integer.
 
           quote
-            Defaults to False: indicates that the Column identifier must be
-            properly escaped and quoted before being sent to the database.
-            This flag should normally not be required as dialects can
-            auto-detect conditions where quoting is required.
+            When True, indicates that the Column identifier must be quoted.
+            This flag does *not* disable quoting; for case-insensitive names,
+            use an all lower case identifier.
         """
 
         name = kwargs.pop('name', None)
@@ -639,7 +633,7 @@ class Column(SchemaItem, expression._ColumnClause):
         This is used in ``Table.tometadata``.
         """
 
-        return Column(self.name, self.type, self.default, key = self.key, primary_key = self.primary_key, nullable = self.nullable, _is_oid = self._is_oid, quote=self.quote, index=self.index, *[c.copy() for c in self.constraints])
+        return Column(self.name, self.type, self.default, key = self.key, primary_key = self.primary_key, nullable = self.nullable, _is_oid = self._is_oid, quote=self.quote, index=self.index, autoincrement=self.autoincrement, *[c.copy() for c in self.constraints])
 
     def _make_proxy(self, selectable, name = None):
         """Create a *proxy* for this column.
@@ -746,6 +740,8 @@ class ForeignKey(SchemaItem):
         else:
             return "%s.%s" % (self._colspec.table.name, self._colspec.key)
 
+    target_fullname = property(_get_colspec)
+
     def references(self, table):
         """Return True if the given table is referenced by this ForeignKey."""
 
@@ -787,7 +783,7 @@ class ForeignKey(SchemaItem):
                 else:
                     (schema,tname,colname) = m.group(1,2,3)
                 if _get_table_key(tname, schema) not in parenttable.metadata:
-                    raise exceptions.InvalidRequestError(
+                    raise exceptions.NoReferencedTableError(
                         "Could not find table '%s' with which to generate a "
                         "foreign key" % tname)
                 table = Table(tname, parenttable.metadata,
@@ -807,10 +803,13 @@ class ForeignKey(SchemaItem):
                         "Could not create ForeignKey '%s' on table '%s': "
                         "table '%s' has no column named '%s'" % (
                         self._colspec, parenttable.name, table.name, str(e)))
+            
+            elif isinstance(self._colspec, expression.Operators):
+                self._column = self._colspec.clause_element()
             else:
                 self._column = self._colspec
 
-        # propigate TypeEngine to parent if it didnt have one
+        # propagate TypeEngine to parent if it didn't have one
         if isinstance(self.parent.type, types.NullType):
             self.parent.type = self._column.type
         return self._column
@@ -1018,7 +1017,7 @@ class CheckConstraint(Constraint):
     def __init__(self, sqltext, name=None, deferrable=None, initially=None):
         """Construct a CHECK constraint.
 
-        sqltest
+        sqltext
           A string containing the constraint definition.  Will be used
           verbatim.
 
@@ -1035,6 +1034,9 @@ class CheckConstraint(Constraint):
         """
 
         super(CheckConstraint, self).__init__(name, deferrable, initially)
+        if not isinstance(sqltext, basestring):
+            raise exc.ArgumentError(
+                "sqltext must be a string and will be used verbatim.")
         self.sqltext = sqltext
 
     def __visit_name__(self):

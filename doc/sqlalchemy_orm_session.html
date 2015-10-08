@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.5   Last Updated: 04/03/08 21:06:31</div>
+<div class="versionheader">Version: 0.4.6   Last Updated: 05/14/08 14:36:43</div>
 
 
 
@@ -360,7 +360,7 @@ is reached does an actual database-level commit occur.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def connection(<i>self</i>, <i>mapper=None</i>, <i>**kwargs</i>)</b>
+    <b>def connection(<i>self</i>, <i>mapper=None</i>, <i>clause=None</i>, <i>instance=None</i>)</b>
     <div class="docstring">
     <p>Return a <tt class="docutils literal"><span class="pre">Connection</span></tt> corresponding to this session's
 transactional context, if any.</p>
@@ -422,15 +422,24 @@ is_modified() method.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def execute(<i>self</i>, <i>clause</i>, <i>params=None</i>, <i>mapper=None</i>, <i>**kwargs</i>)</b>
+    <b>def execute(<i>self</i>, <i>clause</i>, <i>params=None</i>, <i>mapper=None</i>, <i>instance=None</i>)</b>
     <div class="docstring">
-    <p>Using the given mapper to identify the appropriate <tt class="docutils literal"><span class="pre">Engine</span></tt>
-or <tt class="docutils literal"><span class="pre">Connection</span></tt> to be used for statement execution, execute the
-given <tt class="docutils literal"><span class="pre">ClauseElement</span></tt> using the provided parameter dictionary.</p>
-<p>Return a <tt class="docutils literal"><span class="pre">ResultProxy</span></tt> corresponding to the execution's results.</p>
-<p>If this method allocates a new <tt class="docutils literal"><span class="pre">Connection</span></tt> for the operation,
-then the <tt class="docutils literal"><span class="pre">ResultProxy</span></tt> 's <tt class="docutils literal"><span class="pre">close()</span></tt> method will release the
-resources of the underlying <tt class="docutils literal"><span class="pre">Connection</span></tt>.</p>
+    <p>Execute the given clause, using the current transaction (if any).</p>
+<p>Returns a <tt class="docutils literal"><span class="pre">ResultProxy</span></tt> corresponding to the execution's results.</p>
+<dl class="docutils">
+<dt>clause</dt>
+<dd>a ClauseElement (i.e. select(), text(), etc.) or
+string SQL statement to be executed</dd>
+<dt>params</dt>
+<dd>a dictionary of bind parameters.</dd>
+<dt>mapper</dt>
+<dd>a mapped class or Mapper instance which may be needed
+in order to locate the proper bind.  This is typically
+if the Session is not directly bound to a single engine.</dd>
+<dt>instance</dt>
+<dd>used by some Query operations to further identify
+the proper bind, in the case of ShardedSession.</dd>
+</dl>
 
     </div>
     </div>
@@ -486,7 +495,7 @@ rule.</p>
     <div class="docstring">
     <p>Flush all the object modifications present in this session
 to the database.</p>
-<p><cite>objects</cite> is a list or tuple of objects specifically to be
+<p><cite>objects</cite> is a collection or iterator of objects specifically to be
 flushed; if <tt class="docutils literal"><span class="pre">None</span></tt>, all new and modified objects are flushed.</p>
 
     </div>
@@ -514,20 +523,21 @@ query.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_bind(<i>self</i>, <i>mapper</i>, <i>clause=None</i>, <i>**kwargs</i>)</b>
+    <b>def get_bind(<i>self</i>, <i>mapper</i>, <i>clause=None</i>, <i>instance=None</i>)</b>
     <div class="docstring">
     <p>Return an engine corresponding to the given arguments.</p>
 <dl class="docutils">
 <dt>mapper</dt>
-<dd>mapper relative to the desired operation</dd>
+<dd>mapper relative to the desired operation.</dd>
 <dt>clause</dt>
 <dd>a ClauseElement which is to be executed.  if
 mapper is not present, this may be used to locate
 Table objects, which are then associated with mappers
 which have associated binds.</dd>
-<dt>**kwargs</dt>
-<dd>Subclasses (i.e. ShardedSession) may add additional arguments
-to get_bind() which are passed through here.</dd>
+<dt>instance</dt>
+<dd>an ORM mapped instance which may be used to further
+locate the correct bind.  This is currently used by
+the ShardedSession subclass.</dd>
 </dl>
 
     </div>
@@ -772,7 +782,7 @@ determines whether to <tt class="docutils literal"><span class="pre">save()</spa
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def scalar(<i>self</i>, <i>clause</i>, <i>params=None</i>, <i>mapper=None</i>, <i>**kwargs</i>)</b>
+    <b>def scalar(<i>self</i>, <i>clause</i>, <i>params=None</i>, <i>mapper=None</i>, <i>instance=None</i>)</b>
     <div class="docstring">
     <p>Like execute() but return a scalar result.</p>
 
@@ -845,6 +855,19 @@ result of True.</p>
 (or sessionmaker) using the <tt class="docutils literal"><span class="pre">extension</span></tt> keyword argument.</p>
 </div>
     
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def after_begin(<i>self</i>, <i>session</i>, <i>transaction</i>, <i>connection</i>)</b>
+    <div class="docstring">
+    <p>Execute after a transaction is begun on a connection</p>
+<p><cite>transaction</cite> is the SessionTransaction. This method is called after an
+engine level transaction is begun on a connection.</p>
+
+    </div>
+    </div>
 
                     
     <div class="darkcell">

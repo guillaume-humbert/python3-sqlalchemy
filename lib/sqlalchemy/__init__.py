@@ -16,7 +16,7 @@ from sqlalchemy.sql import \
     and_, or_, not_, \
     select, subquery, union, union_all, insert, update, delete, \
     join, outerjoin, \
-    bindparam, outparam, asc, desc, \
+    bindparam, outparam, asc, desc, collate, \
     except_, except_all, exists, intersect, intersect_all, \
     between, case, cast, distinct, extract
 
@@ -31,4 +31,4 @@ from sqlalchemy.engine import create_engine, engine_from_config
 __all__ = [ name for name, obj in locals().items()
             if not (name.startswith('_') or inspect.ismodule(obj)) ]
 
-__version__ = '0.4.5'
+__version__ = '0.4.6'

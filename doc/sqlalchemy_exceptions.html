@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.5   Last Updated: 04/03/08 21:06:31</div>
+<div class="versionheader">Version: 0.4.6   Last Updated: 05/14/08 14:36:43</div>
 
 
 
@@ -106,6 +106,9 @@
 
         
         <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_InvalidRequestError">class InvalidRequestError(SQLAlchemyError)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_NoReferencedTableError">class NoReferencedTableError(InvalidRequestError)</a></li>
 
         
         <li><a style="" href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_NoSuchColumnError">class NoSuchColumnError(KeyError,SQLAlchemyError)</a></li>
@@ -531,6 +534,30 @@ a <tt class="docutils literal"><span class="pre">PoolListener</span></tt> so tha
     <div class="darkcell"><p>SQLAlchemy was asked to do something it can't do, return
 nonexistent data, etc.</p>
 <p>This error generally corresponds to runtime state errors.</p>
+</div>
+    
+
+
+    
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.exceptions_NoReferencedTableError"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class NoReferencedTableError(<a href="sqlalchemy_exceptions.html#docstrings_sqlalchemy.exceptions_InvalidRequestError">InvalidRequestError</a>)</h3>
+    
+    
+    <div class="darkcell"><p>Raised by <tt class="docutils literal"><span class="pre">ForeignKey</span></tt> when the referred <tt class="docutils literal"><span class="pre">Table</span></tt> cannot be located.</p>
 </div>
     
 
