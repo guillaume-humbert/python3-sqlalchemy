@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.10   Last Updated: 07/20/07 17:20:04</div>
+<div class="versionheader">Version: 0.3.11   Last Updated: 10/14/07 15:20:01</div>
 
 
 
@@ -1508,7 +1508,8 @@ subclasses.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>selectable</i>, <i>alias=None</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">Alias</span></tt>.</p>
+
     </div>
     </div>
 
@@ -1600,7 +1601,8 @@ subclasses.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>left</i>, <i>right</i>, <i>operator</i>, <i>type=None</i>, <i>negate=None</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_BinaryExpression</span></tt>.</p>
+
     </div>
     </div>
 
@@ -1795,7 +1797,8 @@ operators.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>name</i>, <i>*clauses</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_CalculatedClause</span></tt>.</p>
+
     </div>
     </div>
 
@@ -1896,7 +1899,8 @@ operators.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>clause</i>, <i>totype</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_Cast</span></tt>.</p>
+
     </div>
     </div>
 
@@ -2094,6 +2098,36 @@ executable statement.</p>
     </div>
     </div>
 
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __and__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __invert__(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __or__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
 
     
 
@@ -2125,7 +2159,8 @@ executable statement.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>*clauses</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">ClauseList</span></tt>.</p>
+
     </div>
     </div>
 
@@ -2191,6 +2226,26 @@ including a comparison of all the clause items.</p>
     </div>
     </div>
 
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __iter__(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __len__(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
 
     
 
@@ -2225,7 +2280,8 @@ the <tt class="docutils literal"><span class="pre">TypeEngine</span></tt> object
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>dialect</i>, <i>positional=None</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">ClauseParameters</span></tt>.</p>
+
     </div>
     </div>
 
@@ -2307,6 +2363,26 @@ conversion.</p>
     
     <A name=""></a>
     <b>def set_value(<i>self</i>, <i>key</i>, <i>value</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __contains__(<i>self</i>, <i>key</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __getitem__(<i>self</i>, <i>key</i>)</b>
     <div class="docstring">
     
     </div>
@@ -2627,7 +2703,8 @@ usually used to create such a <tt class="docutils literal"><span class="pre">_Co
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>text</i>, <i>selectable=None</i>, <i>type=None</i>, <i>_is_oid=False</i>, <i>case_sensitive=True</i>, <i>is_literal=False</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_ColumnClause</span></tt>.</p>
+
     </div>
     </div>
 
@@ -2693,7 +2770,8 @@ sets of correlated columns.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>*cols</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">ColumnCollection</span></tt>.</p>
+
     </div>
     </div>
 
@@ -2735,6 +2813,26 @@ for this dictionary.</p>
     
     <A name=""></a>
     <b>def remove(<i>self</i>, <i>column</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __contains__(<i>self</i>, <i>col</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __eq__(<i>self</i>, <i>other</i>)</b>
     <div class="docstring">
     
     </div>
@@ -2888,6 +2986,26 @@ ancestor to this <tt class="docutils literal"><span class="pre">ColumnElement</s
     </div>
     </div>
 
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __add__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __eq__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
 
     
 
@@ -3018,6 +3136,166 @@ passed to the generated function.</dd>
     <div class="docstring">
     <p>produce the clause <tt class="docutils literal"><span class="pre">LIKE</span> <span class="pre">'&lt;other&gt;%'</span></tt></p>
 
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __add__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __div__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __eq__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __ge__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __gt__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __le__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __lt__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __mod__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __mul__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __ne__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __radd__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __rdiv__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __rmul__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __rsub__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __sub__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __truediv__(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
     </div>
     </div>
 
@@ -3174,7 +3452,8 @@ the <cite>key</cite> or <cite>shortname</cite> property of the <tt class="docuti
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>keyword</i>, <i>*selects</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">CompoundSelect</span></tt>.</p>
+
     </div>
     </div>
 
@@ -3245,7 +3524,8 @@ the <cite>key</cite> or <cite>shortname</cite> property of the <tt class="docuti
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>table</i>, <i>whereclause</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_Delete</span></tt>.</p>
+
     </div>
     </div>
 
@@ -3344,7 +3624,8 @@ and execute them&quot;.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_Exists</span></tt>.</p>
+
     </div>
     </div>
 
@@ -3379,7 +3660,8 @@ clause of a <tt class="docutils literal"><span class="pre">SELECT</span></tt> st
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>name=None</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">FromClause</span></tt>.</p>
+
     </div>
     </div>
 
@@ -3576,7 +3858,8 @@ arguments, also adds a <cite>packagenames</cite> argument.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>name</i>, <i>*clauses</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_Function</span></tt>.</p>
+
     </div>
     </div>
 
@@ -3649,6 +3932,27 @@ arguments, also adds a <cite>packagenames</cite> argument.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>**opts</i>)</b>
     <div class="docstring">
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_FunctionGenerator</span></tt>.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __call__(<i>self</i>, <i>*c</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __getattr__(<i>self</i>, <i>name</i>)</b>
+    <div class="docstring">
     
     </div>
     </div>
@@ -3681,7 +3985,8 @@ arguments, also adds a <cite>packagenames</cite> argument.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>elem</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_Grouping</span></tt>.</p>
+
     </div>
     </div>
 
@@ -3733,6 +4038,16 @@ arguments, also adds a <cite>packagenames</cite> argument.</p>
          </div> 
          </div>
 
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __getattr__(<i>self</i>, <i>attr</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
 
     
 
@@ -3761,7 +4076,8 @@ arguments, also adds a <cite>packagenames</cite> argument.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>table</i>, <i>values=None</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_Insert</span></tt>.</p>
+
     </div>
     </div>
 
@@ -3819,7 +4135,8 @@ off all <tt class="docutils literal"><span class="pre">FromClause</span></tt> su
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>left</i>, <i>right</i>, <i>onclause=None</i>, <i>isouter=False</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">Join</span></tt>.</p>
+
     </div>
     </div>
 
@@ -3959,7 +4276,8 @@ subclasses.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>name</i>, <i>obj</i>, <i>type=None</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_Label</span></tt>.</p>
+
     </div>
     </div>
 
@@ -4098,7 +4416,8 @@ skipping their traversal here greatly cuts down on method call overhead.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_Null</span></tt>.</p>
+
     </div>
     </div>
 
@@ -4430,7 +4749,8 @@ does not provide schema-level functionality.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>name</i>, <i>*columns</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">TableClause</span></tt>.</p>
+
     </div>
     </div>
 
@@ -4594,7 +4914,8 @@ does not provide schema-level functionality.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>text=''</i>, <i>bind=None</i>, <i>engine=None</i>, <i>bindparams=None</i>, <i>typemap=None</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_TextClause</span></tt>.</p>
+
     </div>
     </div>
 
@@ -4677,7 +4998,8 @@ does not provide schema-level functionality.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>type</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_TypeClause</span></tt>.</p>
+
     </div>
     </div>
 
@@ -4719,7 +5041,8 @@ does not provide schema-level functionality.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>element</i>, <i>operator=None</i>, <i>modifier=None</i>, <i>type=None</i>, <i>negate=None</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_UnaryExpression</span></tt>.</p>
+
     </div>
     </div>
 
@@ -4802,7 +5125,8 @@ does not provide schema-level functionality.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>table</i>, <i>whereclause</i>, <i>values=None</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_Update</span></tt>.</p>
+
     </div>
     </div>
 

@@ -99,8 +99,7 @@ def descriptor():
 
 
 class FBExecutionContext(default.DefaultExecutionContext):
-    def supports_sane_rowcount(self):
-        return True
+    pass
 
 
 class FBDialect(ansisql.ANSIDialect):
@@ -262,6 +261,9 @@ class FBDialect(ansisql.ANSIDialect):
 
             # is it a primary key?
             kw['primary_key'] = name in pkfields
+
+            # is it nullable ?
+            kw['nullable'] = not bool(row['NULL_FLAG'])
 
             table.append_column(schema.Column(*args, **kw))
             row = c.fetchone()

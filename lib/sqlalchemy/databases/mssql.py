@@ -32,8 +32,6 @@ Known issues / TODO:
 
 * No support for more than one ``IDENTITY`` column per table
 
-* No support for ``GUID`` type columns (yet)
-
 * pymssql has problems with binary and unicode data that this module
   does **not** work around
   
@@ -48,6 +46,7 @@ import sqlalchemy.schema as schema
 import sqlalchemy.ansisql as ansisql
 import sqlalchemy.types as sqltypes
 import sqlalchemy.exceptions as exceptions
+import sys
 
     
 class MSNumeric(sqltypes.Numeric):
@@ -81,11 +80,15 @@ class MSInteger(sqltypes.Integer):
     def get_col_spec(self):
         return "INTEGER"
 
-class MSTinyInteger(sqltypes.Integer): 
+class MSBigInteger(MSInteger):
+    def get_col_spec(self):
+        return "BIGINT"
+
+class MSTinyInteger(MSInteger):
     def get_col_spec(self):
         return "TINYINT"
 
-class MSSmallInteger(sqltypes.Smallinteger):
+class MSSmallInteger(MSInteger):
     def get_col_spec(self):
         return "SMALLINT"
 
@@ -102,6 +105,29 @@ class MSDate(sqltypes.Date):
 
     def get_col_spec(self):
         return "SMALLDATETIME"
+
+class MSTime(sqltypes.Time):
+    __zero_date = datetime.date(1900, 1, 1)
+
+    def __init__(self, *a, **kw):
+        super(MSTime, self).__init__(False)
+    
+    def get_col_spec(self):
+        return "DATETIME"
+
+    def convert_bind_param(self, value, dialect):
+        if isinstance(value, datetime.datetime):
+            value = datetime.datetime.combine(self.__zero_date, value.time())
+        elif isinstance(value, datetime.time):
+            value = datetime.datetime.combine(self.__zero_date, value)
+        return value
+
+    def convert_result_value(self, value, dialect):
+        if isinstance(value, datetime.datetime):
+            return value.time()
+        elif isinstance(value, datetime.date):
+            return datetime.time(0, 0, 0)
+        return value
 
 class MSDateTime_adodbapi(MSDateTime):
     def convert_result_value(self, value, dialect):
@@ -202,6 +228,22 @@ class MSBoolean(sqltypes.Boolean):
 class MSTimeStamp(sqltypes.TIMESTAMP):
     def get_col_spec(self):
         return "TIMESTAMP"
+        
+class MSMoney(sqltypes.TypeEngine):
+    def get_col_spec(self):
+        return "MONEY"
+        
+class MSSmallMoney(MSMoney):
+    def get_col_spec(self):
+        return "SMALLMONEY"
+        
+class MSUniqueIdentifier(sqltypes.TypeEngine):
+    def get_col_spec(self):
+        return "UNIQUEIDENTIFIER"
+        
+class MSVariant(sqltypes.TypeEngine):
+    def get_col_spec(self):
+        return "SQL_VARIANT"
         
 def descriptor():
     return {'name':'mssql',
@@ -310,6 +352,7 @@ class MSSQLDialect(ansisql.ANSIDialect):
         sqltypes.Float : MSFloat,
         sqltypes.DateTime : MSDateTime,
         sqltypes.Date : MSDate,
+        sqltypes.Time : MSTime,
         sqltypes.String : MSString,
         sqltypes.Binary : MSBinary,
         sqltypes.Boolean : MSBoolean,
@@ -321,6 +364,7 @@ class MSSQLDialect(ansisql.ANSIDialect):
 
     ischema_names = {
         'int' : MSInteger,
+        'bigint': MSBigInteger,
         'smallint' : MSSmallInteger,
         'tinyint' : MSTinyInteger,
         'varchar' : MSString,
@@ -335,10 +379,15 @@ class MSSQLDialect(ansisql.ANSIDialect):
         'datetime' : MSDateTime,
         'smalldatetime' : MSDate,
         'binary' : MSBinary,
+        'varbinary' : MSBinary,
         'bit': MSBoolean,
         'real' : MSFloat,
         'image' : MSBinary,
         'timestamp': MSTimeStamp,
+        'money': MSMoney,
+        'smallmoney': MSSmallMoney,
+        'uniqueidentifier': MSUniqueIdentifier,
+        'sql_variant': MSVariant,
     }
 
     def __new__(cls, dbapi=None, *args, **kwargs):
@@ -419,7 +468,7 @@ class MSSQLDialect(ansisql.ANSIDialect):
     def preparer(self):
         return MSSQLIdentifierPreparer(self)
 
-    def get_default_schema_name(self):
+    def get_default_schema_name(self, connection):
         return self.schema_name
 
     def set_default_schema_name(self, schema_name):
@@ -464,7 +513,7 @@ class MSSQLDialect(ansisql.ANSIDialect):
     def has_table(self, connection, tablename, schema=None):
         import sqlalchemy.databases.information_schema as ischema
 
-        current_schema = schema or self.get_default_schema_name()
+        current_schema = schema or self.get_default_schema_name(connection)
         columns = self.uppercase_table(ischema.columns)
         s = sql.select([columns],
                    current_schema
@@ -483,7 +532,7 @@ class MSSQLDialect(ansisql.ANSIDialect):
         if table.schema is not None:
             current_schema = table.schema
         else:
-            current_schema = self.get_default_schema_name()
+            current_schema = self.get_default_schema_name(connection)
 
         columns = self.uppercase_table(ischema.columns)
         s = sql.select([columns],
@@ -680,6 +729,15 @@ class MSSQLDialect_pymssql(MSSQLDialect):
 
 class MSSQLDialect_pyodbc(MSSQLDialect):
     
+    def __init__(self, **params):
+        super(MSSQLDialect_pyodbc, self).__init__(**params)
+        # whether use_scope_identity will work depends on the version of pyodbc
+        try:
+            import pyodbc
+            self.use_scope_identity = hasattr(pyodbc.Cursor, 'nextset')
+        except:
+            pass
+        
     def import_dbapi(cls):
         import pyodbc as module
         return module
@@ -700,15 +758,19 @@ class MSSQLDialect_pyodbc(MSSQLDialect):
 
     def supports_unicode_statements(self):
         """indicate whether the DBAPI can receive SQL statements as Python unicode strings"""
-        return True
+        # PyODBC unicode is broken on UCS-4 builds
+        return sys.maxunicode == 65535
 
     def make_connect_string(self, keys):
-        connectors = ["Driver={SQL Server}"]
-        if 'port' in keys:
-            connectors.append('Server=%s,%d' % (keys.get('host'), keys.get('port')))
+        if 'dsn' in keys:
+            connectors = ['dsn=%s' % keys['dsn']]
         else:
-            connectors.append('Server=%s' % keys.get('host'))
-        connectors.append("Database=%s" % keys.get("database"))
+            connectors = ["Driver={SQL Server}"]
+            if 'port' in keys:
+                connectors.append('Server=%s,%d' % (keys.get('host'), keys.get('port')))
+            else:
+                connectors.append('Server=%s' % keys.get('host'))
+            connectors.append("Database=%s" % keys.get("database"))
         user = keys.get("user")
         if user:
             connectors.append("UID=%s" % user)
@@ -891,7 +953,9 @@ class MSSQLSchemaGenerator(ansisql.ANSISchemaGenerator):
 
 class MSSQLSchemaDropper(ansisql.ANSISchemaDropper):
     def visit_index(self, index):
-        self.append("\nDROP INDEX " + index.table.name + "." + index.name)
+        self.append("\nDROP INDEX %s.%s" % (
+                    self.preparer.quote_identifier(index.table.name),
+                    self.preparer.quote_identifier(index.name)))
         self.execute()
 
 class MSSQLDefaultRunner(ansisql.ANSIDefaultRunner):
@@ -911,6 +975,7 @@ class MSSQLIdentifierPreparer(ansisql.ANSIIdentifierPreparer):
         return value
 
 dialect = MSSQLDialect
+
 
 
 

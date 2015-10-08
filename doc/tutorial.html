@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.10   Last Updated: 07/20/07 17:20:04</div>
+<div class="versionheader">Version: 0.3.11   Last Updated: 10/14/07 15:20:01</div>
 
 
 
@@ -83,6 +83,13 @@
         
             
     <ul>
+        
+        <li><A style="" href="tutorial.html#tutorial_gettingstarted_checking">Checking the Version</a></li>
+        
+            
+    <ul>
+    </ul>
+
         
         <li><A style="" href="tutorial.html#tutorial_gettingstarted_imports">Imports</a></li>
         
@@ -331,6 +338,33 @@
 
 
     
+    <A name="tutorial_gettingstarted_checking"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Checking the Version</h3>
+    
+    
+
+<p><strong>Note:  This tutorial is oriented towards version 0.3.10 of SQLAlchemy.  It will *not* work with versions earlier than 0.3.9.</strong>  Check the version of SQLAlchemy you have installed via:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_literal">>>> </span><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">
+</span><span class="python_literal">>>> </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">__version__ </span><span class="python_operator">
+</span><span class="python_number">0.3.10</span><span class="python_operator"></span></pre>
+    </div>
+
+
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+    
     <A name="tutorial_gettingstarted_imports"></a>
     
     <div class="sectionL3">
@@ -494,7 +528,7 @@
     
 
     <div class="sliding_code">
-        <pre><span class="python_literal">>>> </span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">echo </span><span class="python_operator">= </span><span class="python_name">True</span><span class="python_operator">
+        <pre><span class="python_literal">>>> </span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">bind</span><span class="python_operator">.</span><span class="python_name">echo </span><span class="python_operator">= </span><span class="python_name">True</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">create</span><span class="python_enclosure">() </span><span class="python_operator">
 </span><span class="python_name">CREATE TABLE users </span><span class="python_enclosure">(</span>
     <span class="python_name">user_id INTEGER NOT NULL</span><span class="python_operator">,</span>
@@ -898,7 +932,7 @@
     
 
     <div class="sliding_code">
-        <pre><span class="python_literal">>>> </span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">echo </span><span class="python_operator">= </span><span class="python_name">False</span><span class="python_operator">
+        <pre><span class="python_literal">>>> </span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">bind</span><span class="python_operator">.</span><span class="python_name">echo </span><span class="python_operator">= </span><span class="python_name">False</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_number">3</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_enclosure">[</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">u'Fred'</span><span class="python_operator">,</span><span class="python_name">None</span><span class="python_enclosure">)]</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">
@@ -999,7 +1033,7 @@
     
 
     <div class="sliding_code">
-        <pre><span class="python_literal">>>> </span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">echo </span><span class="python_operator">= </span><span class="python_name">True</span><span class="python_operator">
+        <pre><span class="python_literal">>>> </span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">bind</span><span class="python_operator">.</span><span class="python_name">echo </span><span class="python_operator">= </span><span class="python_name">True</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">BEGIN</span><span class="python_operator">
 </span><span class="python_name">UPDATE users SET password</span><span class="python_operator">=? </span><span class="python_name">WHERE users</span><span class="python_operator">.</span><span class="python_name">user_id </span><span class="python_operator">= ?

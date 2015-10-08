@@ -290,7 +290,7 @@ class DateTest(AssertMixin):
 
             collist = [Column('user_id', INT, primary_key = True), Column('user_name', VARCHAR(20)), Column('user_datetime', DateTime),
                Column('user_date', Date), Column('user_time', TIMESTAMP)]
-        elif db.engine.name == 'mysql' or db.engine.name == 'mssql':
+        elif db.engine.name == 'mysql':
             # these dont really support the TIME type at all
             insert_data =  [
                  [7, 'jack', datetime.datetime(2005, 11, 10, 0, 0), datetime.datetime(2005, 11, 10, 0, 0, 0)],
@@ -310,6 +310,10 @@ class DateTest(AssertMixin):
                     [9, 'foo', datetime.datetime(2005, 11, 10, 11, 52, 35, 54839), datetime.date(1970,4,1), datetime.time(23,59,59,999)],
                     [10, 'colber', None, None, None]
             ]
+
+            if db.engine.name == 'mssql':
+                # MSSQL can't reliably fetch the millisecond part
+                insert_data[2] = [9, 'foo', datetime.datetime(2005, 11, 10, 11, 52, 35), datetime.date(1970,4,1), datetime.time(23,59,59)]
 
             fnames = ['user_id', 'user_name', 'user_datetime', 'user_date', 'user_time']
 
@@ -332,6 +336,23 @@ class DateTest(AssertMixin):
         l = map(list, users_with_date.select().execute().fetchall())
         self.assert_(l == insert_data, 'DateTest mismatch: got:%s expected:%s' % (l, insert_data))
 
+    @testbase.supported('sqlite') 
+    def test_sqlite_date(self): 
+        meta = MetaData(testbase.db) 
+        t = Table('testdate', meta, 
+                  Column('id', Integer, primary_key=True), 
+                  Column('adate', Date),  
+                  Column('adatetime', DateTime)) 
+        t.create(checkfirst=True) 
+        try: 
+            d1 = datetime.date(2007, 10, 30) 
+            d2 = datetime.datetime(2007, 10, 30) 
+
+            t.insert().execute(adate=str(d1), adatetime=str(d2)) 
+	             
+            assert t.select().execute().fetchall()[0] == (1, datetime.date(2007, 10, 30), datetime.datetime(2007, 10, 30)) 
+        finally: 
+            t.drop(checkfirst=True) 
 
     def testtextdate(self):     
         x = db.text("select user_datetime from query_users_with_date", typemap={'user_datetime':DateTime}).execute().fetchall()

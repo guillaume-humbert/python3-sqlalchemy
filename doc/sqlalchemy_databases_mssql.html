@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.10   Last Updated: 07/20/07 17:20:04</div>
+<div class="versionheader">Version: 0.3.11   Last Updated: 10/14/07 15:20:01</div>
 
 
 
@@ -81,6 +81,13 @@
 
         
         <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_AdoMSNVarchar">class AdoMSNVarchar(MSNVarchar)</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSBigInteger">class MSBigInteger(MSInteger)</a></li>
         
             
     <ul>
@@ -158,6 +165,13 @@
 
         
         <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSInteger">class MSInteger(Integer)</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSMoney">class MSMoney(TypeEngine)</a></li>
         
             
     <ul>
@@ -262,7 +276,14 @@
     </ul>
 
         
-        <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSSmallInteger">class MSSmallInteger(SmallInteger)</a></li>
+        <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSSmallInteger">class MSSmallInteger(MSInteger)</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSSmallMoney">class MSSmallMoney(MSMoney)</a></li>
         
             
     <ul>
@@ -283,6 +304,13 @@
     </ul>
 
         
+        <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSTime">class MSTime(Time)</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
         <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSTimeStamp">class MSTimeStamp(TIMESTAMP)</a></li>
         
             
@@ -290,7 +318,21 @@
     </ul>
 
         
-        <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSTinyInteger">class MSTinyInteger(Integer)</a></li>
+        <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSTinyInteger">class MSTinyInteger(MSInteger)</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSUniqueIdentifier">class MSUniqueIdentifier(TypeEngine)</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSVariant">class MSVariant(TypeEngine)</a></li>
         
             
     <ul>
@@ -344,7 +386,6 @@ and will default to 1,1.</p>
 <p>Known issues / TODO:</p>
 <ul class="simple">
 <li>No support for more than one <tt class="docutils literal"><span class="pre">IDENTITY</span></tt> column per table</li>
-<li>No support for <tt class="docutils literal"><span class="pre">GUID</span></tt> type columns (yet)</li>
 <li>pymssql has problems with binary and unicode data that this module
 does <strong>not</strong> work around</li>
 </ul>
@@ -408,6 +449,38 @@ does <strong>not</strong> work around</li>
     
     <A name=""></a>
     <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.databases.mssql_MSBigInteger"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class MSBigInteger(<a href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSInteger">MSInteger</a>)</h3>
+    
+    
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def get_col_spec(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
@@ -557,7 +630,8 @@ does <strong>not</strong> work around</li>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>*a</i>, <i>**kw</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">MSDate</span></tt>.</p>
+
     </div>
     </div>
 
@@ -599,7 +673,8 @@ does <strong>not</strong> work around</li>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>*a</i>, <i>**kw</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">MSDateTime</span></tt>.</p>
+
     </div>
     </div>
 
@@ -839,6 +914,38 @@ does <strong>not</strong> work around</li>
 
     
     
+    <A name="docstrings_sqlalchemy.databases.mssql_MSMoney"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class MSMoney(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_TypeEngine">TypeEngine</a>)</h3>
+    
+    
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def get_col_spec(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
     <A name="docstrings_sqlalchemy.databases.mssql_MSNChar"></a>
     
     <div class="sectionL3">
@@ -970,7 +1077,8 @@ does <strong>not</strong> work around</li>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>dialect</i>, <i>statement</i>, <i>parameters</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">MSSQLCompiler</span></tt>.</p>
+
     </div>
     </div>
 
@@ -1126,7 +1234,8 @@ does <strong>not</strong> work around</li>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>auto_identity_insert=True</i>, <i>**params</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">MSSQLDialect</span></tt>.</p>
+
     </div>
     </div>
 
@@ -1194,7 +1303,7 @@ does <strong>not</strong> work around</li>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_default_schema_name(<i>self</i>)</b>
+    <b>def get_default_schema_name(<i>self</i>, <i>connection</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1412,7 +1521,8 @@ does <strong>not</strong> work around</li>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>**params</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">MSSQLDialect_pymssql</span></tt>.</p>
+
     </div>
     </div>
 
@@ -1507,6 +1617,17 @@ does <strong>not</strong> work around</li>
     
     
     
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>**params</i>)</b>
+    <div class="docstring">
+    <p>Construct a new <tt class="docutils literal"><span class="pre">MSSQLDialect_pyodbc</span></tt>.</p>
+
+    </div>
+    </div>
 
                     
     <div class="darkcell">
@@ -1607,7 +1728,8 @@ does <strong>not</strong> work around</li>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">MSSQLExecutionContext</span></tt>.</p>
+
     </div>
     </div>
 
@@ -1709,7 +1831,8 @@ workaround for multiple result set issues.</p>
     <A name=""></a>
     <b>def __init__(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">MSSQLIdentifierPreparer</span></tt>.</p>
+
     </div>
     </div>
 
@@ -1794,7 +1917,39 @@ workaround for multiple result set issues.</p>
     
     <div class="sectionL3">
 
-    <h3>class MSSmallInteger(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_SmallInteger">SmallInteger</a>)</h3>
+    <h3>class MSSmallInteger(<a href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSInteger">MSInteger</a>)</h3>
+    
+    
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def get_col_spec(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.databases.mssql_MSSmallMoney"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class MSSmallMoney(<a href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSMoney">MSMoney</a>)</h3>
     
     
     
@@ -1886,6 +2041,69 @@ workaround for multiple result set issues.</p>
 
     
     
+    <A name="docstrings_sqlalchemy.databases.mssql_MSTime"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class MSTime(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Time">Time</a>)</h3>
+    
+    
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>*a</i>, <i>**kw</i>)</b>
+    <div class="docstring">
+    <p>Construct a new <tt class="docutils literal"><span class="pre">MSTime</span></tt>.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def get_col_spec(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
     <A name="docstrings_sqlalchemy.databases.mssql_MSTimeStamp"></a>
     
     <div class="sectionL3">
@@ -1922,7 +2140,71 @@ workaround for multiple result set issues.</p>
     
     <div class="sectionL3">
 
-    <h3>class MSTinyInteger(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Integer">Integer</a>)</h3>
+    <h3>class MSTinyInteger(<a href="sqlalchemy_databases_mssql.html#docstrings_sqlalchemy.databases.mssql_MSInteger">MSInteger</a>)</h3>
+    
+    
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def get_col_spec(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.databases.mssql_MSUniqueIdentifier"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class MSUniqueIdentifier(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_TypeEngine">TypeEngine</a>)</h3>
+    
+    
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def get_col_spec(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.databases.mssql_MSVariant"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class MSVariant(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_TypeEngine">TypeEngine</a>)</h3>
     
     
     
