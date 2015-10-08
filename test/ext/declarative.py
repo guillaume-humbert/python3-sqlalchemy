@@ -1,11 +1,11 @@
 import testenv; testenv.configure_for_tests()
 
 from sqlalchemy.ext import declarative as decl
+from sqlalchemy import exc
 from testlib import sa, testing
-from testlib.sa import MetaData, Table, Column, Integer, String, ForeignKey, ForeignKeyConstraint
-from testlib.sa.orm import relation, create_session
+from testlib.sa import MetaData, Table, Column, Integer, String, ForeignKey, ForeignKeyConstraint, asc
+from testlib.sa.orm import relation, create_session, class_mapper, eagerload, compile_mappers
 from testlib.testing import eq_
-from testlib.compat import set
 from orm._base import ComparableEntity
 
 
@@ -38,7 +38,7 @@ class DeclarativeTest(testing.TestBase, testing.AssertsExecutionResults):
         eq_(Address.__table__.c['id'].name, 'id')
         eq_(Address.__table__.c['_email'].name, 'email')
         eq_(Address.__table__.c['_user_id'].name, 'user_id')
-
+        
         u1 = User(name='u1', addresses=[
             Address(email='one'),
             Address(email='two'),
@@ -109,6 +109,47 @@ class DeclarativeTest(testing.TestBase, testing.AssertsExecutionResults):
             User(name='ed', addresses=[Address(email='xyz'), Address(email='def'), Address(email='abc')])
         )
         
+        class Foo(Base, ComparableEntity):
+            __tablename__ = 'foo'
+            id = Column(Integer, primary_key=True)
+            rel = relation("User", primaryjoin="User.addresses==Foo.id")
+        self.assertRaisesMessage(exc.InvalidRequestError, "'addresses' is not an instance of ColumnProperty", compile_mappers)
+    
+    def test_uncompiled_attributes_in_relation(self):
+        class Address(Base, ComparableEntity):
+            __tablename__ = 'addresses'
+            id = Column(Integer, primary_key=True)
+            email = Column(String(50))
+            user_id = Column(Integer, ForeignKey('users.id'))
+
+        class User(Base, ComparableEntity):
+            __tablename__ = 'users'
+            id = Column(Integer, primary_key=True)
+            name = Column(String(50))
+            addresses = relation("Address", order_by=Address.email, 
+                foreign_keys=Address.user_id, 
+                remote_side=Address.user_id,
+                )
+        
+        # get the mapper for User.   User mapper will compile,
+        # "addresses" relation will call upon Address.user_id for
+        # its clause element.  Address.user_id is a _CompileOnAttr,
+        # which then calls class_mapper(Address).  But !  We're already
+        # "in compilation", but class_mapper(Address) needs to initialize
+        # regardless, or COA's assertion fails
+        # and things generally go downhill from there.
+        class_mapper(User)
+        
+        Base.metadata.create_all()
+
+        sess = create_session()
+        u1 = User(name='ed', addresses=[Address(email='abc'), Address(email='xyz'), Address(email='def')])
+        sess.add(u1)
+        sess.flush()
+        sess.clear()
+        self.assertEquals(sess.query(User).filter(User.name == 'ed').one(),
+            User(name='ed', addresses=[Address(email='abc'), Address(email='def'), Address(email='xyz')])
+        )
             
     def test_nice_dependency_error(self):
         class User(Base):
@@ -171,7 +212,37 @@ class DeclarativeTest(testing.TestBase, testing.AssertsExecutionResults):
         a1 = sess.query(Address).filter(Address.email == 'two').one()
         eq_(a1, Address(email='two'))
         eq_(a1.user, User(name='u1'))
+    
+    def test_eager_order_by(self):
+        class Address(Base, ComparableEntity):
+            __tablename__ = 'addresses'
 
+            id = Column('id', Integer, primary_key=True)
+            email = Column('email', String(50))
+            user_id = Column('user_id', Integer, ForeignKey('users.id'))
+
+        class User(Base, ComparableEntity):
+            __tablename__ = 'users'
+
+            id = Column('id', Integer, primary_key=True)
+            name = Column('name', String(50))
+            addresses = relation("Address", order_by=Address.email)
+
+        Base.metadata.create_all()
+        u1 = User(name='u1', addresses=[
+            Address(email='two'),
+            Address(email='one'),
+        ])
+        sess = create_session()
+        sess.save(u1)
+        sess.flush()
+        sess.clear()
+        eq_(sess.query(User).options(eagerload(User.addresses)).all(), [User(name='u1', addresses=[
+            Address(email='one'),
+            Address(email='two'),
+        ])])
+
+            
     def test_as_declarative(self):
         class User(ComparableEntity):
             __tablename__ = 'users'
@@ -496,6 +567,23 @@ class DeclarativeTest(testing.TestBase, testing.AssertsExecutionResults):
                     any(Engineer.primary_language == 'cobol')).first()),
             c2)
 
+        # ensure that the Manager mapper was compiled
+        # with the Person id column as higher priority.
+        # this ensures that "id" will get loaded from the Person row
+        # and not the possibly non-present Manager row
+        assert Manager.id.property.columns == [Person.__table__.c.id, Manager.__table__.c.id]
+        
+        # assert that the "id" column is available without a second load.
+        # this would be the symptom of the previous step not being correct.
+        sess.clear()
+        def go():
+            assert sess.query(Manager).filter(Manager.name=='dogbert').one().id
+        self.assert_sql_count(testing.db, go, 1)
+        sess.clear()
+        def go():
+            assert sess.query(Person).filter(Manager.name=='dogbert').one().id
+        self.assert_sql_count(testing.db, go, 1)
+        
     def test_inheritance_with_undefined_relation(self):
         class Parent(Base):
            __tablename__ = 'parent'

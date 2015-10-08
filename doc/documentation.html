@@ -30,8 +30,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum prerelease">0.5.0beta2</span>
-  Last Updated: 07/14/08 16:12:25
+  Version: <span class="versionnum prerelease">0.5.0beta3</span>
+  Last Updated: 08/04/08 18:36:49
 </div>
 
 
@@ -396,6 +396,9 @@
 
         
         <li><a style="" href="#advdatamapping_mapper_multiple">Multiple Mappers for One Class</a></li>
+
+        
+        <li><a style="" href="#advdatamapping_mapper_onreconstitute">Performing Initialization When an Object Is Loaded</a></li>
 
         
         <li><a style="" href="#advdatamapping_mapper_extending">Extending Mapper</a></li>
@@ -948,9 +951,6 @@
     <ul>
         
         <li><a style="" href="#docstrings_sqlalchemy.engine_modfunc_create_engine">create_engine()</a></li>
-
-        
-        <li><a style="" href="#docstrings_sqlalchemy.engine_modfunc_engine_descriptors">engine_descriptors()</a></li>
 
         
         <li><a style="" href="#docstrings_sqlalchemy.engine_modfunc_engine_from_config">engine_from_config()</a></li>
@@ -1585,6 +1585,9 @@
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__ValuesBase">class _ValuesBase(_UpdateBase)</a></li>
 
+        
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_attrgetter">class attrgetter(object)</a></li>
+
     </ul>
 
 	        </li>
@@ -1616,6 +1619,9 @@
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_CLOB">class CLOB(Text)</a></li>
 
         
+        <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Concatenable">class Concatenable(object)</a></li>
+
+        
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_DATE">class DATE(Date)</a></li>
 
         
@@ -1644,6 +1650,9 @@
 
         
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Interval">class Interval(TypeDecorator)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_MutableType">class MutableType(object)</a></li>
 
         
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_NCHAR">class NCHAR(Unicode)</a></li>
@@ -1814,6 +1823,120 @@
 
 	        </li>
         
+        <li><a style="" href="sqlalchemy_orm_attributes.html#docstrings_sqlalchemy.orm.attributes">module sqlalchemy.orm.attributes</a></li>
+
+	        <li>
+                
+    <ul>
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.attributes_modfunc">Module Functions</a></li>
+
+	        <li>
+                
+    <ul>
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.attributes_modfunc_collect_management_factories_for">collect_management_factories_for()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.attributes_modfunc_del_attribute">del_attribute()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.attributes_modfunc_find_native_user_instrumentation_hook">find_native_user_instrumentation_hook()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.attributes_modfunc_get_attribute">get_attribute()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.attributes_modfunc_get_history">get_history()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.attributes_modfunc_has_parent">has_parent()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.attributes_modfunc_identity_equal">identity_equal()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.attributes_modfunc_init_collection">init_collection()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.attributes_modfunc_is_instrumented">is_instrumented()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.attributes_modfunc_on_reconstitute">on_reconstitute()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.attributes_modfunc_proxied_attribute_factory">proxied_attribute_factory()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.attributes_modfunc_register_attribute">register_attribute()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.attributes_modfunc_register_class">register_class()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.attributes_modfunc_set_attribute">set_attribute()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.attributes_modfunc_unregister_attribute">unregister_attribute()</a></li>
+
+        
+        <li><a style="" href="#docstrings_sqlalchemy.orm.attributes_modfunc_unregister_class">unregister_class()</a></li>
+
+    </ul>
+
+	        </li>
+        
+        <li><a style="" href="sqlalchemy_orm_attributes.html#docstrings_sqlalchemy.orm.attributes_AttributeImpl">class AttributeImpl(object)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm_attributes.html#docstrings_sqlalchemy.orm.attributes_ClassManager">class ClassManager(dict)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm_attributes.html#docstrings_sqlalchemy.orm.attributes_CollectionAttributeImpl">class CollectionAttributeImpl(AttributeImpl)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm_attributes.html#docstrings_sqlalchemy.orm.attributes_Events">class Events(object)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm_attributes.html#docstrings_sqlalchemy.orm.attributes_GenericBackrefExtension">class GenericBackrefExtension(AttributeExtension)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm_attributes.html#docstrings_sqlalchemy.orm.attributes_History">class History(tuple)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm_attributes.html#docstrings_sqlalchemy.orm.attributes_InstanceState">class InstanceState(object)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm_attributes.html#docstrings_sqlalchemy.orm.attributes_InstrumentationRegistry">class InstrumentationRegistry(object)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm_attributes.html#docstrings_sqlalchemy.orm.attributes_InstrumentedAttribute">class InstrumentedAttribute(QueryableAttribute)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm_attributes.html#docstrings_sqlalchemy.orm.attributes_MutableScalarAttributeImpl">class MutableScalarAttributeImpl(ScalarAttributeImpl)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm_attributes.html#docstrings_sqlalchemy.orm.attributes_PendingCollection">class PendingCollection(object)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm_attributes.html#docstrings_sqlalchemy.orm.attributes_QueryableAttribute">class QueryableAttribute(PropComparator)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm_attributes.html#docstrings_sqlalchemy.orm.attributes_ScalarAttributeImpl">class ScalarAttributeImpl(AttributeImpl)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm_attributes.html#docstrings_sqlalchemy.orm.attributes_ScalarObjectAttributeImpl">class ScalarObjectAttributeImpl(ScalarAttributeImpl)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm_attributes.html#docstrings_sqlalchemy.orm.attributes_attrgetter">class attrgetter(object)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_orm_attributes.html#docstrings_sqlalchemy.orm.attributes_itemgetter">class itemgetter(object)</a></li>
+
+    </ul>
+
+	        </li>
+        
         <li><a style="" href="sqlalchemy_orm_collections.html#docstrings_sqlalchemy.orm.collections">module sqlalchemy.orm.collections</a></li>
 
 	        <li>
@@ -1923,9 +2046,6 @@
     <ul>
         
         <li><a style="" href="#docstrings_sqlalchemy.orm.mapper_modfunc_class_mapper">class_mapper()</a></li>
-
-        
-        <li><a style="" href="#docstrings_sqlalchemy.orm.mapper_modfunc_object_mapper">object_mapper()</a></li>
 
     </ul>
 
@@ -7970,71 +8090,65 @@ FROM engineers) AS anon_1 ON companies.id = anon_1.company_id ORDER BY companies
     
     
 
-<p>The first mapper created for a certain class is known as that class's "primary mapper."  Other mappers can be created as well, these come in two varieties.
+<p>The first mapper created for a certain class is known as that class's "primary mapper."  Other mappers can be created as well on the "load side" - these are called <strong>secondary mappers</strong>.   This is a mapper that must be constructed with the keyword argument <code>non_primary=True</code>, and represents a load-only mapper.  Objects that are loaded with a secondary mapper will have their save operation processed by the primary mapper.  It is also invalid to add new <code>relation()</code>s to a non-primary mapper. To use this mapper with the Session, specify it to the <code>query</code> method:
 </p>
-<ul>
- <li><p><strong>secondary mapper</strong>
-   this is a mapper that must be constructed with the keyword argument <code>non_primary=True</code>, and represents a load-only mapper.  Objects that are loaded with a secondary mapper will have their save operation processed by the primary mapper.  It is also invalid to add new <code>relation()</code>s to a non-primary mapper. To use this mapper with the Session, specify it to the <code>query</code> method:
+<pre><code>example:
+
+    {python}
+    # primary mapper
+    mapper(User, users_table)
+
+    # make a secondary mapper to load User against a join
+    othermapper = mapper(User, users_table.join(someothertable), non_primary=True)
+
+    # select
+    result = session.query(othermapper).select()
+</code></pre><p>The "non primary mapper" is a rarely needed feature of SQLAlchemy; in most cases, the <code>Query</code> object can produce any kind of query that's desired.  It's recommended that a straight <code>Query</code> be used in place of a non-primary mapper unless the mapper approach is absolutely needed.  Current use cases for the "non primary mapper" are when you want to map the class to a particular select statement or view to which additional query criterion can be added, and for when the particular mapped select statement or view is to be placed in a <code>relation()</code> of a parent mapper.
 </p>
-<p>example:
+<p>Versions of SQLAlchemy previous to 0.5 included another mapper flag called "entity_name", as of version 0.5.0 this feature has been removed (it never worked very well).
+</p>
+
+
+
+            <a href="#advdatamapping" class="totoc">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="advdatamapping_mapper_onreconstitute"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Performing Initialization When an Object Is Loaded</h3>
+    
+    
+
+<p>While a mapped object's <code>__init__()</code> method works as always during object construction, it's not called when instances of the object are re-created from the database.  This is so that the <code>__init__()</code> method can be constructed in any desired way without SQLA requiring any sort of behavior, and also so that an object can control the way it's initialized when constructed new versus reconstituted.
+</p>
+<p>To support the common use case of instance management which occurs during load, SQLA 0.5 supports this most easily using the <code>@on_reconstitute</code> decorator, which is a shortcut to the <code>MapperExtension.on_reconstitute</code> method:
 </p>
 
     
 
     <div class="sliding_code">
         <pre>
-<span class="python_comment"># primary mapper
-</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">orm</span><span class="python_operator">.</span><span class="python_name">attributes </span><span class="python_keyword">import </span><span class="python_name">on_reconstitute</span><span class="python_operator">
 </span>
-<span class="python_comment"># make a secondary mapper to load User against a join
-</span><span class="python_name">othermapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">someothertable</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">non_primary</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_keyword">class </span><span class="python_name">MyMappedClass</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">data</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">data </span><span class="python_operator">= </span><span class="python_name">data</span><span class="python_operator">
+        </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">description </span><span class="python_operator">= </span><span class="python_literal">"The data is: " </span><span class="python_operator">+ </span><span class="python_name">data</span><span class="python_operator">
 </span>
-<span class="python_comment"># select
-</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">othermapper</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">
+    <span class="python_operator">@</span><span class="python_name">on_reconstitute</span><span class="python_operator">
+    </span><span class="python_keyword">def </span><span class="python_name">init_on_load</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">description </span><span class="python_operator">= </span><span class="python_literal">"The data is: " </span><span class="python_operator">+ </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">data</span><span class="python_operator">
 </span></pre>
     </div>
-<p>The "non primary mapper" is a rarely needed feature of SQLAlchemy; in most cases, the <code>Query</code> object can produce any kind of query that's desired.  It's recommended that a straight <code>Query</code> be used in place of a non-primary mapper unless the mapper approach is absolutely needed.  Current use cases for the "non primary mapper" are when you want to map the class to a particular select statement or view to which additional query criterion can be added, and for when the particular mapped select statement or view is to be placed in a <code>relation()</code> of a parent mapper.
+<p>Above, when <code>MyMappedClass</code> is constructed, <code>__init__()</code> is called with the requirement that the <code>data</code> argument is passed, but when loaded during a <code>Query</code> operation, <code>init_on_load()</code> is called instead.   This method is called after the object's row has been loaded, so scalar attributes will be present, such as above where the <code>self.data</code> is available.  Eagerly-loaded collections are generally not available at this stage and will usually only contain the first element.   Any state changes to objects at this stage will not be recorded for the next flush() operation, so the activity within a reconstitute hook should be conservative.
 </p>
-
- </li>
-
- <li><p><strong>entity name mapper</strong>
-   this is a mapper that is a fully functioning primary mapper for a class, which is distinguished from the regular primary mapper by an <code>entity_name</code> parameter.  Instances loaded with this mapper will be totally managed by this new mapper and have no connection to the original one.  Most methods on <code>Session</code> include an optional <code>entity_name</code> parameter in order to specify this condition.
+<p>The non-declarative form of <code>@on_reconsitute</code> is to use the <code>on_reconstitute</code> method of <code>MapperExtension</code>, the ORM's mapper-level extension API which is described in the next section.
 </p>
-<p>example:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_comment"># primary mapper
-</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># make an entity name mapper that stores User objects in another table
-</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">alternate_users_table</span><span class="python_operator">, </span><span class="python_name">entity_name</span><span class="python_operator">=</span><span class="python_literal">'alt'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># make two User objects
-</span><span class="python_name">user1 </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_name">user2 </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_enclosure">()</span><span class="python_operator">
-</span>
-<span class="python_comment"># save one in in the "users" table
-</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">user1</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># save the other in the "alternate_users_table"
-</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">user2</span><span class="python_operator">, </span><span class="python_name">entity_name</span><span class="python_operator">=</span><span class="python_literal">'alt'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator">
-</span>
-<span class="python_comment"># select from the alternate mapper
-</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">entity_name</span><span class="python_operator">=</span><span class="python_literal">'alt'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">
-</span></pre>
-    </div>
-<p>Use the "entity name" mapper when different instances of the same class are persisted in completely different tables.  The "entity name" approach can also perform limited levels of horizontal partitioning as well.   A more comprehensive approach to horizontal partitioning is provided by the Sharding API.
-</p>
-
- </li>
-</ul>
 
 
 
@@ -9379,7 +9493,7 @@ FROM users LEFT OUTER JOIN email_addresses AS email_addresses_1 ON users.user_id
     <span class="python_name">ForeignKeyConstraint</span><span class="python_enclosure">([</span><span class="python_literal">'parent_id'</span><span class="python_enclosure">]</span><span class="python_operator">,</span><span class="python_enclosure">[</span><span class="python_literal">'mytable.id'</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">ondelete</span><span class="python_operator">=</span><span class="python_literal">"CASCADE"</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_name">mmapper</span><span class="python_enclosure">(</span><span class="python_name">MyOtherClass</span><span class="python_operator">, </span><span class="python_name">myothertable</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyOtherClass</span><span class="python_operator">, </span><span class="python_name">myothertable</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">mytable</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
     <span class="python_literal">'children'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">MyOtherClass</span><span class="python_operator">, </span><span class="python_name">cascade</span><span class="python_operator">=</span><span class="python_literal">"all, delete-orphan"</span><span class="python_operator">, </span><span class="python_name">passive_deletes</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span>
@@ -9848,7 +9962,7 @@ FROM users LEFT OUTER JOIN email_addresses AS email_addresses_1 ON users.user_id
     
     
 
-<p>The <code>query()</code> function takes one or more <em>entities</em> and returns a new <code>Query</code> object which will issue mapper queries within the context of this Session.  An entity is defined as a mapped class, a <code>Mapper</code> object, an orm-enabled <em>descriptor</em>, or an <code>AliasedClass</code> object (a future release will also include an <code>Entity</code> object for use with entity_name mappers).
+<p>The <code>query()</code> function takes one or more <em>entities</em> and returns a new <code>Query</code> object which will issue mapper queries within the context of this Session.  An entity is defined as a mapped class, a <code>Mapper</code> object, an orm-enabled <em>descriptor</em>, or an <code>AliasedClass</code> object.
 </p>
 
     
@@ -10057,7 +10171,7 @@ FROM users LEFT OUTER JOIN email_addresses AS email_addresses_1 ON users.user_id
 
 <p>When the <code>Session</code> is used with its default configuration, the flush step is nearly always done transparently.  Specifically, the flush occurs before any individual <code>Query</code> is issued, as well as within the <code>commit()</code> call before the transaction is committed.  It also occurs before a SAVEPOINT is issued when <code>begin_nested()</code> is used.  The "flush-on-Query" aspect of the behavior can be disabled by constructing <code>sessionmaker()</code> with the flag <code>autoflush=False</code>.
 </p>
-<p>Regardless of the autoflush setting, a flush can always be forced by issing <code>flush()</code>:
+<p>Regardless of the autoflush setting, a flush can always be forced by issuing <code>flush()</code>:
 </p>
 
     
@@ -10102,7 +10216,7 @@ FROM users LEFT OUTER JOIN email_addresses AS email_addresses_1 ON users.user_id
 
 <p><code>commit()</code> is used to commit the current transaction.  It always issues <code>flush()</code> beforehand to flush any remaining state to the database; this is independent of the "autoflush" setting.   If no transaction is present, it raises an error.  Note that the default behavior of the <code>Session</code> is that a transaction is always present; this behavior can be disabled by setting <code>autocommit=True</code>.  In autocommit mode, a transaction can be initiated by calling the <code>begin()</code> method.
 </p>
-<p>Another behavior of <code>commit()</code> is that by default it expires the state of all instances present after the commit is complete.  This is so that when the instances are next accessed, either through attribute access or by them being present in a <code>Query</code> result set, they receive the most recent state.  To disable this behavior, configure <code>sessionmaker()</code> with <code>autoexpire=False</code>.
+<p>Another behavior of <code>commit()</code> is that by default it expires the state of all instances present after the commit is complete.  This is so that when the instances are next accessed, either through attribute access or by them being present in a <code>Query</code> result set, they receive the most recent state.  To disable this behavior, configure <code>sessionmaker()</code> with <code>expire_on_commit=False</code>.
 </p>
 <p>Normally, instances loaded into the <code>Session</code> are never changed by subsequent queries; the assumption is that the current transaction is isolated so the state most recently loaded is correct as long as the transaction continues.  Setting <code>autocommit=True</code> works against this model to some degree since the <code>Session</code> behaves in exactly the same way with regard to attribute state, except no transaction is present.
 </p>
@@ -10140,7 +10254,7 @@ FROM users LEFT OUTER JOIN email_addresses AS email_addresses_1 ON users.user_id
  </li>
 
  <li>
-     All objects not expunged are fully expired.  This aspect of the behavior may be disabled by configuring <code>sessionmaker()</code> with <code>autoexpire=False</code>.
+     All objects not expunged are fully expired.  <br></br>
  </li>
 </ul>
 <p>With that state understood, the <code>Session</code> may safely continue usage after a rollback occurs (note that this is a new feature as of version 0.5).
@@ -13621,14 +13735,14 @@ CREATE TABLE test (
 </span><span class="python_name">Base</span><span class="python_operator">.</span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">create_all</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>The <code>Engine</code> created above may also be directly associated with the declarative base class using the <code>engine</code> keyword argument, where it will be associated with the underlying <code>MetaData</code> object and allow SQL operations involving that metadata and its tables to make use of that engine automatically:
+<p>The <code>Engine</code> created above may also be directly associated with the declarative base class using the <code>bind</code> keyword argument, where it will be associated with the underlying <code>MetaData</code> object and allow SQL operations involving that metadata and its tables to make use of that engine automatically:
 </p>
 
     
 
     <div class="sliding_code">
         <pre>
-<span class="python_name">Base </span><span class="python_operator">= </span><span class="python_name">declarative_base</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_operator">=</span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite://'</span><span class="python_enclosure">))</span><span class="python_operator">
+<span class="python_name">Base </span><span class="python_operator">= </span><span class="python_name">declarative_base</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite://'</span><span class="python_enclosure">))</span><span class="python_operator">
 </span></pre>
     </div>
 <p>Or, as <code>MetaData</code> allows, at any time using the <code>bind</code> attribute:
@@ -13876,7 +13990,7 @@ CREATE TABLE test (
     <div class="sliding_code">
         <pre>
 <span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://scott:tiger@localhost/test'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">scoped_session</span><span class="python_enclosure">(</span><span class="python_name">sessionmaker</span><span class="python_enclosure">(</span><span class="python_name">transactional</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_operator">, </span><span class="python_name">autoflush</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_operator">, </span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">))</span><span class="python_operator">
+</span><span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">scoped_session</span><span class="python_enclosure">(</span><span class="python_name">sessionmaker</span><span class="python_enclosure">(</span><span class="python_name">autocommit</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_operator">, </span><span class="python_name">autoflush</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_operator">, </span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">))</span><span class="python_operator">
 </span><span class="python_name">Base </span><span class="python_operator">= </span><span class="python_name">declarative_base</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
@@ -14475,6 +14589,10 @@ documentation</a> for more
     
     
     <A name="docstrings_sqlalchemy.orm"></a>
+
+    
+    
+    <A name="docstrings_sqlalchemy.orm.attributes"></a>
 
     
     

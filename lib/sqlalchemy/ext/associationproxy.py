@@ -7,6 +7,7 @@ See the example ``examples/association/proxied_association.py``.
 
 """
 import itertools
+import operator
 import weakref
 from sqlalchemy import exceptions
 from sqlalchemy import orm
@@ -206,7 +207,7 @@ class AssociationProxy(object):
 
     def _default_getset(self, collection_class):
         attr = self.value_attr
-        getter = util.attrgetter(attr)
+        getter = operator.attrgetter(attr)
         if collection_class is dict:
             setter = lambda o, k, v: setattr(o, attr, v)
         else:
@@ -229,7 +230,7 @@ class AssociationProxy(object):
             return _AssociationList(lazy_collection, creator, getter, setter)
         elif self.collection_class is dict:
             return _AssociationDict(lazy_collection, creator, getter, setter)
-        elif self.collection_class is util.Set:
+        elif self.collection_class is set:
             return _AssociationSet(lazy_collection, creator, getter, setter)
         else:
             raise exceptions.ArgumentError(
@@ -245,7 +246,7 @@ class AssociationProxy(object):
             proxy.extend(values)
         elif self.collection_class is dict:
             proxy.update(values)
-        elif self.collection_class is util.Set:
+        elif self.collection_class is set:
             proxy.update(values)
         else:
             raise exceptions.ArgumentError(
@@ -760,15 +761,15 @@ class _AssociationSet(object):
         return self
 
     def _set(self):
-        return util.Set(iter(self))
+        return set(iter(self))
 
     def union(self, other):
-        return util.Set(self).union(other)
+        return set(self).union(other)
 
     __or__ = union
 
     def difference(self, other):
-        return util.Set(self).difference(other)
+        return set(self).difference(other)
 
     __sub__ = difference
 
@@ -784,12 +785,12 @@ class _AssociationSet(object):
         return self
 
     def intersection(self, other):
-        return util.Set(self).intersection(other)
+        return set(self).intersection(other)
 
     __and__ = intersection
 
     def intersection_update(self, other):
-        want, have = self.intersection(other), util.Set(self)
+        want, have = self.intersection(other), set(self)
 
         remove, add = have - want, want - have
 
@@ -801,7 +802,7 @@ class _AssociationSet(object):
     def __iand__(self, other):
         if not collections._set_binops_check_strict(self, other):
             return NotImplemented
-        want, have = self.intersection(other), util.Set(self)
+        want, have = self.intersection(other), set(self)
 
         remove, add = have - want, want - have
 
@@ -812,12 +813,12 @@ class _AssociationSet(object):
         return self
 
     def symmetric_difference(self, other):
-        return util.Set(self).symmetric_difference(other)
+        return set(self).symmetric_difference(other)
 
     __xor__ = symmetric_difference
 
     def symmetric_difference_update(self, other):
-        want, have = self.symmetric_difference(other), util.Set(self)
+        want, have = self.symmetric_difference(other), set(self)
 
         remove, add = have - want, want - have
 
@@ -829,7 +830,7 @@ class _AssociationSet(object):
     def __ixor__(self, other):
         if not collections._set_binops_check_strict(self, other):
             return NotImplemented
-        want, have = self.symmetric_difference(other), util.Set(self)
+        want, have = self.symmetric_difference(other), set(self)
 
         remove, add = have - want, want - have
 
@@ -840,43 +841,43 @@ class _AssociationSet(object):
         return self
 
     def issubset(self, other):
-        return util.Set(self).issubset(other)
+        return set(self).issubset(other)
 
     def issuperset(self, other):
-        return util.Set(self).issuperset(other)
+        return set(self).issuperset(other)
 
     def clear(self):
         self.col.clear()
 
     def copy(self):
-        return util.Set(self)
+        return set(self)
 
     def __eq__(self, other):
-        return util.Set(self) == other
+        return set(self) == other
 
     def __ne__(self, other):
-        return util.Set(self) != other
+        return set(self) != other
 
     def __lt__(self, other):
-        return util.Set(self) < other
+        return set(self) < other
 
     def __le__(self, other):
-        return util.Set(self) <= other
+        return set(self) <= other
 
     def __gt__(self, other):
-        return util.Set(self) > other
+        return set(self) > other
 
     def __ge__(self, other):
-        return util.Set(self) >= other
+        return set(self) >= other
 
     def __repr__(self):
-        return repr(util.Set(self))
+        return repr(set(self))
 
     def __hash__(self):
         raise TypeError("%s objects are unhashable" % type(self).__name__)
 
     for func_name, func in locals().items():
         if (callable(func) and func.func_name == func_name and
-            not func.__doc__ and hasattr(util.Set, func_name)):
-            func.__doc__ = getattr(util.Set, func_name).__doc__
+            not func.__doc__ and hasattr(set, func_name)):
+            func.__doc__ = getattr(set, func_name).__doc__
     del func_name, func

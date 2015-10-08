@@ -301,6 +301,11 @@ class SessionExtension(object):
         engine level transaction is begun on a connection.
         """
 
+    def after_attach(self, session, instance):
+        """Execute after an instance is attached to a session.
+
+        This is called after an add, delete or merge.
+        """
 
 class MapperProperty(object):
     """Manage the relationship of a ``Mapper`` to a single class
@@ -363,7 +368,7 @@ class MapperProperty(object):
         See PropertyLoader for the related instance implementation.
         """
 
-        return iter([])
+        return iter(())
 
     def set_parent(self, parent):
         self.parent = parent
@@ -375,6 +380,7 @@ class MapperProperty(object):
         """
 
         self.key = key
+        self._compiled = True
         self.do_init()
 
     def do_init(self):
@@ -560,7 +566,7 @@ def serialize_path(path):
         return None
 
     return [
-        (mapper.class_, mapper.entity_name, key)
+        (mapper.class_, key)
         for mapper, key in [(path[i], path[i+1]) for i in range(0, len(path)-1, 2)]
     ]
 
@@ -573,7 +579,7 @@ def deserialize_path(path):
         from sqlalchemy.orm import class_mapper
 
     return tuple(
-        chain(*[(class_mapper(cls, entity), key) for cls, entity, key in path])
+        chain(*[(class_mapper(cls), key) for cls, key in path])
     )
 
 class MapperOption(object):

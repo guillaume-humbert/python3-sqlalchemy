@@ -1,20 +1,20 @@
+import operator
 from sqlalchemy.sql import operators, functions
 from sqlalchemy.sql import expression as sql
-from sqlalchemy.util import Set
-import operator
+
 
 class UnevaluatableError(Exception):
     pass
 
-_straight_ops = Set([getattr(operators, op) for op in [
-    'add', 'mul', 'sub', 'div', 'mod', 'truediv', 'lt', 'le', 'ne', 'gt', 'ge', 'eq'
-]])
+_straight_ops = set(getattr(operators, op)
+                    for op in ('add', 'mul', 'sub', 'div', 'mod', 'truediv',
+                               'lt', 'le', 'ne', 'gt', 'ge', 'eq'))
 
 
-_notimplemented_ops = Set([getattr(operators, op) for op in [
-    'like_op', 'notlike_op', 'ilike_op', 'notilike_op', 'between_op', 'in_op', 'notin_op',
-    'endswith_op', 'concat_op',
-]])
+_notimplemented_ops = set(getattr(operators, op)
+                          for op in ('like_op', 'notlike_op', 'ilike_op',
+                                     'notilike_op', 'between_op', 'in_op',
+                                     'notin_op', 'endswith_op', 'concat_op'))
 
 class EvaluatorCompiler(object):
     def process(self, clause):
@@ -22,13 +22,13 @@ class EvaluatorCompiler(object):
         if not meth:
             raise UnevaluatableError("Cannot evaluate %s" % type(clause).__name__)
         return meth(clause)
-    
+
     def visit_grouping(self, clause):
         return self.process(clause.element)
-    
+
     def visit_null(self, clause):
         return lambda obj: None
-    
+
     def visit_column(self, clause):
         if 'parententity' in clause._annotations:
             key = clause._annotations['parententity']._get_col_to_prop(clause).key
@@ -36,7 +36,7 @@ class EvaluatorCompiler(object):
             key = clause.key
         get_corresponding_attr = operator.attrgetter(key)
         return lambda obj: get_corresponding_attr(obj)
-    
+
     def visit_clauselist(self, clause):
         evaluators = map(self.process, clause.clauses)
         if clause.operator is operators.or_:
@@ -59,7 +59,7 @@ class EvaluatorCompiler(object):
                             return None
                         return False
                 return True
-        
+
         return evaluate
 
     def visit_binary(self, clause):
@@ -92,7 +92,7 @@ class EvaluatorCompiler(object):
                 return not value
             return evaluate
         raise UnevaluatableError("Cannot evaluate %s with operator %s" % (type(clause).__name__, clause.operator))
-    
+
     def visit_bindparam(self, clause):
         val = clause.value
         return lambda obj: val

@@ -28,8 +28,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum prerelease">0.5.0beta2</span>
-  Last Updated: 07/14/08 16:12:25
+  Version: <span class="versionnum prerelease">0.5.0beta3</span>
+  Last Updated: 08/04/08 18:36:49
 </div>
 
 
@@ -179,14 +179,14 @@
 </span><span class="python_name">Base</span><span class="python_operator">.</span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">create_all</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>The <code>Engine</code> created above may also be directly associated with the declarative base class using the <code>engine</code> keyword argument, where it will be associated with the underlying <code>MetaData</code> object and allow SQL operations involving that metadata and its tables to make use of that engine automatically:
+<p>The <code>Engine</code> created above may also be directly associated with the declarative base class using the <code>bind</code> keyword argument, where it will be associated with the underlying <code>MetaData</code> object and allow SQL operations involving that metadata and its tables to make use of that engine automatically:
 </p>
 
     
 
     <div class="sliding_code">
         <pre>
-<span class="python_name">Base </span><span class="python_operator">= </span><span class="python_name">declarative_base</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_operator">=</span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite://'</span><span class="python_enclosure">))</span><span class="python_operator">
+<span class="python_name">Base </span><span class="python_operator">= </span><span class="python_name">declarative_base</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite://'</span><span class="python_enclosure">))</span><span class="python_operator">
 </span></pre>
     </div>
 <p>Or, as <code>MetaData</code> allows, at any time using the <code>bind</code> attribute:
@@ -434,7 +434,7 @@
     <div class="sliding_code">
         <pre>
 <span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://scott:tiger@localhost/test'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">scoped_session</span><span class="python_enclosure">(</span><span class="python_name">sessionmaker</span><span class="python_enclosure">(</span><span class="python_name">transactional</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_operator">, </span><span class="python_name">autoflush</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_operator">, </span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">))</span><span class="python_operator">
+</span><span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">scoped_session</span><span class="python_enclosure">(</span><span class="python_name">sessionmaker</span><span class="python_enclosure">(</span><span class="python_name">autocommit</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_operator">, </span><span class="python_name">autoflush</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_operator">, </span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">))</span><span class="python_operator">
 </span><span class="python_name">Base </span><span class="python_operator">= </span><span class="python_name">declarative_base</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>

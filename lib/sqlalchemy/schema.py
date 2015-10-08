@@ -205,8 +205,8 @@ class Table(SchemaItem, expression.TableClause):
         super(Table, self).__init__(name)
         self.metadata = metadata
         self.schema = kwargs.pop('schema', kwargs.pop('owner', None))
-        self.indexes = util.Set()
-        self.constraints = util.Set()
+        self.indexes = set()
+        self.constraints = set()
         self._columns = expression.ColumnCollection()
         self.primary_key = PrimaryKeyConstraint()
         self._foreign_keys = util.OrderedSet()
@@ -277,13 +277,15 @@ class Table(SchemaItem, expression.TableClause):
         True if any of them would be disallowed if sent to an existing
         Table singleton.
         """
-        return bool(args) or bool(util.Set(kwargs).difference(
+        return bool(args) or bool(set(kwargs).difference(
             ['autoload', 'autoload_with', 'schema', 'owner']))
 
     def __extra_kwargs(self, **kwargs):
         # validate remaining kwargs that they all specify DB prefixes
-        if len([k for k in kwargs if not re.match(r'^(?:%s)_' % '|'.join(databases.__all__), k)]):
-            raise TypeError("Invalid argument(s) for Table: %s" % repr(kwargs.keys()))
+        if len([k for k in kwargs
+                if not re.match(r'^(?:%s)_' % '|'.join(databases.__all__), k)]):
+            raise TypeError(
+                "Invalid argument(s) for Table: %s" % repr(kwargs.keys()))
         self.kwargs.update(kwargs)
 
     def __post_init(self, *args, **kwargs):
@@ -567,7 +569,7 @@ class Column(SchemaItem, expression._ColumnClause):
         self.quote = kwargs.pop('quote', None)
         self.onupdate = kwargs.pop('onupdate', None)
         self.autoincrement = kwargs.pop('autoincrement', True)
-        self.constraints = util.Set()
+        self.constraints = set()
         self.foreign_keys = util.OrderedSet()
         util.set_creation_order(self)
 
@@ -1251,7 +1253,7 @@ class PrimaryKeyConstraint(Constraint):
         if kwargs:
             raise exc.ArgumentError(
                 'Unknown PrimaryKeyConstraint argument(s): %s' %
-                ', '.join([repr(x) for x in kwargs.keys()]))
+                ', '.join(repr(x) for x in kwargs.keys()))
 
         super(PrimaryKeyConstraint, self).__init__(**constraint_args)
         self.__colnames = list(columns)
@@ -1314,7 +1316,7 @@ class UniqueConstraint(Constraint):
         if kwargs:
             raise exc.ArgumentError(
                 'Unknown UniqueConstraint argument(s): %s' %
-                ', '.join([repr(x) for x in kwargs.keys()]))
+                ', '.join(repr(x) for x in kwargs.keys()))
 
         super(UniqueConstraint, self).__init__(**constraint_args)
         self.__colnames = list(columns)
@@ -1410,8 +1412,7 @@ class Index(SchemaItem):
 
     def __repr__(self):
         return 'Index("%s", %s%s)' % (self.name,
-                                      ', '.join([repr(c)
-                                                 for c in self.columns]),
+                                      ', '.join(repr(c) for c in self.columns),
                                       (self.unique and ', unique=True') or '')
 
 class MetaData(SchemaItem):
@@ -1482,11 +1483,10 @@ class MetaData(SchemaItem):
 
         return self._bind is not None
 
-    # @deprecated
+    @util.deprecated('Deprecated. Use ``metadata.bind = <engine>`` or '
+                     '``metadata.bind = <url>``.')
     def connect(self, bind, **kwargs):
         """Bind this MetaData to an Engine.
-
-        Use ``metadata.bind = <engine>`` or ``metadata.bind = <url>``.
 
         bind
           A string, ``URL``, ``Engine`` or ``Connection`` instance.  If a
@@ -1503,7 +1503,6 @@ class MetaData(SchemaItem):
             self._bind = create_engine(bind, **kwargs)
         else:
             self._bind = bind
-    connect = util.deprecated()(connect)
 
     def bind(self):
         """An Engine or Connection to which this MetaData is bound.
@@ -1540,7 +1539,7 @@ class MetaData(SchemaItem):
         if tables is None:
             tables = self.tables.values()
         else:
-            tables = util.Set(tables).intersection(self.tables.values())
+            tables = set(tables).intersection(self.tables.values())
         return iter(sort_tables(tables, reverse=reverse))
 
     def reflect(self, bind=None, schema=None, only=None):
@@ -1587,7 +1586,7 @@ class MetaData(SchemaItem):
 
         available = util.OrderedSet(bind.engine.table_names(schema,
                                                             connection=conn))
-        current = util.Set(self.tables.keys())
+        current = set(self.tables.keys())
 
         if only is None:
             load = [name for name in available if name not in current]
@@ -1723,11 +1722,10 @@ class ThreadLocalMetaData(MetaData):
         self.__engines = {}
         super(ThreadLocalMetaData, self).__init__()
 
-    # @deprecated
+    @util.deprecated('Deprecated. Use ``metadata.bind = <engine>`` or '
+                     '``metadata.bind = <url>``.')
     def connect(self, bind, **kwargs):
         """Bind to an Engine in the caller's thread.
-
-        Use ``metadata.bind=<engine>`` or ``metadata.bind=<url>``.
 
         bind
           A string, ``URL``, ``Engine`` or ``Connection`` instance.  If a
@@ -1748,7 +1746,6 @@ class ThreadLocalMetaData(MetaData):
                 engine = create_engine(bind, **kwargs)
             bind = engine
         self._bind_to(bind)
-    connect = util.deprecated()(connect)
 
     def bind(self):
         """The bound Engine or Connection for this thread.

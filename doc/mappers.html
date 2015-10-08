@@ -28,8 +28,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum prerelease">0.5.0beta2</span>
-  Last Updated: 07/14/08 16:12:25
+  Version: <span class="versionnum prerelease">0.5.0beta3</span>
+  Last Updated: 08/04/08 18:36:49
 </div>
 
 
@@ -127,6 +127,9 @@
 
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_multiple">Multiple Mappers for One Class</a></li>
+
+        
+        <li><a style="" href="mappers.html#advdatamapping_mapper_onreconstitute">Performing Initialization When an Object Is Loaded</a></li>
 
         
         <li><a style="" href="mappers.html#advdatamapping_mapper_extending">Extending Mapper</a></li>
@@ -1442,71 +1445,65 @@ FROM engineers) AS anon_1 ON companies.id = anon_1.company_id ORDER BY companies
     
     
 
-<p>The first mapper created for a certain class is known as that class's "primary mapper."  Other mappers can be created as well, these come in two varieties.
+<p>The first mapper created for a certain class is known as that class's "primary mapper."  Other mappers can be created as well on the "load side" - these are called <strong>secondary mappers</strong>.   This is a mapper that must be constructed with the keyword argument <code>non_primary=True</code>, and represents a load-only mapper.  Objects that are loaded with a secondary mapper will have their save operation processed by the primary mapper.  It is also invalid to add new <code>relation()</code>s to a non-primary mapper. To use this mapper with the Session, specify it to the <code>query</code> method:
 </p>
-<ul>
- <li><p><strong>secondary mapper</strong>
-   this is a mapper that must be constructed with the keyword argument <code>non_primary=True</code>, and represents a load-only mapper.  Objects that are loaded with a secondary mapper will have their save operation processed by the primary mapper.  It is also invalid to add new <code>relation()</code>s to a non-primary mapper. To use this mapper with the Session, specify it to the <code>query</code> method:
+<pre><code>example:
+
+    {python}
+    # primary mapper
+    mapper(User, users_table)
+
+    # make a secondary mapper to load User against a join
+    othermapper = mapper(User, users_table.join(someothertable), non_primary=True)
+
+    # select
+    result = session.query(othermapper).select()
+</code></pre><p>The "non primary mapper" is a rarely needed feature of SQLAlchemy; in most cases, the <code>Query</code> object can produce any kind of query that's desired.  It's recommended that a straight <code>Query</code> be used in place of a non-primary mapper unless the mapper approach is absolutely needed.  Current use cases for the "non primary mapper" are when you want to map the class to a particular select statement or view to which additional query criterion can be added, and for when the particular mapped select statement or view is to be placed in a <code>relation()</code> of a parent mapper.
 </p>
-<p>example:
+<p>Versions of SQLAlchemy previous to 0.5 included another mapper flag called "entity_name", as of version 0.5.0 this feature has been removed (it never worked very well).
+</p>
+
+
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="advdatamapping_mapper_onreconstitute"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Performing Initialization When an Object Is Loaded</h3>
+    
+    
+
+<p>While a mapped object's <code>__init__()</code> method works as always during object construction, it's not called when instances of the object are re-created from the database.  This is so that the <code>__init__()</code> method can be constructed in any desired way without SQLA requiring any sort of behavior, and also so that an object can control the way it's initialized when constructed new versus reconstituted.
+</p>
+<p>To support the common use case of instance management which occurs during load, SQLA 0.5 supports this most easily using the <code>@on_reconstitute</code> decorator, which is a shortcut to the <code>MapperExtension.on_reconstitute</code> method:
 </p>
 
     
 
     <div class="sliding_code">
         <pre>
-<span class="python_comment"># primary mapper
-</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">orm</span><span class="python_operator">.</span><span class="python_name">attributes </span><span class="python_keyword">import </span><span class="python_name">on_reconstitute</span><span class="python_operator">
 </span>
-<span class="python_comment"># make a secondary mapper to load User against a join
-</span><span class="python_name">othermapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">someothertable</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">non_primary</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_keyword">class </span><span class="python_name">MyMappedClass</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">data</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">data </span><span class="python_operator">= </span><span class="python_name">data</span><span class="python_operator">
+        </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">description </span><span class="python_operator">= </span><span class="python_literal">"The data is: " </span><span class="python_operator">+ </span><span class="python_name">data</span><span class="python_operator">
 </span>
-<span class="python_comment"># select
-</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">othermapper</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">
+    <span class="python_operator">@</span><span class="python_name">on_reconstitute</span><span class="python_operator">
+    </span><span class="python_keyword">def </span><span class="python_name">init_on_load</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">description </span><span class="python_operator">= </span><span class="python_literal">"The data is: " </span><span class="python_operator">+ </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">data</span><span class="python_operator">
 </span></pre>
     </div>
-<p>The "non primary mapper" is a rarely needed feature of SQLAlchemy; in most cases, the <code>Query</code> object can produce any kind of query that's desired.  It's recommended that a straight <code>Query</code> be used in place of a non-primary mapper unless the mapper approach is absolutely needed.  Current use cases for the "non primary mapper" are when you want to map the class to a particular select statement or view to which additional query criterion can be added, and for when the particular mapped select statement or view is to be placed in a <code>relation()</code> of a parent mapper.
+<p>Above, when <code>MyMappedClass</code> is constructed, <code>__init__()</code> is called with the requirement that the <code>data</code> argument is passed, but when loaded during a <code>Query</code> operation, <code>init_on_load()</code> is called instead.   This method is called after the object's row has been loaded, so scalar attributes will be present, such as above where the <code>self.data</code> is available.  Eagerly-loaded collections are generally not available at this stage and will usually only contain the first element.   Any state changes to objects at this stage will not be recorded for the next flush() operation, so the activity within a reconstitute hook should be conservative.
 </p>
-
- </li>
-
- <li><p><strong>entity name mapper</strong>
-   this is a mapper that is a fully functioning primary mapper for a class, which is distinguished from the regular primary mapper by an <code>entity_name</code> parameter.  Instances loaded with this mapper will be totally managed by this new mapper and have no connection to the original one.  Most methods on <code>Session</code> include an optional <code>entity_name</code> parameter in order to specify this condition.
+<p>The non-declarative form of <code>@on_reconsitute</code> is to use the <code>on_reconstitute</code> method of <code>MapperExtension</code>, the ORM's mapper-level extension API which is described in the next section.
 </p>
-<p>example:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_comment"># primary mapper
-</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># make an entity name mapper that stores User objects in another table
-</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">alternate_users_table</span><span class="python_operator">, </span><span class="python_name">entity_name</span><span class="python_operator">=</span><span class="python_literal">'alt'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># make two User objects
-</span><span class="python_name">user1 </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_name">user2 </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_enclosure">()</span><span class="python_operator">
-</span>
-<span class="python_comment"># save one in in the "users" table
-</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">user1</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># save the other in the "alternate_users_table"
-</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">user2</span><span class="python_operator">, </span><span class="python_name">entity_name</span><span class="python_operator">=</span><span class="python_literal">'alt'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator">
-</span>
-<span class="python_comment"># select from the alternate mapper
-</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">entity_name</span><span class="python_operator">=</span><span class="python_literal">'alt'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">
-</span></pre>
-    </div>
-<p>Use the "entity name" mapper when different instances of the same class are persisted in completely different tables.  The "entity name" approach can also perform limited levels of horizontal partitioning as well.   A more comprehensive approach to horizontal partitioning is provided by the Sharding API.
-</p>
-
- </li>
-</ul>
 
 
 
@@ -2851,7 +2848,7 @@ FROM users LEFT OUTER JOIN email_addresses AS email_addresses_1 ON users.user_id
     <span class="python_name">ForeignKeyConstraint</span><span class="python_enclosure">([</span><span class="python_literal">'parent_id'</span><span class="python_enclosure">]</span><span class="python_operator">,</span><span class="python_enclosure">[</span><span class="python_literal">'mytable.id'</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">ondelete</span><span class="python_operator">=</span><span class="python_literal">"CASCADE"</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_name">mmapper</span><span class="python_enclosure">(</span><span class="python_name">MyOtherClass</span><span class="python_operator">, </span><span class="python_name">myothertable</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyOtherClass</span><span class="python_operator">, </span><span class="python_name">myothertable</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">mytable</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
     <span class="python_literal">'children'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">MyOtherClass</span><span class="python_operator">, </span><span class="python_name">cascade</span><span class="python_operator">=</span><span class="python_literal">"all, delete-orphan"</span><span class="python_operator">, </span><span class="python_name">passive_deletes</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span>

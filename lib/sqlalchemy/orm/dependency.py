@@ -279,7 +279,7 @@ class DetectKeySwitch(DependencyProcessor):
             self._process_key_switches(deplist, uowcommit)
 
     def _process_key_switches(self, deplist, uowcommit):
-        switchers = util.Set([s for s in deplist if self._pks_changed(uowcommit, s)])
+        switchers = set(s for s in deplist if self._pks_changed(uowcommit, s))
         if switchers:
             # yes, we're doing a linear search right now through the UOW.  only
             # takes effect when primary key values have actually changed.
@@ -289,11 +289,11 @@ class DetectKeySwitch(DependencyProcessor):
             for s in [elem for elem in uowcommit.session.identity_map.all_states()
                 if issubclass(elem.class_, self.parent.class_) and
                     self.key in elem.dict and
+                    elem.dict[self.key] is not None and 
                     attributes.instance_state(elem.dict[self.key]) in switchers
                 ]:
                 uowcommit.register_object(s, listonly=self.passive_updates)
                 sync.populate(attributes.instance_state(s.dict[self.key]), self.mapper, s, self.parent, self.prop.synchronize_pairs)
-                #self.syncrules.execute(s.dict[self.key]._state, s, None, None, False)
 
     def _pks_changed(self, uowcommit, state):
         return sync.source_changes(uowcommit, state, self.mapper, self.prop.synchronize_pairs)
@@ -502,7 +502,7 @@ class MapperStub(object):
         self._inheriting_mappers = []
 
     def polymorphic_iterator(self):
-        return iter([self])
+        return iter((self,))
 
     def _register_dependencies(self, uowcommit):
         pass

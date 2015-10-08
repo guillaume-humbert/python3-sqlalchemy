@@ -19,7 +19,7 @@ parameter when creating the queries::
     postgres_returning=[empl.c.id, empl.c.salary]).execute().fetchall()
 """
 
-import random, re, string
+import decimal, random, re, string
 
 from sqlalchemy import sql, schema, exc, util
 from sqlalchemy.engine import base, default
@@ -55,7 +55,7 @@ class PGNumeric(sqltypes.Numeric):
             return None
         else:
             def process(value):
-                if isinstance(value, util.decimal_type):
+                if isinstance(value, decimal.Decimal):
                     return float(value)
                 else:
                     return value
@@ -703,7 +703,7 @@ class PGCompiler(compiler.DefaultCompiler):
                         yield co
                 else:
                     yield c
-        columns = [self.process(c, render_labels=True) for c in flatten_columnlist(returning_cols)]
+        columns = [self.process(c, within_columns_clause=True) for c in flatten_columnlist(returning_cols)]
         text += ' RETURNING ' + string.join(columns, ', ')
         return text
 

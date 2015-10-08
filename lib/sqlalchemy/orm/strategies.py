@@ -11,8 +11,10 @@ from sqlalchemy import sql, util, log
 from sqlalchemy.sql import util as sql_util
 from sqlalchemy.sql import visitors, expression, operators
 from sqlalchemy.orm import mapper, attributes
-from sqlalchemy.orm.interfaces import LoaderStrategy, StrategizedOption, \
-     MapperOption, PropertyOption, serialize_path, deserialize_path
+from sqlalchemy.orm.interfaces import (
+    LoaderStrategy, StrategizedOption, MapperOption, PropertyOption,
+    serialize_path, deserialize_path
+    )
 from sqlalchemy.orm import session as sessionlib
 from sqlalchemy.orm import util as mapperutil
 
@@ -22,7 +24,7 @@ class DefaultColumnLoader(LoaderStrategy):
         self.logger.info("%s register managed attribute" % self)
 
         for mapper in self.parent.polymorphic_iterator():
-            if mapper is self.parent or not mapper.concrete:
+            if (mapper is self.parent or not mapper.concrete) and mapper.has_property(self.key):
                 sessionlib.register_attribute(
                     mapper.class_, 
                     self.key, 
@@ -188,15 +190,14 @@ class DeferredColumnLoader(DefaultColumnLoader):
             self.parent_property._get_strategy(ColumnLoader).setup_query(context, entity, path, adapter, **kwargs)
     
     def class_level_loader(self, state, props=None):
-        if not mapperutil._state_has_mapper(state):
+        if not mapperutil._state_has_identity(state):
             return None
             
         localparent = mapper._state_mapper(state)
 
         # adjust for the ColumnProperty associated with the instance
-        # not being our own ColumnProperty.  This can occur when entity_name
-        # mappers are used to map different versions of the same ColumnProperty
-        # to the class.
+        # not being our own ColumnProperty.  
+        # TODO: this may no longer be relevant without entity_name.
         prop = localparent.get_property(self.key)
         if prop is not self.parent_property:
             return prop._get_strategy(DeferredColumnLoader).setup_loader(state)
@@ -304,7 +305,6 @@ class AbstractRelationLoader(LoaderStrategy):
             uselist=self.uselist, 
             useobject=True, 
             extension=attribute_ext, 
-            cascade=self.parent_property.cascade,  
             trackparent=True, 
             typecallable=self.parent_property.collection_class, 
             callable_=callable_, 
@@ -391,15 +391,14 @@ class LazyLoader(AbstractRelationLoader):
         return visitors.cloned_traverse(criterion, {}, {'binary':visit_binary})
         
     def class_level_loader(self, state, options=None, path=None):
-        if not mapperutil._state_has_mapper(state):
+        if not mapperutil._state_has_identity(state):
             return None
 
         localparent = mapper._state_mapper(state)
 
         # adjust for the PropertyLoader associated with the instance
-        # not being our own PropertyLoader.  This can occur when entity_name
-        # mappers are used to map different versions of the same PropertyLoader
-        # to the class.
+        # not being our own PropertyLoader.  
+        # TODO: this may no longer be relevant without entity_name
         prop = localparent.get_property(self.key)
         if prop is not self.parent_property:
             return prop._get_strategy(LazyLoader).setup_loader(state)
@@ -475,7 +474,7 @@ class LazyLoader(AbstractRelationLoader):
                 secondaryjoin = visitors.replacement_traverse(secondaryjoin, {}, col_to_bind)
             lazywhere = sql.and_(lazywhere, secondaryjoin)
     
-        bind_to_col = dict([(binds[col].key, col) for col in binds])
+        bind_to_col = dict((binds[col].key, col) for col in binds)
         
         return (lazywhere, bind_to_col, equated_columns)
     _create_lazy_clause = classmethod(_create_lazy_clause)

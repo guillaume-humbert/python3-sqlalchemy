@@ -18,12 +18,12 @@ creating database-specific compilers and schema generators, the module
 is otherwise internal to SQLAlchemy.
 """
 
-import string, re, itertools
+import string, re
 from sqlalchemy import schema, engine, util, exc
 from sqlalchemy.sql import operators, functions
 from sqlalchemy.sql import expression as sql
 
-RESERVED_WORDS = util.Set([
+RESERVED_WORDS = set([
     'all', 'analyse', 'analyze', 'and', 'any', 'array',
     'as', 'asc', 'asymmetric', 'authorization', 'between',
     'binary', 'both', 'case', 'cast', 'check', 'collate',
@@ -226,17 +226,24 @@ class DefaultCompiler(engine.Compiled):
     def visit_grouping(self, grouping, **kwargs):
         return "(" + self.process(grouping.element) + ")"
 
-    def visit_label(self, label, result_map=None, render_labels=False):
-        if not render_labels:
+    def visit_label(self, label, result_map=None, within_columns_clause=False, within_order_by=False):
+        # only render labels within the columns clause
+        # or ORDER BY clause of a select.  dialect-specific compilers
+        # can modify this behavior.
+        if within_columns_clause:
+            labelname = self._truncated_identifier("colident", label.name)
+
+            if result_map is not None:
+                result_map[labelname.lower()] = (label.name, (label, label.element, labelname), label.element.type)
+
+            return " ".join([self.process(label.element), self.operator_string(operators.as_), self.preparer.format_label(label, labelname)])
+        elif within_order_by and self.dialect.supports_simple_order_by_label:
+            labelname = self._truncated_identifier("colident", label.name)
+
+            return self.preparer.format_label(label, labelname)
+        else:
             return self.process(label.element)
             
-        labelname = self._truncated_identifier("colident", label.name)
-
-        if result_map is not None:
-            result_map[labelname.lower()] = (label.name, (label, label.element, labelname), label.element.type)
-
-        return " ".join([self.process(label.element), self.operator_string(operators.as_), self.preparer.format_label(label, labelname)])
-
     def visit_column(self, column, result_map=None, **kwargs):
 
         if column._is_oid:
@@ -304,7 +311,7 @@ class DefaultCompiler(engine.Compiled):
     def visit_null(self, null, **kwargs):
         return 'NULL'
 
-    def visit_clauselist(self, clauselist, **kwargs):
+    def visit_clauselist(self, clauselist, within_order_by=False, **kwargs):
         sep = clauselist.operator
         if sep is None:
             sep = " "
@@ -312,7 +319,8 @@ class DefaultCompiler(engine.Compiled):
             sep = ', '
         else:
             sep = " " + self.operator_string(clauselist.operator) + " "
-        return sep.join([s for s in [self.process(c) for c in clauselist.clauses] if s is not None])
+        return sep.join(s for s in (self.process(c, within_order_by=within_order_by) for c in clauselist.clauses)
+                        if s is not None)
 
     def visit_calculatedclause(self, clause, **kwargs):
         return self.process(clause.clause_expr)
@@ -331,8 +339,8 @@ class DefaultCompiler(engine.Compiled):
         else:
             return ".".join(func.packagenames + [name]) % {'expr':self.function_argspec(func)}
 
-    def function_argspec(self, func):
-        return self.process(func.clause_expr)
+    def function_argspec(self, func, **kwargs):
+        return self.process(func.clause_expr, **kwargs)
 
     def function_string(self, func):
         return self.functions.get(func.__class__, self.functions.get(func.name, func.name + "%(expr)s"))
@@ -346,7 +354,9 @@ class DefaultCompiler(engine.Compiled):
             stack_entry['is_subquery'] = True
         self.stack.append(stack_entry)
 
-        text = string.join([self.process(c, asfrom=asfrom, parens=False) for c in cs.selects], " " + cs.keyword + " ")
+        text = string.join((self.process(c, asfrom=asfrom, parens=False)
+                            for c in cs.selects),
+                           " " + cs.keyword + " ")
         group_by = self.process(cs._group_by_clause, asfrom=asfrom)
         if group_by:
             text += " GROUP BY " + group_by
@@ -361,8 +371,8 @@ class DefaultCompiler(engine.Compiled):
         else:
             return text
 
-    def visit_unary(self, unary, **kwargs):
-        s = self.process(unary.element)
+    def visit_unary(self, unary, within_order_by=False, **kwargs):
+        s = self.process(unary.element, within_order_by=within_order_by)
         if unary.operator:
             s = self.operator_string(unary.operator) + " " + s
         if unary.modifier:
@@ -459,7 +469,7 @@ class DefaultCompiler(engine.Compiled):
             column.table is not None and \
             not isinstance(column.table, sql.Select):
             return column.label(column.name)
-        elif not isinstance(column, (sql._UnaryExpression, sql._TextClause)) and (not hasattr(column, 'name') or isinstance(column, sql._Function)):
+        elif not isinstance(column, (sql._UnaryExpression, sql._TextClause, sql._BindParamClause)) and (not hasattr(column, 'name') or isinstance(column, sql._Function)):
             return column.label(column.anon_label)
         else:
             return column
@@ -488,7 +498,7 @@ class DefaultCompiler(engine.Compiled):
 
         froms = select._get_display_froms(existingfroms)
 
-        correlate_froms = util.Set(sql._from_objects(*froms))
+        correlate_froms = set(sql._from_objects(*froms))
 
         # TODO: might want to propigate existing froms for select(select(select))
         # where innermost select should correlate to outermost
@@ -502,7 +512,7 @@ class DefaultCompiler(engine.Compiled):
             [c for c in [
                 self.process(
                     self.label_select_column(select, co, asfrom=asfrom), 
-                    render_labels=True,
+                    within_columns_clause=True,
                     **column_clause_args) 
                 for co in select.inner_columns
             ]
@@ -519,7 +529,7 @@ class DefaultCompiler(engine.Compiled):
 
         if froms:
             text += " \nFROM "
-            text += string.join(from_strings, ', ')
+            text += ', '.join(from_strings)
         else:
             text += self.default_from()
 
@@ -554,7 +564,7 @@ class DefaultCompiler(engine.Compiled):
         return select._distinct and "DISTINCT " or ""
 
     def order_by_clause(self, select):
-        order_by = self.process(select._order_by_clause)
+        order_by = self.process(select._order_by_clause, within_order_by=True)
         if order_by:
             return " ORDER BY " + order_by
         else:
@@ -602,17 +612,23 @@ class DefaultCompiler(engine.Compiled):
 
         return (insert + " INTO %s (%s) VALUES (%s)" %
                 (preparer.format_table(insert_stmt.table),
-                 ', '.join([preparer.quote(c[0].name, c[0].quote)
-                            for c in colparams]),
-                 ', '.join([c[1] for c in colparams])))
+                 ', '.join(preparer.quote(c[0].name, c[0].quote)
+                           for c in colparams),
+                 ', '.join(c[1] for c in colparams)))
 
     def visit_update(self, update_stmt):
-        self.stack.append({'from':util.Set([update_stmt.table])})
+        self.stack.append({'from': set([update_stmt.table])})
 
         self.isupdate = True
         colparams = self._get_colparams(update_stmt)
 
-        text = "UPDATE " + self.preparer.format_table(update_stmt.table) + " SET " + string.join(["%s=%s" % (self.preparer.quote(c[0].name, c[0].quote), c[1]) for c in colparams], ', ')
+        text = ' '.join((
+            "UPDATE",
+            self.preparer.format_table(update_stmt.table),
+            'SET',
+            ', '.join(self.preparer.quote(c[0].name, c[0].quote) + '=' + c[1]
+                      for c in colparams)
+            ))
 
         if update_stmt._whereclause:
             text += " WHERE " + self.process(update_stmt._whereclause)
@@ -645,7 +661,8 @@ class DefaultCompiler(engine.Compiled):
         if self.column_keys is None:
             parameters = {}
         else:
-            parameters = dict([(getattr(key, 'key', key), None) for key in self.column_keys])
+            parameters = dict((getattr(key, 'key', key), None)
+                              for key in self.column_keys)
 
         if stmt.parameters is not None:
             for k, v in stmt.parameters.iteritems():
@@ -706,7 +723,7 @@ class DefaultCompiler(engine.Compiled):
         return values
 
     def visit_delete(self, delete_stmt):
-        self.stack.append({'from':util.Set([delete_stmt.table])})
+        self.stack.append({'from': set([delete_stmt.table])})
         self.isdelete = True
 
         text = "DELETE FROM " + self.preparer.format_table(delete_stmt.table)
@@ -760,7 +777,7 @@ class SchemaGenerator(DDLBase):
     def __init__(self, dialect, connection, checkfirst=False, tables=None, **kwargs):
         super(SchemaGenerator, self).__init__(connection, **kwargs)
         self.checkfirst = checkfirst
-        self.tables = tables and util.Set(tables) or None
+        self.tables = tables and set(tables) or None
         self.preparer = dialect.identifier_preparer
         self.dialect = dialect
 
@@ -789,8 +806,11 @@ class SchemaGenerator(DDLBase):
             if column.default is not None:
                 self.traverse_single(column.default)
 
-        self.append("\n" + " ".join(['CREATE'] + table._prefixes + ['TABLE', self.preparer.format_table(table), "("]))
-
+        self.append("\n" + " ".join(['CREATE'] +
+                                    table._prefixes +
+                                    ['TABLE',
+                                     self.preparer.format_table(table),
+                                     "("]))
         separator = "\n"
 
         # if only one primary key, specify it along with the column
@@ -858,7 +878,8 @@ class SchemaGenerator(DDLBase):
         if constraint.name is not None:
             self.append("CONSTRAINT %s " % self.preparer.format_constraint(constraint))
         self.append("PRIMARY KEY ")
-        self.append("(%s)" % ', '.join([self.preparer.quote(c.name, c.quote) for c in constraint]))
+        self.append("(%s)" % ', '.join(self.preparer.quote(c.name, c.quote)
+                                       for c in constraint))
         self.define_constraint_deferrability(constraint)
 
     def visit_foreign_key_constraint(self, constraint):
@@ -879,9 +900,11 @@ class SchemaGenerator(DDLBase):
                         preparer.format_constraint(constraint))
         table = list(constraint.elements)[0].column.table
         self.append("FOREIGN KEY(%s) REFERENCES %s (%s)" % (
-            ', '.join([preparer.quote(f.parent.name, f.parent.quote) for f in constraint.elements]),
+            ', '.join(preparer.quote(f.parent.name, f.parent.quote)
+                      for f in constraint.elements),
             preparer.format_table(table),
-            ', '.join([preparer.quote(f.column.name, f.column.quote) for f in constraint.elements])
+            ', '.join(preparer.quote(f.column.name, f.column.quote)
+                      for f in constraint.elements)
         ))
         if constraint.ondelete is not None:
             self.append(" ON DELETE %s" % constraint.ondelete)
@@ -894,7 +917,7 @@ class SchemaGenerator(DDLBase):
         if constraint.name is not None:
             self.append("CONSTRAINT %s " %
                         self.preparer.format_constraint(constraint))
-        self.append(" UNIQUE (%s)" % (', '.join([self.preparer.quote(c.name, c.quote) for c in constraint])))
+        self.append(" UNIQUE (%s)" % (', '.join(self.preparer.quote(c.name, c.quote) for c in constraint)))
         self.define_constraint_deferrability(constraint)
 
     def define_constraint_deferrability(self, constraint):
@@ -917,7 +940,8 @@ class SchemaGenerator(DDLBase):
         self.append("INDEX %s ON %s (%s)" \
                     % (preparer.quote(self._validate_identifier(index.name, True), index.quote),
                        preparer.format_table(index.table),
-                       string.join([preparer.quote(c.name, c.quote) for c in index.columns], ', ')))
+                       ', '.join(preparer.quote(c.name, c.quote)
+                                 for c in index.columns)))
         self.execute()
 
 

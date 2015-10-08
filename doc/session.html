@@ -28,8 +28,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum prerelease">0.5.0beta2</span>
-  Last Updated: 07/14/08 16:12:25
+  Version: <span class="versionnum prerelease">0.5.0beta3</span>
+  Last Updated: 08/04/08 18:36:49
 </div>
 
 
@@ -570,7 +570,7 @@
     
     
 
-<p>The <code>query()</code> function takes one or more <em>entities</em> and returns a new <code>Query</code> object which will issue mapper queries within the context of this Session.  An entity is defined as a mapped class, a <code>Mapper</code> object, an orm-enabled <em>descriptor</em>, or an <code>AliasedClass</code> object (a future release will also include an <code>Entity</code> object for use with entity_name mappers).
+<p>The <code>query()</code> function takes one or more <em>entities</em> and returns a new <code>Query</code> object which will issue mapper queries within the context of this Session.  An entity is defined as a mapped class, a <code>Mapper</code> object, an orm-enabled <em>descriptor</em>, or an <code>AliasedClass</code> object.
 </p>
 
     
@@ -779,7 +779,7 @@
 
 <p>When the <code>Session</code> is used with its default configuration, the flush step is nearly always done transparently.  Specifically, the flush occurs before any individual <code>Query</code> is issued, as well as within the <code>commit()</code> call before the transaction is committed.  It also occurs before a SAVEPOINT is issued when <code>begin_nested()</code> is used.  The "flush-on-Query" aspect of the behavior can be disabled by constructing <code>sessionmaker()</code> with the flag <code>autoflush=False</code>.
 </p>
-<p>Regardless of the autoflush setting, a flush can always be forced by issing <code>flush()</code>:
+<p>Regardless of the autoflush setting, a flush can always be forced by issuing <code>flush()</code>:
 </p>
 
     
@@ -824,7 +824,7 @@
 
 <p><code>commit()</code> is used to commit the current transaction.  It always issues <code>flush()</code> beforehand to flush any remaining state to the database; this is independent of the "autoflush" setting.   If no transaction is present, it raises an error.  Note that the default behavior of the <code>Session</code> is that a transaction is always present; this behavior can be disabled by setting <code>autocommit=True</code>.  In autocommit mode, a transaction can be initiated by calling the <code>begin()</code> method.
 </p>
-<p>Another behavior of <code>commit()</code> is that by default it expires the state of all instances present after the commit is complete.  This is so that when the instances are next accessed, either through attribute access or by them being present in a <code>Query</code> result set, they receive the most recent state.  To disable this behavior, configure <code>sessionmaker()</code> with <code>autoexpire=False</code>.
+<p>Another behavior of <code>commit()</code> is that by default it expires the state of all instances present after the commit is complete.  This is so that when the instances are next accessed, either through attribute access or by them being present in a <code>Query</code> result set, they receive the most recent state.  To disable this behavior, configure <code>sessionmaker()</code> with <code>expire_on_commit=False</code>.
 </p>
 <p>Normally, instances loaded into the <code>Session</code> are never changed by subsequent queries; the assumption is that the current transaction is isolated so the state most recently loaded is correct as long as the transaction continues.  Setting <code>autocommit=True</code> works against this model to some degree since the <code>Session</code> behaves in exactly the same way with regard to attribute state, except no transaction is present.
 </p>
@@ -862,7 +862,7 @@
  </li>
 
  <li>
-     All objects not expunged are fully expired.  This aspect of the behavior may be disabled by configuring <code>sessionmaker()</code> with <code>autoexpire=False</code>.
+     All objects not expunged are fully expired.  <br></br>
  </li>
 </ul>
 <p>With that state understood, the <code>Session</code> may safely continue usage after a rollback occurs (note that this is a new feature as of version 0.5).

@@ -36,28 +36,25 @@ class UOWEventHandler(interfaces.AttributeExtension):
     session cascade operations.
     """
 
-    def __init__(self, key, class_, cascade):
+    def __init__(self, key):
         self.key = key
-        self.class_ = class_
-        self.cascade = cascade
     
-    def _target_mapper(self, state):
-        prop = _state_mapper(state).get_property(self.key)
-        return prop.mapper
-
     def append(self, state, item, initiator):
         # process "save_update" cascade rules for when an instance is appended to the list of another instance
         sess = _state_session(state)
         if sess:
-            if self.cascade.save_update and item not in sess:
-                sess.save_or_update(item, entity_name=self._target_mapper(state).entity_name)
+            prop = _state_mapper(state).get_property(self.key)
+            if prop.cascade.save_update and item not in sess:
+                sess.save_or_update(item)
 
     def remove(self, state, item, initiator):
         sess = _state_session(state)
         if sess:
+            prop = _state_mapper(state).get_property(self.key)
             # expunge pending orphans
-            if self.cascade.delete_orphan and item in sess.new:
-                if self._target_mapper(state)._is_orphan(attributes.instance_state(item)):
+            if prop.cascade.delete_orphan and \
+                item in sess.new and \
+                prop.mapper._is_orphan(attributes.instance_state(item)):
                     sess.expunge(item)
 
     def set(self, state, newvalue, oldvalue, initiator):
@@ -66,9 +63,10 @@ class UOWEventHandler(interfaces.AttributeExtension):
             return
         sess = _state_session(state)
         if sess:
-            if newvalue is not None and self.cascade.save_update and newvalue not in sess:
-                sess.save_or_update(newvalue, entity_name=self._target_mapper(state).entity_name)
-            if self.cascade.delete_orphan and oldvalue in sess.new:
+            prop = _state_mapper(state).get_property(self.key)
+            if newvalue is not None and prop.cascade.save_update and newvalue not in sess:
+                sess.save_or_update(newvalue)
+            if prop.cascade.delete_orphan and oldvalue in sess.new:
                 sess.expunge(oldvalue)
 
 
@@ -77,13 +75,12 @@ def register_attribute(class_, key, *args, **kwargs):
     to new InstrumentedAttributes.
     """
     
-    cascade = kwargs.pop('cascade', None)
     useobject = kwargs.get('useobject', False)
     if useobject:
         # for object-holding attributes, instrument UOWEventHandler
         # to process per-attribute cascades
         extension = util.to_list(kwargs.pop('extension', None) or [])
-        extension.insert(0, UOWEventHandler(key, class_, cascade=cascade))
+        extension.insert(0, UOWEventHandler(key))
         kwargs['extension'] = extension
     return attributes.register_attribute(class_, key, *args, **kwargs)
     
@@ -106,7 +103,7 @@ class UOWTransaction(object):
         
         # stores tuples of mapper/dependent mapper pairs,
         # representing a partial ordering fed into topological sort
-        self.dependencies = util.Set()
+        self.dependencies = set()
         
         # dictionary of mappers to UOWTasks
         self.tasks = {}
@@ -310,7 +307,9 @@ class UOWTransaction(object):
                 ret.append(task)
 
         if self._should_log_debug:
-            self.logger.debug("Dependent tuples:\n" + "\n".join(["(%s->%s)" % (d[0].class_.__name__, d[1].class_.__name__) for d in self.dependencies]))
+            self.logger.debug("Dependent tuples:\n" + "\n".join(
+                    "(%s->%s)" % (d[0].class_.__name__, d[1].class_.__name__)
+                    for d in self.dependencies))
             self.logger.debug("Dependency sort:\n"+ str(ret))
         return ret
 
@@ -342,8 +341,8 @@ class UOWTask(object):
         self._objects = {} 
 
         self.dependent_tasks = []
-        self.dependencies = util.Set()
-        self.cyclical_dependencies = util.Set()
+        self.dependencies = set()
+        self.cyclical_dependencies = set()
 
     def polymorphic_tasks(self):
         """return an iterator of UOWTask objects corresponding to the inheritance sequence
@@ -401,7 +400,7 @@ class UOWTask(object):
         # postupdates are UPDATED immeditely (for now)
         # convert post_update_cols list to a Set so that __hash__() is used to compare columns
         # instead of __eq__()
-        self.mapper._save_obj([state], self.uowtransaction, postupdate=True, post_update_cols=util.Set(post_update_cols))
+        self.mapper._save_obj([state], self.uowtransaction, postupdate=True, post_update_cols=set(post_update_cols))
 
     def __contains__(self, state):
         """return True if the given object is contained within this UOWTask or inheriting tasks."""
@@ -481,7 +480,7 @@ class UOWTask(object):
             allobjects += [e.state for e in task.polymorphic_elements]
         tuples = []
 
-        cycles = util.Set(cycles)
+        cycles = set(cycles)
 
         extradeplist = []
         dependencies = {}
@@ -570,7 +569,7 @@ class UOWTask(object):
 
         head = topological.sort_as_tree(tuples, allobjects)
         
-        used_tasks = util.Set()
+        used_tasks = set()
         def make_task_tree(node, parenttask, nexttasks):
             (state, cycles, children) = node
             originating_task = object_to_original_task[state]
@@ -753,7 +752,7 @@ class UOWExecutor(object):
             for task in tasks:
                 self.execute_save_steps(trans, task)
         if isdelete is not False:
-            for task in util.reversed(tasks):
+            for task in reversed(tasks):
                 self.execute_delete_steps(trans, task)
 
     def save_objects(self, trans, task):
@@ -780,7 +779,7 @@ class UOWExecutor(object):
             for dep in task.polymorphic_dependencies:
                 self.execute_dependency(trans, dep, False)
         if isdelete is not False:
-            for dep in util.reversed(list(task.polymorphic_dependencies)):
+            for dep in reversed(list(task.polymorphic_dependencies)):
                 self.execute_dependency(trans, dep, True)
 
     def execute_cyclical_dependencies(self, trans, task, isdelete):

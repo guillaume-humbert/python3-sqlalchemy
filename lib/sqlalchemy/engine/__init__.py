@@ -51,37 +51,50 @@ url.py
 """
 
 import sqlalchemy.databases
-from sqlalchemy.engine.base import Dialect, ExecutionContext, Compiled, \
-     Connectable, Connection, Transaction, RootTransaction, \
-     NestedTransaction, TwoPhaseTransaction, Engine, RowProxy, \
-     BufferedColumnRow, ResultProxy, BufferedRowResultProxy, \
-     BufferedColumnResultProxy, SchemaIterator, DefaultRunner
+from sqlalchemy.engine.base import (
+    BufferedColumnResultProxy,
+    BufferedColumnRow,
+    BufferedRowResultProxy,
+    Compiled,
+    Connectable,
+    Connection,
+    DefaultRunner,
+    Dialect,
+    Engine,
+    ExecutionContext,
+    NestedTransaction,
+    ResultProxy,
+    RootTransaction,
+    RowProxy,
+    SchemaIterator,
+    Transaction,
+    TwoPhaseTransaction
+    )
 from sqlalchemy.engine import strategies
 from sqlalchemy import util
 
 
-__all__ = [
-    'engine_descriptors', 'create_engine', 'engine_from_config',
-    'Dialect', 'ExecutionContext', 'Compiled', 'Connectable',
-    'Connection', 'Transaction', 'RootTransaction', 'NestedTransaction',
-    'TwoPhaseTransaction', 'Engine', 'RowProxy', 'BufferedColumnRow',
-    'ResultProxy', 'BufferedRowResultProxy', 'BufferedColumnResultProxy',
-    'SchemaIterator', 'DefaultRunner',
-    ]
-
-def engine_descriptors():
-    """Provide a listing of all the database implementations supported.
-    
-    This method will be removed in 0.5.
-
-    """
-    result = []
-    for module in sqlalchemy.databases.__all__:
-        module = getattr(
-            __import__('sqlalchemy.databases.%s' % module).databases, module)
-        result.append(module.descriptor())
-    return result
-engine_descriptors = util.deprecated()(engine_descriptors)
+__all__ = (
+    'BufferedColumnResultProxy',
+    'BufferedColumnRow',
+    'BufferedRowResultProxy',
+    'Compiled',
+    'Connectable',
+    'Connection',
+    'DefaultRunner',
+    'Dialect',
+    'Engine',
+    'ExecutionContext',
+    'NestedTransaction',
+    'ResultProxy',
+    'RootTransaction',
+    'RowProxy',
+    'SchemaIterator',
+    'Transaction',
+    'TwoPhaseTransaction',
+    'create_engine',
+    'engine_from_config',
+    )
 
 
 default_strategy = 'plain'
@@ -180,8 +193,9 @@ def engine_from_config(configuration, prefix='sqlalchemy.', **kwargs):
 def _coerce_config(configuration, prefix):
     """Convert configuration values to expected types."""
 
-    options = dict([(key[len(prefix):], configuration[key])
-                 for key in configuration if key.startswith(prefix)])
+    options = dict((key[len(prefix):], configuration[key])
+                   for key in configuration
+                   if key.startswith(prefix))
     for option, type_ in (
         ('convert_unicode', bool),
         ('pool_timeout', int),

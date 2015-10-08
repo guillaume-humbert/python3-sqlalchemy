@@ -6,7 +6,6 @@
 
 """Dumps out a string representation of a UOWTask structure"""
 
-from sqlalchemy import util
 from sqlalchemy.orm import unitofwork
 from sqlalchemy.orm import util as mapperutil
 
@@ -22,7 +21,7 @@ class UOWDumper(unitofwork.UOWExecutor):
             for task in tasks:
                 self._execute(trans, task, False)
         if isdelete is not False:
-            for task in util.reversed(tasks):
+            for task in reversed(tasks):
                 self._execute(trans, task, True)
 
     def _execute(self, trans, task, isdelete):
@@ -96,7 +95,7 @@ class UOWDumper(unitofwork.UOWExecutor):
     def _repr_task(self, task):
         if task.mapper is not None:
             if task.mapper.__class__.__name__ == 'Mapper':
-                name = task.mapper.class_.__name__ + "/" + task.mapper.local_table.description + "/" + str(task.mapper.entity_name)
+                name = task.mapper.class_.__name__ + "/" + task.mapper.local_table.description
             else:
                 name = repr(task.mapper)
         else:
