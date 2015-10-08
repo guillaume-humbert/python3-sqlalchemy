@@ -2,11 +2,11 @@
 import testbase
 import pickleable
 from sqlalchemy import *
+from sqlalchemy import exceptions, sql
 from sqlalchemy.orm import *
 from testlib import *
 from testlib.tables import *
-from testlib import tables
-import fixtures
+from testlib import tables, fixtures
 
 """tests unitofwork operations"""
 
@@ -50,7 +50,8 @@ class VersioningTest(ORMTest):
         Column('version_id', Integer, nullable=False),
         Column('value', String(40), nullable=False)
         )
-    
+
+    @engines.close_open_connections
     def test_basic(self):
         s = Session(scope=None)
         class Foo(object):pass
@@ -77,7 +78,7 @@ class VersioningTest(ORMTest):
             success = True
 
         # Only dialects with a sane rowcount can detect the ConcurrentModificationError
-        if testbase.db.dialect.supports_sane_rowcount():
+        if testbase.db.dialect.supports_sane_rowcount:
             assert success
         
         s.close()
@@ -95,9 +96,10 @@ class VersioningTest(ORMTest):
         except exceptions.ConcurrentModificationError, e:
             #print e
             success = True
-        if testbase.db.dialect.supports_sane_rowcount():
+        if testbase.db.dialect.supports_sane_rowcount:
             assert success
-
+        
+    @engines.close_open_connections
     def test_versioncheck(self):
         """test that query.with_lockmode performs a 'version check' on an already loaded instance"""
         s1 = Session(scope=None)
@@ -124,6 +126,7 @@ class VersioningTest(ORMTest):
         s1.close()
         s1.query(Foo).with_lockmode('read').get(f1s1.id)
         
+    @engines.close_open_connections
     def test_noversioncheck(self):
         """test that query.with_lockmode works OK when the mapper has no version id col"""
         s1 = Session()
@@ -414,6 +417,7 @@ class PKTest(ORMTest):
         e.data = 'some more data'
         Session.commit()
 
+    @engines.assert_conns_closed
     def test_pksimmutable(self):
         class Entry(object):
             pass
@@ -430,7 +434,6 @@ class PKTest(ORMTest):
             assert False
         except exceptions.FlushError, fe:
             assert str(fe) == "Can't change the identity of instance Entry@%s in session (existing identity: (%s, (5, 5), None); new identity: (%s, (5, 6), None))" % (hex(id(e)), repr(e.__class__), repr(e.__class__))
-            
             
 class ForeignPKTest(ORMTest):
     """tests mapper detection of the relationship direction when parent/child tables are joined on their
@@ -858,11 +861,11 @@ class OneToManyTest(ORMTest):
         m2 = mapper(Address, addresses)
         m = mapper(User, users, properties={
             'boston_addresses' : relation(m2, primaryjoin=
-                        and_(users.c.user_id==Address.c.user_id, 
-                        Address.c.email_address.like('%boston%'))),
+                        and_(users.c.user_id==addresses.c.user_id, 
+                        addresses.c.email_address.like('%boston%'))),
             'newyork_addresses' : relation(m2, primaryjoin=
-                        and_(users.c.user_id==Address.c.user_id, 
-                        Address.c.email_address.like('%newyork%'))),
+                        and_(users.c.user_id==addresses.c.user_id, 
+                        addresses.c.email_address.like('%newyork%'))),
         })
         u = User()
         a = Address()

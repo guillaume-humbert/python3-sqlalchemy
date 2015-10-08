@@ -241,8 +241,9 @@ class SessionTransaction(object):
             return
         for t in util.Set(self.__connections.values()):
             if t[2]:
-                # closing the connection will also issue a rollback()
                 t[0].close()
+            else:
+                t[1].close()
         self.session.transaction = None
 
     def __enter__(self):
@@ -389,11 +390,12 @@ class Session(object):
                 those changes will not be persisted.
             
         """
-        self.uow = unitofwork.UnitOfWork(weak_identity_map=weak_identity_map)
+        self.echo_uow = echo_uow
+        self.uow = unitofwork.UnitOfWork(self, weak_identity_map=weak_identity_map)
+        self.identity_map = self.uow.identity_map
 
         self.bind = bind
         self.__binds = {}
-        self.echo_uow = echo_uow
         self.weak_identity_map = weak_identity_map
         self.transaction = None
         self.hash_key = id(self)
@@ -417,13 +419,6 @@ class Session(object):
             self.begin()
         _sessions[self.hash_key] = self
             
-    def _get_echo_uow(self):
-        return self.uow.echo
-
-    def _set_echo_uow(self, value):
-        self.uow.echo = value
-    echo_uow = property(_get_echo_uow,_set_echo_uow)
-    
     def begin(self, **kwargs):
         """Begin a transaction on this Session."""
 
@@ -571,9 +566,8 @@ class Session(object):
 
         for instance in self:
             self._unattach(instance)
-        echo = self.uow.echo
-        self.uow = unitofwork.UnitOfWork(weak_identity_map=self.weak_identity_map)
-        self.uow.echo = echo
+        self.uow = unitofwork.UnitOfWork(self, weak_identity_map=self.weak_identity_map)
+        self.identity_map = self.uow.identity_map
 
     def bind_mapper(self, mapper, bind, entity_name=None):
         """Bind the given `mapper` or `class` to the given ``Engine`` or ``Connection``.
@@ -725,6 +719,16 @@ class Session(object):
         for c in [obj] + list(_object_mapper(obj).cascade_iterator('refresh-expire', obj)):
             self._expire_impl(c)
 
+    def prune(self):
+        """Removes unreferenced instances cached in the identity map.
+
+        Removes any object in this Session'sidentity map that is not
+        referenced in user code, modified, new or scheduled for deletion.
+        Returns the number of objects pruned.
+        """
+        
+        return self.uow.prune_identity_map()
+
     def _expire_impl(self, obj):
         self._validate_persistent(obj)
 
@@ -843,7 +847,7 @@ class Session(object):
         try:
             key = getattr(object, '_instance_key', None)
             if key is None:
-                merged = mapper._create_instance(self)
+                merged = mapper.class_.__new__(mapper.class_)
             else:
                 if key in self.identity_map:
                     merged = self.identity_map[key]
@@ -1023,11 +1027,6 @@ class Session(object):
     def _get(self, key):
         return self.identity_map[key]
 
-    def has_key(self, key):
-        """return True if the given identity key is present within this Session's identity map."""
-        
-        return key in self.identity_map
-
     dirty = property(lambda s:s.uow.locate_dirty(),
                      doc="A ``Set`` of all objects marked as 'dirty' within this ``Session``")
 
@@ -1036,10 +1035,6 @@ class Session(object):
 
     new = property(lambda s:s.uow.new,
                    doc="A ``Set`` of all objects marked as 'new' within this ``Session``.")
-
-    identity_map = property(lambda s:s.uow.identity_map,
-                            doc="A dictionary consisting of all objects "
-                            "within this ``Session`` keyed to their `_instance_key` value.")
 
     def import_instance(self, *args, **kwargs):
         """A synynom for ``merge()``."""

@@ -1,7 +1,8 @@
 import testbase
 import datetime
 from sqlalchemy import *
-from sqlalchemy import exceptions, ansisql
+from sqlalchemy import exceptions, sql
+from sqlalchemy.engine import default
 from testlib import *
 
 
@@ -144,6 +145,12 @@ class QueryTest(PersistTest):
         s = select([users], users.c.user_id==bindparam('id')).compile()
         c = testbase.db.connect()
         assert c.execute(s, id=7).fetchall()[0]['user_id'] == 7
+    
+    def test_compiled_insert_execute(self):
+        users.insert().compile().execute(user_id = 7, user_name = 'jack') 
+        s = select([users], users.c.user_id==bindparam('id')).compile()
+        c = testbase.db.connect()
+        assert c.execute(s, id=7).fetchall()[0]['user_id'] == 7
 
     def test_repeated_bindparams(self):
         """test that a BindParam can be used more than once.  
@@ -166,14 +173,14 @@ class QueryTest(PersistTest):
         assert len(r) == 1
 
     def test_bindparam_detection(self):
-        dialect = ansisql.ANSIDialect(default_paramstyle='qmark')
-        prep = lambda q: dialect.compile(sql.text(q)).string
+        dialect = default.DefaultDialect(default_paramstyle='qmark')
+        prep = lambda q: str(sql.text(q).compile(dialect=dialect))
 
         def a_eq(got, wanted):
             if got != wanted:
                 print "Wanted %s" % wanted
                 print "Received %s" % got
-            self.assert_(got == wanted)
+            self.assert_(got == wanted, got)
 
         a_eq(prep('select foo'), 'select foo')
         a_eq(prep("time='12:30:00'"), "time='12:30:00'")
@@ -390,7 +397,7 @@ class QueryTest(PersistTest):
         w = select(['*'], from_obj=[testbase.db.func.current_date()]).scalar()
         
         # construct a column-based FROM object out of a function, like in [ticket:172]
-        s = select([column('date', type_=DateTime)], from_obj=[testbase.db.func.current_date()])
+        s = select([sql.column('date', type_=DateTime)], from_obj=[testbase.db.func.current_date()])
         q = s.execute().fetchone()[s.c.date]
         r = s.alias('datequery').select().scalar()
         

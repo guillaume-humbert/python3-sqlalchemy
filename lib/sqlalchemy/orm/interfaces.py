@@ -5,7 +5,8 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 
-from sqlalchemy import util, logging, sql
+from sqlalchemy import util, logging
+from sqlalchemy.sql import expression
 
 __all__ = ['EXT_CONTINUE', 'EXT_STOP', 'EXT_PASS', 'MapperExtension',
            'MapperProperty', 'PropComparator', 'StrategizedProperty', 
@@ -363,7 +364,7 @@ class MapperProperty(object):
 
         return operator(self.comparator, value)
 
-class PropComparator(sql.ColumnOperators):
+class PropComparator(expression.ColumnOperators):
     """defines comparison operations for MapperProperty objects"""
     
     def expression_element(self):
@@ -516,7 +517,7 @@ class ExtensionOption(MapperOption):
 
     def process_query(self, query):
         query._extension = query._extension.copy()
-        query._extension.append(self.ext)
+        query._extension.insert(self.ext)
 
 class SynonymProperty(MapperProperty):
     def __init__(self, name, proxy=False):

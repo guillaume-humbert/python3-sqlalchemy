@@ -6,8 +6,9 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 import random
-from sqlalchemy import sql, schema, ansisql, types, exceptions, pool
-import sqlalchemy.engine.default as default
+from sqlalchemy import sql, schema, types, exceptions, pool
+from sqlalchemy.sql import compiler
+from sqlalchemy.engine import default, base
 
 
 class AcNumeric(types.Numeric):
@@ -158,7 +159,7 @@ class AccessExecutionContext(default.DefaultExecutionContext):
 
 
 const, daoEngine = None, None
-class AccessDialect(ansisql.ANSIDialect):
+class AccessDialect(default.DefaultDialect):
     colspecs = {
         types.Unicode : AcUnicode,
         types.Integer : AcInteger,
@@ -174,6 +175,9 @@ class AccessDialect(ansisql.ANSIDialect):
         types.CHAR: AcChar,
         types.TIMESTAMP: AcTimeStamp,
     }
+
+    supports_sane_rowcount = False
+
 
     def type_descriptor(self, typeobj):
         newobj = types.adapt_type(typeobj, self.colspecs)
@@ -209,9 +213,6 @@ class AccessDialect(ansisql.ANSIDialect):
 
     def create_execution_context(self, *args, **kwargs):
         return AccessExecutionContext(self, *args, **kwargs)
-
-    def supports_sane_rowcount(self):
-        return False
 
     def last_inserted_ids(self):
         return self.context.last_inserted_ids
@@ -347,7 +348,7 @@ class AccessDialect(ansisql.ANSIDialect):
         return names
 
 
-class AccessCompiler(ansisql.ANSICompiler):
+class AccessCompiler(compiler.DefaultCompiler):
     def visit_select_precolumns(self, select):
         """Access puts TOP, it's version of LIMIT here """
         s = select.distinct and "DISTINCT " or ""
@@ -387,7 +388,7 @@ class AccessCompiler(ansisql.ANSICompiler):
         return ''
 
 
-class AccessSchemaGenerator(ansisql.ANSISchemaGenerator):
+class AccessSchemaGenerator(compiler.SchemaGenerator):
     def get_column_specification(self, column, **kwargs):
         colspec = self.preparer.format_column(column) + " " + column.type.dialect_impl(self.dialect).get_col_spec()
 
@@ -410,15 +411,15 @@ class AccessSchemaGenerator(ansisql.ANSISchemaGenerator):
 
         return colspec
 
-class AccessSchemaDropper(ansisql.ANSISchemaDropper):
+class AccessSchemaDropper(compiler.SchemaDropper):
     def visit_index(self, index):
         self.append("\nDROP INDEX [%s].[%s]" % (index.table.name, index.name))
         self.execute()
 
-class AccessDefaultRunner(ansisql.ANSIDefaultRunner):
+class AccessDefaultRunner(base.DefaultRunner):
     pass
 
-class AccessIdentifierPreparer(ansisql.ANSIIdentifierPreparer):
+class AccessIdentifierPreparer(compiler.IdentifierPreparer):
     def __init__(self, dialect):
         super(AccessIdentifierPreparer, self).__init__(dialect, initial_quote='[', final_quote=']')
 

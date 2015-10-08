@@ -4,19 +4,32 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-"""Provide default implementations of per-dialect sqlalchemy.engine classes"""
+"""Default implementations of per-dialect sqlalchemy.engine classes."""
 
-from sqlalchemy import schema, exceptions, sql, util
+
+from sqlalchemy import schema, exceptions, util
 import re, random
 from sqlalchemy.engine import base
+from sqlalchemy.sql import compiler, expression
 
 
 AUTOCOMMIT_REGEXP = re.compile(r'\s*(?:UPDATE|INSERT|CREATE|DELETE|DROP|ALTER)',
                                re.I | re.UNICODE)
 SELECT_REGEXP = re.compile(r'\s*SELECT', re.I | re.UNICODE)
 
+
 class DefaultDialect(base.Dialect):
     """Default implementation of Dialect"""
+
+    schemagenerator = compiler.SchemaGenerator
+    schemadropper = compiler.SchemaDropper
+    statement_compiler = compiler.DefaultCompiler
+    preparer = compiler.IdentifierPreparer
+    defaultrunner = base.DefaultRunner
+    supports_alter = True
+    supports_unicode_statements = False
+    max_identifier_length = 9999
+    supports_sane_rowcount = True
 
     def __init__(self, convert_unicode=False, encoding='utf-8', default_paramstyle='named', paramstyle=None, dbapi=None, **kwargs):
         self.convert_unicode = convert_unicode
@@ -24,16 +37,23 @@ class DefaultDialect(base.Dialect):
         self.positional = False
         self._ischema = None
         self.dbapi = dbapi
-        self._figure_paramstyle(paramstyle=paramstyle, default=default_paramstyle)
+        if paramstyle is not None:
+            self.paramstyle = paramstyle
+        elif self.dbapi is not None:
+            self.paramstyle = self.dbapi.paramstyle
+        else:
+            self.paramstyle = default_paramstyle
+        self.positional = self.paramstyle in ('qmark', 'format', 'numeric')
+        self.identifier_preparer = self.preparer(self)
     
     def dbapi_type_map(self):
-        # most DBAPIs have problems with this (such as, psycocpg2 types 
+        # most DB-APIs have problems with this (such as, psycocpg2 types 
         # are unhashable).  So far Oracle can return it.
         
         return {}
     
-    def create_execution_context(self, **kwargs):
-        return DefaultExecutionContext(self, **kwargs)
+    def create_execution_context(self, connection, **kwargs):
+        return DefaultExecutionContext(self, connection, **kwargs)
 
     def type_descriptor(self, typeobj):
         """Provide a database-specific ``TypeEngine`` object, given
@@ -46,23 +66,9 @@ class DefaultDialect(base.Dialect):
             typeobj = typeobj()
         return typeobj
 
-    def supports_unicode_statements(self):
-        """indicate whether the DBAPI can receive SQL statements as Python unicode strings"""
-        return False
-
-    def max_identifier_length(self):
-        # TODO: probably raise this and fill out
-        # db modules better
-        return 9999
-
-    def supports_alter(self):
-        return True
         
     def oid_column_name(self, column):
         return None
-
-    def supports_sane_rowcount(self):
-        return True
 
     def do_begin(self, connection):
         """Implementations might want to put logic here for turning
@@ -76,7 +82,6 @@ class DefaultDialect(base.Dialect):
         autocommit on/off, etc.
         """
 
-        #print "ENGINE ROLLBACK ON ", connection.connection
         connection.rollback()
 
     def do_commit(self, connection):
@@ -84,65 +89,34 @@ class DefaultDialect(base.Dialect):
         autocommit on/off, etc.
         """
 
-        #print "ENGINE COMMIT ON ", connection.connection
         connection.commit()
     
     def create_xid(self):
-        """create a two-phase transaction ID.
+        """Create a random two-phase transaction ID.
         
-        this id will be passed to do_begin_twophase(), do_rollback_twophase(),
-        do_commit_twophase().  its format is unspecified."""
+        This id will be passed to do_begin_twophase(), do_rollback_twophase(),
+        do_commit_twophase().  Its format is unspecified."""
         
         return "_sa_%032x" % random.randint(0,2**128)
         
     def do_savepoint(self, connection, name):
-        connection.execute(sql.SavepointClause(name))
+        connection.execute(expression.SavepointClause(name))
 
     def do_rollback_to_savepoint(self, connection, name):
-        connection.execute(sql.RollbackToSavepointClause(name))
+        connection.execute(expression.RollbackToSavepointClause(name))
 
     def do_release_savepoint(self, connection, name):
-        connection.execute(sql.ReleaseSavepointClause(name))
+        connection.execute(expression.ReleaseSavepointClause(name))
 
-    def do_executemany(self, cursor, statement, parameters, **kwargs):
+    def do_executemany(self, cursor, statement, parameters, context=None):
         cursor.executemany(statement, parameters)
 
-    def do_execute(self, cursor, statement, parameters, **kwargs):
+    def do_execute(self, cursor, statement, parameters, context=None):
         cursor.execute(statement, parameters)
-
-    def defaultrunner(self, context):
-        return base.DefaultRunner(context)
 
     def is_disconnect(self, e):
         return False
         
-    def _set_paramstyle(self, style):
-        self._paramstyle = style
-        self._figure_paramstyle(style)
-
-    paramstyle = property(lambda s:s._paramstyle, _set_paramstyle)
-
-
-    def _figure_paramstyle(self, paramstyle=None, default='named'):
-        if paramstyle is not None:
-            self._paramstyle = paramstyle
-        elif self.dbapi is not None:
-            self._paramstyle = self.dbapi.paramstyle
-        else:
-            self._paramstyle = default
-
-        if self._paramstyle == 'named':
-            self.positional=False
-        elif self._paramstyle == 'pyformat':
-            self.positional=False
-        elif self._paramstyle == 'qmark' or self._paramstyle == 'format' or self._paramstyle == 'numeric':
-            # for positional, use pyformat internally, ANSICompiler will convert
-            # to appropriate character upon compilation
-            self.positional = True
-        else:
-            raise exceptions.InvalidRequestError(
-                "Unsupported paramstyle '%s'" % self._paramstyle)
-
     def _get_ischema(self):
         if self._ischema is None:
             import sqlalchemy.databases.information_schema as ischema
@@ -150,45 +124,48 @@ class DefaultDialect(base.Dialect):
         return self._ischema
     ischema = property(_get_ischema, doc="""returns an ISchema object for this engine, which allows access to information_schema tables (if supported)""")
 
+
 class DefaultExecutionContext(base.ExecutionContext):
     def __init__(self, dialect, connection, compiled=None, statement=None, parameters=None):
         self.dialect = dialect
         self._connection = connection
         self.compiled = compiled
         self._postfetch_cols = util.Set()
+        self.engine = connection.engine
         
         if compiled is not None:
             self.typemap = compiled.typemap
             self.column_labels = compiled.column_labels
             self.statement = unicode(compiled)
+            self.isinsert = compiled.isinsert
+            self.isupdate = compiled.isupdate
             if parameters is None:
-                self.compiled_parameters = compiled.construct_params({})
+                self.compiled_parameters = compiled.construct_params()
                 self.executemany = False
             elif not isinstance(parameters, (list, tuple)):
                 self.compiled_parameters = compiled.construct_params(parameters)
                 self.executemany = False
             else:
-                self.compiled_parameters = [compiled.construct_params(m or {}) for m in parameters]
+                self.compiled_parameters = [compiled.construct_params(m) for m in parameters]
                 if len(self.compiled_parameters) == 1:
                     self.compiled_parameters = self.compiled_parameters[0]
                     self.executemany = False
                 else:
                     self.executemany = True
+
         elif statement is not None:
             self.typemap = self.column_labels = None
             self.parameters = self.__encode_param_keys(parameters)
             self.statement = statement
+            self.isinsert = self.isupdate = False
         else:
             self.statement = None
+            self.isinsert = self.isupdate = False
             
-        if self.statement is not None and not dialect.supports_unicode_statements():
+        if self.statement is not None and not dialect.supports_unicode_statements:
             self.statement = self.statement.encode(self.dialect.encoding)
             
         self.cursor = self.create_cursor()
-    
-    engine = property(lambda s:s.connection.engine)
-    isinsert = property(lambda s:s.compiled and s.compiled.isinsert)
-    isupdate = property(lambda s:s.compiled and s.compiled.isupdate)
     
     connection = property(lambda s:s._connection._branch())
     
@@ -196,7 +173,7 @@ class DefaultExecutionContext(base.ExecutionContext):
     
     def __encode_param_keys(self, params):
         """apply string encoding to the keys of dictionary-based bind parameters"""
-        if self.dialect.positional or self.dialect.supports_unicode_statements():
+        if self.dialect.positional or self.dialect.supports_unicode_statements:
             return params
         else:
             def proc(d):
@@ -211,10 +188,10 @@ class DefaultExecutionContext(base.ExecutionContext):
                 return proc(params)
 
     def __convert_compiled_params(self, parameters):
-        encode = not self.dialect.supports_unicode_statements()
-        # the bind params are a CompiledParams object.  but all the DBAPI's hate
-        # that object (or similar).  so convert it to a clean
-        # dictionary/list/tuple of dictionary/tuple of list
+        encode = not self.dialect.supports_unicode_statements
+        # the bind params are a CompiledParams object.  but all the
+        # DB-API's hate that object (or similar).  so convert it to a
+        # clean dictionary/list/tuple of dictionary/tuple of list
         if parameters is not None:
             if self.executemany:
                 processors = parameters[0].get_processors()
@@ -270,7 +247,7 @@ class DefaultExecutionContext(base.ExecutionContext):
             return self.cursor.rowcount
 
     def supports_sane_rowcount(self):
-        return self.dialect.supports_sane_rowcount()
+        return self.dialect.supports_sane_rowcount
 
     def last_inserted_ids(self):
         return self._last_inserted_ids
@@ -289,7 +266,7 @@ class DefaultExecutionContext(base.ExecutionContext):
         
     def set_input_sizes(self):
         """Given a cursor and ClauseParameters, call the appropriate
-        style of ``setinputsizes()`` on the cursor, using DBAPI types
+        style of ``setinputsizes()`` on the cursor, using DB-API types
         from the bind parameter's ``TypeEngine`` objects.
         """
 

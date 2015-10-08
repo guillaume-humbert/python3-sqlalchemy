@@ -7,9 +7,10 @@
 
 import datetime, warnings
 
-from sqlalchemy import sql, schema, ansisql, exceptions, pool
-import sqlalchemy.engine.default as default
-import sqlalchemy.types as sqltypes
+from sqlalchemy import sql, schema, exceptions, pool
+from sqlalchemy.sql import compiler
+from sqlalchemy.engine import default
+from sqlalchemy import types as sqltypes
 
 
 # for offset
@@ -203,11 +204,13 @@ class InfoExecutionContext(default.DefaultExecutionContext):
     def create_cursor( self ):
         return informix_cursor( self.connection.connection )
         
-class InfoDialect(ansisql.ANSIDialect):
+class InfoDialect(default.DefaultDialect):
+    # for informix 7.31
+    max_identifier_length = 18
     
     def __init__(self, use_ansi=True,**kwargs):
         self.use_ansi = use_ansi
-        ansisql.ANSIDialect.__init__(self, **kwargs)
+        default.DefaultDialect.__init__(self, **kwargs)
         self.paramstyle = 'qmark'
 
     def dbapi(cls):
@@ -215,10 +218,6 @@ class InfoDialect(ansisql.ANSIDialect):
         return informixdb
     dbapi = classmethod(dbapi)
 
-    def max_identifier_length( self ):
-        # for informix 7.31
-        return 18
-    
     def is_disconnect(self, e):
         if isinstance(e, self.dbapi.OperationalError):
             return 'closed the connection' in str(e) or 'connection not open' in str(e)
@@ -251,18 +250,6 @@ class InfoDialect(ansisql.ANSIDialect):
         
     def oid_column_name(self,column):
         return "rowid"
-    
-    def preparer(self):
-        return InfoIdentifierPreparer(self)
-
-    def compiler(self, statement, bindparams, **kwargs):
-        return InfoCompiler(self, statement, bindparams, **kwargs)
-        
-    def schemagenerator(self, *args, **kwargs):
-        return InfoSchemaGenerator( self , *args, **kwargs)
-    
-    def schemadropper(self, *args, **params):
-        return InfoSchemaDroper( self , *args , **params)
     
     def table_names(self, connection, schema):
         s = "select tabname from systables"
@@ -376,14 +363,14 @@ class InfoDialect(ansisql.ANSIDialect):
         for cons_name, cons_type, local_column in rows:
             table.primary_key.add( table.c[local_column] )
 
-class InfoCompiler(ansisql.ANSICompiler):
+class InfoCompiler(compiler.DefaultCompiler):
     """Info compiler modifies the lexical structure of Select statements to work under 
     non-ANSI configured Oracle databases, if the use_ansi flag is False."""
     def __init__(self, dialect, statement, parameters=None, **kwargs):
         self.limit = 0
         self.offset = 0
         
-        ansisql.ANSICompiler.__init__( self , dialect , statement , parameters , **kwargs )
+        compiler.DefaultCompiler.__init__( self , dialect , statement , parameters , **kwargs )
     
     def default_from(self):
         return " from systables where tabname = 'systables' "
@@ -416,7 +403,7 @@ class InfoCompiler(ansisql.ANSICompiler):
             if ( __label(c) not in a ) and getattr( c , 'name' , '' ) != 'oid':
                 select.append_column( c )
         
-        return ansisql.ANSICompiler.visit_select(self, select)
+        return compiler.DefaultCompiler.visit_select(self, select)
         
     def limit_clause(self, select):
         return ""
@@ -437,7 +424,7 @@ class InfoCompiler(ansisql.ANSICompiler):
         elif func.name.lower() in ( 'current_timestamp' , 'now' ):
             return "CURRENT YEAR TO SECOND"
         else:
-            return ansisql.ANSICompiler.visit_function( self , func )
+            return compiler.DefaultCompiler.visit_function( self , func )
             
     def visit_clauselist(self, list):
         try:
@@ -446,7 +433,7 @@ class InfoCompiler(ansisql.ANSICompiler):
             li = [ c for c in list.clauses ]
         return ', '.join([s for s in [self.process(c) for c in li] if s is not None])
 
-class InfoSchemaGenerator(ansisql.ANSISchemaGenerator):
+class InfoSchemaGenerator(compiler.SchemaGenerator):
     def get_column_specification(self, column, first_pk=False):
         colspec = self.preparer.format_column(column)
         if column.primary_key and len(column.foreign_keys)==0 and column.autoincrement and \
@@ -507,7 +494,7 @@ class InfoSchemaGenerator(ansisql.ANSISchemaGenerator):
             return
         super(InfoSchemaGenerator, self).visit_index(index)
 
-class InfoIdentifierPreparer(ansisql.ANSIIdentifierPreparer):
+class InfoIdentifierPreparer(compiler.IdentifierPreparer):
     def __init__(self, dialect):
         super(InfoIdentifierPreparer, self).__init__(dialect, initial_quote="'")
     
@@ -517,10 +504,14 @@ class InfoIdentifierPreparer(ansisql.ANSIIdentifierPreparer):
     def _requires_quotes(self, value):
         return False
 
-class InfoSchemaDroper(ansisql.ANSISchemaDropper):
+class InfoSchemaDropper(compiler.SchemaDropper):
     def drop_foreignkey(self, constraint):
         if constraint.name is not None:
-            super( InfoSchemaDroper , self ).drop_foreignkey( constraint )
+            super( InfoSchemaDropper , self ).drop_foreignkey( constraint )
 
 dialect = InfoDialect
 poolclass = pool.SingletonThreadPool
+dialect.statement_compiler = InfoCompiler
+dialect.schemagenerator = InfoSchemaGenerator
+dialect.schemadropper = InfoSchemaDropper
+dialect.preparer = InfoIdentifierPreparer

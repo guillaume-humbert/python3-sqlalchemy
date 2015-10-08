@@ -1,4 +1,72 @@
+import sys, weakref
 from testlib import config
+
+
+class ConnectionKiller(object):
+    def __init__(self):
+        self.proxy_refs = weakref.WeakKeyDictionary()
+        
+    def checkout(self, dbapi_con, con_record, con_proxy):
+        self.proxy_refs[con_proxy] = True
+        
+    def _apply_all(self, methods):
+        for rec in self.proxy_refs:
+            if rec is not None and rec.is_valid:
+                try:
+                    for name in methods:
+                        if callable(name):
+                            name(rec)
+                        else:
+                            getattr(rec, name)()
+                except (SystemExit, KeyboardInterrupt):
+                    raise
+                except Exception, e:
+                    # fixme
+                    sys.stderr.write("\n" + str(e) + "\n")
+
+    def rollback_all(self):
+        self._apply_all(('rollback',))
+
+    def close_all(self):
+        self._apply_all(('rollback', 'close'))
+        
+    def assert_all_closed(self):
+        for rec in self.proxy_refs:
+            if rec.is_valid:
+                assert False
+        
+testing_reaper = ConnectionKiller()
+
+def assert_conns_closed(fn):
+    def decorated(*args, **kw):
+        try:
+            fn(*args, **kw)
+        finally:
+            testing_reaper.assert_all_closed()
+    decorated.__name__ = fn.__name__
+    return decorated
+    
+def rollback_open_connections(fn):
+    """Decorator that rolls back all open connections after fn execution."""
+
+    def decorated(*args, **kw):
+        try:
+            fn(*args, **kw)
+        finally:
+            testing_reaper.rollback_all()
+    decorated.__name__ = fn.__name__
+    return decorated
+
+def close_open_connections(fn):
+    """Decorator that closes all connections after fn execution."""
+
+    def decorated(*args, **kw):
+        try:
+            fn(*args, **kw)
+        finally:
+            testing_reaper.close_all()
+    decorated.__name__ = fn.__name__
+    return decorated
 
 
 def testing_engine(url=None, options=None):
@@ -9,6 +77,9 @@ def testing_engine(url=None, options=None):
 
     url = url or config.db_url
     options = options or config.db_opts
+
+    listeners = options.setdefault('listeners', [])
+    listeners.append(testing_reaper)
 
     engine = create_engine(url, **options)
 

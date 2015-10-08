@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/16/07 11:15:18</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/22/07 15:48:11</div>
 
 
 
@@ -53,7 +53,7 @@
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_ansisql.html">module sqlalchemy.ansisql</a>
+            Previous: <a href="sqlalchemy_sql_compiler.html">module sqlalchemy.sql.compiler</a>
 
                |   
             Next: <a href="sqlalchemy_orm.html">module sqlalchemy.orm</a>
@@ -136,7 +136,7 @@ providing implementations for the hooks you'll be using.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def checkin(<i>dbapi_con</i>, <i>con_record</i>)</b>
+    <b>def checkin(<i>self</i>, <i>dbapi_con</i>, <i>con_record</i>)</b>
     <div class="docstring">
     <p>Called when a connection returns to the pool.</p>
 <p>Note that the connection may be closed, and may be None if the
@@ -146,7 +146,7 @@ for detached connections.  (They do not return to the pool.)</p>
 <dt>dbapi_con</dt>
 <dd>A raw DB-API connection</dd>
 <dt>con_record</dt>
-<dd>The _ConnectionRecord that currently owns the connection</dd>
+<dd>The <tt class="docutils literal"><span class="pre">_ConnectionRecord</span></tt> that persistently manages the connection</dd>
 </dl>
 
     </div>
@@ -156,14 +156,17 @@ for detached connections.  (They do not return to the pool.)</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def checkout(<i>dbapi_con</i>, <i>con_record</i>)</b>
+    <b>def checkout(<i>self</i>, <i>dbapi_con</i>, <i>con_record</i>, <i>con_proxy</i>)</b>
     <div class="docstring">
     <p>Called when a connection is retrieved from the Pool.</p>
 <dl class="docutils">
 <dt>dbapi_con</dt>
 <dd>A raw DB-API connection</dd>
 <dt>con_record</dt>
-<dd>The <tt class="docutils literal"><span class="pre">_ConnectionRecord</span></tt> that currently owns the connection</dd>
+<dd>The <tt class="docutils literal"><span class="pre">_ConnectionRecord</span></tt> that persistently manages the connection</dd>
+<dt>con_proxy</dt>
+<dd>The <tt class="docutils literal"><span class="pre">_ConnectionFairy</span></tt> which manages the connection for the span of
+the current checkout.</dd>
 </dl>
 <p>If you raise an <tt class="docutils literal"><span class="pre">exceptions.DisconnectionError</span></tt>, the current
 connection will be disposed and a fresh connection retrieved.
@@ -177,7 +180,7 @@ using the new connection.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def connect(<i>dbapi_con</i>, <i>con_record</i>)</b>
+    <b>def connect(<i>self</i>, <i>dbapi_con</i>, <i>con_record</i>)</b>
     <div class="docstring">
     <p>Called once for each new DB-API connection or Pool's <tt class="docutils literal"><span class="pre">creator()</span></tt>.</p>
 <dl class="docutils">
@@ -185,7 +188,7 @@ using the new connection.</p>
 <dd>A newly connected raw DB-API connection (not a SQLAlchemy
 <tt class="docutils literal"><span class="pre">Connection</span></tt> wrapper).</dd>
 <dt>con_record</dt>
-<dd>The <tt class="docutils literal"><span class="pre">_ConnectionRecord</span></tt> that currently owns the connection</dd>
+<dd>The <tt class="docutils literal"><span class="pre">_ConnectionRecord</span></tt> that persistently manages the connection</dd>
 </dl>
 
     </div>
@@ -213,7 +216,7 @@ using the new connection.</p>
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_ansisql.html">module sqlalchemy.ansisql</a>
+            Previous: <a href="sqlalchemy_sql_compiler.html">module sqlalchemy.sql.compiler</a>
 
                |   
             Next: <a href="sqlalchemy_orm.html">module sqlalchemy.orm</a>

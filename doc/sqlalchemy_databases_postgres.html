@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/16/07 11:15:18</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/22/07 15:48:11</div>
 
 
 
@@ -93,7 +93,7 @@
         <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGChar">class PGChar(CHAR)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGCompiler">class PGCompiler(ANSICompiler)</a></li>
+        <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGCompiler">class PGCompiler(DefaultCompiler)</a></li>
         
         
         <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGDate">class PGDate(Date)</a></li>
@@ -102,10 +102,10 @@
         <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGDateTime">class PGDateTime(DateTime)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGDefaultRunner">class PGDefaultRunner(ANSIDefaultRunner)</a></li>
+        <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGDefaultRunner">class PGDefaultRunner(DefaultRunner)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGDialect">class PGDialect(ANSIDialect)</a></li>
+        <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGDialect">class PGDialect(DefaultDialect)</a></li>
         
         
         <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGExecutionContext">class PGExecutionContext(DefaultExecutionContext)</a></li>
@@ -114,7 +114,7 @@
         <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGFloat">class PGFloat(Float)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGIdentifierPreparer">class PGIdentifierPreparer(ANSIIdentifierPreparer)</a></li>
+        <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGIdentifierPreparer">class PGIdentifierPreparer(IdentifierPreparer)</a></li>
         
         
         <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGInet">class PGInet(TypeEngine)</a></li>
@@ -129,10 +129,10 @@
         <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGNumeric">class PGNumeric(Numeric)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGSchemaDropper">class PGSchemaDropper(ANSISchemaDropper)</a></li>
+        <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGSchemaDropper">class PGSchemaDropper(SchemaDropper)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGSchemaGenerator">class PGSchemaGenerator(ANSISchemaGenerator)</a></li>
+        <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGSchemaGenerator">class PGSchemaGenerator(SchemaGenerator)</a></li>
         
         
         <li><a style="" href="sqlalchemy_databases_postgres.html#docstrings_sqlalchemy.databases.postgres_PGSmallInteger">class PGSmallInteger(SmallInteger)</a></li>
@@ -401,7 +401,7 @@
     
     <div class="sectionL3">
 
-    <h3>class PGCompiler(<a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSICompiler">ANSICompiler</a>)</h3>
+    <h3>class PGCompiler(<a href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_DefaultCompiler">DefaultCompiler</a>)</h3>
     
     
     
@@ -527,7 +527,7 @@
     
     <div class="sectionL3">
 
-    <h3>class PGDefaultRunner(<a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSIDefaultRunner">ANSIDefaultRunner</a>)</h3>
+    <h3>class PGDefaultRunner(<a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_DefaultRunner">DefaultRunner</a>)</h3>
     
     
     
@@ -569,7 +569,7 @@
     
     <div class="sectionL3">
 
-    <h3>class PGDialect(<a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSIDialect">ANSIDialect</a>)</h3>
+    <h3>class PGDialect(<a href="sqlalchemy_engine_default.html#docstrings_sqlalchemy.engine.default_DefaultDialect">DefaultDialect</a>)</h3>
     
     
     
@@ -582,16 +582,6 @@
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">PGDialect</span></tt>.</p>
 
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def compiler(<i>self</i>, <i>statement</i>, <i>bindparams</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
     </div>
     </div>
 
@@ -620,16 +610,6 @@
     
     <A name=""></a>
     <b>def dbapi(<i>cls</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def defaultrunner(<i>self</i>, <i>context</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -752,16 +732,6 @@ an executemany, so we do our own executemany here.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def max_identifier_length(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def oid_column_name(<i>self</i>, <i>column</i>)</b>
     <div class="docstring">
     
@@ -772,37 +742,7 @@ an executemany, so we do our own executemany here.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def preparer(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def reflecttable(<i>self</i>, <i>connection</i>, <i>table</i>, <i>include_columns</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def schemadropper(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def schemagenerator(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -929,7 +869,7 @@ an executemany, so we do our own executemany here.</p>
     
     <div class="sectionL3">
 
-    <h3>class PGIdentifierPreparer(<a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSIIdentifierPreparer">ANSIIdentifierPreparer</a>)</h3>
+    <h3>class PGIdentifierPreparer(<a href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_IdentifierPreparer">IdentifierPreparer</a>)</h3>
     
     
     
@@ -1099,7 +1039,7 @@ an executemany, so we do our own executemany here.</p>
     
     <div class="sectionL3">
 
-    <h3>class PGSchemaDropper(<a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSISchemaDropper">ANSISchemaDropper</a>)</h3>
+    <h3>class PGSchemaDropper(<a href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_SchemaDropper">SchemaDropper</a>)</h3>
     
     
     
@@ -1131,7 +1071,7 @@ an executemany, so we do our own executemany here.</p>
     
     <div class="sectionL3">
 
-    <h3>class PGSchemaGenerator(<a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSISchemaGenerator">ANSISchemaGenerator</a>)</h3>
+    <h3>class PGSchemaGenerator(<a href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_SchemaGenerator">SchemaGenerator</a>)</h3>
     
     
     

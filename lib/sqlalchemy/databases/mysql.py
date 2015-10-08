@@ -123,12 +123,15 @@ Notes page on the wiki at http://sqlalchemy.org is a good resource for timely
 information affecting MySQL in SQLAlchemy.
 """
 
-import re, datetime, inspect, warnings, operator, sys
+import re, datetime, inspect, warnings, sys
 from array import array as _array
 
-from sqlalchemy import ansisql, exceptions, logging, schema, sql, util
+from sqlalchemy import exceptions, logging, schema, sql, util
+from sqlalchemy.sql import operators as sql_operators
+from sqlalchemy.sql import compiler
+
 from sqlalchemy.engine import base as engine_base, default
-import sqlalchemy.types as sqltypes
+from sqlalchemy import types as sqltypes
 
 
 __all__ = (
@@ -1326,13 +1329,23 @@ class MySQLExecutionContext(default.DefaultExecutionContext):
         return AUTOCOMMIT_RE.match(self.statement)
 
 
-class MySQLDialect(ansisql.ANSIDialect):
+class MySQLDialect(default.DefaultDialect):
     """Details of the MySQL dialect.  Not used directly in application code."""
+
+    supports_alter = True
+    supports_unicode_statements = False
+    # identifiers are 64, however aliases can be 255...
+    max_identifier_length = 255
+    supports_sane_rowcount = True
 
     def __init__(self, use_ansiquotes=False, **kwargs):
         self.use_ansiquotes = use_ansiquotes
         kwargs.setdefault('default_paramstyle', 'format')
-        ansisql.ANSIDialect.__init__(self, **kwargs)
+        if self.use_ansiquotes:
+            self.preparer = MySQLANSIIdentifierPreparer
+        else:
+            self.preparer = MySQLIdentifierPreparer
+        default.DefaultDialect.__init__(self, **kwargs)
 
     def dbapi(cls):
         import MySQLdb as mysql
@@ -1377,21 +1390,14 @@ class MySQLDialect(ansisql.ANSIDialect):
             opts['client_flag'] = client_flag
         return [[], opts]
 
-    def create_execution_context(self, *args, **kwargs):
-        return MySQLExecutionContext(self, *args, **kwargs)
+    def create_execution_context(self, connection, **kwargs):
+        return MySQLExecutionContext(self, connection, **kwargs)
 
     def type_descriptor(self, typeobj):
         return sqltypes.adapt_type(typeobj, colspecs)
 
-    # identifiers are 64, however aliases can be 255...
-    def max_identifier_length(self):
-        return 255;
-
-    def supports_sane_rowcount(self):
-        return True
-
     def compiler(self, statement, bindparams, **kwargs):
-        return MySQLCompiler(self, statement, bindparams, **kwargs)
+        return MySQLCompiler(statement, bindparams, dialect=self, **kwargs)
 
     def schemagenerator(self, *args, **kwargs):
         return MySQLSchemaGenerator(self, *args, **kwargs)
@@ -1399,14 +1405,7 @@ class MySQLDialect(ansisql.ANSIDialect):
     def schemadropper(self, *args, **kwargs):
         return MySQLSchemaDropper(self, *args, **kwargs)
 
-    def preparer(self):
-        if self.use_ansiquotes:
-            return MySQLANSIIdentifierPreparer(self)
-        else:
-            return MySQLIdentifierPreparer(self)
-
-    def do_executemany(self, cursor, statement, parameters,
-                       context=None, **kwargs):
+    def do_executemany(self, cursor, statement, parameters, context=None):
         rowcount = cursor.executemany(statement, parameters)
         if context is not None:
             context._rowcount = rowcount
@@ -1414,7 +1413,7 @@ class MySQLDialect(ansisql.ANSIDialect):
     def supports_unicode_statements(self):
         return True
                 
-    def do_execute(self, cursor, statement, parameters, **kwargs):
+    def do_execute(self, cursor, statement, parameters, context=None):
         cursor.execute(statement, parameters)
 
     def do_commit(self, connection):
@@ -1731,13 +1730,13 @@ class _MySQLPythonRowProxy(object):
             return item
 
 
-class MySQLCompiler(ansisql.ANSICompiler):
-    operators = ansisql.ANSICompiler.operators.copy()
+class MySQLCompiler(compiler.DefaultCompiler):
+    operators = compiler.DefaultCompiler.operators.copy()
     operators.update(
         {
-            sql.ColumnOperators.concat_op: \
+            sql_operators.concat_op: \
               lambda x, y: "concat(%s, %s)" % (x, y),
-            operator.mod: '%%'
+            sql_operators.mod: '%%'
         }
     )
 
@@ -1749,6 +1748,14 @@ class MySQLCompiler(ansisql.ANSICompiler):
             # so just skip the CAST altogether for now.
             # TODO: put whatever MySQL does for CAST here.
             return self.process(cast.clause)
+
+    def get_select_precolumns(self, select):
+        if isinstance(select._distinct, basestring):
+            return select._distinct.upper() + " "
+        elif select._distinct:
+            return "DISTINCT "
+        else:
+            return ""
 
     def for_update_clause(self, select):
         if select.for_update == 'read':
@@ -1773,9 +1780,8 @@ class MySQLCompiler(ansisql.ANSICompiler):
 #       In older versions, the indexes must be created explicitly or the
 #       creation of foreign key constraints fails."
 
-class MySQLSchemaGenerator(ansisql.ANSISchemaGenerator):
-    def get_column_specification(self, column, override_pk=False,
-                                 first_pk=False):
+class MySQLSchemaGenerator(compiler.SchemaGenerator):
+    def get_column_specification(self, column, first_pk=False):
         """Builds column DDL."""
         
         colspec = [self.preparer.format_column(column),
@@ -1817,7 +1823,7 @@ class MySQLSchemaGenerator(ansisql.ANSISchemaGenerator):
         return ' '.join(table_opts)
 
 
-class MySQLSchemaDropper(ansisql.ANSISchemaDropper):
+class MySQLSchemaDropper(compiler.SchemaDropper):
     def visit_index(self, index):
         self.append("\nDROP INDEX %s ON %s" %
                     (self.preparer.format_index(index),
@@ -1942,7 +1948,7 @@ class MySQLSchemaReflector(object):
             warnings.warn(RuntimeWarning(
                 "Did not recognize type '%s' of column '%s'" %
                 (type_, name)))
-            coltype = sqltypes.NULLTYPE
+            col_type = sqltypes.NULLTYPE
         
         # Column type positional arguments eg. varchar(32)
         if args is None or args == '':
@@ -2058,15 +2064,16 @@ class MySQLSchemaReflector(object):
             if ref_key in table.metadata.tables:
                 ref_table = table.metadata.tables[ref_key]
             else:
-                ref_table = schema.Table(ref_name, table.metadata,
-                                         schema=ref_schema,
-                                         autoload=True, autoload_with=connection)
+                ref_table = schema.Table(
+                    ref_name, table.metadata, schema=ref_schema,
+                    autoload=True, autoload_with=connection)
 
             ref_names = spec['foreign']
             if not util.Set(ref_names).issubset(
                 util.Set([c.name for c in ref_table.c])):
                 raise exceptions.InvalidRequestError(
-                    "Foreign key columns (%s) are not present on foreign table" %
+                    "Foreign key columns (%s) are not present on "
+                    "foreign table %s" %
                     (', '.join(ref_names), ref_table.fullname()))
             ref_columns = [ref_table.c[name] for name in ref_names]
 
@@ -2104,13 +2111,12 @@ class MySQLSchemaReflector(object):
         self._pr_options = []
         self._re_options_util = {}
 
-        _initial, _final = (self.preparer.initial_quote,
-                            self.preparer.final_quote)
+        _final = self.preparer.final_quote
         
         quotes = dict(zip(('iq', 'fq', 'esc_fq'),
                           [re.escape(s) for s in
                            (self.preparer.initial_quote,
-                            self.preparer.final_quote,
+                            _final,
                             self.preparer._escape_identifier(_final))]))
 
         self._pr_name = _pr_compile(
@@ -2358,14 +2364,13 @@ class MySQLSchemaReflector(object):
 MySQLSchemaReflector.logger = logging.class_logger(MySQLSchemaReflector)
 
 
-class _MySQLIdentifierPreparer(ansisql.ANSIIdentifierPreparer):
+class _MySQLIdentifierPreparer(compiler.IdentifierPreparer):
     """MySQL-specific schema identifier configuration."""
+
+    reserved_words = RESERVED_WORDS
     
     def __init__(self, dialect, **kw):
         super(_MySQLIdentifierPreparer, self).__init__(dialect, **kw)
-
-    def _reserved_words(self):
-        return RESERVED_WORDS
 
     def _fold_identifier_case(self, value):
         # TODO: determine MySQL's case folding rules
@@ -2380,7 +2385,7 @@ class _MySQLIdentifierPreparer(ansisql.ANSIIdentifierPreparer):
     def _quote_free_identifiers(self, *ids):
         """Unilaterally identifier-quote any number of strings."""
 
-        return tuple([self.quote_identifier(id) for id in ids if id is not None])
+        return tuple([self.quote_identifier(i) for i in ids if i is not None])
 
 
 class MySQLIdentifierPreparer(_MySQLIdentifierPreparer):
@@ -2423,3 +2428,6 @@ def _re_compile(regex):
     return re.compile(regex, re.I | re.UNICODE)
 
 dialect = MySQLDialect
+dialect.statement_compiler = MySQLCompiler
+dialect.schemagenerator = MySQLSchemaGenerator
+dialect.schemadropper = MySQLSchemaDropper

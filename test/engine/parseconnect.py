@@ -1,5 +1,6 @@
 import testbase
 from sqlalchemy import *
+from sqlalchemy import exceptions, pool
 import sqlalchemy.engine.url as url
 from testlib import *
 
@@ -56,13 +57,11 @@ class CreateEngineTest(PersistTest):
 
         config = {
             'sqlalchemy.url':'postgres://scott:tiger@somehost/test?fooz=somevalue',
-            'sqlalchemy.echo':'1',
             'sqlalchemy.pool_recycle':50
         }
 
         e = engine_from_config(config, module=dbapi)
         assert e.pool._recycle == 50
-        assert e.echo is True
         assert e.url == url.make_url('postgres://scott:tiger@somehost/test?fooz=somevalue')
         
     def test_custom(self):

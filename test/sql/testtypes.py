@@ -2,6 +2,7 @@ import testbase
 import pickleable
 import datetime, os
 from sqlalchemy import *
+from sqlalchemy import types
 import sqlalchemy.engine.url as url
 from sqlalchemy.databases import mssql, oracle, mysql
 from testlib import *
@@ -54,6 +55,28 @@ class MyUnicodeType(types.TypeDecorator):
     def copy(self):
         return MyUnicodeType(self.impl.length)
 
+class LegacyType(types.TypeEngine):
+    def get_col_spec(self):
+        return "VARCHAR(100)"
+    def convert_bind_param(self, value, dialect):
+        return "BIND_IN"+ value
+    def convert_result_value(self, value, dialect):
+        return value + "BIND_OUT"
+    def adapt(self, typeobj):
+        return typeobj()
+
+class LegacyUnicodeType(types.TypeDecorator):
+    impl = Unicode
+
+    def convert_bind_param(self, value, dialect):
+        return "UNI_BIND_IN" + super(LegacyUnicodeType, self).convert_bind_param(value, dialect)
+
+    def convert_result_value(self, value, dialect):
+        return super(LegacyUnicodeType, self).convert_result_value(value, dialect) + "UNI_BIND_OUT"
+
+    def copy(self):
+        return LegacyUnicodeType(self.impl.length)
+
 class AdaptTest(PersistTest):
     def testadapt(self):
         e1 = url.URL('postgres').get_dialect()()
@@ -102,8 +125,8 @@ class AdaptTest(PersistTest):
         assert isinstance(dialect.type_descriptor(t2), mysql.MSVarBinary)
         
         
-class OverrideTest(PersistTest):
-    """tests user-defined types, including a full type as well as a TypeDecorator"""
+class UserDefinedTest(PersistTest):
+    """tests user-defined types."""
 
     def testbasic(self):
         print users.c.goofy4.type
@@ -113,17 +136,21 @@ class OverrideTest(PersistTest):
     def testprocessing(self):
 
         global users
-        users.insert().execute(user_id = 2, goofy = 'jack', goofy2='jack', goofy3='jack', goofy4='jack')
-        users.insert().execute(user_id = 3, goofy = 'lala', goofy2='lala', goofy3='lala', goofy4='lala')
-        users.insert().execute(user_id = 4, goofy = 'fred', goofy2='fred', goofy3='fred', goofy4='fred')
+        users.insert().execute(user_id = 2, goofy = 'jack', goofy2='jack', goofy3='jack', goofy4='jack', goofy5='jack', goofy6='jack')
+        users.insert().execute(user_id = 3, goofy = 'lala', goofy2='lala', goofy3='lala', goofy4='lala', goofy5='lala', goofy6='lala')
+        users.insert().execute(user_id = 4, goofy = 'fred', goofy2='fred', goofy3='fred', goofy4='fred', goofy5='fred', goofy6='fred')
         
         l = users.select().execute().fetchall()
-        print repr(l)
-        self.assert_(l == [(2, 'BIND_INjackBIND_OUT', 'BIND_INjackBIND_OUT', 'BIND_INjackBIND_OUT', u'UNI_BIND_INjackUNI_BIND_OUT'), (3, 'BIND_INlalaBIND_OUT', 'BIND_INlalaBIND_OUT', 'BIND_INlalaBIND_OUT', u'UNI_BIND_INlalaUNI_BIND_OUT'), (4, 'BIND_INfredBIND_OUT', 'BIND_INfredBIND_OUT', 'BIND_INfredBIND_OUT', u'UNI_BIND_INfredUNI_BIND_OUT')])
+        assert l == [
+            (2, 'BIND_INjackBIND_OUT', 'BIND_INjackBIND_OUT', 'BIND_INjackBIND_OUT', u'UNI_BIND_INjackUNI_BIND_OUT', u'UNI_BIND_INjackUNI_BIND_OUT', 'BIND_INjackBIND_OUT'), 
+            (3, 'BIND_INlalaBIND_OUT', 'BIND_INlalaBIND_OUT', 'BIND_INlalaBIND_OUT', u'UNI_BIND_INlalaUNI_BIND_OUT', u'UNI_BIND_INlalaUNI_BIND_OUT', 'BIND_INlalaBIND_OUT'),
+            (4, 'BIND_INfredBIND_OUT', 'BIND_INfredBIND_OUT', 'BIND_INfredBIND_OUT', u'UNI_BIND_INfredUNI_BIND_OUT', u'UNI_BIND_INfredUNI_BIND_OUT', 'BIND_INfredBIND_OUT')
+        ]
 
     def setUpAll(self):
-        global users
-        users = Table('type_users', MetaData(testbase.db),
+        global users, metadata
+        metadata = MetaData(testbase.db)
+        users = Table('type_users', metadata,
             Column('user_id', Integer, primary_key = True),
             # totall custom type
             Column('goofy', MyType, nullable = False),
@@ -135,14 +162,15 @@ class OverrideTest(PersistTest):
             Column('goofy3', MyDecoratedType, nullable = False),
 
             Column('goofy4', MyUnicodeType, nullable = False),
+            Column('goofy5', LegacyUnicodeType, nullable = False),
+            Column('goofy6', LegacyType, nullable = False),
 
         )
         
-        users.create()
+        metadata.create_all()
+        
     def tearDownAll(self):
-        global users
-        users.drop()
-
+        metadata.drop_all()
 
 class ColumnsTest(AssertMixin):
 
@@ -161,14 +189,14 @@ class ColumnsTest(AssertMixin):
         print db.engine.__module__
         testTable = Table('testColumns', MetaData(db),
             Column('int_column', Integer),
-            Column('smallint_column', Smallinteger),
+            Column('smallint_column', SmallInteger),
             Column('varchar_column', String(20)),
             Column('numeric_column', Numeric(12,3)),
             Column('float_column', Float(25)),
         )
 
         for aCol in testTable.c:
-            self.assertEquals(expectedResults[aCol.name], db.dialect.schemagenerator(db, None, None).get_column_specification(aCol))
+            self.assertEquals(expectedResults[aCol.name], db.dialect.schemagenerator(db.dialect, db, None, None).get_column_specification(aCol))
         
 class UnicodeTest(AssertMixin):
     """tests the Unicode type.  also tests the TypeDecorator with instances in the types package."""
@@ -184,7 +212,10 @@ class UnicodeTest(AssertMixin):
         unicode_table.create()
     def tearDownAll(self):
         unicode_table.drop()
-
+    
+    def tearDown(self):
+        unicode_table.delete().execute()
+        
     def testbasic(self):
         assert unicode_table.c.unicode_varchar.type.length == 250
         rawdata = 'Alors vous imaginez ma surprise, au lever du jour, quand une dr\xc3\xb4le de petit voix m\xe2\x80\x99a r\xc3\xa9veill\xc3\xa9. Elle disait: \xc2\xab S\xe2\x80\x99il vous pla\xc3\xaet\xe2\x80\xa6 dessine-moi un mouton! \xc2\xbb\n'
@@ -206,6 +237,10 @@ class UnicodeTest(AssertMixin):
         else:
             self.assert_(not isinstance(x['plain_varchar'], unicode) and x['plain_varchar'] == rawdata)
 
+    def testblanks(self):
+        unicode_table.insert().execute(unicode_varchar=u'')
+        assert select([unicode_table.c.unicode_varchar]).scalar() == u''
+        
     def testengineparam(self):
         """tests engine-wide unicode conversion"""
         prev_unicode = testbase.db.engine.dialect.convert_unicode
@@ -322,8 +357,8 @@ class DateTest(AssertMixin):
             ]
 
             if db.engine.name == 'mssql':
-                # MSSQL Datetime values have only a 3.33 milliseconds precision
-                insert_data[2] = [9, 'foo', datetime.datetime(2005, 11, 10, 11, 52, 35, 547000), datetime.date(1970,4,1), datetime.time(23,59,59,997000)]
+                # MSSQL can't reliably fetch the millisecond part
+                insert_data[2] = [9, 'foo', datetime.datetime(2005, 11, 10, 11, 52, 35), datetime.date(1970,4,1), datetime.time(23,59,59)]
             
             fnames = ['user_id', 'user_name', 'user_datetime', 'user_date', 'user_time']
 

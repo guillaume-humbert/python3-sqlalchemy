@@ -78,7 +78,7 @@ This is also equivalent to
 
 filter_by is like filter, but takes kwargs instead of full clause expressions.
 This makes it more concise for simple queries like this, but you can't do
-complex queries like the or_ above or non-equality based comparisons this way.
+complex queries like the or\_ above or non-equality based comparisons this way.
 
 Full query documentation
 ------------------------
@@ -291,10 +291,11 @@ Boring tests here.  Nothing of real expository value.
 """
 
 from sqlalchemy import *
+from sqlalchemy import schema, sql
 from sqlalchemy.orm import *
 from sqlalchemy.ext.sessioncontext import SessionContext
 from sqlalchemy.exceptions import *
-
+from sqlalchemy.sql import expression
 
 _testsql = """
 CREATE TABLE books (
@@ -415,7 +416,7 @@ def _selectable_name(selectable):
         return x
 
 def class_for_table(selectable, **mapper_kwargs):
-    selectable = sql._selectable(selectable)
+    selectable = expression._selectable(selectable)
     mapname = 'Mapped' + _selectable_name(selectable)
     if isinstance(selectable, Table):
         klass = TableClassType(mapname, (object,), {})
@@ -499,7 +500,7 @@ class SqlSoup:
 
     def with_labels(self, item):
         # TODO give meaningful aliases
-        return self.map(sql._selectable(item).select(use_labels=True).alias('foo'))
+        return self.map(expression._selectable(item).select(use_labels=True).alias('foo'))
 
     def join(self, *args, **kwargs):
         j = join(*args, **kwargs)

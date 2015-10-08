@@ -111,7 +111,7 @@ class PoolTest(PersistTest):
         self.assert_(status(p) == (3,3,0,0))
         c1 = p.connect()
         c2 = p.connect()
-        self.assert_(status(p) == (3, 1, 0, 2))
+        self.assert_(status(p) == (3, 1, 0, 2), status(p))
         if useclose:
             c2.close()
         else:
@@ -207,6 +207,19 @@ class PoolTest(PersistTest):
         assert p.checkedout() == 1
         c1 = None
         assert p.checkedout() == 0
+
+    def test_weakref_kaboom(self):
+        p = pool.QueuePool(creator = lambda: mock_dbapi.connect('foo.db'), pool_size = 3, max_overflow = -1, use_threadlocal = True)
+        c1 = p.connect()
+        c2 = p.connect()
+        c1.close()
+        c2 = None
+        del c1
+        del c2
+        gc.collect()
+        assert p.checkedout() == 0
+        c3 = p.connect()
+        assert c3 is not None
     
     def test_trick_the_counter(self):
         """this is a "flaw" in the connection pool; since threadlocal uses a single ConnectionFairy per thread
@@ -363,7 +376,7 @@ class PoolTest(PersistTest):
     def test_properties(self):
         dbapi = MockDBAPI()
         p = pool.QueuePool(creator=lambda: dbapi.connect('foo.db'),
-                           pool_size=1, max_overflow=0)
+                           pool_size=1, max_overflow=0, use_threadlocal=False)
 
         c = p.connect()
         self.assert_(not c.properties)
@@ -418,10 +431,11 @@ class PoolTest(PersistTest):
                 assert con is not None
                 assert record is not None
                 self.connected.append(con)
-            def inst_checkout(self, con, record):
-                print "checkout(%s, %s)" % (con, record)
+            def inst_checkout(self, con, record, proxy):
+                print "checkout(%s, %s, %s)" % (con, record, proxy)
                 assert con is not None
                 assert record is not None
+                assert proxy is not None
                 self.checked_out.append(con)
             def inst_checkin(self, con, record):
                 print "checkin(%s, %s)" % (con, record)
@@ -434,14 +448,14 @@ class PoolTest(PersistTest):
             def connect(self, con, record):
                 pass
         class ListenCheckOut(InstrumentingListener):
-            def checkout(self, con, record, num):
+            def checkout(self, con, record, proxy, num):
                 pass
         class ListenCheckIn(InstrumentingListener):
-            def checkin(self, con, record):
+            def checkin(self, con, proxy, record):
                 pass
 
         def _pool(**kw):
-            return pool.QueuePool(creator=lambda: dbapi.connect('foo.db'), **kw)
+            return pool.QueuePool(creator=lambda: dbapi.connect('foo.db'), use_threadlocal=False, **kw)
             #, pool_size=1, max_overflow=0, **kw)
 
         def assert_listeners(p, total, conn, cout, cin):

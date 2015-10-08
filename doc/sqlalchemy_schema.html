@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/16/07 11:15:18</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/22/07 15:48:11</div>
 
 
 
@@ -207,11 +207,11 @@ objects as well as the visitor interface, so that the schema package
     
     <div class="sectionL3">
 
-    <h3>class Column(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">SchemaItem</a>,<a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql__ColumnClause">_ColumnClause</a>)</h3>
+    <h3>class Column(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">SchemaItem</a>,_ColumnClause)</h3>
     
     
     <div class="darkcell"><p>Represent a column in a database table.</p>
-<p>This is a subclass of <tt class="docutils literal"><span class="pre">sql.ColumnClause</span></tt> and represents an
+<p>This is a subclass of <tt class="docutils literal"><span class="pre">expression.ColumnClause</span></tt> and represents an
 actual existing table in the database, in a similar fashion as
 <tt class="docutils literal"><span class="pre">TableClause</span></tt>/<tt class="docutils literal"><span class="pre">Table</span></tt>.</p>
 </div>
@@ -1174,15 +1174,6 @@ arguments and should return a true value for any table to reflect.</p>
     </div>
     </div>
 
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>metadata = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
-
 
     
 
@@ -1283,7 +1274,7 @@ arguments and should return a true value for any table to reflect.</p>
     
     
     <div class="darkcell"><p>Represent a relational database table.</p>
-<p>This subclasses <tt class="docutils literal"><span class="pre">sql.TableClause</span></tt> to provide a table that is
+<p>This subclasses <tt class="docutils literal"><span class="pre">expression.TableClause</span></tt> to provide a table that is
 associated with an instance of <tt class="docutils literal"><span class="pre">MetaData</span></tt>, which in turn
 may be associated with an instance of <tt class="docutils literal"><span class="pre">Engine</span></tt>.</p>
 <p>Whereas <tt class="docutils literal"><span class="pre">TableClause</span></tt> represents a table as its used in an SQL

@@ -23,7 +23,6 @@ doc/plugins.html
 doc/pooling.html
 doc/scripts.js
 doc/session.html
-doc/sqlalchemy_ansisql.html
 doc/sqlalchemy_databases_firebird.html
 doc/sqlalchemy_databases_mssql.html
 doc/sqlalchemy_databases_mysql.html
@@ -51,6 +50,7 @@ doc/sqlalchemy_orm_shard.html
 doc/sqlalchemy_pool.html
 doc/sqlalchemy_schema.html
 doc/sqlalchemy_sql.html
+doc/sqlalchemy_sql_compiler.html
 doc/sqlalchemy_types.html
 doc/sqlexpression.html
 doc/style.css
@@ -118,15 +118,12 @@ lib/SQLAlchemy.egg-info/dependency_links.txt
 lib/SQLAlchemy.egg-info/entry_points.txt
 lib/SQLAlchemy.egg-info/top_level.txt
 lib/sqlalchemy/__init__.py
-lib/sqlalchemy/ansisql.py
 lib/sqlalchemy/exceptions.py
 lib/sqlalchemy/interfaces.py
 lib/sqlalchemy/logging.py
 lib/sqlalchemy/pool.py
 lib/sqlalchemy/queue.py
 lib/sqlalchemy/schema.py
-lib/sqlalchemy/sql.py
-lib/sqlalchemy/sql_util.py
 lib/sqlalchemy/topological.py
 lib/sqlalchemy/types.py
 lib/sqlalchemy/util.py
@@ -173,6 +170,12 @@ lib/sqlalchemy/orm/sync.py
 lib/sqlalchemy/orm/unitofwork.py
 lib/sqlalchemy/orm/uowdumper.py
 lib/sqlalchemy/orm/util.py
+lib/sqlalchemy/sql/__init__.py
+lib/sqlalchemy/sql/compiler.py
+lib/sqlalchemy/sql/expression.py
+lib/sqlalchemy/sql/operators.py
+lib/sqlalchemy/sql/util.py
+lib/sqlalchemy/sql/visitors.py
 test/__init__.py
 test/alltests.py
 test/binary_data_one.dat
@@ -184,7 +187,10 @@ test/base/alltests.py
 test/base/dependency.py
 test/base/utils.py
 test/dialect/__init__.py
+test/dialect/access.py
 test/dialect/alltests.py
+test/dialect/firebird.py
+test/dialect/informix.py
 test/dialect/mssql.py
 test/dialect/mysql.py
 test/dialect/oracle.py
@@ -217,7 +223,6 @@ test/orm/cycles.py
 test/orm/dynamic.py
 test/orm/eager_relations.py
 test/orm/entity.py
-test/orm/fixtures.py
 test/orm/generative.py
 test/orm/lazy_relations.py
 test/orm/lazytest1.py
@@ -260,6 +265,10 @@ test/perf/ormsession.py
 test/perf/poolload.py
 test/perf/threaded_compile.py
 test/perf/wsgi.py
+test/profiling/__init__.py
+test/profiling/alltests.py
+test/profiling/compiler.py
+test/profiling/pool.py
 test/sql/__init__.py
 test/sql/alltests.py
 test/sql/case_statement.py
@@ -278,6 +287,7 @@ test/testlib/__init__.py
 test/testlib/config.py
 test/testlib/coverage.py
 test/testlib/engines.py
+test/testlib/fixtures.py
 test/testlib/profiling.py
 test/testlib/schema.py
 test/testlib/tables.py

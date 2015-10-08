@@ -6,11 +6,12 @@
 
 import weakref, warnings, operator
 from sqlalchemy import sql, util, exceptions, logging
-from sqlalchemy import sql_util as sqlutil
+from sqlalchemy.sql import expression
+from sqlalchemy.sql import util as sqlutil
 from sqlalchemy.orm import util as mapperutil
 from sqlalchemy.orm.util import ExtensionCarrier
 from sqlalchemy.orm import sync
-from sqlalchemy.orm.interfaces import MapperProperty, EXT_CONTINUE, MapperExtension, SynonymProperty
+from sqlalchemy.orm.interfaces import MapperProperty, EXT_CONTINUE, SynonymProperty
 deferred_load = None
 
 __all__ = ['Mapper', 'class_mapper', 'object_mapper', 'mapper_registry']
@@ -77,7 +78,7 @@ class Mapper(object):
             raise exceptions.ArgumentError("Class '%s' is not a new-style class" % class_.__name__)
 
         for table in (local_table, select_table):
-            if table is not None and isinstance(table, sql._SelectBaseMixin):
+            if table is not None and isinstance(table, expression._SelectBaseMixin):
                 # some db's, noteably postgres, dont want to select from a select
                 # without an alias.  also if we make our own alias internally, then
                 # the configured properties on the mapper are not matched against the alias
@@ -107,9 +108,6 @@ class Mapper(object):
         self.delete_orphans = []
         self.batch = batch
         self.column_prefix = column_prefix
-        # a Column which is used during a select operation to retrieve the
-        # "polymorphic identity" of the row, which indicates which Mapper should be used
-        # to construct a new object instance from that row.
         self.polymorphic_on = polymorphic_on
         self._eager_loaders = util.Set()
 
@@ -131,16 +129,7 @@ class Mapper(object):
         else:
             self.polymorphic_map = _polymorphic_map
 
-        class LOrderedProp(util.OrderedProperties):
-            """this extends OrderedProperties to trigger a compile() before the
-            members of the object are accessed."""
-            def _get_data(s):
-                self.compile()
-                return s.__dict__['_data']
-            _data = property(_get_data)
-
-        self.columns = LOrderedProp()
-        self.c = self.columns
+        self.columns = self.c = util.OrderedProperties()
 
         self.include_properties = include_properties
         self.exclude_properties = exclude_properties
@@ -163,11 +152,6 @@ class Mapper(object):
 
         self.__should_log_debug = logging.is_debug_enabled(self.logger)
         self.__log("constructed")
-
-        # uncomment to compile at construction time (the old way)
-        # this will break mapper setups that arent declared in the order
-        # of dependency
-        #self.compile()
 
     def __log(self, msg):
         self.logger.info("(" + self.class_.__name__ + "|" + (self.entity_name is not None and "/%s" % self.entity_name or "") + (self.local_table and self.local_table.name or str(self.local_table)) + (not self._is_primary_mapper() and "|non-primary" or "") + ") " + msg)
@@ -287,20 +271,20 @@ class Mapper(object):
         creates a linked list of those extensions.
         """
 
-        extlist = util.Set()
-        for ext_class in global_extensions:
-            if isinstance(ext_class, MapperExtension):
-                extlist.add(ext_class)
-            else:
-                extlist.add(ext_class())
-            # local MapperExtensions have already instrumented the class
-            extlist[-1].instrument_class(self, self.class_)
-            
+        extlist = util.OrderedSet()
+
         extension = self.extension
         if extension is not None:
             for ext_obj in util.to_list(extension):
+                # local MapperExtensions have already instrumented the class
                 extlist.add(ext_obj)
 
+        for ext in global_extensions:
+            if isinstance(ext, type):
+                ext = ext()
+            extlist.add(ext)
+            ext.instrument_class(self, self.class_)
+            
         self.extension = ExtensionCarrier()
         for ext in extlist:
             self.extension.append(ext)
@@ -455,7 +439,7 @@ class Mapper(object):
             # against the "mapped_table" of this mapper.
             equivalent_columns = self._get_equivalent_columns()
         
-            primary_key = sql.ColumnSet()
+            primary_key = expression.ColumnSet()
 
             for col in (self.primary_key_argument or self.pks_by_table[self.mapped_table]):
                 c = self.mapped_table.corresponding_column(col, raiseerr=False)
@@ -661,9 +645,9 @@ class Mapper(object):
             props = {}
             if self.properties is not None:
                 for key, prop in self.properties.iteritems():
-                    if sql.is_column(prop):
+                    if expression.is_column(prop):
                         props[key] = self.select_table.corresponding_column(prop)
-                    elif (isinstance(prop, list) and sql.is_column(prop[0])):
+                    elif (isinstance(prop, list) and expression.is_column(prop[0])):
                         props[key] = [self.select_table.corresponding_column(c) for c in prop]
             self.__surrogate_mapper = Mapper(self.class_, self.select_table, non_primary=True, properties=props, _polymorphic_map=self.polymorphic_map, polymorphic_on=self.select_table.corresponding_column(self.polymorphic_on), primary_key=self.primary_key_argument)
 
@@ -687,11 +671,13 @@ class Mapper(object):
         attribute_manager.reset_class_managed(self.class_)
 
         oldinit = self.class_.__init__
+        doinit = oldinit is not None and oldinit is not object.__init__
+            
         def init(instance, *args, **kwargs):
             self.compile()
             self.extension.init_instance(self, self.class_, oldinit, instance, args, kwargs)
 
-            if oldinit is not None:
+            if doinit:
                 try:
                     oldinit(instance, *args, **kwargs)
                 except:
@@ -783,7 +769,7 @@ class Mapper(object):
 
     def _create_prop_from_column(self, column):
         column = util.to_list(column)
-        if not sql.is_column(column[0]):
+        if not expression.is_column(column[0]):
             return None
         mapped_column = []
         for c in column:
@@ -1407,7 +1393,7 @@ class Mapper(object):
 
         identitykey = self.identity_key_from_row(row)
         populate_existing = context.populate_existing or self.always_refresh
-        if context.session.has_key(identitykey):
+        if identitykey in context.session.identity_map:
             instance = context.session._get(identitykey)
             if self.__should_log_debug:
                 self.__log_debug("_instance(): using existing instance %s identity %s" % (mapperutil.instance_str(instance), str(identitykey)))
@@ -1449,8 +1435,7 @@ class Mapper(object):
             instance = extension.create_instance(self, context, row, self.class_)
             if instance is EXT_CONTINUE:
                 instance = self._create_instance(context.session)
-            else:
-                instance._entity_name = self.entity_name
+            instance._entity_name = self.entity_name
             if self.__should_log_debug:
                 self.__log_debug("_instance(): created new instance %s identity %s" % (mapperutil.instance_str(instance), str(identitykey)))
             context.identity_map[identitykey] = instance
@@ -1573,8 +1558,6 @@ class Mapper(object):
         return post_execute
             
 Mapper.logger = logging.class_logger(Mapper)
-
-
 
 
 class ClassKey(object):

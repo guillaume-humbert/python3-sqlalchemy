@@ -19,12 +19,11 @@ new, dirty, or deleted and provides the capability to flush all those
 changes at once.
 """
 
+import gc, StringIO, weakref
 from sqlalchemy import util, logging, topological, exceptions
 from sqlalchemy.orm import attributes, interfaces
 from sqlalchemy.orm import util as mapperutil
 from sqlalchemy.orm.mapper import object_mapper
-import StringIO
-import weakref
 
 # Load lazily
 object_session = None
@@ -88,20 +87,15 @@ class UnitOfWork(object):
     operation.
     """
 
-    def __init__(self, identity_map=None, weak_identity_map=False):
-        if identity_map is not None:
-            self.identity_map = identity_map
+    def __init__(self, session, weak_identity_map=False):
+        if weak_identity_map:
+            self.identity_map = weakref.WeakValueDictionary()
         else:
-            if weak_identity_map:
-                self.identity_map = weakref.WeakValueDictionary()
-            else:
-                self.identity_map = {}
+            self.identity_map = {}
 
         self.new = util.Set() #OrderedSet()
         self.deleted = util.Set()
-        self.logger = logging.instance_logger(self)
-
-    echo = logging.echo_property()
+        self.logger = logging.instance_logger(self, echoflag=session.echo_uow)
 
     def _remove_deleted(self, obj):
         if hasattr(obj, "_instance_key"):
@@ -170,7 +164,6 @@ class UnitOfWork(object):
         # and organize a hierarchical dependency structure.  it also handles
         # communication with the mappers and relationships to fire off SQL
         # and synchronize attributes between related objects.
-        echo = logging.is_info_enabled(self.logger)
 
         flush_context = UOWTransaction(self, session)
 
@@ -220,6 +213,24 @@ class UnitOfWork(object):
         if session.extension is not None:
             session.extension.after_flush_postexec(session, flush_context)
 
+    def prune_identity_map(self):
+        """Removes unreferenced instances cached in the identity map.
+
+        Removes any object in the identity map that is not referenced
+        in user code or scheduled for a unit of work operation.  Returns
+        the number of objects pruned.
+        """
+
+        if isinstance(self.identity_map, weakref.WeakValueDictionary):
+            return 0
+        ref_count = len(self.identity_map)
+        dirty = self.locate_dirty()
+        keepers = weakref.WeakValueDictionary(self.identity_map)
+        self.identity_map.clear()
+        gc.collect()
+        self.identity_map.update(keepers)
+        return ref_count - len(self.identity_map)
+
 class UOWTransaction(object):
     """Handles the details of organizing and executing transaction
     tasks during a UnitOfWork object's flush() operation.  
@@ -246,11 +257,8 @@ class UOWTransaction(object):
         # information. 
         self.attributes = {}
 
-        self.logger = logging.instance_logger(self)
-        self.echo = uow.echo
+        self.logger = logging.instance_logger(self, echoflag=session.echo_uow)
         
-    echo = logging.echo_property()
-
     def register_object(self, obj, isdelete = False, listonly = False, postupdate=False, post_update_cols=None, **kwargs):
         """Add an object to this ``UOWTransaction`` to be updated in the database.
 
@@ -263,11 +271,11 @@ class UOWTransaction(object):
 
         # if object is not in the overall session, do nothing
         if not self.uow._is_valid(obj):
-            if logging.is_debug_enabled(self.logger):
+            if self._should_log_debug:
                 self.logger.debug("object %s not part of session, not registering for flush" % (mapperutil.instance_str(obj)))
             return
 
-        if logging.is_debug_enabled(self.logger):
+        if self._should_log_debug:
             self.logger.debug("register object for flush: %s isdelete=%s listonly=%s postupdate=%s" % (mapperutil.instance_str(obj), isdelete, listonly, postupdate))
 
         mapper = object_mapper(obj)
@@ -397,14 +405,15 @@ class UOWTransaction(object):
                 break
 
         head = self._sort_dependencies()
-        if self.echo:
+        if self._should_log_info:
             if head is None:
                 self.logger.info("Task dump: None")
             else:
                 self.logger.info("Task dump:\n" + head.dump())
         if head is not None:
             UOWExecutor().execute(self, head)
-        self.logger.info("Execute Complete")
+        if self._should_log_info:
+            self.logger.info("Execute Complete")
 
     def post_exec(self):
         """mark processed objects as clean / deleted after a successful flush().
@@ -452,7 +461,7 @@ class UOWTransaction(object):
         # get list of base mappers
         mappers = [t.mapper for t in self.tasks.values() if t.base_task is t]
         head = topological.QueueDependencySorter(self.dependencies, mappers).sort(allow_all_cycles=True)
-        if logging.is_debug_enabled(self.logger):
+        if self._should_log_debug:
             self.logger.debug("Dependent tuples:\n" + "\n".join(["(%s->%s)" % (d[0].class_.__name__, d[1].class_.__name__) for d in self.dependencies]))
             self.logger.debug("Dependency sort:\n"+ str(head))
         task = sort_hier(head)
