@@ -247,6 +247,8 @@ of the ``User`` class::
             where(Address.user_id==User.id)
     ) 
 
+.. _declarative_table_args:
+
 Table Configuration
 ===================
 
@@ -316,10 +318,41 @@ and simply pass it to declarative classes::
 
 Some configuration schemes may find it more appropriate to use ``__table__``, 
 such as those which already take advantage of the data-driven nature of 
-:class:`.Table` to customize and/or automate schema definition.   See
-the wiki example `NamingConventions <http://www.sqlalchemy.org/trac/wiki/UsageRecipes/NamingConventions>`_
-for one such example.
+:class:`.Table` to customize and/or automate schema definition. 
 
+Note that when the ``__table__`` approach is used, the object is immediately
+usable as a plain :class:`.Table` within the class declaration body itself,
+as a Python class is only another syntactical block.  Below this is illustrated
+by using the ``id`` column in the ``primaryjoin`` condition of a :func:`.relationship`::
+
+    class MyClass(Base):
+        __table__ = Table('my_table', Base.metadata,
+            Column('id', Integer, primary_key=True),
+            Column('name', String(50))
+        )
+
+        widgets = relationship(Widget, 
+                    primaryjoin=Widget.myclass_id==__table__.c.id)
+
+Similarly, mapped attributes which refer to ``__table__`` can be placed inline, 
+as below where we assign the ``name`` column to the attribute ``_name``, generating
+a synonym for ``name``::
+
+    from sqlalchemy.ext.declarative import synonym_for
+    
+    class MyClass(Base):
+        __table__ = Table('my_table', Base.metadata,
+            Column('id', Integer, primary_key=True),
+            Column('name', String(50))
+        )
+
+        _name = __table__.c.name
+
+        @synonym_for("_name")
+        def name(self):
+            return "Name: %s" % _name
+
+        
 Mapper Configuration
 ====================
 
@@ -442,7 +475,9 @@ Concrete is defined as a subclass which has its own table and sets the
         name = Column(String(50))
 
 Usage of an abstract base class is a little less straightforward as it
-requires usage of :func:`~sqlalchemy.orm.util.polymorphic_union`::
+requires usage of :func:`~sqlalchemy.orm.util.polymorphic_union`,
+which needs to be created with the :class:`.Table` objects
+before the class is built::
 
     engineers = Table('engineers', Base.metadata,
                     Column('id', Integer, primary_key=True),
@@ -472,6 +507,10 @@ requires usage of :func:`~sqlalchemy.orm.util.polymorphic_union`::
         __table__ = managers
         __mapper_args__ = {'polymorphic_identity':'manager', 'concrete':True}
 
+There is a recipe which allows the above pattern to be executed
+using the declarative form, via a special base class that defers
+the creation of the mapper.  That recipe is available at
+`DeclarativeAbstractConcreteBase <http://www.sqlalchemy.org/trac/wiki/UsageRecipes/DeclarativeAbstractConcreteBase>`_
 
 Mixin Classes
 ==============
@@ -905,7 +944,6 @@ def _as_declarative(cls, classname, dict_):
                 continue
             elif base is not cls:
                 # we're a mixin.
-
                 if isinstance(obj, Column):
                     if obj.foreign_keys:
                         raise exc.InvalidRequestError(
@@ -1003,7 +1041,6 @@ def _as_declarative(cls, classname, dict_):
             if key == c.key:
                 del our_stuff[key]
     cols = sorted(cols, key=lambda c:c._creation_order)
-
     table = None
     if '__table__' not in dict_:
         if tablename is not None:
@@ -1038,8 +1075,7 @@ def _as_declarative(cls, classname, dict_):
     if 'inherits' not in mapper_args:
         for c in cls.__bases__:
             if _is_mapped_class(c):
-                mapper_args['inherits'] = cls._decl_class_registry.get(
-                                                            c.__name__, None)
+                mapper_args['inherits'] = c
                 break
 
     if hasattr(cls, '__mapper_cls__'):

@@ -158,6 +158,7 @@ doc/build/templates/page.mako
 doc/build/templates/search.mako
 doc/build/templates/site_base.mako
 doc/build/templates/static_base.mako
+doc/build/texinputs/Makefile
 doc/build/texinputs/sphinx.sty
 doc/core/compiler.html
 doc/core/connections.html
@@ -256,6 +257,7 @@ examples/postgis/postgis.py
 examples/sharding/__init__.py
 examples/sharding/attribute_shard.py
 examples/versioning/__init__.py
+examples/versioning/_lib.py
 examples/versioning/history_meta.py
 examples/versioning/test_versioning.py
 examples/vertical/__init__.py

@@ -7,7 +7,7 @@
         
         <title>
                 SQLAlchemy Core
-             &mdash; SQLAlchemy 0.7.1 Documentation</title>
+             &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
         <link rel="next" title="SQL Expression Language Tutorial" href="tutorial.html" />
         <link rel="prev" title="ORM Internals" href="../orm/internals.html" />
 
@@ -37,7 +37,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -49,7 +49,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -71,7 +71,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
         » 
                 SQLAlchemy Core
              
@@ -107,7 +107,10 @@ Search:
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#using-text">Using Text</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#using-aliases">Using Aliases</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#using-joins">Using Joins</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#intro-to-generative-selects-and-transformations">Intro to Generative Selects and Transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#intro-to-generative-selects">Intro to Generative Selects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tutorial.html#transforming-a-statement">Transforming a Statement</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#everything-else">Everything Else</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="tutorial.html#bind-parameter-objects">Bind Parameter Objects</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial.html#functions">Functions</a></li>
@@ -193,6 +196,7 @@ Search:
 <li class="toctree-l3"><a class="reference internal" href="schema.html#defining-foreign-keys">Defining Foreign Keys</a></li>
 <li class="toctree-l3"><a class="reference internal" href="schema.html#unique-constraint">UNIQUE Constraint</a></li>
 <li class="toctree-l3"><a class="reference internal" href="schema.html#check-constraint">CHECK Constraint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="schema.html#setting-up-constraints-when-using-the-declarative-orm-extension">Setting up Constraints when using the Declarative ORM Extension</a></li>
 <li class="toctree-l3"><a class="reference internal" href="schema.html#constraints-api">Constraints API</a></li>
 <li class="toctree-l3"><a class="reference internal" href="schema.html#indexes">Indexes</a></li>
 </ul>

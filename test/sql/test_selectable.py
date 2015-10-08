@@ -47,6 +47,33 @@ class SelectableTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiled
         assert s.corresponding_column(s.c.col1) is s.c.col1
         assert s.corresponding_column(s.c.c1) is s.c.c1
 
+    def test_labeled_subquery_twice(self):
+        scalar_select = select([table1.c.col1]).label('foo')
+
+        s1 = select([scalar_select])
+        s2 = select([scalar_select, scalar_select])
+
+        eq_(
+            s1.c.foo.proxy_set,
+            set([s1.c.foo, scalar_select, scalar_select.element, table1.c.col1])
+        )
+        eq_(
+            s2.c.foo.proxy_set,
+            set([s2.c.foo, scalar_select, scalar_select.element, table1.c.col1])
+        )
+
+        assert s1.corresponding_column(scalar_select) is s1.c.foo
+        assert s2.corresponding_column(scalar_select) is s2.c.foo
+    
+    def test_label_grouped_still_corresponds(self):
+        label = select([table1.c.col1]).label('foo')
+        label2 = label.self_group()
+        
+        s1 = select([label])
+        s2 = select([label2])
+        assert s1.corresponding_column(label) is s1.c.foo
+        assert s2.corresponding_column(label) is s2.c.foo
+        
     def test_direct_correspondence_on_labels(self):
         # this test depends on labels being part
         # of the proxy set to get the right result
@@ -819,6 +846,24 @@ class DerivedTest(fixtures.TestBase, AssertsExecutionResults):
         assert not t2.select().alias('foo').is_derived_from(t1)
 
 class AnnotationsTest(fixtures.TestBase):
+
+    def test_hashing(self):
+        t = table('t', column('x'))
+
+        a = t.alias()
+        s = t.select()
+        s2 = a.select()
+
+        for obj in [
+            t,
+            t.c.x,
+            a,
+            s,
+            s2
+        ]:
+            annot = obj._annotate({})
+            eq_(set([obj]), set([annot]))
+
     def test_custom_constructions(self):
         from sqlalchemy.schema import Column
         class MyColumn(Column):
@@ -887,6 +932,13 @@ class AnnotationsTest(fixtures.TestBase):
         b5 = visitors.cloned_traverse(b3, {}, {'binary':visit_binary})
         assert str(b5) == ":bar = table1.col2"
 
+    def test_annotate_aliased(self):
+        t1 = table('t1', column('c1'))
+        s = select([(t1.c.c1 + 3).label('bat')])
+        a = s.alias()
+        a = sql_util._deep_annotate(a, {'foo': 'bar'})
+        eq_(a._annotations['foo'], 'bar')
+        eq_(a.element._annotations['foo'], 'bar')
 
     def test_annotate_expressions(self):
         table1 = table('table1', column('col1'), column('col2'))

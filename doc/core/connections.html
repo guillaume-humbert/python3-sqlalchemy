@@ -7,7 +7,7 @@
         
         <title>
                 Working with Engines and Connections
-             &mdash; SQLAlchemy 0.7.1 Documentation</title>
+             &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Connection Pooling" href="pooling.html" />
         <link rel="prev" title="Engine Configuration" href="engines.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Working with Engines and Connections
@@ -570,13 +570,19 @@ connection pool.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Connection.execute">
 <tt class="descname">execute</tt><big>(</big><em>object</em>, <em>*multiparams</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Connection.execute" title="Permalink to this definition">¶</a></dt>
-<dd><p>Executes the given construct and returns a <a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy" title="sqlalchemy.engine.base.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a>.</p>
-<p>The construct can be one of:</p>
-<ul class="simple">
-<li>a textual SQL string</li>
+<dd><p>Executes the a SQL statement construct and returns a <a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy" title="sqlalchemy.engine.base.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>object</strong> &#8211; <p>The statement to be executed.  May be 
+one of:</p>
+<ul>
+<li>a plain string</li>
 <li>any <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> construct that is also
 a subclass of <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a>, such as a 
-<tt class="xref py py-func docutils literal"><span class="pre">expression.select()</span></tt> construct</li>
+<a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct</li>
 <li>a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.FunctionElement" title="sqlalchemy.sql.expression.FunctionElement"><tt class="xref py py-class docutils literal"><span class="pre">FunctionElement</span></tt></a>, such as that generated
 by <a class="reference internal" href="#sqlalchemy.engine.base.Engine.func" title="sqlalchemy.engine.base.Engine.func"><tt class="xref py py-attr docutils literal"><span class="pre">func</span></tt></a>, will be automatically wrapped in
 a SELECT statement, which is then executed.</li>
@@ -584,6 +590,48 @@ a SELECT statement, which is then executed.</li>
 <li>a <a class="reference internal" href="schema.html#sqlalchemy.schema.DefaultGenerator" title="sqlalchemy.schema.DefaultGenerator"><tt class="xref py py-class docutils literal"><span class="pre">DefaultGenerator</span></tt></a> object</li>
 <li>a <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Compiled" title="sqlalchemy.engine.base.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></a> object</li>
 </ul>
+</li>
+<li><strong>*multiparams/**params</strong> &#8211; <p>represent bound parameter
+values to be used in the execution.   Typically,
+the format is either a collection of one or more
+dictionaries passed to *multiparams:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">insert</span><span class="p">(),</span> 
+    <span class="p">{</span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">:</span><span class="s">&quot;v1&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">:</span><span class="s">&quot;v2&quot;</span><span class="p">}</span>
+<span class="p">)</span></pre></div>
+</div>
+<p>...or individual key/values interpreted by **params:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">insert</span><span class="p">(),</span> <span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s">&quot;v1&quot;</span>
+<span class="p">)</span></pre></div>
+</div>
+<p>In the case that a plain SQL string is passed, and the underlying 
+DBAPI accepts positional bind parameters, a collection of tuples
+or individual values in *multiparams may be passed:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+    <span class="s">&quot;INSERT INTO table (id, value) VALUES (?, ?)&quot;</span><span class="p">,</span>
+    <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">&quot;v1&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s">&quot;v2&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+    <span class="s">&quot;INSERT INTO table (id, value) VALUES (?, ?)&quot;</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;v1&quot;</span>
+<span class="p">)</span></pre></div>
+</div>
+<p>Note above, the usage of a question mark &#8221;?&#8221; or other
+symbol is contingent upon the &#8220;paramstyle&#8221; accepted by the DBAPI 
+in use, which may be any of &#8220;qmark&#8221;, &#8220;named&#8221;, &#8220;pyformat&#8221;, &#8220;format&#8221;,
+&#8220;numeric&#8221;.   See <a class="reference external" href="http://www.python.org/dev/peps/pep-0249/">pep-249</a> 
+for details on paramstyle.</p>
+<p>To execute a textual SQL statement which uses bound parameters in a
+DBAPI-agnostic way, use the <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> construct.</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">

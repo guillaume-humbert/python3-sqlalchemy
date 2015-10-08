@@ -7,7 +7,7 @@
         
         <title>
                 PostgreSQL
-             &mdash; SQLAlchemy 0.7.1 Documentation</title>
+             &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="SQLite" href="sqlite.html" />
         <link rel="prev" title="Oracle" href="oracle.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="Dialects">Dialects</a>
         » 
                 PostgreSQL
@@ -88,7 +88,11 @@ Search:
 <li><a class="reference internal" href="#sequences-serial">Sequences/SERIAL</a></li>
 <li><a class="reference internal" href="#transaction-isolation-level">Transaction Isolation Level</a></li>
 <li><a class="reference internal" href="#insert-update-returning">INSERT/UPDATE...RETURNING</a></li>
-<li><a class="reference internal" href="#indexes">Indexes</a></li>
+<li><a class="reference internal" href="#postgresql-specific-index-options">Postgresql-Specific Index Options</a><ul>
+<li><a class="reference internal" href="#partial-indexes">Partial Indexes</a></li>
+<li><a class="reference internal" href="#operator-classes">Operator Classes</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#postgresql-data-types">PostgreSQL Data Types</a></li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.postgresql.psycopg2">psycopg2 Notes</a><ul>
 <li><a class="reference internal" href="#driver">Driver</a></li>
@@ -190,11 +194,34 @@ use the <tt class="xref py py-meth docutils literal"><span class="pre">_UpdateBa
 <span class="k">print</span> <span class="n">result</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></pre></div>
 </div>
 </div>
-<div class="section" id="indexes">
-<h2>Indexes<a class="headerlink" href="#indexes" title="Permalink to this headline">¶</a></h2>
-<p>PostgreSQL supports partial indexes. To create them pass a postgresql_where
-option to the Index constructor:</p>
+<div class="section" id="postgresql-specific-index-options">
+<span id="postgresql-indexes"></span><h2>Postgresql-Specific Index Options<a class="headerlink" href="#postgresql-specific-index-options" title="Permalink to this headline">¶</a></h2>
+<p>Several extensions to the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct are available, specific
+to the PostgreSQL dialect.</p>
+<div class="section" id="partial-indexes">
+<h3>Partial Indexes<a class="headerlink" href="#partial-indexes" title="Permalink to this headline">¶</a></h3>
+<p>Partial indexes add criterion to the index definition so that the index is 
+applied to a subset of rows.   These can be specified on <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a>
+using the <tt class="docutils literal"><span class="pre">postgresql_where</span></tt> keyword argument:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Index</span><span class="p">(</span><span class="s">&#39;my_index&#39;</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">postgresql_where</span><span class="o">=</span><span class="n">tbl</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">value</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">)</span></pre></div>
+</div>
+</div>
+<div class="section" id="operator-classes">
+<h3>Operator Classes<a class="headerlink" href="#operator-classes" title="Permalink to this headline">¶</a></h3>
+<p>PostgreSQL allows the specification of an <em>operator class</em> for each column of
+an index (see <a class="reference external" href="http://www.postgresql.org/docs/8.3/interactive/indexes-opclass.html">http://www.postgresql.org/docs/8.3/interactive/indexes-opclass.html</a>).
+The <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct allows these to be specified via the <tt class="docutils literal"><span class="pre">postgresql_ops</span></tt>
+keyword argument (new as of SQLAlchemy 0.7.2):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Index</span><span class="p">(</span><span class="s">&#39;my_index&#39;</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> 
+                        <span class="n">postgresql_ops</span><span class="o">=</span><span class="p">{</span>
+                            <span class="s">&#39;data&#39;</span><span class="p">:</span> <span class="s">&#39;text_pattern_ops&#39;</span><span class="p">,</span> 
+                            <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;int4_ops&#39;</span>
+                        <span class="p">})</span></pre></div>
+</div>
+<p>Note that the keys in the <tt class="docutils literal"><span class="pre">postgresql_ops</span></tt> dictionary are the &#8220;key&#8221; name of
+the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, i.e. the name used to access it from the <tt class="docutils literal"><span class="pre">.c</span></tt> collection
+of <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, which can be configured to be different than the actual
+name of the column as expressed in the database.</p>
 </div>
 </div>
 <div class="section" id="postgresql-data-types">
@@ -570,7 +597,7 @@ at the API level what level should be used.</p>
 <p>Support for the PostgreSQL database via py-postgresql.</p>
 <div class="section" id="id2">
 <h3>Connecting<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<p>URLs are of the form <tt class="docutils literal"><span class="pre">postgresql+pypostgresql://user&#64;password&#64;host:port/dbname[?key=value&amp;key=value...]</span></tt>.</p>
+<p>URLs are of the form <tt class="docutils literal"><span class="pre">postgresql+pypostgresql://user:password&#64;host:port/dbname[?key=value&amp;key=value...]</span></tt>.</p>
 </div>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.postgresql.pg8000">

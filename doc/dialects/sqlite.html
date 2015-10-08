@@ -7,7 +7,7 @@
         
         <title>
                 SQLite
-             &mdash; SQLAlchemy 0.7.1 Documentation</title>
+             &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="Sybase" href="sybase.html" />
         <link rel="prev" title="PostgreSQL" href="postgresql.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="Dialects">Dialects</a>
         » 
                 SQLite
@@ -93,7 +93,11 @@ Search:
 <li><a class="reference internal" href="#driver">Driver</a></li>
 <li><a class="reference internal" href="#connect-strings">Connect Strings</a></li>
 <li><a class="reference internal" href="#compatibility-with-sqlite3-native-date-and-datetime-types">Compatibility with sqlite3 &#8220;native&#8221; date and datetime types</a></li>
-<li><a class="reference internal" href="#pooling-behavior">Pooling Behavior</a></li>
+<li><a class="reference internal" href="#threading-pooling-behavior">Threading/Pooling Behavior</a><ul>
+<li><a class="reference internal" href="#using-a-memory-database-in-multiple-threads">Using a Memory Database in Multiple Threads</a></li>
+<li><a class="reference internal" href="#using-temporary-tables-with-sqlite">Using Temporary Tables with SQLite</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#unicode">Unicode</a></li>
 </ul>
 </li>
@@ -363,29 +367,29 @@ processing. Execution of &#8220;func.current_date()&#8221; will return a string.
 &#8220;func.current_timestamp()&#8221; is registered as returning a DATETIME type in
 SQLAlchemy, so this function still receives SQLAlchemy-level result processing.</p>
 </div>
-<div class="section" id="pooling-behavior">
-<h3>Pooling Behavior<a class="headerlink" href="#pooling-behavior" title="Permalink to this headline">¶</a></h3>
-<p>Pysqlite connections do not support being moved between threads, unless
-the <tt class="docutils literal"><span class="pre">check_same_thread</span></tt> Pysqlite flag is set to <tt class="xref docutils literal"><span class="pre">False</span></tt>.  In addition,
-when using an in-memory SQLite database, the full database exists only within 
-the scope of a single connection.  It is reported that an in-memory
-database does not support being shared between threads regardless of the 
-<tt class="docutils literal"><span class="pre">check_same_thread</span></tt> flag - which means that a multithreaded
-application <strong>cannot</strong> share data from a <tt class="docutils literal"><span class="pre">:memory:</span></tt> database across threads
-unless access to the connection is limited to a single worker thread which communicates
-through a queueing mechanism to concurrent threads.</p>
-<p>To provide for these two behaviors, the pysqlite dialect will select a <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>
-implementation suitable:</p>
+<div class="section" id="threading-pooling-behavior">
+<h3>Threading/Pooling Behavior<a class="headerlink" href="#threading-pooling-behavior" title="Permalink to this headline">¶</a></h3>
+<p>Pysqlite&#8217;s default behavior is to prohibit the usage of a single connection
+in more than one thread.   This is controlled by the <tt class="docutils literal"><span class="pre">check_same_thread</span></tt>
+Pysqlite flag.   This default is intended to work with older versions
+of SQLite that did not support multithreaded operation under 
+various circumstances.  In particular, older SQLite versions
+did not allow a <tt class="docutils literal"><span class="pre">:memory:</span></tt> database to be used in multiple threads
+under any circumstances.</p>
+<p>SQLAlchemy sets up pooling to work with Pysqlite&#8217;s default behavior:</p>
 <ul>
-<li><p class="first">When a <tt class="docutils literal"><span class="pre">:memory:</span></tt> SQLite database is specified, the dialect will use <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.SingletonThreadPool" title="sqlalchemy.pool.SingletonThreadPool"><tt class="xref py py-class docutils literal"><span class="pre">SingletonThreadPool</span></tt></a>.
-This pool maintains a single connection per thread, so that all access to the engine within
-the current thread use the same <tt class="docutils literal"><span class="pre">:memory:</span></tt> database.</p>
+<li><p class="first">When a <tt class="docutils literal"><span class="pre">:memory:</span></tt> SQLite database is specified, the dialect by default will use
+<a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.SingletonThreadPool" title="sqlalchemy.pool.SingletonThreadPool"><tt class="xref py py-class docutils literal"><span class="pre">SingletonThreadPool</span></tt></a>. This pool maintains a single connection per
+thread, so that all access to the engine within the current thread use the
+same <tt class="docutils literal"><span class="pre">:memory:</span></tt> database - other threads would access a different 
+<tt class="docutils literal"><span class="pre">:memory:</span></tt> database.</p>
 </li>
-<li><p class="first">When a file-based database is specified, the dialect will use <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.NullPool" title="sqlalchemy.pool.NullPool"><tt class="xref py py-class docutils literal"><span class="pre">NullPool</span></tt></a> as the source 
-of connections.  This pool closes and discards connections which are returned to the pool immediately.
-SQLite file-based connections have extermely low overhead, so pooling is not necessary.
-The scheme also prevents a connection from being used again in a different thread
-and works best with SQLite&#8217;s coarse-grained file locking.</p>
+<li><p class="first">When a file-based database is specified, the dialect will use <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.NullPool" title="sqlalchemy.pool.NullPool"><tt class="xref py py-class docutils literal"><span class="pre">NullPool</span></tt></a> 
+as the source of connections. This pool closes and discards connections
+which are returned to the pool immediately. SQLite file-based connections
+have extremely low overhead, so pooling is not necessary. The scheme also
+prevents a connection from being used again in a different thread and works
+best with SQLite&#8217;s coarse-grained file locking.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The default selection of <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.NullPool" title="sqlalchemy.pool.NullPool"><tt class="xref py py-class docutils literal"><span class="pre">NullPool</span></tt></a> for SQLite file-based databases 
@@ -395,6 +399,48 @@ default for all SQLite databases.</p>
 </div>
 </li>
 </ul>
+<p>Modern versions of SQLite no longer have the threading restrictions, and assuming
+the sqlite3/pysqlite library was built with SQLite&#8217;s default threading mode
+of &#8220;Serialized&#8221;, even <tt class="docutils literal"><span class="pre">:memory:</span></tt> databases can be shared among threads.</p>
+<div class="section" id="using-a-memory-database-in-multiple-threads">
+<h4>Using a Memory Database in Multiple Threads<a class="headerlink" href="#using-a-memory-database-in-multiple-threads" title="Permalink to this headline">¶</a></h4>
+<p>To use a <tt class="docutils literal"><span class="pre">:memory:</span></tt> database in a multithreaded scenario, the same connection
+object must be shared among threads, since the database exists
+only within the scope of that connection.   The <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.StaticPool" title="sqlalchemy.pool.StaticPool"><tt class="xref py py-class docutils literal"><span class="pre">StaticPool</span></tt></a> implementation
+will maintain a single connection globally, and the <tt class="docutils literal"><span class="pre">check_same_thread</span></tt> flag
+can be passed to Pysqlite as <tt class="xref docutils literal"><span class="pre">False</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.pool</span> <span class="kn">import</span> <span class="n">StaticPool</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite://&#39;</span><span class="p">,</span>
+                    <span class="n">connect_args</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;check_same_thread&#39;</span><span class="p">:</span><span class="bp">False</span><span class="p">},</span>
+                    <span class="n">poolclass</span><span class="o">=</span><span class="n">StaticPool</span><span class="p">)</span></pre></div>
+</div>
+<p>Note that using a <tt class="docutils literal"><span class="pre">:memory:</span></tt> database in multiple threads requires a recent 
+version of SQLite.</p>
+</div>
+<div class="section" id="using-temporary-tables-with-sqlite">
+<h4>Using Temporary Tables with SQLite<a class="headerlink" href="#using-temporary-tables-with-sqlite" title="Permalink to this headline">¶</a></h4>
+<p>Due to the way SQLite deals with temporary tables, if you wish to use a temporary table
+in a file-based SQLite database across multiple checkouts from the connection pool, such
+as when using an ORM <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> where the temporary table should continue to remain
+after <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">commit()</span></tt></a> or <a class="reference internal" href="../core/events.html#sqlalchemy.events.ConnectionEvents.rollback" title="sqlalchemy.events.ConnectionEvents.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">rollback()</span></tt></a> is called,
+a pool which maintains a single connection must be used.   Use <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.SingletonThreadPool" title="sqlalchemy.pool.SingletonThreadPool"><tt class="xref py py-class docutils literal"><span class="pre">SingletonThreadPool</span></tt></a>
+if the scope is only needed within the current thread, or <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.StaticPool" title="sqlalchemy.pool.StaticPool"><tt class="xref py py-class docutils literal"><span class="pre">StaticPool</span></tt></a> is scope is
+needed within multiple threads for this case:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># maintain the same connection per thread</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.pool</span> <span class="kn">import</span> <span class="n">SingletonThreadPool</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:///mydb.db&#39;</span><span class="p">,</span>
+                    <span class="n">poolclass</span><span class="o">=</span><span class="n">SingletonThreadPool</span><span class="p">)</span>
+
+
+<span class="c"># maintain the same connection across all threads</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.pool</span> <span class="kn">import</span> <span class="n">StaticPool</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:///mydb.db&#39;</span><span class="p">,</span>
+                    <span class="n">poolclass</span><span class="o">=</span><span class="n">StaticPool</span><span class="p">)</span></pre></div>
+</div>
+<p>Note that <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.SingletonThreadPool" title="sqlalchemy.pool.SingletonThreadPool"><tt class="xref py py-class docutils literal"><span class="pre">SingletonThreadPool</span></tt></a> should be configured for the number of threads
+that are to be used; beyond that number, connections will be closed out in a non deterministic
+way.</p>
+</div>
 </div>
 <div class="section" id="unicode">
 <h3>Unicode<a class="headerlink" href="#unicode" title="Permalink to this headline">¶</a></h3>

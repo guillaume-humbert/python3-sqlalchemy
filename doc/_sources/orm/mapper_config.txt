@@ -296,7 +296,22 @@ Correlated subqueries may be used as well::
             )
     })
 
-The declarative form of the above is described in :ref:`declarative_sql_expressions`.
+For many-to-many relationships, use :func:`.and_` to join the fields of the
+association table to both tables in a relation::
+
+    from sqlalchemy import and_
+
+    mapper(Author, authors, properties={
+        'book_count': column_property(
+                            select([func.count(books.c.id)], 
+                                and_(
+                                    book_authors.c.author_id==authors.c.id,
+                                    book_authors.c.book_id==books.c.id
+                                )))
+        })
+
+For examples of :func:`.column_property` using Declarative, see 
+:ref:`declarative_sql_expressions`.
 
 Note that :func:`.column_property` is used to provide the effect of a SQL
 expression that is actively rendered into the SELECT generated for a
@@ -370,6 +385,11 @@ Validators also receive collection events, when items are added to a collection:
         def validate_address(self, key, address):
             assert '@' in address.email
             return address
+
+Note that the :func:`~.validates` decorator is a convenience function built on 
+top of attribute events.   An application that requires more control over
+configuration of attribute change behavior can make use of this system,
+described at :class:`~.AttributeEvents`.
 
 .. autofunction:: validates
 

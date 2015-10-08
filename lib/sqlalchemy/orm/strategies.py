@@ -44,11 +44,11 @@ def _register_attribute(strategy, mapper, useobject,
     if useobject and prop.single_parent:
         listen_hooks.append(single_parent_validator)
 
-    if prop.key in prop.parent._validators:
+    if prop.key in prop.parent.validators:
         listen_hooks.append(
             lambda desc, prop: mapperutil._validator_events(desc, 
                                 prop.key, 
-                                prop.parent._validators[prop.key])
+                                prop.parent.validators[prop.key])
         )
 
     if useobject:
@@ -242,8 +242,10 @@ class DeferredColumnLoader(LoaderStrategy):
                 )
 
         query = session.query(localparent)
-        query._load_on_ident(state.key, 
-                    only_load_props=group, refresh_state=state)
+        if query._load_on_ident(state.key, 
+                    only_load_props=group, refresh_state=state) is None:
+            raise orm_exc.ObjectDeletedError(state)
+
         return attributes.ATTR_WAS_SET
 
 log.class_logger(DeferredColumnLoader)
@@ -323,18 +325,24 @@ class LazyLoader(AbstractRelationshipLoader):
 
     def init(self):
         super(LazyLoader, self).init()
-        self.__lazywhere, \
-        self.__bind_to_col, \
+        self._lazywhere, \
+        self._bind_to_col, \
         self._equated_columns = self._create_lazy_clause(self.parent_property)
 
-        self.logger.info("%s lazy loading clause %s", self, self.__lazywhere)
+        self._rev_lazywhere, \
+        self._rev_bind_to_col, \
+        self._rev_equated_columns = self._create_lazy_clause(
+                                                self.parent_property, 
+                                                reverse_direction=True)
+
+        self.logger.info("%s lazy loading clause %s", self, self._lazywhere)
 
         # determine if our "lazywhere" clause is the same as the mapper's
         # get() clause.  then we can just use mapper.get()
         #from sqlalchemy.orm import query
         self.use_get = not self.uselist and \
                         self.mapper._get_clause[0].compare(
-                            self.__lazywhere, 
+                            self._lazywhere, 
                             use_proxies=True, 
                             equivalents=self.mapper._equivalent_columns
                         )
@@ -381,14 +389,14 @@ class LazyLoader(AbstractRelationshipLoader):
 
         if not reverse_direction:
             criterion, bind_to_col, rev = \
-                                            self.__lazywhere, \
-                                            self.__bind_to_col, \
+                                            self._lazywhere, \
+                                            self._bind_to_col, \
                                             self._equated_columns
         else:
             criterion, bind_to_col, rev = \
-                                LazyLoader._create_lazy_clause(
-                                        self.parent_property,
-                                        reverse_direction=reverse_direction)
+                                            self._rev_lazywhere, \
+                                            self._rev_bind_to_col, \
+                                            self._rev_equated_columns
 
         if reverse_direction:
             mapper = self.parent_property.mapper
@@ -404,15 +412,18 @@ class LazyLoader(AbstractRelationshipLoader):
         sess = sessionlib._state_session(state)
         if sess is not None and sess._flushing:
             def visit_bindparam(bindparam):
-                if bindparam.key in bind_to_col:
+                if bindparam._identifying_key in bind_to_col:
                     bindparam.callable = \
-                                lambda: mapper._get_committed_state_attr_by_column(
-                                        state, dict_, bind_to_col[bindparam.key])
+                        lambda: mapper._get_committed_state_attr_by_column(
+                            state, dict_, 
+                            bind_to_col[bindparam._identifying_key])
         else:
             def visit_bindparam(bindparam):
-                if bindparam.key in bind_to_col:
-                    bindparam.callable = lambda: mapper._get_state_attr_by_column(
-                                            state, dict_, bind_to_col[bindparam.key])
+                if bindparam._identifying_key in bind_to_col:
+                    bindparam.callable = \
+                            lambda: mapper._get_state_attr_by_column(
+                                    state, dict_, 
+                                    bind_to_col[bindparam._identifying_key])
 
 
         if self.parent_property.secondary is not None and alias_secondary:
@@ -430,14 +441,14 @@ class LazyLoader(AbstractRelationshipLoader):
     def _lazy_none_clause(self, reverse_direction=False, adapt_source=None):
         if not reverse_direction:
             criterion, bind_to_col, rev = \
-                                        self.__lazywhere, \
-                                        self.__bind_to_col,\
+                                        self._lazywhere, \
+                                        self._bind_to_col,\
                                         self._equated_columns
         else:
             criterion, bind_to_col, rev = \
-                                LazyLoader._create_lazy_clause(
-                                    self.parent_property,
-                                    reverse_direction=reverse_direction)
+                                            self._rev_lazywhere, \
+                                            self._rev_bind_to_col, \
+                                            self._rev_equated_columns
 
         criterion = sql_util.adapt_criterion_to_null(criterion, bind_to_col)
 
@@ -498,6 +509,8 @@ class LazyLoader(AbstractRelationshipLoader):
             ]
             if attributes.PASSIVE_NO_RESULT in ident:
                 return attributes.PASSIVE_NO_RESULT
+            elif attributes.NEVER_SET in ident:
+                return attributes.NEVER_SET
 
             if _none_set.issuperset(ident):
                 return None
@@ -511,6 +524,8 @@ class LazyLoader(AbstractRelationshipLoader):
                 return attributes.PASSIVE_NO_RESULT
 
         q = session.query(prop_mapper)._adapt_all_clauses()
+
+        q = q._with_invoke_all_eagers(False)
 
         # don't autoflush on pending
         if pending:
@@ -612,7 +627,7 @@ class LazyLoader(AbstractRelationshipLoader):
                     if equated in binds:
                         return None
                 if col not in binds:
-                    binds[col] = sql.bindparam(None, None, type_=col.type)
+                    binds[col] = sql.bindparam(None, None, type_=col.type, unique=True)
                 return binds[col]
             return None
 
@@ -906,14 +921,13 @@ class SubqueryLoader(AbstractRelationshipLoader):
 
 log.class_logger(SubqueryLoader)
 
-class EagerLoader(AbstractRelationshipLoader):
+class JoinedLoader(AbstractRelationshipLoader):
     """Provide loading behavior for a :class:`.RelationshipProperty`
     using joined eager loading.
     
     """
-
     def init(self):
-        super(EagerLoader, self).init()
+        super(JoinedLoader, self).init()
         self.join_depth = self.parent_property.join_depth
 
     def init_class_attribute(self, mapper):
@@ -1151,6 +1165,9 @@ class EagerLoader(AbstractRelationshipLoader):
                                 our_reduced_path + (self.mapper.base_mapper,),
                                 eager_adapter)
 
+            def eager_exec(state, dict_, row):
+                _instance(row, None)
+
             if not self.uselist:
                 def new_execute(state, dict_, row):
                     # set a scalar object instance directly on the parent
@@ -1168,7 +1185,7 @@ class EagerLoader(AbstractRelationshipLoader):
                             "Multiple rows returned with "
                             "uselist=False for eagerly-loaded attribute '%s' "
                             % self)
-                return new_execute, existing_execute, None
+                return new_execute, existing_execute, None, eager_exec
             else:
                 def new_execute(state, dict_, row):
                     collection = attributes.init_state_collection(
@@ -1193,7 +1210,7 @@ class EagerLoader(AbstractRelationshipLoader):
                                                 'append_without_event')
                         context.attributes[(state, key)] = result_list
                     _instance(row, result_list)
-            return new_execute, existing_execute, None
+            return new_execute, existing_execute, None, eager_exec
         else:
             return self.parent_property.\
                             _get_strategy(LazyLoader).\
@@ -1202,7 +1219,10 @@ class EagerLoader(AbstractRelationshipLoader):
                                             reduced_path,
                                             mapper, row, adapter)
 
-log.class_logger(EagerLoader)
+EagerLoader = JoinedLoader
+"""Deprecated, use JoinedLoader"""
+
+log.class_logger(JoinedLoader)
 
 class EagerLazyOption(StrategizedOption):
     def __init__(self, key, lazy=True, chained=False,
@@ -1219,7 +1239,7 @@ class EagerLazyOption(StrategizedOption):
 
 def factory(identifier):
     if identifier is False or identifier == 'joined':
-        return EagerLoader
+        return JoinedLoader
     elif identifier is None or identifier == 'noload':
         return NoLoader
     elif identifier is False or identifier == 'select':
@@ -1230,8 +1250,6 @@ def factory(identifier):
         return ImmediateLoader
     else:
         return LazyLoader
-
-
 
 class EagerJoinOption(PropertyOption):
 

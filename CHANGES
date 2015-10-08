@@ -3,6 +3,268 @@
 =======
 CHANGES
 =======
+0.7.2
+=====
+- orm
+  - Feature enhancement: joined and subquery
+    loading will now traverse already-present related
+    objects and collections in search of unpopulated
+    attributes throughout the scope of the eager load
+    being defined, so that the eager loading that is
+    specified via mappings or query options
+    unconditionally takes place for the full depth,
+    populating whatever is not already populated.
+    Previously, this traversal would stop if a related
+    object or collection were already present leading
+    to inconsistent behavior (though would save on
+    loads/cycles for an already-loaded graph). For a
+    subqueryload, this means that the additional
+    SELECT statements emitted by subqueryload will
+    invoke unconditionally, no matter how much of the
+    existing graph is already present (hence the
+    controversy). The previous behavior of "stopping"
+    is still in effect when a query is the result of
+    an attribute-initiated lazyload, as otherwise an
+    "N+1" style of collection iteration can become
+    needlessly expensive when the same related object
+    is encountered repeatedly. There's also an 
+    as-yet-not-public generative Query method 
+    _with_invoke_all_eagers()
+    which selects old/new behavior [ticket:2213]
+
+  - A rework of "replacement traversal" within
+    the ORM as it alters selectables to be against
+    aliases of things (i.e. clause adaption) includes 
+    a fix for multiply-nested any()/has() constructs 
+    against a joined table structure.  [ticket:2195]
+
+  - Fixed bug where query.join() + aliased=True
+    from a joined-inh structure to itself on 
+    relationship() with join condition on the child
+    table would convert the lead entity into the 
+    joined one inappropriately.  [ticket:2234]
+    Also in 0.6.9.
+
+  - Fixed regression from 0.6 where Session.add()
+    against an object which contained None in a
+    collection would raise an internal exception.
+    Reverted this to 0.6's behavior which is to 
+    accept the None but obviously nothing is
+    persisted.  Ideally, collections with None 
+    present or on append() should at least emit a 
+    warning, which is being considered for 0.8.
+    [ticket:2205]
+
+  - Load of a deferred() attribute on an object
+    where row can't be located raises 
+    ObjectDeletedError instead of failing later
+    on; improved the message in ObjectDeletedError
+    to include other conditions besides a simple
+    "delete". [ticket:2191]
+
+  - Fixed regression from 0.6 where a get history
+    operation on some relationship() based attributes
+    would fail when a lazyload would emit; this could 
+    trigger within a flush() under certain conditions.
+    [ticket:2224]  Thanks to the user who submitted
+    the great test for this.
+
+  - Fixed bug apparent only in Python 3 whereby
+    sorting of persistent + pending objects during
+    flush would produce an illegal comparison,
+    if the persistent object primary key 
+    is not a single integer.  [ticket:2228]
+    Also in 0.6.9
+
+  - Fixed bug whereby the source clause
+    used by query.join() would be inconsistent
+    if against a column expression that combined
+    multiple entities together.  [ticket:2197]
+    Also in 0.6.9
+
+  - Fixed bug whereby if a mapped class
+    redefined __hash__() or __eq__() to something
+    non-standard, which is a supported use case
+    as SQLA should never consult these,
+    the methods would be consulted if the class
+    was part of a "composite" (i.e. non-single-entity)
+    result set.  [ticket:2215]
+    Also in 0.6.9.
+
+  - Added public attribute ".validators" to 
+    Mapper, an immutable dictionary view of 
+    all attributes that have been decorated
+    with the @validates decorator.
+    [ticket:2240] courtesy Stefano Fontanelli
+
+  - Fixed subtle bug that caused SQL to blow
+    up if: column_property() against subquery +
+    joinedload + LIMIT + order by the column
+    property() occurred.  [ticket:2188].
+    Also in 0.6.9
+
+  - The join condition produced by with_parent
+    as well as when using a "dynamic" relationship
+    against a parent will generate unique
+    bindparams, rather than incorrectly repeating 
+    the same bindparam.  [ticket:2207].
+    Also in 0.6.9.
+
+  - Added the same "columns-only" check to 
+    mapper.polymorphic_on as used when
+    receiving user arguments to  
+    relationship.order_by, foreign_keys,
+    remote_side, etc.
+
+  - Fixed bug whereby comparison of column
+    expression to a Query() would not call
+    as_scalar() on the underlying SELECT 
+    statement to produce a scalar subquery,
+    in the way that occurs if you called
+    it on Query().subquery(). [ticket:2190]
+
+  - Fixed declarative bug where a class inheriting
+    from a superclass of the same name would fail
+    due to an unnecessary lookup of the name
+    in the _decl_class_registry. [ticket:2194]
+
+  - Repaired the "no statement condition" 
+    assertion in Query which would attempt
+    to raise if a generative method were called
+    after from_statement() were called.
+    [ticket:2199].  Also in 0.6.9.
+
+- sql
+  - Fixed two subtle bugs involving column 
+    correspondence in a selectable,
+    one with the same labeled subquery repeated, the other
+    when the label has been "grouped" and 
+    loses itself.  Affects [ticket:2188].
+
+- schema
+  - New feature: with_variant() method on 
+    all types.  Produces an instance of Variant(),
+    a special TypeDecorator which will select
+    the usage of a different type based on the
+    dialect in use. [ticket:2187]
+
+  - Added an informative error message when 
+    ForeignKeyConstraint refers to a column name in 
+    the parent that is not found.  Also in 0.6.9.
+
+  - Fixed bug whereby adaptation of old append_ddl_listener()
+    function was passing unexpected **kw through 
+    to the Table event.   Table gets no kws, the MetaData
+    event in 0.6 would get "tables=somecollection",
+    this behavior is preserved.  [ticket:2206]
+
+  - Fixed bug where "autoincrement" detection on 
+    Table would fail if the type had no "affinity"
+    value, in particular this would occur when using 
+    the UUID example on the site that uses TypeEngine
+    as the "impl".
+
+  - Added an improved repr() to TypeEngine objects
+    that will only display constructor args which
+    are positional or kwargs that deviate
+    from the default.  [ticket:2209]
+
+- engine
+  - Context manager provided by Connection.begin()
+    will issue rollback() if the commit() fails,
+    not just if an exception occurs.
+
+  - Use urllib.parse_qsl() in Python 2.6 and above,
+    no deprecation warning about cgi.parse_qsl()
+    [ticket:1682]
+
+  - Added mixin class sqlalchemy.ext.DontWrapMixin.
+    User-defined exceptions of this type are never
+    wrapped in StatementException when they 
+    occur in the context of a statement 
+    execution.
+
+  - StatementException wrapping will display the
+    original exception class in the message.  
+
+  - Failures on connect which raise dbapi.Error
+    will forward the error to dialect.is_disconnect()
+    and set the "connection_invalidated" flag if 
+    the dialect knows this to be a potentially
+    "retryable" condition.  Only Oracle ORA-01033
+    implemented for now.  [ticket:2201]
+
+- sqlite
+  - SQLite dialect no longer strips quotes
+    off of reflected default value, allowing
+    a round trip CREATE TABLE to work.  
+    This is consistent with other dialects
+    that also maintain the exact form of
+    the default.  [ticket:2189]
+
+- postgresql
+  - Added new "postgresql_ops" argument to 
+    Index, allows specification of PostgreSQL
+    operator classes for indexed columns.
+    [ticket:2198]  Courtesy Filip Zyzniewski.
+
+- mysql
+  - Fixed OurSQL dialect to use ansi-neutral 
+    quote symbol "'" for XA commands instead
+    of '"'.  [ticket:2186].  Also in 0.6.9.
+
+- mssql
+  - Adjusted the pyodbc dialect such that bound
+    values are passed as bytes and not unicode
+    if the "Easysoft" unix drivers are detected. 
+    This is the same behavior as occurs with
+    FreeTDS.  Easysoft appears to segfault
+    if Python unicodes are passed under
+    certain circumstances.
+
+- oracle
+  - Added ORA-00028 to disconnect codes, use 
+    cx_oracle _Error.code to get at the code,
+    [ticket:2200].  Also in 0.6.9.
+
+  - Added ORA-01033 to disconnect codes, which
+    can be caught during a connection 
+    event.  [ticket:2201]
+
+  - repaired the oracle.RAW type which did not
+    generate the correct DDL.  [ticket:2220]
+    Also in 0.6.9.
+
+  - added CURRENT to reserved word list.
+    [ticket:2212] Also in 0.6.9.
+
+-ext
+  - Fixed bug in the mutable extension whereby
+    if the same type were used twice in one
+    mapping, the attributes beyond the first
+    would not get instrumented.
+
+  - Fixed bug in the mutable extension whereby
+    if None or a non-corresponding type were set, 
+    an error would be raised.  None is now accepted
+    which assigns None to all attributes,
+    illegal values raise ValueError.
+
+- examples
+  - Repaired the examples/versioning test runner
+    to not rely upon SQLAlchemy test libs,
+    nosetests must be run from within
+    examples/versioning to get around setup.cfg
+    breaking it.
+
+  - Tweak to examples/versioning to pick the
+    correct foreign key in a multi-level
+    inheritance situation.
+
+  - Fixed the attribute shard example to check
+    for bind param callable correctly in 0.7 
+    style.
+
 0.7.1
 =====
 - general
@@ -16,7 +278,7 @@ CHANGES
     self-referential relationships - this since
     SQLA 0.7 no longer enforces "parent with no 
     child" at the ORM level; this check is left
-    up to foreign key nullability.  
+    up to foreign key nullability.
     Related to [ticket:1912]
 
   - Repaired new "mutable" extension to propagate
@@ -58,10 +320,10 @@ CHANGES
 
   - Adjusted the __contains__() method of 
     a RowProxy result row such that no exception
-    throw is generated internally;  
+    throw is generated internally;
     NoSuchColumnError() also will generate its 
     message regardless of whether or not the column 
-    construct can be coerced to a string.  
+    construct can be coerced to a string.
     [ticket:2178].  Also in 0.6.8.
 
 - sqlite
@@ -77,7 +339,7 @@ CHANGES
     MATCH operator.   A potential floating-point
     inaccuracy issue was fixed, and certain tests 
     of the MATCH operator only execute within an 
-    EN-oriented locale for now.  [ticket:2175].  
+    EN-oriented locale for now.  [ticket:2175].
     Also in 0.6.8.
 
 - mysql
@@ -155,7 +417,7 @@ CHANGES
   - It is an error to call query.get() when the
     given entity is not a single, full class 
     entity or mapper (i.e. a column).  This is
-    a deprecation warning in 0.6.8.  
+    a deprecation warning in 0.6.8.
     [ticket:2144]
 
   - Fixed a potential KeyError which under some
@@ -281,7 +543,7 @@ CHANGES
 
     - The changelog for 0.6.7 and subsequent within
       the 0.6 series is now listed only in the 
-      CHANGES file within the 0.6 branch.  
+      CHANGES file within the 0.6 branch.
       In the 0.7 CHANGES file (i.e. this file), all the
       0.6 changes are listed inline within the 0.7
       section in which they were also applied 
@@ -500,7 +762,7 @@ CHANGES
     the given objects don't have any inter-attribute 
     references in memory, which was the behavior in 
     0.5 and earlier, so a flush of Parent/Child with
-    only foreign key/primary key set will succeed.  
+    only foreign key/primary key set will succeed.
     This while still maintaining 0.6 and above's not 
     generating a ton of useless internal dependency 
     structures within the flush that don't correspond 
@@ -510,7 +772,7 @@ CHANGES
   - Improvements to the error messages emitted when
     querying against column-only entities in conjunction
     with (typically incorrectly) using loader options, 
-    where the parent entity is not fully present.  
+    where the parent entity is not fully present.
     [ticket:2069]
 
   - Fixed bug in query.options() whereby a path 
@@ -550,7 +812,7 @@ CHANGES
     a Sequence object as its argument and renders the
     appropriate "next value" generation string on the
     target platform, if supported.  Also provides
-    ".next_value()" method on Sequence itself.   
+    ".next_value()" method on Sequence itself.
     [ticket:2085]
 
   - func.next_value() or other SQL expression can
@@ -915,7 +1177,7 @@ CHANGES
 
   - Established consistency when server_default is present
     on an Integer PK column.  SQLA doesn't pre-fetch these,
-    nor do they come back in cursor.lastrowid (DBAPI).  
+    nor do they come back in cursor.lastrowid (DBAPI).
     Ensured all backends consistently return None 
     in result.inserted_primary_key for these. Regarding
     reflection for this case, reflection of an int PK col 

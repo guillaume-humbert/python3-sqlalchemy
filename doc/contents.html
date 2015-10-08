@@ -7,7 +7,7 @@
         
         <title>
                 Table of Contents
-             &mdash; SQLAlchemy 0.7.1 Documentation</title>
+             &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '#',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="index.html" />
         <link rel="next" title="Overview" href="intro.html" />
 
     </head>
@@ -36,7 +36,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -48,7 +48,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -67,7 +67,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="index.html">SQLAlchemy 0.7 Documentation</a>
         » 
                 Table of Contents
              
@@ -146,6 +146,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l2"><a class="reference internal" href="orm/relationships.html">Relationship Configuration</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#basic-relational-patterns">Basic Relational Patterns</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#adjacency-list-relationships">Adjacency List Relationships</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#linking-relationships-with-backref">Linking relationships with Backref</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#specifying-alternate-join-conditions-to-relationship">Specifying Alternate Join Conditions to relationship()</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#rows-that-point-to-themselves-mutually-dependent-rows">Rows that point to themselves / Mutually Dependent Rows</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#mutable-primary-keys-update-cascades">Mutable Primary Keys / Update Cascades</a></li>
@@ -256,7 +257,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="core/tutorial.html#using-text">Using Text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/tutorial.html#using-aliases">Using Aliases</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/tutorial.html#using-joins">Using Joins</a></li>
-<li class="toctree-l3"><a class="reference internal" href="core/tutorial.html#intro-to-generative-selects-and-transformations">Intro to Generative Selects and Transformations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core/tutorial.html#intro-to-generative-selects">Intro to Generative Selects</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/tutorial.html#everything-else">Everything Else</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/tutorial.html#inserts-and-updates">Inserts and Updates</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/tutorial.html#deletes">Deletes</a></li>
@@ -431,7 +432,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#sequences-serial">Sequences/SERIAL</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#transaction-isolation-level">Transaction Isolation Level</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#insert-update-returning">INSERT/UPDATE...RETURNING</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#indexes">Indexes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#postgresql-specific-index-options">Postgresql-Specific Index Options</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#postgresql-data-types">PostgreSQL Data Types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg2">psycopg2 Notes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.pypostgresql">py-postgresql Notes</a></li>

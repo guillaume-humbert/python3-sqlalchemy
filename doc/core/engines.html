@@ -7,7 +7,7 @@
         
         <title>
                 Engine Configuration
-             &mdash; SQLAlchemy 0.7.1 Documentation</title>
+             &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Working with Engines and Connections" href="connections.html" />
         <link rel="prev" title="SQL Statements and Expressions API" href="expression_api.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Engine Configuration
@@ -118,8 +118,14 @@ of the database.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span>
 <span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://scott:tiger@localhost:5432/mydatabase&#39;</span><span class="p">)</span></pre></div>
 </div>
-<p>The above engine invokes the <tt class="docutils literal"><span class="pre">postgresql</span></tt> dialect and a connection pool
-which references <tt class="docutils literal"><span class="pre">localhost:5432</span></tt>.</p>
+<p>The above engine creates a <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> object tailored towards
+PostgreSQL, as well as a <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> object which will establish a DBAPI
+connection at <tt class="docutils literal"><span class="pre">localhost:5432</span></tt> when a connection request is first received.
+Note that the <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> and its underlying <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> do <strong>not</strong>
+establish the first actual DBAPI connection until the <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine.connect" title="sqlalchemy.engine.base.Engine.connect"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.connect()</span></tt></a>
+method is called, or an operation which is dependent on this method such as
+<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine.execute" title="sqlalchemy.engine.base.Engine.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.execute()</span></tt></a> is invoked. In this way, <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> and
+<a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> can be said to have a <em>lazy initialization</em> behavior.</p>
 <p>The <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, once created, can either be used directly to interact with the database,
 or can be passed to a <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> object to work with the ORM.   This section
 covers the details of configuring an <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>.   The next section, <a class="reference internal" href="connections.html"><em>Working with Engines and Connections</em></a>,
@@ -495,23 +501,33 @@ following the string URL as follows:</p>
 <dl class="function">
 <dt id="sqlalchemy.create_engine">
 <tt class="descclassname">sqlalchemy.</tt><tt class="descname">create_engine</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.create_engine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a new Engine instance.</p>
-<p>The standard method of specifying the engine is via URL as the
-first positional argument, to indicate the appropriate database
-dialect and connection arguments, with additional keyword
-arguments sent as options to the dialect and resulting Engine.</p>
-<p>The URL is a string in the form
+<dd><p>Create a new <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> instance.</p>
+<p>The standard calling form is to send the URL as the 
+first positional argument, usually a string 
+that indicates database dialect and connection arguments.
+Additional keyword arguments may then follow it which
+establish various options on the resulting <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>
+and its underlying <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> and <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>
+constructs.</p>
+<p>The string form of the URL is
 <tt class="docutils literal"><span class="pre">dialect+driver://user:password&#64;host/dbname[?key=value..]</span></tt>, where
 <tt class="docutils literal"><span class="pre">dialect</span></tt> is a database name such as <tt class="docutils literal"><span class="pre">mysql</span></tt>, <tt class="docutils literal"><span class="pre">oracle</span></tt>, 
 <tt class="docutils literal"><span class="pre">postgresql</span></tt>, etc., and <tt class="docutils literal"><span class="pre">driver</span></tt> the name of a DBAPI, such as 
 <tt class="docutils literal"><span class="pre">psycopg2</span></tt>, <tt class="docutils literal"><span class="pre">pyodbc</span></tt>, <tt class="docutils literal"><span class="pre">cx_oracle</span></tt>, etc.  Alternatively, 
 the URL can be an instance of <a class="reference internal" href="#sqlalchemy.engine.url.URL" title="sqlalchemy.engine.url.URL"><tt class="xref py py-class docutils literal"><span class="pre">URL</span></tt></a>.</p>
-<p><cite>**kwargs</cite> takes a wide variety of options which are routed 
+<p><tt class="docutils literal"><span class="pre">**kwargs</span></tt> takes a wide variety of options which are routed 
 towards their appropriate components.  Arguments may be 
-specific to the Engine, the underlying Dialect, as well as the 
-Pool.  Specific dialects also accept keyword arguments that
+specific to the <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, the underlying <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a>, as well as the 
+<a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>.  Specific dialects also accept keyword arguments that
 are unique to that dialect.   Here, we describe the parameters
-that are common to most <tt class="docutils literal"><span class="pre">create_engine()</span></tt> usage.</p>
+that are common to most <a class="reference internal" href="#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> usage.</p>
+<p>Once established, the newly resulting <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> will
+request a connection from the underlying <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> once
+<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine.connect" title="sqlalchemy.engine.base.Engine.connect"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.connect()</span></tt></a> is called, or a method which depends on it
+such as <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine.execute" title="sqlalchemy.engine.base.Engine.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.execute()</span></tt></a> is invoked.   The <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> in turn
+will establish the first actual DBAPI connection when this request
+is received.   The <a class="reference internal" href="#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> call itself does <strong>not</strong>
+establish any actual DBAPI connections directly.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />

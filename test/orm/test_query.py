@@ -1,19 +1,22 @@
 from test.lib.testing import eq_, assert_raises, assert_raises_message
 import operator
-from sqlalchemy import *
+from sqlalchemy import MetaData, null, exists, text, union, literal, \
+    literal_column, func, between, Unicode, desc, and_, bindparam, \
+    select, distinct, or_
 from sqlalchemy import exc as sa_exc, util
 from sqlalchemy.sql import compiler, table, column
+from sqlalchemy.sql import expression
 from sqlalchemy.engine import default
-from sqlalchemy.orm import *
-from sqlalchemy.orm import attributes
+from sqlalchemy.orm import attributes, mapper, relationship, backref, \
+    configure_mappers, create_session, synonym, Session, class_mapper, \
+    aliased, column_property, joinedload_all, joinedload, Query
 from test.lib.assertsql import CompiledSQL
 from test.lib.testing import eq_
+from test.lib.schema import Table, Column
 
 import sqlalchemy as sa
-from test.lib import testing, AssertsCompiledSQL, Column, engines
-
+from test.lib import testing, AssertsCompiledSQL, engines
 from test.orm import _fixtures
-
 from test.lib import fixtures
 
 from sqlalchemy.orm.util import join, outerjoin, with_parent
@@ -493,20 +496,26 @@ class InvalidGenerationsTest(QueryTest, AssertsCompiledSQL):
 
         s = create_session()
 
-        q = s.query(User).filter(User.id==5)
-        assert_raises(sa_exc.InvalidRequestError, q.from_statement, "x")
+        for meth, arg, kw in [
+            (Query.filter, (User.id==5,), {}),
+            (Query.filter_by, (), {'id':5}),
+            (Query.limit, (5, ), {}),
+            (Query.group_by, (User.name,), {}),
+            (Query.order_by, (User.name,), {})
+        ]:
+            q = s.query(User)
+            q = meth(q, *arg, **kw)
+            assert_raises(
+                sa_exc.InvalidRequestError,
+                q.from_statement, "x"
+            )
 
-        q = s.query(User).filter_by(id=5)
-        assert_raises(sa_exc.InvalidRequestError, q.from_statement, "x")
-
-        q = s.query(User).limit(5)
-        assert_raises(sa_exc.InvalidRequestError, q.from_statement, "x")
-
-        q = s.query(User).group_by(User.name)
-        assert_raises(sa_exc.InvalidRequestError, q.from_statement, "x")
-
-        q = s.query(User).order_by(User.name)
-        assert_raises(sa_exc.InvalidRequestError, q.from_statement, "x")
+            q = s.query(User)
+            q = q.from_statement("x")
+            assert_raises(
+                sa_exc.InvalidRequestError,
+                meth, q, *arg, **kw
+            )
 
 class OperatorTest(QueryTest, AssertsCompiledSQL):
     """test sql.Comparator implementation for MapperProperties"""
@@ -731,6 +740,7 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
 
 
 class ExpressionTest(QueryTest, AssertsCompiledSQL):
+    __dialect__ = 'default'
 
     def test_deferred_instances(self):
         User, addresses, Address = (self.classes.User,
@@ -757,20 +767,27 @@ class ExpressionTest(QueryTest, AssertsCompiledSQL):
             "addresses.id AS addresses_id, addresses.user_id AS "
             "addresses_user_id, addresses.email_address AS "
             "addresses_email_address FROM users JOIN addresses "
-            "ON users.id = addresses.user_id) AS anon_1",
-            use_default_dialect=True
+            "ON users.id = addresses.user_id) AS anon_1"
         )
 
-    def test_scalar_subquery(self):
+    def test_scalar_subquery_compile_whereclause(self):
         User = self.classes.User
+        Address = self.classes.Address
 
         session = create_session()
 
-        q = session.query(User.id).filter(User.id==7).subquery()
+        q = session.query(User.id).filter(User.id==7)
 
-        q = session.query(User).filter(User.id==q)
-
-        eq_(User(id=7), q.one())
+        q = session.query(Address).filter(Address.user_id==q)
+        assert isinstance(q._criterion.right, expression.ColumnElement)
+        self.assert_compile(
+            q,
+            "SELECT addresses.id AS addresses_id, addresses.user_id "
+            "AS addresses_user_id, addresses.email_address AS "
+            "addresses_email_address FROM addresses WHERE "
+            "addresses.user_id = (SELECT users.id AS users_id "
+            "FROM users WHERE users.id = :id_1)"
+        )
 
     def test_named_subquery(self):
         User = self.classes.User
@@ -793,8 +810,7 @@ class ExpressionTest(QueryTest, AssertsCompiledSQL):
         q = session.query(User.id).filter(User.id==7).label('foo')
         self.assert_compile(
             session.query(q), 
-            "SELECT (SELECT users.id FROM users WHERE users.id = :id_1) AS foo", 
-            use_default_dialect=True
+            "SELECT (SELECT users.id FROM users WHERE users.id = :id_1) AS foo"
         )
 
     def test_as_scalar(self):
@@ -808,8 +824,7 @@ class ExpressionTest(QueryTest, AssertsCompiledSQL):
                             'SELECT users.id AS users_id, users.name '
                             'AS users_name FROM users WHERE users.id '
                             'IN (SELECT users.id FROM users WHERE '
-                            'users.id = :id_1)',
-                            use_default_dialect=True)
+                            'users.id = :id_1)')
 
 
     def test_param_transfer(self):
@@ -857,8 +872,7 @@ class ExpressionTest(QueryTest, AssertsCompiledSQL):
         self.assert_compile(
             select([q1]),
             "SELECT users_id, users_name FROM (SELECT users.id AS users_id, "
-            "users.name AS users_name FROM users WHERE users.name = :name_1)",
-            dialect=default.DefaultDialect()
+            "users.name AS users_name FROM users WHERE users.name = :name_1)"
         )
 
     def test_join(self):
@@ -929,7 +943,9 @@ class SliceTest(QueryTest):
 
 
 
-class FilterTest(QueryTest):
+class FilterTest(QueryTest, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
     def test_basic(self):
         User = self.classes.User
 
@@ -987,6 +1003,24 @@ class FilterTest(QueryTest):
             assert True
 
         #assert [User(id=7), User(id=9), User(id=10)] == sess.query(User).filter(User.addresses!=address).all()
+
+    def test_unique_binds_join_cond(self):
+        """test that binds used when the lazyclause is used in criterion are unique"""
+
+        User, Address = self.classes.User, self.classes.Address
+        sess = Session()
+        a1, a2 = sess.query(Address).order_by(Address.id)[0:2]
+        self.assert_compile(
+            sess.query(User).filter(User.addresses.contains(a1)).union(
+                sess.query(User).filter(User.addresses.contains(a2))
+            ),
+            "SELECT anon_1.users_id AS anon_1_users_id, anon_1.users_name AS "
+            "anon_1_users_name FROM (SELECT users.id AS users_id, "
+            "users.name AS users_name FROM users WHERE users.id = :param_1 "
+            "UNION SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users WHERE users.id = :param_2) AS anon_1",
+            checkparams = {u'param_1': 7, u'param_2': 8}
+        )
 
     def test_any(self):
         User, Address = self.classes.User, self.classes.Address
@@ -1579,7 +1613,9 @@ class TextTest(QueryTest):
 
         eq_(s.query(User.id, "name").order_by(User.id).all(), [(7, u'jack'), (8, u'ed'), (9, u'fred'), (10, u'chuck')])
 
-class ParentTest(QueryTest):
+class ParentTest(QueryTest, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
     def test_o2m(self):
         User, orders, Order = (self.classes.User,
                                 self.tables.orders,
@@ -1686,8 +1722,47 @@ class ParentTest(QueryTest):
             User(id=o1.user_id)
         )
 
+    def test_unique_binds_union(self):
+        """bindparams used in the 'parent' query are unique"""
+        User, Address = self.classes.User, self.classes.Address
 
+        sess = Session()
+        u1, u2 = sess.query(User).order_by(User.id)[0:2]
 
+        q1 = sess.query(Address).with_parent(u1, 'addresses')
+        q2 = sess.query(Address).with_parent(u2, 'addresses')
+
+        self.assert_compile(
+            q1.union(q2),
+            "SELECT anon_1.addresses_id AS anon_1_addresses_id, "
+            "anon_1.addresses_user_id AS anon_1_addresses_user_id, "
+            "anon_1.addresses_email_address AS "
+            "anon_1_addresses_email_address FROM (SELECT addresses.id AS "
+            "addresses_id, addresses.user_id AS addresses_user_id, "
+            "addresses.email_address AS addresses_email_address FROM "
+            "addresses WHERE :param_1 = addresses.user_id UNION SELECT "
+            "addresses.id AS addresses_id, addresses.user_id AS "
+            "addresses_user_id, addresses.email_address AS addresses_email_address "
+            "FROM addresses WHERE :param_2 = addresses.user_id) AS anon_1",
+            checkparams={u'param_1': 7, u'param_2': 8},
+        )
+
+    def test_unique_binds_or(self):
+        User, Address = self.classes.User, self.classes.Address
+
+        sess = Session()
+        u1, u2 = sess.query(User).order_by(User.id)[0:2]
+
+        self.assert_compile(
+            sess.query(Address).filter(
+                or_(with_parent(u1, 'addresses'), with_parent(u2, 'addresses'))
+            ),
+            "SELECT addresses.id AS addresses_id, addresses.user_id AS "
+            "addresses_user_id, addresses.email_address AS "
+            "addresses_email_address FROM addresses WHERE "
+            ":param_1 = addresses.user_id OR :param_2 = addresses.user_id",
+            checkparams={u'param_1': 7, u'param_2': 8},
+        )
 
 class SynonymTest(QueryTest):
 
@@ -2278,7 +2353,7 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
         Keyword = self.classes.Keyword
         self._assert_eager_not_found_exception(
             [Keyword],
-            (eagerload(Item.keywords), ),
+            (joinedload(Item.keywords), ),
             r"Can't find property 'keywords' on any entity specified "
             r"in this Query.  Note the full path from root "
             r"\(Mapper\|Keyword\|keywords\) to target entity must be specified."
@@ -2288,7 +2363,7 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
         Item = self.classes.Item
         self._assert_eager_not_found_exception(
             [Item],
-            (eagerload("foo"), ),
+            (joinedload("foo"), ),
             r"Can't find property named 'foo' on the mapped "
             r"entity Mapper\|Item\|items in this Query."
         )
@@ -2297,7 +2372,7 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
         Item = self.classes.Item
         self._assert_eager_not_found_exception(
             [Item],
-            (eagerload("keywords.foo"), ),
+            (joinedload("keywords.foo"), ),
             r"Can't find property named 'foo' on the mapped entity "
             r"Mapper\|Keyword\|keywords in this Query."
         )
@@ -2306,7 +2381,7 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
         Item = self.classes.Item
         self._assert_eager_not_found_exception(
             [Item],
-            (eagerload_all("keywords.foo"), ),
+            (joinedload_all("keywords.foo"), ),
             r"Can't find property named 'foo' on the mapped entity "
             r"Mapper\|Keyword\|keywords in this Query."
         )
@@ -2318,7 +2393,7 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
         Keyword = self.classes.Keyword
         self._assert_eager_not_found_exception(
             [Keyword, Item],
-            (eagerload_all("keywords"), ),
+            (joinedload_all("keywords"), ),
             r"Attribute 'keywords' of entity 'Mapper\|Keyword\|keywords' "
             "does not refer to a mapped entity"
         )
@@ -2330,7 +2405,7 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
         Keyword = self.classes.Keyword
         self._assert_eager_not_found_exception(
             [Keyword, Item],
-            (eagerload_all("keywords"), ),
+            (joinedload_all("keywords"), ),
             r"Attribute 'keywords' of entity 'Mapper\|Keyword\|keywords' "
             "does not refer to a mapped entity"
         )
@@ -2339,7 +2414,7 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
         Item = self.classes.Item
         self._assert_eager_not_found_exception(
             [Item],
-            (eagerload_all("id", "keywords"), ),
+            (joinedload_all("id", "keywords"), ),
             r"Attribute 'id' of entity 'Mapper\|Item\|items' does not "
             r"refer to a mapped entity"
         )
@@ -2349,7 +2424,7 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
         Keyword = self.classes.Keyword
         self._assert_eager_not_found_exception(
             [Keyword, Item],
-            (eagerload_all("id", "keywords"), ),
+            (joinedload_all("id", "keywords"), ),
             r"Attribute 'id' of entity 'Mapper\|Keyword\|keywords' "
             "does not refer to a mapped entity"
         )
@@ -2359,7 +2434,7 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
         Keyword = self.classes.Keyword
         self._assert_eager_not_found_exception(
             [Keyword, Item],
-            (eagerload_all("description"), ),
+            (joinedload_all("description"), ),
             r"Can't find property named 'description' on the mapped "
             r"entity Mapper\|Keyword\|keywords in this Query."
         )
@@ -2369,7 +2444,7 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
         Keyword = self.classes.Keyword
         self._assert_eager_not_found_exception(
             [Keyword.id, Item.id],
-            (eagerload_all("keywords"), ),
+            (joinedload_all("keywords"), ),
             r"Query has only expression-based entities - can't find property "
             "named 'keywords'."
         )
@@ -2379,7 +2454,7 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
         Keyword = self.classes.Keyword
         self._assert_eager_not_found_exception(
             [Keyword, Item],
-            (eagerload_all(Keyword.id, Item.keywords), ),
+            (joinedload_all(Keyword.id, Item.keywords), ),
             r"Attribute 'Keyword.id' of entity 'Mapper\|Keyword\|keywords' "
             "does not refer to a mapped entity"
         )
@@ -2389,7 +2464,7 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
         Keyword = self.classes.Keyword
         self._assert_eager_not_found_exception(
             [Keyword, Item],
-            (eagerload_all(Keyword.keywords, Item.keywords), ),
+            (joinedload_all(Keyword.keywords, Item.keywords), ),
             r"Attribute 'Keyword.keywords' of entity 'Mapper\|Keyword\|keywords' "
             "does not refer to a mapped entity"
         )
@@ -2399,7 +2474,7 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
         Keyword = self.classes.Keyword
         self._assert_eager_not_found_exception(
             [Keyword.id, Item.id],
-            (eagerload_all(Keyword.keywords, Item.keywords), ),
+            (joinedload_all(Keyword.keywords, Item.keywords), ),
             r"Query has only expression-based entities - "
             "can't find property named 'keywords'."
         )
@@ -2409,7 +2484,7 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
         Keyword = self.classes.Keyword
         self._assert_eager_not_found_exception(
             [Item],
-            (eagerload_all(Keyword), ),
+            (joinedload_all(Keyword), ),
             r"mapper option expects string key or list of attributes"
         )
 
@@ -2431,7 +2506,7 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
         Item = self.classes.Item
 
         q = create_session().query(*entity_list).\
-                            options(eagerload(option))
+                            options(joinedload(option))
         key = ('loaderstrategy', (class_mapper(Item), 'keywords'))
         assert key in q._attributes
 
@@ -2446,4 +2521,4 @@ class OptionsNoPropTest(_fixtures.FixtureTest):
             eager_option, message):
         assert_raises_message(sa.exc.ArgumentError, message,
                               create_session().query(column).options,
-                              eagerload(eager_option))
+                              joinedload(eager_option))

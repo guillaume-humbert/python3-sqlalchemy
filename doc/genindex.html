@@ -5,7 +5,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
-        <title>Index &mdash; SQLAlchemy 0.7.1 Documentation</title>
+        <title>Index &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -13,7 +13,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '#',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -25,7 +25,7 @@
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="index.html" />
 
     </head>
     <body>
@@ -33,7 +33,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -45,7 +45,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -60,7 +60,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="index.html">SQLAlchemy 0.7 Documentation</a>
         » Index 
 
         <h2>
@@ -273,8 +273,6 @@ Search:
     </dt>
     <dt><a href="dialects/oracle.html#sqlalchemy.dialects.oracle.NCLOB.__init__">(sqlalchemy.dialects.oracle.NCLOB method)</a>
     </dt>
-    <dt><a href="dialects/oracle.html#sqlalchemy.dialects.oracle.RAW.__init__">(sqlalchemy.dialects.oracle.RAW method)</a>
-    </dt>
     <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ARRAY.__init__">(sqlalchemy.dialects.postgresql.ARRAY method)</a>
     </dt>
     <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.BYTEA.__init__">(sqlalchemy.dialects.postgresql.BYTEA method)</a>
@@ -382,6 +380,8 @@ Search:
     <dt><a href="core/types.html#sqlalchemy.types.UnicodeText.__init__">(sqlalchemy.types.UnicodeText method)</a>
     </dt>
     <dt><a href="core/types.html#sqlalchemy.types.UserDefinedType.__init__">(sqlalchemy.types.UserDefinedType method)</a>
+    </dt>
+    <dt><a href="core/types.html#sqlalchemy.types.Variant.__init__">(sqlalchemy.types.Variant method)</a>
     </dt>
     <dt><a href="orm/session.html#sqlalchemy.util.ScopedRegistry.__init__">(sqlalchemy.util.ScopedRegistry method)</a>
     </dt>
@@ -1595,12 +1595,6 @@ Search:
 
 
 <dt>
-        <a href="orm/extensions/mutable.html#sqlalchemy.ext.mutable.Mutable.coerce">coerce() (sqlalchemy.ext.mutable.Mutable class method)</a>
-
-  
-
-
-<dt>
         <a href="core/types.html#sqlalchemy.types.TypeDecorator.coerce_compared_value">coerce_compared_value() (sqlalchemy.types.TypeDecorator method)</a>
 
   
@@ -2559,14 +2553,14 @@ Search:
         <a href="orm/events.html#sqlalchemy.orm.interfaces.InstrumentationManager.dict_getter">dict_getter() (sqlalchemy.orm.interfaces.InstrumentationManager method)</a>
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
         <a href="orm/session.html#sqlalchemy.orm.session.Session.dirty">dirty (sqlalchemy.orm.session.Session attribute)</a>
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -2724,6 +2718,12 @@ Search:
     <dt><a href="core/internals.html#sqlalchemy.engine.default.DefaultDialect.do_savepoint">(sqlalchemy.engine.default.DefaultDialect method)</a>
     </dt>
   </dl></dd>
+  
+
+
+<dt>
+        <a href="core/exceptions.html#sqlalchemy.exc.DontWrapMixin">DontWrapMixin (class in sqlalchemy.exc)</a>
+
   
 
 
@@ -7070,6 +7070,12 @@ Search:
 
 
 <dt>
+        <a href="orm/mapper_config.html#sqlalchemy.orm.mapper.Mapper.validators">validators (sqlalchemy.orm.mapper.Mapper attribute)</a>
+
+  
+
+
+<dt>
         <a href="orm/query.html#sqlalchemy.orm.query.Query.value">value() (sqlalchemy.orm.query.Query method)</a>
 
   
@@ -7124,6 +7130,12 @@ Search:
     <dt><a href="core/types.html#sqlalchemy.types.VARCHAR">(class in sqlalchemy.types)</a>
     </dt>
   </dl></dd>
+  
+
+
+<dt>
+        <a href="core/types.html#sqlalchemy.types.Variant">Variant (class in sqlalchemy.types)</a>
+
   
 
 
@@ -7186,14 +7198,14 @@ Search:
     </dt>
   </dl></dd>
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
         <a href="orm/query.html#sqlalchemy.orm.query.Query.with_lockmode">with_lockmode() (sqlalchemy.orm.query.Query method)</a>
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -7221,6 +7233,20 @@ Search:
 <dt>
         <a href="orm/query.html#sqlalchemy.orm.query.Query.with_session">with_session() (sqlalchemy.orm.query.Query method)</a>
 
+  
+
+
+<dt>
+        <a href="core/types.html#sqlalchemy.types.TypeDecorator.with_variant">with_variant() (sqlalchemy.types.TypeDecorator method)</a>
+
+  <dd><dl>
+    <dt><a href="core/types.html#sqlalchemy.types.TypeEngine.with_variant">(sqlalchemy.types.TypeEngine method)</a>
+    </dt>
+    <dt><a href="core/types.html#sqlalchemy.types.UserDefinedType.with_variant">(sqlalchemy.types.UserDefinedType method)</a>
+    </dt>
+    <dt><a href="core/types.html#sqlalchemy.types.Variant.with_variant">(sqlalchemy.types.Variant method)</a>
+    </dt>
+  </dl></dd>
   
 
 </dl></td></tr></table>

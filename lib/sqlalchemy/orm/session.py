@@ -31,13 +31,13 @@ __all__ = ['Session', 'SessionTransaction', 'SessionExtension']
 
 def sessionmaker(bind=None, class_=None, autoflush=True, autocommit=False,
                  expire_on_commit=True, **kwargs):
-    """Generate a custom-configured :class:`~sqlalchemy.orm.session.Session` class.
+    """Generate a custom-configured :class:`.Session` class.
 
-    The returned object is a subclass of ``Session``, which, when instantiated
+    The returned object is a subclass of :class:`.Session`, which, when instantiated
     with no arguments, uses the keyword arguments configured here as its
     constructor arguments.
 
-    It is intended that the `sessionmaker()` function be called within the
+    It is intended that the :func:`.sessionmaker()` function be called within the
     global scope of an application, and the returned class be made available
     to the rest of the application as the single class used to instantiate
     sessions.
@@ -644,7 +644,8 @@ class Session(object):
         If this :class:`.Session` is configured with ``autocommit=False``,
         either the :class:`.Connection` corresponding to the current transaction
         is returned, or if no transaction is in progress, a new one is begun
-        and the :class:`.Connection` returned.
+        and the :class:`.Connection` returned (note that no transactional state
+        is established with the DBAPI until the first SQL statement is emitted).
         
         Alternatively, if this :class:`.Session` is configured with ``autocommit=True``,
         an ad-hoc :class:`.Connection` is returned using :meth:`.Engine.contextual_connect` 
@@ -713,6 +714,9 @@ class Session(object):
         passed, it is first converted to a
         :func:`~.sql.expression.text` construct, which here means
         that bind parameters should be specified using the format ``:param``.
+        If raw DBAPI statement execution is desired, use :meth:`.Session.connection`
+        to acquire a :class:`.Connection`, then call its :meth:`~.Connection.execute`
+        method.
 
         The statement is executed within the current transactional context of
         this :class:`.Session`, using the same behavior as that of
@@ -837,16 +841,32 @@ class Session(object):
         """
         self.__binds[table] = bind
 
-    def get_bind(self, mapper, clause=None):
-        """Return an engine corresponding to the given arguments.
+    def get_bind(self, mapper=None, clause=None):
+        """Return a "bind" to which this :class:`.Session` is bound.
+        
+        The "bind" is usually an instance of :class:`.Engine`, 
+        except in the case where the :class:`.Session` has been
+        explicitly bound directly to a :class:`.Connection`.
 
-        All arguments are optional.
+        For a multiply-bound or unbound :class:`.Session`, the 
+        ``mapper`` or ``clause`` arguments are used to determine the 
+        appropriate bind to return.
 
-        mapper
-          Optional, a ``Mapper`` or mapped class
+        :param mapper:
+          Optional :func:`.mapper` mapped class or instance of
+          :class:`.Mapper`.   The bind can be derived from a :class:`.Mapper`
+          first by consulting the "binds" map associated with this
+          :class:`.Session`, and secondly by consulting the :class:`.MetaData`
+          associated with the :class:`.Table` to which the :class:`.Mapper`
+          is mapped for a bind.
 
-        clause
-          Optional, A ClauseElement (i.e. select(), text(), etc.)
+        :param clause:
+            A :class:`.ClauseElement` (i.e. :func:`~.sql.expression.select`, 
+            :func:`~.sql.expression.text`, 
+            etc.).  If the ``mapper`` argument is not present or could not produce
+            a bind, the given expression construct will be searched for a bound
+            element, typically a :class:`.Table` associated with bound 
+            :class:`.MetaData`.
 
         """
         if mapper is clause is None:

@@ -7,7 +7,7 @@
         
         <title>
                 ORM Exceptions
-             &mdash; SQLAlchemy 0.7.1 Documentation</title>
+             &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="ORM Internals" href="internals.html" />
         <link rel="prev" title="Deprecated ORM Event Interfaces" href="interfaces.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 ORM Exceptions
@@ -136,9 +136,22 @@ mapped instance that is detached.</p>
 
 <dl class="exception">
 <dt id="sqlalchemy.orm.exc.ObjectDeletedError">
-<em class="property">exception </em><tt class="descclassname">sqlalchemy.orm.exc.</tt><tt class="descname">ObjectDeletedError</tt><a class="headerlink" href="#sqlalchemy.orm.exc.ObjectDeletedError" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">sqlalchemy.orm.exc.</tt><tt class="descname">ObjectDeletedError</tt><big>(</big><em>state</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.exc.ObjectDeletedError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/exceptions.html#sqlalchemy.exc.InvalidRequestError" title="sqlalchemy.exc.InvalidRequestError"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.exc.InvalidRequestError</span></tt></a></p>
-<p>An refresh() operation failed to re-retrieve an object&#8217;s row.</p>
+<p>A refresh operation failed to retrieve the database
+row corresponding to an object&#8217;s known primary key identity.</p>
+<p>A refresh operation proceeds when an expired attribute is 
+accessed on an object, or when <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.get" title="sqlalchemy.orm.query.Query.get"><tt class="xref py py-meth docutils literal"><span class="pre">Query.get()</span></tt></a> is
+used to retrieve an object which is, upon retrieval, detected
+as expired.   A SELECT is emitted for the target row
+based on primary key; if no row is returned, this
+exception is raised.</p>
+<p>The true meaning of this exception is simply that 
+no row exists for the primary key identifier associated
+with a persistent object.   The row may have been 
+deleted, or in some cases the primary key updated
+to a new value, outside of the ORM&#8217;s management of the target
+object.</p>
 </dd></dl>
 
 <dl class="exception">

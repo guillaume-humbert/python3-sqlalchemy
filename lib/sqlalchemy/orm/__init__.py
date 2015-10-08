@@ -111,18 +111,7 @@ def scoped_session(session_factory, scopefunc=None):
     """Provides thread-local or scoped management of :class:`.Session` objects.
 
     This is a front-end function to
-    :class:`.ScopedSession`.
-
-    :param session_factory: a callable function that produces
-      :class:`.Session` instances, such as :func:`sessionmaker`.
-
-    :param scopefunc: Optional "scope" function which would be
-      passed to the :class:`.ScopedRegistry`.  If None, the
-      :class:`.ThreadLocalRegistry` is used by default.
-
-    :returns: an :class:`.ScopedSession` instance
-
-    Usage::
+    :class:`.ScopedSession`::
 
       Session = scoped_session(sessionmaker(autoflush=True))
 
@@ -136,6 +125,18 @@ def scoped_session(session_factory, scopefunc=None):
 
       Session.commit()
       Session.close()
+
+    See also: :ref:`unitofwork_contextual`.
+
+    :param session_factory: a callable function that produces
+      :class:`.Session` instances, such as :func:`sessionmaker`.
+
+    :param scopefunc: Optional "scope" function which would be
+      passed to the :class:`.ScopedRegistry`.  If None, the
+      :class:`.ThreadLocalRegistry` is used by default.
+
+    :returns: a :class:`.ScopedSession` instance
+
 
     """
     return ScopedSession(session_factory, scopefunc=scopefunc)
@@ -266,14 +267,30 @@ def relationship(argument, secondary=None, **kwargs):
 
     :param cascade_backrefs=True:
       a boolean value indicating if the ``save-update`` cascade should
-      operate along a backref event.   When set to ``False`` on a
-      one-to-many relationship that has a many-to-one backref, assigning
-      a persistent object to the many-to-one attribute on a transient object
-      will not add the transient to the session.  Similarly, when
-      set to ``False`` on a many-to-one relationship that has a one-to-many
-      backref, appending a persistent object to the one-to-many collection
-      on a transient object will not add the transient to the session.
-
+      operate along an assignment event intercepted by a backref.   
+      When set to ``False``,
+      the attribute managed by this relationship will not cascade
+      an incoming transient object into the session of a
+      persistent parent, if the event is received via backref.
+      
+      That is::
+      
+        mapper(A, a_table, properties={
+            'bs':relationship(B, backref="a", cascade_backrefs=False)
+        })
+        
+      If an ``A()`` is present in the session, assigning it to
+      the "a" attribute on a transient ``B()`` will not place
+      the ``B()`` into the session.   To set the flag in the other 
+      direction, i.e. so that ``A().bs.append(B())`` won't add 
+      a transient ``A()`` into the session for a persistent ``B()``::
+      
+        mapper(A, a_table, properties={
+            'bs':relationship(B, 
+                    backref=backref("a", cascade_backrefs=False)
+                )
+        })
+      
       ``cascade_backrefs`` is new in 0.6.5.
 
     :param collection_class:
@@ -1042,11 +1059,16 @@ def joinedload(*keys, **kw):
 
         query(Order).options(joinedload(Order.user, innerjoin=True))
 
-    Note that the join created by :func:`joinedload` is aliased such that no
-    other aspects of the query will affect what it loads. To use joined eager
-    loading with a join that is constructed manually using
-    :meth:`~sqlalchemy.orm.query.Query.join` or :func:`~sqlalchemy.orm.join`,
-    see :func:`contains_eager`.
+    .. note:: The join created by :func:`joinedload` is anonymously aliased such that
+       it **does not affect the query results**.   An :meth:`.Query.order_by`
+       or :meth:`.Query.filter` call **cannot** reference these aliased
+       tables - so-called "user space" joins are constructed using 
+       :meth:`.Query.join`.   The rationale for this is that :func:`joinedload` is only
+       applied in order to affect how related objects or collections are loaded
+       as an optimizing detail - it can be added or removed with no impact
+       on actual results.   See the section :ref:`zen_of_eager_loading` for 
+       a detailed description of how this is used, including how to use a single 
+       explicit JOIN for filtering/ordering and eager loading simultaneously.
 
     See also:  :func:`subqueryload`, :func:`lazyload`
 

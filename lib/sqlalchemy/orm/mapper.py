@@ -127,9 +127,11 @@ class Mapper(object):
         self.batch = batch
         self.eager_defaults = eager_defaults
         self.column_prefix = column_prefix
-        self.polymorphic_on = polymorphic_on
+        self.polymorphic_on = expression._only_column_elements_or_none(
+                                        polymorphic_on, 
+                                        "polymorphic_on")
         self._dependency_processors = []
-        self._validators = {}
+        self.validators = util.immutabledict()
         self.passive_updates = passive_updates
         self._clause_adapter = None
         self._requires_row_aliasing = False
@@ -426,6 +428,15 @@ class Mapper(object):
     
     """
 
+    validators = None
+    """An immutable dictionary of attributes which have been decorated
+    using the :func:`~.orm.validates` decorator.    
+    
+    The dictionary contains string attribute names as keys
+    mapped to the actual validation method.
+    
+    """
+
     c = None
     """A synonym for :attr:`~.Mapper.columns`."""
 
@@ -635,7 +646,9 @@ class Mapper(object):
                     event.listen(manager, 'load', _event_on_load, raw=True)
                 elif hasattr(method, '__sa_validators__'):
                     for name in method.__sa_validators__:
-                        self._validators[name] = method
+                        self.validators = self.validators.union(
+                            {name : method}
+                        )
 
         manager.info[_INSTRUMENTOR] = self
 
@@ -1573,9 +1586,7 @@ class Mapper(object):
         # if instance is pending, a refresh operation 
         # may not complete (even if PK attributes are assigned)
         if has_key and result is None:
-            raise orm_exc.ObjectDeletedError(
-                                "Instance '%s' has been deleted." % 
-                                state_str(state))
+            raise orm_exc.ObjectDeletedError(state)
 
     def _optimized_get_statement(self, state, attribute_names):
         """assemble a WHERE clause which retrieves a given state by primary
@@ -2416,6 +2427,7 @@ class Mapper(object):
 
         new_populators = []
         existing_populators = []
+        eager_populators = []
         load_path = context.query._current_path + path
 
         def populate_state(state, dict_, row, isnew, only_load_props):
@@ -2428,7 +2440,8 @@ class Mapper(object):
             if not new_populators:
                 self._populators(context, path, reduced_path, row, adapter,
                                 new_populators,
-                                existing_populators
+                                existing_populators,
+                                eager_populators
                 )
 
             if isnew:
@@ -2436,13 +2449,13 @@ class Mapper(object):
             else:
                 populators = existing_populators
 
-            if only_load_props:
+            if only_load_props is None:
+                for key, populator in populators:
+                    populator(state, dict_, row)
+            elif only_load_props:
                 for key, populator in populators:
                     if key in only_load_props:
                         populator(state, dict_, row)
-            else:
-                for key, populator in populators:
-                    populator(state, dict_, row)
 
         session_identity_map = context.session.identity_map
 
@@ -2453,12 +2466,21 @@ class Mapper(object):
         populate_instance = listeners.populate_instance or None
         append_result = listeners.append_result or None
         populate_existing = context.populate_existing or self.always_refresh
+        invoke_all_eagers = context.invoke_all_eagers
+
         if self.allow_partial_pks:
             is_not_primary_key = _none_set.issuperset
         else:
             is_not_primary_key = _none_set.issubset
 
         def _instance(row, result):
+            if not new_populators and invoke_all_eagers:
+                self._populators(context, path, reduced_path, row, adapter,
+                                new_populators,
+                                existing_populators,
+                                eager_populators
+                )
+
             if translate_row:
                 for fn in translate_row:
                     ret = fn(self, context, row)
@@ -2582,11 +2604,10 @@ class Mapper(object):
                 elif isnew:
                     state.manager.dispatch.refresh(state, context, only_load_props)
 
-            elif state in context.partials or state.unloaded:
+            elif state in context.partials or state.unloaded or eager_populators:
                 # state is having a partial set of its attributes
                 # refreshed.  Populate those attributes,
                 # and add to the "context.partials" collection.
-
                 if state in context.partials:
                     isnew = False
                     (d_, attrs) = context.partials[state]
@@ -2606,6 +2627,10 @@ class Mapper(object):
                         populate_state(state, dict_, row, isnew, attrs)
                 else:
                     populate_state(state, dict_, row, isnew, attrs)
+
+                for key, pop in eager_populators:
+                    if key not in state.unloaded:
+                        pop(state, dict_, row)
 
                 if isnew:
                     state.manager.dispatch.refresh(state, context, attrs)
@@ -2627,21 +2652,19 @@ class Mapper(object):
         return _instance
 
     def _populators(self, context, path, reduced_path, row, adapter,
-            new_populators, existing_populators):
+            new_populators, existing_populators, eager_populators):
         """Produce a collection of attribute level row processor callables."""
 
         delayed_populators = []
+        pops = (new_populators, existing_populators, delayed_populators, eager_populators)
         for prop in self._props.itervalues():
-            newpop, existingpop, delayedpop = prop.create_row_processor(
-                                                    context, path, 
-                                                    reduced_path,
-                                                    self, row, adapter)
-            if newpop:
-                new_populators.append((prop.key, newpop))
-            if existingpop:
-                existing_populators.append((prop.key, existingpop))
-            if delayedpop:
-                delayed_populators.append((prop.key, delayedpop))
+            for i, pop in enumerate(prop.create_row_processor(
+                                        context, path, 
+                                        reduced_path,
+                                        self, row, adapter)):
+                if pop is not None:
+                    pops[i].append((prop.key, pop))
+
         if delayed_populators:
             new_populators.extend(delayed_populators)
 
@@ -2805,9 +2828,11 @@ def _event_on_resurrect(state):
 
 
 def _sort_states(states):
-    return sorted(states, key=operator.attrgetter('sort_key'))
-
-
+    pending = set(states)
+    persistent = set(s for s in pending if s.key is not None)
+    pending.difference_update(persistent)
+    return sorted(pending, key=operator.attrgetter("insert_order")) + \
+        sorted(persistent, key=lambda q:q.key[1])
 
 class _ColumnMapping(util.py25_dict):
     """Error reporting helper for mapper._columntoproperty."""

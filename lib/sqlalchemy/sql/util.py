@@ -8,6 +8,7 @@ from sqlalchemy import exc, schema, util, sql, types as sqltypes
 from sqlalchemy.util import topological
 from sqlalchemy.sql import expression, operators, visitors
 from itertools import chain
+from collections import deque
 
 """Utility functions that build upon SQL and Schema constructs."""
 
@@ -99,6 +100,25 @@ def find_columns(clause):
     visitors.traverse(clause, {}, {'column':cols.add})
     return cols
 
+def unwrap_order_by(clause):
+    """Break up an 'order by' expression into individual column-expressions,
+    without DESC/ASC/NULLS FIRST/NULLS LAST"""
+
+    cols = util.column_set()
+    stack = deque([clause])
+    while stack:
+        t = stack.popleft()
+        if isinstance(t, expression.ColumnElement) and \
+            (
+                not isinstance(t, expression._UnaryExpression) or \
+                not operators.is_ordering_modifier(t.modifier)
+            ): 
+            cols.add(t)
+        else:
+            for c in t.get_children():
+                stack.append(c)
+    return cols
+
 def clause_is_present(clause, search):
     """Given a target clause and a second to search within, return True
     if the target is plainly present in the search without any
@@ -174,13 +194,15 @@ def adapt_criterion_to_null(crit, nulls):
     """given criterion containing bind params, convert selected elements to IS NULL."""
 
     def visit_binary(binary):
-        if isinstance(binary.left, expression._BindParamClause) and binary.left.key in nulls:
+        if isinstance(binary.left, expression._BindParamClause) \
+            and binary.left._identifying_key in nulls:
             # reverse order if the NULL is on the left side
             binary.left = binary.right
             binary.right = expression.null()
             binary.operator = operators.is_
             binary.negate = operators.isnot
-        elif isinstance(binary.right, expression._BindParamClause) and binary.right.key in nulls:
+        elif isinstance(binary.right, expression._BindParamClause) \
+            and binary.right._identifying_key in nulls:
             binary.right = expression.null()
             binary.operator = operators.is_
             binary.negate = operators.isnot
@@ -347,8 +369,12 @@ class Annotated(object):
     def __hash__(self):
         return hash(self.__element)
 
-    def __cmp__(self, other):
-        return cmp(hash(self.__element), hash(other))
+    def __eq__(self, other):
+        if isinstance(self.__element, expression.ColumnOperators):
+            return self.__element.__class__.__eq__(self, other)
+        else:
+            return hash(other) == hash(self)
+
 
 # hard-generate Annotated subclasses.  this technique
 # is used instead of on-the-fly types (i.e. type.__new__())
@@ -395,6 +421,17 @@ def _deep_deannotate(element):
         element = clone(element)
     return element
 
+def _shallow_annotate(element, annotations): 
+    """Annotate the given ClauseElement and copy its internals so that 
+    internal objects refer to the new annotated object. 
+
+    Basically used to apply a "dont traverse" annotation to a  
+    selectable, without digging throughout the whole 
+    structure wasting time. 
+    """ 
+    element = element._annotate(annotations) 
+    element._copy_internals() 
+    return element 
 
 def splice_joins(left, right, stop_on=None):
     if left is None:
@@ -617,18 +654,22 @@ class ClauseAdapter(visitors.ReplacingCloningVisitor):
 
     """
     def __init__(self, selectable, equivalents=None, include=None, exclude=None):
-        self.__traverse_options__ = {'column_collections':False, 'stop_on':[selectable]}
+        self.__traverse_options__ = {'stop_on':[selectable]}
         self.selectable = selectable
         self.include = include
         self.exclude = exclude
         self.equivalents = util.column_dict(equivalents or {})
 
     def _corresponding_column(self, col, require_embedded, _seen=util.EMPTY_SET):
-        newcol = self.selectable.corresponding_column(col, require_embedded=require_embedded)
+        newcol = self.selectable.corresponding_column(
+                                    col, 
+                                    require_embedded=require_embedded)
 
         if newcol is None and col in self.equivalents and col not in _seen:
             for equiv in self.equivalents[col]:
-                newcol = self._corresponding_column(equiv, require_embedded=require_embedded, _seen=_seen.union([col]))
+                newcol = self._corresponding_column(equiv, 
+                                require_embedded=require_embedded, 
+                                _seen=_seen.union([col]))
                 if newcol is not None:
                     return newcol
         return newcol

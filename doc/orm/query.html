@@ -7,7 +7,7 @@
         
         <title>
                 Querying
-             &mdash; SQLAlchemy 0.7.1 Documentation</title>
+             &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Relationship Loading Techniques" href="loading.html" />
         <link rel="prev" title="Using the Session" href="session.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Querying
@@ -179,7 +179,7 @@ returned by this <a class="reference internal" href="#sqlalchemy.orm.query.Query
 <span class="n">q</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">user_alias</span><span class="p">)</span>
 
 <span class="c"># this expression:</span>
-<span class="n">q</span><span class="o">.</span><span class="n">columns</span>
+<span class="n">q</span><span class="o">.</span><span class="n">column_descriptions</span>
 
 <span class="c"># would return:</span>
 <span class="p">[</span>
@@ -432,19 +432,61 @@ appropriate to the entity class represented by this <tt class="docutils literal"
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.get">
 <tt class="descname">get</tt><big>(</big><em>ident</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an instance of the object based on the 
-given identifier, or <tt class="xref docutils literal"><span class="pre">None</span></tt> if not found.</p>
-<p>The <tt class="docutils literal"><span class="pre">ident</span></tt> argument is a scalar or tuple of 
-primary key column values
-in the order of the mapper&#8217;s &#8220;primary key&#8221; setting, which
-defaults to the list of primary key columns for the 
-mapped <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</p>
-<p><tt class="xref py py-meth docutils literal"><span class="pre">get()</span></tt> returns only a single mapped instance, or
-<tt class="xref docutils literal"><span class="pre">None</span></tt>.  It is not intended to return rows or scalar
-column values, therefore the <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> must be 
-constructed only against a single mapper or mapped class,
-not a SQL expression or multiple entities.
-Other usages raise an error.</p>
+<dd><p>Return an instance based on the given primary key identifier, 
+or <tt class="xref docutils literal"><span class="pre">None</span></tt> if not found.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">my_user</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="n">some_object</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">VersionedFoo</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span></pre></div>
+</div>
+<p><a class="reference internal" href="#sqlalchemy.orm.query.Query.get" title="sqlalchemy.orm.query.Query.get"><tt class="xref py py-meth docutils literal"><span class="pre">get()</span></tt></a> is special in that it provides direct 
+access to the identity map of the owning <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.
+If the given primary key identifier is present
+in the local identity map, the object is returned
+directly from this collection and no SQL is emitted, 
+unless the object has been marked fully expired.
+If not present,
+a SELECT is performed in order to locate the object.</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.query.Query.get" title="sqlalchemy.orm.query.Query.get"><tt class="xref py py-meth docutils literal"><span class="pre">get()</span></tt></a> also will perform a check if 
+the object is present in the identity map and 
+marked as expired - a SELECT 
+is emitted to refresh the object as well as to
+ensure that the row is still present.
+If not, <a class="reference internal" href="exceptions.html#sqlalchemy.orm.exc.ObjectDeletedError" title="sqlalchemy.orm.exc.ObjectDeletedError"><tt class="xref py py-class docutils literal"><span class="pre">ObjectDeletedError</span></tt></a> is raised.</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.query.Query.get" title="sqlalchemy.orm.query.Query.get"><tt class="xref py py-meth docutils literal"><span class="pre">get()</span></tt></a> is only used to return a single
+mapped instance, not multiple instances or 
+individual column constructs, and strictly
+on a single primary key value.  The originating
+<a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> must be constructed in this way,
+i.e. against a single mapped entity,
+with no additional filtering criterion.  Loading
+options via <a class="reference internal" href="#sqlalchemy.orm.query.Query.options" title="sqlalchemy.orm.query.Query.options"><tt class="xref py py-meth docutils literal"><span class="pre">options()</span></tt></a> may be applied
+however, and will be used if the object is not
+yet locally present.</p>
+<p>A lazy-loading, many-to-one attribute configured
+by <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>, using a simple
+foreign-key-to-primary-key criterion, will also use an 
+operation equivalent to <a class="reference internal" href="#sqlalchemy.orm.query.Query.get" title="sqlalchemy.orm.query.Query.get"><tt class="xref py py-meth docutils literal"><span class="pre">get()</span></tt></a> in order to retrieve
+the target value from the local identity map
+before querying the database.  See <a class="reference internal" href="loading.html"><em>Relationship Loading Techniques</em></a>
+for further details on relationship loading.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ident</strong> &#8211; A scalar or tuple value representing
+the primary key.   For a composite primary key,
+the order of identifiers corresponds in most cases
+to that of the mapped <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object&#8217;s 
+primary key columns.  For a <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> that
+was given the <tt class="docutils literal"><span class="pre">primary</span> <span class="pre">key</span></tt> argument during
+construction, the order of identifiers corresponds 
+to the elements present in this collection.</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">The object instance, or <tt class="xref docutils literal"><span class="pre">None</span></tt>.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -528,7 +570,8 @@ be used for multiple (target, onclause) pairs.</p>
 <span class="c"># join from Company entities to the &quot;employees&quot; collection,</span>
 <span class="c"># using &quot;people JOIN engineers&quot; as the target.  Then join</span>
 <span class="c"># to the &quot;computers&quot; collection on the Engineer entity.</span>
-<span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span>                        <span class="n">join</span><span class="p">(</span><span class="n">people</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">engineers</span><span class="p">),</span> <span class="s">&#39;employees&#39;</span><span class="p">)</span><span class="o">.</span>\
+<span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span>\
+            <span class="n">join</span><span class="p">(</span><span class="n">people</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">engineers</span><span class="p">),</span> <span class="s">&#39;employees&#39;</span><span class="p">)</span><span class="o">.</span>\
             <span class="n">join</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">computers</span><span class="p">)</span>
 
 <span class="c"># join from Articles to Keywords, using the &quot;keywords&quot; attribute.</span>
@@ -560,6 +603,7 @@ of joins, such as:</p>
         <span class="n">join</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">from_joinpoint</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
 </div></blockquote>
+<p>See also <a class="reference internal" href="tutorial.html#ormtutorial-joins"><em>Querying with Joins</em></a> in the ORM tutorial.</p>
 </dd></dl>
 
 <dl class="method">

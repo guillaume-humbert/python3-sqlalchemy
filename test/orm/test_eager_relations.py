@@ -4,12 +4,12 @@ from test.lib.testing import eq_, is_, is_not_
 import sqlalchemy as sa
 from test.lib import testing
 from sqlalchemy.orm import joinedload, deferred, undefer, \
-    joinedload_all, backref, eagerload
+    joinedload_all, backref, eagerload, Session, immediateload
 from sqlalchemy import Integer, String, Date, ForeignKey, and_, select, \
     func
 from test.lib.schema import Table, Column
 from sqlalchemy.orm import mapper, relationship, create_session, \
-    lazyload, aliased
+    lazyload, aliased, column_property
 from test.lib.testing import eq_, assert_raises, \
     assert_raises_message
 from test.lib.assertsql import CompiledSQL
@@ -17,6 +17,7 @@ from test.lib import fixtures
 from test.orm import _fixtures
 from sqlalchemy.util import OrderedDict as odict
 import datetime
+
 
 class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
     run_inserts = 'once'
@@ -1328,6 +1329,285 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             "WHERE orders.description = :description_1",
             use_default_dialect=True
         )
+
+
+
+class SubqueryAliasingTest(fixtures.MappedTest, testing.AssertsCompiledSQL):
+    """test #2188"""
+
+    __dialect__ = 'default'
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('a', metadata,
+            Column('id', Integer, primary_key=True)
+        )
+
+        Table('b', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('a_id', Integer, ForeignKey('a.id')),
+            Column('value', Integer),
+        )
+
+    @classmethod
+    def setup_classes(cls):
+
+        class A(cls.Comparable):
+            pass
+        class B(cls.Comparable):
+            pass
+
+    def _fixture(self, props):
+        A, B = self.classes.A, self.classes.B
+        b_table, a_table = self.tables.b, self.tables.a
+        mapper(A,a_table, properties=props)
+        mapper(B,b_table,properties = {
+            'a':relationship(A, backref="bs")
+        })
+
+    def test_column_property(self):
+        A, B = self.classes.A, self.classes.B
+        b_table, a_table = self.tables.b, self.tables.a
+        cp = select([func.sum(b_table.c.value)]).\
+                        where(b_table.c.a_id==a_table.c.id)
+
+        self._fixture({
+            'summation':column_property(cp)
+        })
+        self.assert_compile(
+            create_session().query(A).options(joinedload_all('bs')).
+                            order_by(A.summation).
+                            limit(50),
+            "SELECT anon_1.anon_2 AS anon_1_anon_2, anon_1.a_id "
+            "AS anon_1_a_id, b_1.id AS b_1_id, b_1.a_id AS "
+            "b_1_a_id, b_1.value AS b_1_value FROM (SELECT "
+            "(SELECT sum(b.value) AS sum_1 FROM b WHERE b.a_id = a.id) "
+            "AS anon_2, a.id AS a_id FROM a ORDER BY (SELECT "
+            "sum(b.value) AS sum_1 FROM b WHERE b.a_id = a.id) "
+            "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN b AS b_1 ON "
+            "anon_1.a_id = b_1.a_id ORDER BY anon_1.anon_2"
+        )
+
+    def test_column_property_desc(self):
+        A, B = self.classes.A, self.classes.B
+        b_table, a_table = self.tables.b, self.tables.a
+        cp = select([func.sum(b_table.c.value)]).\
+                        where(b_table.c.a_id==a_table.c.id)
+
+        self._fixture({
+            'summation':column_property(cp)
+        })
+        self.assert_compile(
+            create_session().query(A).options(joinedload_all('bs')).
+                            order_by(A.summation.desc()).
+                            limit(50),
+            "SELECT anon_1.anon_2 AS anon_1_anon_2, anon_1.a_id "
+            "AS anon_1_a_id, b_1.id AS b_1_id, b_1.a_id AS "
+            "b_1_a_id, b_1.value AS b_1_value FROM (SELECT "
+            "(SELECT sum(b.value) AS sum_1 FROM b WHERE b.a_id = a.id) "
+            "AS anon_2, a.id AS a_id FROM a ORDER BY (SELECT "
+            "sum(b.value) AS sum_1 FROM b WHERE b.a_id = a.id) DESC "
+            "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN b AS b_1 ON "
+            "anon_1.a_id = b_1.a_id ORDER BY anon_1.anon_2 DESC"
+        )
+
+    def test_column_property_correlated(self):
+        A, B = self.classes.A, self.classes.B
+        b_table, a_table = self.tables.b, self.tables.a
+        cp = select([func.sum(b_table.c.value)]).\
+                        where(b_table.c.a_id==a_table.c.id).\
+                        correlate(a_table)
+
+        self._fixture({
+            'summation':column_property(cp)
+        })
+        self.assert_compile(
+            create_session().query(A).options(joinedload_all('bs')).
+                            order_by(A.summation).
+                            limit(50),
+            "SELECT anon_1.anon_2 AS anon_1_anon_2, anon_1.a_id "
+            "AS anon_1_a_id, b_1.id AS b_1_id, b_1.a_id AS "
+            "b_1_a_id, b_1.value AS b_1_value FROM (SELECT "
+            "(SELECT sum(b.value) AS sum_1 FROM b WHERE b.a_id = a.id) "
+            "AS anon_2, a.id AS a_id FROM a ORDER BY (SELECT "
+            "sum(b.value) AS sum_1 FROM b WHERE b.a_id = a.id) "
+            "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN b AS b_1 ON "
+            "anon_1.a_id = b_1.a_id ORDER BY anon_1.anon_2"
+        )
+
+    def test_standalone_subquery_unlabeled(self):
+        A, B = self.classes.A, self.classes.B
+        b_table, a_table = self.tables.b, self.tables.a
+        self._fixture({})
+        cp = select([func.sum(b_table.c.value)]).\
+                        where(b_table.c.a_id==a_table.c.id).\
+                        correlate(a_table).as_scalar()
+        # note its re-rendering the subquery in the
+        # outermost order by.  usually we want it to address
+        # the column within the subquery.  labelling fixes that.
+        self.assert_compile(
+            create_session().query(A).options(joinedload_all('bs')).
+                            order_by(cp).
+                            limit(50),
+            "SELECT anon_1.a_id AS anon_1_a_id, anon_1.anon_2 "
+            "AS anon_1_anon_2, b_1.id AS b_1_id, b_1.a_id AS "
+            "b_1_a_id, b_1.value AS b_1_value FROM (SELECT a.id "
+            "AS a_id, (SELECT sum(b.value) AS sum_1 FROM b WHERE "
+            "b.a_id = a.id) AS anon_2 FROM a ORDER BY (SELECT "
+            "sum(b.value) AS sum_1 FROM b WHERE b.a_id = a.id) "
+            "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN b AS b_1 "
+            "ON anon_1.a_id = b_1.a_id ORDER BY "
+            "(SELECT anon_1.anon_2 FROM b WHERE b.a_id = anon_1.a_id)"
+        )
+
+    def test_standalone_subquery_labeled(self):
+        A, B = self.classes.A, self.classes.B
+        b_table, a_table = self.tables.b, self.tables.a
+        self._fixture({})
+        cp = select([func.sum(b_table.c.value)]).\
+                        where(b_table.c.a_id==a_table.c.id).\
+                        correlate(a_table).as_scalar().label('foo')
+        self.assert_compile(
+            create_session().query(A).options(joinedload_all('bs')).
+                            order_by(cp).
+                            limit(50),
+            "SELECT anon_1.a_id AS anon_1_a_id, anon_1.foo "
+            "AS anon_1_foo, b_1.id AS b_1_id, b_1.a_id AS "
+            "b_1_a_id, b_1.value AS b_1_value FROM (SELECT a.id "
+            "AS a_id, (SELECT sum(b.value) AS sum_1 FROM b WHERE "
+            "b.a_id = a.id) AS foo FROM a ORDER BY (SELECT "
+            "sum(b.value) AS sum_1 FROM b WHERE b.a_id = a.id) "
+            "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN b AS b_1 "
+            "ON anon_1.a_id = b_1.a_id ORDER BY "
+            "anon_1.foo"
+        )
+
+    def test_standalone_negated(self):
+        A, B = self.classes.A, self.classes.B
+        b_table, a_table = self.tables.b, self.tables.a
+        self._fixture({})
+        cp = select([func.sum(b_table.c.value)]).\
+                        where(b_table.c.a_id==a_table.c.id).\
+                        correlate(a_table).\
+                        as_scalar()
+        # test a different unary operator
+        self.assert_compile(
+            create_session().query(A).options(joinedload_all('bs')).
+                            order_by(~cp).
+                            limit(50),
+            "SELECT anon_1.a_id AS anon_1_a_id, anon_1.anon_2 "
+            "AS anon_1_anon_2, b_1.id AS b_1_id, b_1.a_id AS "
+            "b_1_a_id, b_1.value AS b_1_value FROM (SELECT a.id "
+            "AS a_id, NOT (SELECT sum(b.value) AS sum_1 FROM b "
+            "WHERE b.a_id = a.id) FROM a ORDER BY NOT (SELECT "
+            "sum(b.value) AS sum_1 FROM b WHERE b.a_id = a.id) "
+            "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN b AS b_1 "
+            "ON anon_1.a_id = b_1.a_id ORDER BY anon_1.anon_2"
+        )
+
+
+class LoadOnExistingTest(_fixtures.FixtureTest):
+    """test that loaders from a base Query fully populate."""
+
+    run_inserts = 'once'
+    run_deletes = None
+
+    def _collection_to_scalar_fixture(self):
+        User, Address, Dingaling = self.classes.User, \
+            self.classes.Address, self.classes.Dingaling
+        mapper(User, self.tables.users, properties={
+            'addresses':relationship(Address),
+        })
+        mapper(Address, self.tables.addresses, properties={
+            'dingaling':relationship(Dingaling)
+        })
+        mapper(Dingaling, self.tables.dingalings)
+
+        sess = Session(autoflush=False)
+        return User, Address, Dingaling, sess
+
+    def _collection_to_collection_fixture(self):
+        User, Order, Item = self.classes.User, \
+            self.classes.Order, self.classes.Item
+        mapper(User, self.tables.users, properties={
+            'orders':relationship(Order), 
+        })
+        mapper(Order, self.tables.orders, properties={
+            'items':relationship(Item, secondary=self.tables.order_items),
+        })
+        mapper(Item, self.tables.items)
+
+        sess = Session(autoflush=False)
+        return User, Order, Item, sess
+
+    def _eager_config_fixture(self):
+        User, Address = self.classes.User, self.classes.Address
+        mapper(User, self.tables.users, properties={
+            'addresses':relationship(Address, lazy="joined"),
+        })
+        mapper(Address, self.tables.addresses)
+        sess = Session(autoflush=False)
+        return User, Address, sess
+
+    def test_no_query_on_refresh(self):
+        User, Address, sess = self._eager_config_fixture()
+
+        u1 = sess.query(User).get(8)
+        assert 'addresses' in u1.__dict__
+        sess.expire(u1)
+        def go():
+            eq_(u1.id, 8)
+        self.assert_sql_count(testing.db, go, 1)
+        assert 'addresses' not in u1.__dict__
+
+    def test_loads_second_level_collection_to_scalar(self):
+        User, Address, Dingaling, sess = self._collection_to_scalar_fixture()
+
+        u1 = sess.query(User).get(8)
+        a1 = Address()
+        u1.addresses.append(a1)
+        a2 = u1.addresses[0]
+        a2.email_address = 'foo'
+        sess.query(User).options(joinedload_all("addresses.dingaling")).\
+                            filter_by(id=8).all()
+        assert u1.addresses[-1] is a1
+        for a in u1.addresses:
+            if a is not a1:
+                assert 'dingaling' in a.__dict__
+            else:
+                assert 'dingaling' not in a.__dict__
+            if a is a2:
+                eq_(a2.email_address, 'foo')
+
+    def test_loads_second_level_collection_to_collection(self):
+        User, Order, Item, sess = self._collection_to_collection_fixture()
+
+        u1 = sess.query(User).get(7)
+        u1.orders
+        o1 = Order()
+        u1.orders.append(o1)
+        sess.query(User).options(joinedload_all("orders.items")).\
+                            filter_by(id=7).all()
+        for o in u1.orders:
+            if o is not o1:
+                assert 'items' in o.__dict__
+            else:
+                assert 'items' not in o.__dict__
+
+    def test_load_two_levels_collection_to_scalar(self):
+        User, Address, Dingaling, sess = self._collection_to_scalar_fixture()
+
+        u1 = sess.query(User).filter_by(id=8).options(joinedload("addresses")).one()
+        sess.query(User).filter_by(id=8).options(joinedload_all("addresses.dingaling")).first()
+        assert 'dingaling' in u1.addresses[0].__dict__
+
+    def test_load_two_levels_collection_to_collection(self):
+        User, Order, Item, sess = self._collection_to_collection_fixture()
+
+        u1 = sess.query(User).filter_by(id=7).options(joinedload("orders")).one()
+        sess.query(User).filter_by(id=7).options(joinedload_all("orders.items")).first()
+        assert 'items' in u1.orders[0].__dict__
+
 
 class AddEntityTest(_fixtures.FixtureTest):
     run_inserts = 'once'

@@ -158,13 +158,13 @@ RESERVED_WORDS = \
         'AS IN VIEW EXCLUSIVE COMPRESS SYNONYM SELECT INSERT EXISTS '\
         'NOT TRIGGER ELSE CREATE INTERSECT PCTFREE DISTINCT USER '\
         'CONNECT SET MODE OF UNIQUE VARCHAR2 VARCHAR LOCK OR CHAR '\
-        'DECIMAL UNION PUBLIC AND START UID COMMENT'.split())
+        'DECIMAL UNION PUBLIC AND START UID COMMENT CURRENT'.split())
 
 NO_ARG_FNS = set('UID CURRENT_DATE SYSDATE USER '
                 'CURRENT_TIME CURRENT_TIMESTAMP'.split())
 
-class RAW(sqltypes.LargeBinary):
-    pass
+class RAW(sqltypes._Binary):
+    __visit_name__ = 'RAW'
 OracleRaw = RAW
 
 class NCLOB(sqltypes.Text):
@@ -361,7 +361,10 @@ class OracleTypeCompiler(compiler.GenericTypeCompiler):
         return self.visit_SMALLINT(type_)
 
     def visit_RAW(self, type_):
-        return "RAW(%(length)s)" % {'length' : type_.length}
+        if type_.length:
+            return "RAW(%(length)s)" % {'length' : type_.length}
+        else:
+            return "RAW"
 
     def visit_ROWID(self, type_):
         return "ROWID"

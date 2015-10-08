@@ -7,7 +7,7 @@
         
         <title>
                 SQLAlchemy ORM
-             &mdash; SQLAlchemy 0.7.1 Documentation</title>
+             &mdash; SQLAlchemy 0.7 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.1',
+          VERSION:     '0.7.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
         <link rel="next" title="Object Relational Tutorial" href="tutorial.html" />
         <link rel="prev" title="Overview" href="../intro.html" />
 
@@ -37,7 +37,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.1 Documentation</h1>
+<h1>SQLAlchemy 0.7 Documentation</h1>
 
 <div id="search">
 Search:
@@ -49,7 +49,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
+    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -71,7 +71,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
         » 
                 SQLAlchemy ORM
              
@@ -176,7 +176,13 @@ Search:
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#configuring-eager-loading">Configuring Eager Loading</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="relationships.html#linking-relationships-with-backref">Linking relationships with Backref</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="relationships.html#backref-arguments">Backref Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="relationships.html#one-way-backrefs">One Way Backrefs</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="relationships.html#specifying-alternate-join-conditions-to-relationship">Specifying Alternate Join Conditions to relationship()</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="relationships.html#self-referential-many-to-many-relationship">Self-Referential Many-to-Many Relationship</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#specifying-foreign-keys">Specifying Foreign Keys</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#building-query-enabled-properties">Building Query-Enabled Properties</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#multiple-relationships-against-the-same-parent-child">Multiple Relationships against the Same Parent/Child</a></li>
@@ -222,7 +228,11 @@ Search:
 </li>
 <li class="toctree-l1"><a class="reference internal" href="session.html">Using the Session</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="session.html#what-does-the-session-do">What does the Session do ?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="session.html#getting-a-session">Getting a Session</a></li>
+<li class="toctree-l2"><a class="reference internal" href="session.html#getting-a-session">Getting a Session</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="session.html#adding-additional-configuration-to-an-existing-sessionmaker">Adding additional configuration to an Existing sessionmaker()</a></li>
+<li class="toctree-l3"><a class="reference internal" href="session.html#creating-ad-hoc-session-objects-with-alternate-arguments">Creating Ad-Hoc Session Objects with Alternate Arguments</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="session.html#id1">Using the Session</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="session.html#quickie-intro-to-object-states">Quickie Intro to Object States</a></li>
 <li class="toctree-l3"><a class="reference internal" href="session.html#frequently-asked-questions">Frequently Asked Questions</a></li>
@@ -242,7 +252,7 @@ Search:
 <li class="toctree-l2"><a class="reference internal" href="session.html#cascades">Cascades</a></li>
 <li class="toctree-l2"><a class="reference internal" href="session.html#managing-transactions">Managing Transactions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="session.html#using-savepoint">Using SAVEPOINT</a></li>
-<li class="toctree-l3"><a class="reference internal" href="session.html#using-subtransactions">Using Subtransactions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="session.html#autocommit-mode">Autocommit Mode</a></li>
 <li class="toctree-l3"><a class="reference internal" href="session.html#enabling-two-phase-commit">Enabling Two-Phase Commit</a></li>
 </ul>
 </li>
