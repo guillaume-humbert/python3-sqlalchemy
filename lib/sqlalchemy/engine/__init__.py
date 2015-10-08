@@ -1,5 +1,5 @@
 # engine/__init__.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -318,7 +318,8 @@ def create_engine(*args, **kwargs):
           :ref:`threadlocal_strategy`;
         * the ``mock`` strategy, which dispatches all statement
           execution to a function passed as the argument ``executor``.
-          See `example in the FAQ <http://www.sqlalchemy.org/trac/wiki/FAQ#HowcanIgettheCREATETABLEDROPTABLEoutputasastring>`_.
+          See `example in the FAQ
+          <http://www.sqlalchemy.org/trac/wiki/FAQ#HowcanIgettheCREATETABLEDROPTABLEoutputasastring>`_.
 
     :param executor=None: a function taking arguments
         ``(sql, *multiparams, **params)``, to which the ``mock`` strategy will

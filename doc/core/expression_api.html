@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0b2',
+          VERSION:     '0.8.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
+        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
 
 
     </div>
@@ -499,7 +499,7 @@ boolean equivalent for the target dialect.</p>
 
 <dl class="data">
 <dt id="sqlalchemy.sql.expression.func">
-<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.expression._FunctionGenerator object at 0x1019fc550&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.expression._FunctionGenerator object at 0x101902910&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate SQL function expressions.</p>
 <p><a class="reference internal" href="#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a> is a special object instance which generates SQL
 functions based on name-based attributes, e.g.:</p>
@@ -1513,6 +1513,11 @@ object, returning a copy of this <a class="reference internal" href="#sqlalchemy
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.select" title="sqlalchemy.sql.expression.FromClause.select"><tt class="xref py py-meth docutils literal"><span class="pre">select()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
 <p>return a SELECT of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> - general purpose
+method which allows for arbitrary column lists.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1758,6 +1763,29 @@ parent object.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ilike()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>Implement the <tt class="docutils literal"><span class="pre">ilike</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">ILIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.like()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1824,6 +1852,29 @@ on certain platforms.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">like()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>Implement the <tt class="docutils literal"><span class="pre">like</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">LIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.ilike()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -2260,6 +2311,29 @@ clause-level).</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ilike()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>Implement the <tt class="docutils literal"><span class="pre">ilike</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">ILIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.like()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -2326,6 +2400,29 @@ on certain platforms.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">like()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>Implement the <tt class="docutils literal"><span class="pre">like</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">LIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.ilike()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -2941,6 +3038,29 @@ clause-level).</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ilike()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>Implement the <tt class="docutils literal"><span class="pre">ilike</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">ILIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.like()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -3007,6 +3127,29 @@ on certain platforms.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">like()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>Implement the <tt class="docutils literal"><span class="pre">like</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">LIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.ilike()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -3476,6 +3619,29 @@ clause-level).</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ilike()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>Implement the <tt class="docutils literal"><span class="pre">ilike</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">ILIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.like()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -3540,6 +3706,29 @@ on certain platforms.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">like()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>Implement the <tt class="docutils literal"><span class="pre">like</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">LIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.ilike()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -4168,6 +4357,29 @@ parent object.</p>
 <tt class="descname">ilike</tt><big>(</big><em>other</em>, <em>escape=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.operators.ColumnOperators.ilike" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement the <tt class="docutils literal"><span class="pre">ilike</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">ILIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.like()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -4216,6 +4428,29 @@ on certain platforms.</p>
 <tt class="descname">like</tt><big>(</big><em>other</em>, <em>escape=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.operators.ColumnOperators.like" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement the <tt class="docutils literal"><span class="pre">like</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">LIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.ilike()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -4879,6 +5114,11 @@ result&#8217;s scalar representation.</p>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.select" title="sqlalchemy.sql.expression.FromClause.select"><tt class="xref py py-meth docutils literal"><span class="pre">select()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
 <p>return a SELECT of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> - general purpose
+method which allows for arbitrary column lists.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -5114,6 +5354,11 @@ object, returning a copy of this <a class="reference internal" href="#sqlalchemy
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.select" title="sqlalchemy.sql.expression.FromClause.select"><tt class="xref py py-meth docutils literal"><span class="pre">select()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
 <p>return a SELECT of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> - general purpose
+method which allows for arbitrary column lists.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -5866,6 +6111,29 @@ possible options.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ilike()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>Implement the <tt class="docutils literal"><span class="pre">ilike</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">ILIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.like()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -5951,6 +6219,29 @@ on certain platforms.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">like()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>Implement the <tt class="docutils literal"><span class="pre">like</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">LIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.ilike()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -6589,6 +6880,29 @@ possible options.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ilike()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>Implement the <tt class="docutils literal"><span class="pre">ilike</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">ILIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.like()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -6674,6 +6988,29 @@ on certain platforms.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">like()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>Implement the <tt class="docutils literal"><span class="pre">like</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">LIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.ilike()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -7078,6 +7415,11 @@ object, returning a copy of this <a class="reference internal" href="#sqlalchemy
 <dt id="sqlalchemy.sql.expression.FromClause.select">
 <tt class="descname">select</tt><big>(</big><em>whereclause=None</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.FromClause.select" title="Permalink to this definition">¶</a></dt>
 <dd><p>return a SELECT of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> - general purpose
+method which allows for arbitrary column lists.</p>
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -8614,6 +8956,11 @@ result&#8217;s scalar representation.</p>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.select" title="sqlalchemy.sql.expression.FromClause.select"><tt class="xref py py-meth docutils literal"><span class="pre">select()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
 <p>return a SELECT of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> - general purpose
+method which allows for arbitrary column lists.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -9270,6 +9617,11 @@ object, returning a copy of this <a class="reference internal" href="#sqlalchemy
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.select" title="sqlalchemy.sql.expression.FromClause.select"><tt class="xref py py-meth docutils literal"><span class="pre">select()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
 <p>return a SELECT of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> - general purpose
+method which allows for arbitrary column lists.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -10448,7 +10800,7 @@ CAST, EXTRACT).</p>
         <a href="engines.html" title="next chapter">Engine Configuration</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>

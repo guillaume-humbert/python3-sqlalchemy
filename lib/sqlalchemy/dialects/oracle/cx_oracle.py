@@ -1,5 +1,5 @@
 # oracle/cx_oracle.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -190,7 +190,7 @@ from ...engine import result as _result
 from sqlalchemy import types as sqltypes, util, exc, processors
 import random
 import collections
-from sqlalchemy.util.compat import decimal
+import decimal
 import re
 
 

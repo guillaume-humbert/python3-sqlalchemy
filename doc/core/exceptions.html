@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0b2',
+          VERSION:     '0.8.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
+        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
 
 
     </div>
@@ -245,26 +245,19 @@ regarding the connection attempt.</p>
 <p>A mixin class which, when applied to a user-defined Exception class,
 will not be wrapped inside of <tt class="xref py py-class docutils literal"><span class="pre">StatementError</span></tt> if the error is
 emitted within the process of executing a statement.</p>
-<dl class="docutils">
-<dt>E.g.::</dt>
-<dd><p class="first">from sqlalchemy.exc import DontWrapMixin</p>
-<dl class="last docutils">
-<dt>class MyCustomException(Exception, DontWrapMixin):</dt>
-<dd>pass</dd>
-<dt>class MySpecialType(TypeDecorator):</dt>
-<dd><p class="first">impl = String</p>
-<dl class="last docutils">
-<dt>def process_bind_param(self, value, dialect):</dt>
-<dd><dl class="first last docutils">
-<dt>if value == &#8216;invalid&#8217;:</dt>
-<dd>raise MyCustomException(&#8220;invalid!&#8221;)</dd>
-</dl>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd>
-</dl>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.exc</span> <span class="kn">import</span> <span class="n">DontWrapMixin</span>
+
+<span class="k">class</span> <span class="nc">MyCustomException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">,</span> <span class="n">DontWrapMixin</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">MySpecialType</span><span class="p">(</span><span class="n">TypeDecorator</span><span class="p">):</span>
+    <span class="n">impl</span> <span class="o">=</span> <span class="n">String</span>
+
+    <span class="k">def</span> <span class="nf">process_bind_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&#39;invalid&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MyCustomException</span><span class="p">(</span><span class="s">&quot;invalid!&quot;</span><span class="p">)</span></pre></div>
+</div>
 </dd></dl>
 
 <dl class="exception">
@@ -471,7 +464,7 @@ the <a class="reference internal" href="#sqlalchemy.exc.StatementError.orig" tit
         <a href="internals.html" title="next chapter">Core Internals</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>

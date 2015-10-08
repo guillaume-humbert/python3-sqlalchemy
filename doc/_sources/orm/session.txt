@@ -1,3 +1,5 @@
+.. _session_toplevel:
+
 =================
 Using the Session
 =================
@@ -736,6 +738,8 @@ caveats, including that "delete" and "delete-orphan" cascades won't be fully
 expressed for collections which are already loaded. See the API docs for
 :meth:`~sqlalchemy.orm.query.Query.delete` for more details.
 
+.. _session_flushing:
+
 Flushing
 --------
 
@@ -778,6 +782,8 @@ required after a flush fails, even though the underlying transaction will have
 been rolled back already - this is so that the overall nesting pattern of
 so-called "subtransactions" is consistently maintained.
 
+.. _session_committing:
+
 Committing
 ----------
 
@@ -815,6 +821,8 @@ as the transaction continues. Setting ``autocommit=True`` works against this
 model to some degree since the :class:`~sqlalchemy.orm.session.Session`
 behaves in exactly the same way with regard to attribute state, except no
 transaction is present.
+
+.. _session_rollback:
 
 Rolling Back
 ------------
@@ -1937,6 +1945,8 @@ Session Utilites
 .. autofunction:: make_transient
 
 .. autofunction:: object_session
+
+.. autofunction:: was_deleted
 
 Attribute and State Management Utilities
 -----------------------------------------

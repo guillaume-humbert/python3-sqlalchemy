@@ -17,10 +17,10 @@ from sqlalchemy import Table, Column, select, MetaData, text, Integer, \
 from sqlalchemy.orm import Session, mapper, aliased
 from sqlalchemy import exc, schema, types
 from sqlalchemy.dialects.postgresql import base as postgresql
-from sqlalchemy.dialects.postgresql import HSTORE, hstore, array, ARRAY
-from sqlalchemy.util.compat import decimal
+from sqlalchemy.dialects.postgresql import HSTORE, hstore, array
+import decimal
 from sqlalchemy.testing.util import round_decimal
-from sqlalchemy.sql import table, column
+from sqlalchemy.sql import table, column, operators
 import logging
 import re
 
@@ -180,17 +180,14 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                             'USING hash (data)',
                             dialect=postgresql.dialect())
 
-    @testing.uses_deprecated(r".*'postgres_where' argument has been "
-                             "renamed.*")
-    def test_old_create_partial_index(self):
-        tbl = Table('testtbl', MetaData(), Column('data', Integer))
-        idx = Index('test_idx1', tbl.c.data,
-                    postgres_where=and_(tbl.c.data > 5, tbl.c.data
-                    < 10))
-        self.assert_compile(schema.CreateIndex(idx),
-                            'CREATE INDEX test_idx1 ON testtbl (data) '
-                            'WHERE data > 5 AND data < 10',
-                            dialect=postgresql.dialect())
+    def test_substring(self):
+        self.assert_compile(func.substring('abc', 1, 2),
+                            'SUBSTRING(%(substring_1)s FROM %(substring_2)s '
+                            'FOR %(substring_3)s)')
+        self.assert_compile(func.substring('abc', 1),
+                            'SUBSTRING(%(substring_1)s FROM %(substring_2)s)')
+
+
 
     def test_extract(self):
         t = table('t', column('col1', DateTime), column('col2', Date),
@@ -301,6 +298,26 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             'x && %(x_1)s',
             checkparams={'x_1': [3]}
         )
+        self.assert_compile(
+            postgresql.Any(4, c),
+            '%(param_1)s = ANY (x)',
+            checkparams={'param_1': 4}
+        )
+        self.assert_compile(
+            c.any(5, operator=operators.ne),
+            '%(param_1)s != ANY (x)',
+            checkparams={'param_1': 5}
+        )
+        self.assert_compile(
+            postgresql.All(6, c, operator=operators.gt),
+            '%(param_1)s > ALL (x)',
+            checkparams={'param_1': 6}
+        )
+        self.assert_compile(
+            c.all(7, operator=operators.lt),
+            '%(param_1)s < ALL (x)',
+            checkparams={'param_1': 7}
+        )
 
     def test_array_literal_type(self):
         is_(postgresql.array([1, 2]).type._type_affinity, postgresql.ARRAY)
@@ -317,6 +334,15 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                     "ARRAY[%(param_3)s, %(param_4)s, %(param_5)s])",
             checkparams={'param_5': 5, 'param_4': 4, 'param_1': 1,
                 'param_3': 3, 'param_2': 2}
+        )
+
+    def test_array_literal_insert(self):
+        m = MetaData()
+        t = Table('t', m, Column('data', postgresql.ARRAY(Integer)))
+        self.assert_compile(
+            t.insert().values(data=array([1, 2, 3])),
+            "INSERT INTO t (data) VALUES (ARRAY[%(param_1)s, "
+                "%(param_2)s, %(param_3)s])"
         )
 
     def test_update_array_element(self):
@@ -716,7 +742,6 @@ class NumericInterpretationTest(fixtures.TestBase):
 
     def test_numeric_codes(self):
         from sqlalchemy.dialects.postgresql import pg8000, psycopg2, base
-        from sqlalchemy.util.compat import decimal
 
         for dialect in (pg8000.dialect(), psycopg2.dialect()):
 
@@ -2272,6 +2297,34 @@ class ArrayTest(fixtures.TestBase, AssertsExecutionResults):
                 conn.scalar(
                     select([arrtable.c.intarr]).
                         where(arrtable.c.intarr.overlap([7, 6]))
+                ),
+                [4, 5, 6]
+            )
+
+    def test_array_any_exec(self):
+        with testing.db.connect() as conn:
+            conn.execute(
+                arrtable.insert(),
+                intarr=[4, 5, 6]
+            )
+            eq_(
+                conn.scalar(
+                    select([arrtable.c.intarr]).
+                        where(postgresql.Any(5, arrtable.c.intarr))
+                ),
+                [4, 5, 6]
+            )
+
+    def test_array_all_exec(self):
+        with testing.db.connect() as conn:
+            conn.execute(
+                arrtable.insert(),
+                intarr=[4, 5, 6]
+            )
+            eq_(
+                conn.scalar(
+                    select([arrtable.c.intarr]).
+                        where(arrtable.c.intarr.all(4, operator=operators.le))
                 ),
                 [4, 5, 6]
             )

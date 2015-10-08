@@ -1,5 +1,5 @@
 # ext/declarative/__init__.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -901,7 +901,7 @@ reference a common target class via many-to-one::
 primaryjoin, order_by etc. expressions should use the string forms
 for these arguments, so that they are evaluated as late as possible.
 To reference the mixin class in these expressions, use the given ``cls``
-to get it's name::
+to get its name::
 
     class RefTargetMixin(object):
         @declared_attr

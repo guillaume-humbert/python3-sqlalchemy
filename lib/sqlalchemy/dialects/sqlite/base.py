@@ -1,5 +1,5 @@
 # sqlite/base.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -87,7 +87,7 @@ the effect of each SQL statement and flush committing changes immediately.
 For more information on SQLite's lack of concurrency by design, please
 see `Situations Where Another RDBMS May Work Better - High
 Concurrency <http://www.sqlite.org/whentouse.html>`_ near the bottom of
- the page.
+the page.
 
 .. _sqlite_foreign_keys:
 
@@ -522,18 +522,8 @@ class SQLiteDDLCompiler(compiler.DDLCompiler):
         return preparer.format_table(table, use_schema=False)
 
     def visit_create_index(self, create):
-        index = create.element
-        preparer = self.preparer
-        text = "CREATE "
-        if index.unique:
-            text += "UNIQUE "
-        text += "INDEX %s ON %s (%s)" \
-                    % (preparer.format_index(index,
-                       name=self._index_identifier(index.name)),
-                       preparer.format_table(index.table, use_schema=False),
-                       ', '.join(preparer.quote(c.name, c.quote)
-                                 for c in index.columns))
-        return text
+        return super(SQLiteDDLCompiler, self).\
+                    visit_create_index(create, include_table_schema=False)
 
 
 class SQLiteTypeCompiler(compiler.GenericTypeCompiler):

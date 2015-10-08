@@ -1,5 +1,5 @@
 # orm/__init__.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -35,6 +35,7 @@ from .util import (
      object_mapper,
      outerjoin,
      polymorphic_union,
+     was_deleted,
      with_parent,
      with_polymorphic,
      )
@@ -125,6 +126,7 @@ __all__ = (
     'undefer',
     'undefer_group',
     'validates',
+    'was_deleted',
     'with_polymorphic'
     )
 
@@ -946,6 +948,32 @@ def mapper(class_, local_table=None, *args, **params):
            columns present are missing a :class:`.ForeignKey` configuration,
            this parameter can be used to specify which columns are "foreign".
            In most cases can be left as ``None``.
+
+        :param legacy_is_orphan: Boolean, defaults to ``False``.
+          When ``True``, specifies that "legacy" orphan consideration
+          is to be applied to objects mapped by this mapper, which means
+          that a pending (that is, not persistent) object is auto-expunged
+          from an owning :class:`.Session` only when it is de-associated
+          from *all* parents that specify a ``delete-orphan`` cascade towards
+          this mapper.  The new default behavior is that the object is auto-expunged
+          when it is de-associated with *any* of its parents that specify
+          ``delete-orphan`` cascade.  This behavior is more consistent with
+          that of a persistent object, and allows behavior to be consistent
+          in more scenarios independently of whether or not an orphanable
+          object has been flushed yet or not.
+
+          See the change note and example at :ref:`legacy_is_orphan_addition`
+          for more detail on this change.
+
+          .. versionadded:: 0.8 - the consideration of a pending object as
+            an "orphan" has been modified to more closely match the
+            behavior as that of persistent objects, which is that the object
+            is expunged from the :class:`.Session` as soon as it is
+            de-associated from any of its orphan-enabled parents.  Previously,
+            the pending object would be expunged only if de-associated
+            from all of its orphan-enabled parents. The new flag ``legacy_is_orphan``
+            is added to :func:`.orm.mapper` which re-establishes the
+            legacy behavior.
 
         :param non_primary: Specify that this :class:`.Mapper` is in addition
           to the "primary" mapper, that is, the one used for persistence.

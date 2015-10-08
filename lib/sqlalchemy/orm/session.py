@@ -1,5 +1,5 @@
 # orm/session.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -56,6 +56,12 @@ class _SessionClassMethods(object):
 
         return object_session(instance)
 
+
+ACTIVE = util.symbol('ACTIVE')
+PREPARED = util.symbol('PREPARED')
+COMMITTED = util.symbol('COMMITTED')
+DEACTIVE = util.symbol('DEACTIVE')
+CLOSED = util.symbol('CLOSED')
 
 class SessionTransaction(object):
     """A :class:`.Session`-level transaction.
@@ -144,8 +150,7 @@ class SessionTransaction(object):
         self._connections = {}
         self._parent = parent
         self.nested = nested
-        self._active = True
-        self._prepared = False
+        self._state = ACTIVE
         if not parent and nested:
             raise sa_exc.InvalidRequestError(
                 "Can't start a SAVEPOINT transaction when no existing "
@@ -159,42 +164,53 @@ class SessionTransaction(object):
 
     @property
     def is_active(self):
-        return self.session is not None and self._active
+        return self.session is not None and self._state is ACTIVE
 
-    def _assert_is_active(self):
-        self._assert_is_open()
-        if not self._active:
-            if self._rollback_exception:
-                raise sa_exc.InvalidRequestError(
-                    "This Session's transaction has been rolled back "
-                    "due to a previous exception during flush."
-                    " To begin a new transaction with this Session, "
-                    "first issue Session.rollback()."
-                    " Original exception was: %s"
-                    % self._rollback_exception
+    def _assert_active(self, prepared_ok=False,
+                        rollback_ok=False,
+                        closed_msg="This transaction is closed"):
+        if self._state is COMMITTED:
+            raise sa_exc.InvalidRequestError(
+                    "This session is in 'committed' state; no further "
+                    "SQL can be emitted within this transaction."
                 )
-            else:
+        elif self._state is PREPARED:
+            if not prepared_ok:
                 raise sa_exc.InvalidRequestError(
-                    "This Session's transaction has been rolled back "
-                    "by a nested rollback() call.  To begin a new "
-                    "transaction, issue Session.rollback() first."
+                        "This session is in 'prepared' state; no further "
+                        "SQL can be emitted within this transaction."
                     )
-
-    def _assert_is_open(self, error_msg="The transaction is closed"):
-        if self.session is None:
-            raise sa_exc.ResourceClosedError(error_msg)
+        elif self._state is DEACTIVE:
+            if not rollback_ok:
+                if self._rollback_exception:
+                    raise sa_exc.InvalidRequestError(
+                        "This Session's transaction has been rolled back "
+                        "due to a previous exception during flush."
+                        " To begin a new transaction with this Session, "
+                        "first issue Session.rollback()."
+                        " Original exception was: %s"
+                        % self._rollback_exception
+                    )
+                else:
+                    raise sa_exc.InvalidRequestError(
+                        "This Session's transaction has been rolled back "
+                        "by a nested rollback() call.  To begin a new "
+                        "transaction, issue Session.rollback() first."
+                        )
+        elif self._state is CLOSED:
+            raise sa_exc.ResourceClosedError(closed_msg)
 
     @property
     def _is_transaction_boundary(self):
         return self.nested or not self._parent
 
     def connection(self, bindkey, **kwargs):
-        self._assert_is_active()
+        self._assert_active()
         bind = self.session.get_bind(bindkey, **kwargs)
         return self._connection_for_bind(bind)
 
     def _begin(self, nested=False):
-        self._assert_is_active()
+        self._assert_active()
         return SessionTransaction(
             self.session, self, nested=nested)
 
@@ -255,9 +271,13 @@ class SessionTransaction(object):
         if not self.nested and self.session.expire_on_commit:
             for s in self.session.identity_map.all_states():
                 s._expire(s.dict, self.session.identity_map._modified)
+            for s in self._deleted:
+                s.session_id = None
+            self._deleted.clear()
+
 
     def _connection_for_bind(self, bind):
-        self._assert_is_active()
+        self._assert_active()
 
         if bind in self._connections:
             return self._connections[bind][0]
@@ -291,11 +311,12 @@ class SessionTransaction(object):
     def prepare(self):
         if self._parent is not None or not self.session.twophase:
             raise sa_exc.InvalidRequestError(
-                "Only root two phase transactions of can be prepared")
+                "'twophase' mode not enabled, or not root transaction; "
+                "can't prepare.")
         self._prepare_impl()
 
     def _prepare_impl(self):
-        self._assert_is_active()
+        self._assert_active()
         if self._parent is None or self.nested:
             self.session.dispatch.before_commit(self.session)
 
@@ -323,18 +344,18 @@ class SessionTransaction(object):
                 self.rollback()
                 raise
 
-        self._deactivate()
-        self._prepared = True
+        self._state = PREPARED
 
     def commit(self):
-        self._assert_is_open()
-        if not self._prepared:
+        self._assert_active(prepared_ok=True)
+        if self._state is not PREPARED:
             self._prepare_impl()
 
         if self._parent is None or self.nested:
             for t in set(self._connections.values()):
                 t[1].commit()
 
+            self._state = COMMITTED
             self.session.dispatch.after_commit(self.session)
 
             if self.session._enable_transaction_accounting:
@@ -344,26 +365,26 @@ class SessionTransaction(object):
         return self._parent
 
     def rollback(self, _capture_exception=False):
-        self._assert_is_open()
+        self._assert_active(prepared_ok=True, rollback_ok=True)
 
         stx = self.session.transaction
         if stx is not self:
             for subtransaction in stx._iterate_parents(upto=self):
                 subtransaction.close()
 
-        if self.is_active or self._prepared:
+        if self._state in (ACTIVE, PREPARED):
             for transaction in self._iterate_parents():
                 if transaction._parent is None or transaction.nested:
                     transaction._rollback_impl()
-                    transaction._deactivate()
+                    transaction._state = DEACTIVE
                     break
                 else:
-                    transaction._deactivate()
+                    transaction._state = DEACTIVE
 
         sess = self.session
 
         if self.session._enable_transaction_accounting and \
-            not sess._is_clean():
+                not sess._is_clean():
             # if items were added, deleted, or mutated
             # here, we need to re-restore the snapshot
             util.warn(
@@ -389,20 +410,17 @@ class SessionTransaction(object):
 
         self.session.dispatch.after_rollback(self.session)
 
-    def _deactivate(self):
-        self._active = False
-
     def close(self):
         self.session.transaction = self._parent
         if self._parent is None:
             for connection, transaction, autoclose in \
-                set(self._connections.values()):
+                    set(self._connections.values()):
                 if autoclose:
                     connection.close()
                 else:
                     transaction.close()
 
-        self._deactivate()
+        self._state = CLOSED
         if self.session.dispatch.after_transaction_end:
             self.session.dispatch.after_transaction_end(self.session, self)
 
@@ -416,8 +434,7 @@ class SessionTransaction(object):
         return self
 
     def __exit__(self, type, value, traceback):
-        self._assert_is_open("Cannot end transaction context. The transaction "
-                                    "was closed from within the context")
+        self._assert_active(prepared_ok=True)
         if self.session.transaction is None:
             return
         if type is None:
@@ -655,6 +672,10 @@ class Session(_SessionClassMethods):
         to the first real transaction are closed.  Subtransactions occur when
         begin() is called multiple times.
 
+        .. seealso::
+
+            :ref:`session_rollback`
+
         """
         if self.transaction is None:
             pass
@@ -678,10 +699,15 @@ class Session(_SessionClassMethods):
         multiple times), the subtransaction will be closed, and the next call
         to ``commit()`` will operate on the enclosing transaction.
 
-        For a session configured with autocommit=False, a new transaction will
+        When using the :class:`.Session` in its default mode of
+        ``autocommit=False``, a new transaction will
         be begun immediately after the commit, but note that the newly begun
         transaction does *not* use any connection resources until the first
         SQL is actually emitted.
+
+        .. seealso::
+
+            :ref:`session_committing`
 
         """
         if self.transaction is None:

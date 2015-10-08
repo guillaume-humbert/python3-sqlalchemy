@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0b2',
+          VERSION:     '0.8.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
+        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
 
 
     </div>
@@ -297,7 +297,10 @@ and the cache is gone.</p>
 <div class="section" id="directed-graphs">
 <h2>Directed Graphs<a class="headerlink" href="#directed-graphs" title="Permalink to this headline">¶</a></h2>
 <p>Location: /examples/graphs/</p>
-<span class="target" id="module-graphs"></span><p>An example of persistence for a directed graph structure.   The graph is stored as a collection of edges, each referencing both a &#8220;lower&#8221; and an &#8220;upper&#8221; node in a table of nodes.  Basic persistence and querying for lower- and upper- neighbors are illustrated:</p>
+<span class="target" id="module-graphs"></span><p>An example of persistence for a directed graph structure.   The
+graph is stored as a collection of edges, each referencing both a
+&#8220;lower&#8221; and an &#8220;upper&#8221; node in a table of nodes.  Basic persistence
+and querying for lower- and upper- neighbors are illustrated:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">n2</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">n5</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 <span class="n">n2</span><span class="o">.</span><span class="n">add_neighbor</span><span class="p">(</span><span class="n">n5</span><span class="p">)</span>
@@ -307,9 +310,10 @@ and the cache is gone.</p>
 <div class="section" id="dynamic-relations-as-dictionaries">
 <h2>Dynamic Relations as Dictionaries<a class="headerlink" href="#dynamic-relations-as-dictionaries" title="Permalink to this headline">¶</a></h2>
 <p>Location: /examples/dynamic_dict/</p>
-<span class="target" id="module-dynamic_dict"></span><p>Illustrates how to place a dictionary-like facade on top of a &#8220;dynamic&#8221; relation, so
-that dictionary operations (assuming simple string keys) can operate upon a large
-collection without loading the full collection at once.</p>
+<span class="target" id="module-dynamic_dict"></span><p>Illustrates how to place a dictionary-like facade on top of a
+&#8220;dynamic&#8221; relation, so that dictionary operations (assuming simple
+string keys) can operate upon a large collection without loading the
+full collection at once.</p>
 </div>
 <div class="section" id="generic-associations">
 <span id="examples-generic-associations"></span><h2>Generic Associations<a class="headerlink" href="#generic-associations" title="Permalink to this headline">¶</a></h2>
@@ -332,7 +336,8 @@ association table, including a discriminator column.</li>
 </ul>
 <p>The <tt class="docutils literal"><span class="pre">discriminator_on_association.py</span></tt> script in particular is a modernized
 version of the &#8220;polymorphic associations&#8221; example present in older versions of
-SQLAlchemy, originally from the blog post at <a class="reference external" href="http://techspot.zzzeek.org/2007/05/29/polymorphic-associations-with-sqlalchemy/">http://techspot.zzzeek.org/2007/05/29/polymorphic-associations-with-sqlalchemy/</a>.</p>
+SQLAlchemy, originally from the blog post at
+<a class="reference external" href="http://techspot.zzzeek.org/2007/05/29/polymorphic-associations-with-sqlalchemy/">http://techspot.zzzeek.org/2007/05/29/polymorphic-associations-with-sqlalchemy/</a>.</p>
 </div>
 <div class="section" id="horizontal-sharding">
 <span id="examples-sharding"></span><h2>Horizontal Sharding<a class="headerlink" href="#horizontal-sharding" title="Permalink to this headline">¶</a></h2>
@@ -367,22 +372,28 @@ database nodes) in an explicit way - described on the wiki at
 <div class="section" id="inheritance-mappings">
 <h2>Inheritance Mappings<a class="headerlink" href="#inheritance-mappings" title="Permalink to this headline">¶</a></h2>
 <p>Location: /examples/inheritance/</p>
-<span class="target" id="module-inheritance"></span><p>Working examples of single-table, joined-table, and concrete-table inheritance as described in <em class="xref std std-ref">datamapping_inheritance</em>.</p>
+<span class="target" id="module-inheritance"></span><p>Working examples of single-table, joined-table, and concrete-table
+inheritance as described in <em class="xref std std-ref">datamapping_inheritance</em>.</p>
 </div>
 <div class="section" id="large-collections">
 <h2>Large Collections<a class="headerlink" href="#large-collections" title="Permalink to this headline">¶</a></h2>
 <p>Location: /examples/large_collection/</p>
 <span class="target" id="module-large_collection"></span><p>Large collection example.</p>
-<p>Illustrates the options to use with <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> when the list of related objects is very large, including:</p>
+<p>Illustrates the options to use with
+<a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> when the list of related
+objects is very large, including:</p>
 <ul class="simple">
 <li>&#8220;dynamic&#8221; relationships which query slices of data as accessed</li>
-<li>how to use ON DELETE CASCADE in conjunction with <tt class="docutils literal"><span class="pre">passive_deletes=True</span></tt> to greatly improve the performance of related collection deletion.</li>
+<li>how to use ON DELETE CASCADE in conjunction with
+<tt class="docutils literal"><span class="pre">passive_deletes=True</span></tt> to greatly improve the performance of
+related collection deletion.</li>
 </ul>
 </div>
 <div class="section" id="nested-sets">
 <h2>Nested Sets<a class="headerlink" href="#nested-sets" title="Permalink to this headline">¶</a></h2>
 <p>Location: /examples/nested_sets/</p>
-<span class="target" id="module-nested_sets"></span><p>Illustrates a rudimentary way to implement the &#8220;nested sets&#8221; pattern for hierarchical data using the SQLAlchemy ORM.</p>
+<span class="target" id="module-nested_sets"></span><p>Illustrates a rudimentary way to implement the &#8220;nested sets&#8221;
+pattern for hierarchical data using the SQLAlchemy ORM.</p>
 </div>
 <div class="section" id="polymorphic-associations">
 <h2>Polymorphic Associations<a class="headerlink" href="#polymorphic-associations" title="Permalink to this headline">¶</a></h2>
@@ -393,7 +404,9 @@ database nodes) in an explicit way - described on the wiki at
 <p>Location: /examples/postgis</p>
 <span class="target" id="module-postgis"></span><p>A naive example illustrating techniques to help
 embed PostGIS functionality.</p>
-<p>This example was originally developed in the hopes that it would be extrapolated into a comprehensive PostGIS integration layer.  We are pleased to announce that this has come to fruition as <a class="reference external" href="http://www.geoalchemy.org/">GeoAlchemy</a>.</p>
+<p>This example was originally developed in the hopes that it would be
+extrapolated into a comprehensive PostGIS integration layer.  We are
+pleased to announce that this has come to fruition as <a class="reference external" href="http://www.geoalchemy.org/">GeoAlchemy</a>.</p>
 <p>The example illustrates:</p>
 <ul class="simple">
 <li>a DDL extension which allows CREATE/DROP to work in
@@ -462,8 +475,9 @@ nosetests -v</pre>
             <span class="nb">all</span><span class="p">()</span> \
             <span class="o">==</span> <span class="p">[</span><span class="n">SomeClassHistory</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;sc1&#39;</span><span class="p">)]</span></pre></div>
 </div>
-<p>The <tt class="docutils literal"><span class="pre">Versioned</span></tt> mixin is designed to work with declarative.  To use the extension with
-classical mappers, the <tt class="docutils literal"><span class="pre">_history_mapper</span></tt> function can be applied:</p>
+<p>The <tt class="docutils literal"><span class="pre">Versioned</span></tt> mixin is designed to work with declarative.  To use
+the extension with classical mappers, the <tt class="docutils literal"><span class="pre">_history_mapper</span></tt> function
+can be applied:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">history_meta</span> <span class="kn">import</span> <span class="n">_history_mapper</span>
 
 <span class="n">m</span> <span class="o">=</span> <span class="n">mapper</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="n">sometable</span><span class="p">)</span>
@@ -476,9 +490,15 @@ classical mappers, the <tt class="docutils literal"><span class="pre">_history_m
 <h2>Vertical Attribute Mapping<a class="headerlink" href="#vertical-attribute-mapping" title="Permalink to this headline">¶</a></h2>
 <p>Location: /examples/vertical</p>
 <span class="target" id="module-vertical"></span><p>Illustrates &#8220;vertical table&#8221; mappings.</p>
-<p>A &#8220;vertical table&#8221; refers to a technique where individual attributes of an object are stored as distinct rows in a table.
-The &#8220;vertical table&#8221; technique is used to persist objects which can have a varied set of attributes, at the expense of simple query control and brevity.   It is commonly found in content/document management systems in order to represent user-created structures flexibly.</p>
-<p>Two variants on the approach are given.  In the second, each row references a &#8220;datatype&#8221; which contains information about the type of information stored in the attribute, such as integer, string, or date.</p>
+<p>A &#8220;vertical table&#8221; refers to a technique where individual attributes
+of an object are stored as distinct rows in a table. The &#8220;vertical
+table&#8221; technique is used to persist objects which can have a varied
+set of attributes, at the expense of simple query control and brevity.
+It is commonly found in content/document management systems in order
+to represent user-created structures flexibly.</p>
+<p>Two variants on the approach are given.  In the second, each row
+references a &#8220;datatype&#8221; which contains information about the type of
+information stored in the attribute, such as integer, string, or date.</p>
 <p>Example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">shrew</span> <span class="o">=</span> <span class="n">Animal</span><span class="p">(</span><span class="s">u&#39;shrew&#39;</span><span class="p">)</span>
 <span class="n">shrew</span><span class="p">[</span><span class="s">u&#39;cuteness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
@@ -507,16 +527,21 @@ suit any kind of DOM representation system. Querying along
 xpath-like strings is illustrated as well.</p>
 <p>In order of complexity:</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">pickle.py</span></tt> - Quick and dirty, serialize the whole DOM into a BLOB column.  While the example
-is very brief, it has very limited functionality.</li>
-<li><tt class="docutils literal"><span class="pre">adjacency_list.py</span></tt> - Each DOM node is stored in an individual table row, with attributes
-represented in a separate table.  The nodes are associated in a hierarchy using an adjacency list
-structure.  A query function is introduced which can search for nodes along any path with a given
-structure of attributes, basically a (very narrow) subset of xpath.</li>
-<li><tt class="docutils literal"><span class="pre">optimized_al.py</span></tt> - Uses the same strategy as <tt class="docutils literal"><span class="pre">adjacency_list.py</span></tt>, but associates each
-DOM row with its owning document row, so that a full document of DOM nodes can be
-loaded using O(1) queries - the construction of the &#8220;hierarchy&#8221; is performed after
-the load in a non-recursive fashion and is much more efficient.</li>
+<li><tt class="docutils literal"><span class="pre">pickle.py</span></tt> - Quick and dirty, serialize the whole DOM into a BLOB
+column.  While the example   is very brief, it has very limited
+functionality.</li>
+<li><tt class="docutils literal"><span class="pre">adjacency_list.py</span></tt> - Each DOM node is stored in an individual
+table row, with attributes   represented in a separate table.  The
+nodes are associated in a hierarchy using an adjacency list
+structure.  A query function is introduced which can search for nodes
+along any path with a given   structure of attributes, basically a
+(very narrow) subset of xpath.</li>
+<li><tt class="docutils literal"><span class="pre">optimized_al.py</span></tt> - Uses the same strategy as
+<tt class="docutils literal"><span class="pre">adjacency_list.py</span></tt>, but associates each   DOM row with its owning
+document row, so that a full document of DOM nodes can be   loaded
+using O(1) queries - the construction of the &#8220;hierarchy&#8221; is performed
+after the load in a non-recursive fashion and is much more
+efficient.</li>
 </ul>
 <p>E.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># parse an XML file and persist in the database</span>
@@ -543,7 +568,7 @@ the load in a non-recursive fashion and is much more efficient.</li>
         <a href="exceptions.html" title="next chapter">ORM Exceptions</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>

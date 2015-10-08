@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0b2',
+          VERSION:     '0.8.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
+        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
 
 
     </div>
@@ -1320,6 +1320,10 @@ may autoflush while the target object is not
 yet complete) consider the
 new <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_attach" title="sqlalchemy.orm.events.SessionEvents.before_attach"><tt class="xref py py-meth docutils literal"><span class="pre">before_attach()</span></tt></a> event.</p>
 </div>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_attach" title="sqlalchemy.orm.events.SessionEvents.before_attach"><tt class="xref py py-meth docutils literal"><span class="pre">before_attach()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1340,6 +1344,13 @@ which will be used for SQL statements.</li>
 </tr>
 </tbody>
 </table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_commit" title="sqlalchemy.orm.events.SessionEvents.before_commit"><tt class="xref py py-meth docutils literal"><span class="pre">before_commit()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_commit" title="sqlalchemy.orm.events.SessionEvents.after_commit"><tt class="xref py py-meth docutils literal"><span class="pre">after_commit()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_transaction_create" title="sqlalchemy.orm.events.SessionEvents.after_transaction_create"><tt class="xref py py-meth docutils literal"><span class="pre">after_transaction_create()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_transaction_end" title="sqlalchemy.orm.events.SessionEvents.after_transaction_end"><tt class="xref py py-meth docutils literal"><span class="pre">after_transaction_end()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1392,8 +1403,22 @@ bulk UPDATE operation.</li>
 <dt id="sqlalchemy.orm.events.SessionEvents.after_commit">
 <tt class="descname">after_commit</tt><big>(</big><em>session</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.SessionEvents.after_commit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute after a commit has occurred.</p>
-<p>Note that this may not be per-flush if a longer running
-transaction is ongoing.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_commit" title="sqlalchemy.orm.events.SessionEvents.after_commit"><tt class="xref py py-meth docutils literal"><span class="pre">after_commit()</span></tt></a> hook is <em>not</em> per-flush,
+that is, the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> can emit SQL to the database
+many times within the scope of a transaction.
+For interception of these events, use the <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_flush" title="sqlalchemy.orm.events.SessionEvents.before_flush"><tt class="xref py py-meth docutils literal"><span class="pre">before_flush()</span></tt></a>,
+<a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_flush" title="sqlalchemy.orm.events.SessionEvents.after_flush"><tt class="xref py py-meth docutils literal"><span class="pre">after_flush()</span></tt></a>, or <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_flush_postexec" title="sqlalchemy.orm.events.SessionEvents.after_flush_postexec"><tt class="xref py py-meth docutils literal"><span class="pre">after_flush_postexec()</span></tt></a>
+events.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is not in an active tranasction
+when the <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_commit" title="sqlalchemy.orm.events.SessionEvents.after_commit"><tt class="xref py py-meth docutils literal"><span class="pre">after_commit()</span></tt></a> event is invoked, and therefore
+can not emit SQL.  To emit SQL corresponding to every transaction,
+use the <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_commit" title="sqlalchemy.orm.events.SessionEvents.before_commit"><tt class="xref py py-meth docutils literal"><span class="pre">before_commit()</span></tt></a> event.</p>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1402,6 +1427,13 @@ transaction is ongoing.</p>
 </tr>
 </tbody>
 </table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_commit" title="sqlalchemy.orm.events.SessionEvents.before_commit"><tt class="xref py py-meth docutils literal"><span class="pre">before_commit()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_begin" title="sqlalchemy.orm.events.SessionEvents.after_begin"><tt class="xref py py-meth docutils literal"><span class="pre">after_begin()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_transaction_create" title="sqlalchemy.orm.events.SessionEvents.after_transaction_create"><tt class="xref py py-meth docutils literal"><span class="pre">after_transaction_create()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_transaction_end" title="sqlalchemy.orm.events.SessionEvents.after_transaction_end"><tt class="xref py py-meth docutils literal"><span class="pre">after_transaction_end()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1425,6 +1457,11 @@ which handles the details of the flush.</li>
 </tr>
 </tbody>
 </table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_flush" title="sqlalchemy.orm.events.SessionEvents.before_flush"><tt class="xref py py-meth docutils literal"><span class="pre">before_flush()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_flush_postexec" title="sqlalchemy.orm.events.SessionEvents.after_flush_postexec"><tt class="xref py py-meth docutils literal"><span class="pre">after_flush_postexec()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1449,6 +1486,11 @@ which handles the details of the flush.</li>
 </tr>
 </tbody>
 </table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_flush" title="sqlalchemy.orm.events.SessionEvents.before_flush"><tt class="xref py py-meth docutils literal"><span class="pre">before_flush()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_flush" title="sqlalchemy.orm.events.SessionEvents.after_flush"><tt class="xref py py-meth docutils literal"><span class="pre">after_flush()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1515,6 +1557,14 @@ available via the <a class="reference internal" href="session.html#sqlalchemy.or
 <dt id="sqlalchemy.orm.events.SessionEvents.after_transaction_create">
 <tt class="descname">after_transaction_create</tt><big>(</big><em>session</em>, <em>transaction</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.SessionEvents.after_transaction_create" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute when a new <a class="reference internal" href="session.html#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a> is created.</p>
+<p>This event differs from <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_begin" title="sqlalchemy.orm.events.SessionEvents.after_begin"><tt class="xref py py-meth docutils literal"><span class="pre">after_begin()</span></tt></a>
+in that it occurs for each <a class="reference internal" href="session.html#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a>
+overall, as opposed to when transactions are begun
+on individual database connections.  It is also invoked
+for nested transactions and subtransactions, and is always
+matched by a corresponding
+<a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_transaction_end" title="sqlalchemy.orm.events.SessionEvents.after_transaction_end"><tt class="xref py py-meth docutils literal"><span class="pre">after_transaction_end()</span></tt></a> event
+(assuming normal operation of the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1529,12 +1579,21 @@ available via the <a class="reference internal" href="session.html#sqlalchemy.or
 </table>
 <p class="versionadded">
 <span class="versionmodified">New in version 0.8.</span></p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_transaction_end" title="sqlalchemy.orm.events.SessionEvents.after_transaction_end"><tt class="xref py py-meth docutils literal"><span class="pre">after_transaction_end()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.events.SessionEvents.after_transaction_end">
 <tt class="descname">after_transaction_end</tt><big>(</big><em>session</em>, <em>transaction</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.SessionEvents.after_transaction_end" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute when the span of a <a class="reference internal" href="session.html#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a> ends.</p>
+<p>This event differs from <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_commit" title="sqlalchemy.orm.events.SessionEvents.after_commit"><tt class="xref py py-meth docutils literal"><span class="pre">after_commit()</span></tt></a>
+in that it corresponds to all <a class="reference internal" href="session.html#sqlalchemy.orm.session.SessionTransaction" title="sqlalchemy.orm.session.SessionTransaction"><tt class="xref py py-class docutils literal"><span class="pre">SessionTransaction</span></tt></a>
+objects in use, including those for nested transactions
+and subtransactions, and is always matched by a corresponding
+<a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_transaction_create" title="sqlalchemy.orm.events.SessionEvents.after_transaction_create"><tt class="xref py py-meth docutils literal"><span class="pre">after_transaction_create()</span></tt></a> event.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1549,6 +1608,10 @@ available via the <a class="reference internal" href="session.html#sqlalchemy.or
 </table>
 <p class="versionadded">
 <span class="versionmodified">New in version 0.8.</span></p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_transaction_create" title="sqlalchemy.orm.events.SessionEvents.after_transaction_create"><tt class="xref py py-meth docutils literal"><span class="pre">after_transaction_create()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1562,14 +1625,25 @@ the object to be part of the session.</p>
 fires off after the item is part of the session.
 <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_attach" title="sqlalchemy.orm.events.SessionEvents.before_attach"><tt class="xref py py-meth docutils literal"><span class="pre">before_attach()</span></tt></a> is provided for those cases where
 the item should not yet be part of the session state.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_attach" title="sqlalchemy.orm.events.SessionEvents.after_attach"><tt class="xref py py-meth docutils literal"><span class="pre">after_attach()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.events.SessionEvents.before_commit">
 <tt class="descname">before_commit</tt><big>(</big><em>session</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.events.SessionEvents.before_commit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute before commit is called.</p>
-<p>Note that this may not be per-flush if a longer running
-transaction is ongoing.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_commit" title="sqlalchemy.orm.events.SessionEvents.before_commit"><tt class="xref py py-meth docutils literal"><span class="pre">before_commit()</span></tt></a> hook is <em>not</em> per-flush,
+that is, the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> can emit SQL to the database
+many times within the scope of a transaction.
+For interception of these events, use the <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_flush" title="sqlalchemy.orm.events.SessionEvents.before_flush"><tt class="xref py py-meth docutils literal"><span class="pre">before_flush()</span></tt></a>,
+<a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_flush" title="sqlalchemy.orm.events.SessionEvents.after_flush"><tt class="xref py py-meth docutils literal"><span class="pre">after_flush()</span></tt></a>, or <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_flush_postexec" title="sqlalchemy.orm.events.SessionEvents.after_flush_postexec"><tt class="xref py py-meth docutils literal"><span class="pre">after_flush_postexec()</span></tt></a>
+events.</p>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1578,6 +1652,13 @@ transaction is ongoing.</p>
 </tr>
 </tbody>
 </table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_commit" title="sqlalchemy.orm.events.SessionEvents.after_commit"><tt class="xref py py-meth docutils literal"><span class="pre">after_commit()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_begin" title="sqlalchemy.orm.events.SessionEvents.after_begin"><tt class="xref py py-meth docutils literal"><span class="pre">after_begin()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_transaction_create" title="sqlalchemy.orm.events.SessionEvents.after_transaction_create"><tt class="xref py py-meth docutils literal"><span class="pre">after_transaction_create()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_transaction_end" title="sqlalchemy.orm.events.SessionEvents.after_transaction_end"><tt class="xref py py-meth docutils literal"><span class="pre">after_transaction_end()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1600,6 +1681,11 @@ objects which can be passed to the <a class="reference internal" href="session.h
 </tr>
 </tbody>
 </table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_flush" title="sqlalchemy.orm.events.SessionEvents.after_flush"><tt class="xref py py-meth docutils literal"><span class="pre">after_flush()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_flush_postexec" title="sqlalchemy.orm.events.SessionEvents.after_flush_postexec"><tt class="xref py py-meth docutils literal"><span class="pre">after_flush_postexec()</span></tt></a></p>
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -1670,7 +1756,7 @@ documentation which stated the contrary.</p>
         <a href="extensions/index.html" title="next chapter">ORM Extensions</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>

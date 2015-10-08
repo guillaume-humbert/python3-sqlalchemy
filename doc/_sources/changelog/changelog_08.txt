@@ -4,6 +4,413 @@
 ==============
 
 .. changelog::
+    :version: 0.8.0
+    :released: March 9, 2013
+
+    .. note::
+
+      There are some new behavioral changes as of 0.8.0
+      not present in 0.8.0b2.  They are present in the
+      migration document as follows:
+
+      * :ref:`legacy_is_orphan_addition`
+
+      * :ref:`metadata_create_drop_tables`
+
+      * :ref:`correlation_context_specific`
+
+    .. change::
+        :tags: feature, postgresql
+        :tickets: 2676
+
+      Added support for Postgresql's traditional SUBSTRING
+      function syntax, renders as "SUBSTRING(x FROM y FOR z)"
+      when regular ``func.substring()`` is used.
+      Also in 0.7.11.  Courtesy Gunnlaugur Þór Briem.
+
+    .. change::
+        :tags: feature, orm
+        :tickets: 2675
+
+      A meaningful :attr:`.QueryableAttribute.info` attribute is
+      added, which proxies down to the ``.info`` attribute on either
+      the :class:`.schema.Column` object if directly present, or
+      the :class:`.MapperProperty` otherwise.  The full behavior
+      is documented and ensured by tests to remain stable.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 2668
+
+      The behavior of SELECT correlation has been improved such that
+      the :meth:`.Select.correlate` and :meth:`.Select.correlate_except`
+      methods, as well as their ORM analogues, will still retain
+      "auto-correlation" behavior in that the FROM clause is modified
+      only if the output would be legal SQL; that is, the FROM clause
+      is left intact if the correlated SELECT is not used in the context
+      of an enclosing SELECT inside of the WHERE, columns, or HAVING clause.
+      The two methods now only specify conditions to the default
+      "auto correlation", rather than absolute FROM lists.
+
+    .. change::
+        :tags: feature, mysql
+        :pullreq: 42
+
+      New dialect for CyMySQL added, courtesy Hajime Nakagami.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2674
+
+      Improved checking for an existing backref name conflict during
+      mapper configuration; will now test for name conflicts on
+      superclasses and subclasses, in addition to the current mapper,
+      as these conflicts break things just as much.  This is new for
+      0.8, but see below for a warning that will also be triggered
+      in 0.7.11.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2674
+
+      Improved the error message emitted when a "backref loop" is detected,
+      that is when an attribute event triggers a bidirectional
+      assignment between two other attributes with no end.
+      This condition can occur not just when an object of the wrong
+      type is assigned, but also when an attribute is mis-configured
+      to backref into an existing backref pair.  Also in 0.7.11.
+
+    .. change::
+      :tags: bug, orm
+      :tickets: 2674
+
+      A warning is emitted when a MapperProperty is assigned to a mapper
+      that replaces an existing property, if the properties in question
+      aren't plain column-based properties.   Replacement of relationship
+      properties is rarely (ever?) what is intended and usually refers to a
+      mapper mis-configuration.   Also in 0.7.11.
+
+    .. change::
+        :tags: feature, orm
+
+      Can set/change the "cascade" attribute on a :func:`.relationship`
+      construct after it's been constructed already.  This is not
+      a pattern for normal use but we like to change the setting
+      for demonstration purposes in tutorials.
+
+    .. change::
+        :tags: bug, schema
+        :tickets: 2664
+
+      :meth:`.MetaData.create_all` and :meth:`.MetaData.drop_all` will
+      now accommodate an empty list as an instruction to not create/drop
+      any items, rather than ignoring the collection.
+
+
+    .. change::
+        :tags: bug, tests
+        :tickets: 2669
+        :pullreq: 41
+
+      Fixed an import of "logging" in test_execute which was not
+      working on some linux platforms.  Also in 0.7.11.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2662
+
+      A clear error message is emitted if an event handler
+      attempts to emit SQL on a Session within the after_commit()
+      handler, where there is not a viable transaction in progress.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2665
+
+      Detection of a primary key change within the process
+      of cascading a natural primary key update will succeed
+      even if the key is composite and only some of the
+      attributes have changed.
+
+    .. change::
+        :tags: feature, orm
+        :tickets: 2658
+
+      Added new helper function :func:`.was_deleted`, returns True
+      if the given object was the subject of a :meth:`.Session.delete`
+      operation.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2658
+
+      An object that's deleted from a session will be de-associated with
+      that session fully after the transaction is committed, that is
+      the :func:`.object_session` function will return None.
+
+    .. change::
+        :tags: bug, oracle
+
+      The cx_oracle dialect will no longer run the bind parameter names
+      through ``encode()``, as this is not valid on Python 3, and prevented
+      statements from functioning correctly on Python 3.  We now
+      encode only if ``supports_unicode_binds`` is False, which is not
+      the case for cx_oracle when at least version 5 of cx_oracle is used.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2661
+
+      Fixed bug whereby :meth:`.Query.yield_per` would set the execution
+      options incorrectly, thereby breaking subsequent usage of the
+      :meth:`.Query.execution_options` method.  Courtesy Ryan Kelly.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 1768
+
+      Fixed the consideration of the ``between()`` operator
+      so that it works correctly with the new relationship local/remote
+      system.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 2660, 1768
+
+      Fixed a bug regarding column annotations which in particular
+      could impact some usages of the new :func:`.orm.remote` and
+      :func:`.orm.local` annotation functions, where annotations
+      could be lost when the column were used in a subsequent
+      expression.
+
+    .. change::
+        :tags: bug, mysql, gae
+        :tickets: 2649
+
+      Added a conditional import to the ``gaerdbms`` dialect which attempts
+      to import rdbms_apiproxy vs. rdbms_googleapi to work
+      on both dev and production platforms.  Also now honors the
+      ``instance`` attribute.  Courtesy Sean Lynch.
+      Also in 0.7.10.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 2496
+
+      The :meth:`.ColumnOperators.in_` operator will now coerce
+      values of ``None`` to :func:`.null`.
+
+    .. change::
+        :tags: feature, sql
+        :tickets: 2657
+
+      Added a new argument to :class:`.Enum` and its base
+      :class:`.SchemaType` ``inherit_schema``.  When set to ``True``,
+      the type will set its ``schema`` attribute of that of the
+      :class:`.Table` to which it is associated.  This also occurs
+      during a :meth:`.Table.tometadata` operation; the :class:`.SchemaType`
+      is now copied in all cases when :meth:`.Table.tometadata` happens,
+      and if ``inherit_schema=True``, the type will take on the new
+      schema name passed to the method.   The ``schema`` is important
+      when used with the Postgresql backend, as the type results in
+      a ``CREATE TYPE`` statement.
+
+    .. change::
+        :tags: feature, postgresql
+        :pullreq: 40
+
+      Added :meth:`.postgresql.ARRAY.Comparator.any` and
+      :meth:`.postgresql.ARRAY.Comparator.all`
+      methods, as well as standalone expression constructs.   Big thanks
+      to Audrius Kažukauskas for the terrific work here.
+
+    .. change::
+        :tags: sql, bug
+        :tickets: 2643
+
+        Fixed bug where :meth:`.Table.tometadata` would fail if a
+        :class:`.Column` had both a foreign key as well as an
+        alternate ".key" name for the column.   Also in 0.7.10.
+
+    .. change::
+        :tags: sql, bug
+        :tickets: 2629
+
+        insert().returning() raises an informative CompileError if attempted
+        to compile on a dialect that doesn't support RETURNING.
+
+    .. change::
+        :tags: orm, bug
+        :tickets: 2655
+
+        the consideration of a pending object as
+        an "orphan" has been modified to more closely match the
+        behavior as that of persistent objects, which is that the object
+        is expunged from the :class:`.Session` as soon as it is
+        de-associated from any of its orphan-enabled parents.  Previously,
+        the pending object would be expunged only if de-associated
+        from all of its orphan-enabled parents.  The new flag ``legacy_is_orphan``
+        is added to :func:`.orm.mapper` which re-establishes the
+        legacy behavior.
+
+        See the change note and example case at :ref:`legacy_is_orphan_addition`
+        for a detailed discussion of this change.
+
+    .. change::
+        :tags: orm, bug
+        :tickets: 2653
+
+      Fixed the (most likely never used) "@collection.link" collection
+      method, which fires off each time the collection is associated
+      or de-associated with a mapped object - the decorator
+      was not tested or functional.  The decorator method
+      is now named :meth:`.collection.linker` though the name "link"
+      remains for backwards compatibility.  Courtesy Luca Wehrstedt.
+
+    .. change::
+        :tags: orm, bug
+        :tickets: 2654
+
+      Made some fixes to the system of producing custom instrumented
+      collections, mainly that the usage of the @collection decorators
+      will now honor the __mro__ of the given class, applying the
+      logic of the sub-most classes' version of a particular collection
+      method.   Previously, it wasn't predictable when subclassing
+      an existing instrumented class such as :class:`.MappedCollection`
+      whether or not custom methods would resolve correctly.
+
+    .. change::
+      :tags: orm, removed
+
+      The undocumented (and hopefully unused) system of producing
+      custom collections using an ``__instrumentation__`` datastructure
+      associated with the collection has been removed, as this was a complex
+      and untested feature which was also essentially redundant versus the
+      decorator approach.   Other internal simplifcations to the
+      orm.collections module have been made as well.
+
+    .. change::
+        :tags: mssql, feature
+        :pullreq: 35
+
+      Added ``mssql_include`` and ``mssql_clustered`` options to
+      :class:`.Index`, renders the ``INCLUDE`` and ``CLUSTERED`` keywords,
+      respectively.  Courtesy Derek Harland.
+
+    .. change::
+        :tags: sql, feature
+        :tickets: 695
+
+      :class:`.Index` now supports arbitrary SQL expressions and/or
+      functions, in addition to straight columns.   Common modifiers
+      include using ``somecolumn.desc()`` for a descending index and
+      ``func.lower(somecolumn)`` for a case-insensitive index, depending on the
+      capabilities of the target backend.
+
+    .. change::
+        :tags: mssql, bug
+        :tickets: 2638
+
+      Added a py3K conditional around unnecessary .decode()
+      call in mssql information schema, fixes reflection
+      in Py3K. Also in 0.7.10.
+
+    .. change::
+        :tags: orm, bug
+        :tickets: 2650
+
+      Fixed potential memory leak which could occur if an
+      arbitrary number of :class:`.sessionmaker` objects
+      were created.   The anonymous subclass created by
+      the sessionmaker, when dereferenced, would not be garbage
+      collected due to remaining class-level references from the
+      event package.  This issue also applies to any custom system
+      that made use of ad-hoc subclasses in conjunction with
+      an event dispatcher.  Also in 0.7.10.
+
+    .. change::
+        :tags: mssql, bug
+
+      Fixed a regression whereby the "collation" parameter
+      of the character types CHAR, NCHAR, etc. stopped working,
+      as "collation" is now supported by the base string types.
+      The TEXT, NCHAR, CHAR, VARCHAR types within the
+      MSSQL dialect are now synonyms for the base types.
+
+    .. change::
+        :tags: mssql, feature
+        :tickets: 2644
+        :pullreq: 32
+
+      DDL for IDENTITY columns is now supported on
+      non-primary key columns, by establishing a
+      :class:`.Sequence` construct on any
+      integer column.  Courtesy Derek Harland.
+
+    .. change::
+        :tags: examples, bug
+
+      Fixed a regression in the examples/dogpile_caching example
+      which was due to the change in :ticket:`2614`.
+
+    .. change::
+        :tags: orm, bug
+        :tickets: 2640
+
+      :meth:`.Query.merge_result` can now load rows from an outer join
+      where an entity may be ``None`` without throwing an error.
+      Also in 0.7.10.
+
+    .. change::
+        :tags: sql, bug
+        :tickets: 2648
+
+      Tweaked the "REQUIRED" symbol used by the compiler to identify
+      INSERT/UPDATE bound parameters that need to be passed, so that
+      it's more easily identifiable when writing custom bind-handling
+      code.
+
+    .. change::
+        :tags: postgresql, bug
+
+      Fixed bug in :func:`.postgresql.array` construct whereby using it
+      inside of an :func:`.expression.insert` construct would produce an
+      error regarding a parameter issue in the ``self_group()`` method.
+
+    .. change::
+        :tags: orm, feature
+
+      Extended the :doc:`/core/inspection` system so that all Python descriptors
+      associated with the ORM or its extensions can be retrieved.
+      This fulfills the common request of being able to inspect
+      all :class:`.QueryableAttribute` descriptors in addition to
+      extension types such as :class:`.hybrid_property` and
+      :class:`.AssociationProxy`.  See :attr:`.Mapper.all_orm_descriptors`.
+
+    .. change::
+        :tags: mysql, feature
+        :pullreq: 33
+
+      GAE dialect now accepts username/password arguments in the URL,
+      courtesy Owen Nelson.
+
+    .. change::
+        :tags: mysql, bug
+        :pullreq: 33
+
+      GAE dialect won't fail on None match if the error code can't be extracted
+      from the exception throw; courtesy Owen Nelson.
+
+    .. change::
+        :tags: orm, bug
+        :tickets: 2637
+
+      Fixes to the "dynamic" loader on :func:`.relationship`, includes
+      that backrefs will work properly even when autoflush is disabled,
+      history events are more accurate in scenarios where multiple add/remove
+      of the same object occurs.
+
+.. changelog::
     :version: 0.8.0b2
     :released: December 14, 2012
 

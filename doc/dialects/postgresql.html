@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0b2',
+          VERSION:     '0.8.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
+        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
 
 
     </div>
@@ -296,17 +296,17 @@ use the <tt class="xref py py-meth docutils literal"><span class="pre">_UpdateBa
 table in an inheritance hierarchy. This can be used to produce the
 <tt class="docutils literal"><span class="pre">SELECT</span> <span class="pre">...</span> <span class="pre">FROM</span> <span class="pre">ONLY</span></tt>, <tt class="docutils literal"><span class="pre">UPDATE</span> <span class="pre">ONLY</span> <span class="pre">...</span></tt>, and <tt class="docutils literal"><span class="pre">DELETE</span> <span class="pre">FROM</span> <span class="pre">ONLY</span> <span class="pre">...</span></tt>
 syntaxes. It uses SQLAlchemy&#8217;s hints mechanism:</p>
-<blockquote>
-<div><p># SELECT ... FROM ONLY ...
-result = table.select().with_hint(table, &#8216;ONLY&#8217;, &#8216;postgresql&#8217;)
-print result.fetchall()</p>
-<p># UPDATE ONLY ...
-table.update(values=dict(foo=&#8217;bar&#8217;)).with_hint(&#8216;ONLY&#8217;,</p>
-<blockquote>
-<div>dialect_name=&#8217;postgresql&#8217;)</div></blockquote>
-<p># DELETE FROM ONLY ...
-table.delete().with_hint(&#8216;ONLY&#8217;, dialect_name=&#8217;postgresql&#8217;)</p>
-</div></blockquote>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># SELECT ... FROM ONLY ...</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">select</span><span class="p">()</span><span class="o">.</span><span class="n">with_hint</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="s">&#39;ONLY&#39;</span><span class="p">,</span> <span class="s">&#39;postgresql&#39;</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">result</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+<span class="c"># UPDATE ONLY ...</span>
+<span class="n">table</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">foo</span><span class="o">=</span><span class="s">&#39;bar&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">with_hint</span><span class="p">(</span><span class="s">&#39;ONLY&#39;</span><span class="p">,</span>
+                                               <span class="n">dialect_name</span><span class="o">=</span><span class="s">&#39;postgresql&#39;</span><span class="p">)</span>
+
+<span class="c"># DELETE FROM ONLY ...</span>
+<span class="n">table</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span><span class="o">.</span><span class="n">with_hint</span><span class="p">(</span><span class="s">&#39;ONLY&#39;</span><span class="p">,</span> <span class="n">dialect_name</span><span class="o">=</span><span class="s">&#39;postgresql&#39;</span><span class="p">)</span></pre></div>
+</div>
 </div>
 <div class="section" id="postgresql-specific-index-options">
 <span id="postgresql-indexes"></span><h2>Postgresql-Specific Index Options<a class="headerlink" href="#postgresql-specific-index-options" title="Permalink to this headline">¶</a></h2>
@@ -360,9 +360,9 @@ valid with Postgresql are importable from the top level dialect, whether
 they originate from <a class="reference internal" href="../core/types.html#module-sqlalchemy.types" title="sqlalchemy.types"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.types</span></tt></a> or from the local dialect:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.dialects.postgresql</span> <span class="kn">import</span> \
     <span class="n">ARRAY</span><span class="p">,</span> <span class="n">BIGINT</span><span class="p">,</span> <span class="n">BIT</span><span class="p">,</span> <span class="n">BOOLEAN</span><span class="p">,</span> <span class="n">BYTEA</span><span class="p">,</span> <span class="n">CHAR</span><span class="p">,</span> <span class="n">CIDR</span><span class="p">,</span> <span class="n">DATE</span><span class="p">,</span> \
-    <span class="n">DOUBLE_PRECISION</span><span class="p">,</span> <span class="n">ENUM</span><span class="p">,</span> <span class="n">FLOAT</span><span class="p">,</span> <span class="n">INET</span><span class="p">,</span> <span class="n">INTEGER</span><span class="p">,</span> <span class="n">INTERVAL</span><span class="p">,</span> \
-    <span class="n">MACADDR</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">REAL</span><span class="p">,</span> <span class="n">SMALLINT</span><span class="p">,</span> <span class="n">TEXT</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">TIMESTAMP</span><span class="p">,</span> \
-    <span class="n">UUID</span><span class="p">,</span> <span class="n">VARCHAR</span></pre></div>
+    <span class="n">DOUBLE_PRECISION</span><span class="p">,</span> <span class="n">ENUM</span><span class="p">,</span> <span class="n">FLOAT</span><span class="p">,</span> <span class="n">HSTORE</span><span class="p">,</span> <span class="n">INET</span><span class="p">,</span> <span class="n">INTEGER</span><span class="p">,</span> \
+    <span class="n">INTERVAL</span><span class="p">,</span> <span class="n">MACADDR</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">REAL</span><span class="p">,</span> <span class="n">SMALLINT</span><span class="p">,</span> <span class="n">TEXT</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> \
+    <span class="n">TIMESTAMP</span><span class="p">,</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">VARCHAR</span></pre></div>
 </div>
 <p>Types which are specific to PostgreSQL, or have PostgreSQL-specific
 construction arguments, are as follows:</p>
@@ -499,6 +499,78 @@ they were declared.</li>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Comparator</span></tt></p>
 <p>Define comparison operations for <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY" title="sqlalchemy.dialects.postgresql.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">ARRAY</span></tt></a>.</p>
 <dl class="method">
+<dt id="sqlalchemy.dialects.postgresql.ARRAY.Comparator.all">
+<tt class="descname">all</tt><big>(</big><em>other</em>, <em>operator=&lt;built-in function eq&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ARRAY.Comparator.all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <tt class="docutils literal"><span class="pre">other</span> <span class="pre">operator</span> <span class="pre">ALL</span> <span class="pre">(array)</span></tt> clause.</p>
+<p>Argument places are switched, because ALL requires array
+expression to be on the right hand-side.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">operators</span>
+
+<span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+    <span class="n">select</span><span class="p">([</span><span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="n">operator</span><span class="o">=</span><span class="n">operators</span><span class="o">.</span><span class="n">lt</span><span class="p">)</span>
+        <span class="p">)</span>
+<span class="p">)</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>operator</strong> &#8211; an operator object from the
+<tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.sql.operators</span></tt>
+package, defaults to <tt class="xref py py-func docutils literal"><span class="pre">operators.eq()</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.dialects.postgresql.All" title="sqlalchemy.dialects.postgresql.All"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.All</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.Comparator.any" title="sqlalchemy.dialects.postgresql.ARRAY.Comparator.any"><tt class="xref py py-meth docutils literal"><span class="pre">postgresql.ARRAY.Comparator.any()</span></tt></a></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.dialects.postgresql.ARRAY.Comparator.any">
+<tt class="descname">any</tt><big>(</big><em>other</em>, <em>operator=&lt;built-in function eq&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ARRAY.Comparator.any" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <tt class="docutils literal"><span class="pre">other</span> <span class="pre">operator</span> <span class="pre">ANY</span> <span class="pre">(array)</span></tt> clause.</p>
+<p>Argument places are switched, because ANY requires array
+expression to be on the right hand-side.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">operators</span>
+
+<span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+    <span class="n">select</span><span class="p">([</span><span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="n">operator</span><span class="o">=</span><span class="n">operators</span><span class="o">.</span><span class="n">lt</span><span class="p">)</span>
+        <span class="p">)</span>
+<span class="p">)</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>operator</strong> &#8211; an operator object from the
+<tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.sql.operators</span></tt>
+package, defaults to <tt class="xref py py-func docutils literal"><span class="pre">operators.eq()</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.dialects.postgresql.Any" title="sqlalchemy.dialects.postgresql.Any"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.Any</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.Comparator.all" title="sqlalchemy.dialects.postgresql.ARRAY.Comparator.all"><tt class="xref py py-meth docutils literal"><span class="pre">postgresql.ARRAY.Comparator.all()</span></tt></a></p>
+</div>
+</dd></dl>
+
+<dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.ARRAY.Comparator.contained_by">
 <tt class="descname">contained_by</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ARRAY.Comparator.contained_by" title="Permalink to this definition">¶</a></dt>
 <dd><p>Boolean expression.  Test if elements are a proper subset of the
@@ -521,6 +593,30 @@ an argument array expression.</p>
 
 </dd></dl>
 
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.dialects.postgresql.Any">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">Any</tt><big>(</big><em>left</em>, <em>right</em>, <em>operator=&lt;built-in function eq&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.Any" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represent the clause <tt class="docutils literal"><span class="pre">left</span> <span class="pre">operator</span> <span class="pre">ANY</span> <span class="pre">(right)</span></tt>.  <tt class="docutils literal"><span class="pre">right</span></tt> must be
+an array expression.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY" title="sqlalchemy.dialects.postgresql.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.ARRAY</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.Comparator.any" title="sqlalchemy.dialects.postgresql.ARRAY.Comparator.any"><tt class="xref py py-meth docutils literal"><span class="pre">postgresql.ARRAY.Comparator.any()</span></tt></a> - ARRAY-bound method</p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.dialects.postgresql.All">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">All</tt><big>(</big><em>left</em>, <em>right</em>, <em>operator=&lt;built-in function eq&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.All" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represent the clause <tt class="docutils literal"><span class="pre">left</span> <span class="pre">operator</span> <span class="pre">ALL</span> <span class="pre">(right)</span></tt>.  <tt class="docutils literal"><span class="pre">right</span></tt> must be
+an array expression.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY" title="sqlalchemy.dialects.postgresql.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.ARRAY</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.Comparator.all" title="sqlalchemy.dialects.postgresql.ARRAY.Comparator.all"><tt class="xref py py-meth docutils literal"><span class="pre">postgresql.ARRAY.Comparator.all()</span></tt></a> - ARRAY-bound method</p>
+</div>
 </dd></dl>
 
 <dl class="class">
@@ -1190,7 +1286,7 @@ yet.</p>
         <a href="sqlite.html" title="next chapter">SQLite</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>

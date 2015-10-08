@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0b2',
+          VERSION:     '0.8.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
+        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
 
 
     </div>
@@ -153,7 +153,11 @@
 <li><a class="reference internal" href="#check-constraint">CHECK Constraint</a></li>
 <li><a class="reference internal" href="#setting-up-constraints-when-using-the-declarative-orm-extension">Setting up Constraints when using the Declarative ORM Extension</a></li>
 <li><a class="reference internal" href="#constraints-api">Constraints API</a></li>
-<li><a class="reference internal" href="#indexes">Indexes</a></li>
+<li><a class="reference internal" href="#indexes">Indexes</a><ul>
+<li><a class="reference internal" href="#functional-indexes">Functional Indexes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#index-api">Index API</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#customizing-ddl">Customizing DDL</a><ul>
@@ -933,6 +937,29 @@ parent object.</p>
 <em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ilike()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>Implement the <tt class="docutils literal"><span class="pre">ilike</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">ILIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.like()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1021,6 +1048,29 @@ on certain platforms.</p>
 <em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">like()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>Implement the <tt class="docutils literal"><span class="pre">like</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">LIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.ilike()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -2061,6 +2111,11 @@ object, returning a copy of this <a class="reference internal" href="expression_
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.FromClause.select" title="sqlalchemy.sql.expression.FromClause.select"><tt class="xref py py-meth docutils literal"><span class="pre">select()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
 <p>return a SELECT of this <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> - general purpose
+method which allows for arbitrary column lists.</p>
+</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -2107,16 +2162,35 @@ just returns self.</p>
 <dd><p>Return a copy of this <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> associated with a different
 <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>.</p>
 <p>E.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># create two metadata</span>
-<span class="n">meta1</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="s">&#39;sqlite:///querytest.db&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">some_engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;sqlite:///some.db&quot;</span><span class="p">)</span>
+
+<span class="c"># create two metadata</span>
+<span class="n">meta1</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
 <span class="n">meta2</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
 
 <span class="c"># load &#39;users&#39; from the sqlite engine</span>
-<span class="n">users_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="n">meta1</span><span class="p">,</span> <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">users_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="n">meta1</span><span class="p">,</span> <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                        <span class="n">autoload_with</span><span class="o">=</span><span class="n">some_engine</span><span class="p">)</span>
 
 <span class="c"># create the same Table object for the plain metadata</span>
 <span class="n">users_table_2</span> <span class="o">=</span> <span class="n">users_table</span><span class="o">.</span><span class="n">tometadata</span><span class="p">(</span><span class="n">meta2</span><span class="p">)</span></pre></div>
 </div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>metadata</strong> &#8211; Target <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object.</li>
+<li><strong>schema</strong> &#8211; Optional string name of a target schema, or
+<tt class="docutils literal"><span class="pre">None</span></tt> for no schema.  The <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object will be
+given this schema name upon copy.   Defaults to the special
+symbol <tt class="xref py py-attr docutils literal"><span class="pre">RETAIN_SCHEMA</span></tt> which indicates no change should be
+made to the schema name of the resulting <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -3567,21 +3641,49 @@ for <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalch
 <a href='#' class='sql_link'>sql</a><span class="n">i</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
 <div class='popup_sql'>CREATE INDEX someindex ON mytable (col5)</div></pre></div>
 </div>
+<div class="section" id="functional-indexes">
+<span id="schema-indexes-functional"></span><h4>Functional Indexes<a class="headerlink" href="#functional-indexes" title="Permalink to this headline">¶</a></h4>
+<p><a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> supports SQL and function expressions, as supported by the
+target backend.  To create an index against a column using a descending
+value, the <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.ColumnElement.desc" title="sqlalchemy.sql.expression.ColumnElement.desc"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnElement.desc()</span></tt></a> modifier may be used:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Index</span>
+
+<span class="n">Index</span><span class="p">(</span><span class="s">&#39;someindex&#39;</span><span class="p">,</span> <span class="n">mytable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">somecol</span><span class="o">.</span><span class="n">desc</span><span class="p">())</span></pre></div>
+</div>
+<p>Or with a backend that supports functional indexes such as Postgresql,
+a &#8220;case insensitive&#8221; index can be created using the <tt class="docutils literal"><span class="pre">lower()</span></tt> function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">func</span><span class="p">,</span> <span class="n">Index</span>
+
+<span class="n">Index</span><span class="p">(</span><span class="s">&#39;someindex&#39;</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">lower</span><span class="p">(</span><span class="n">mytable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">somecol</span><span class="p">))</span></pre></div>
+</div>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8: </span><a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> supports SQL expressions and functions
+as well as plain columns.</p>
+</div>
+</div>
+<div class="section" id="index-api">
+<h3>Index API<a class="headerlink" href="#index-api" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sqlalchemy.schema.Index">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Index</tt><big>(</big><em>name</em>, <em>*columns</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Index" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Index</tt><big>(</big><em>name</em>, <em>*expressions</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.ColumnCollectionMixin</span></tt>, <a class="reference internal" href="#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
 <p>A table-level INDEX.</p>
 <p>Defines a composite (one or more column) INDEX. For a no-frills, single
 column index, adding <tt class="docutils literal"><span class="pre">index=True</span></tt> to the <tt class="docutils literal"><span class="pre">Column</span></tt> definition is
 a shorthand equivalent for an unnamed, single column <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a>.</p>
-<p>See also:</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="#schema-indexes"><em>Indexes</em></a> - General information on <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a>.</p>
-<p><a class="reference internal" href="../dialects/postgresql.html#postgresql-indexes"><em>Postgresql-Specific Index Options</em></a> - PostgreSQL-specific options available for the <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct.</p>
-<p><a class="reference internal" href="../dialects/mysql.html#mysql-indexes"><em>MySQL Specific Index Options</em></a> - MySQL-specific options available for the <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct.</p>
+<p><a class="reference internal" href="../dialects/postgresql.html#postgresql-indexes"><em>Postgresql-Specific Index Options</em></a> - PostgreSQL-specific options available for the
+<a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct.</p>
+<p><a class="reference internal" href="../dialects/mysql.html#mysql-indexes"><em>MySQL Specific Index Options</em></a> - MySQL-specific options available for the
+<a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct.</p>
+<p class="last"><a class="reference internal" href="../dialects/mssql.html#mssql-indexes"><em>MSSQL-Specific Index Options</em></a> - MSSQL-specific options available for the
+<a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct.</p>
+</div>
 <dl class="method">
 <dt id="sqlalchemy.schema.Index.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>name</em>, <em>*columns</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Index.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>name</em>, <em>*expressions</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Index.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an index object.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3589,8 +3691,14 @@ a shorthand equivalent for an unnamed, single column <a class="reference interna
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>name</strong> &#8211; The name of the index</li>
-<li><strong>*columns</strong> &#8211; Columns to include in the index. All columns must belong to the same
-table.</li>
+<li><strong>*expressions</strong> &#8211; <p>Column expressions to include in the index.   The expressions
+are normally instances of <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, but may also
+be arbitrary SQL expressions which ultmately refer to a
+<a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8: </span><a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> supports SQL expressions as
+well as plain columns.</p>
+</li>
 <li><strong>unique</strong> &#8211; Defaults to False: create a unique index.</li>
 <li><strong>**kw</strong> &#8211; Other keyword arguments may be interpreted by specific dialects.</li>
 </ul>
@@ -4303,7 +4411,7 @@ to support custom column creation styles.</p>
         <a href="types.html" title="next chapter">Column and Data Types</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>

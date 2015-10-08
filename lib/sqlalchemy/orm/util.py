@@ -1,5 +1,5 @@
 # orm/util.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -1210,9 +1210,30 @@ def _orm_columns(entity):
 
 
 def has_identity(object):
+    """Return True if the given object has a database
+    identity.
+
+    This typically corresponds to the object being
+    in either the persistent or detached state.
+
+    .. seealso::
+
+        :func:`.was_deleted`
+
+    """
     state = attributes.instance_state(object)
     return state.has_identity
 
+def was_deleted(object):
+    """Return True if the given object was deleted
+    within a session flush.
+
+    .. versionadded:: 0.8.0
+
+    """
+
+    state = attributes.instance_state(object)
+    return state.deleted
 
 def instance_str(instance):
     """Return a string describing an instance."""

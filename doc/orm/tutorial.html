@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0b2',
+          VERSION:     '0.8.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
+        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
 
 
     </div>
@@ -418,7 +418,7 @@ exists with a value of <tt class="docutils literal"><span class="pre">None</span
 column we declared in our mapping.  By
 default, the ORM creates class attributes for all columns present
 in the table being mapped.   These class attributes exist as
-<a class="reference external" href="http://docs.python.org/howto/descriptor.html">Python descriptors</a>, and
+<a class="reference internal" href="../glossary.html#term-descriptors"><em class="xref std std-term">descriptors</em></a>, and
 define <strong>instrumentation</strong> for the mapped class. The
 functionality of this instrumentation includes the ability to fire on change
 events, track modifications, and to automatically load new data from the database when
@@ -1690,7 +1690,7 @@ WHERE addresses.email_address IN (?, ?)) AS anon_1
 deleted. SQLAlchemy doesn&#8217;t assume that deletes cascade, you have to tell it
 to do so.</p>
 <div class="section" id="configuring-delete-delete-orphan-cascade">
-<h3>Configuring delete/delete-orphan Cascade<a class="headerlink" href="#configuring-delete-delete-orphan-cascade" title="Permalink to this headline">¶</a></h3>
+<span id="tutorial-delete-cascade"></span><h3>Configuring delete/delete-orphan Cascade<a class="headerlink" href="#configuring-delete-delete-orphan-cascade" title="Permalink to this headline">¶</a></h3>
 <p>We will configure <strong>cascade</strong> options on the <tt class="docutils literal"><span class="pre">User.addresses</span></tt> relationship
 to change the behavior. While SQLAlchemy allows you to add new attributes and
 relationships to mappings at any point in time, in this case the existing
@@ -2010,7 +2010,7 @@ WHERE ? = posts.user_id AND (EXISTS (SELECT 1
         <a href="mapper_config.html" title="next chapter">Mapper Configuration</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>

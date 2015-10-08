@@ -1,5 +1,5 @@
 # sqlalchemy/exc.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -161,6 +161,7 @@ class DontWrapMixin(object):
     emitted within the process of executing a statement.
 
     E.g.::
+
         from sqlalchemy.exc import DontWrapMixin
 
         class MyCustomException(Exception, DontWrapMixin):

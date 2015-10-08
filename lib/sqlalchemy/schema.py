@@ -1,5 +1,5 @@
 # sqlalchemy/schema.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -634,15 +634,25 @@ class Table(SchemaItem, expression.TableClause):
 
         E.g.::
 
+            some_engine = create_engine("sqlite:///some.db")
+
             # create two metadata
-            meta1 = MetaData('sqlite:///querytest.db')
+            meta1 = MetaData()
             meta2 = MetaData()
 
             # load 'users' from the sqlite engine
-            users_table = Table('users', meta1, autoload=True)
+            users_table = Table('users', meta1, autoload=True,
+                                    autoload_with=some_engine)
 
             # create the same Table object for the plain metadata
             users_table_2 = users_table.tometadata(meta2)
+
+        :param metadata: Target :class:`.MetaData` object.
+        :param schema: Optional string name of a target schema, or
+         ``None`` for no schema.  The :class:`.Table` object will be
+         given this schema name upon copy.   Defaults to the special
+         symbol :attr:`.RETAIN_SCHEMA` which indicates no change should be
+         made to the schema name of the resulting :class:`.Table`.
 
         """
 
@@ -1094,9 +1104,13 @@ class Column(SchemaItem, expression.ColumnClause):
             [c.copy(**kw) for c in self.constraints] + \
             [c.copy(**kw) for c in self.foreign_keys if not c.constraint]
 
+        type_ = self.type
+        if isinstance(type_, sqltypes.SchemaType):
+            type_ = type_.copy(**kw)
+
         c = self._constructor(
                 name=self.name,
-                type_=self.type,
+                type_=type_,
                 key=self.key,
                 primary_key=self.primary_key,
                 nullable=self.nullable,
@@ -2011,7 +2025,7 @@ class ColumnCollectionMixin(object):
                                     for c in columns]
         if self._pending_colargs and \
                 isinstance(self._pending_colargs[0], Column) and \
-                self._pending_colargs[0].table is not None:
+                isinstance(self._pending_colargs[0].table, Table):
             self._set_parent_with_dispatch(self._pending_colargs[0].table)
 
     def _set_parent(self, table):
@@ -2107,7 +2121,7 @@ class CheckConstraint(Constraint):
         elif _autoattach:
             cols = sqlutil.find_columns(self.sqltext)
             tables = set([c.table for c in cols
-                        if c.table is not None])
+                        if isinstance(c.table, Table)])
             if len(tables) == 1:
                 self._set_parent_with_dispatch(
                         tables.pop())
@@ -2280,7 +2294,7 @@ class ForeignKeyConstraint(Constraint):
 
     def copy(self, schema=None, **kw):
         fkc = ForeignKeyConstraint(
-                    [x.parent.name for x in self._elements.values()],
+                    [x.parent.key for x in self._elements.values()],
                     [x._get_colspec(schema=schema) for x in self._elements.values()],
                     name=self.name,
                     onupdate=self.onupdate,
@@ -2340,26 +2354,37 @@ class Index(ColumnCollectionMixin, SchemaItem):
     column index, adding ``index=True`` to the ``Column`` definition is
     a shorthand equivalent for an unnamed, single column :class:`.Index`.
 
-    See also:
+    .. seealso::
 
-    :ref:`schema_indexes` - General information on :class:`.Index`.
+        :ref:`schema_indexes` - General information on :class:`.Index`.
 
-    :ref:`postgresql_indexes` - PostgreSQL-specific options available for the :class:`.Index` construct.
+        :ref:`postgresql_indexes` - PostgreSQL-specific options available for the
+        :class:`.Index` construct.
 
-    :ref:`mysql_indexes` - MySQL-specific options available for the :class:`.Index` construct.
+        :ref:`mysql_indexes` - MySQL-specific options available for the
+        :class:`.Index` construct.
+
+        :ref:`mssql_indexes` - MSSQL-specific options available for the
+        :class:`.Index` construct.
+
     """
 
     __visit_name__ = 'index'
 
-    def __init__(self, name, *columns, **kw):
+    def __init__(self, name, *expressions, **kw):
         """Construct an index object.
 
         :param name:
           The name of the index
 
-        :param \*columns:
-          Columns to include in the index. All columns must belong to the same
-          table.
+        :param \*expressions:
+          Column expressions to include in the index.   The expressions
+          are normally instances of :class:`.Column`, but may also
+          be arbitrary SQL expressions which ultmately refer to a
+          :class:`.Column`.
+
+          .. versionadded:: 0.8 :class:`.Index` supports SQL expressions as
+             well as plain columns.
 
         :param unique:
             Defaults to False: create a unique index.
@@ -2369,9 +2394,25 @@ class Index(ColumnCollectionMixin, SchemaItem):
 
         """
         self.table = None
+
+        columns = []
+        for expr in expressions:
+            if not isinstance(expr, expression.ClauseElement):
+                columns.append(expr)
+            else:
+                cols = []
+                visitors.traverse(expr, {}, {'column': cols.append})
+                if cols:
+                    columns.append(cols[0])
+                else:
+                    columns.append(expr)
+
+        self.expressions = expressions
+
         # will call _set_parent() if table-bound column
         # objects are present
         ColumnCollectionMixin.__init__(self, *columns)
+
         self.name = name
         self.unique = kw.pop('unique', False)
         self.kwargs = kw
@@ -2396,6 +2437,12 @@ class Index(ColumnCollectionMixin, SchemaItem):
                     (c, self.table.description)
                 )
         table.indexes.add(self)
+
+        self.expressions = [
+            expr if isinstance(expr, expression.ClauseElement)
+            else colexpr
+            for expr, colexpr in zip(self.expressions, self.columns)
+        ]
 
     @property
     def bind(self):

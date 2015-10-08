@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0b2',
+          VERSION:     '0.8.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
+        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
 
 
     </div>
@@ -273,10 +273,11 @@ effect.</p>
 column is constrained towards.</p>
 <p>By default, uses the backend&#8217;s native ENUM type if available,
 else uses VARCHAR + a CHECK constraint.</p>
-<p>See also:</p>
-<blockquote>
-<div><a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.ENUM" title="sqlalchemy.dialects.postgresql.ENUM"><tt class="xref py py-class docutils literal"><span class="pre">ENUM</span></tt></a> - PostgreSQL-specific type,
-which has additional functionality.</div></blockquote>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.ENUM" title="sqlalchemy.dialects.postgresql.ENUM"><tt class="xref py py-class docutils literal"><span class="pre">ENUM</span></tt></a> - PostgreSQL-specific type,
+which has additional functionality.</p>
+</div>
 <dl class="method">
 <dt id="sqlalchemy.types.Enum.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Enum.__init__" title="Permalink to this definition">¶</a></dt>
@@ -310,14 +311,30 @@ the type and/or a table that uses it.</li>
 <li><strong>native_enum</strong> &#8211; Use the database&#8217;s native ENUM type when
 available. Defaults to True. When False, uses VARCHAR + check
 constraint for all backends.</li>
-<li><strong>schema</strong> &#8211; Schemaname of this type. For types that exist on the
+<li><strong>schema</strong> &#8211; <p>Schema name of this type. For types that exist on the
 target database as an independent schema construct (Postgresql),
 this parameter specifies the named schema in which the type is
-present.</li>
+present.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <tt class="docutils literal"><span class="pre">schema</span></tt> of the <a class="reference internal" href="#sqlalchemy.types.Enum" title="sqlalchemy.types.Enum"><tt class="xref py py-class docutils literal"><span class="pre">Enum</span></tt></a> type does not
+by default make use of the <tt class="docutils literal"><span class="pre">schema</span></tt> established on the
+owning <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.  If this behavior is desired,
+set the <tt class="docutils literal"><span class="pre">inherit_schema</span></tt> flag to <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
+</div>
+</li>
 <li><strong>quote</strong> &#8211; Force quoting to be on or off on the type&#8217;s name. If
 left as the default of <cite>None</cite>, the usual schema-level &#8220;case
 sensitive&#8221;/&#8221;reserved name&#8221; rules are used to determine if this
 type&#8217;s name should be quoted.</li>
+<li><strong>inherit_schema</strong> &#8211; <p>When <tt class="docutils literal"><span class="pre">True</span></tt>, the &#8220;schema&#8221; from the owning
+<a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> will be copied to the &#8220;schema&#8221; attribute of this
+<a class="reference internal" href="#sqlalchemy.types.Enum" title="sqlalchemy.types.Enum"><tt class="xref py py-class docutils literal"><span class="pre">Enum</span></tt></a>, replacing whatever value was passed for the
+<tt class="docutils literal"><span class="pre">schema</span></tt> attribute.   This also takes effect when using the
+<a class="reference internal" href="schema.html#sqlalchemy.schema.Table.tometadata" title="sqlalchemy.schema.Table.tometadata"><tt class="xref py py-meth docutils literal"><span class="pre">Table.tometadata()</span></tt></a> operation.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.</span></p>
+</li>
 </ul>
 </td>
 </tr>
@@ -485,8 +502,7 @@ it fully. The type is not necessarily supported by DBAPI
 implementations however, most of which contain an import for plain
 <tt class="docutils literal"><span class="pre">decimal</span></tt> in their source code, even though some such as psycopg2
 provide hooks for alternate adapters. SQLAlchemy imports <tt class="docutils literal"><span class="pre">decimal</span></tt>
-globally as well. While the alternate <tt class="docutils literal"><span class="pre">Decimal</span></tt> class can be patched
-into SQLA&#8217;s <tt class="docutils literal"><span class="pre">decimal</span></tt> module, overall the most straightforward and
+globally as well.  The most straightforward and
 foolproof way to use &#8220;cdecimal&#8221; given current DBAPI and Python support
 is to patch it directly into sys.modules before anything else is
 imported:</p>
@@ -602,9 +618,24 @@ constraints, triggers, and other rules.</p>
 <a class="reference internal" href="events.html#sqlalchemy.events.DDLEvents.after_parent_attach" title="sqlalchemy.events.DDLEvents.after_parent_attach"><tt class="xref py py-meth docutils literal"><span class="pre">DDLEvents.after_parent_attach()</span></tt></a> events, where the events fire off
 surrounding the association of the type object with a parent
 <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.types.Enum" title="sqlalchemy.types.Enum"><tt class="xref py py-class docutils literal"><span class="pre">Enum</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.types.Boolean" title="sqlalchemy.types.Boolean"><tt class="xref py py-class docutils literal"><span class="pre">Boolean</span></tt></a></p>
+</div>
+<dl class="method">
+<dt id="sqlalchemy.types.SchemaType.adapt">
+<tt class="descname">adapt</tt><big>(</big><em>impltype</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.SchemaType.adapt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="sqlalchemy.types.SchemaType.bind">
 <tt class="descname">bind</tt><a class="headerlink" href="#sqlalchemy.types.SchemaType.bind" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.types.SchemaType.copy">
+<tt class="descname">copy</tt><big>(</big><em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.SchemaType.copy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -977,22 +1008,22 @@ on all databases.</p>
 <p>Database-specific types are also available for import from each
 database&#8217;s dialect module. See the <em class="xref std std-ref">sqlalchemy.dialects_toplevel</em>
 reference for the database you&#8217;re interested in.</p>
-<p>For example, MySQL has a <tt class="docutils literal"><span class="pre">BIGINTEGER</span></tt> type and PostgreSQL has an
+<p>For example, MySQL has a <tt class="docutils literal"><span class="pre">BIGINT</span></tt> type and PostgreSQL has an
 <tt class="docutils literal"><span class="pre">INET</span></tt> type.  To use these, import them from the module explicitly:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.dialects</span> <span class="kn">import</span> <span class="n">mysql</span>
 
-<span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">mysql</span><span class="o">.</span><span class="n">BIGINTEGER</span><span class="p">),</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">mysql</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">),</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;enumerates&#39;</span><span class="p">,</span> <span class="n">mysql</span><span class="o">.</span><span class="n">ENUM</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">,</span> <span class="s">&#39;c&#39;</span><span class="p">))</span>
 <span class="p">)</span></pre></div>
 </div>
 <p>Or some PostgreSQL types:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.dialects</span> <span class="kn">import</span> <span class="n">postgresql</span>
 
-<span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;ipaddress&#39;</span><span class="p">,</span> <span class="n">postgresql</span><span class="o">.</span><span class="n">INET</span><span class="p">),</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;elements&#39;</span><span class="p">,</span> <span class="n">postgresql</span><span class="o">.</span><span class="n">ARRAY</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
-    <span class="p">)</span></pre></div>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;elements&#39;</span><span class="p">,</span> <span class="n">postgresql</span><span class="o">.</span><span class="n">ARRAY</span><span class="p">(</span><span class="n">String</span><span class="p">))</span>
+<span class="p">)</span></pre></div>
 </div>
 <p>Each dialect provides the full set of typenames supported by
 that backend within its <cite>__all__</cite> collection, so that a simple
@@ -1261,6 +1292,29 @@ parent object.</p>
 <em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ilike()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>Implement the <tt class="docutils literal"><span class="pre">ilike</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">ILIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">ilike</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.like()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1317,6 +1371,29 @@ on certain platforms.</p>
 <em>inherited from the</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">like()</span></tt></a> <em>method of</em> <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>Implement the <tt class="docutils literal"><span class="pre">like</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">LIKE</span> <span class="pre">other</span></tt>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">column</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%f</span><span class="s">oobar%&quot;</span><span class="p">))</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; expression to be compared</li>
+<li><strong>escape</strong> &#8211; <p>optional escape character, renders the <tt class="docutils literal"><span class="pre">ESCAPE</span></tt>
+keyword, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">somecolumn</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&quot;foo/%bar&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">)</span></pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.ilike" title="sqlalchemy.sql.operators.ColumnOperators.ilike"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.ilike()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -2599,7 +2676,7 @@ this type. (i.e. <tt class="docutils literal"><span class="pre">'postgresql'</sp
         <a href="event.html" title="next chapter">Events</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>

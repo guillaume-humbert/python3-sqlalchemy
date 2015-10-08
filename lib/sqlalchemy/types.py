@@ -1,5 +1,5 @@
 # sqlalchemy/types.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -25,10 +25,10 @@ import codecs
 
 from . import exc, schema, util, processors, events, event
 from .sql import operators
-from .sql.expression import _DefaultColumnComparator, column, bindparam
+from .sql.expression import _DefaultColumnComparator
 from .util import pickle
-from .util.compat import decimal
 from .sql.visitors import Visitable
+import decimal
 default = util.importlater("sqlalchemy.engine", "default")
 
 NoneType = type(None)
@@ -149,8 +149,15 @@ class TypeEngine(AbstractType):
 
     @util.memoized_property
     def _has_column_expression(self):
-        """memoized boolean, check if column_expression is implemented."""
-        return self.column_expression(column('x')) is not None
+        """memoized boolean, check if column_expression is implemented.
+
+        Allows the method to be skipped for the vast majority of expression
+        types that don't use this feature.
+
+        """
+
+        return self.__class__.column_expression.func_code \
+            is not TypeEngine.column_expression.func_code
 
     def bind_expression(self, bindvalue):
         """"Given a bind value (i.e. a :class:`.BindParameter` instance),
@@ -180,8 +187,15 @@ class TypeEngine(AbstractType):
 
     @util.memoized_property
     def _has_bind_expression(self):
-        """memoized boolean, check if bind_expression is implemented."""
-        return self.bind_expression(bindparam('x')) is not None
+        """memoized boolean, check if bind_expression is implemented.
+
+        Allows the method to be skipped for the vast majority of expression
+        types that don't use this feature.
+
+        """
+
+        return self.__class__.bind_expression.func_code \
+            is not TypeEngine.bind_expression.func_code
 
     def compare_values(self, x, y):
         """Compare two values for equality."""
@@ -699,6 +713,19 @@ class TypeDecorator(TypeEngine):
 
         raise NotImplementedError()
 
+    @util.memoized_property
+    def _has_bind_processor(self):
+        """memoized boolean, check if process_bind_param is implemented.
+
+        Allows the base process_bind_param to raise
+        NotImplementedError without needing to test an expensive
+        exception throw.
+
+        """
+
+        return self.__class__.process_bind_param.func_code \
+            is not TypeDecorator.process_bind_param.func_code
+
     def bind_processor(self, dialect):
         """Provide a bound value processing function for the
         given :class:`.Dialect`.
@@ -718,8 +745,7 @@ class TypeDecorator(TypeEngine):
         :meth:`result_processor` method of this class.
 
         """
-        if self.__class__.process_bind_param.func_code \
-            is not TypeDecorator.process_bind_param.func_code:
+        if self._has_bind_processor:
             process_param = self.process_bind_param
             impl_processor = self.impl.bind_processor(dialect)
             if impl_processor:
@@ -733,6 +759,18 @@ class TypeDecorator(TypeEngine):
             return process
         else:
             return self.impl.bind_processor(dialect)
+
+    @util.memoized_property
+    def _has_result_processor(self):
+        """memoized boolean, check if process_result_value is implemented.
+
+        Allows the base process_result_value to raise
+        NotImplementedError without needing to test an expensive
+        exception throw.
+
+        """
+        return self.__class__.process_result_value.func_code \
+            is not TypeDecorator.process_result_value.func_code
 
     def result_processor(self, dialect, coltype):
         """Provide a result value processing function for the given
@@ -754,8 +792,7 @@ class TypeDecorator(TypeEngine):
         :meth:`bind_processor` method of this class.
 
         """
-        if self.__class__.process_result_value.func_code \
-            is not TypeDecorator.process_result_value.func_code:
+        if self._has_result_processor:
             process_value = self.process_result_value
             impl_processor = self.impl.result_processor(dialect,
                     coltype)
@@ -1335,8 +1372,7 @@ class Numeric(_DateAffinity, TypeEngine):
        implementations however, most of which contain an import for plain
        ``decimal`` in their source code, even though some such as psycopg2
        provide hooks for alternate adapters. SQLAlchemy imports ``decimal``
-       globally as well. While the alternate ``Decimal`` class can be patched
-       into SQLA's ``decimal`` module, overall the most straightforward and
+       globally as well.  The most straightforward and
        foolproof way to use "cdecimal" given current DBAPI and Python support
        is to patch it directly into sys.modules before anything else is
        imported::
@@ -1754,6 +1790,13 @@ class SchemaType(events.SchemaEventTarget):
     surrounding the association of the type object with a parent
     :class:`.Column`.
 
+    .. seealso::
+
+        :class:`.Enum`
+
+        :class:`.Boolean`
+
+
     """
 
     def __init__(self, **kw):
@@ -1761,6 +1804,7 @@ class SchemaType(events.SchemaEventTarget):
         self.quote = kw.pop('quote', None)
         self.schema = kw.pop('schema', None)
         self.metadata = kw.pop('metadata', None)
+        self.inherit_schema = kw.pop('inherit_schema', False)
         if self.metadata:
             event.listen(
                 self.metadata,
@@ -1777,6 +1821,9 @@ class SchemaType(events.SchemaEventTarget):
         column._on_table_attach(util.portable_instancemethod(self._set_table))
 
     def _set_table(self, column, table):
+        if self.inherit_schema:
+            self.schema = table.schema
+
         event.listen(
             table,
             "before_create",
@@ -1801,6 +1848,20 @@ class SchemaType(events.SchemaEventTarget):
                 "after_drop",
                 util.portable_instancemethod(self._on_metadata_drop)
             )
+
+    def copy(self, **kw):
+        return self.adapt(self.__class__)
+
+    def adapt(self, impltype, **kw):
+        schema = kw.pop('schema', self.schema)
+        metadata = kw.pop('metadata', self.metadata)
+        return impltype(name=self.name,
+                    quote=self.quote,
+                    schema=schema,
+                    metadata=metadata,
+                    inherit_schema=self.inherit_schema,
+                    **kw
+                    )
 
     @property
     def bind(self):
@@ -1854,7 +1915,7 @@ class Enum(String, SchemaType):
     By default, uses the backend's native ENUM type if available,
     else uses VARCHAR + a CHECK constraint.
 
-    See also:
+    .. seealso::
 
         :class:`~.postgresql.ENUM` - PostgreSQL-specific type,
         which has additional functionality.
@@ -1896,15 +1957,30 @@ class Enum(String, SchemaType):
            available. Defaults to True. When False, uses VARCHAR + check
            constraint for all backends.
 
-        :param schema: Schemaname of this type. For types that exist on the
+        :param schema: Schema name of this type. For types that exist on the
            target database as an independent schema construct (Postgresql),
            this parameter specifies the named schema in which the type is
            present.
+
+           .. note::
+
+                The ``schema`` of the :class:`.Enum` type does not
+                by default make use of the ``schema`` established on the
+                owning :class:`.Table`.  If this behavior is desired,
+                set the ``inherit_schema`` flag to ``True``.
 
         :param quote: Force quoting to be on or off on the type's name. If
            left as the default of `None`, the usual schema-level "case
            sensitive"/"reserved name" rules are used to determine if this
            type's name should be quoted.
+
+        :param inherit_schema: When ``True``, the "schema" from the owning
+           :class:`.Table` will be copied to the "schema" attribute of this
+           :class:`.Enum`, replacing whatever value was passed for the
+           ``schema`` attribute.   This also takes effect when using the
+           :meth:`.Table.tometadata` operation.
+
+           .. versionadded:: 0.8
 
         """
         self.enums = enums
@@ -1951,13 +2027,16 @@ class Enum(String, SchemaType):
         table.append_constraint(e)
 
     def adapt(self, impltype, **kw):
+        schema = kw.pop('schema', self.schema)
+        metadata = kw.pop('metadata', self.metadata)
         if issubclass(impltype, Enum):
             return impltype(name=self.name,
                         quote=self.quote,
-                        schema=self.schema,
-                        metadata=self.metadata,
+                        schema=schema,
+                        metadata=metadata,
                         convert_unicode=self.convert_unicode,
                         native_enum=self.native_enum,
+                        inherit_schema=self.inherit_schema,
                         *self.enums,
                         **kw
                         )

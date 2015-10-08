@@ -1,5 +1,5 @@
 # orm/persistence.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -154,7 +154,7 @@ def _organize_states_for_save(base_mapper, states, uowtransaction):
         # with the same identity key already exists as persistent.
         # convert to an UPDATE if so.
         if not has_identity and \
-            instance_key in uowtransaction.session.identity_map:
+                instance_key in uowtransaction.session.identity_map:
             instance = \
                 uowtransaction.session.identity_map[instance_key]
             existing = attributes.instance_state(instance)

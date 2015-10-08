@@ -1,5 +1,5 @@
 # postgresql/psycopg2.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -147,7 +147,7 @@ import re
 import logging
 
 from ... import util, exc
-from ...util.compat import decimal
+import decimal
 from ... import processors
 from ...engine import result as _result
 from ...sql import expression

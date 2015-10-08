@@ -1,5 +1,5 @@
 # ext/mutable.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -611,9 +611,9 @@ class MutableDict(Mutable, dict):
         dict.__setitem__(self, key, value)
         self.changed()
 
-    def __delitem__(self, key, value):
+    def __delitem__(self, key):
         """Detect dictionary del events and emit change events."""
-        dict.__delitem__(self, key, value)
+        dict.__delitem__(self, key)
         self.changed()
 
     @classmethod

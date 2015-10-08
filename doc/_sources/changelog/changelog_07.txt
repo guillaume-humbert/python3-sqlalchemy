@@ -3,10 +3,107 @@
 0.7 Changelog
 ==============
 
+.. changelog::
+    :version: 0.7.11
+
+    .. change::
+        :tags: feature, postgresql
+        :tickets: 2676
+
+      Added support for Postgresql's traditional SUBSTRING
+      function syntax, renders as "SUBSTRING(x FROM y FOR z)"
+      when regular ``func.substring()`` is used.
+      Courtesy Gunnlaugur Þór Briem.
+
+    .. change::
+        :tags: bug, tests
+        :tickets: 2669
+        :pullreq: 41
+
+      Fixed an import of "logging" in test_execute which was not
+      working on some linux platforms.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2674
+
+      Improved the error message emitted when a "backref loop" is detected,
+      that is when an attribute event triggers a bidirectional
+      assignment between two other attributes with no end.
+      This condition can occur not just when an object of the wrong
+      type is assigned, but also when an attribute is mis-configured
+      to backref into an existing backref pair.
+
+    .. change::
+      :tags: bug, orm
+      :tickets: 2674
+
+      A warning is emitted when a MapperProperty is assigned to a mapper
+      that replaces an existing property, if the properties in question
+      aren't plain column-based properties.   Replacement of relationship
+      properties is rarely (ever?) what is intended and usually refers to a
+      mapper mis-configuration.   This will also warn if a backref configures
+      itself on top of an existing one in an inheritance relationship
+      (which is an error in 0.8).
 
 .. changelog::
     :version: 0.7.10
-    :released:
+    :released: Thu Feb 7 2013
+
+    .. change::
+        :tags: sql, mysql, gae
+        :tickets: 2649
+
+        Added a conditional import to the ``gaerdbms`` dialect which attempts
+        to import rdbms_apiproxy vs. rdbms_googleapi to work
+        on both dev and production platforms.  Also now honors the
+        ``instance`` attribute.  Courtesy Sean Lynch.  Also backported
+        enhancements to allow username/password as well as
+        fixing error code interpretation from 0.8.
+
+    .. change::
+        :tags: sql, bug
+        :tickets: 2594, 2584
+
+        Backported adjustment to ``__repr__`` for
+        :class:`.TypeDecorator` to 0.7, allows :class:`.PickleType`
+        to produce a clean ``repr()`` to help with Alembic.
+
+    .. change::
+        :tags: sql, bug
+        :tickets: 2643
+
+        Fixed bug where :meth:`.Table.tometadata` would fail if a
+        :class:`.Column` had both a foreign key as well as an
+        alternate ".key" name for the column.
+
+    .. change::
+        :tags: mssql, bug
+        :tickets: 2638
+
+      Added a Py3K conditional around unnecessary .decode()
+      call in mssql information schema, fixes reflection
+      in Py3k.
+
+    .. change::
+        :tags: orm, bug
+        :tickets: 2650
+
+      Fixed potential memory leak which could occur if an
+      arbitrary number of :class:`.sessionmaker` objects
+      were created.   The anonymous subclass created by
+      the sessionmaker, when dereferenced, would not be garbage
+      collected due to remaining class-level references from the
+      event package.  This issue also applies to any custom system
+      that made use of ad-hoc subclasses in conjunction with
+      an event dispatcher.
+
+    .. change::
+        :tags: orm, bug
+        :tickets: 2640
+
+      :meth:`.Query.merge_result` can now load rows from an outer join
+      where an entity may be ``None`` without throwing an error.
 
     .. change::
         :tags: sqlite, bug

@@ -1,5 +1,5 @@
 # engine/default.py
-# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -744,7 +744,9 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
                         (not exclude_types or dbtype not in exclude_types):
                     if translate:
                         key = translate.get(key, key)
-                    inputsizes[self.dialect._encoder(key)[0]] = dbtype
+                    if not self.dialect.supports_unicode_binds:
+                        key = self.dialect._encoder(key)[0]
+                    inputsizes[key] = dbtype
             try:
                 self.cursor.setinputsizes(**inputsizes)
             except Exception, e:
