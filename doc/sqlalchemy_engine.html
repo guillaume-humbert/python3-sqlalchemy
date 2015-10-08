@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/12/07 12:43:00</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/14/07 11:13:06</div>
 
 
 
@@ -76,6 +76,9 @@
         
         
         <li><a style="" href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_modfunc_engine_descriptors">engine_descriptors()</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_modfunc_engine_from_config">engine_from_config()</a></li>
         
     </ul>
 
@@ -282,6 +285,23 @@ parameter used to connect to this engine's underlying DBAPI.</dd>
 <p>This function is meant for usage in automated configuration tools
 that wish to query the user for database and connection
 information.</p>
+
+    </div>
+    </div>
+
+                
+    <div class="darkcell">
+    
+    <A name="docstrings_sqlalchemy.engine_modfunc_engine_from_config"></a>
+    <b>def engine_from_config(<i>configuration</i>, <i>prefix='sqlalchemy.'</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    <p>Create a new Engine instance using a configuration dictionary.</p>
+<p>the dictionary is typically produced from a config file where keys are prefixed,
+such as sqlalchemy.url, sqlalchemy.echo, etc.  The 'prefix' argument indicates
+the prefix to be searched for.</p>
+<p>A select set of keyword arguments will be &quot;coerced&quot; to their expected type based on
+string values.  in a future release, this functionality will be expanded to include
+dialect-specific arguments.</p>
 
     </div>
     </div>
@@ -1929,6 +1949,17 @@ must be initialized after this statement is complete.</p>
     <div class="docstring">
     <p>return a result object corresponding to this ExecutionContext.</p>
 <p>Returns a ResultProxy.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def should_autocommit(<i>self</i>)</b>
+    <div class="docstring">
+    <p>return True if this context's statement should be 'committed' automatically in a non-transactional context</p>
 
     </div>
     </div>

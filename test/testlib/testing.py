@@ -6,10 +6,10 @@ import testbase
 import unittest, re, sys, os, operator
 from cStringIO import StringIO
 import testlib.config as config
-sql, MetaData, clear_mappers = None, None, None
+sql, MetaData, clear_mappers, Session = None, None, None, None
 
 
-__all__ = 'PersistTest', 'AssertMixin', 'ORMTest'
+__all__ = ('PersistTest', 'AssertMixin', 'ORMTest', 'SQLCompileTest')
 
 _ops = { '<': operator.lt,
          '>': operator.gt,
@@ -206,6 +206,25 @@ class PersistTest(unittest.TestCase):
         """overridden to not return docstrings"""
         return None
 
+class SQLCompileTest(PersistTest):
+    def assert_compile(self, clause, result, params=None, checkparams=None, dialect=None):
+        if dialect is None:
+            dialect = getattr(self, '__dialect__', None)
+            
+        c = clause.compile(parameters=params, dialect=dialect)
+
+        print "\nSQL String:\n" + str(c) + repr(c.get_params())
+
+        cc = re.sub(r'\n', '', str(c))
+
+        self.assert_(cc == result, "\n'" + cc + "'\n does not match \n'" + result + "'")
+
+        if checkparams is not None:
+            if isinstance(checkparams, list):
+                self.assert_(c.get_params().get_raw_list() == checkparams, "params dont match ")
+            else:
+                self.assert_(c.get_params().get_original_dict() == checkparams, "params dont match" + repr(c.get_params()))
+
 class AssertMixin(PersistTest):
     """given a list-based structure of keys/properties which represent information within an object structure, and
     a list of actual objects, asserts that the list of objects corresponds to the structure."""
@@ -304,6 +323,10 @@ class ORMTest(AssertMixin):
         _otest_metadata.drop_all()
 
     def tearDown(self):
+        global Session
+        if Session is None:
+            from sqlalchemy.orm.session import Session
+        Session.close_all()
         global clear_mappers
         if clear_mappers is None:
             from sqlalchemy.orm import clear_mappers

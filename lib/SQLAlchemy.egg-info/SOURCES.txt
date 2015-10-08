@@ -185,6 +185,7 @@ test/base/dependency.py
 test/base/utils.py
 test/dialect/__init__.py
 test/dialect/alltests.py
+test/dialect/mssql.py
 test/dialect/mysql.py
 test/dialect/oracle.py
 test/dialect/postgres.py

@@ -4,15 +4,15 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-import weakref, types
-
+import weakref
 from sqlalchemy import util, exceptions, sql, engine
-from sqlalchemy.orm import unitofwork, query, util as mapperutil, MapperExtension, EXT_CONTINUE
+from sqlalchemy.orm import unitofwork, query, util as mapperutil
 from sqlalchemy.orm.mapper import object_mapper as _object_mapper
 from sqlalchemy.orm.mapper import class_mapper as _class_mapper
-from sqlalchemy.orm.mapper import global_extensions
+from sqlalchemy.orm.mapper import Mapper
 
-__all__ = ['Session', 'SessionTransaction']
+
+__all__ = ['Session', 'SessionTransaction', 'SessionExtension']
 
 def sessionmaker(bind=None, class_=None, autoflush=True, transactional=True, **kwargs):
     """Generate a custom-configured [sqlalchemy.orm.session#Session] class.
@@ -82,16 +82,60 @@ def sessionmaker(bind=None, class_=None, autoflush=True, transactional=True, **k
         configure = classmethod(configure)
         
     return Sess
+
+# TODO: add unit test coverage for SessionExtension in test/orm/session.py
+class SessionExtension(object):
+    """an extension hook object for Sessions.  Subclasses may be installed into a Session
+    (or sessionmaker) using the ``extension`` keyword argument.
+    """
     
+    def before_commit(self, session):
+        """execute right before commit is called.
+        
+        Note that this may not be per-flush if a longer running transaction is ongoing."""
+
+    def after_commit(self, session):
+        """execute after a commit has occured.
+        
+        Note that this may not be per-flush if a longer running transaction is ongoing."""
+
+    def after_rollback(self, session):
+        """execute after a rollback has occured.
+
+        Note that this may not be per-flush if a longer running transaction is ongoing."""
+
+    def before_flush(self, session, flush_context, objects):
+        """execute before flush process has started.
+        
+        'objects' is an optional list of objects which were passed to the ``flush()``
+        method.
+        """
+
+    def after_flush(self, session, flush_context):
+        """execute after flush has completed, but before commit has been called.
+        
+        Note that the session's state is still in pre-flush, i.e. 'new', 'dirty',
+        and 'deleted' lists still show pre-flush state as well as the history
+        settings on instance attributes."""
+        
+    def after_flush_postexec(self, session, flush_context):
+        """execute after flush has completed, and after the post-exec state occurs.
+        
+        this will be when the 'new', 'dirty', and 'deleted' lists are in their final 
+        state.  An actual commit() may or may not have occured, depending on whether or not
+        the flush started its own transaction or participated in a larger transaction.
+        """
+        
 class SessionTransaction(object):
     """Represents a Session-level Transaction.
 
-    This corresponds to one or more [sqlalchemy.engine_Transaction]
+    This corresponds to one or more [sqlalchemy.engine#Transaction]
     instances behind the scenes, with one ``Transaction`` per ``Engine`` in
     use.
 
-    Typically, usage of ``SessionTransaction`` is not necessary; use
-    the ``begin()`` and ``commit()`` methods on ``Session`` itself.
+    Direct usage of ``SessionTransaction`` is not necessary as of
+    SQLAlchemy 0.4; use the ``begin()`` and ``commit()`` methods on 
+    ``Session`` itself.
     
     The ``SessionTransaction`` object is **not** threadsafe.
     """
@@ -103,10 +147,8 @@ class SessionTransaction(object):
         self.autoflush = autoflush
         self.nested = nested
 
-    def connection(self, mapper_or_class, entity_name=None, **kwargs):
-        if isinstance(mapper_or_class, type):
-            mapper_or_class = _class_mapper(mapper_or_class, entity_name=entity_name)
-        engine = self.session.get_bind(mapper_or_class, **kwargs)
+    def connection(self, bindkey, **kwargs):
+        engine = self.session.get_bind(bindkey, **kwargs)
         return self.get_or_add(engine)
 
     def _begin(self, **kwargs):
@@ -161,6 +203,10 @@ class SessionTransaction(object):
     def commit(self):
         if self.__parent is not None and not self.nested:
             return self.__parent
+
+        if self.session.extension is not None:
+            self.session.before_commit(self.session)
+            
         if self.autoflush:
             self.session.flush()
 
@@ -170,14 +216,23 @@ class SessionTransaction(object):
 
         for t in util.Set(self.__connections.values()):
             t[1].commit()
+
+        if self.session.extension is not None:
+            self.session.after_commit(self.session)
+
         self.close()
         return self.__parent
 
     def rollback(self):
         if self.__parent is not None and not self.nested:
             return self.__parent.rollback()
+        
         for t in util.Set(self.__connections.values()):
             t[1].rollback()
+
+        if self.session.extension is not None:
+            self.session.extension.after_rollback(self.session)
+
         self.close()
         return self.__parent
         
@@ -262,7 +317,7 @@ class Session(object):
     a thread-managed Session adapter, provided by the [sqlalchemy.orm#scoped_session()] function.
     """
 
-    def __init__(self, bind=None, autoflush=True, transactional=False, twophase=False, echo_uow=False, weak_identity_map=False, binds=None):
+    def __init__(self, bind=None, autoflush=True, transactional=False, twophase=False, echo_uow=False, weak_identity_map=False, binds=None, extension=None):
         """Construct a new Session.
 
             autoflush
@@ -301,6 +356,12 @@ class Session(object):
                 When ``True``, configure Python logging to dump all unit-of-work
                 transactions. This is the equivalent of
                 ``logging.getLogger('sqlalchemy.orm.unitofwork').setLevel(logging.DEBUG)``.
+            
+            extension
+                an optional [sqlalchemy.orm.session#SessionExtension] instance, which will receive
+                pre- and post- commit and flush events, as well as a post-rollback event.  User-
+                defined code may be placed within these hooks using a user-defined subclass
+                of ``SessionExtension``.
                 
             transactional
                 Set up this ``Session`` to automatically begin transactions. Setting this
@@ -339,14 +400,18 @@ class Session(object):
         self.autoflush = autoflush
         self.transactional = transactional
         self.twophase = twophase
+        self.extension = extension
         self._query_cls = query.Query
         self._mapper_flush_opts = {}
         
         if binds is not None:
-            for mapperortable, value in binds:
+            for mapperortable, value in binds.iteritems():
                 if isinstance(mapperortable, type):
-                    mapperortable = _class_mapper(mapperortable)
+                    mapperortable = _class_mapper(mapperortable).base_mapper
                 self.__binds[mapperortable] = value
+                if isinstance(mapperortable, Mapper):
+                    for t in mapperortable._all_tables:
+                        self.__binds[t] = value
                 
         if self.transactional:
             self.begin()
@@ -441,11 +506,14 @@ class Session(object):
         to multiple engines or connections, or is not bound to any connectable.
         """
 
-        if self.transaction is not None:
-            return self.transaction.connection(mapper)
-        else:
-            return self.get_bind(mapper).contextual_connect(**kwargs)
+        return self.__connection(self.get_bind(mapper))
 
+    def __connection(self, engine, **kwargs):
+        if self.transaction is not None:
+            return self.transaction.get_or_add(engine)
+        else:
+            return engine.contextual_connect(**kwargs)
+        
     def execute(self, clause, params=None, mapper=None, **kwargs):
         """Using the given mapper to identify the appropriate ``Engine``
         or ``Connection`` to be used for statement execution, execute the
@@ -457,12 +525,17 @@ class Session(object):
         then the ``ResultProxy`` 's ``close()`` method will release the
         resources of the underlying ``Connection``.
         """
-        return self.connection(mapper, close_with_result=True).execute(clause, params or {}, **kwargs)
+
+        engine = self.get_bind(mapper, clause=clause)
+        
+        return self.__connection(engine, close_with_result=True).execute(clause, params or {}, **kwargs)
 
     def scalar(self, clause, params=None, mapper=None, **kwargs):
         """Like execute() but return a scalar result."""
 
-        return self.connection(mapper, close_with_result=True).scalar(clause, params or {}, **kwargs)
+        engine = self.get_bind(mapper, clause=clause)
+        
+        return self.__connection(engine, close_with_result=True).scalar(clause, params or {}, **kwargs)
 
     def close(self):
         """Close this Session.  
@@ -512,7 +585,9 @@ class Session(object):
         if isinstance(mapper, type):
             mapper = _class_mapper(mapper, entity_name=entity_name)
 
-        self.__binds[mapper] = bind
+        self.__binds[mapper.base_mapper] = bind
+        for t in mapper._all_tables:
+            self.__binds[t] = bind
 
     def bind_table(self, table, bind):
         """Bind the given `table` to the given ``Engine`` or ``Connection``.
@@ -523,45 +598,34 @@ class Session(object):
 
         self.__binds[table] = bind
 
-    def get_bind(self, mapper):
-        """Return the ``Engine`` or ``Connection`` which is used to execute
-        statements on behalf of the given `mapper`.
+    def get_bind(self, mapper, clause=None):
 
-        Calling ``connect()`` on the return result will always result
-        in a ``Connection`` object.  This method disregards any
-        ``SessionTransaction`` that may be in progress.
-
-        The order of searching is as follows:
-
-        1. if an ``Engine`` or ``Connection`` was bound to this ``Mapper``
-           specifically within this ``Session``, return that ``Engine`` or
-           ``Connection``.
-
-        2. if an ``Engine`` or ``Connection`` was bound to this `mapper` 's
-           underlying ``Table`` within this ``Session`` (i.e. not to the ``Table``
-           directly), return that ``Engine`` or ``Connection``.
-
-        3. if an ``Engine`` or ``Connection`` was bound to this ``Session``,
-           return that ``Engine`` or ``Connection``.
-
-        4. finally, return the ``Engine`` which was bound directly to the
-           ``Table`` 's ``MetaData`` object.
-
-        If no ``Engine`` is bound to the ``Table``, an exception is raised.
-        """
-
-        if mapper is None:
+        if mapper is None and clause is None:
             if self.bind is not None:
                 return self.bind
             else:
                 raise exceptions.InvalidRequestError("This session is unbound to any Engine or Connection; specify a mapper to get_bind()")
-        elif self.__binds.has_key(mapper):
-            return self.__binds[mapper]
-        elif self.__binds.has_key(mapper.compile().mapped_table):
-            return self.__binds[mapper.mapped_table]
-        elif self.bind is not None:
+                
+        elif len(self.__binds):
+            if mapper is not None:
+                if isinstance(mapper, type):
+                    mapper = _class_mapper(mapper)
+                if self.__binds.has_key(mapper.base_mapper):
+                    return self.__binds[mapper.base_mapper]
+                elif self.__binds.has_key(mapper.compile().mapped_table):
+                    return self.__binds[mapper.mapped_table]
+            if clause is not None:
+                for t in clause._table_iterator():
+                    if t in self.__binds:
+                        return self.__binds[t]
+                        
+        if self.bind is not None:
             return self.bind
         else:
+            if isinstance(mapper, type):
+                mapper = _class_mapper(mapper)
+            else:
+                mapper = mapper.compile()
             e = mapper.mapped_table.bind
             if e is None:
                 raise exceptions.InvalidRequestError("Could not locate any Engine or Connection bound to mapper '%s'" % str(mapper))

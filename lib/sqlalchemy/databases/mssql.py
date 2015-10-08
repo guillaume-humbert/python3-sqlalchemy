@@ -44,6 +44,7 @@ import datetime, random, warnings, re
 from sqlalchemy import sql, schema, ansisql, exceptions
 import sqlalchemy.types as sqltypes
 from sqlalchemy.engine import default
+import operator
     
 class MSNumeric(sqltypes.Numeric):
     def convert_result_value(self, value, dialect):
@@ -896,7 +897,7 @@ class MSSQLCompiler(ansisql.ANSICompiler):
                           }
     def visit_function(self, func):
         func.name = self.function_rewrites.get(func.name, func.name)
-        super(MSSQLCompiler, self).visit_function(func)            
+        return super(MSSQLCompiler, self).visit_function(func)            
 
     def for_update_clause(self, select):
         # "FOR UPDATE" is only allowed on "DECLARE CURSOR" which SQLAlchemy doesn't use

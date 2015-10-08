@@ -174,6 +174,9 @@ class UnitOfWork(object):
 
         flush_context = UOWTransaction(self, session)
 
+        if session.extension is not None:
+            session.extension.before_flush(session, flush_context, objects)
+
         # create the set of all objects we want to operate upon
         if objects is not None:
             # specific list passed in
@@ -204,12 +207,18 @@ class UnitOfWork(object):
         flush_context.transaction = session.transaction
         try:
             flush_context.execute()
+            
+            if session.extension is not None:
+                session.extension.after_flush(session, flush_context)
         except:
             session.rollback()
             raise
         session.commit()
 
         flush_context.post_exec()
+
+        if session.extension is not None:
+            session.extension.after_flush_postexec(session, flush_context)
 
 class UOWTransaction(object):
     """Handles the details of organizing and executing transaction
@@ -298,7 +307,7 @@ class UOWTransaction(object):
             if dontcreate:
                 return None
                 
-            base_mapper = mapper.base_mapper()
+            base_mapper = mapper.base_mapper
             if base_mapper in self.tasks:
                 base_task = self.tasks[base_mapper]
             else:
@@ -327,8 +336,8 @@ class UOWTransaction(object):
         # also convert to the "base mapper", the parentmost task at the top of an inheritance chain
         # dependency sorting is done via non-inheriting mappers only, dependencies between mappers
         # in the same inheritance chain is done at the per-object level
-        mapper = mapper.primary_mapper().base_mapper()
-        dependency = dependency.primary_mapper().base_mapper()
+        mapper = mapper.primary_mapper().base_mapper
+        dependency = dependency.primary_mapper().base_mapper
 
         self.dependencies.add((mapper, dependency))
 
@@ -706,8 +715,8 @@ class UOWTask(object):
             return l
 
         def dependency_in_cycles(dep):
-            proctask = trans.get_task_by_mapper(dep.processor.mapper.base_mapper(), True)
-            targettask = trans.get_task_by_mapper(dep.targettask.mapper.base_mapper(), True)
+            proctask = trans.get_task_by_mapper(dep.processor.mapper.base_mapper, True)
+            targettask = trans.get_task_by_mapper(dep.targettask.mapper.base_mapper, True)
             return targettask in cycles and (proctask is not None and proctask in cycles)
 
         # organize all original UOWDependencyProcessors by their target task

@@ -183,6 +183,12 @@ RESERVED_WORDS = util.Set(
      'read_only', 'read_write', # 5.1
      ])
 
+AUTOCOMMIT_RE = re.compile(
+    r'\s*(?:UPDATE|INSERT|CREATE|DELETE|DROP|ALTER|LOAD +DATA)',
+    re.I | re.UNICODE)
+SELECT_RE = re.compile(
+    r'\s*(?:SELECT|SHOW|DESCRIBE|XA RECOVER)',
+    re.I | re.UNICODE)
 
 class _NumericType(object):
     """Base for MySQL numeric types."""
@@ -1274,7 +1280,7 @@ def descriptor():
 
 
 class MySQLExecutionContext(default.DefaultExecutionContext):
-    _my_is_select = re.compile(r'\s*(?:SELECT|SHOW|DESCRIBE|XA RECOVER)',
+    _my_is_select = re.compile(r'\s*(?:SELECT|SHOW|DESCRIBE|XA +RECOVER)',
                                re.I | re.UNICODE)
 
     def post_exec(self):
@@ -1285,7 +1291,10 @@ class MySQLExecutionContext(default.DefaultExecutionContext):
                                            self._last_inserted_ids[1:])
             
     def is_select(self):
-        return self._my_is_select.match(self.statement) is not None
+        return SELECT_RE.match(self.statement)
+
+    def should_autocommit(self):
+        return AUTOCOMMIT_RE.match(self.statement)
 
 
 class MySQLDialect(ansisql.ANSIDialect):
@@ -1531,9 +1540,11 @@ class MySQLDialect(ansisql.ANSIDialect):
 
         charset = self._detect_charset(connection)
         casing = self._detect_casing(connection, charset)
-        if casing == 1:
+        # is this really needed?
+        if casing == 1 and table.name != table.name.lower():
             table.name = table.name.lower()
-            table.metadata.tables[table.name]= table
+            lc_alias = schema._get_table_key(table.name, table.schema)
+            table.metadata.tables[lc_alias] = table
 
         sql = self._show_create_table(connection, table, charset)
 
@@ -2013,12 +2024,9 @@ class MySQLSchemaReflector(object):
                     "columns." % (', '.join(loc_names)))
                 continue
 
-            if ref_name in table.metadata.tables:
-                ref_table = table.metadata.tables[ref_name]
-                if ref_table.schema and ref_table.schema != ref_schema:
-                    warnings.warn(RuntimeWarning(
-                        "Table %s.%s is shadowing %s.%s in this MetaData" %
-                        (ref_table.schema, ref_name, table.schema, table.name)))
+            ref_key = schema._get_table_key(ref_name, ref_schema)
+            if ref_key in table.metadata.tables:
+                ref_table = table.metadata.tables[ref_key]
             else:
                 ref_table = schema.Table(ref_name, table.metadata,
                                          schema=ref_schema,
