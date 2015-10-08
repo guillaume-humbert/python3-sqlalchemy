@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.8.1',
+          VERSION:     '0.8.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
+        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
 
 
     </div>
@@ -1321,7 +1321,7 @@ setup using <tt class="xref py py-class docutils literal"><span class="pre">scop
 <h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="sqlalchemy.ext.declarative.declarative_base">
-<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x10bb8a6e0&gt;</em>, <em>class_registry=None</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.api.DeclarativeMeta'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x10aadd938&gt;</em>, <em>class_registry=None</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.api.DeclarativeMeta'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a base class for declarative class definitions.</p>
 <p>The new base class will be given a metaclass that produces
 appropriate <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects and makes
@@ -1496,7 +1496,7 @@ a hook for the <tt class="xref py py-func docutils literal"><span class="pre">Ma
 table for the class itself.  Compare to <a class="reference internal" href="#sqlalchemy.ext.declarative.ConcreteBase" title="sqlalchemy.ext.declarative.ConcreteBase"><tt class="xref py py-class docutils literal"><span class="pre">ConcreteBase</span></tt></a>,
 which does.</p>
 <p>Example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">ConcreteBase</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">AbstractConcreteBase</span>
 
 <span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="n">AbstractConcreteBase</span><span class="p">,</span> <span class="n">Base</span><span class="p">):</span>
     <span class="k">pass</span>

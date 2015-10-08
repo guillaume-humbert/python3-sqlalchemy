@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.1',
+          VERSION:     '0.8.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
+        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
 
 
     </div>
@@ -121,7 +121,7 @@
 <li><a class="reference internal" href="#case-sensitivity-and-table-reflection">Case Sensitivity and Table Reflection</a></li>
 <li><a class="reference internal" href="#transaction-isolation-level">Transaction Isolation Level</a></li>
 <li><a class="reference internal" href="#keys">Keys</a></li>
-<li><a class="reference internal" href="#sql-mode">SQL Mode</a></li>
+<li><a class="reference internal" href="#ansi-quoting-style">Ansi Quoting Style</a></li>
 <li><a class="reference internal" href="#mysql-sql-extensions">MySQL SQL Extensions</a></li>
 <li><a class="reference internal" href="#rowcount-support">rowcount Support</a></li>
 <li><a class="reference internal" href="#cast-support">CAST Support</a></li>
@@ -325,28 +325,19 @@ engines:</p>
      <span class="p">)</span></pre></div>
 </div>
 </div>
-<div class="section" id="sql-mode">
-<h2>SQL Mode<a class="headerlink" href="#sql-mode" title="Permalink to this headline">¶</a></h2>
-<p>MySQL SQL modes are supported.  Modes that enable <tt class="docutils literal"><span class="pre">ANSI_QUOTES</span></tt> (such as
-<tt class="docutils literal"><span class="pre">ANSI</span></tt>) require an engine option to modify SQLAlchemy&#8217;s quoting style.
-When using an ANSI-quoting mode, supply <tt class="docutils literal"><span class="pre">use_ansiquotes=True</span></tt> when
-creating your <tt class="docutils literal"><span class="pre">Engine</span></tt>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql://localhost/test&#39;</span><span class="p">,</span> <span class="n">use_ansiquotes</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
-</div>
-<p>This is an engine-wide option and is not toggleable on a per-connection basis.
-SQLAlchemy does not presume to <tt class="docutils literal"><span class="pre">SET</span> <span class="pre">sql_mode</span></tt> for you with this option.  For
-the best performance, set the quoting style server-wide in <tt class="docutils literal"><span class="pre">my.cnf</span></tt> or by
-supplying <tt class="docutils literal"><span class="pre">--sql-mode</span></tt> to <tt class="docutils literal"><span class="pre">mysqld</span></tt>.  You can also use a
-<a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.pool.Pool</span></tt></a> listener hook to issue a <tt class="docutils literal"><span class="pre">SET</span> <span class="pre">SESSION</span>
-<span class="pre">sql_mode='...'</span></tt> on connect to configure each connection.</p>
-<p>If you do not specify <tt class="docutils literal"><span class="pre">use_ansiquotes</span></tt>, the regular MySQL quoting style is
-used by default.</p>
-<p>If you do issue a <tt class="docutils literal"><span class="pre">SET</span> <span class="pre">sql_mode</span></tt> through SQLAlchemy, the dialect must be
-updated if the quoting style is changed.  Again, this change will affect all
-connections:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;SET sql_mode=&quot;ansi&quot;&#39;</span><span class="p">)</span>
-<span class="n">connection</span><span class="o">.</span><span class="n">dialect</span><span class="o">.</span><span class="n">use_ansiquotes</span> <span class="o">=</span> <span class="bp">True</span></pre></div>
-</div>
+<div class="section" id="ansi-quoting-style">
+<h2>Ansi Quoting Style<a class="headerlink" href="#ansi-quoting-style" title="Permalink to this headline">¶</a></h2>
+<p>MySQL features two varieties of identifier &#8220;quoting style&#8221;, one using
+backticks and the other using quotes, e.g. <tt class="docutils literal"><span class="pre">`some_identifier`</span></tt>  vs.
+<tt class="docutils literal"><span class="pre">&quot;some_identifier&quot;</span></tt>.   All MySQL dialects detect which version
+is in use by checking the value of <tt class="docutils literal"><span class="pre">sql_mode</span></tt> when a connection is first
+established with a particular <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>.  This quoting style comes
+into play when rendering table and column names as well as when reflecting
+existing database structures.  The detection is entirely automatic and
+no special configuration is needed to use either quoting style.</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.6: </span>detection of ANSI quoting style is entirely automatic,
+there&#8217;s no longer any end-user <tt class="docutils literal"><span class="pre">create_engine()</span></tt> options in this regard.</p>
 </div>
 <div class="section" id="mysql-sql-extensions">
 <h2>MySQL SQL Extensions<a class="headerlink" href="#mysql-sql-extensions" title="Permalink to this headline">¶</a></h2>
@@ -418,13 +409,20 @@ construct is rendered directly.</p>
 &#8220;length&#8221; refers to the number of characters or bytes in each value which will
 become part of the index. SQLAlchemy provides this feature via the
 <tt class="docutils literal"><span class="pre">mysql_length</span></tt> parameter:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">Index</span><span class="p">(</span><span class="s">&#39;my_index&#39;</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">mysql_length</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Index</span><span class="p">(</span><span class="s">&#39;my_index&#39;</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">mysql_length</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="n">Index</span><span class="p">(</span><span class="s">&#39;a_b_idx&#39;</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b</span><span class="p">,</span> <span class="n">mysql_length</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;a&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">:</span> <span class="mi">9</span><span class="p">})</span></pre></div>
 </div>
 <p>Prefix lengths are given in characters for nonbinary string types and in bytes
-for binary string types. The value passed to the keyword argument will be
-simply passed through to the underlying CREATE INDEX command, so it <em>must</em> be
-an integer. MySQL only allows a length for an index if it is for a CHAR,
-VARCHAR, TEXT, BINARY, VARBINARY and BLOB.</p>
+for binary string types. The value passed to the keyword argument <em>must</em> be
+either an integer (and, thus, specify the same prefix length value for all
+columns of the index) or a dict in which keys are column names and values are
+prefix length values for corresponding columns. MySQL only allows a length for
+a column of an index if it is for a CHAR, VARCHAR, TEXT, BINARY, VARBINARY and
+BLOB.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8.2: </span><tt class="docutils literal"><span class="pre">mysql_length</span></tt> may now be specified as a dictionary
+for use with composite indexes.</p>
 </div>
 <div class="section" id="index-types">
 <h3>Index Types<a class="headerlink" href="#index-types" title="Permalink to this headline">¶</a></h3>

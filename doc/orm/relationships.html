@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.1',
+          VERSION:     '0.8.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
+        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
 
 
     </div>
@@ -1589,29 +1589,59 @@ provides custom SQL clause generation for comparison operations.</li>
 which will be prepended to the list of attribute listeners for
 the resulting descriptor placed on the class.
 <strong>Deprecated.</strong>  Please see <a class="reference internal" href="events.html#sqlalchemy.orm.events.AttributeEvents" title="sqlalchemy.orm.events.AttributeEvents"><tt class="xref py py-class docutils literal"><span class="pre">AttributeEvents</span></tt></a>.</li>
-<li><strong>foreign_keys</strong> &#8211; <p>a list of columns which are to be used as &#8220;foreign key&#8221; columns.
-Normally, <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> uses the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a>
-and <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> objects present within the
-mapped or secondary <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> to determine the &#8220;foreign&#8221; side of
-the join condition.  This is used to construct SQL clauses in order
-to load objects, as well as to &#8220;synchronize&#8221; values from
-primary key columns to referencing foreign key columns.
-The <tt class="docutils literal"><span class="pre">foreign_keys</span></tt> parameter overrides the notion of what&#8217;s
-&#8220;foreign&#8221; in the table metadata, allowing the specification
-of a list of <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects that should be considered
-part of the foreign key.</p>
-<p>There are only two use cases for <tt class="docutils literal"><span class="pre">foreign_keys</span></tt> - one, when it is not
-convenient for <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> metadata to contain its own foreign key
-metadata (which should be almost never, unless reflecting a large amount
-of tables from a MySQL MyISAM schema, or a schema that doesn&#8217;t actually
-have foreign keys on it). The other is for extremely
-rare and exotic composite foreign key setups where some columns
-should artificially not be considered as foreign.</p>
+<li><strong>foreign_keys</strong> &#8211; <p>a list of columns which are to be used as &#8220;foreign key&#8221; columns,
+or columns which refer to the value in a remote column, within the
+context of this <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> object&#8217;s <tt class="docutils literal"><span class="pre">primaryjoin</span></tt>
+condition.   That is, if the <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> condition of this
+<a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> is <tt class="docutils literal"><span class="pre">a.id</span> <span class="pre">==</span> <span class="pre">b.a_id</span></tt>, and the values in <tt class="docutils literal"><span class="pre">b.a_id</span></tt>
+are required to be present in <tt class="docutils literal"><span class="pre">a.id</span></tt>, then the &#8220;foreign key&#8221; column
+of this <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> is <tt class="docutils literal"><span class="pre">b.a_id</span></tt>.</p>
+<p>In normal cases, the <tt class="docutils literal"><span class="pre">foreign_keys</span></tt> parameter is <strong>not required.</strong>
+<a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> will <strong>automatically</strong> determine which columns
+in the <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> conditition are to be considered &#8220;foreign key&#8221;
+columns based on those <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects that specify
+<a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a>, or are otherwise listed as referencing columns
+in a <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> construct.  <tt class="docutils literal"><span class="pre">foreign_keys</span></tt> is only
+needed when:</p>
+<blockquote>
+<div><ol class="arabic">
+<li>There is more than one way to construct a join from the local
+table to the remote table, as there are multiple foreign key
+references present.  Setting <tt class="docutils literal"><span class="pre">foreign_keys</span></tt> will limit the
+<a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> to consider just those columns specified
+here as &#8220;foreign&#8221;.<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.8: </span>A multiple-foreign key join ambiguity can be resolved by
+setting the <tt class="docutils literal"><span class="pre">foreign_keys</span></tt> parameter alone, without the
+need to explicitly set <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> as well.</p>
+</li>
+<li>The <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> being mapped does not actually have
+<a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> or <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>
+constructs present, often because the table
+was reflected from a database that does not support foreign key
+reflection (MySQL MyISAM).</li>
+<li>The <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> argument is used to construct a non-standard
+join condition, which makes use of columns or expressions that do
+not normally refer to their &#8220;parent&#8221; column, such as a join condition
+expressed by a complex comparison using a SQL function.</li>
+</ol>
+</div></blockquote>
+<p>The <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> construct will raise informative error messages
+that suggest the use of the <tt class="docutils literal"><span class="pre">foreign_keys</span></tt> parameter when presented
+with an ambiguous condition.   In typical cases, if <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>
+doesn&#8217;t raise any exceptions, the <tt class="docutils literal"><span class="pre">foreign_keys</span></tt> parameter is usually
+not needed.</p>
 <p><tt class="docutils literal"><span class="pre">foreign_keys</span></tt> may also be passed as a callable function
 which is evaluated at mapper initialization time, and may be passed as a
 Python-evaluable string when using Declarative.</p>
-<p class="versionchanged">
-<span class="versionmodified">Changed in version 0.8: </span>The <a class="reference internal" href="#sqlalchemy.orm.foreign" title="sqlalchemy.orm.foreign"><tt class="xref py py-func docutils literal"><span class="pre">foreign()</span></tt></a> annotation can also be applied
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#relationship-foreign-keys"><em>Handling Multiple Join Paths</em></a></p>
+<p><a class="reference internal" href="#relationship-custom-foreign"><em>Creating Custom Foreign Conditions</em></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.foreign" title="sqlalchemy.orm.foreign"><tt class="xref py py-func docutils literal"><span class="pre">foreign()</span></tt></a> - allows direct annotation of the &#8220;foreign&#8221; columns
+within a <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> condition.</p>
+</div>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8: </span>The <a class="reference internal" href="#sqlalchemy.orm.foreign" title="sqlalchemy.orm.foreign"><tt class="xref py py-func docutils literal"><span class="pre">foreign()</span></tt></a> annotation can also be applied
 directly to the <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> expression, which is an alternate,
 more specific system of describing which columns in a particular
 <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> should be considered &#8220;foreign&#8221;.</p>

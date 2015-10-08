@@ -8,7 +8,7 @@ from sqlalchemy.engine import default
 from sqlalchemy.testing import AssertsCompiledSQL, fixtures
 from sqlalchemy import testing
 from sqlalchemy.testing.schema import Table, Column
-from sqlalchemy.testing import assert_raises, eq_
+from sqlalchemy.testing import assert_raises, eq_, is_
 
 class Company(fixtures.ComparableEntity):
     pass
@@ -1377,3 +1377,87 @@ class SubClassToSubClassMultiTest(AssertsCompiledSQL, fixtures.MappedTest):
             "JOIN ep2 ON anon_1.anon_2_base2_id = ep2.base2_id"
         )
 
+class MultipleAdaptUsesEntityOverTableTest(AssertsCompiledSQL, fixtures.MappedTest):
+    __dialect__ = 'default'
+    run_create_tables = None
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('a', metadata,
+                Column('id', Integer, primary_key=True),
+                Column('name', String)
+        )
+        Table('b', metadata,
+                Column('id', Integer, ForeignKey('a.id'), primary_key=True)
+        )
+        Table('c', metadata,
+                Column('id', Integer, ForeignKey('a.id'), primary_key=True),
+                Column('bid', Integer, ForeignKey('b.id'))
+        )
+        Table('d', metadata,
+                Column('id', Integer, ForeignKey('a.id'), primary_key=True),
+                Column('cid', Integer, ForeignKey('c.id'))
+        )
+
+    @classmethod
+    def setup_classes(cls):
+        class A(cls.Comparable):
+            pass
+        class B(A):
+            pass
+        class C(A):
+            pass
+        class D(A):
+            pass
+
+    @classmethod
+    def setup_mappers(cls):
+        A, B, C, D = cls.classes.A, cls.classes.B, cls.classes.C, cls.classes.D
+        a, b, c, d = cls.tables.a, cls.tables.b, cls.tables.c, cls.tables.d
+        mapper(A, a)
+        mapper(B, b, inherits=A)
+        mapper(C, c, inherits=A)
+        mapper(D, d, inherits=A)
+
+    def _two_join_fixture(self):
+        A, B, C, D = self.classes.A, self.classes.B, self.classes.C, self.classes.D
+        s = Session()
+        return s.query(B.name, C.name, D.name).select_from(B).\
+                        join(C, C.bid == B.id).\
+                        join(D, D.cid == C.id)
+
+    def test_two_joins_adaption(self):
+        a, b, c, d = self.tables.a, self.tables.b, self.tables.c, self.tables.d
+        q = self._two_join_fixture()
+
+        btoc = q._from_obj[0].left
+
+        ac_adapted = btoc.right
+
+
+        ctod = q._from_obj[0].right
+
+        bname, cname, dname = q._entities
+
+        b_name_adapted = bname._resolve_expr_against_query_aliases(
+                                        q, bname.column, None)
+        c_name_adapted = cname._resolve_expr_against_query_aliases(
+                                        q, cname.column, None)
+        d_name_adapted = dname._resolve_expr_against_query_aliases(
+                                        q, dname.column, None)
+
+        assert bool(b_name_adapted == a.c.name)
+        assert bool(c_name_adapted == ac_adapted.corresponding_column(a.c.name))
+        assert bool(d_name_adapted == ctod.corresponding_column(a.c.name))
+
+    def test_two_joins_sql(self):
+        q = self._two_join_fixture()
+        self.assert_compile(q,
+            "SELECT a.name AS a_name, anon_1.a_name AS anon_1_a_name, "
+            "anon_2.a_name AS anon_2_a_name FROM a JOIN b ON a.id = b.id "
+            "JOIN (SELECT a.id AS a_id, a.name AS a_name, c.id AS c_id, "
+            "c.bid AS c_bid FROM a JOIN c ON a.id = c.id) AS anon_1 ON "
+            "anon_1.c_bid = b.id JOIN (SELECT a.id AS a_id, a.name AS a_name, "
+            "d.id AS d_id, d.cid AS d_cid FROM a JOIN d ON a.id = d.id) "
+            "AS anon_2 ON anon_2.d_cid = anon_1.c_id"
+        )

@@ -588,9 +588,10 @@ class MutableComposite(MutableBase):
                 setattr(parent, attr_name, value)
 
 def _setup_composite_listener():
+    import types
     def _listen_for_type(mapper, class_):
         for prop in mapper.iterate_properties:
-            if (hasattr(prop, 'composite_class') and
+            if (hasattr(prop, 'composite_class') and (type(prop.composite_class) in (types.ClassType, types.TypeType)) and
                 issubclass(prop.composite_class, MutableComposite)):
                 prop.composite_class._listen_on_attribute(
                     getattr(class_, prop.key), False, class_)
@@ -614,6 +615,10 @@ class MutableDict(Mutable, dict):
     def __delitem__(self, key):
         """Detect dictionary del events and emit change events."""
         dict.__delitem__(self, key)
+        self.changed()
+
+    def clear(self):
+        dict.clear(self)
         self.changed()
 
     @classmethod

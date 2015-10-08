@@ -17,7 +17,7 @@ psycopg2 Connect Arguments
 psycopg2-specific keyword arguments which are accepted by
 :func:`.create_engine()` are:
 
-* *server_side_cursors* - Enable the usage of "server side cursors" for SQL
+* ``server_side_cursors``: Enable the usage of "server side cursors" for SQL
   statements which support this feature. What this essentially means from a
   psycopg2 point of view is that the cursor is created using a name, e.g.
   ``connection.cursor('some name')``, which has the effect that result rows are
@@ -28,8 +28,12 @@ psycopg2-specific keyword arguments which are accepted by
   time are fetched over the wire to reduce conversational overhead.
   Note that the ``stream_results=True`` execution option is a more targeted
   way of enabling this mode on a per-execution basis.
-* *use_native_unicode* - Enable the usage of Psycopg2 "native unicode" mode
-  per connection. True by default.
+* ``use_native_unicode``: Enable the usage of Psycopg2 "native unicode" mode
+  per connection.  True by default.
+* ``isolation_level``: This option, available for all Posgtresql dialects,
+  includes the ``AUTOCOMMIT`` isolation level when using the psycopg2
+  dialect.  See :ref:`psycopg2_isolation_level`.
+
 
 Unix Domain Connections
 ------------------------
@@ -60,9 +64,11 @@ The following DBAPI-specific options are respected when used with
 
 * isolation_level - Set the transaction isolation level for the lifespan of a
   :class:`.Connection` (can only be set on a connection, not a statement
-  or query). This includes the options ``SERIALIZABLE``, ``READ COMMITTED``,
-  ``READ UNCOMMITTED`` and ``REPEATABLE READ``.
-* stream_results - Enable or disable usage of server side cursors.
+  or query).   See :ref:`psycopg2_isolation_level`.
+
+* stream_results - Enable or disable usage of psycopg2 server side cursors -
+  this feature makes use of "named" cursors in combination with special
+  result handling methods so that result rows are not fully buffered.
   If ``None`` or not set, the ``server_side_cursors`` option of the
   :class:`.Engine` is used.
 
@@ -113,16 +119,31 @@ Transactions
 
 The psycopg2 dialect fully supports SAVEPOINT and two-phase commit operations.
 
-.. _psycopg2_isolation:
+.. _psycopg2_isolation_level:
 
-Transaction Isolation Level
----------------------------
+Psycopg2 Transaction Isolation Level
+-------------------------------------
 
-The ``isolation_level`` parameter of :func:`.create_engine` here makes use
+As discussed in :ref:`postgresql_isolation_level`,
+all Postgresql dialects support setting of transaction isolation level
+both via the ``isolation_level`` parameter passed to :func:`.create_engine`,
+as well as the ``isolation_level`` argument used by :meth:`.Connection.execution_options`.
+When using the psycopg2 dialect, these options make use of
 psycopg2's ``set_isolation_level()`` connection method, rather than
-issuing a ``SET SESSION CHARACTERISTICS`` command.   This because psycopg2
-resets the isolation level on each new transaction, and needs to know
-at the API level what level should be used.
+emitting a Postgresql directive; this is because psycopg2's API-level
+setting is always emitted at the start of each transaction in any case.
+
+The psycopg2 dialect supports these constants for isolation level:
+
+* ``READ COMMITTED``
+* ``READ UNCOMMITTED``
+* ``REPEATABLE READ``
+* ``SERIALIZABLE``
+* ``AUTOCOMMIT``
+
+.. versionadded:: 0.8.2 support for AUTOCOMMIT isolation level when using
+   psycopg2.
+
 
 NOTICE logging
 ---------------
@@ -351,6 +372,7 @@ class PGDialect_psycopg2(PGDialect):
     def _isolation_lookup(self):
         extensions = __import__('psycopg2.extensions').extensions
         return {
+            'AUTOCOMMIT': extensions.ISOLATION_LEVEL_AUTOCOMMIT,
             'READ COMMITTED': extensions.ISOLATION_LEVEL_READ_COMMITTED,
             'READ UNCOMMITTED': extensions.ISOLATION_LEVEL_READ_UNCOMMITTED,
             'REPEATABLE READ': extensions.ISOLATION_LEVEL_REPEATABLE_READ,
@@ -393,7 +415,13 @@ class PGDialect_psycopg2(PGDialect):
                 hstore_oids = self._hstore_oids(conn)
                 if hstore_oids is not None:
                     oid, array_oid = hstore_oids
-                    extras.register_hstore(conn, oid=oid, array_oid=array_oid)
+                    if util.py2k:
+                        extras.register_hstore(conn, oid=oid,
+                                        array_oid=array_oid,
+                                           unicode=True)
+                    else:
+                        extras.register_hstore(conn, oid=oid,
+                                        array_oid=array_oid)
             fns.append(on_connect)
 
         if fns:

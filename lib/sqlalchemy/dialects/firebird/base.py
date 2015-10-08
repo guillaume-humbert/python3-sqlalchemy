@@ -78,9 +78,8 @@ from sqlalchemy.engine import base, default, reflection
 from sqlalchemy.sql import compiler
 
 
-from sqlalchemy.types import (BIGINT, BLOB, BOOLEAN, DATE,
-                              FLOAT, INTEGER, NUMERIC, SMALLINT,
-                              TEXT, TIME, TIMESTAMP)
+from sqlalchemy.types import (BIGINT, BLOB, DATE, FLOAT, INTEGER, NUMERIC,
+                              SMALLINT, TEXT, TIME, TIMESTAMP, Integer)
 
 
 RESERVED_WORDS = set([
@@ -162,13 +161,13 @@ colspecs = {
 
 ischema_names = {
       'SHORT': SMALLINT,
-       'LONG': BIGINT,
+       'LONG': INTEGER,
        'QUAD': FLOAT,
       'FLOAT': FLOAT,
        'DATE': DATE,
        'TIME': TIME,
        'TEXT': TEXT,
-      'INT64': NUMERIC,
+      'INT64': BIGINT,
      'DOUBLE': FLOAT,
   'TIMESTAMP': TIMESTAMP,
     'VARYING': VARCHAR,
@@ -593,8 +592,8 @@ class FBDialect(default.DefaultDialect):
                 util.warn("Did not recognize type '%s' of column '%s'" %
                           (colspec, name))
                 coltype = sqltypes.NULLTYPE
-            elif colspec == 'INT64':
-                coltype = coltype(
+            elif issubclass(coltype, Integer) and row['fprec'] != 0:
+                coltype = NUMERIC(
                                 precision=row['fprec'],
                                 scale=row['fscale'] * -1)
             elif colspec in ('VARYING', 'CSTRING'):
@@ -718,15 +717,3 @@ class FBDialect(default.DefaultDialect):
 
         return indexes.values()
 
-    def do_execute(self, cursor, statement, parameters, context=None):
-        # kinterbase does not accept a None, but wants an empty list
-        # when there are no arguments.
-        cursor.execute(statement, parameters or [])
-
-    def do_rollback(self, dbapi_connection):
-        # Use the retaining feature, that keeps the transaction going
-        dbapi_connection.rollback(True)
-
-    def do_commit(self, dbapi_connection):
-        # Use the retaining feature, that keeps the transaction going
-        dbapi_connection.commit(True)

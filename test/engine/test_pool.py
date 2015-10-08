@@ -1,39 +1,26 @@
-import threading, time
-from sqlalchemy import pool, interfaces, select, event
+from __future__ import with_statement
+
+import threading
+import time
+from sqlalchemy import pool, select, event
 import sqlalchemy as tsa
 from sqlalchemy import testing
 from sqlalchemy.testing.util import gc_collect, lazy_gc
-from sqlalchemy.testing import eq_, assert_raises
+from sqlalchemy.testing import eq_, assert_raises, is_not_
 from sqlalchemy.testing.engines import testing_engine
 from sqlalchemy.testing import fixtures
 
-mcid = 1
-class MockDBAPI(object):
-    throw_error = False
-    def connect(self, *args, **kwargs):
-        if self.throw_error:
-            raise Exception("couldnt connect !")
-        delay = kwargs.pop('delay', 0)
-        if delay:
-            time.sleep(delay)
-        return MockConnection()
-class MockConnection(object):
-    closed = False
-    def __init__(self):
-        global mcid
-        self.id = mcid
-        mcid += 1
-    def close(self):
-        self.closed = True
-    def rollback(self):
-        pass
-    def cursor(self):
-        return MockCursor()
-class MockCursor(object):
-    def execute(self, *args, **kw):
-        pass
-    def close(self):
-        pass
+from sqlalchemy.testing.mock import Mock, call
+
+def MockDBAPI():
+    def cursor():
+        while True:
+            yield Mock()
+    def connect():
+        while True:
+            yield Mock(cursor=Mock(side_effect=cursor()))
+
+    return Mock(connect=Mock(side_effect=connect()))
 
 class PoolTestBase(fixtures.TestBase):
     def setup(self):
@@ -70,11 +57,9 @@ class PoolTest(PoolTestBase):
         assert c4 is not c5
 
     def test_manager_with_key(self):
-        class NoKws(object):
-            def connect(self, arg):
-                return MockConnection()
 
-        manager = pool.manage(NoKws(), use_threadlocal=True)
+        dbapi = MockDBAPI()
+        manager = pool.manage(dbapi, use_threadlocal=True)
 
         c1 = manager.connect('foo.db', sa_pool_key="a")
         c2 = manager.connect('foo.db', sa_pool_key="b")
@@ -82,17 +67,22 @@ class PoolTest(PoolTestBase):
 
         assert c1.cursor() is not None
         assert c1 is not c2
-        assert c1 is  c3
+        assert c1 is c3
 
-
+        eq_(dbapi.connect.mock_calls,
+            [
+                call("foo.db"),
+                call("foo.db"),
+            ]
+        )
 
 
     def test_bad_args(self):
         manager = pool.manage(MockDBAPI())
-        connection = manager.connect(None)
+        manager.connect(None)
 
     def test_non_thread_local_manager(self):
-        manager = pool.manage(MockDBAPI(), use_threadlocal = False)
+        manager = pool.manage(MockDBAPI(), use_threadlocal=False)
 
         connection = manager.connect('foo.db')
         connection2 = manager.connect('foo.db')
@@ -126,7 +116,7 @@ class PoolTest(PoolTestBase):
             p = cls(creator=mock_dbapi.connect)
             conn = p.connect()
             conn.close()
-            mock_dbapi.throw_error = True
+            mock_dbapi.connect.side_effect = Exception("error!")
             p.dispose()
             p.recreate()
 
@@ -210,9 +200,9 @@ class PoolTest(PoolTestBase):
         self.assert_('foo2' in c.info)
 
         c2 = p.connect()
-        self.assert_(c.connection is not c2.connection)
-        self.assert_(not c2.info)
-        self.assert_('foo2' in c.info)
+        is_not_(c.connection, c2.connection)
+        assert not c2.info
+        assert 'foo2' in c.info
 
 
 class PoolDialectTest(PoolTestBase):
@@ -455,7 +445,8 @@ class PoolEventsTest(PoolTestBase):
 
         engine.execute(select([1])).close()
         eq_(
-            canary, ["listen_one","listen_four", "listen_two","listen_three"]
+            canary,
+            ["listen_one", "listen_four", "listen_two", "listen_three"]
         )
 
     def test_listen_targets_per_subclass(self):
@@ -794,9 +785,10 @@ class QueuePoolTest(PoolTestBase):
         try:
             c4 = p.connect()
             assert False
-        except tsa.exc.TimeoutError, e:
+        except tsa.exc.TimeoutError:
             assert int(time.time() - now) == 2
 
+    @testing.requires.threading_with_mock
     def test_timeout_race(self):
         # test a race condition where the initial connecting threads all race
         # to queue.Empty, then block on the mutex.  each thread consumes a
@@ -807,16 +799,16 @@ class QueuePoolTest(PoolTestBase):
         # them back to the start of do_get()
         dbapi = MockDBAPI()
         p = pool.QueuePool(
-                creator = lambda: dbapi.connect(delay=.05),
-                pool_size = 2,
-                max_overflow = 1, use_threadlocal = False, timeout=3)
+                creator=lambda: dbapi.connect(delay=.05),
+                pool_size=2,
+                max_overflow=1, use_threadlocal=False, timeout=3)
         timeouts = []
         def checkout():
             for x in xrange(1):
                 now = time.time()
                 try:
                     c1 = p.connect()
-                except tsa.exc.TimeoutError, e:
+                except tsa.exc.TimeoutError:
                     timeouts.append(time.time() - now)
                     continue
                 time.sleep(4)
@@ -835,7 +827,7 @@ class QueuePoolTest(PoolTestBase):
             assert t >= 3, "Not all timeouts were >= 3 seconds %r" % timeouts
             # normally, the timeout should under 4 seconds,
             # but on a loaded down buildbot it can go up.
-            assert t < 10, "Not all timeouts were < 10 seconds %r" % timeouts
+            assert t < 14, "Not all timeouts were < 14 seconds %r" % timeouts
 
     def _test_overflow(self, thread_count, max_overflow):
         gc_collect()
@@ -872,6 +864,7 @@ class QueuePoolTest(PoolTestBase):
         lazy_gc()
         assert not pool._refs
 
+    @testing.requires.threading_with_mock
     def test_waiters_handled(self):
         """test that threads waiting for connections are
         handled when the pool is replaced.
@@ -899,7 +892,7 @@ class QueuePoolTest(PoolTestBase):
 
                 for i in range(2):
                     t = threading.Thread(target=waiter, args=(p, ))
-                    t.setDaemon(True) # so the tests dont hang if this fails
+                    t.setDaemon(True)  # so the tests dont hang if this fails
                     t.start()
 
                 c1.invalidate()
@@ -908,6 +901,7 @@ class QueuePoolTest(PoolTestBase):
         time.sleep(2)
         eq_(len(success), 12)
 
+    @testing.requires.threading_with_mock
     @testing.requires.python26
     def test_notify_waiters(self):
         dbapi = MockDBAPI()
@@ -943,19 +937,24 @@ class QueuePoolTest(PoolTestBase):
 
     def test_dispose_closes_pooled(self):
         dbapi = MockDBAPI()
-        def creator():
-            return dbapi.connect()
 
-        p = pool.QueuePool(creator=creator,
+        p = pool.QueuePool(creator=dbapi.connect,
                            pool_size=2, timeout=None,
                            max_overflow=0)
         c1 = p.connect()
         c2 = p.connect()
-        conns = [c1.connection, c2.connection]
+        c1_con = c1.connection
+        c2_con = c2.connection
+
         c1.close()
-        eq_([c.closed for c in conns], [False, False])
+
+        eq_(c1_con.close.call_count, 0)
+        eq_(c2_con.close.call_count, 0)
+
         p.dispose()
-        eq_([c.closed for c in conns], [True, False])
+
+        eq_(c1_con.close.call_count, 1)
+        eq_(c2_con.close.call_count, 0)
 
         # currently, if a ConnectionFairy is closed
         # after the pool has been disposed, there's no
@@ -963,15 +962,18 @@ class QueuePoolTest(PoolTestBase):
         # immediately - it just gets returned to the
         # pool normally...
         c2.close()
-        eq_([c.closed for c in conns], [True, False])
+        eq_(c1_con.close.call_count, 1)
+        eq_(c2_con.close.call_count, 0)
 
         # ...and that's the one we'll get back next.
         c3 = p.connect()
-        assert c3.connection is conns[1]
+        assert c3.connection is c2_con
 
+    @testing.requires.threading_with_mock
     def test_no_overflow(self):
         self._test_overflow(40, 0)
 
+    @testing.requires.threading_with_mock
     def test_max_overflow(self):
         self._test_overflow(40, 5)
 
@@ -1007,13 +1009,22 @@ class QueuePoolTest(PoolTestBase):
             strong_refs.add(c.connection)
             return c
 
-        for j in xrange(5):
-            conns = [_conn() for i in xrange(4)]
+        for j in range(5):
+            # open 4 conns at a time.  each time this
+            # will yield two pooled connections + two
+            # overflow connections.
+            conns = [_conn() for i in range(4)]
             for c in conns:
                 c.close()
 
-        still_opened = len([c for c in strong_refs if not c.closed])
-        eq_(still_opened, 2)
+        # doing that for a total of 5 times yields
+        # ten overflow connections closed plus the
+        # two pooled connections unclosed.
+
+        eq_(
+            set([c.close.call_count for c in strong_refs]),
+            set([1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0])
+        )
 
     @testing.requires.predictable_gc
     def test_weakref_kaboom(self):
@@ -1064,7 +1075,7 @@ class QueuePoolTest(PoolTestBase):
         assert id(c3.connection) != c_id
 
     def test_invalidate(self):
-        p  = self._queuepool_fixture(pool_size=1, max_overflow=0)
+        p = self._queuepool_fixture(pool_size=1, max_overflow=0)
         c1 = p.connect()
         c_id = c1.connection.id
         c1.close()
@@ -1077,9 +1088,10 @@ class QueuePoolTest(PoolTestBase):
         assert c1.connection.id != c_id
 
     def test_recreate(self):
-        p = self._queuepool_fixture(pool_size=1, max_overflow=0)
+        p = self._queuepool_fixture(reset_on_return=None, pool_size=1, max_overflow=0)
         p2 = p.recreate()
         assert p2.size() == 1
+        assert p2._reset_on_return is pool.reset_none
         assert p2._use_threadlocal is False
         assert p2._max_overflow == 0
 
@@ -1105,18 +1117,30 @@ class QueuePoolTest(PoolTestBase):
         dbapi, p = self._queuepool_dbapi_fixture(pool_size=1, max_overflow=0)
         c1 = p.connect()
         c1.detach()
-        c_id = c1.connection.id
         c2 = p.connect()
-        assert c2.connection.id != c1.connection.id
-        dbapi.raise_error = True
-        c2.invalidate()
-        c2 = None
-        c2 = p.connect()
-        assert c2.connection.id != c1.connection.id
-        con = c1.connection
-        assert not con.closed
+        eq_(dbapi.connect.mock_calls, [call("foo.db"), call("foo.db")])
+
+        c1_con = c1.connection
+        assert c1_con is not None
+        eq_(c1_con.close.call_count, 0)
         c1.close()
-        assert con.closed
+        eq_(c1_con.close.call_count, 1)
+
+    def test_detach_via_invalidate(self):
+        dbapi, p = self._queuepool_dbapi_fixture(pool_size=1, max_overflow=0)
+
+        c1 = p.connect()
+        c1_con = c1.connection
+        c1.invalidate()
+        assert c1.connection is None
+        eq_(c1_con.close.call_count, 1)
+
+        c2 = p.connect()
+        assert c2.connection is not c1_con
+        c2_con = c2.connection
+
+        c2.close()
+        eq_(c2_con.close.call_count, 0)
 
     def test_threadfairy(self):
         p = self._queuepool_fixture(pool_size=3, max_overflow=-1, use_threadlocal=True)
@@ -1127,9 +1151,11 @@ class QueuePoolTest(PoolTestBase):
 
 class SingletonThreadPoolTest(PoolTestBase):
 
+    @testing.requires.threading_with_mock
     def test_cleanup(self):
         self._test_cleanup(False)
 
+    @testing.requires.threading_with_mock
     def test_cleanup_no_gc(self):
         self._test_cleanup(True)
 
@@ -1138,8 +1164,13 @@ class SingletonThreadPoolTest(PoolTestBase):
         been called."""
 
         dbapi = MockDBAPI()
-        p = pool.SingletonThreadPool(creator=dbapi.connect,
-                pool_size=3)
+
+        lock = threading.Lock()
+        def creator():
+            # the mock iterator isn't threadsafe...
+            with lock:
+                return dbapi.connect()
+        p = pool.SingletonThreadPool(creator=creator, pool_size=3)
 
         if strong_refs:
             sr = set()
@@ -1169,19 +1200,19 @@ class SingletonThreadPoolTest(PoolTestBase):
         assert len(p._all_conns) == 3
 
         if strong_refs:
-            still_opened = len([c for c in sr if not c.closed])
+            still_opened = len([c for c in sr if not c.close.call_count])
             eq_(still_opened, 3)
 
 class AssertionPoolTest(PoolTestBase):
     def test_connect_error(self):
         dbapi = MockDBAPI()
-        p = pool.AssertionPool(creator = lambda: dbapi.connect('foo.db'))
+        p = pool.AssertionPool(creator=lambda: dbapi.connect('foo.db'))
         c1 = p.connect()
         assert_raises(AssertionError, p.connect)
 
     def test_connect_multiple(self):
         dbapi = MockDBAPI()
-        p = pool.AssertionPool(creator = lambda: dbapi.connect('foo.db'))
+        p = pool.AssertionPool(creator=lambda: dbapi.connect('foo.db'))
         c1 = p.connect()
         c1.close()
         c2 = p.connect()
@@ -1193,18 +1224,21 @@ class AssertionPoolTest(PoolTestBase):
 class NullPoolTest(PoolTestBase):
     def test_reconnect(self):
         dbapi = MockDBAPI()
-        p = pool.NullPool(creator = lambda: dbapi.connect('foo.db'))
+        p = pool.NullPool(creator=lambda: dbapi.connect('foo.db'))
         c1 = p.connect()
-        c_id = c1.connection.id
-        c1.close(); c1=None
+
+        c1.close()
+        c1 = None
 
         c1 = p.connect()
-        dbapi.raise_error = True
         c1.invalidate()
         c1 = None
 
         c1 = p.connect()
-        assert c1.connection.id != c_id
+        dbapi.connect.assert_has_calls([
+                            call('foo.db'),
+                            call('foo.db')],
+                            any_order=True)
 
 
 class StaticPoolTest(PoolTestBase):

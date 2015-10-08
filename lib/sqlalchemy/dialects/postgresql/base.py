@@ -41,23 +41,40 @@ case.
 To force the usage of RETURNING by default off, specify the flag
 ``implicit_returning=False`` to :func:`.create_engine`.
 
+.. _postgresql_isolation_level:
+
 Transaction Isolation Level
 ---------------------------
 
-:func:`.create_engine` accepts an ``isolation_level`` parameter which results
-in the command ``SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL
-<level>`` being invoked for every new connection. Valid values for this
-parameter are ``READ COMMITTED``, ``READ UNCOMMITTED``, ``REPEATABLE READ``,
-and ``SERIALIZABLE``::
+All Postgresql dialects support setting of transaction isolation level
+both via a dialect-specific parameter ``isolation_level``
+accepted by :func:`.create_engine`,
+as well as the ``isolation_level`` argument as passed to :meth:`.Connection.execution_options`.
+When using a non-psycopg2 dialect, this feature works by issuing the
+command ``SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL
+<level>`` for each new connection.
+
+To set isolation level using :func:`.create_engine`::
 
     engine = create_engine(
                     "postgresql+pg8000://scott:tiger@localhost/test",
                     isolation_level="READ UNCOMMITTED"
                 )
 
-When using the psycopg2 dialect, a psycopg2-specific method of setting
-transaction isolation level is used, but the API of ``isolation_level``
-remains the same - see :ref:`psycopg2_isolation`.
+To set using per-connection execution options::
+
+    connection = engine.connect()
+    connection = connection.execution_options(isolation_level="READ COMMITTED")
+
+Valid values for ``isolation_level`` include:
+
+* ``READ COMMITTED``
+* ``READ UNCOMMITTED``
+* ``REPEATABLE READ``
+* ``SERIALIZABLE``
+
+The :mod:`~sqlalchemy.dialects.postgresql.psycopg2` dialect also offers the special level ``AUTOCOMMIT``.  See
+:ref:`psycopg2_isolation_level` for details.
 
 
 Remote / Cross-Schema Table Introspection
@@ -189,6 +206,7 @@ version of PostgreSQL.
 
 """
 
+from collections import defaultdict
 import re
 
 from ... import sql, schema, exc, util
@@ -427,7 +445,7 @@ class array(expression.Tuple):
 
     An instance of :class:`.array` will always have the datatype
     :class:`.ARRAY`.  The "inner" type of the array is inferred from
-    the values present, unless the "type_" keyword argument is passed::
+    the values present, unless the ``type_`` keyword argument is passed::
 
         array(['foo', 'bar'], type_=CHAR)
 
@@ -1010,28 +1028,6 @@ class PGCompiler(compiler.SQLCompiler):
 
         return 'RETURNING ' + ', '.join(columns)
 
-    def visit_extract(self, extract, **kwargs):
-        field = self.extract_map.get(extract.field, extract.field)
-        if extract.expr.type:
-            affinity = extract.expr.type._type_affinity
-        else:
-            affinity = None
-
-        casts = {
-                    sqltypes.Date: 'date',
-                    sqltypes.DateTime: 'timestamp',
-                    sqltypes.Interval: 'interval',
-                    sqltypes.Time: 'time'
-                }
-        cast = casts.get(affinity, None)
-        if isinstance(extract.expr, sql.ColumnElement) and cast is not None:
-            expr = extract.expr.op('::', precedence=100)(
-                                        sql.literal_column(cast))
-        else:
-            expr = extract.expr
-        return "EXTRACT(%s FROM %s)" % (
-            field, self.process(expr))
-
 
     def visit_substring_func(self, func, **kw):
         s = self.process(func.clauses.clauses[0], **kw)
@@ -1125,6 +1121,22 @@ class PGDDLCompiler(compiler.DDLCompiler):
             text += " WHERE " + where_compiled
         return text
 
+    def visit_exclude_constraint(self, constraint):
+        text = ""
+        if constraint.name is not None:
+            text += "CONSTRAINT %s " % \
+                    self.preparer.format_constraint(constraint)
+        elements = []
+        for c in constraint.columns:
+            op = constraint.operators[c.name]
+            elements.append(self.preparer.quote(c.name, c.quote)+' WITH '+op)
+        text += "EXCLUDE USING %s (%s)" % (constraint.using, ', '.join(elements))
+        if constraint.where is not None:
+            sqltext = sql_util.expression_as_ddl(constraint.where)
+            text += ' WHERE (%s)' % self.sql_compiler.process(sqltext)
+        text += self.define_constraint_deferrability(constraint)
+        return text
+
 
 class PGTypeCompiler(compiler.GenericTypeCompiler):
     def visit_INET(self, type_):
@@ -1150,6 +1162,24 @@ class PGTypeCompiler(compiler.GenericTypeCompiler):
 
     def visit_HSTORE(self, type_):
         return "HSTORE"
+
+    def visit_INT4RANGE(self, type_):
+        return "INT4RANGE"
+
+    def visit_INT8RANGE(self, type_):
+        return "INT8RANGE"
+
+    def visit_NUMRANGE(self, type_):
+        return "NUMRANGE"
+
+    def visit_DATERANGE(self, type_):
+        return "DATERANGE"
+
+    def visit_TSRANGE(self, type_):
+        return "TSRANGE"
+
+    def visit_TSTZRANGE(self, type_):
+        return "TSTZRANGE"
 
     def visit_datetime(self, type_):
         return self.visit_TIMESTAMP(type_)
@@ -1902,7 +1932,7 @@ class PGDialect(default.DefaultDialect):
           SELECT
               i.relname as relname,
               ix.indisunique, ix.indexprs, ix.indpred,
-              a.attname
+              a.attname, a.attnum, ix.indkey
           FROM
               pg_class t
                     join pg_index ix on t.oid = ix.indrelid
@@ -1922,11 +1952,12 @@ class PGDialect(default.DefaultDialect):
         t = sql.text(IDX_SQL, typemap={'attname': sqltypes.Unicode})
         c = connection.execute(t, table_oid=table_oid)
 
-        index_names = {}
-        indexes = []
+        indexes = defaultdict(lambda: defaultdict(dict))
+
         sv_idx_name = None
         for row in c.fetchall():
-            idx_name, unique, expr, prd, col = row
+            idx_name, unique, expr, prd, col, col_num, idx_key = row
+
             if expr:
                 if idx_name != sv_idx_name:
                     util.warn(
@@ -1935,22 +1966,25 @@ class PGDialect(default.DefaultDialect):
                       % idx_name)
                 sv_idx_name = idx_name
                 continue
+
             if prd and not idx_name == sv_idx_name:
                 util.warn(
                    "Predicate of partial index %s ignored during reflection"
                    % idx_name)
                 sv_idx_name = idx_name
-            if idx_name in index_names:
-                index_d = index_names[idx_name]
-            else:
-                index_d = {'column_names': []}
-                indexes.append(index_d)
-                index_names[idx_name] = index_d
-            index_d['name'] = idx_name
+
+            index = indexes[idx_name]
             if col is not None:
-                index_d['column_names'].append(col)
-            index_d['unique'] = unique
-        return indexes
+                index['cols'][col_num] = col
+            index['key'] = [int(k.strip()) for k in idx_key.split()]
+            index['unique'] = unique
+
+        return [
+            {'name': name,
+             'unique': idx['unique'],
+             'column_names': [idx['cols'][i] for i in idx['key']]}
+            for name, idx in indexes.items()
+        ]
 
     def _load_enums(self, connection):
         if not self.supports_native_enum:

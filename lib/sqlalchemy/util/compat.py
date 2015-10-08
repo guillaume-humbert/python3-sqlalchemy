@@ -13,9 +13,11 @@ try:
 except ImportError:
     import dummy_threading as threading
 
+py33 = sys.version_info >= (3, 3)
 py32 = sys.version_info >= (3, 2)
 py3k_warning = getattr(sys, 'py3kwarning', False) or sys.version_info >= (3, 0)
 py3k = sys.version_info >= (3, 0)
+py2k = sys.version_info < (3, 0)
 jython = sys.platform.startswith('java')
 pypy = hasattr(sys, 'pypy_version_info')
 win32 = sys.platform.startswith('win')
@@ -132,11 +134,41 @@ else:
             return obj
         return g
 
-# Adapted from six.py
 if py3k:
+
+    string_types = str,
+    binary_type = bytes
+    text_type = str
+    int_types = int,
+
+    def u(s):
+        return s
+
+    def ue(s):
+        return s
+
     def b(s):
         return s.encode("latin-1")
+
 else:
+    string_types = basestring,
+    binary_type = str
+    text_type = unicode
+    int_types = int, long
+
+    def b(s):
+        return s
+
+    def u(s):
+        # this differs from what six does, which doesn't support non-ASCII
+        # strings - we only use u() with
+        # literal source strings, and all our source files with non-ascii
+        # in them (all are tests) are utf-8 encoded.
+        return unicode(s, "utf-8")
+
+    def ue(s):
+        return unicode(s, "unicode_escape")
+
     def b(s):
         return s
 

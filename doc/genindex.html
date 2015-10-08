@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '#',
-          VERSION:     '0.8.1',
+          VERSION:     '0.8.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -64,7 +64,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
+        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
 
 
     </div>
@@ -234,8 +234,6 @@
       <dt><a href="core/expression_api.html#sqlalchemy.sql.expression.FunctionElement.__eq__">(sqlalchemy.sql.expression.FunctionElement method)</a>
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.__eq__">(sqlalchemy.sql.operators.ColumnOperators method)</a>
-      </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.__eq__">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
       </dt>
     </dl></dd>
 
@@ -439,6 +437,8 @@
       </dt>
       <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ENUM.__init__">(sqlalchemy.dialects.postgresql.ENUM method)</a>
       </dt>
+      <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__">(sqlalchemy.dialects.postgresql.ExcludeConstraint method)</a>
+      </dt>
       <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.INET.__init__">(sqlalchemy.dialects.postgresql.INET method)</a>
       </dt>
       <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.MACADDR.__init__">(sqlalchemy.dialects.postgresql.MACADDR method)</a>
@@ -573,14 +573,6 @@
 
 
 <dt>
-        <a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.__iter__">__iter__() (sqlalchemy.sql.operators.ColumnOperators method)</a>
-</dt>
-
-
-  
-
-
-<dt>
         <a href="orm/internals.html#sqlalchemy.orm.instrumentation.ClassManager.__le__">__le__ (sqlalchemy.orm.instrumentation.ClassManager attribute)</a>
 </dt>
 
@@ -614,8 +606,6 @@
       <dt><a href="core/expression_api.html#sqlalchemy.sql.expression.FunctionElement.__le__">(sqlalchemy.sql.expression.FunctionElement method)</a>
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.__le__">(sqlalchemy.sql.operators.ColumnOperators method)</a>
-      </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.__le__">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
       </dt>
     </dl></dd>
 
@@ -665,8 +655,6 @@
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.__lt__">(sqlalchemy.sql.operators.ColumnOperators method)</a>
       </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.__lt__">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
-      </dt>
     </dl></dd>
 
   
@@ -697,10 +685,12 @@
 
 
 <dt>
-        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.__ne__">__ne__() (sqlalchemy.orm.attributes.QueryableAttribute method)</a>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.__ne__">__ne__() (sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory method)</a>
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.__ne__">(sqlalchemy.orm.attributes.QueryableAttribute method)</a>
+      </dt>
       <dt><a href="orm/internals.html#sqlalchemy.orm.interfaces.PropComparator.__ne__">(sqlalchemy.orm.interfaces.PropComparator method)</a>
       </dt>
       <dt><a href="orm/internals.html#sqlalchemy.orm.properties.ColumnProperty.Comparator.__ne__">(sqlalchemy.orm.properties.ColumnProperty.Comparator method)</a>
@@ -722,8 +712,6 @@
       <dt><a href="core/expression_api.html#sqlalchemy.sql.expression.FunctionElement.__ne__">(sqlalchemy.sql.expression.FunctionElement method)</a>
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.__ne__">(sqlalchemy.sql.operators.ColumnOperators method)</a>
-      </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.__ne__">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
       </dt>
     </dl></dd>
 
@@ -1084,6 +1072,14 @@
 
 <dt>
         <a href="orm/examples.html#module-adjacency_list">adjacency_list (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.adjacent_to">adjacent_to() (sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory method)</a>
 </dt>
 
 
@@ -1731,8 +1727,6 @@
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.asc">(sqlalchemy.sql.operators.ColumnOperators method)</a>
       </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.asc">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
-      </dt>
     </dl></dd>
 
   
@@ -2086,8 +2080,6 @@
       <dt><a href="core/expression_api.html#sqlalchemy.sql.expression.FunctionElement.between">(sqlalchemy.sql.expression.FunctionElement method)</a>
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.between">(sqlalchemy.sql.operators.ColumnOperators method)</a>
-      </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.between">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
       </dt>
     </dl></dd>
 
@@ -2689,6 +2681,14 @@
 
 
 <dt>
+        <a href="core/types.html#sqlalchemy.types.TypeDecorator.coerce_to_is_types">coerce_to_is_types (sqlalchemy.types.TypeDecorator attribute)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="core/expression_api.html#sqlalchemy.sql.expression.collate">collate() (in module sqlalchemy.sql.expression)</a>
 </dt>
 
@@ -2716,8 +2716,6 @@
       <dt><a href="core/expression_api.html#sqlalchemy.sql.expression.FunctionElement.collate">(sqlalchemy.sql.expression.FunctionElement method)</a>
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.collate">(sqlalchemy.sql.operators.ColumnOperators method)</a>
-      </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.collate">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
       </dt>
     </dl></dd>
 
@@ -2927,6 +2925,14 @@
       <dt><a href="core/expression_api.html#sqlalchemy.sql.expression.TableClause.columns">(sqlalchemy.sql.expression.TableClause attribute)</a>
       </dt>
     </dl></dd>
+
+  
+
+
+<dt>
+        <a href="glossary.html#term-columns-clause">columns clause</a>
+</dt>
+
 
   
 
@@ -3236,8 +3242,6 @@
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.concat">(sqlalchemy.sql.operators.ColumnOperators method)</a>
       </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.concat">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
-      </dt>
     </dl></dd>
 
   
@@ -3400,6 +3404,8 @@
     <dd><dl>
       <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.HSTORE.comparator_factory.contained_by">(sqlalchemy.dialects.postgresql.HSTORE.comparator_factory method)</a>
       </dt>
+      <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.contained_by">(sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory method)</a>
+      </dt>
     </dl></dd>
 
   
@@ -3411,6 +3417,8 @@
 
     <dd><dl>
       <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.HSTORE.comparator_factory.contains">(sqlalchemy.dialects.postgresql.HSTORE.comparator_factory method)</a>
+      </dt>
+      <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.contains">(sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory method)</a>
       </dt>
       <dt><a href="orm/extensions/associationproxy.html#sqlalchemy.ext.associationproxy.AssociationProxy.contains">(sqlalchemy.ext.associationproxy.AssociationProxy method)</a>
       </dt>
@@ -3437,8 +3445,6 @@
       <dt><a href="core/expression_api.html#sqlalchemy.sql.expression.FunctionElement.contains">(sqlalchemy.sql.expression.FunctionElement method)</a>
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.contains">(sqlalchemy.sql.operators.ColumnOperators method)</a>
-      </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.contains">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
       </dt>
     </dl></dd>
 
@@ -3902,8 +3908,6 @@
     <dd><dl>
       <dt><a href="dialects/sqlite.html#sqlalchemy.dialects.sqlite.DATE">(class in sqlalchemy.dialects.sqlite)</a>
       </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.DATE">(class in sqlalchemy.types)</a>
-      </dt>
     </dl></dd>
 
   
@@ -3911,6 +3915,22 @@
 
 <dt>
         <a href="core/types.html#sqlalchemy.types.Date">Date (class in sqlalchemy.types)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/types.html#sqlalchemy.types.DATE">DATE (class in sqlalchemy.types)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.DATERANGE">DATERANGE (class in sqlalchemy.dialects.postgresql)</a>
 </dt>
 
 
@@ -4244,8 +4264,6 @@
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.desc">(sqlalchemy.sql.operators.ColumnOperators method)</a>
       </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.desc">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
-      </dt>
     </dl></dd>
 
   
@@ -4445,8 +4463,6 @@
       <dt><a href="core/expression_api.html#sqlalchemy.sql.expression.Select.distinct">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.distinct">(sqlalchemy.sql.operators.ColumnOperators method)</a>
-      </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.distinct">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
       </dt>
     </dl></dd>
 
@@ -4846,8 +4862,6 @@
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.endswith">(sqlalchemy.sql.operators.ColumnOperators method)</a>
       </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.endswith">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
-      </dt>
     </dl></dd>
 
   
@@ -4931,6 +4945,14 @@
       <dt><a href="core/expression_api.html#sqlalchemy.sql.expression.Select.except_all">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
     </dl></dd>
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ExcludeConstraint">ExcludeConstraint (class in sqlalchemy.dialects.postgresql)</a>
+</dt>
+
 
   
 
@@ -5387,6 +5409,14 @@
 
 <dt>
         <a href="core/internals.html#sqlalchemy.sql.compiler.IdentifierPreparer.format_table_seq">format_table_seq() (sqlalchemy.sql.compiler.IdentifierPreparer method)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="glossary.html#term-from-clause">FROM clause</a>
 </dt>
 
 
@@ -6186,8 +6216,6 @@
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.ilike">(sqlalchemy.sql.operators.ColumnOperators method)</a>
       </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.ilike">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
-      </dt>
     </dl></dd>
 
   
@@ -6259,8 +6287,6 @@
       <dt><a href="core/expression_api.html#sqlalchemy.sql.expression.FunctionElement.in_">(sqlalchemy.sql.expression.FunctionElement method)</a>
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.in_">(sqlalchemy.sql.operators.ColumnOperators method)</a>
-      </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.in_">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
       </dt>
     </dl></dd>
 
@@ -6501,8 +6527,6 @@
 
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -6511,6 +6535,8 @@
 
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -6631,6 +6657,22 @@
 
 <dt>
         <a href="core/types.html#sqlalchemy.types.INT">INT (in module sqlalchemy.types)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.INT4RANGE">INT4RANGE (class in sqlalchemy.dialects.postgresql)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.INT8RANGE">INT8RANGE (class in sqlalchemy.dialects.postgresql)</a>
 </dt>
 
 
@@ -6795,8 +6837,6 @@
       <dt><a href="core/expression_api.html#sqlalchemy.sql.expression.FunctionElement.is_">(sqlalchemy.sql.expression.FunctionElement method)</a>
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.is_">(sqlalchemy.sql.operators.ColumnOperators method)</a>
-      </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.is_">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
       </dt>
     </dl></dd>
 
@@ -7015,8 +7055,6 @@
       <dt><a href="core/expression_api.html#sqlalchemy.sql.expression.FunctionElement.isnot">(sqlalchemy.sql.expression.FunctionElement method)</a>
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.isnot">(sqlalchemy.sql.operators.ColumnOperators method)</a>
-      </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.isnot">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
       </dt>
     </dl></dd>
 
@@ -7331,8 +7369,6 @@
       <dt><a href="core/expression_api.html#sqlalchemy.sql.expression.FunctionElement.like">(sqlalchemy.sql.expression.FunctionElement method)</a>
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.like">(sqlalchemy.sql.operators.ColumnOperators method)</a>
-      </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.like">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
       </dt>
     </dl></dd>
 
@@ -7683,8 +7719,6 @@
       <dt><a href="core/expression_api.html#sqlalchemy.sql.expression.FunctionElement.match">(sqlalchemy.sql.expression.FunctionElement method)</a>
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.match">(sqlalchemy.sql.operators.ColumnOperators method)</a>
-      </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.match">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
       </dt>
     </dl></dd>
 
@@ -8098,6 +8132,22 @@
 
 
 <dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.not_extend_left_of">not_extend_left_of() (sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory method)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.not_extend_right_of">not_extend_right_of() (sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory method)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="orm/internals.html#sqlalchemy.orm.interfaces.NOT_EXTENSION">NOT_EXTENSION (in module sqlalchemy.orm.interfaces)</a>
 </dt>
 
@@ -8132,11 +8182,11 @@
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.notilike">(sqlalchemy.sql.operators.ColumnOperators method)</a>
       </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.notilike">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
-      </dt>
     </dl></dd>
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -8166,13 +8216,9 @@
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.notin_">(sqlalchemy.sql.operators.ColumnOperators method)</a>
       </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.notin_">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
-      </dt>
     </dl></dd>
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -8201,8 +8247,6 @@
       <dt><a href="core/expression_api.html#sqlalchemy.sql.expression.FunctionElement.notlike">(sqlalchemy.sql.expression.FunctionElement method)</a>
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.notlike">(sqlalchemy.sql.operators.ColumnOperators method)</a>
-      </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.notlike">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
       </dt>
     </dl></dd>
 
@@ -8278,8 +8322,6 @@
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.nullsfirst">(sqlalchemy.sql.operators.ColumnOperators method)</a>
       </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.nullsfirst">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
-      </dt>
     </dl></dd>
 
   
@@ -8313,8 +8355,6 @@
       <dt><a href="core/expression_api.html#sqlalchemy.sql.expression.FunctionElement.nullslast">(sqlalchemy.sql.expression.FunctionElement method)</a>
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.nullslast">(sqlalchemy.sql.operators.ColumnOperators method)</a>
-      </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.nullslast">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
       </dt>
     </dl></dd>
 
@@ -8359,6 +8399,14 @@
 
 <dt>
         <a href="core/types.html#sqlalchemy.types.NUMERIC">NUMERIC (class in sqlalchemy.types)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.NUMRANGE">NUMRANGE (class in sqlalchemy.dialects.postgresql)</a>
 </dt>
 
 
@@ -8530,8 +8578,6 @@
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.Operators.op">(sqlalchemy.sql.operators.Operators method)</a>
       </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.op">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
-      </dt>
     </dl></dd>
 
   
@@ -8695,6 +8741,14 @@
 
 <dt>
         <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ARRAY.Comparator.overlap">overlap() (sqlalchemy.dialects.postgresql.ARRAY.Comparator method)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.overlaps">overlaps() (sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory method)</a>
 </dt>
 
 
@@ -9292,6 +9346,22 @@
 
 
 <dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ranges.RangeOperators">RangeOperators (class in sqlalchemy.dialects.postgresql.ranges)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory">RangeOperators.comparator_factory (class in sqlalchemy.dialects.postgresql.ranges)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="dialects/oracle.html#sqlalchemy.dialects.oracle.RAW">RAW (class in sqlalchemy.dialects.oracle)</a>
 </dt>
 
@@ -9575,6 +9645,8 @@
 
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -9583,8 +9655,6 @@
 
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -9995,6 +10065,14 @@
       <dt><a href="core/expression_api.html#sqlalchemy.sql.expression.TableClause.select">(sqlalchemy.sql.expression.TableClause method)</a>
       </dt>
     </dl></dd>
+
+  
+
+
+<dt>
+        <a href="orm/query.html#sqlalchemy.orm.query.Query.select_entity_from">select_entity_from() (sqlalchemy.orm.query.Query method)</a>
+</dt>
+
 
   
 
@@ -10820,9 +10898,9 @@
 
 
 <dt>
-        <a href="orm/query.html#module-sqlalchemy.orm">sqlalchemy.orm (module)</a>
+        <a href="orm/mapper_config.html#module-sqlalchemy.orm">sqlalchemy.orm (module)</a>
+            , <a href="orm/query.html#module-sqlalchemy.orm">[19]</a>
             , <a href="orm/relationships.html#module-sqlalchemy.orm">[19]</a>
-            , <a href="orm/mapper_config.html#module-sqlalchemy.orm">[19]</a>
 </dt>
 
 
@@ -10944,8 +11022,6 @@
       </dt>
       <dt><a href="core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.startswith">(sqlalchemy.sql.operators.ColumnOperators method)</a>
       </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator.startswith">(sqlalchemy.types.TypeDecorator.Comparator method)</a>
-      </dt>
     </dl></dd>
 
   
@@ -11000,7 +11076,31 @@
 
 
 <dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.strictly_left_of">strictly_left_of() (sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory method)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.strictly_right_of">strictly_right_of() (sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory method)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="core/types.html#sqlalchemy.types.String">String (class in sqlalchemy.types)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="glossary.html#term-subquery">subquery</a>
 </dt>
 
 
@@ -11434,6 +11534,22 @@
 
 
 <dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.TSRANGE">TSRANGE (class in sqlalchemy.dialects.postgresql)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.TSTZRANGE">TSTZRANGE (class in sqlalchemy.dialects.postgresql)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="core/expression_api.html#sqlalchemy.sql.expression.tuple_">tuple_() (in module sqlalchemy.sql.expression)</a>
 </dt>
 
@@ -11519,14 +11635,6 @@
 
 <dt>
         <a href="core/types.html#sqlalchemy.types.TypeDecorator">TypeDecorator (class in sqlalchemy.types)</a>
-</dt>
-
-
-  
-
-
-<dt>
-        <a href="core/types.html#sqlalchemy.types.TypeDecorator.Comparator">TypeDecorator.Comparator (class in sqlalchemy.types)</a>
 </dt>
 
 
@@ -12050,6 +12158,14 @@
     
 
 <dt>
+        <a href="glossary.html#term-where-clause">WHERE clause</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="core/expression_api.html#sqlalchemy.sql.expression.Delete.where">where() (sqlalchemy.sql.expression.Delete method)</a>
 </dt>
 
@@ -12105,6 +12221,8 @@
 
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -12113,8 +12231,6 @@
 
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>

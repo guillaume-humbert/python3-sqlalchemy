@@ -125,32 +125,20 @@ engines::
         Column('id', Integer, primary_key=True)
        )
 
-SQL Mode
---------
+Ansi Quoting Style
+------------------
 
-MySQL SQL modes are supported.  Modes that enable ``ANSI_QUOTES`` (such as
-``ANSI``) require an engine option to modify SQLAlchemy's quoting style.
-When using an ANSI-quoting mode, supply ``use_ansiquotes=True`` when
-creating your ``Engine``::
+MySQL features two varieties of identifier "quoting style", one using
+backticks and the other using quotes, e.g. ```some_identifier```  vs.
+``"some_identifier"``.   All MySQL dialects detect which version
+is in use by checking the value of ``sql_mode`` when a connection is first
+established with a particular :class:`.Engine`.  This quoting style comes
+into play when rendering table and column names as well as when reflecting
+existing database structures.  The detection is entirely automatic and
+no special configuration is needed to use either quoting style.
 
-  create_engine('mysql://localhost/test', use_ansiquotes=True)
-
-This is an engine-wide option and is not toggleable on a per-connection basis.
-SQLAlchemy does not presume to ``SET sql_mode`` for you with this option.  For
-the best performance, set the quoting style server-wide in ``my.cnf`` or by
-supplying ``--sql-mode`` to ``mysqld``.  You can also use a
-:class:`sqlalchemy.pool.Pool` listener hook to issue a ``SET SESSION
-sql_mode='...'`` on connect to configure each connection.
-
-If you do not specify ``use_ansiquotes``, the regular MySQL quoting style is
-used by default.
-
-If you do issue a ``SET sql_mode`` through SQLAlchemy, the dialect must be
-updated if the quoting style is changed.  Again, this change will affect all
-connections::
-
-  connection.execute('SET sql_mode="ansi"')
-  connection.dialect.use_ansiquotes = True
+.. versionchanged:: 0.6 detection of ANSI quoting style is entirely automatic,
+   there's no longer any end-user ``create_engine()`` options in this regard.
 
 MySQL SQL Extensions
 --------------------
@@ -239,11 +227,18 @@ become part of the index. SQLAlchemy provides this feature via the
 
     Index('my_index', my_table.c.data, mysql_length=10)
 
+    Index('a_b_idx', my_table.c.a, my_table.c.b, mysql_length={'a': 4, 'b': 9})
+
 Prefix lengths are given in characters for nonbinary string types and in bytes
-for binary string types. The value passed to the keyword argument will be
-simply passed through to the underlying CREATE INDEX command, so it *must* be
-an integer. MySQL only allows a length for an index if it is for a CHAR,
-VARCHAR, TEXT, BINARY, VARBINARY and BLOB.
+for binary string types. The value passed to the keyword argument *must* be
+either an integer (and, thus, specify the same prefix length value for all
+columns of the index) or a dict in which keys are column names and values are
+prefix length values for corresponding columns. MySQL only allows a length for
+a column of an index if it is for a CHAR, VARCHAR, TEXT, BINARY, VARBINARY and
+BLOB.
+
+.. versionadded:: 0.8.2 ``mysql_length`` may now be specified as a dictionary
+   for use with composite indexes.
 
 Index Types
 ~~~~~~~~~~~~~
@@ -1535,12 +1530,27 @@ class MySQLDDLCompiler(compiler.DDLCompiler):
             text += "UNIQUE "
         text += "INDEX %s ON %s " % (name, table)
 
-        columns = ', '.join(columns)
         if 'mysql_length' in index.kwargs:
             length = index.kwargs['mysql_length']
-            text += "(%s(%d))" % (columns, length)
+
+            if isinstance(length, dict):
+                # length value can be a (column_name --> integer value) mapping
+                # specifying the prefix length for each column of the index
+                columns = ', '.join(
+                    ('%s(%d)' % (col, length[col])
+                     if col in length else '%s' % col)
+                    for col in columns
+                )
+            else:
+                # or can be an integer value specifying the same
+                # prefix length for all columns of the index
+                columns = ', '.join(
+                    '%s(%d)' % (col, length)
+                    for col in columns
+                )
         else:
-            text += "(%s)" % (columns)
+            columns = ', '.join(columns)
+        text += '(%s)' % columns
 
         if 'mysql_using' in index.kwargs:
             using = index.kwargs['mysql_using']
@@ -1583,6 +1593,8 @@ class MySQLDDLCompiler(compiler.DDLCompiler):
                     (self.preparer.format_table(constraint.table),
                     qual, const)
 
+    def define_constraint_deferrability(self, constraint):
+        return ""
 
 class MySQLTypeCompiler(compiler.GenericTypeCompiler):
     def _extend_numeric(self, type_, spec):
@@ -1899,7 +1911,8 @@ class MySQLDialect(default.DefaultDialect):
     _backslash_escapes = True
     _server_ansiquotes = False
 
-    def __init__(self, use_ansiquotes=None, isolation_level=None, **kwargs):
+    def __init__(self, isolation_level=None, **kwargs):
+        kwargs.pop('use_ansiquotes', None)   # legacy
         default.DefaultDialect.__init__(self, **kwargs)
         self.isolation_level = isolation_level
 
@@ -2301,7 +2314,7 @@ class MySQLDialect(default.DefaultDialect):
 
         row = self._compat_first(
             connection.execute("SHOW VARIABLES LIKE 'sql_mode'"),
-                               charset=self._connection_charset)
+                                charset=self._connection_charset)
 
         if not row:
             mode = ''
