@@ -111,6 +111,7 @@ examples/elementtree/test.xml
 examples/elementtree/test2.xml
 examples/elementtree/test3.xml
 examples/graphs/graph1.py
+examples/nested_sets/nested_sets.py
 examples/pickle/custom_pickler.py
 examples/poly_assoc/poly_assoc.py
 examples/poly_assoc/poly_assoc_fk.py

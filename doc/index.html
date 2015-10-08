@@ -30,8 +30,8 @@ Documentation
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum">0.5.0rc1</span>
-  Last Updated: 09/11/08 17:04:35
+  Version: <span class="versionnum">0.5.0rc2</span>
+  Last Updated: 10/12/08 13:44:43
 </div>
 
 
@@ -2894,7 +2894,7 @@ Documentation
         <li><a style="" href="sqlalchemy_databases_sqlite.html#docstrings_sqlalchemy.databases.sqlite_SLBoolean">class SLBoolean(Boolean)</a></li>
 
         
-        <li><a style="" href="sqlalchemy_databases_sqlite.html#docstrings_sqlalchemy.databases.sqlite_SLChar">class SLChar(CHAR)</a></li>
+        <li><a style="" href="sqlalchemy_databases_sqlite.html#docstrings_sqlalchemy.databases.sqlite_SLChar">class SLChar(SLUnicodeMixin,CHAR)</a></li>
 
         
         <li><a style="" href="sqlalchemy_databases_sqlite.html#docstrings_sqlalchemy.databases.sqlite_SLDate">class SLDate(DateTimeMixin,Date)</a></li>
@@ -2915,13 +2915,16 @@ Documentation
         <li><a style="" href="sqlalchemy_databases_sqlite.html#docstrings_sqlalchemy.databases.sqlite_SLSmallInteger">class SLSmallInteger(SmallInteger)</a></li>
 
         
-        <li><a style="" href="sqlalchemy_databases_sqlite.html#docstrings_sqlalchemy.databases.sqlite_SLString">class SLString(String)</a></li>
+        <li><a style="" href="sqlalchemy_databases_sqlite.html#docstrings_sqlalchemy.databases.sqlite_SLString">class SLString(SLUnicodeMixin,String)</a></li>
 
         
-        <li><a style="" href="sqlalchemy_databases_sqlite.html#docstrings_sqlalchemy.databases.sqlite_SLText">class SLText(Text)</a></li>
+        <li><a style="" href="sqlalchemy_databases_sqlite.html#docstrings_sqlalchemy.databases.sqlite_SLText">class SLText(SLUnicodeMixin,Text)</a></li>
 
         
         <li><a style="" href="sqlalchemy_databases_sqlite.html#docstrings_sqlalchemy.databases.sqlite_SLTime">class SLTime(DateTimeMixin,Time)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_databases_sqlite.html#docstrings_sqlalchemy.databases.sqlite_SLUnicodeMixin">class SLUnicodeMixin(object)</a></li>
 
         
         <li><a style="" href="sqlalchemy_databases_sqlite.html#docstrings_sqlalchemy.databases.sqlite_SQLiteCompiler">class SQLiteCompiler(DefaultCompiler)</a></li>

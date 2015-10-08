@@ -927,16 +927,21 @@ class Query(object):
     def __getitem__(self, item):
         if isinstance(item, slice):
             start, stop, step = util.decode_slice(item)
-            # if we slice from the end we need to execute the query before
-            # slicing
-            if start < 0 or stop < 0:
+
+            if isinstance(stop, int) and isinstance(start, int) and stop - start <= 0:
+                return []
+            
+            # perhaps we should execute a count() here so that we
+            # can still use LIMIT/OFFSET ?
+            elif (isinstance(start, int) and start < 0) \
+                or (isinstance(stop, int) and stop < 0):
                 return list(self)[item]
+                
+            res = self.slice(start, stop)
+            if step is not None:
+                return list(res)[None:None:item.step]
             else:
-                res = self.slice(start, stop)
-                if step is not None:
-                    return list(res)[None:None:item.step]
-                else:
-                    return list(res)
+                return list(res)
         else:
             return list(self[item:item+1])[0]
 
@@ -1020,8 +1025,8 @@ class Query(object):
     def one(self):
         """Return exactly one result or raise an exception.
 
-        Raises ``sqlalchemy.orm.NoResultError`` if the query selects no rows.
-        Raisees ``sqlalchemy.orm.MultipleResultsError`` if multiple rows are
+        Raises ``sqlalchemy.orm.exc.NoResultFound`` if the query selects no rows.
+        Raises ``sqlalchemy.orm.exc.MultipleResultsFound`` if multiple rows are
         selected.
 
         This results in an execution of the underlying query.
@@ -1104,7 +1109,7 @@ class Query(object):
         else:
             filter = None
 
-        custom_rows = single_entity and 'append_result' in self._entities[0].extension.methods
+        custom_rows = single_entity and 'append_result' in self._entities[0].extension
 
         (process, labels) = zip(*[query_entity.row_processor(self, context, custom_rows) for query_entity in self._entities])
 
@@ -1428,7 +1433,6 @@ class Query(object):
 
         return result.rowcount
 
-
     def _compile_context(self, labels=True):
         context = QueryContext(self)
 
@@ -1557,9 +1561,6 @@ class Query(object):
                     crit = adapter.traverse(crit)
                 crit = self._adapt_clause(crit, False, False)
                 context.whereclause = sql.and_(context.whereclause, crit)
-
-    def __log_debug(self, msg):
-        self.logger.debug(msg)
 
     def __str__(self):
         return str(self._compile_context().statement)

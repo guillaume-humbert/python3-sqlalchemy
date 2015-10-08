@@ -218,24 +218,6 @@ def flatten_iterator(x):
         else:
             yield elem
 
-class ArgSingleton(type):
-    instances = weakref.WeakValueDictionary()
-
-    def dispose(cls):
-        for key in list(ArgSingleton.instances):
-            if key[0] is cls:
-                del ArgSingleton.instances[key]
-    dispose = staticmethod(dispose)
-
-    def __call__(self, *args):
-        hashkey = (self, args)
-        try:
-            return ArgSingleton.instances[hashkey]
-        except KeyError:
-            instance = type.__call__(self, *args)
-            ArgSingleton.instances[hashkey] = instance
-            return instance
-
 def get_cls_kwargs(cls):
     """Return the full set of inherited kwargs for the given `cls`.
 
@@ -646,8 +628,8 @@ class OrderedDict(dict):
         self._list = []
         dict.clear(self)
 
-    def sort(self, fn=None):
-        self._list.sort(fn)
+    def sort(self, *arg, **kw):
+        self._list.sort(*arg, **kw)
 
     def update(self, ____sequence=None, **kwargs):
         if ____sequence is not None:
@@ -1128,6 +1110,8 @@ class WeakCompositeKey(object):
     """
     keys = set()
 
+    __slots__ = 'args', '__weakref__'
+    
     def __init__(self, *args):
         self.args = [self.__ref(arg) for arg in args]
         WeakCompositeKey.keys.add(self)

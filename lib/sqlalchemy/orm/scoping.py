@@ -7,8 +7,9 @@
 import sqlalchemy.exceptions as sa_exc
 from sqlalchemy.util import ScopedRegistry, to_list, get_cls_kwargs
 from sqlalchemy.orm import (
-    EXT_CONTINUE, MapperExtension, class_mapper, object_session,
+    EXT_CONTINUE, MapperExtension, class_mapper, object_session
     )
+from sqlalchemy.orm import exc as orm_exc
 from sqlalchemy.orm.session import Session
 
 
@@ -77,7 +78,7 @@ class ScopedSession(object):
 
         self.session_factory.configure(**kwargs)
 
-    def query_property(self):
+    def query_property(self, query_cls=None):
         """return a class property which produces a `Query` object against the
         class when called.
 
@@ -90,14 +91,28 @@ class ScopedSession(object):
             # after mappers are defined
             result = MyClass.query.filter(MyClass.name=='foo').all()
 
-        """
+        Produces instances of the session's configured query class by
+        default.  To override and use a custom implementation, provide
+        a ``query_cls`` callable.  The callable will be invoked with
+        the class's mapper as a positional argument and a session
+        keyword argument.
 
+        There is no limit to the number of query properties placed on
+        a class.
+
+        """
         class query(object):
             def __get__(s, instance, owner):
-                mapper = class_mapper(owner, raiseerror=False)
-                if mapper:
-                    return self.registry().query(mapper)
-                else:
+                try:
+                    mapper = class_mapper(owner)
+                    if mapper:
+                        if query_cls:
+                            # custom query class
+                            return query_cls(mapper, session=self.registry())
+                        else:
+                            # session's configured query class
+                            return self.registry().query(mapper)
+                except orm_exc.UnmappedClassError:
                     return None
         return query()
 
@@ -129,7 +144,7 @@ class _ScopedExt(MapperExtension):
         self.context = context
         self.validate = validate
         self.save_on_init = save_on_init
-        self.set_kwargs_on_init = None
+        self.set_kwargs_on_init = True
 
     def validating(self):
         return _ScopedExt(self.context, validate=True)
@@ -149,29 +164,25 @@ class _ScopedExt(MapperExtension):
         if not 'query' in class_.__dict__:
             class_.query = query()
 
-        if self.set_kwargs_on_init is None:
-            self.set_kwargs_on_init = class_.__init__ is object.__init__
-        if self.set_kwargs_on_init:
-            def __init__(self, **kwargs):
-                pass
-            class_.__init__ = __init__
+        if self.set_kwargs_on_init and class_.__init__ is object.__init__:
+            class_.__init__ = self._default__init__(mapper)
 
-    def init_instance(self, mapper, class_, oldinit, instance, args, kwargs):
-        if self.save_on_init:
-            session = kwargs.pop('_sa_session', None)
-
-        if self.set_kwargs_on_init:
+    def _default__init__(ext, mapper):
+        def __init__(self, **kwargs):
             for key, value in kwargs.items():
-                if self.validate:
+                if ext.validate:
                     if not mapper.get_property(key, resolve_synonyms=False,
                                                raiseerr=False):
                         raise sa_exc.ArgumentError(
                             "Invalid __init__ argument: '%s'" % key)
-                setattr(instance, key, value)
-            kwargs.clear()
+                setattr(self, key, value)
+        return __init__
 
+    def init_instance(self, mapper, class_, oldinit, instance, args, kwargs):
         if self.save_on_init:
-            session = session or self.context.registry()
+            session = kwargs.pop('_sa_session', None)
+            if session is None:
+                session = self.context.registry()
             session._save_without_cascade(instance)
         return EXT_CONTINUE
 
