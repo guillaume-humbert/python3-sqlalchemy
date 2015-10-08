@@ -9,25 +9,39 @@
             
     
                 Using the Session
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Querying" href="query.html" />
         <link rel="prev" title="Mapping Class Inheritance Hierarchies" href="inheritance.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -97,7 +115,7 @@
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Using the Session
-             
+            
 
         <h2>
             
@@ -423,7 +441,7 @@ is capable of having a lifespan across many transactions, though only
 one at a time.   We refer to these two concepts as <strong>transaction scope</strong>
 and <strong>session scope</strong>.</p>
 <p>The implication here is that the SQLAlchemy ORM is encouraging the
-developer to establish these two scopes in his or her application,
+developer to establish these two scopes in their application,
 including not only when the scopes begin and end, but also the
 expanse of those scopes, for example should a single
 <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> instance be local to the execution flow within a
@@ -2952,8 +2970,11 @@ bound <a class="reference internal" href="../core/metadata.html#sqlalchemy.schem
 <p>Iterating through <tt class="docutils literal"><span class="pre">Session.identity_map.values()</span></tt> provides
 access to the full set of persistent objects (i.e., those
 that have row identity) currently in the session.</p>
-<p>See also:</p>
-<p><a class="reference internal" href="mapper_config.html#sqlalchemy.orm.util.identity_key" title="sqlalchemy.orm.util.identity_key"><tt class="xref py py-func docutils literal"><span class="pre">identity_key()</span></tt></a> - operations involving identity keys.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="mapper_config.html#sqlalchemy.orm.util.identity_key" title="sqlalchemy.orm.util.identity_key"><tt class="xref py py-func docutils literal"><span class="pre">identity_key()</span></tt></a> - helper function to produce the keys used
+in this dictionary.</p>
+</div>
 </dd></dl>
 
 <dl class="attribute">

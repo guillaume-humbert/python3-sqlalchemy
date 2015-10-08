@@ -9,25 +9,39 @@
             
     
                 Reflecting Database Objects
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="Schema Definition Language" href="schema.html" />
         <link rel="next" title="Column Insert/Update Defaults" href="defaults.html" />
         <link rel="prev" title="Describing Databases with MetaData" href="metadata.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -98,7 +116,7 @@
                 » <a href="schema.html" title="Schema Definition Language">Schema Definition Language</a>
         » 
                 Reflecting Database Objects
-             
+            
 
         <h2>
             
@@ -148,8 +166,8 @@
 
     <div id="docs-body" class="withsidebar" >
         
-<span class="target" id="module-sqlalchemy.schema"><span id="metadata-reflection"></span><span id="metadata-reflection-toplevel"></span></span><div class="section" id="reflecting-database-objects">
-<h1>Reflecting Database Objects<a class="headerlink" href="#reflecting-database-objects" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-sqlalchemy.schema"></span><div class="section" id="reflecting-database-objects">
+<span id="metadata-reflection"></span><span id="metadata-reflection-toplevel"></span><h1>Reflecting Database Objects<a class="headerlink" href="#reflecting-database-objects" title="Permalink to this headline">¶</a></h1>
 <p>A <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object can be instructed to load
 information about itself from the corresponding database schema object already
 existing within the database. This process is called <em>reflection</em>. In the
@@ -366,8 +384,6 @@ foreign key information as a list of dicts with these keys:</p>
 constrained_columns</dd>
 <dt>name</dt>
 <dd>optional name of the foreign key constraint.</dd>
-<dt>**kw</dt>
-<dd>other options passed to the dialect&#8217;s get_foreign_keys() method.</dd>
 </dl>
 </dd></dl>
 
@@ -384,8 +400,6 @@ index information as a list of dicts with these keys:</p>
 <dd>list of column names in order</dd>
 <dt>unique</dt>
 <dd>boolean</dd>
-<dt>**kw</dt>
-<dd>other options passed to the dialect&#8217;s get_indexes() method.</dd>
 </dl>
 </dd></dl>
 
@@ -425,7 +439,7 @@ primary key information as a list of column names.</p>
 <tt class="descname">get_table_names</tt><big>(</big><em>schema=None</em>, <em>order_by=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.reflection.Inspector.get_table_names" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return all table names in referred to within a particular schema.</p>
 <p>The names are expected to be real tables only, not views.
-Views are instead returned using the <a class="reference internal" href="internals.html#sqlalchemy.engine.interfaces.Dialect.get_view_names" title="sqlalchemy.engine.interfaces.Dialect.get_view_names"><tt class="xref py py-meth docutils literal"><span class="pre">get_view_names()</span></tt></a>
+Views are instead returned using the <a class="reference internal" href="#sqlalchemy.engine.reflection.Inspector.get_view_names" title="sqlalchemy.engine.reflection.Inspector.get_view_names"><tt class="xref py py-meth docutils literal"><span class="pre">Inspector.get_view_names()</span></tt></a>
 method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -464,6 +478,23 @@ consistency with similar features such as
 <dd><p>Return a dictionary of options specified when the table of the
 given name was created.</p>
 <p>This currently includes some options that apply to MySQL tables.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.engine.reflection.Inspector.get_unique_constraints">
+<tt class="descname">get_unique_constraints</tt><big>(</big><em>table_name</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.reflection.Inspector.get_unique_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return information about unique constraints in <cite>table_name</cite>.</p>
+<p>Given a string <cite>table_name</cite> and an optional string <cite>schema</cite>, return
+unique constraint information as a list of dicts with these keys:</p>
+<dl class="docutils">
+<dt>name</dt>
+<dd>the unique constraint&#8217;s name</dd>
+<dt>column_names</dt>
+<dd>list of column names in order</dd>
+</dl>
+<div class="versionadded">
+<p><span>New in version 0.8.4.</span></p>
+</div>
 </dd></dl>
 
 <dl class="method">

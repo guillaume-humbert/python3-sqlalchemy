@@ -1929,11 +1929,14 @@ class PGDialect(default.DefaultDialect):
         table_oid = self.get_table_oid(connection, table_name, schema,
                                        info_cache=kw.get('info_cache'))
 
+        # cast indkey as varchar since it's an int2vector,
+        # returned as a list by some drivers such as pypostgresql
+
         IDX_SQL = """
           SELECT
               i.relname as relname,
               ix.indisunique, ix.indexprs, ix.indpred,
-              a.attname, a.attnum, ix.indkey
+              a.attname, a.attnum, ix.indkey::varchar
           FROM
               pg_class t
                     join pg_index ix on t.oid = ix.indrelid
@@ -1985,6 +1988,36 @@ class PGDialect(default.DefaultDialect):
              'unique': idx['unique'],
              'column_names': [idx['cols'][i] for i in idx['key']]}
             for name, idx in indexes.items()
+        ]
+
+    @reflection.cache
+    def get_unique_constraints(self, connection, table_name,
+                               schema=None, **kw):
+        table_oid = self.get_table_oid(connection, table_name, schema,
+                                       info_cache=kw.get('info_cache'))
+
+        UNIQUE_SQL = """
+            SELECT
+                cons.conname as name,
+                ARRAY_AGG(a.attname) as column_names
+            FROM
+                pg_catalog.pg_constraint cons
+                left outer join pg_attribute a
+                    on cons.conrelid = a.attrelid and a.attnum = ANY(cons.conkey)
+            WHERE
+                cons.conrelid = :table_oid AND
+                cons.contype = 'u'
+            GROUP BY
+                cons.conname
+        """
+
+        t = sql.text(UNIQUE_SQL,
+                     typemap={'column_names': ARRAY(sqltypes.Unicode)})
+        c = connection.execute(t, table_oid=table_oid)
+
+        return [
+            {'name': row.name, 'column_names': row.column_names}
+            for row in c.fetchall()
         ]
 
     def _load_enums(self, connection):

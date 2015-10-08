@@ -9,25 +9,39 @@
             
     
                 0.1 Changelog
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="Changes and Migration" href="index.html" />
         <link rel="next" title="What&#8217;s New in SQLAlchemy 0.7?" href="migration_07.html" />
         <link rel="prev" title="0.2 Changelog" href="changelog_02.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -97,7 +115,7 @@
                 » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
         » 
                 0.1 Changelog
-             
+            
 
         <h2>
             
@@ -244,7 +262,7 @@ Released: Wed Apr 12 2006<ul class="simple">
 </p>
 </li>
 <li><p id="change-0.1.6-3"><span class="target" id="change-0c8a7b899b662206ff1d772c2b4f3c32"></span>added a &#8220;mods&#8221; system which allows pluggable modules that modify/augment
-core functionality, using the function &#8220;install_mods(<a href="#id1"><span class="problematic" id="id2">*</span></a>modnames)&#8221;.<a class="changeset-link reference internal" href="#change-0c8a7b899b662206ff1d772c2b4f3c32">(link)</a><p></p>
+core functionality, using the function &#8220;install_mods(*modnames)&#8221;.<a class="changeset-link reference internal" href="#change-0c8a7b899b662206ff1d772c2b4f3c32">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.1.6-4"><span class="target" id="change-5165cff42fd7bc0985c9ee41224ef11d"></span>added the first &#8220;mod&#8221;, SelectResults, which modifies mapper selects to
@@ -391,8 +409,8 @@ been called &#8220;invalidate&#8221; earlier..)<a class="changeset-link referenc
 session<a class="changeset-link reference internal" href="#change-247e750522dc1abf187cc9ebe7c07392">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.1.5-19"><span class="target" id="change-312a7f1009545c9e3baae04238d7f537"></span>added <a href="#id3"><span class="problematic" id="id4">*</span></a>args, <a href="#id5"><span class="problematic" id="id6">**</span></a>kwargs pass-thru to engine.transaction(func) allowing easier
-creation of transactionalizing decorator functions<a class="changeset-link reference internal" href="#change-312a7f1009545c9e3baae04238d7f537">(link)</a><p></p>
+<li><p id="change-0.1.5-19"><span class="target" id="change-64fa976573f5286cf2c2170f8284a78f"></span>added *args, **kwargs pass-thru to engine.transaction(func) allowing easier
+creation of transactionalizing decorator functions<a class="changeset-link reference internal" href="#change-64fa976573f5286cf2c2170f8284a78f">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.1.5-20"><span class="target" id="change-781ae8e0605a3c7c090b6482c29b3a81"></span>added iterator interface to ResultProxy:  &#8220;for row in result:...&#8221;<a class="changeset-link reference internal" href="#change-781ae8e0605a3c7c090b6482c29b3a81">(link)</a><p></p>
@@ -451,9 +469,8 @@ changes made.<a class="changeset-link reference internal" href="#change-e5d60d8a
 <h2>0.1.4<a class="headerlink" href="#change-0.1.4" title="Permalink to this headline">¶</a></h2>
 Released: Mon Mar 13 2006<ul class="simple">
 <li><p id="change-0.1.4-0"><span class="target" id="change-0ef266ab794fd1853decd9620edf8427"></span>create_engine() now uses genericized parameters; host/hostname,
-db/dbname/database, password/passwd, etc. for all engine connections. makes<blockquote>
-<div>engine URIs much more &#8220;universal&#8221;</div></blockquote>
-<a class="changeset-link reference internal" href="#change-0ef266ab794fd1853decd9620edf8427">(link)</a><p></p>
+db/dbname/database, password/passwd, etc. for all engine connections. makes
+engine URIs much more &#8220;universal&#8221;<a class="changeset-link reference internal" href="#change-0ef266ab794fd1853decd9620edf8427">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.1.4-1"><span class="target" id="change-ec2dc23024bd40e1ace566b16a735d09"></span>added support for SELECT statements embedded into a column clause, using the
@@ -542,8 +559,8 @@ PassiveDefaults have fired off, will instead post-fetch the row from the DB to
 populate the object.<a class="changeset-link reference internal" href="#change-30d3737ba988bebaa33f655c7900bb01">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.1.4-21"><span class="target" id="change-964498f680c779999121e64ad5cc56c1"></span>added &#8216;get_session().invalidate(<a href="#id7"><span class="problematic" id="id8">*</span></a>obj)&#8217; method to objectstore, instances will
-refresh() themselves upon the next attribute access.<a class="changeset-link reference internal" href="#change-964498f680c779999121e64ad5cc56c1">(link)</a><p></p>
+<li><p id="change-0.1.4-21"><span class="target" id="change-917a341fe1d89d4b1fff4f7559a2a0f3"></span>added &#8216;get_session().invalidate(*obj)&#8217; method to objectstore, instances will
+refresh() themselves upon the next attribute access.<a class="changeset-link reference internal" href="#change-917a341fe1d89d4b1fff4f7559a2a0f3">(link)</a><p></p>
 </p>
 </li>
 <li><p id="change-0.1.4-22"><span class="target" id="change-ef790669fa10bf7baaa122ee21865a04"></span>improvements to SQL func calls including an &#8220;engine&#8221; keyword argument so
@@ -625,8 +642,8 @@ to a module-scoped &#8220;default engine&#8221; which is a ProxyEngine.  this en
 be connected via the function &#8220;global_connect&#8221;.<a class="changeset-link reference internal" href="#change-02f8ebdd1e633c6e8c28681a25a6f754">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.1.3-11"><span class="target" id="change-9f9ea856fbdf0f5dfe021df934a3a1df"></span>added &#8220;refresh(<a href="#id9"><span class="problematic" id="id10">*</span></a>obj)&#8221; method to objectstore / Session to reload the attributes of
-any set of objects from the database unconditionally<a class="changeset-link reference internal" href="#change-9f9ea856fbdf0f5dfe021df934a3a1df">(link)</a><p></p>
+<li><p id="change-0.1.3-11"><span class="target" id="change-7aeabde948e2c369ea04d69e2d02699e"></span>added &#8220;refresh(*obj)&#8221; method to objectstore / Session to reload the attributes of
+any set of objects from the database unconditionally<a class="changeset-link reference internal" href="#change-7aeabde948e2c369ea04d69e2d02699e">(link)</a><p></p>
 </p>
 </li>
 </ul>
@@ -661,20 +678,16 @@ changeset 1019)<a class="changeset-link reference internal" href="#change-e70d11
 <li><p id="change-0.1.1-4"><span class="target" id="change-5d0280d06f52e25177cfdb38d7c05d87"></span>two issues related to postgres, which doesnt want to give you the &#8220;lastrowid&#8221;
 since oids are deprecated:<blockquote>
 <div><ul>
-<li>postgres database-side defaults that are on primary key cols <em>do</em> execute</li>
-</ul>
-</div></blockquote>
-<p>explicitly beforehand, even though thats not the idea of a PassiveDefault.  this is
+<li>postgres database-side defaults that are on primary key cols <em>do</em> execute
+explicitly beforehand, even though thats not the idea of a PassiveDefault.  this is
 because sequences on columns get reflected as PassiveDefaults, but need to be explicitly
-executed on a primary key col so we know what we just inserted.</p>
-<blockquote>
-<div><ul>
-<li>if you did add a row that has a bunch of database-side defaults on it,</li>
+executed on a primary key col so we know what we just inserted.</li>
+<li>if you did add a row that has a bunch of database-side defaults on it,
+and the PassiveDefault thing was working the old way, i.e. they just execute on
+the DB side, the &#8220;cant get the row back without an OID&#8221; exception that occurred
+also will not happen unless someone (usually the ORM) explicitly asks for it.</li>
 </ul>
 </div></blockquote>
-<p>and the PassiveDefault thing was working the old way, i.e. they just execute on
-the DB side, the &#8220;cant get the row back without an OID&#8221; exception that occurred
-also will not happen unless someone (usually the ORM) explicitly asks for it.</p>
 <a class="changeset-link reference internal" href="#change-5d0280d06f52e25177cfdb38d7c05d87">(link)</a><p></p>
 </p>
 </li>

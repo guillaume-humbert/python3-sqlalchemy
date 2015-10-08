@@ -1,3 +1,4 @@
+AUTHORS
 CHANGES
 LICENSE
 MANIFEST.in
@@ -215,7 +216,6 @@ doc/build/static/init.js
 doc/build/templates/genindex.mako
 doc/build/templates/layout.mako
 doc/build/templates/page.mako
-doc/build/templates/rtd_layout.mako
 doc/build/templates/search.mako
 doc/build/templates/static_base.mako
 doc/build/texinputs/Makefile

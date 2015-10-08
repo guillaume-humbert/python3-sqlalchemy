@@ -9,25 +9,39 @@
             
     
                 What&#8217;s New in SQLAlchemy 0.8?
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="Changes and Migration" href="index.html" />
         <link rel="next" title="0.8 Changelog" href="changelog_08.html" />
         <link rel="prev" title="Changes and Migration" href="index.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -97,7 +115,7 @@
                 » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
         » 
                 What&#8217;s New in SQLAlchemy 0.8?
-             
+            
 
         <h2>
             
@@ -1275,7 +1293,7 @@ intercept classes that aren&#8217;t yet created.</p>
 <div class="section" id="no-more-magic-coercion-of-to-in-when-comparing-to-subquery-in-ms-sql">
 <h3>No more magic coercion of &#8220;=&#8221; to IN when comparing to subquery in MS-SQL<a class="headerlink" href="#no-more-magic-coercion-of-to-in-when-comparing-to-subquery-in-ms-sql" title="Permalink to this headline">¶</a></h3>
 <p>We found a very old behavior in the MSSQL dialect which
-would attempt to rescue the user from his or herself when
+would attempt to rescue users from themselves when
 doing something like this:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">scalar_subq</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">someothertable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">someothertable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="o">==</span><span class="s">&#39;foo&#39;</span><span class="p">)</span>
 <span class="n">select</span><span class="p">([</span><span class="n">sometable</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="n">scalar_subq</span><span class="p">)</span></pre></div>

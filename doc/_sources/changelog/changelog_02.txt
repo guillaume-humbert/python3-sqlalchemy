@@ -170,7 +170,7 @@
         :tags: 
         :tickets: 287
 
-      fix to using query.count() with distinct, **kwargs with SelectResults
+      fix to using query.count() with distinct, \**kwargs with SelectResults
       count()
 
     .. change::
@@ -203,7 +203,7 @@
       turned on for individual table, schema, and column identifiers when
       used in all queries/creates/drops.  Enabled via "quote=True" in
       Table or Column, as well as "quote_schema=True" in Table.  Thanks to
-      Aaron Spike for his excellent efforts.
+      Aaron Spike for the excellent efforts.
 
     .. change::
         :tags: 

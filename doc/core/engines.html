@@ -9,25 +9,39 @@
             
     
                 Engine Configuration
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Working with Engines and Connections" href="connections.html" />
         <link rel="prev" title="Customizing DDL" href="ddl.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -97,7 +115,7 @@
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Engine Configuration
-             
+            
 
         <h2>
             
@@ -451,6 +469,14 @@ will be imported if available - this default is typically the most widely
 known driver available for that backend (i.e. cx_oracle, pysqlite/sqlite3,
 psycopg2, mysqldb). For Jython connections, specify the <cite>zxjdbc</cite> driver, which
 is the JDBC-DBAPI bridge included with Jython.</p>
+<dl class="function">
+<dt id="sqlalchemy.engine.url.make_url">
+<tt class="descclassname">sqlalchemy.engine.url.</tt><tt class="descname">make_url</tt><big>(</big><em>name_or_url</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.url.make_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a string or unicode instance, produce a new URL instance.</p>
+<p>The given string is parsed according to the RFC 1738 spec.  If an
+existing URL object is passed, just returns the object.</p>
+</dd></dl>
+
 <div class="section" id="postgresql">
 <h3>Postgresql<a class="headerlink" href="#postgresql" title="Permalink to this headline">¶</a></h3>
 <p>The Postgresql dialect uses psycopg2 as the default DBAPI:</p>
@@ -527,8 +553,8 @@ documentation.</p>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.url.</tt><tt class="descname">URL</tt><big>(</big><em>drivername</em>, <em>username=None</em>, <em>password=None</em>, <em>host=None</em>, <em>port=None</em>, <em>database=None</em>, <em>query=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.url.URL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Represent the components of a URL used to connect to a database.</p>
 <p>This object is suitable to be passed directly to a
-<tt class="docutils literal"><span class="pre">create_engine()</span></tt> call.  The fields of the URL are parsed from a
-string by the <tt class="docutils literal"><span class="pre">module-level</span> <span class="pre">make_url()</span></tt> function.  the string
+<a class="reference internal" href="#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> call.  The fields of the URL are parsed from a
+string by the <a class="reference internal" href="#sqlalchemy.engine.url.make_url" title="sqlalchemy.engine.url.make_url"><tt class="xref py py-func docutils literal"><span class="pre">make_url()</span></tt></a> function.  the string
 format of the URL is an RFC-1738-style string.</p>
 <p>All initialization parameters are available as public attributes.</p>
 <table class="docutils field-list" frame="void" rules="none">

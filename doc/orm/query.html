@@ -9,25 +9,39 @@
             
     
                 Querying
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Relationship Loading Techniques" href="loading.html" />
         <link rel="prev" title="Using the Session" href="session.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -97,7 +115,7 @@
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Querying
-             
+            
 
         <h2>
             
@@ -203,7 +221,7 @@ to be returned.</p>
 <tt class="descname">as_scalar</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.as_scalar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the full SELECT statement represented by this
 <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>, converted to a scalar subquery.</p>
-<p>Analogous to <tt class="xref py py-meth docutils literal"><span class="pre">sqlalchemy.sql.SelectBaseMixin.as_scalar()</span></tt>.</p>
+<p>Analogous to <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.SelectBase.as_scalar" title="sqlalchemy.sql.expression.SelectBase.as_scalar"><tt class="xref py py-meth docutils literal"><span class="pre">sqlalchemy.sql.expression.SelectBase.as_scalar()</span></tt></a>.</p>
 <div class="versionadded">
 <p><span>New in version 0.6.5.</span></p>
 </div>
@@ -905,13 +923,12 @@ an XPath-like query system using algorithmic joins.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>*props</strong> &#8211; <p>A collection of one or more join conditions,
+<li><strong>*props</strong> &#8211; A collection of one or more join conditions,
 each consisting of a relationship-bound attribute or string
 relationship name representing an &#8220;on clause&#8221;, or a single
 target entity, or a tuple in the form of <tt class="docutils literal"><span class="pre">(target,</span> <span class="pre">onclause)</span></tt>.
 A special two-argument calling form of the form <tt class="docutils literal"><span class="pre">target,</span> <span class="pre">onclause</span></tt>
-is also accepted.</p>
-</li>
+is also accepted.</li>
 <li><strong>aliased=False</strong> &#8211; If True, indicate that the JOIN target should be
 anonymously aliased.  Subsequent calls to <tt class="xref py py-class docutils literal"><span class="pre">filter</span></tt>
 and similar will adapt the incoming criterion to the target
@@ -942,7 +959,7 @@ SQLAlchemy versions was the primary ORM-level joining interface.</p>
 <dd><p>Return the full SELECT statement represented by this
 <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>, converted
 to a scalar subquery with a label of the given name.</p>
-<p>Analogous to <tt class="xref py py-meth docutils literal"><span class="pre">sqlalchemy.sql.SelectBaseMixin.label()</span></tt>.</p>
+<p>Analogous to <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.SelectBase.label" title="sqlalchemy.sql.expression.SelectBase.label"><tt class="xref py py-meth docutils literal"><span class="pre">sqlalchemy.sql.expression.SelectBase.label()</span></tt></a>.</p>
 <div class="versionadded">
 <p><span>New in version 0.6.5.</span></p>
 </div>
@@ -1069,11 +1086,11 @@ This method is not intended for general use.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>*prefixes</strong> &#8211; optional prefixes, typically strings,</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>*prefixes</strong> &#8211; optional prefixes, typically strings,
+not using any commas.   In particular is useful for MySQL keywords.</td>
 </tr>
 </tbody>
 </table>
-<p>not using any commas.   In particular is useful for MySQL keywords.</p>
 <p>e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span>\
     <span class="n">prefix_with</span><span class="p">(</span><span class="s">&#39;HIGH_PRIORITY&#39;</span><span class="p">)</span><span class="o">.</span>\

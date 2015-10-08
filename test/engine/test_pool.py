@@ -12,6 +12,8 @@ from sqlalchemy.testing import fixtures
 
 from sqlalchemy.testing.mock import Mock, call
 
+join_timeout = 10
+
 def MockDBAPI():
     def cursor():
         while True:
@@ -829,7 +831,7 @@ class QueuePoolTest(PoolTestBase):
             th.start()
             threads.append(th)
         for th in threads:
-            th.join()
+            th.join(join_timeout)
 
         assert len(timeouts) > 0
         for t in timeouts:
@@ -866,12 +868,94 @@ class QueuePoolTest(PoolTestBase):
             th.start()
             threads.append(th)
         for th in threads:
-            th.join()
+            th.join(join_timeout)
 
         self.assert_(max(peaks) <= max_overflow)
 
         lazy_gc()
         assert not pool._refs
+
+
+    def test_overflow_reset_on_failed_connect(self):
+        dbapi = Mock()
+
+        def failing_dbapi():
+            time.sleep(2)
+            raise Exception("connection failed")
+
+        creator = dbapi.connect
+        def create():
+            return creator()
+
+        p = pool.QueuePool(creator=create, pool_size=2, max_overflow=3)
+        c1 = p.connect()
+        c2 = p.connect()
+        c3 = p.connect()
+        eq_(p._overflow, 1)
+        creator = failing_dbapi
+        assert_raises(Exception, p.connect)
+        eq_(p._overflow, 1)
+
+    @testing.requires.threading_with_mock
+    def test_hanging_connect_within_overflow(self):
+        """test that a single connect() call which is hanging
+        does not block other connections from proceeding."""
+
+        dbapi = Mock()
+        mutex = threading.Lock()
+
+        def hanging_dbapi():
+            time.sleep(2)
+            with mutex:
+                return dbapi.connect()
+
+        def fast_dbapi():
+            with mutex:
+                return dbapi.connect()
+
+        creator = threading.local()
+
+        def create():
+            return creator.mock_connector()
+
+        def run_test(name, pool, should_hang):
+            if should_hang:
+                creator.mock_connector = hanging_dbapi
+            else:
+                creator.mock_connector = fast_dbapi
+
+            conn = pool.connect()
+            conn.operation(name)
+            time.sleep(1)
+            conn.close()
+
+        p = pool.QueuePool(creator=create, pool_size=2, max_overflow=3)
+
+        threads = [
+            threading.Thread(
+                        target=run_test, args=("success_one", p, False)),
+            threading.Thread(
+                        target=run_test, args=("success_two", p, False)),
+            threading.Thread(
+                        target=run_test, args=("overflow_one", p, True)),
+            threading.Thread(
+                        target=run_test, args=("overflow_two", p, False)),
+            threading.Thread(
+                        target=run_test, args=("overflow_three", p, False))
+        ]
+        for t in threads:
+            t.start()
+            time.sleep(.2)
+
+        for t in threads:
+            t.join(timeout=join_timeout)
+        eq_(
+            dbapi.connect().operation.mock_calls,
+            [call("success_one"), call("success_two"),
+                call("overflow_two"), call("overflow_three"),
+                call("overflow_one")]
+        )
+
 
     @testing.requires.threading_with_mock
     def test_waiters_handled(self):
@@ -879,9 +963,14 @@ class QueuePoolTest(PoolTestBase):
         handled when the pool is replaced.
 
         """
+        mutex = threading.Lock()
         dbapi = MockDBAPI()
         def creator():
-            return dbapi.connect()
+            mutex.acquire()
+            try:
+                return dbapi.connect()
+            finally:
+                mutex.release()
 
         success = []
         for timeout in (None, 30):
@@ -899,16 +988,23 @@ class QueuePoolTest(PoolTestBase):
                 c1 = p.connect()
                 c2 = p.connect()
 
+                threads = set()
                 for i in range(2):
                     t = threading.Thread(target=waiter,
                                     args=(p, timeout, max_overflow))
-                    t.setDaemon(True)  # so the tests dont hang if this fails
+                    t.daemon = True
                     t.start()
+                    threads.add(t)
 
-                c1.invalidate()
-                c2.invalidate()
-                p2 = p._replace()
+                # this sleep makes sure that the
+                # two waiter threads hit upon wait()
+                # inside the queue, before we invalidate the other
+                # two conns
                 time.sleep(.2)
+                p2 = p._replace()
+
+                for t in threads:
+                    t.join(join_timeout)
 
         eq_(len(success), 12, "successes: %s" % success)
 
@@ -926,9 +1022,7 @@ class QueuePoolTest(PoolTestBase):
         p1 = pool.QueuePool(creator=creator1,
                            pool_size=1, timeout=None,
                            max_overflow=0)
-        p2 = pool.QueuePool(creator=creator2,
-                           pool_size=1, timeout=None,
-                           max_overflow=-1)
+        p2 = pool.NullPool(creator=creator2)
         def waiter(p):
             conn = p.connect()
             time.sleep(.5)
@@ -1248,7 +1342,7 @@ class SingletonThreadPoolTest(PoolTestBase):
             th.start()
             threads.append(th)
         for th in threads:
-            th.join()
+            th.join(join_timeout)
         assert len(p._all_conns) == 3
 
         if strong_refs:

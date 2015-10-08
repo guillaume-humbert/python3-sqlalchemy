@@ -9,25 +9,39 @@
             
     
                 Connection Pooling
-             &mdash; 
+             &mdash;
     SQLAlchemy 0.8 Documentation
 
         </title>
+
         
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- begin iterate through SQLA + sphinx environment css_files -->
+                <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+            <!-- end iterate through SQLA + sphinx environment css_files -->
+        
+
+        
+
+    
+
+    <!-- begin layout.mako headers -->
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.3',
+          VERSION:     '0.8.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
+
+    <!-- begin iterate through sphinx environment script_files -->
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+    <!-- end iterate through sphinx environment script_files -->
+
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -36,6 +50,8 @@
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Events" href="event.html" />
         <link rel="prev" title="Working with Engines and Connections" href="connections.html" />
+    <!-- end layout.mako headers -->
+
 
     </head>
     <body>
@@ -50,7 +66,9 @@
 
 
 
+
 <div id="docs-container">
+
 
 
 
@@ -67,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
+        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
 
 
     </div>
@@ -97,7 +115,7 @@
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Connection Pooling
-             
+            
 
         <h2>
             
@@ -447,7 +465,7 @@ guaranteed to return the same connection object, if one has
 already been retrieved from the pool and has not been
 returned yet.  Offers a slight performance advantage at the
 cost of individual transactions by default.  The
-<tt class="xref py py-meth docutils literal"><span class="pre">unique_connection()</span></tt> method is provided to bypass the
+<a class="reference internal" href="#sqlalchemy.pool.Pool.unique_connection" title="sqlalchemy.pool.Pool.unique_connection"><tt class="xref py py-meth docutils literal"><span class="pre">unique_connection()</span></tt></a> method is provided to bypass the
 threadlocal behavior installed into <a class="reference internal" href="#sqlalchemy.pool.Pool.connect" title="sqlalchemy.pool.Pool.connect"><tt class="xref py py-meth docutils literal"><span class="pre">connect()</span></tt></a>.</li>
 <li><strong>reset_on_return</strong> &#8211; Configures the action to take
 on connections as they are returned to the pool.
@@ -498,6 +516,15 @@ and configured with identical creation arguments.</p>
 <p>This method is used in conjunection with <a class="reference internal" href="#sqlalchemy.pool.Pool.dispose" title="sqlalchemy.pool.Pool.dispose"><tt class="xref py py-meth docutils literal"><span class="pre">dispose()</span></tt></a>
 to close out an entire <a class="reference internal" href="#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> and create a new one in
 its place.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.pool.Pool.unique_connection">
+<tt class="descname">unique_connection</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.pool.Pool.unique_connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a DBAPI connection that is not referenced by any
+thread-local context.</p>
+<p>This method is different from <a class="reference internal" href="#sqlalchemy.pool.Pool.connect" title="sqlalchemy.pool.Pool.connect"><tt class="xref py py-meth docutils literal"><span class="pre">Pool.connect()</span></tt></a> only if the
+<tt class="docutils literal"><span class="pre">use_threadlocal</span></tt> flag has been set to <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -553,13 +580,13 @@ as pool sizing information.  Echoing can also be achieved by
 enabling logging for the &#8220;sqlalchemy.pool&#8221;
 namespace. Defaults to False.</li>
 <li><strong>use_threadlocal</strong> &#8211; If set to True, repeated calls to
-<tt class="xref py py-meth docutils literal"><span class="pre">connect()</span></tt> within the same application thread will be
+<a class="reference internal" href="#sqlalchemy.pool.QueuePool.connect" title="sqlalchemy.pool.QueuePool.connect"><tt class="xref py py-meth docutils literal"><span class="pre">connect()</span></tt></a> within the same application thread will be
 guaranteed to return the same connection object, if one has
 already been retrieved from the pool and has not been
 returned yet.  Offers a slight performance advantage at the
 cost of individual transactions by default.  The
-<tt class="xref py py-meth docutils literal"><span class="pre">unique_connection()</span></tt> method is provided to bypass the
-threadlocal behavior installed into <tt class="xref py py-meth docutils literal"><span class="pre">connect()</span></tt>.</li>
+<a class="reference internal" href="#sqlalchemy.pool.QueuePool.unique_connection" title="sqlalchemy.pool.QueuePool.unique_connection"><tt class="xref py py-meth docutils literal"><span class="pre">unique_connection()</span></tt></a> method is provided to bypass the
+threadlocal behavior installed into <a class="reference internal" href="#sqlalchemy.pool.QueuePool.connect" title="sqlalchemy.pool.QueuePool.connect"><tt class="xref py py-meth docutils literal"><span class="pre">connect()</span></tt></a>.</li>
 <li><strong>reset_on_return</strong> &#8211; <p>Determine steps to take on
 connections as they are returned to the pool.
 reset_on_return can have any of these values:</p>
@@ -604,6 +631,24 @@ pool.</li>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.pool.QueuePool.connect">
+<tt class="descname">connect</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.pool.QueuePool.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a DBAPI connection from the pool.</p>
+<p>The connection is instrumented such that when its
+<tt class="docutils literal"><span class="pre">close()</span></tt> method is called, the connection will be returned to
+the pool.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.pool.QueuePool.unique_connection">
+<tt class="descname">unique_connection</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.pool.QueuePool.unique_connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a DBAPI connection that is not referenced by any
+thread-local context.</p>
+<p>This method is different from <a class="reference internal" href="#sqlalchemy.pool.Pool.connect" title="sqlalchemy.pool.Pool.connect"><tt class="xref py py-meth docutils literal"><span class="pre">Pool.connect()</span></tt></a> only if the
+<tt class="docutils literal"><span class="pre">use_threadlocal</span></tt> flag has been set to <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
 </dd></dl>
 
 </dd></dl>

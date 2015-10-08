@@ -1,3 +1,5 @@
+import operator
+
 import unicodedata
 import sqlalchemy as sa
 from sqlalchemy import schema, events, event, inspect
@@ -875,6 +877,7 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         assert set([t2.c.id]) == set(r1.columns)
         assert set([t2.c.name, t2.c.id]) == set(r2.columns)
         assert set([t2.c.name]) == set(r3.columns)
+
 
     @testing.requires.views
     @testing.provide_metadata
