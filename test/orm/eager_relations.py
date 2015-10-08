@@ -11,9 +11,6 @@ class EagerTest(FixtureTest):
     keep_mappers = False
     keep_data = True
     
-    def setup_mappers(self):
-        pass
-
     def test_basic(self):
         mapper(User, users, properties={
             'addresses':relation(mapper(Address, addresses), lazy=False)
@@ -421,6 +418,23 @@ class EagerTest(FixtureTest):
             )
         ] == l.all()
 
+    def test_limit_4(self):
+        # tests the LIMIT/OFFSET aliasing on a mapper against a select.   original issue from ticket #904
+        sel = select([users, addresses.c.email_address], users.c.id==addresses.c.user_id).alias('useralias')
+        mapper(User, sel, properties={
+            'orders':relation(Order, primaryjoin=sel.c.id==orders.c.user_id, lazy=False)
+        })
+        mapper(Order, orders)
+        
+        sess = create_session()
+        self.assertEquals(sess.query(User).first(), 
+            User(name=u'jack',orders=[
+                Order(address_id=1,description=u'order 1',isopen=0,user_id=7,id=1), 
+                Order(address_id=1,description=u'order 3',isopen=1,user_id=7,id=3), 
+                Order(address_id=None,description=u'order 5',isopen=0,user_id=7,id=5)],
+            email_address=u'jack@bean.com',id=7)
+        )
+        
     def test_one_to_many_scalar(self):
         mapper(User, users, properties = dict(
             address = relation(mapper(Address, addresses), lazy=False, uselist=False)
@@ -541,6 +555,96 @@ class EagerTest(FixtureTest):
         l = q.filter(addresses.c.email_address == 'ed@lala.com').filter(Address.user_id==User.id)
         assert fixtures.user_address_result[1:2] == l.all()
 
+class AddEntityTest(FixtureTest):
+    keep_mappers = False
+    keep_data = True
+
+    def _assert_result(self):
+        return [
+            (
+                User(id=7, 
+                    addresses=[Address(id=1)]
+                ),
+                Order(id=1, 
+                    items=[Item(id=1), Item(id=2), Item(id=3)]
+                ),
+            ),
+            (
+                User(id=7, 
+                    addresses=[Address(id=1)]
+                ),
+                Order(id=3, 
+                    items=[Item(id=3), Item(id=4), Item(id=5)]
+                ),
+            ),
+            (
+                User(id=7, 
+                    addresses=[Address(id=1)]
+                ),
+                Order(id=5, 
+                    items=[Item(id=5)]
+                ),
+            ),
+            (
+                 User(id=9, 
+                    addresses=[Address(id=5)]
+                ),
+                 Order(id=2, 
+                    items=[Item(id=1), Item(id=2), Item(id=3)]
+                ),
+             ),
+             (
+                  User(id=9, 
+                    addresses=[Address(id=5)]
+                ),
+                  Order(id=4, 
+                    items=[Item(id=1), Item(id=5)]
+                ),
+              )
+        ]
+        
+    def test_basic(self):
+        mapper(User, users, properties={
+            'addresses':relation(Address, lazy=False),
+            'orders':relation(Order)
+        })
+        mapper(Address, addresses)
+        mapper(Order, orders, properties={
+            'items':relation(Item, secondary=order_items, lazy=False, order_by=items.c.id)
+        })
+        mapper(Item, items)
+
+
+        sess = create_session()
+        def go():
+            ret = sess.query(User).add_entity(Order).join('orders', aliased=True).order_by(User.id).order_by(Order.id).all()
+            self.assertEquals(ret, self._assert_result())
+        self.assert_sql_count(testbase.db, go, 1)
+
+    def test_options(self):
+        mapper(User, users, properties={
+            'addresses':relation(Address),
+            'orders':relation(Order)
+        })
+        mapper(Address, addresses)
+        mapper(Order, orders, properties={
+            'items':relation(Item, secondary=order_items, order_by=items.c.id)
+        })
+        mapper(Item, items)
+
+        sess = create_session()
+
+        def go():
+            ret = sess.query(User).options(eagerload('addresses')).add_entity(Order).join('orders', aliased=True).order_by(User.id).order_by(Order.id).all()
+            self.assertEquals(ret, self._assert_result())
+        self.assert_sql_count(testbase.db, go, 6)
+
+        sess.clear()
+        def go():
+            ret = sess.query(User).options(eagerload('addresses')).add_entity(Order).options(eagerload('items', Order)).join('orders', aliased=True).order_by(User.id).order_by(Order.id).all()
+            self.assertEquals(ret, self._assert_result())
+        self.assert_sql_count(testbase.db, go, 1)
+
 class SelfReferentialEagerTest(ORMTest):
     def define_tables(self, metadata):
         global nodes
@@ -582,6 +686,48 @@ class SelfReferentialEagerTest(ORMTest):
             ]) == d
         self.assert_sql_count(testbase.db, go, 1)
 
+    
+    def test_lazy_fallback_doesnt_affect_eager(self):
+        class Node(Base):
+            def append(self, node):
+                self.children.append(node)
+
+        mapper(Node, nodes, properties={
+            'children':relation(Node, lazy=False, join_depth=1)
+        })
+        sess = create_session()
+        n1 = Node(data='n1')
+        n1.append(Node(data='n11'))
+        n1.append(Node(data='n12'))
+        n1.append(Node(data='n13'))
+        n1.children[1].append(Node(data='n121'))
+        n1.children[1].append(Node(data='n122'))
+        n1.children[1].append(Node(data='n123'))
+        sess.save(n1)
+        sess.flush()
+        sess.clear()
+
+        # eager load with join depth 1.  when eager load of 'n1'
+        # hits the children of 'n12', no columns are present, eager loader
+        # degrades to lazy loader; fine.  but then, 'n12' is *also* in the
+        # first level of columns since we're loading the whole table.
+        # when those rows arrive, now we *can* eager load its children and an
+        # eager collection should be initialized.  essentially the 'n12' instance
+        # is present in not just two different rows but two distinct sets of columns
+        # in this result set.
+        def go():
+            allnodes = sess.query(Node).order_by(Node.data).all()
+            n12 = allnodes[2]
+            assert n12.data == 'n12'
+            print "N12 IS", id(n12)
+            print [c.data for c in n12.children]
+            assert [
+                Node(data='n121'),
+                Node(data='n122'),
+                Node(data='n123')
+            ] == list(n12.children)
+        self.assert_sql_count(testbase.db, go, 1)
+        
     def test_with_deferred(self):
         class Node(Base):
             def append(self, node):
@@ -658,11 +804,11 @@ class SelfReferentialEagerTest(ORMTest):
         if testing.against('sqlite'):
             self.assert_sql(testbase.db, go, [
                 (
-                    "SELECT nodes.id AS nodes_id, nodes.parent_id AS nodes_parent_id, nodes.data AS nodes_data FROM nodes WHERE nodes.data = :nodes_data ORDER BY nodes.oid  LIMIT 1 OFFSET 0",
-                    {'nodes_data': 'n1'}
+                    "SELECT nodes.id AS nodes_id, nodes.parent_id AS nodes_parent_id, nodes.data AS nodes_data FROM nodes WHERE nodes.data = :nodes_data_1 ORDER BY nodes.oid  LIMIT 1 OFFSET 0",
+                    {'nodes_data_1': 'n1'}
                 ),
             ])
-
+            
     @testing.fails_on('maxdb')
     def test_no_depth(self):
         class Node(Base):
@@ -723,8 +869,8 @@ class SelfReferentialM2MEagerTest(ORMTest):
         })
 
         sess = create_session()
-        w1 = Widget(name='w1')
-        w2 = Widget(name='w2')
+        w1 = Widget(name=u'w1')
+        w2 = Widget(name=u'w2')
         w1.children.append(w2)
         sess.save(w1)
         sess.flush()
@@ -732,7 +878,7 @@ class SelfReferentialM2MEagerTest(ORMTest):
 
 #        l = sess.query(Widget).filter(Widget.name=='w1').all()
 #        print l
-        assert [Widget(name='w1', children=[Widget(name='w2')])] == sess.query(Widget).filter(Widget.name=='w1').all()
+        assert [Widget(name='w1', children=[Widget(name='w2')])] == sess.query(Widget).filter(Widget.name==u'w1').all()
 
 class CyclicalInheritingEagerTest(ORMTest):
     def define_tables(self, metadata):
@@ -771,7 +917,6 @@ class CyclicalInheritingEagerTest(ORMTest):
 
         # testing a particular endless loop condition in eager join setup
         create_session().query(SubT).all()
-
 
 if __name__ == '__main__':
     testbase.main()

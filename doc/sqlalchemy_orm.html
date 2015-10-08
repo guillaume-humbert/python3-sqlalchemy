@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
+<div class="versionheader">Version: 0.4.2   Last Updated: 01/01/08 20:56:05</div>
 
 
 
@@ -181,9 +181,9 @@
     <h3>module sqlalchemy.orm</h3>
     
     
-    <div class="darkcell"><p>The mapper package provides object-relational functionality, building upon
-the schema and sql packages and tying operations to class properties and
-constructors.</p>
+    <div class="darkcell"><p>Functional constructs for ORM configuration.</p>
+<p>See the SQLAlchemy object relational tutorial and mapper configuration
+documentation for an overview of how this module is used.</p>
 </div>
     
 
@@ -407,7 +407,7 @@ table column when first accessed.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_dynamic_loader"></a>
-    <b>def dynamic_loader(<i>argument</i>, <i>secondary=None</i>, <i>primaryjoin=None</i>, <i>secondaryjoin=None</i>, <i>entity_name=None</i>, <i>foreign_keys=None</i>, <i>backref=None</i>, <i>post_update=False</i>, <i>cascade=None</i>, <i>remote_side=None</i>, <i>enable_typechecks=True</i>)</b>
+    <b>def dynamic_loader(<i>argument</i>, <i>secondary=None</i>, <i>primaryjoin=None</i>, <i>secondaryjoin=None</i>, <i>entity_name=None</i>, <i>foreign_keys=None</i>, <i>backref=None</i>, <i>post_update=False</i>, <i>cascade=None</i>, <i>remote_side=None</i>, <i>enable_typechecks=True</i>, <i>passive_deletes=False</i>)</b>
     <div class="docstring">
     <p>construct a dynamically-loading mapper property.</p>
 <p>This property is similar to relation(), except read operations
@@ -425,7 +425,7 @@ operations are available.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_eagerload"></a>
-    <b>def eagerload(<i>name</i>)</b>
+    <b>def eagerload(<i>name</i>, <i>mapper=None</i>)</b>
     <div class="docstring">
     <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the given name into an eager load.</p>
 <p>Used with <tt class="docutils literal"><span class="pre">query.options()</span></tt>.</p>
@@ -437,7 +437,7 @@ operations are available.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_eagerload_all"></a>
-    <b>def eagerload_all(<i>name</i>)</b>
+    <b>def eagerload_all(<i>name</i>, <i>mapper=None</i>)</b>
     <div class="docstring">
     <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert all properties along the given dot-separated path into an eager load.</p>
 <p>For example, this:</p>
@@ -469,7 +469,7 @@ that will be called in the context of the <tt class="docutils literal"><span cla
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_lazyload"></a>
-    <b>def lazyload(<i>name</i>)</b>
+    <b>def lazyload(<i>name</i>, <i>mapper=None</i>)</b>
     <div class="docstring">
     <p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the
 given name into a lazy load.</p>
@@ -652,9 +652,9 @@ be located.  If False, return None.</dd>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_object_session"></a>
-    <b>def object_session(<i>obj</i>)</b>
+    <b>def object_session(<i>instance</i>)</b>
     <div class="docstring">
-    <p>Return the <tt class="docutils literal"><span class="pre">Session</span></tt> to which the given object is bound, or <tt class="docutils literal"><span class="pre">None</span></tt> if none.</p>
+    <p>Return the <tt class="docutils literal"><span class="pre">Session</span></tt> to which the given instance is bound, or <tt class="docutils literal"><span class="pre">None</span></tt> if none.</p>
 
     </div>
     </div>
@@ -759,8 +759,8 @@ database.</dd>
 <dt>order_by</dt>
 <dd>indicates the ordering that should be applied when loading these items.</dd>
 <dt>passive_deletes=False</dt>
-<dd><p class="first">Indicates the behavior of delete operations.
-A value of True indicates that unloaded child items should not be loaded
+<dd><p class="first">Indicates loading behavior during delete operations.</p>
+<p>A value of True indicates that unloaded child items should not be loaded
 during a delete operation on the parent.  Normally, when a parent
 item is deleted, all child items are loaded so that they can either be
 marked as deleted, or have their foreign key to the parent set to NULL.
@@ -773,6 +773,25 @@ delete-orphan cascade enabled.  This is typically used when a triggering
 or error raise scenario is in place on the database side.  Note that
 the foreign key attributes on in-session child objects will not be changed
 after a flush occurs so this is a very special use-case setting.</p>
+</dd>
+<dt>passive_updates=True</dt>
+<dd><p class="first">Indicates loading and INSERT/UPDATE/DELETE behavior when the source
+of a foreign key value changes (i.e. an &quot;on update&quot; cascade), which are
+typically the primary key columns of the source row.</p>
+<p>When True, it is assumed that ON UPDATE CASCADE is configured on the
+foreign key in the database, and that the database will handle propagation of an
+UPDATE from a source column to dependent rows.  Note that with databases
+which enforce referential integrity (ie. Postgres, MySQL with InnoDB tables),
+ON UPDATE CASCADE is required for this operation.  The relation() will
+update the value of the attribute on related items which are locally present
+in the session during a flush.</p>
+<p>When False, it is assumed that the database does not enforce referential
+integrity and will not be issuing its own CASCADE operation for an update.
+The relation() will issue the appropriate UPDATE statements to the database
+in response to the change of a referenced key, and items locally present
+in the session during a flush will also be refreshed.</p>
+<p class="last">This flag should probably be set to False if primary key changes are expected
+and the database in use doesn't support CASCADE (i.e. SQLite, MySQL MyISAM tables).</p>
 </dd>
 <dt>post_update</dt>
 <dd>this indicates that the relationship should be handled by a second
@@ -872,11 +891,10 @@ mapper(Class, table, ...)
     <div class="docstring">
     <p>Generate a custom-configured <a href="sqlalchemy_orm_session.html#docstrings_sqlalchemy.orm.session_Session">Session</a> class.</p>
 <p>The returned object is a subclass of <tt class="docutils literal"><span class="pre">Session</span></tt>, which, when instantiated with no
-arguments, uses the
-keyword arguments configured here as its constructor arguments.  It is intended
-that the <cite>sessionmaker()</cite> function be called within the global scope of an application,
-and the returned class be made available to the rest of the application as the
-single class used to instantiate sessions.</p>
+arguments, uses the keyword arguments configured here as its constructor arguments.</p>
+<p>It is intended that the <cite>sessionmaker()</cite> function be called within the global scope
+of an application, and the returned class be made available to the rest of the
+application as the single class used to instantiate sessions.</p>
 <p>e.g.:</p>
 <pre class="literal-block">
 # global scope
@@ -916,10 +934,42 @@ which should be used by the returned class.  All other keyword arguments sent to
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm_modfunc_synonym"></a>
-    <b>def synonym(<i>name</i>, <i>proxy=False</i>)</b>
+    <b>def synonym(<i>name</i>, <i>map_column=False</i>, <i>proxy=False</i>)</b>
     <div class="docstring">
-    <p>Set up <cite>name</cite> as a synonym to another <tt class="docutils literal"><span class="pre">MapperProperty</span></tt>.</p>
-<p>Used with the <cite>properties</cite> dictionary sent to <tt class="docutils literal"><span class="pre">mapper()</span></tt>.</p>
+    <p>Set up <cite>name</cite> as a synonym to another mapped property.</p>
+<p>Used with the <tt class="docutils literal"><span class="pre">properties</span></tt> dictionary sent to  <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_mapper">mapper()</a>.</p>
+<p>Any existing attributes on the class which map the key name sent
+to the <tt class="docutils literal"><span class="pre">properties</span></tt> dictionary will be used by the synonym to
+provide instance-attribute behavior (that is, any Python property object,
+provided by the <tt class="docutils literal"><span class="pre">property</span></tt> builtin or providing a <tt class="docutils literal"><span class="pre">__get__()</span></tt>,
+<tt class="docutils literal"><span class="pre">__set__()</span></tt> and <tt class="docutils literal"><span class="pre">__del__()</span></tt> method).  If no name exists for the key,
+the <tt class="docutils literal"><span class="pre">synonym()</span></tt> creates a default getter/setter object automatically
+and applies it to the class.</p>
+<p><cite>name</cite> refers to the name of the existing mapped property, which
+can be any other <tt class="docutils literal"><span class="pre">MapperProperty</span></tt> including column-based
+properties and relations.</p>
+<p>if <cite>map_column</cite> is <tt class="docutils literal"><span class="pre">True</span></tt>, an additional <tt class="docutils literal"><span class="pre">ColumnProperty</span></tt>
+is created on the mapper automatically, using the synonym's
+name as the keyname of the property, and the keyname of this <tt class="docutils literal"><span class="pre">synonym()</span></tt>
+as the name of the column to map.  For example, if a table has a column
+named <tt class="docutils literal"><span class="pre">status</span></tt>:</p>
+<pre class="literal-block">
+class MyClass(object):
+    def _get_status(self):
+        return self._status
+    def _set_status(self, value):
+        self._status = value
+    status = property(_get_status, _set_status)
+
+mapper(MyClass, sometable, properties={
+    &quot;status&quot;:synonym(&quot;_status&quot;, map_column=True)
+})
+</pre>
+<p>The column named <tt class="docutils literal"><span class="pre">status</span></tt> will be mapped to the attribute named <tt class="docutils literal"><span class="pre">_status</span></tt>,
+and the <tt class="docutils literal"><span class="pre">status</span></tt> attribute on <tt class="docutils literal"><span class="pre">MyClass</span></tt> will be used to proxy access to the
+column-based attribute.</p>
+<p>The <cite>proxy</cite> keyword argument is deprecated and currently does nothing; synonyms
+now always establish an attribute getter/setter funciton if one is not already available.</p>
 
     </div>
     </div>
@@ -1650,7 +1700,14 @@ and other generative methods to establish modifiers.</p>
     <A name=""></a>
     <b>def from_statement(<i>self</i>, <i>statement</i>)</b>
     <div class="docstring">
-    
+    <p>Execute the given SELECT statement and return results.</p>
+<p>This method bypasses all internal statement compilation, and the
+statement is executed without modification.</p>
+<p>The statement argument is either a string, a <tt class="docutils literal"><span class="pre">select()</span></tt> construct,
+or a <tt class="docutils literal"><span class="pre">text()</span></tt> construct, and should return the set of columns
+appropriate to the entity class represented by this <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+<p>Also see the <tt class="docutils literal"><span class="pre">instances()</span></tt> method.</p>
+
     </div>
     </div>
 
@@ -1708,12 +1765,7 @@ columns.</p>
     <A name=""></a>
     <b>def instances(<i>self</i>, <i>cursor</i>, <i>*mappers_or_columns</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>Return a list of mapped instances corresponding to the rows
-in a given <em>cursor</em> (i.e. <tt class="docutils literal"><span class="pre">ResultProxy</span></tt>).</p>
-<p>The *mappers_or_columns and **kwargs arguments are deprecated.
-To add instances or columns to the results, use add_entity()
-and add_column().</p>
-
+    
     </div>
     </div>
 
@@ -2007,8 +2059,9 @@ the root.</p>
     <b>def select_from(<i>self</i>, <i>from_obj</i>)</b>
     <div class="docstring">
     <p>Set the <cite>from_obj</cite> parameter of the query and return the newly
-resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
-<p><cite>from_obj</cite> is a list of one or more tables.</p>
+resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.  This replaces the table which this Query selects
+from with the given table.</p>
+<p><cite>from_obj</cite> is a single table or selectable.</p>
 
     </div>
     </div>

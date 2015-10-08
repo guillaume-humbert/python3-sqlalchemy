@@ -1,5 +1,5 @@
 # oracle.py
-# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -95,11 +95,9 @@ class OracleText(sqltypes.TEXT):
 
     def result_processor(self, dialect):
         super_process = super(OracleText, self).result_processor(dialect)
+        lob = dialect.dbapi.LOB
         def process(value):
-            if value is None:
-                return None
-            elif hasattr(value, 'read'):
-                # cx_oracle doesnt seem to be consistent with CLOB returning LOB or str
+            if isinstance(value, lob):
                 if super_process:
                     return super_process(value.read())
                 else:
@@ -130,11 +128,12 @@ class OracleBinary(sqltypes.Binary):
         return None
 
     def result_processor(self, dialect):
+        lob = dialect.dbapi.LOB
         def process(value):
-            if value is None:
-                return None
-            else:
+            if isinstance(value, lob):
                 return value.read()
+            else:
+                return value
         return process
         
 class OracleBoolean(sqltypes.Boolean):
@@ -251,24 +250,19 @@ class OracleDialect(default.DefaultDialect):
         self.supports_timestamp = self.dbapi is None or hasattr(self.dbapi, 'TIMESTAMP' )
         self.auto_setinputsizes = auto_setinputsizes
         self.auto_convert_lobs = auto_convert_lobs
-        
-        if self.dbapi is not None:
-            self.ORACLE_BINARY_TYPES = [getattr(self.dbapi, k) for k in ["BFILE", "CLOB", "NCLOB", "BLOB"] if hasattr(self.dbapi, k)]
-        else:
+        if self.dbapi is None or not self.auto_convert_lobs or not 'CLOB' in self.dbapi.__dict__:
+            self.dbapi_type_map = {}
             self.ORACLE_BINARY_TYPES = []
-
-    def dbapi_type_map(self):
-        if self.dbapi is None or not self.auto_convert_lobs:
-            return {}
         else:
             # only use this for LOB objects.  using it for strings, dates
             # etc. leads to a little too much magic, reflection doesn't know if it should
             # expect encoded strings or unicodes, etc.
-            return {
+            self.dbapi_type_map = {
                 self.dbapi.CLOB: OracleText(), 
                 self.dbapi.BLOB: OracleBinary(), 
                 self.dbapi.BINARY: OracleRaw(), 
             }
+            self.ORACLE_BINARY_TYPES = [getattr(self.dbapi, k) for k in ["BFILE", "CLOB", "NCLOB", "BLOB"] if hasattr(self.dbapi, k)]
 
     def dbapi(cls):
         import cx_Oracle
@@ -315,6 +309,12 @@ class OracleDialect(default.DefaultDialect):
         # Can't set 'handle' or 'pool' via URL query args, use connect_args
 
         return ([], opts)
+
+    def is_disconnect(self, e):
+        if isinstance(e, self.dbapi.InterfaceError):
+            return "not connected" in str(e)
+        else:
+            return "ORA-03114" in str(e) or "ORA-03113" in str(e)
 
     def type_descriptor(self, typeobj):
         return sqltypes.adapt_type(typeobj, colspecs)

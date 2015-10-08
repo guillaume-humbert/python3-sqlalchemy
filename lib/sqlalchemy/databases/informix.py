@@ -1,5 +1,5 @@
 # informix.py
-# Copyright (C) 2005,2006 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005,2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
 #
 # coding: gbk
 #
@@ -408,15 +408,6 @@ class InfoCompiler(compiler.DefaultCompiler):
         
     def limit_clause(self, select):
         return ""
-
-    def __visit_label(self, label):
-        # TODO: whats this method for ?
-        if self.select_stack:
-            self.typemap.setdefault(label.name.lower(), label.obj.type)
-        if self.strings[label.obj]:
-            self.strings[label] = self.strings[label.obj] + " AS "  + label.name
-        else:
-            self.strings[label] = None
 
     def visit_function( self , func ):
         if func.name.lower() == 'current_date':

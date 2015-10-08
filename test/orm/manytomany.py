@@ -2,7 +2,7 @@ import testbase
 from sqlalchemy import *
 from sqlalchemy.orm import *
 from testlib import *
-
+from sqlalchemy import exceptions
 
 class Place(object):
     '''represents a place'''
@@ -68,6 +68,23 @@ class M2MTest(ORMTest):
             Column('pl2_id', Integer, ForeignKey('place.place_id')),
             )
 
+    def testerror(self):
+        mapper(Place, place, properties={
+            'transitions':relation(Transition, secondary=place_input, backref='places')
+        })
+        mapper(Transition, transition, properties={
+            'places':relation(Place, secondary=place_input, backref='transitions')
+        })
+        try:
+            compile_mappers()
+            assert False
+        except exceptions.ArgumentError, e:
+            assert str(e) in [
+                "Error creating backref 'transitions' on relation 'Transition.places (Place)': property of that name exists on mapper 'Mapper|Place|place'",
+                "Error creating backref 'places' on relation 'Place.transitions (Transition)': property of that name exists on mapper 'Mapper|Transition|transition'"
+            ]
+            
+        
     def testcircular(self):
         """tests a many-to-many relationship from a table to itself."""
 
@@ -124,7 +141,7 @@ class M2MTest(ORMTest):
         Place.mapper = mapper(Place, place, properties = {
             'thingies':relation(mapper(PlaceThingy, place_thingy), lazy=False)
         })
-        
+    
         Transition.mapper = mapper(Transition, transition, properties = dict(
             inputs = relation(Place.mapper, place_output, lazy=False),
             outputs = relation(Place.mapper, place_input, lazy=False),
@@ -141,12 +158,11 @@ class M2MTest(ORMTest):
 
         sess.clear()
         r = sess.query(Transition).select()
-        self.assert_result(r, Transition, 
-            {'name':'transition1', 
-            'inputs' : (Place, [{'name':'place1'}]),
-            'outputs' : (Place, [{'name':'place2'}, {'name':'place3'}])
-            }
-            )    
+        self.assert_unordered_result(r, Transition,
+            {'name': 'transition1',
+            'inputs': (Place, [{'name':'place1'}]),
+            'outputs': (Place, [{'name':'place2'}, {'name':'place3'}])
+            })
 
     def testbidirectional(self):
         """tests a many-to-many backrefs"""

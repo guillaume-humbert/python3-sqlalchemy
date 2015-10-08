@@ -1,5 +1,5 @@
 # __init__.py
-# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -31,4 +31,4 @@ from sqlalchemy.engine import create_engine, engine_from_config
 __all__ = [ name for name, obj in locals().items()
             if not (name.startswith('_') or inspect.ismodule(obj)) ]
 
-__version__ = '0.4.1'
+__version__ = '0.4.2'

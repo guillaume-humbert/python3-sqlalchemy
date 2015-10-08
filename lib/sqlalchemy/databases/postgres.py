@@ -1,5 +1,5 @@
 # postgres.py
-# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -233,16 +233,24 @@ RETURNING_QUOTED_RE = re.compile(
 
 class PGExecutionContext(default.DefaultExecutionContext):
 
-    def is_select(self):
-        m = SELECT_RE.match(self.statement)
-        return m and (not m.group(1) or (RETURNING_RE.search(self.statement)
-           and RETURNING_QUOTED_RE.match(self.statement)))
+    def returns_rows_text(self, statement):
+        m = SELECT_RE.match(statement)
+        return m and (not m.group(1) or (RETURNING_RE.search(statement)
+           and RETURNING_QUOTED_RE.match(statement)))
+    
+    def returns_rows_compiled(self, compiled):
+        return isinstance(compiled.statement, expression.Selectable) or \
+            (
+                (compiled.isupdate or compiled.isinsert) and "postgres_returning" in compiled.statement.kwargs
+            )
         
     def create_cursor(self):
         # executing a default or Sequence standalone creates an execution context without a statement.  
         # so slightly hacky "if no statement assume we're server side" logic
+        # TODO: dont use regexp if Compiled is used ?
         self.__is_server_side = \
-            self.dialect.server_side_cursors and (self.statement is None or \
+            self.dialect.server_side_cursors and \
+            (self.statement is None or \
             (SELECT_RE.match(self.statement) and not re.search(r'FOR UPDATE(?: NOWAIT)?\s*$', self.statement, re.I))
         )
 
@@ -398,12 +406,13 @@ class PGDialect(default.DefaultDialect):
         preparer = self.identifier_preparer
         if table.schema is not None:
             schema_where_clause = "n.nspname = :schema"
+            schemaname = table.schema
+            if isinstance(schemaname, str):
+                schemaname = schemaname.decode(self.encoding)
         else:
             schema_where_clause = "pg_catalog.pg_table_is_visible(c.oid)"
-
-        ## information schema in pg suffers from too many permissions' restrictions
-        ## let us find out at the pg way what is needed...
-
+            schemaname = None
+            
         SQL_COLS = """
             SELECT a.attname,
               pg_catalog.format_type(a.atttypid, a.atttypmod),
@@ -423,8 +432,10 @@ class PGDialect(default.DefaultDialect):
         """ % schema_where_clause
 
         s = sql.text(SQL_COLS, bindparams=[sql.bindparam('table_name', type_=sqltypes.Unicode), sql.bindparam('schema', type_=sqltypes.Unicode)], typemap={'attname':sqltypes.Unicode, 'default':sqltypes.Unicode})
-        c = connection.execute(s, table_name=table.name,
-                                  schema=table.schema)
+        tablename = table.name
+        if isinstance(tablename, str):
+            tablename = tablename.decode(self.encoding)
+        c = connection.execute(s, table_name=tablename, schema=schemaname)
         rows = c.fetchall()
 
         if not rows:

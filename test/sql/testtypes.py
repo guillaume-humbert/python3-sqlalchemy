@@ -2,82 +2,13 @@ import testbase
 import pickleable
 import datetime, os
 from sqlalchemy import *
-from sqlalchemy import types
+from sqlalchemy import types, exceptions
 from sqlalchemy.sql import operators
 import sqlalchemy.engine.url as url
 from sqlalchemy.databases import mssql, oracle, mysql, postgres, firebird
 from testlib import *
 
 
-class MyType(types.TypeEngine):
-    def get_col_spec(self):
-        return "VARCHAR(100)"
-    def bind_processor(self, dialect):
-        def process(value):
-            return "BIND_IN"+ value
-        return process
-    def result_processor(self, dialect):
-        def process(value):
-            return value + "BIND_OUT"
-        return process
-    def adapt(self, typeobj):
-        return typeobj()
-
-class MyDecoratedType(types.TypeDecorator):
-    impl = String
-    def bind_processor(self, dialect):
-        impl_processor = super(MyDecoratedType, self).bind_processor(dialect) or (lambda value:value)
-        def process(value):
-            return "BIND_IN"+ impl_processor(value)
-        return process
-    def result_processor(self, dialect):
-        impl_processor = super(MyDecoratedType, self).result_processor(dialect) or (lambda value:value)
-        def process(value):
-            return impl_processor(value) + "BIND_OUT"
-        return process
-    def copy(self):
-        return MyDecoratedType()
-
-class MyUnicodeType(types.TypeDecorator):
-    impl = Unicode
-
-    def bind_processor(self, dialect):
-        impl_processor = super(MyUnicodeType, self).bind_processor(dialect) or (lambda value:value)
-        
-        def process(value):
-            return "UNI_BIND_IN"+ impl_processor(value)
-        return process
-
-    def result_processor(self, dialect):
-        impl_processor = super(MyUnicodeType, self).result_processor(dialect) or (lambda value:value)
-        def process(value):
-            return impl_processor(value) + "UNI_BIND_OUT"
-        return process
-
-    def copy(self):
-        return MyUnicodeType(self.impl.length)
-
-class LegacyType(types.TypeEngine):
-    def get_col_spec(self):
-        return "VARCHAR(100)"
-    def convert_bind_param(self, value, dialect):
-        return "BIND_IN"+ value
-    def convert_result_value(self, value, dialect):
-        return value + "BIND_OUT"
-    def adapt(self, typeobj):
-        return typeobj()
-
-class LegacyUnicodeType(types.TypeDecorator):
-    impl = Unicode
-
-    def convert_bind_param(self, value, dialect):
-        return "UNI_BIND_IN" + super(LegacyUnicodeType, self).convert_bind_param(value, dialect)
-
-    def convert_result_value(self, value, dialect):
-        return super(LegacyUnicodeType, self).convert_result_value(value, dialect) + "UNI_BIND_OUT"
-
-    def copy(self):
-        return LegacyUnicodeType(self.impl.length)
 
 class AdaptTest(PersistTest):
     def testadapt(self):
@@ -112,6 +43,11 @@ class AdaptTest(PersistTest):
 
     def testoracletext(self):
         dialect = oracle.OracleDialect()
+        class MyDecoratedType(types.TypeDecorator):
+            impl = String
+            def copy(self):
+                return MyDecoratedType()
+            
         col = Column('', MyDecoratedType)
         dialect_type = col.type.dialect_impl(dialect)
         assert isinstance(dialect_type.impl, oracle.OracleText), repr(dialect_type.impl)
@@ -178,19 +114,129 @@ class UserDefinedTest(PersistTest):
     def testprocessing(self):
 
         global users
-        users.insert().execute(user_id = 2, goofy = 'jack', goofy2='jack', goofy3='jack', goofy4='jack', goofy5='jack', goofy6='jack')
-        users.insert().execute(user_id = 3, goofy = 'lala', goofy2='lala', goofy3='lala', goofy4='lala', goofy5='lala', goofy6='lala')
-        users.insert().execute(user_id = 4, goofy = 'fred', goofy2='fred', goofy3='fred', goofy4='fred', goofy5='fred', goofy6='fred')
+        users.insert().execute(user_id = 2, goofy = 'jack', goofy2='jack', goofy3='jack', goofy4=u'jack', goofy5=u'jack', goofy6='jack', goofy7=u'jack', goofy8=12, goofy9=12)
+        users.insert().execute(user_id = 3, goofy = 'lala', goofy2='lala', goofy3='lala', goofy4=u'lala', goofy5=u'lala', goofy6='lala', goofy7=u'lala', goofy8=15, goofy9=15)
+        users.insert().execute(user_id = 4, goofy = 'fred', goofy2='fred', goofy3='fred', goofy4=u'fred', goofy5=u'fred', goofy6='fred', goofy7=u'fred', goofy8=9, goofy9=9)
 
         l = users.select().execute().fetchall()
-        assert l == [
-            (2, 'BIND_INjackBIND_OUT', 'BIND_INjackBIND_OUT', 'BIND_INjackBIND_OUT', u'UNI_BIND_INjackUNI_BIND_OUT', u'UNI_BIND_INjackUNI_BIND_OUT', 'BIND_INjackBIND_OUT'),
-            (3, 'BIND_INlalaBIND_OUT', 'BIND_INlalaBIND_OUT', 'BIND_INlalaBIND_OUT', u'UNI_BIND_INlalaUNI_BIND_OUT', u'UNI_BIND_INlalaUNI_BIND_OUT', 'BIND_INlalaBIND_OUT'),
-            (4, 'BIND_INfredBIND_OUT', 'BIND_INfredBIND_OUT', 'BIND_INfredBIND_OUT', u'UNI_BIND_INfredUNI_BIND_OUT', u'UNI_BIND_INfredUNI_BIND_OUT', 'BIND_INfredBIND_OUT')
-        ]
-
+        for assertstr, assertint, assertint2, row in zip(
+            ["BIND_INjackBIND_OUT", "BIND_INlalaBIND_OUT", "BIND_INfredBIND_OUT"],
+            [1200, 1500, 900],
+            [1800, 2250, 1350],
+            l
+            
+        ):
+            for col in row[1:8]:
+                self.assertEquals(col, assertstr)
+            self.assertEquals(row[8], assertint)
+            self.assertEquals(row[9], assertint2)
+            for col in (row[4], row[5], row[7]):
+                assert isinstance(col, unicode)
+                
     def setUpAll(self):
         global users, metadata
+
+        class MyType(types.TypeEngine):
+            def get_col_spec(self):
+                return "VARCHAR(100)"
+            def bind_processor(self, dialect):
+                def process(value):
+                    return "BIND_IN"+ value
+                return process
+            def result_processor(self, dialect):
+                def process(value):
+                    return value + "BIND_OUT"
+                return process
+            def adapt(self, typeobj):
+                return typeobj()
+
+        class MyDecoratedType(types.TypeDecorator):
+            impl = String
+            def bind_processor(self, dialect):
+                impl_processor = super(MyDecoratedType, self).bind_processor(dialect) or (lambda value:value)
+                def process(value):
+                    return "BIND_IN"+ impl_processor(value)
+                return process
+            def result_processor(self, dialect):
+                impl_processor = super(MyDecoratedType, self).result_processor(dialect) or (lambda value:value)
+                def process(value):
+                    return impl_processor(value) + "BIND_OUT"
+                return process
+            def copy(self):
+                return MyDecoratedType()
+
+        class MyNewUnicodeType(types.TypeDecorator):
+            impl = Unicode
+
+            def process_bind_param(self, value, dialect):
+                return "BIND_IN" + value
+
+            def process_result_value(self, value, dialect):
+                return value + "BIND_OUT"
+
+            def copy(self):
+                return MyNewUnicodeType(self.impl.length)
+
+        class MyNewIntType(types.TypeDecorator):
+            impl = Integer
+
+            def process_bind_param(self, value, dialect):
+                return value * 10
+
+            def process_result_value(self, value, dialect):
+                return value * 10
+
+            def copy(self):
+                return MyNewIntType()
+
+        class MyNewIntSubClass(MyNewIntType):
+            def process_result_value(self, value, dialect):
+                return value * 15
+
+            def copy(self):
+                return MyNewIntSubClass()
+
+        class MyUnicodeType(types.TypeDecorator):
+            impl = Unicode
+
+            def bind_processor(self, dialect):
+                impl_processor = super(MyUnicodeType, self).bind_processor(dialect) or (lambda value:value)
+
+                def process(value):
+                    return "BIND_IN"+ impl_processor(value)
+                return process
+
+            def result_processor(self, dialect):
+                impl_processor = super(MyUnicodeType, self).result_processor(dialect) or (lambda value:value)
+                def process(value):
+                    return impl_processor(value) + "BIND_OUT"
+                return process
+
+            def copy(self):
+                return MyUnicodeType(self.impl.length)
+
+        class LegacyType(types.TypeEngine):
+            def get_col_spec(self):
+                return "VARCHAR(100)"
+            def convert_bind_param(self, value, dialect):
+                return "BIND_IN"+ value
+            def convert_result_value(self, value, dialect):
+                return value + "BIND_OUT"
+            def adapt(self, typeobj):
+                return typeobj()
+
+        class LegacyUnicodeType(types.TypeDecorator):
+            impl = Unicode
+
+            def convert_bind_param(self, value, dialect):
+                return "BIND_IN" + super(LegacyUnicodeType, self).convert_bind_param(value, dialect)
+
+            def convert_result_value(self, value, dialect):
+                return super(LegacyUnicodeType, self).convert_result_value(value, dialect) + "BIND_OUT"
+
+            def copy(self):
+                return LegacyUnicodeType(self.impl.length)
+
         metadata = MetaData(testbase.db)
         users = Table('type_users', metadata,
             Column('user_id', Integer, primary_key = True),
@@ -206,6 +252,9 @@ class UserDefinedTest(PersistTest):
             Column('goofy4', MyUnicodeType, nullable = False),
             Column('goofy5', LegacyUnicodeType, nullable = False),
             Column('goofy6', LegacyType, nullable = False),
+            Column('goofy7', MyNewUnicodeType, nullable = False),
+            Column('goofy8', MyNewIntType, nullable = False),
+            Column('goofy9', MyNewIntSubClass, nullable = False),
 
         )
 
@@ -286,6 +335,33 @@ class UnicodeTest(AssertMixin):
             print "it's %s!" % testbase.db.name
         else:
             self.assert_(not isinstance(x['plain_varchar'], unicode) and x['plain_varchar'] == rawdata)
+    
+    def testassert(self):
+        import warnings
+
+        warnings.filterwarnings("always", r".*non-unicode bind")
+        
+        # test that data still goes in if warning is emitted....
+        unicode_table.insert().execute(unicode_varchar='im not unicode')
+        assert select([unicode_table.c.unicode_varchar]).execute().fetchall() == [('im not unicode', )]
+        
+        warnings.filterwarnings("error", r".*non-unicode bind")
+        
+        try:
+            unicode_table.insert().execute(unicode_varchar='im not unicode')
+            assert False
+        except RuntimeWarning, e:
+            assert str(e) == "Unicode type received non-unicode bind param value 'im not unicode'", str(e)
+
+        unicode_engine = engines.utf8_engine(options={'convert_unicode':True, 'assert_unicode':True})
+        try:
+            try:
+                unicode_engine.execute(unicode_table.insert(), plain_varchar='im not unicode')
+                assert False
+            except exceptions.InvalidRequestError, e:
+                assert str(e) == "Unicode type received non-unicode bind param value 'im not unicode'"
+        finally:
+            unicode_engine.dispose()
 
     @testing.unsupported('oracle')
     def testblanks(self):
@@ -295,8 +371,10 @@ class UnicodeTest(AssertMixin):
     def testengineparam(self):
         """tests engine-wide unicode conversion"""
         prev_unicode = testbase.db.engine.dialect.convert_unicode
+        prev_assert = testbase.db.engine.dialect.assert_unicode
         try:
             testbase.db.engine.dialect.convert_unicode = True
+            testbase.db.engine.dialect.assert_unicode = False
             rawdata = 'Alors vous imaginez ma surprise, au lever du jour, quand une dr\xc3\xb4le de petit voix m\xe2\x80\x99a r\xc3\xa9veill\xc3\xa9. Elle disait: \xc2\xab S\xe2\x80\x99il vous pla\xc3\xaet\xe2\x80\xa6 dessine-moi un mouton! \xc2\xbb\n'
             unicodedata = rawdata.decode('utf-8')
             unicode_table.insert().execute(unicode_varchar=unicodedata,
@@ -312,6 +390,7 @@ class UnicodeTest(AssertMixin):
             self.assert_(isinstance(x['plain_varchar'], unicode) and x['plain_varchar'] == unicodedata)
         finally:
             testbase.db.engine.dialect.convert_unicode = prev_unicode
+            testbase.db.engine.dialect.convert_unicode = prev_assert
 
     @testing.unsupported('oracle')
     def testlength(self):
@@ -321,7 +400,21 @@ class UnicodeTest(AssertMixin):
 
 class BinaryTest(AssertMixin):
     def setUpAll(self):
-        global binary_table
+        global binary_table, MyPickleType
+
+        class MyPickleType(types.TypeDecorator):
+            impl = PickleType
+
+            def process_bind_param(self, value, dialect):
+                if value:
+                    value.stuff = 'this is modified stuff'
+                return value
+
+            def process_result_value(self, value, dialect):
+                if value:
+                    value.stuff = 'this is the right stuff'
+                return value
+
         binary_table = Table('binary_table', MetaData(testbase.db),
         Column('primary_id', Integer, Sequence('binary_id_seq', optional=True), primary_key=True),
         Column('data', Binary),
@@ -330,7 +423,8 @@ class BinaryTest(AssertMixin):
         # construct PickleType with non-native pickle module, since cPickle uses relative module
         # loading and confuses this test's parent package 'sql' with the 'sqlalchemy.sql' package relative
         # to the 'types' module
-        Column('pickled', PickleType)
+        Column('pickled', PickleType),
+        Column('mypickle', MyPickleType)
         )
         binary_table.create()
 
@@ -343,25 +437,28 @@ class BinaryTest(AssertMixin):
     def testbinary(self):
         testobj1 = pickleable.Foo('im foo 1')
         testobj2 = pickleable.Foo('im foo 2')
+        testobj3 = pickleable.Foo('im foo 3')
 
         stream1 =self.load_stream('binary_data_one.dat')
         stream2 =self.load_stream('binary_data_two.dat')
-        binary_table.insert().execute(primary_id=1, misc='binary_data_one.dat',    data=stream1, data_slice=stream1[0:100], pickled=testobj1)
+        binary_table.insert().execute(primary_id=1, misc='binary_data_one.dat',    data=stream1, data_slice=stream1[0:100], pickled=testobj1, mypickle=testobj3)
         binary_table.insert().execute(primary_id=2, misc='binary_data_two.dat', data=stream2, data_slice=stream2[0:99], pickled=testobj2)
         binary_table.insert().execute(primary_id=3, misc='binary_data_two.dat', data=None, data_slice=stream2[0:99], pickled=None)
 
         for stmt in (
             binary_table.select(order_by=binary_table.c.primary_id),
-            text("select * from binary_table order by binary_table.primary_id", typemap={'pickled':PickleType}, bind=testbase.db)
+            text("select * from binary_table order by binary_table.primary_id", typemap={'pickled':PickleType, 'mypickle':MyPickleType}, bind=testbase.db)
         ):
             l = stmt.execute().fetchall()
             print type(stream1), type(l[0]['data']), type(l[0]['data_slice'])
             print len(stream1), len(l[0]['data']), len(l[0]['data_slice'])
-            self.assert_(list(stream1) == list(l[0]['data']))
-            self.assert_(list(stream1[0:100]) == list(l[0]['data_slice']))
-            self.assert_(list(stream2) == list(l[1]['data']))
-            self.assert_(testobj1 == l[0]['pickled'])
-            self.assert_(testobj2 == l[1]['pickled'])
+            self.assertEquals(list(stream1), list(l[0]['data']))
+            self.assertEquals(list(stream1[0:100]), list(l[0]['data_slice']))
+            self.assertEquals(list(stream2), list(l[1]['data']))
+            self.assertEquals(testobj1, l[0]['pickled'])
+            self.assertEquals(testobj2, l[1]['pickled'])
+            self.assertEquals(testobj3.moredata, l[0]['mypickle'].moredata)
+            self.assertEquals(l[0]['mypickle'].stuff, 'this is the right stuff')
 
     def load_stream(self, name, len=12579):
         f = os.path.join(os.path.dirname(testbase.__file__), name)
@@ -553,6 +650,13 @@ class DateTest(AssertMixin):
             self.assert_(x.adate.__class__ == datetime.date)
             self.assert_(x.adatetime.__class__ == datetime.datetime)
 
+            t.delete().execute()
+            
+            # test mismatched date/datetime
+            t.insert().execute(adate=d2, adatetime=d2)
+            self.assertEquals(select([t.c.adate, t.c.adatetime], t.c.adate==d1).execute().fetchall(), [(d1, d2)])
+            self.assertEquals(select([t.c.adate, t.c.adatetime], t.c.adate==d1).execute().fetchall(), [(d1, d2)])
+            
         finally:
             t.drop(checkfirst=True)
 
@@ -578,8 +682,8 @@ class NumericTest(AssertMixin):
 
     def test_decimal(self):
         from decimal import Decimal
-        numeric_table.insert().execute(numericcol=3.5, floatcol=5.6, ncasdec=12.4, fcasdec=15.78)
-        numeric_table.insert().execute(numericcol=Decimal("3.5"), floatcol=Decimal("5.6"), ncasdec=Decimal("12.4"), fcasdec=Decimal("15.78"))
+        numeric_table.insert().execute(numericcol=3.5, floatcol=5.6, ncasdec=12.4, fcasdec=15.75)
+        numeric_table.insert().execute(numericcol=Decimal("3.5"), floatcol=Decimal("5.6"), ncasdec=Decimal("12.4"), fcasdec=Decimal("15.75"))
         l = numeric_table.select().execute().fetchall()
         print l
         rounded = [
@@ -587,8 +691,8 @@ class NumericTest(AssertMixin):
             (l[1][0], l[1][1], round(l[1][2], 5), l[1][3], l[1][4]),
         ]
         assert rounded == [
-            (1, 3.5, 5.6, Decimal("12.4"), Decimal("15.78")),
-            (2, 3.5, 5.6, Decimal("12.4"), Decimal("15.78")),
+            (1, 3.5, 5.6, Decimal("12.4"), Decimal("15.75")),
+            (2, 3.5, 5.6, Decimal("12.4"), Decimal("15.75")),
         ]
 
 

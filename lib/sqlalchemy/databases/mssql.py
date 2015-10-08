@@ -39,14 +39,27 @@ Known issues / TODO:
 
 import datetime, random, warnings, re, sys, operator
 
-from sqlalchemy import sql, schema, exceptions
-from sqlalchemy.sql import compiler, expression
+from sqlalchemy import sql, schema, exceptions, util
+from sqlalchemy.sql import compiler, expression, operators as sqlops
 from sqlalchemy.engine import default, base
 from sqlalchemy import types as sqltypes
+from sqlalchemy.util import Decimal as _python_Decimal
     
+MSSQL_RESERVED_WORDS = util.Set(['function'])
+
 class MSNumeric(sqltypes.Numeric):
     def result_processor(self, dialect):
-        return None
+        if self.asdecimal:
+            def process(value):
+                if value is not None:
+                    return _python_Decimal(str(value))
+                else:
+                    return value
+            return process
+        else:
+            def process(value):
+                return float(value)
+            return process
 
     def bind_processor(self, dialect):
         def process(value):
@@ -137,7 +150,7 @@ class MSDateTime_adodbapi(MSDateTime):
         def process(value):
             # adodbapi will return datetimes with empty time values as datetime.date() objects.
             # Promote them back to full datetime.datetime()
-            if value and not hasattr(value, 'second'):
+            if value and isinstance(value, datetime.date):
                 return datetime.datetime(value.year, value.month, value.day)
             return value
         return process
@@ -145,7 +158,7 @@ class MSDateTime_adodbapi(MSDateTime):
 class MSDateTime_pyodbc(MSDateTime):
     def bind_processor(self, dialect):
         def process(value):
-            if value and not hasattr(value, 'second'):
+            if value and isinstance(value, datetime.date):
                 return datetime.datetime(value.year, value.month, value.day)
             else:
                 return value
@@ -154,7 +167,7 @@ class MSDateTime_pyodbc(MSDateTime):
 class MSDate_pyodbc(MSDate):
     def bind_processor(self, dialect):
         def process(value):
-            if value and not hasattr(value, 'second'):
+            if value and isinstance(value, datetime.date):
                 return datetime.datetime(value.year, value.month, value.day)
             else:
                 return value
@@ -163,7 +176,7 @@ class MSDate_pyodbc(MSDate):
     def result_processor(self, dialect):
         def process(value):
             # pyodbc returns SMALLDATETIME values as datetime.datetime(). truncate it back to datetime.date()
-            if value and hasattr(value, 'second'):
+            if value and isinstance(value, datetime.datetime):
                 return value.date()
             else:
                 return value
@@ -173,7 +186,7 @@ class MSDate_pymssql(MSDate):
     def result_processor(self, dialect):
         def process(value):
             # pymssql will return SMALLDATETIME values as datetime.datetime(), truncate it back to datetime.date()
-            if value and hasattr(value, 'second'):
+            if value and isinstance(value, datetime.datetime):
                 return value.date()
             else:
                 return value
@@ -279,7 +292,7 @@ class MSSQLExecutionContext(default.DefaultExecutionContext):
 
     def _has_implicit_sequence(self, column):
         if column.primary_key and column.autoincrement:
-            if isinstance(column.type, sqltypes.Integer) and not column.foreign_key:
+            if isinstance(column.type, sqltypes.Integer) and not column.foreign_keys:
                 if column.default is None or (isinstance(column.default, schema.Sequence) and \
                                               column.default.optional):
                     return True
@@ -320,48 +333,36 @@ class MSSQLExecutionContext(default.DefaultExecutionContext):
         one column).
         """
         
-        if self.compiled.isinsert:
-            if self.IINSERT:
-                self.cursor.execute("SET IDENTITY_INSERT %s OFF" % self.dialect.identifier_preparer.format_table(self.compiled.statement.table))
-                self.IINSERT = False
-            elif self.HASIDENT:
-                if not len(self._last_inserted_ids) or self._last_inserted_ids[0] is None:
-                    if self.dialect.use_scope_identity:
-                        self.cursor.execute("SELECT scope_identity() AS lastrowid")
-                    else:
-                        self.cursor.execute("SELECT @@identity AS lastrowid")
-                    row = self.cursor.fetchone()
-                    self._last_inserted_ids = [int(row[0])] + self._last_inserted_ids[1:]
-                    # print "LAST ROW ID", self._last_inserted_ids
-            self.HASIDENT = False
+        if self.compiled.isinsert and self.HASIDENT and not self.IINSERT:
+            if not len(self._last_inserted_ids) or self._last_inserted_ids[0] is None:
+                if self.dialect.use_scope_identity:
+                    self.cursor.execute("SELECT scope_identity() AS lastrowid")
+                else:
+                    self.cursor.execute("SELECT @@identity AS lastrowid")
+                row = self.cursor.fetchone()
+                self._last_inserted_ids = [int(row[0])] + self._last_inserted_ids[1:]
+                # print "LAST ROW ID", self._last_inserted_ids
         super(MSSQLExecutionContext, self).post_exec()
     
     _ms_is_select = re.compile(r'\s*(?:SELECT|sp_columns)',
                                re.I | re.UNICODE)
     
-    def is_select(self):
-        return self._ms_is_select.match(self.statement) is not None
+    def returns_rows_text(self, statement):
+        return self._ms_is_select.match(statement) is not None
 
 
 class MSSQLExecutionContext_pyodbc (MSSQLExecutionContext):    
     def pre_exec(self):
-        """execute "set nocount on" on all connections, as a partial 
-        workaround for multiple result set issues."""
-                
-        if not getattr(self.connection, 'pyodbc_done_nocount', False):
-            self.connection.execute('SET nocount ON')
-            self.connection.pyodbc_done_nocount = True
-            
+        """where appropriate, issue "select scope_identity()" in the same statement"""                
         super(MSSQLExecutionContext_pyodbc, self).pre_exec()
-
-        # where appropriate, issue "select scope_identity()" in the same statement
-        if self.compiled.isinsert and self.HASIDENT and (not self.IINSERT) and self.dialect.use_scope_identity:
+        if self.compiled.isinsert and self.HASIDENT and (not self.IINSERT) \
+                and len(self.parameters) == 1 and self.dialect.use_scope_identity:
             self.statement += "; select scope_identity()"
 
     def post_exec(self):
         if self.compiled.isinsert and self.HASIDENT and (not self.IINSERT) and self.dialect.use_scope_identity:
             # do nothing - id was fetched in dialect.do_execute()
-            self.HASIDENT = False
+            pass
         else:
             super(MSSQLExecutionContext_pyodbc, self).post_exec()
 
@@ -481,10 +482,21 @@ class MSSQLDialect(default.DefaultDialect):
     def last_inserted_ids(self):
         return self.context.last_inserted_ids
             
-    def do_execute(self, cursor, statement, params, **kwargs):
+    def do_execute(self, cursor, statement, params, context=None, **kwargs):
         if params == {}:
             params = ()
-        super(MSSQLDialect, self).do_execute(cursor, statement, params, **kwargs)
+        try:
+            super(MSSQLDialect, self).do_execute(cursor, statement, params, context=context, **kwargs)
+        finally:        
+            if context.IINSERT:
+                cursor.execute("SET IDENTITY_INSERT %s OFF" % self.identifier_preparer.format_table(context.compiled.statement.table))
+         
+    def do_executemany(self, cursor, statement, params, context=None, **kwargs):
+        try:
+            super(MSSQLDialect, self).do_executemany(cursor, statement, params, context=context, **kwargs)
+        finally:        
+            if context.IINSERT:
+                cursor.execute("SET IDENTITY_INSERT %s OFF" % self.identifier_preparer.format_table(context.compiled.statement.table))
 
     def _execute(self, c, statement, parameters):
         try:
@@ -587,13 +599,13 @@ class MSSQLDialect(default.DefaultDialect):
             if default is not None:
                 colargs.append(schema.PassiveDefault(sql.text(default)))
                 
-            table.append_column(schema.Column(name, coltype, nullable=nullable, *colargs))
+            table.append_column(schema.Column(name, coltype, nullable=nullable, autoincrement=False, *colargs))
         
         if not found_table:
             raise exceptions.NoSuchTableError(table.name)
 
         # We also run an sp_columns to check for identity columns:
-        cursor = connection.execute("sp_columns [%s]" % self.identifier_preparer.format_table(table))
+        cursor = connection.execute("sp_columns @table_name = '%s', @table_owner = '%s'" % (table.name, current_schema))
         ic = None
         while True:
             row = cursor.fetchone()
@@ -602,6 +614,7 @@ class MSSQLDialect(default.DefaultDialect):
             col_name, type_name = row[3], row[5]
             if type_name.endswith("identity"):
                 ic = table.c[col_name]
+                ic.autoincrement = True
                 # setup a psuedo-sequence to represent the identity attribute - we interpret this at table.create() time as the identity attribute
                 ic.sequence = schema.Sequence(ic.name + '_identity')
                 # MSSQL: only one identity per table allowed
@@ -681,6 +694,10 @@ class MSSQLDialect_pymssql(MSSQLDialect):
     def __init__(self, **params):
         super(MSSQLDialect_pymssql, self).__init__(**params)
         self.use_scope_identity = True
+
+        # pymssql understands only ascii
+        if self.convert_unicode:
+            self.encoding = params.get('encoding', 'ascii')
 
     def do_rollback(self, connection):
         # pymssql throws an error on repeated rollbacks. Ignore it.
@@ -799,19 +816,20 @@ class MSSQLDialect_pyodbc(MSSQLDialect):
         super(MSSQLDialect_pyodbc, self).do_execute(cursor, statement, parameters, context=context, **kwargs)
         if context and context.HASIDENT and (not context.IINSERT) and context.dialect.use_scope_identity:
             import pyodbc
-            # fetch the last inserted id from the manipulated statement (pre_exec).
-            try:
-                row = cursor.fetchone()
-            except pyodbc.Error, e:
-                # if nocount OFF fetchone throws an exception and we have to jump over
-                # the rowcount to the resultset
-                cursor.nextset()
-                row = cursor.fetchone()
+            # Fetch the last inserted id from the manipulated statement
+            # We may have to skip over a number of result sets with no data (due to triggers, etc.)
+            while True:
+                try:
+                    row = cursor.fetchone()
+                    break
+                except pyodbc.Error, e:
+                    cursor.nextset()
             context._last_inserted_ids = [int(row[0])]
 
 class MSSQLDialect_adodbapi(MSSQLDialect):
     supports_sane_rowcount = True
     supports_sane_multi_rowcount = True
+    supports_unicode = sys.maxunicode == 65535
     supports_unicode_statements = True
 
     def import_dbapi(cls):
@@ -853,6 +871,9 @@ dialect_mapping = {
 
 
 class MSSQLCompiler(compiler.DefaultCompiler):
+    operators = compiler.OPERATORS.copy()
+    operators[sqlops.concat_op] = '+'
+
     def __init__(self, *args, **kwargs):
         super(MSSQLCompiler, self).__init__(*args, **kwargs)
         self.tablealiases = {}
@@ -900,7 +921,7 @@ class MSSQLCompiler(compiler.DefaultCompiler):
             # translate for schema-qualified table aliases
             t = self._schema_aliased_table(column.table)
             if t is not None:
-                return self.process(t.corresponding_column(column))
+                return self.process(expression._corresponding_column_or_error(t, column))
         return super(MSSQLCompiler, self).visit_column(column, **kwargs)
 
     def visit_binary(self, binary, **kwargs):
@@ -910,11 +931,11 @@ class MSSQLCompiler(compiler.DefaultCompiler):
         else:
             return super(MSSQLCompiler, self).visit_binary(binary, **kwargs)
 
-    def label_select_column(self, select, column):
+    def label_select_column(self, select, column, asfrom):
         if isinstance(column, expression._Function):
             return column.label(None)
         else:
-            return super(MSSQLCompiler, self).label_select_column(select, column)
+            return super(MSSQLCompiler, self).label_select_column(select, column, asfrom)
 
     function_rewrites =  {'current_date': 'getdate',
                           'length':     'len',
@@ -943,7 +964,7 @@ class MSSQLSchemaGenerator(compiler.SchemaGenerator):
         
         # install a IDENTITY Sequence if we have an implicit IDENTITY column
         if (not getattr(column.table, 'has_sequence', False)) and column.primary_key and \
-                column.autoincrement and isinstance(column.type, sqltypes.Integer) and not column.foreign_key:
+                column.autoincrement and isinstance(column.type, sqltypes.Integer) and not column.foreign_keys:
             if column.default is None or (isinstance(column.default, schema.Sequence) and column.default.optional):
                 column.sequence = schema.Sequence(column.name + '_seq')
 
@@ -974,6 +995,8 @@ class MSSQLDefaultRunner(base.DefaultRunner):
     pass
 
 class MSSQLIdentifierPreparer(compiler.IdentifierPreparer):
+    reserved_words = compiler.IdentifierPreparer.reserved_words.union(MSSQL_RESERVED_WORDS)
+
     def __init__(self, dialect):
         super(MSSQLIdentifierPreparer, self).__init__(dialect, initial_quote='[', final_quote=']')
 
@@ -987,7 +1010,3 @@ dialect.schemagenerator = MSSQLSchemaGenerator
 dialect.schemadropper = MSSQLSchemaDropper
 dialect.preparer = MSSQLIdentifierPreparer
 dialect.defaultrunner = MSSQLDefaultRunner
-
-
-
-

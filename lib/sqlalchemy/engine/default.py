@@ -1,10 +1,16 @@
 # engine/default.py
-# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-"""Default implementations of per-dialect sqlalchemy.engine classes."""
+"""Default implementations of per-dialect sqlalchemy.engine classes.
+
+These are semi-private implementation classes which are only of importance
+to database dialect authors; dialects will usually use the classes here
+as the base class for their own corresponding classes.
+
+"""
 
 
 import re, random
@@ -33,9 +39,11 @@ class DefaultDialect(base.Dialect):
     supports_sane_multi_rowcount = True
     preexecute_pk_sequences = False
     supports_pk_autoincrement = True
-
-    def __init__(self, convert_unicode=False, encoding='utf-8', default_paramstyle='named', paramstyle=None, dbapi=None, **kwargs):
+    dbapi_type_map = {}
+    
+    def __init__(self, convert_unicode=False, assert_unicode=False, encoding='utf-8', default_paramstyle='named', paramstyle=None, dbapi=None, **kwargs):
         self.convert_unicode = convert_unicode
+        self.assert_unicode = assert_unicode
         self.encoding = encoding
         self.positional = False
         self._ischema = None
@@ -59,12 +67,6 @@ class DefaultDialect(base.Dialect):
                     property(lambda s: s.preexecute_sequences, doc=(
                       "Proxy to deprecated preexecute_sequences attribute.")))
 
-    def dbapi_type_map(self):
-        # most DB-APIs have problems with this (such as, psycocpg2 types 
-        # are unhashable).  So far Oracle can return it.
-        
-        return {}
-    
     def create_execution_context(self, connection, **kwargs):
         return DefaultExecutionContext(self, connection, **kwargs)
 
@@ -151,9 +153,8 @@ class DefaultExecutionContext(base.ExecutionContext):
                 if value is not None
             ])
             
-            self.typemap = compiled.typemap
-            self.column_labels = compiled.column_labels
-
+            self.result_map = compiled.result_map
+            
             if not dialect.supports_unicode_statements:
                 self.statement = unicode(compiled).encode(self.dialect.encoding)
             else:
@@ -161,6 +162,12 @@ class DefaultExecutionContext(base.ExecutionContext):
                 
             self.isinsert = compiled.isinsert
             self.isupdate = compiled.isupdate
+            if isinstance(compiled.statement, expression._TextClause):
+                self.returns_rows = self.returns_rows_text(self.statement)
+                self.should_autocommit = self.should_autocommit_text(self.statement)
+            else:
+                self.returns_rows = self.returns_rows_compiled(compiled)
+                self.should_autocommit = self.should_autocommit_compiled(compiled)
             
             if not parameters:
                 self.compiled_parameters = [compiled.construct_params()]
@@ -175,7 +182,7 @@ class DefaultExecutionContext(base.ExecutionContext):
 
         elif statement is not None:
             # plain text statement.  
-            self.typemap = self.column_labels = None
+            self.result_map = None
             self.parameters = self.__encode_param_keys(parameters)
             self.executemany = len(parameters) > 1
             if not dialect.supports_unicode_statements:
@@ -184,10 +191,12 @@ class DefaultExecutionContext(base.ExecutionContext):
                 self.statement = statement
             self.isinsert = self.isupdate = False
             self.cursor = self.create_cursor()
+            self.returns_rows = self.returns_rows_text(statement)
+            self.should_autocommit = self.should_autocommit_text(statement)
         else:
             # no statement. used for standalone ColumnDefault execution.
             self.statement = None
-            self.isinsert = self.isupdate = self.executemany = False
+            self.isinsert = self.isupdate = self.executemany = self.returns_rows = self.should_autocommit = False
             self.cursor = self.create_cursor()
     
     connection = property(lambda s:s._connection._branch())
@@ -249,10 +258,18 @@ class DefaultExecutionContext(base.ExecutionContext):
                 parameters.append(param)
         return parameters
                 
-    def is_select(self):
-        """return TRUE if the statement is expected to have result rows."""
+    def returns_rows_compiled(self, compiled):
+        return isinstance(compiled.statement, expression.Selectable)
         
-        return SELECT_REGEXP.match(self.statement)
+    def returns_rows_text(self, statement):
+        return SELECT_REGEXP.match(statement)
+
+    def should_autocommit_compiled(self, compiled):
+        return isinstance(compiled.statement, expression._UpdateBase)
+
+    def should_autocommit_text(self, statement):
+        return AUTOCOMMIT_REGEXP.match(statement)
+
 
     def create_cursor(self):
         return self._connection.connection.cursor()
@@ -266,9 +283,6 @@ class DefaultExecutionContext(base.ExecutionContext):
     def result(self):
         return self.get_result_proxy()
 
-    def should_autocommit(self):
-        return AUTOCOMMIT_REGEXP.match(self.statement)
-            
     def pre_exec(self):
         pass
 
@@ -300,11 +314,8 @@ class DefaultExecutionContext(base.ExecutionContext):
         return self._last_updated_params
 
     def lastrow_has_defaults(self):
-        return hasattr(self, '_postfetch_cols') and len(self._postfetch_cols)
+        return hasattr(self, 'postfetch_cols') and len(self.postfetch_cols)
 
-    def postfetch_cols(self):
-        return self._postfetch_cols
-        
     def set_input_sizes(self):
         """Given a cursor and ClauseParameters, call the appropriate
         style of ``setinputsizes()`` on the cursor, using DB-API types
@@ -323,7 +334,11 @@ class DefaultExecutionContext(base.ExecutionContext):
                dbtype = typeengine.dialect_impl(self.dialect).get_dbapi_type(self.dialect.dbapi)
                if dbtype is not None:
                     inputsizes.append(dbtype)
-            self.cursor.setinputsizes(*inputsizes)
+            try:
+                self.cursor.setinputsizes(*inputsizes)
+            except Exception, e:
+                self._connection._handle_dbapi_exception(e, None, None, None)
+                raise
         else:
             inputsizes = {}
             for key in self.compiled.bind_names.values():
@@ -331,7 +346,11 @@ class DefaultExecutionContext(base.ExecutionContext):
                 dbtype = typeengine.dialect_impl(self.dialect).get_dbapi_type(self.dialect.dbapi)
                 if dbtype is not None:
                     inputsizes[key.encode(self.dialect.encoding)] = dbtype
-            self.cursor.setinputsizes(**inputsizes)
+            try:
+                self.cursor.setinputsizes(**inputsizes)
+            except Exception, e:
+                self._connection._handle_dbapi_exception(e, None, None, None)
+                raise
 
     def __process_defaults(self):
         """generate default values for compiled insert/update statements,
@@ -375,4 +394,4 @@ class DefaultExecutionContext(base.ExecutionContext):
                 else:
                     self._last_updated_params = compiled_parameters
 
-                self._postfetch_cols = self.compiled.postfetch
+                self.postfetch_cols = self.compiled.postfetch

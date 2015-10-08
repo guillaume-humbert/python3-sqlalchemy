@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
+<div class="versionheader">Version: 0.4.2   Last Updated: 01/01/08 20:56:05</div>
 
 
 
@@ -53,10 +53,10 @@
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_pool.html">module sqlalchemy.pool</a>
+            Previous: <a href="sqlalchemy_engine_default.html">module sqlalchemy.engine.default</a>
 
                |   
-            Next: <a href="sqlalchemy_types.html">module sqlalchemy.types</a>
+            Next: <a href="sqlalchemy_engine_threadlocal.html">module sqlalchemy.engine.threadlocal</a>
     </div>
 
         <h2>module sqlalchemy.engine.strategies</h2>
@@ -98,10 +98,13 @@
     
     
     <div class="darkcell"><p>Strategies for creating new instances of Engine types.</p>
-<p>By default there are two, one which is the &quot;thread-local&quot; strategy,
-one which is the &quot;plain&quot; strategy.</p>
-<p>New strategies can be added via constructing a new EngineStrategy
-object which will add itself to the list of available strategies.</p>
+<p>These are semi-private implementation classes which
+provide the underlying behavior for the &quot;strategy&quot; keyword argument
+available on <a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_modfunc_create_engine">create_engine()</a>.
+Current available options are <tt class="docutils literal"><span class="pre">plain</span></tt>, <tt class="docutils literal"><span class="pre">threadlocal</span></tt>, and
+<tt class="docutils literal"><span class="pre">mock</span></tt>.</p>
+<p>New strategies can be added via new <tt class="docutils literal"><span class="pre">EngineStrategy</span></tt>
+classes.</p>
 </div>
     
 
@@ -380,10 +383,10 @@ statement execution to a passed-in function.</p>
             Up: <a href="docstrings.html">API Documentation</a>
 
                |   
-            Previous: <a href="sqlalchemy_pool.html">module sqlalchemy.pool</a>
+            Previous: <a href="sqlalchemy_engine_default.html">module sqlalchemy.engine.default</a>
 
                |   
-            Next: <a href="sqlalchemy_types.html">module sqlalchemy.types</a>
+            Next: <a href="sqlalchemy_engine_threadlocal.html">module sqlalchemy.engine.threadlocal</a>
     </div>
 
     </div>

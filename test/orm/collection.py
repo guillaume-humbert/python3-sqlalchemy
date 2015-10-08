@@ -35,8 +35,7 @@ class Entity(object):
     def __repr__(self):
         return str((id(self), self.a, self.b, self.c))
 
-manager = attributes.AttributeManager()
-manager.register_class(Entity)
+attributes.register_class(Entity)
 
 _id = 1
 def entity_maker():
@@ -56,8 +55,8 @@ class CollectionsTest(PersistTest):
             pass
 
         canary = Canary()
-        manager.register_class(Foo)
-        manager.register_attribute(Foo, 'attr', True, extension=canary,
+        attributes.register_class(Foo)
+        attributes.register_attribute(Foo, 'attr', True, extension=canary,
                                    typecallable=typecallable, useobject=True)
 
         obj = Foo()
@@ -94,8 +93,8 @@ class CollectionsTest(PersistTest):
             pass
         
         canary = Canary()
-        manager.register_class(Foo)
-        manager.register_attribute(Foo, 'attr', True, extension=canary,
+        attributes.register_class(Foo)
+        attributes.register_attribute(Foo, 'attr', True, extension=canary,
                                    typecallable=typecallable, useobject=True)
 
         obj = Foo()
@@ -236,8 +235,8 @@ class CollectionsTest(PersistTest):
             pass
 
         canary = Canary()
-        manager.register_class(Foo)
-        manager.register_attribute(Foo, 'attr', True, extension=canary,
+        attributes.register_class(Foo)
+        attributes.register_attribute(Foo, 'attr', True, extension=canary,
                                    typecallable=typecallable, useobject=True)
 
         obj = Foo()
@@ -270,7 +269,7 @@ class CollectionsTest(PersistTest):
         try:
             obj.attr = set([e4])
             self.assert_(False)
-        except exceptions.ArgumentError:
+        except TypeError:
             self.assert_(e4 not in canary.data)
             self.assert_(e3 in canary.data)
 
@@ -360,8 +359,8 @@ class CollectionsTest(PersistTest):
             pass
 
         canary = Canary()
-        manager.register_class(Foo)
-        manager.register_attribute(Foo, 'attr', True, extension=canary,
+        attributes.register_class(Foo)
+        attributes.register_attribute(Foo, 'attr', True, extension=canary,
                                    typecallable=typecallable, useobject=True)
 
         obj = Foo()
@@ -493,8 +492,8 @@ class CollectionsTest(PersistTest):
             pass
 
         canary = Canary()
-        manager.register_class(Foo)
-        manager.register_attribute(Foo, 'attr', True, extension=canary,
+        attributes.register_class(Foo)
+        attributes.register_attribute(Foo, 'attr', True, extension=canary,
                                    typecallable=typecallable, useobject=True)
 
         obj = Foo()
@@ -527,7 +526,7 @@ class CollectionsTest(PersistTest):
         try:
             obj.attr = [e4]
             self.assert_(False)
-        except exceptions.ArgumentError:
+        except TypeError:
             self.assert_(e4 not in canary.data)
             self.assert_(e3 in canary.data)
 
@@ -598,8 +597,8 @@ class CollectionsTest(PersistTest):
             pass
 
         canary = Canary()
-        manager.register_class(Foo)
-        manager.register_attribute(Foo, 'attr', True, extension=canary,
+        attributes.register_class(Foo)
+        attributes.register_attribute(Foo, 'attr', True, extension=canary,
                                    typecallable=typecallable, useobject=True)
 
         obj = Foo()
@@ -716,8 +715,8 @@ class CollectionsTest(PersistTest):
             pass
 
         canary = Canary()
-        manager.register_class(Foo)
-        manager.register_attribute(Foo, 'attr', True, extension=canary,
+        attributes.register_class(Foo)
+        attributes.register_attribute(Foo, 'attr', True, extension=canary,
                                    typecallable=typecallable, useobject=True)
 
         obj = Foo()
@@ -738,23 +737,42 @@ class CollectionsTest(PersistTest):
         self.assert_(e1 in canary.removed)
         self.assert_(e2 in canary.added)
 
+
+        # key validity on bulk assignment is a basic feature of MappedCollection
+        # but is not present in basic, @converter-less dict collections.
         e3 = creator()
-        real_dict = dict(keyignored1=e3)
-        obj.attr = real_dict
-        self.assert_(obj.attr is not real_dict)
-        self.assert_('keyignored1' not in obj.attr)
-        self.assert_(set(collections.collection_adapter(obj.attr)) == set([e3]))
-        self.assert_(e2 in canary.removed)
-        self.assert_(e3 in canary.added)
+        if isinstance(obj.attr, collections.MappedCollection):
+            real_dict = dict(badkey=e3)
+            try:
+                obj.attr = real_dict
+                self.assert_(False)
+            except TypeError:
+                pass
+            self.assert_(obj.attr is not real_dict)
+            self.assert_('badkey' not in obj.attr)
+            self.assertEquals(set(collections.collection_adapter(obj.attr)),
+                              set([e2]))
+            self.assert_(e3 not in canary.added)
+        else:
+            real_dict = dict(keyignored1=e3)
+            obj.attr = real_dict
+            self.assert_(obj.attr is not real_dict)
+            self.assert_('keyignored1' not in obj.attr)
+            self.assertEquals(set(collections.collection_adapter(obj.attr)),
+                              set([e3]))
+            self.assert_(e2 in canary.removed)
+            self.assert_(e3 in canary.added)
+
+        obj.attr = typecallable()
+        self.assertEquals(list(collections.collection_adapter(obj.attr)), [])
 
         e4 = creator()
         try:
             obj.attr = [e4]
             self.assert_(False)
-        except exceptions.ArgumentError:
+        except TypeError:
             self.assert_(e4 not in canary.data)
-            self.assert_(e3 in canary.data)
-        
+
     def test_dict(self):
         try:
             self._test_adapter(dict, dictable_entity,
@@ -891,8 +909,8 @@ class CollectionsTest(PersistTest):
             pass
         
         canary = Canary()
-        manager.register_class(Foo)
-        manager.register_attribute(Foo, 'attr', True, extension=canary,
+        attributes.register_class(Foo)
+        attributes.register_attribute(Foo, 'attr', True, extension=canary,
                                    typecallable=typecallable, useobject=True)
 
         obj = Foo()
@@ -1025,8 +1043,8 @@ class CollectionsTest(PersistTest):
         class Foo(object):
             pass
         canary = Canary()
-        manager.register_class(Foo)
-        manager.register_attribute(Foo, 'attr', True, extension=canary,
+        attributes.register_class(Foo)
+        attributes.register_attribute(Foo, 'attr', True, extension=canary,
                                    typecallable=Custom, useobject=True)
 
         obj = Foo()
@@ -1095,8 +1113,8 @@ class CollectionsTest(PersistTest):
 
         canary = Canary()
         creator = entity_maker
-        manager.register_class(Foo)
-        manager.register_attribute(Foo, 'attr', True, extension=canary, useobject=True)
+        attributes.register_class(Foo)
+        attributes.register_attribute(Foo, 'attr', True, extension=canary, useobject=True)
 
         obj = Foo()
         col1 = obj.attr

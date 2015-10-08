@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
+<div class="versionheader">Version: 0.4.2   Last Updated: 01/01/08 20:56:05</div>
 
 
 
@@ -62,6 +62,42 @@
         
         <li><a style="" href="types.html#types_standard">Built-in Types</a></li>
         
+	        <li>
+                
+    <ul>
+        
+        <li><a style="" href="types.html#types_standard_string">String</a></li>
+        
+        
+        <li><a style="" href="types.html#types_standard_unicode">Unicode</a></li>
+        
+        
+        <li><a style="" href="types.html#types_standard_numeric">Numeric</a></li>
+        
+        
+        <li><a style="" href="types.html#types_standard_float">Float</a></li>
+        
+        
+        <li><a style="" href="types.html#types_standard_datetime/date/time">Datetime/Date/Time</a></li>
+        
+        
+        <li><a style="" href="types.html#types_standard_interval">Interval</a></li>
+        
+        
+        <li><a style="" href="types.html#types_standard_binary">Binary</a></li>
+        
+        
+        <li><a style="" href="types.html#types_standard_boolean">Boolean</a></li>
+        
+        
+        <li><a style="" href="types.html#types_standard_pickletype">PickleType</a></li>
+        
+        
+        <li><a style="" href="types.html#types_standard_sqlspecific">SQL-Specific Types</a></li>
+        
+    </ul>
+
+	        </li>
         
         <li><a style="" href="types.html#types_dialect">Dialect Specific Types</a></li>
         
@@ -103,55 +139,212 @@
     
     
 
-<p>SQLAlchemy comes with a set of standard generic datatypes, which are defined as classes.   <br></br>
-</p>
-<p>The standard set of generic types are:
+<p>SQLAlchemy comes with a set of standard generic datatypes, which are defined as classes.  Types are usually used when defining tables, and can be left as a class or instantiated, for example:
 </p>
 
     
 
     <div class="sliding_code">
-            <div class="codetitle">package sqlalchemy.types</div>
         <pre>
-<span class="python_keyword">class </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">:
-    </span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">length</span><span class="python_operator">=</span><span class="python_name">None</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">Integer</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_keyword">class </span><span class="python_name">SmallInteger</span><span class="python_enclosure">(</span><span class="python_name">Integer</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_keyword">class </span><span class="python_name">Numeric</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">: 
-    </span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">precision</span><span class="python_operator">=</span><span class="python_number">10</span><span class="python_operator">, </span><span class="python_name">length</span><span class="python_operator">=</span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">Float</span><span class="python_enclosure">(</span><span class="python_name">Numeric</span><span class="python_enclosure">)</span><span class="python_operator">:
-    </span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">precision</span><span class="python_operator">=</span><span class="python_number">10</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># DateTime, Date and Time types deal with datetime objects from the Python datetime module
-</span><span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">DateTime</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_keyword">class </span><span class="python_name">Date</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_keyword">class </span><span class="python_name">Time</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_keyword">class </span><span class="python_name">Binary</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">: 
-    </span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">length</span><span class="python_operator">=</span><span class="python_name">None</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">Boolean</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># converts unicode strings to raw bytes
-# as bind params, raw bytes to unicode as 
-# rowset values, using the unicode encoding 
-# setting on the engine (defaults to 'utf-8')
-</span><span class="python_keyword">class </span><span class="python_name">Unicode</span><span class="python_enclosure">(</span><span class="python_name">TypeDecorator</span><span class="python_enclosure">)</span><span class="python_operator">:
-    </span><span class="python_name">impl </span><span class="python_operator">= </span><span class="python_name">String</span><span class="python_operator">
-</span>
-<span class="python_comment"># uses the pickle protocol to serialize data
-# in/out of Binary columns
-</span><span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">PickleType</span><span class="python_enclosure">(</span><span class="python_name">TypeDecorator</span><span class="python_enclosure">)</span><span class="python_operator">:
-    </span><span class="python_name">impl </span><span class="python_operator">= </span><span class="python_name">Binary</span><span class="python_operator">
+<span class="python_name">mytable </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'mytable'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'myid'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'data'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">30</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'info'</span><span class="python_operator">, </span><span class="python_name">Unicode</span><span class="python_enclosure">(</span><span class="python_number">100</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'value'</span><span class="python_operator">, </span><span class="python_name">Number</span><span class="python_enclosure">(</span><span class="python_number">7</span><span class="python_operator">,</span><span class="python_number">4</span><span class="python_enclosure">)) </span>
+    <span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>More specific subclasses of these types are available, which various database engines may choose to implement specifically, allowing finer grained control over types:
+<p>Following is a rundown of the standard types.
+</p>
+
+
+    
+    <A name="types_standard_string"></a>
+    
+    <div class="sectionL3">
+
+    <h3>String</h3>
+    
+    
+
+<p>This type is the base type for all string and character types, such as <code>Unicode</code>, <code>TEXT</code>, <code>CLOB</code>, etc.  By default it generates a VARCHAR in DDL.  It includes an argument <code>length</code>, which indicates the length in characters of the type, as well as <code>convert_unicode</code> and <code>assert_unicode</code>, which are booleans.  <code>length</code> will be used as the length argument when generating DDL.  If <code>length</code> is omitted, the <code>String</code> type resolves into the <code>TEXT</code> type.
+</p>
+<p><code>convert_unicode=True</code> indicates that incoming strings, if they are Python <code>unicode</code> strings, will be encoded into a raw bytestring using the <code>encoding</code> attribute of the dialect (defaults to <code>utf-8</code>).  Similarly, raw bytestrings coming back from the database will be decoded into <code>unicode</code> objects on the way back.
+</p>
+<p><code>assert_unicode</code> is set to <code>None</code> by default. When <code>True</code>, it indicates that incoming bind parameters will be checked that they are in fact  <code>unicode</code> objects, else an error is raised.  A value of <code>'warn'</code> instead raises a warning.  Setting it to <code>None</code> indicates that the dialect-level <code>convert_unicode</code> setting should take place, whereas setting it to <code>False</code> disables it unconditionally  (this flag is new as of version 0.4.2).
+</p>
+<p>Both <code>convert_unicode</code> and <code>assert_unicode</code> may be set at the engine level as flags to <code>create_engine()</code>.
+</p>
+
+
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="types_standard_unicode"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Unicode</h3>
+    
+    
+
+<p>The <code>Unicode</code> type is shorthand for <code>String</code> with <code>convert_unicode=True</code> and <code>assert_unicode='warn'</code>.  When writing a unicode-aware appication, it is strongly recommended that this type is used, and that only unicode strings are used in the application.  By "unicode string" we mean a string with a u, i.e. <code>u'hello'</code>.  Otherwise, particularly when using the ORM, data will be converted to unicode when it returns from the database, but local data which was generated locally will not be in unicode format, which can create confusion.
+</p>
+
+
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="types_standard_numeric"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Numeric</h3>
+    
+    
+
+<p>TODO
+</p>
+
+
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="types_standard_float"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Float</h3>
+    
+    
+
+<p>TODO
+</p>
+
+
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="types_standard_datetime/date/time"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Datetime/Date/Time</h3>
+    
+    
+
+<p>TODO
+</p>
+
+
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="types_standard_interval"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Interval</h3>
+    
+    
+
+<p>TODO
+</p>
+
+
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="types_standard_binary"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Binary</h3>
+    
+    
+
+<p>TODO
+</p>
+
+
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="types_standard_boolean"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Boolean</h3>
+    
+    
+
+<p>TODO
+</p>
+
+
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="types_standard_pickletype"></a>
+    
+    <div class="sectionL3">
+
+    <h3>PickleType</h3>
+    
+    
+
+<p>TODO
+</p>
+
+
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="types_standard_sqlspecific"></a>
+    
+    <div class="sectionL3">
+
+    <h3>SQL-Specific Types</h3>
+    
+    
+
+<p>These are subclasses of the generic types and include:
 </p>
 
     
@@ -172,29 +365,15 @@
 </span><span class="python_keyword">class </span><span class="python_name">BOOLEAN</span><span class="python_enclosure">(</span><span class="python_name">Boolean</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>When using a specific database engine, these types are adapted even further via a set of database-specific subclasses defined by the database engine.
-   There may eventually be more type objects that are defined for specific databases.  An example of this would be Postgres' Array type.
-</p>
-<p>Type objects are specified to table meta data using either the class itself, or an instance of the class.  Creating an instance of the class allows you to specify parameters for the type, such as string length, numerical precision, etc.:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre>
-<span class="python_name">mytable </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'mytable'</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_operator">, </span>
-    <span class="python_comment"># define type using a class</span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'my_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">, </span>
-
-    <span class="python_comment"># define type using an object instance</span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'value'</span><span class="python_operator">, </span><span class="python_name">Number</span><span class="python_enclosure">(</span><span class="python_number">7</span><span class="python_operator">,</span><span class="python_number">4</span><span class="python_enclosure">)) </span>
-<span class="python_enclosure">)</span><span class="python_operator">
-</span></pre>
-    </div>
 
 
 
             <a href="#top">back to section top</a>
+    </div>
+
+
+
+
     </div>
 
 
@@ -255,7 +434,7 @@
     
     
 
-<p>User-defined types can be created, to support either database-specific types, or customized pre-processing of query parameters as well as post-processing of result set data.  You can make your own classes to perform these operations.  To augment the behavior of a <code>TypeEngine</code> type, such as <code>String</code>, the <code>TypeDecorator</code> class is used:
+<p>User-defined types can be created which can augment the bind parameter and result processing capabilities of the built in types.  This is usually achieved using the <code>TypeDecorator</code> class, which "decorates" the behavior of any existing type.  As of version 0.4.2, the new <code>process_bind_param()</code> and <code>process_result_value()</code> methods should be used:
 </p>
 
     
@@ -265,16 +444,24 @@
 <span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">types </span><span class="python_keyword">as </span><span class="python_name">types</span><span class="python_operator">
 </span>
 <span class="python_keyword">class </span><span class="python_name">MyType</span><span class="python_enclosure">(</span><span class="python_name">types</span><span class="python_operator">.</span><span class="python_name">TypeDecorator</span><span class="python_enclosure">)</span><span class="python_operator">:
-    </span><span class="python_literal">"""basic type that decorates String, prefixes values with "PREFIX:" on 
+    </span><span class="python_literal">"""a type that decorates Unicode, prefixes values with "PREFIX:" on 
     the way in and strips it off on the way out."""</span><span class="python_operator">
-    </span><span class="python_name">impl </span><span class="python_operator">= </span><span class="python_name">types</span><span class="python_operator">.</span><span class="python_name">String</span><span class="python_operator">
-    </span><span class="python_keyword">def </span><span class="python_name">convert_bind_param</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
+</span>
+    <span class="python_name">impl </span><span class="python_operator">= </span><span class="python_name">types</span><span class="python_operator">.</span><span class="python_name">Unicode</span><span class="python_operator">
+</span>
+    <span class="python_keyword">def </span><span class="python_name">process_bind_param</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_literal">"PREFIX:" </span><span class="python_operator">+ </span><span class="python_name">value</span><span class="python_operator">
-    </span><span class="python_keyword">def </span><span class="python_name">convert_result_value</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
+</span>
+    <span class="python_operator"></span><span class="python_keyword">def </span><span class="python_name">process_result_value</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_enclosure">[</span><span class="python_number">7</span><span class="python_operator">:</span><span class="python_enclosure">]</span><span class="python_operator">
+</span>
+    <span class="python_operator"></span><span class="python_keyword">def </span><span class="python_name">copy</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_keyword">return </span><span class="python_name">MyType</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">impl</span><span class="python_operator">.</span><span class="python_name">length</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>The <code>PickleType</code> class is an instance of <code>TypeDecorator</code> already and can be subclassed directly.
+<p>Note that the "old" way to process bind params and result values, the <code>convert_bind_param()</code> and <code>convert_result_value()</code> methods, are still available.  The downside of these is that when using a type which already processes data such as the <code>Unicode</code> type, you need to call the superclass version of these methods directly.  Using <code>process_bind_param()</code> and <code>process_result_value()</code>, user-defined code can return and receive the desired Python data directly.
+</p>
+<p>As of version 0.4.2, <code>TypeDecorator</code> should generally be used for any user-defined type which redefines the behavior of another type, including other <code>TypeDecorator</code> subclasses such as <code>PickleType</code>, and the new <code>process_...()</code> methods described above should be used.  <br></br>
 </p>
 <p>To build a type object from scratch, which will not have a corresponding database-specific implementation, subclass <code>TypeEngine</code>:
 </p>
@@ -288,11 +475,14 @@
 <span class="python_keyword">class </span><span class="python_name">MyType</span><span class="python_enclosure">(</span><span class="python_name">types</span><span class="python_operator">.</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">precision </span><span class="python_operator">= </span><span class="python_number">8</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">precision </span><span class="python_operator">= </span><span class="python_name">precision</span><span class="python_operator">
-    </span><span class="python_keyword">def </span><span class="python_name">get_col_spec</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
+</span>
+    <span class="python_operator"></span><span class="python_keyword">def </span><span class="python_name">get_col_spec</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_literal">"MYTYPE(%s)" </span><span class="python_operator">% </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">precision</span><span class="python_operator">
-    </span><span class="python_keyword">def </span><span class="python_name">convert_bind_param</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
+</span>
+    <span class="python_operator"></span><span class="python_keyword">def </span><span class="python_name">convert_bind_param</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_operator">
-    </span><span class="python_keyword">def </span><span class="python_name">convert_result_value</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
+</span>
+    <span class="python_operator"></span><span class="python_keyword">def </span><span class="python_name">convert_result_value</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_operator">
 </span></pre>
     </div>

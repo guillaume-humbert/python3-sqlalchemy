@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
+<div class="versionheader">Version: 0.4.2   Last Updated: 01/01/08 20:56:05</div>
 
 
 
@@ -373,6 +373,10 @@ connect() <--|   Engine    |---x                       x----| DBAPI  |---| datab
 <p>A list of all standard options, as well as several that are used by particular database dialects, is as follows:
 </p>
 <ul>
+ <li>
+     <strong>assert_unicode=False</strong> - When set to <code>True</code> alongside convert_unicode=<code>True</code>, asserts that incoming string bind parameters are instances of <code>unicode</code>, otherwise raises an error.  Only takes effect when <code>convert_unicode==True</code>.  This flag is also available on the <code>String</code> type and its decsendants. New in 0.4.2.  <br></br>
+ </li>
+
  <li>
      <strong>connect_args</strong> - a dictionary of options which will be passed directly to the DBAPI's <code>connect()</code> method as additional keyword arguments.
  </li>

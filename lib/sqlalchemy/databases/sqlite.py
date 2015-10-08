@@ -1,5 +1,5 @@
 # sqlite.py
-# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -50,7 +50,7 @@ class DateTimeMixin(object):
                 # pass string values thru
                 return value
             elif value is not None:
-                if getattr(value, 'microsecond', None) is not None:
+                if self.__microsecond__ and getattr(value, 'microsecond', None) is not None:
                     return value.strftime(self.__format__ + "." + str(value.microsecond))
                 else:
                     return value.strftime(self.__format__)
@@ -70,6 +70,7 @@ class DateTimeMixin(object):
 
 class SLDateTime(DateTimeMixin,sqltypes.DateTime):
     __format__ = "%Y-%m-%d %H:%M:%S"
+    __microsecond__ = True
     
     def get_col_spec(self):
         return "TIMESTAMP"
@@ -82,6 +83,7 @@ class SLDateTime(DateTimeMixin,sqltypes.DateTime):
         
 class SLDate(DateTimeMixin, sqltypes.Date):
     __format__ = "%Y-%m-%d"
+    __microsecond__ = False
 
     def get_col_spec(self):
         return "DATE"
@@ -94,6 +96,7 @@ class SLDate(DateTimeMixin, sqltypes.Date):
         
 class SLTime(DateTimeMixin, sqltypes.Time):
     __format__ = "%H:%M:%S"
+    __microsecond__ = True
 
     def get_col_spec(self):
         return "TIME"
@@ -185,8 +188,8 @@ class SQLiteExecutionContext(default.DefaultExecutionContext):
             if not len(self._last_inserted_ids) or self._last_inserted_ids[0] is None:
                 self._last_inserted_ids = [self.cursor.lastrowid] + self._last_inserted_ids[1:]
 
-    def is_select(self):
-        return SELECT_REGEXP.match(self.statement)
+    def returns_rows_text(self, statement):
+        return SELECT_REGEXP.match(statement)
         
 class SQLiteDialect(default.DefaultDialect):
     supports_alter = False
@@ -237,6 +240,9 @@ class SQLiteDialect(default.DefaultDialect):
     def oid_column_name(self, column):
         return "oid"
     
+    def is_disconnect(self, e):
+        return isinstance(e, self.dbapi.ProgrammingError) and "Cannot operate on a closed database." in str(e)
+
     def table_names(self, connection, schema):
         s = "SELECT name FROM sqlite_master WHERE type='table'"
         return [row[0] for row in connection.execute(s)]
@@ -343,9 +349,6 @@ class SQLiteCompiler(compiler.DefaultCompiler):
         if self.dialect.supports_cast:
             return super(SQLiteCompiler, self).visit_cast(cast)
         else:
-            if self.stack and self.stack[-1].get('select'):
-                # not sure if we want to set the typemap here...
-                self.typemap.setdefault("CAST", cast.type)
             return self.process(cast.clause)
 
     def limit_clause(self, select):

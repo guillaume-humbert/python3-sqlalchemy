@@ -60,7 +60,46 @@ class GetTest(QueryTest):
         s.clear()
         u2 = s.query(User).get(7)
         assert u is not u2
+    
+    def test_no_criterion(self):
+        """test that get()/load() does not use preexisting filter/etc. criterion"""
 
+        s = create_session()
+
+        import warnings
+        warnings.filterwarnings("error", r".*Query.*")
+        print "---------------------------------------"
+        try:
+            s.query(User).join('addresses').filter(Address.user_id==8).get(7)
+            assert False
+        except RuntimeWarning, e:
+            assert str(e) == "Query.get() being called on a Query with existing criterion; criterion is being ignored."
+
+        warnings.filterwarnings("once", r".*Query.*")
+        
+        assert s.query(User).filter(User.id==7).get(19) is None
+
+        u = s.query(User).get(7)
+        assert s.query(User).filter(User.id==9).get(7) is u
+        s.clear()
+        assert s.query(User).filter(User.id==9).get(7).id == u.id
+
+        # user 10 has no addresses
+        u = s.query(User).get(10)
+        assert s.query(User).join('addresses').get(10) is u
+        s.clear()
+        assert s.query(User).join('addresses').get(10).id == u.id
+        
+        u = s.query(User).get(7)
+        assert s.query(User).join('addresses').filter(Address.user_id==8).filter(User.id==7).first() is None
+        assert s.query(User).join('addresses').filter(Address.user_id==8).get(7) is u
+        s.clear()
+        assert s.query(User).join('addresses').filter(Address.user_id==8).get(7).id == u.id
+        
+        assert s.query(User).join('addresses').filter(Address.user_id==8).load(7).id == u.id
+
+
+        
     def test_unique_param_names(self):
         class SomeUser(object):
             pass
@@ -169,14 +208,14 @@ class OperatorTest(QueryTest):
                                 (operator.sub, '-'), (operator.div, '/'),
                                 ):
             for (lhs, rhs, res) in (
-                (5, User.id, ':users_id %s users.id'),
-                (5, literal(6), ':literal %s :literal_1'),
-                (User.id, 5, 'users.id %s :users_id'),
-                (User.id, literal('b'), 'users.id %s :literal'),
+                (5, User.id, ':users_id_1 %s users.id'),
+                (5, literal(6), ':param_1 %s :param_2'),
+                (User.id, 5, 'users.id %s :users_id_1'),
+                (User.id, literal('b'), 'users.id %s :param_1'),
                 (User.id, User.id, 'users.id %s users.id'),
-                (literal(5), 'b', ':literal %s :literal_1'),
-                (literal(5), User.id, ':literal %s users.id'),
-                (literal(5), literal(6), ':literal %s :literal_1'),
+                (literal(5), 'b', ':param_1 %s :param_2'),
+                (literal(5), User.id, ':param_1 %s users.id'),
+                (literal(5), literal(6), ':param_1 %s :param_2'),
                 ):
                 self._test(py_op(lhs, rhs), res % sql_op)
 
@@ -189,14 +228,14 @@ class OperatorTest(QueryTest):
                                         (operator.le, '<=', '>='),
                                         (operator.ge, '>=', '<=')):
             for (lhs, rhs, l_sql, r_sql) in (
-                ('a', User.id, ':users_id', 'users.id'),
-                ('a', literal('b'), ':literal_1', ':literal'), # note swap!
-                (User.id, 'b', 'users.id', ':users_id'),
-                (User.id, literal('b'), 'users.id', ':literal'),
+                ('a', User.id, ':users_id_1', 'users.id'),
+                ('a', literal('b'), ':param_2', ':param_1'), # note swap!
+                (User.id, 'b', 'users.id', ':users_id_1'),
+                (User.id, literal('b'), 'users.id', ':param_1'),
                 (User.id, User.id, 'users.id', 'users.id'),
-                (literal('a'), 'b', ':literal', ':literal_1'),
-                (literal('a'), User.id, ':literal', 'users.id'),
-                (literal('a'), literal('b'), ':literal', ':literal_1'),
+                (literal('a'), 'b', ':param_1', ':param_2'),
+                (literal('a'), User.id, ':param_1', 'users.id'),
+                (literal('a'), literal('b'), ':param_1', ':param_2'),
                 ):
 
                 # the compiled clause should match either (e.g.):
@@ -210,21 +249,21 @@ class OperatorTest(QueryTest):
                              fwd_sql + "'\n or\n'" + rev_sql + "'")
 
     def test_op(self):
-        assert str(User.name.op('ilike')('17').compile(dialect=default.DefaultDialect())) == "users.name ilike :users_name"
+        assert str(User.name.op('ilike')('17').compile(dialect=default.DefaultDialect())) == "users.name ilike :users_name_1"
         
     def test_in(self):
          self._test(User.id.in_(['a', 'b']),
-                    "users.id IN (:users_id, :users_id_1)")
+                    "users.id IN (:users_id_1, :users_id_2)")
 
     def test_between(self):
         self._test(User.id.between('a', 'b'),
-                   "users.id BETWEEN :users_id AND :users_id_1")
+                   "users.id BETWEEN :users_id_1 AND :users_id_2")
 
     def test_clauses(self):
         for (expr, compare) in (
             (func.max(User.id), "max(users.id)"),
             (User.id.desc(), "users.id DESC"),
-            (between(5, User.id, Address.id), ":literal BETWEEN users.id AND addresses.id"),
+            (between(5, User.id, Address.id), ":param_1 BETWEEN users.id AND addresses.id"),
             # this one would require adding compile() to InstrumentedScalarAttribute.  do we want this ?
             #(User.id, "users.id")
         ):
@@ -337,6 +376,22 @@ class FilterTest(QueryTest):
 
         assert [Address(id=1), Address(id=5)] == sess.query(Address).filter(Address.user!=user).all()
 
+        # generates an IS NULL
+        assert [] == sess.query(Address).filter(Address.user == None).all()
+
+        assert [Order(id=5)] == sess.query(Order).filter(Order.address == None).all()
+
+    def test_filter_by(self):
+        sess = create_session()
+        user = sess.query(User).get(8)
+        assert [Address(id=2), Address(id=3), Address(id=4)] == sess.query(Address).filter_by(user=user).all()
+
+        # many to one generates IS NULL
+        assert [] == sess.query(Address).filter_by(user = None).all()
+
+        # one to many generates WHERE NOT EXISTS
+        assert [User(name='chuck')] == sess.query(User).filter_by(addresses = None).all()
+        
 class AggregateTest(QueryTest):
     def test_sum(self):
         sess = create_session()
@@ -427,6 +482,10 @@ class ParentTest(QueryTest):
         o = sess.query(Order).with_parent(u1).filter(orders.c.id>2).all()
         assert [Order(description="order 3"), Order(description="order 5")] == o
 
+        # test against None for parent? this can't be done with the current API since we don't know
+        # what mapper to use
+        #assert sess.query(Order).with_parent(None, property='addresses').all() == [Order(description="order 5")]
+        
     def test_noparent(self):
         sess = create_session()
         q = sess.query(User)
@@ -447,7 +506,29 @@ class ParentTest(QueryTest):
 
 
 class JoinTest(QueryTest):
-
+    
+    def test_getjoinable_tables(self):
+        sess = create_session()
+        
+        sel1 = select([users]).alias()
+        sel2 = select([users], from_obj=users.join(addresses)).alias()
+        
+        j1 = sel1.join(users, sel1.c.id==users.c.id)
+        j2 = j1.join(addresses)
+        
+        for from_obj, assert_cond in (
+            (users, [users]),
+            (users.join(addresses), [users, addresses]),
+            (sel1, [sel1]),
+            (sel2, [sel2]),
+            (sel1.join(users, sel1.c.id==users.c.id), [sel1, users]),
+            (sel2.join(users, sel2.c.id==users.c.id), [sel2, users]),
+            (j2, [j1, j2, sel1, users, addresses])
+            
+        ):
+            ret = set(sess.query(User).select_from(from_obj)._get_joinable_tables())
+            self.assertEquals(ret, set(assert_cond).union([from_obj]), [x.description for x in ret])
+        
     def test_overlapping_paths(self):
         for aliased in (True,False):
             # load a user who has an order that contains item id 3 and address id 1 (order 3, owned by jack)
@@ -576,7 +657,6 @@ class MultiplePathTest(ORMTest):
 
         create_session().query(T1).join('t2s_1', aliased=True).filter(t2.c.id==5).reset_joinpoint().join('t2s_2').all()
         create_session().query(T1).join('t2s_1').filter(t2.c.id==5).reset_joinpoint().join('t2s_2', aliased=True).all()
-
 
 
 class SynonymTest(QueryTest):
@@ -721,6 +801,7 @@ class InstancesTest(QueryTest):
     def test_multi_mappers(self):
 
         test_session = create_session()
+
         (user7, user8, user9, user10) = test_session.query(User).all()
         (address1, address2, address3, address4, address5) = test_session.query(Address).all()
 
@@ -861,7 +942,148 @@ class InstancesTest(QueryTest):
 
             assert q.all() == expected
             sess.clear()
-            
+
+
+class SelectFromTest(QueryTest):
+    keep_mappers = False
+    
+    def setup_mappers(self):
+        pass
+        
+    def test_replace_with_select(self):
+        mapper(User, users, properties = {
+            'addresses':relation(Address)
+        })
+        mapper(Address, addresses)
+    
+        sel = users.select(users.c.id.in_([7, 8])).alias()
+        sess = create_session()
+    
+        self.assertEquals(sess.query(User).select_from(sel).all(), [User(id=7), User(id=8)])
+
+        self.assertEquals(sess.query(User).select_from(sel).filter(User.c.id==8).all(), [User(id=8)])
+
+        self.assertEquals(sess.query(User).select_from(sel).order_by(desc(User.name)).all(), [
+            User(name='jack',id=7), User(name='ed',id=8)
+        ])
+
+        self.assertEquals(sess.query(User).select_from(sel).order_by(asc(User.name)).all(), [
+            User(name='ed',id=8), User(name='jack',id=7)
+        ])
+        
+        self.assertEquals(sess.query(User).select_from(sel).options(eagerload('addresses')).first(), 
+            User(name='jack', addresses=[Address(id=1)])
+        )
+
+    def test_join(self):
+        mapper(User, users, properties = {
+            'addresses':relation(Address)
+        })
+        mapper(Address, addresses)
+
+        sel = users.select(users.c.id.in_([7, 8]))
+        sess = create_session()
+
+        self.assertEquals(sess.query(User).select_from(sel).join('addresses').add_entity(Address).order_by(User.id).order_by(Address.id).all(), 
+            [
+                (User(name='jack',id=7), Address(user_id=7,email_address='jack@bean.com',id=1)), 
+                (User(name='ed',id=8), Address(user_id=8,email_address='ed@wood.com',id=2)), 
+                (User(name='ed',id=8), Address(user_id=8,email_address='ed@bettyboop.com',id=3)),
+                (User(name='ed',id=8), Address(user_id=8,email_address='ed@lala.com',id=4))
+            ]
+        )
+
+        self.assertEquals(sess.query(User).select_from(sel).join('addresses', aliased=True).add_entity(Address).order_by(User.id).order_by(Address.id).all(), 
+            [
+                (User(name='jack',id=7), Address(user_id=7,email_address='jack@bean.com',id=1)), 
+                (User(name='ed',id=8), Address(user_id=8,email_address='ed@wood.com',id=2)), 
+                (User(name='ed',id=8), Address(user_id=8,email_address='ed@bettyboop.com',id=3)),
+                (User(name='ed',id=8), Address(user_id=8,email_address='ed@lala.com',id=4))
+            ]
+        )
+
+    def test_more_joins(self):
+        mapper(User, users, properties={
+            'orders':relation(Order, backref='user'), # o2m, m2o
+        })
+        mapper(Order, orders, properties={
+            'items':relation(Item, secondary=order_items, order_by=items.c.id),  #m2m
+        })
+        mapper(Item, items, properties={
+            'keywords':relation(Keyword, secondary=item_keywords, order_by=keywords.c.id) #m2m
+        })
+        mapper(Keyword, keywords)
+        
+        sel = users.select(users.c.id.in_([7, 8]))
+        sess = create_session()
+        
+        self.assertEquals(sess.query(User).select_from(sel).join(['orders', 'items', 'keywords']).filter(Keyword.name.in_(['red', 'big', 'round'])).all(), [
+            User(name=u'jack',id=7)
+        ])
+
+        self.assertEquals(sess.query(User).select_from(sel).join(['orders', 'items', 'keywords'], aliased=True).filter(Keyword.name.in_(['red', 'big', 'round'])).all(), [
+            User(name=u'jack',id=7)
+        ])
+
+        def go():
+            self.assertEquals(sess.query(User).select_from(sel).options(eagerload_all('orders.items.keywords')).join(['orders', 'items', 'keywords'], aliased=True).filter(Keyword.name.in_(['red', 'big', 'round'])).all(), [
+                User(name=u'jack',orders=[
+                    Order(description=u'order 1',items=[
+                        Item(description=u'item 1',keywords=[Keyword(name=u'red'), Keyword(name=u'big'), Keyword(name=u'round')]), 
+                        Item(description=u'item 2',keywords=[Keyword(name=u'red',id=2), Keyword(name=u'small',id=5), Keyword(name=u'square')]), 
+                        Item(description=u'item 3',keywords=[Keyword(name=u'green',id=3), Keyword(name=u'big',id=4), Keyword(name=u'round',id=6)])
+                    ]), 
+                    Order(description=u'order 3',items=[
+                        Item(description=u'item 3',keywords=[Keyword(name=u'green',id=3), Keyword(name=u'big',id=4), Keyword(name=u'round',id=6)]), 
+                        Item(description=u'item 4',keywords=[],id=4), 
+                        Item(description=u'item 5',keywords=[],id=5)
+                        ]), 
+                    Order(description=u'order 5',items=[Item(description=u'item 5',keywords=[])])])
+                ])
+        self.assert_sql_count(testbase.db, go, 1)
+
+        sess.clear()
+        sel2 = orders.select(orders.c.id.in_([1,2,3]))
+        self.assertEquals(sess.query(Order).select_from(sel2).join(['items', 'keywords']).filter(Keyword.name == 'red').all(), [
+            Order(description=u'order 1',id=1), 
+            Order(description=u'order 2',id=2), 
+        ])
+        self.assertEquals(sess.query(Order).select_from(sel2).join(['items', 'keywords'], aliased=True).filter(Keyword.name == 'red').all(), [
+            Order(description=u'order 1',id=1), 
+            Order(description=u'order 2',id=2), 
+        ])
+        
+        
+    def test_replace_with_eager(self):
+        mapper(User, users, properties = {
+            'addresses':relation(Address)
+        })
+        mapper(Address, addresses)
+    
+        sel = users.select(users.c.id.in_([7, 8]))
+        sess = create_session()
+    
+        def go():
+            self.assertEquals(sess.query(User).options(eagerload('addresses')).select_from(sel).all(), 
+                [
+                    User(id=7, addresses=[Address(id=1)]), 
+                    User(id=8, addresses=[Address(id=2), Address(id=3), Address(id=4)])
+                ]
+            )
+        self.assert_sql_count(testbase.db, go, 1)
+        sess.clear()
+        
+        def go():
+            self.assertEquals(sess.query(User).options(eagerload('addresses')).select_from(sel).filter(User.c.id==8).all(), 
+                [User(id=8, addresses=[Address(id=2), Address(id=3), Address(id=4)])]
+            )
+        self.assert_sql_count(testbase.db, go, 1)
+        sess.clear()
+
+        def go():
+            self.assertEquals(sess.query(User).options(eagerload('addresses')).select_from(sel)[1], User(id=8, addresses=[Address(id=2), Address(id=3), Address(id=4)]))
+        self.assert_sql_count(testbase.db, go, 1)
+    
 class CustomJoinTest(QueryTest):
     keep_mappers = False
 
@@ -948,18 +1170,18 @@ class ExternalColumnsTest(QueryTest):
         clear_mappers()
         try:
             mapper(User, users, properties={
-                'concat': column_property(users.c.id * 2),
+                'count': column_property(select([func.count(addresses.c.id)], users.c.id==addresses.c.user_id).correlate(users))
             })
         except exceptions.ArgumentError, e:
-            assert str(e) == 'ColumnProperties must be named for the mapper to work with them.  Try .label() to fix this'
+            assert str(e) == 'column_property() must be given a ColumnElement as its argument.  Try .label() or .as_scalar() for Selectables to fix this.'
         else:
             raise 'expected ArgumentError'
 
     def test_external_columns_good(self):
         """test querying mappings that reference external columns or selectables."""
         mapper(User, users, properties={
-            'concat': column_property((users.c.id * 2).label('concat')),
-            'count': column_property(select([func.count(addresses.c.id)], users.c.id==addresses.c.user_id).correlate(users).label('count'))
+            'concat': column_property((users.c.id * 2)),
+            'count': column_property(select([func.count(addresses.c.id)], users.c.id==addresses.c.user_id).correlate(users).as_scalar())
         })
 
         mapper(Address, addresses, properties={

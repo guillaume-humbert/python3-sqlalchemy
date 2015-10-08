@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
+<div class="versionheader">Version: 0.4.2   Last Updated: 01/01/08 20:56:05</div>
 
 
 
@@ -151,6 +151,79 @@
     <h3>module sqlalchemy.databases.firebird</h3>
     
     
+    <div class="darkcell"><p>This module implements the Firebird backend, thru the <a class="reference" href="http://sourceforge.net/projects/kinterbasdb">kinterbasdb</a>
+DBAPI module.</p>
+<div class="section">
+<h1><a id="firebird-dialects" name="firebird-dialects">Firebird dialects</a></h1>
+<p>Firebird offers two distinct <a class="reference" href="http://mc-computing.com/Databases/Firebird/SQL_Dialect.html">dialects</a> (not to be confused with the
+SA <tt class="docutils literal"><span class="pre">Dialect</span></tt> thing):</p>
+<dl class="docutils">
+<dt>dialect 1</dt>
+<dd>This is the old syntax and behaviour, inherited from Interbase pre-6.0.</dd>
+<dt>dialect 3</dt>
+<dd>This is the newer and supported syntax, introduced in Interbase 6.0.</dd>
+</dl>
+<p>From the user point of view, the biggest change is in date/time
+handling: under dialect 1, there's a single kind of field, <tt class="docutils literal"><span class="pre">DATE</span></tt>
+with a synonim <tt class="docutils literal"><span class="pre">DATETIME</span></tt>, that holds a <cite>timestamp</cite> value, that is a
+date with hour, minute, second. Under dialect 3 there are three kinds,
+a <tt class="docutils literal"><span class="pre">DATE</span></tt> that holds a date, a <tt class="docutils literal"><span class="pre">TIME</span></tt> that holds a <em>time of the
+day</em> value and a <tt class="docutils literal"><span class="pre">TIMESTAMP</span></tt>, equivalent to the old <tt class="docutils literal"><span class="pre">DATE</span></tt>.</p>
+<p>The problem is that the dialect of a Firebird database is a property
+of the database itself <a class="footnote-reference" href="#id2" id="id1" name="id1">[1]</a> (that is, any single database has been
+created with one dialect or the other: there is no way to change the
+after creation). SQLAlchemy has a single instance of the class that
+controls all the connections to a particular kind of database, so it
+cannot easily differentiate between the two modes, and in particular
+it <strong>cannot</strong> simultaneously talk with two distinct Firebird databases
+with different dialects.</p>
+<p>By default this module is biased toward dialect 3, but you can easily
+tweak it to handle dialect 1 if needed:</p>
+<pre class="literal-block">
+from sqlalchemy import types as sqltypes
+from sqlalchemy.databases.firebird import FBDate, colspecs, ischema_names
+
+# Adjust the mapping of the timestamp kind
+ischema_names['TIMESTAMP'] = FBDate
+colspecs[sqltypes.DateTime] = FBDate,
+</pre>
+<p>Other aspects may be version-specific. You can use the <tt class="docutils literal"><span class="pre">server_version_info()</span></tt> method
+on the <tt class="docutils literal"><span class="pre">FBDialect</span></tt> class to do whatever is needed:</p>
+<pre class="literal-block">
+from sqlalchemy.databases.firebird import FBCompiler
+
+if engine.dialect.server_version_info(connection) &lt; (2,0):
+    # Change the name of the function ``length`` to use the UDF version
+    # instead of ``char_length``
+    FBCompiler.LENGTH_FUNCTION_NAME = 'strlen'
+</pre>
+</div>
+<div class="section">
+<h1><a id="pooling-connections" name="pooling-connections">Pooling connections</a></h1>
+<p>The default strategy used by SQLAlchemy to pool the database connections
+in particular cases may raise an <tt class="docutils literal"><span class="pre">OperationalError</span></tt> with a message
+<cite>&quot;object XYZ is in use&quot;</cite>. This happens on Firebird when there are two
+connections to the database, one is using, or has used, a particular table
+and the other tries to drop or alter the same table. To garantee DDL
+operations success Firebird recommend doing them as the single connected user.</p>
+<p>In case your SA application effectively needs to do DDL operations while other
+connections are active, the following setting may alleviate the problem:</p>
+<pre class="literal-block">
+from sqlalchemy import pool
+from sqlalchemy.databases.firebird import dialect
+
+# Force SA to use a single connection per thread
+dialect.poolclass = pool.SingletonThreadPool
+</pre>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1" name="id2">[1]</a></td><td>Well, that is not the whole story, as the client may still ask
+a different (lower) dialect...</td></tr>
+</tbody>
+</table>
+</div>
+</div>
     
 
         
@@ -191,6 +264,8 @@
     <h3>class FBBinary(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Binary">Binary</a>)</h3>
     
     
+    <div class="darkcell"><p>Handle <tt class="docutils literal"><span class="pre">BLOB</span> <span class="pre">SUB_TYPE</span> <span class="pre">0</span></tt> datatype (aka <em>binary</em> blob).</p>
+</div>
     
 
                     
@@ -223,6 +298,8 @@
     <h3>class FBBoolean(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Boolean">Boolean</a>)</h3>
     
     
+    <div class="darkcell"><p>Handle boolean values as a <tt class="docutils literal"><span class="pre">SMALLINT</span></tt> datatype.</p>
+</div>
     
 
                     
@@ -255,6 +332,8 @@
     <h3>class FBChar(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_CHAR">CHAR</a>)</h3>
     
     
+    <div class="darkcell"><p>Handle <tt class="docutils literal"><span class="pre">CHAR(length)</span></tt> datatype.</p>
+</div>
     
 
                     
@@ -295,7 +374,7 @@
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def apply_function_parens(<i>self</i>, <i>func</i>)</b>
+    <b>def default_from(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
@@ -305,9 +384,22 @@
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def default_from(<i>self</i>)</b>
+    <b>def function_argspec(<i>self</i>, <i>func</i>)</b>
     <div class="docstring">
     
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def function_string(<i>self</i>, <i>func</i>)</b>
+    <div class="docstring">
+    <p>Substitute the <tt class="docutils literal"><span class="pre">length</span></tt> function.</p>
+<p>On newer FB there is a <tt class="docutils literal"><span class="pre">char_length</span></tt> function, while older
+ones need the <tt class="docutils literal"><span class="pre">strlen</span></tt> UDF.</p>
+
     </div>
     </div>
 
@@ -375,6 +467,8 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <h3>class FBDate(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_DateTime">DateTime</a>)</h3>
     
     
+    <div class="darkcell"><p>Handle <tt class="docutils literal"><span class="pre">DATE</span></tt> datatype.</p>
+</div>
     
 
                     
@@ -407,6 +501,8 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <h3>class FBDateTime(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_DateTime">DateTime</a>)</h3>
     
     
+    <div class="darkcell"><p>Handle <tt class="docutils literal"><span class="pre">TIMESTAMP</span></tt> datatype.</p>
+</div>
     
 
                     
@@ -449,6 +545,8 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <h3>class FBDefaultRunner(<a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_DefaultRunner">DefaultRunner</a>)</h3>
     
     
+    <div class="darkcell"><p>Firebird specific idiosincrasies</p>
+</div>
     
 
                     
@@ -457,7 +555,8 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <A name=""></a>
     <b>def visit_sequence(<i>self</i>, <i>seq</i>)</b>
     <div class="docstring">
-    
+    <p>Get the next value from the sequence using <tt class="docutils literal"><span class="pre">gen_id()</span></tt>.</p>
+
     </div>
     </div>
 
@@ -481,6 +580,8 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <h3>class FBDialect(<a href="sqlalchemy_engine_default.html#docstrings_sqlalchemy.engine.default_DefaultDialect">DefaultDialect</a>)</h3>
     
     
+    <div class="darkcell"><p>Firebird dialect</p>
+</div>
     
 
                     
@@ -558,9 +659,21 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def has_sequence(<i>self</i>, <i>connection</i>, <i>sequence_name</i>)</b>
+    <div class="docstring">
+    <p>Return <tt class="docutils literal"><span class="pre">True</span></tt> if the given sequence (generator) exists.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def has_table(<i>self</i>, <i>connection</i>, <i>table_name</i>, <i>schema=None</i>)</b>
     <div class="docstring">
-    
+    <p>Return <tt class="docutils literal"><span class="pre">True</span></tt> if the given table exists, ignoring the <cite>schema</cite>.</p>
+
     </div>
     </div>
 
@@ -588,9 +701,23 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def server_version_info(<i>self</i>, <i>connection</i>)</b>
+    <div class="docstring">
+    <p>Get the version of the Firebird server used by a connection.</p>
+<p>Returns a tuple of (<cite>major</cite>, <cite>minor</cite>, <cite>build</cite>), three integers
+representing the version of the attached server.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def table_names(<i>self</i>, <i>connection</i>, <i>schema</i>)</b>
     <div class="docstring">
-    
+    <p>Return a list of <em>normalized</em> table names omitting system relations.</p>
+
     </div>
     </div>
 
@@ -646,6 +773,8 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <h3>class FBFloat(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Float">Float</a>)</h3>
     
     
+    <div class="darkcell"><p>Handle <tt class="docutils literal"><span class="pre">FLOAT(precision)</span></tt> datatype.</p>
+</div>
     
 
                     
@@ -678,6 +807,8 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <h3>class FBIdentifierPreparer(<a href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_IdentifierPreparer">IdentifierPreparer</a>)</h3>
     
     
+    <div class="darkcell"><p>Install Firebird specific reserved words.</p>
+</div>
     
 
                     
@@ -711,6 +842,8 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <h3>class FBInteger(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Integer">Integer</a>)</h3>
     
     
+    <div class="darkcell"><p>Handle <tt class="docutils literal"><span class="pre">INTEGER</span></tt> datatype.</p>
+</div>
     
 
                     
@@ -743,6 +876,8 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <h3>class FBNumeric(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Numeric">Numeric</a>)</h3>
     
     
+    <div class="darkcell"><p>Handle <tt class="docutils literal"><span class="pre">NUMERIC(precision,length)</span></tt> datatype.</p>
+</div>
     
 
                     
@@ -795,6 +930,8 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <h3>class FBSchemaDropper(<a href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_SchemaDropper">SchemaDropper</a>)</h3>
     
     
+    <div class="darkcell"><p>Firebird syntactic idiosincrasies</p>
+</div>
     
 
                     
@@ -803,7 +940,8 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <A name=""></a>
     <b>def visit_sequence(<i>self</i>, <i>sequence</i>)</b>
     <div class="docstring">
-    
+    <p>Generate a <tt class="docutils literal"><span class="pre">DROP</span> <span class="pre">GENERATOR</span></tt> statement for the sequence.</p>
+
     </div>
     </div>
 
@@ -827,6 +965,8 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <h3>class FBSchemaGenerator(<a href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_SchemaGenerator">SchemaGenerator</a>)</h3>
     
     
+    <div class="darkcell"><p>Firebird syntactic idiosincrasies</p>
+</div>
     
 
                     
@@ -845,7 +985,8 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <A name=""></a>
     <b>def visit_sequence(<i>self</i>, <i>sequence</i>)</b>
     <div class="docstring">
-    
+    <p>Generate a <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">GENERATOR</span></tt> statement for the sequence.</p>
+
     </div>
     </div>
 
@@ -869,6 +1010,8 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <h3>class FBSmallInteger(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_SmallInteger">SmallInteger</a>)</h3>
     
     
+    <div class="darkcell"><p>Handle <tt class="docutils literal"><span class="pre">SMALLINT</span></tt> datatype.</p>
+</div>
     
 
                     
@@ -901,6 +1044,8 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <h3>class FBString(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_String">String</a>)</h3>
     
     
+    <div class="darkcell"><p>Handle <tt class="docutils literal"><span class="pre">VARCHAR(length)</span></tt> datatype.</p>
+</div>
     
 
                     
@@ -933,6 +1078,8 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <h3>class FBText(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_TEXT">TEXT</a>)</h3>
     
     
+    <div class="darkcell"><p>Handle <tt class="docutils literal"><span class="pre">BLOB</span> <span class="pre">SUB_TYPE</span> <span class="pre">1</span></tt> datatype (aka <em>textual</em> blob).</p>
+</div>
     
 
                     
@@ -965,6 +1112,8 @@ after the <tt class="docutils literal"><span class="pre">SELECT</span></tt>...</
     <h3>class FBTime(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Time">Time</a>)</h3>
     
     
+    <div class="darkcell"><p>Handle <tt class="docutils literal"><span class="pre">TIME</span></tt> datatype.</p>
+</div>
     
 
                     

@@ -17,7 +17,8 @@ def suite():
         'orm.generative',
         'orm.lazytest1',
         'orm.assorted_eager',
-        
+
+        'orm.naturalpks',
         'orm.sessioncontext', 
         'orm.unitofwork',
         'orm.session',
@@ -25,6 +26,7 @@ def suite():
         'orm.relationships',
         'orm.association',
         'orm.merge',
+        'orm.pickled',
         'orm.memusage',
         
         'orm.cycles',

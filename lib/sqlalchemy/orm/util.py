@@ -1,5 +1,5 @@
 # mapper/util.py
-# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -77,40 +77,6 @@ def polymorphic_union(table_map, typecolname, aliasname='p_union'):
             result.append(sql.select([col(name, table) for name in colnames], from_obj=[table]))
     return sql.union_all(*result).alias(aliasname)
 
-class TranslatingDict(dict):
-    """A dictionary that stores ``ColumnElement`` objects as keys.
-
-    Incoming ``ColumnElement`` keys are translated against those of an
-    underling ``FromClause`` for all operations.  This way the columns
-    from any ``Selectable`` that is derived from or underlying this
-    ``TranslatingDict`` 's selectable can be used as keys.
-    """
-
-    def __init__(self, selectable):
-        super(TranslatingDict, self).__init__()
-        self.selectable = selectable
-
-    def __translate_col(self, col):
-        ourcol = self.selectable.corresponding_column(col, raiseerr=False)
-        if ourcol is None:
-            return col
-        else:
-            return ourcol
-
-    def __getitem__(self, col):
-        return super(TranslatingDict, self).__getitem__(self.__translate_col(col))
-
-    def has_key(self, col):
-        return col in self
-
-    def __setitem__(self, col, value):
-        return super(TranslatingDict, self).__setitem__(self.__translate_col(col), value)
-
-    def __contains__(self, col):
-        return super(TranslatingDict, self).__contains__(self.__translate_col(col))
-
-    def setdefault(self, col, value):
-        return super(TranslatingDict, self).setdefault(self.__translate_col(col), value)
 
 class ExtensionCarrier(object):
     """stores a collection of MapperExtension objects.
@@ -172,13 +138,6 @@ class ExtensionCarrier(object):
     def __getattr__(self, key):
         return self.methods.get(key, self._pass)
 
-class BinaryVisitor(visitors.ClauseVisitor):
-    def __init__(self, func):
-        self.func = func
-
-    def visit_binary(self, binary):
-        self.func(binary)
-
 class AliasedClauses(object):
     """Creates aliases of a mapped tables for usage in ORM queries.
     """
@@ -195,7 +154,7 @@ class AliasedClauses(object):
         """return the aliased version of the given column, creating a new label for it if not already
         present in this AliasedClauses."""
 
-        conv = self.alias.corresponding_column(column, raiseerr=False)
+        conv = self.alias.corresponding_column(column)
         if conv:
             return conv
 
@@ -215,6 +174,9 @@ class AliasedClauses(object):
     def adapt_clause(self, clause):
         return sql_util.ClauseAdapter(self.alias).traverse(clause, clone=True)
     
+    def adapt_list(self, clauses):
+        return sql_util.ClauseAdapter(self.alias).copy_and_process(clauses)
+        
     def _create_row_adapter(self):
         """Return a callable which, 
         when passed a RowProxy, will return a new dict-like object
@@ -237,13 +199,13 @@ def create_row_adapter(from_, to, equivalent_columns=None):
     
     map = {}
     for c in to.c:
-        corr = from_.corresponding_column(c, raiseerr=False)
+        corr = from_.corresponding_column(c)
         if corr:
             map[c] = corr
         elif equivalent_columns:
             if c in equivalent_columns:
                 for c2 in equivalent_columns[c]:
-                    corr = from_.corresponding_column(c2, raiseerr=False)
+                    corr = from_.corresponding_column(c2)
                     if corr:
                         map[c] = corr
                         break
@@ -320,5 +282,22 @@ def instance_str(instance):
 
     return instance.__class__.__name__ + "@" + hex(id(instance))
 
+def state_str(state):
+    """Return a string describing an instance."""
+    if state is None:
+        return "None"
+    else:
+        return state.class_.__name__ + "@" + hex(id(state.obj()))
+
 def attribute_str(instance, attribute):
     return instance_str(instance) + "." + attribute
+
+def identity_equal(a, b):
+    if a is b:
+        return True
+    id_a = getattr(a, '_instance_key', None)
+    id_b = getattr(b, '_instance_key', None)
+    if id_a is None or id_b is None:
+        return False
+    return id_a == id_b
+

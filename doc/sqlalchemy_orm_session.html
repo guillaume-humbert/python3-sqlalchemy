@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
+<div class="versionheader">Version: 0.4.2   Last Updated: 01/01/08 20:56:05</div>
 
 
 
@@ -88,6 +88,8 @@
     <h3>module sqlalchemy.orm.session</h3>
     
     
+    <div class="darkcell"><p>Provides the Session class and related utilities.</p>
+</div>
     
 
 
@@ -161,9 +163,11 @@ a thread-managed Session adapter, provided by the <a href="sqlalchemy_orm.html#d
     <b>def __init__(<i>self</i>, <i>bind=None</i>, <i>autoflush=True</i>, <i>transactional=False</i>, <i>twophase=False</i>, <i>echo_uow=False</i>, <i>weak_identity_map=True</i>, <i>binds=None</i>, <i>extension=None</i>)</b>
     <div class="docstring">
     <p>Construct a new Session.</p>
+<p>A session is usually constructed using the <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_create_session">create_session()</a> function,
+or its more &quot;automated&quot; variant <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_sessionmaker">sessionmaker()</a>.</p>
 <dl class="docutils">
 <dt>autoflush</dt>
-<dd>when <tt class="docutils literal"><span class="pre">True</span></tt>, all query operations will issue a <tt class="docutils literal"><span class="pre">flush()</span></tt> call to this
+<dd>When <tt class="docutils literal"><span class="pre">True</span></tt>, all query operations will issue a <tt class="docutils literal"><span class="pre">flush()</span></tt> call to this
 <tt class="docutils literal"><span class="pre">Session</span></tt> before proceeding. This is a convenience feature so that
 <tt class="docutils literal"><span class="pre">flush()</span></tt> need not be called repeatedly in order for database queries to
 retrieve results. It's typical that <tt class="docutils literal"><span class="pre">autoflush</span></tt> is used in conjunction with
@@ -171,11 +175,11 @@ retrieve results. It's typical that <tt class="docutils literal"><span class="pr
 <tt class="docutils literal"><span class="pre">commit()</span></tt> when changes are complete to finalize all changes to the
 database.</dd>
 <dt>bind</dt>
-<dd>an optional <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt> to which this <tt class="docutils literal"><span class="pre">Session</span></tt> should be
+<dd>An optional <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt> to which this <tt class="docutils literal"><span class="pre">Session</span></tt> should be
 bound. When specified, all SQL operations performed by this session will
 execute via this connectable.</dd>
 <dt>binds</dt>
-<dd><p class="first">an optional dictionary, which contains more granular &quot;bind&quot; information than
+<dd><p class="first">An optional dictionary, which contains more granular &quot;bind&quot; information than
 the <tt class="docutils literal"><span class="pre">bind</span></tt> parameter provides. This dictionary can map individual <tt class="docutils literal"><span class="pre">Table</span></tt>
 instances as well as <tt class="docutils literal"><span class="pre">Mapper</span></tt> instances to individual <tt class="docutils literal"><span class="pre">Engine</span></tt> or
 <tt class="docutils literal"><span class="pre">Connection</span></tt> objects. Operations which proceed relative to a particular
@@ -197,7 +201,7 @@ sess = Session(binds={
 transactions. This is the equivalent of
 <tt class="docutils literal"><span class="pre">logging.getLogger('sqlalchemy.orm.unitofwork').setLevel(logging.DEBUG)</span></tt>.</dd>
 <dt>extension</dt>
-<dd>an optional <a href="sqlalchemy_orm_session.html#docstrings_sqlalchemy.orm.session_SessionExtension">SessionExtension</a> instance, which will receive
+<dd>An optional <a href="sqlalchemy_orm_session.html#docstrings_sqlalchemy.orm.session_SessionExtension">SessionExtension</a> instance, which will receive
 pre- and post- commit and flush events, as well as a post-rollback event.  User-
 defined code may be placed within these hooks using a user-defined subclass
 of <tt class="docutils literal"><span class="pre">SessionExtension</span></tt>.</dd>
@@ -211,9 +215,9 @@ operation does not immediately utilize any connection resources; only when
 connection resources are first required do they get allocated into a
 transactional context.</dd>
 <dt>twophase</dt>
-<dd>when <tt class="docutils literal"><span class="pre">True</span></tt>, all transactions will be started using
+<dd>When <tt class="docutils literal"><span class="pre">True</span></tt>, all transactions will be started using
 [sqlalchemy.engine_TwoPhaseTransaction]. During a <tt class="docutils literal"><span class="pre">commit()</span></tt>, after
-<tt class="docutils literal"><span class="pre">flush()</span></tt> has been issued for all attached databaes, the <tt class="docutils literal"><span class="pre">prepare()</span></tt>
+<tt class="docutils literal"><span class="pre">flush()</span></tt> has been issued for all attached databases, the <tt class="docutils literal"><span class="pre">prepare()</span></tt>
 method on each database's <tt class="docutils literal"><span class="pre">TwoPhaseTransaction</span></tt> will be called. This allows
 each database to roll back the entire transaction, before each transaction is
 committed.</dd>
@@ -260,8 +264,8 @@ expunge(), clear(), or purge().</dd>
     <A name=""></a>
     <b>def begin_nested(<i>self</i>)</b>
     <div class="docstring">
-    <p>begin a 'nested' transaction on this Session.</p>
-<p>this utilizes a SAVEPOINT transaction for databases
+    <p>Begin a <cite>nested</cite> transaction on this Session.</p>
+<p>This utilizes a <tt class="docutils literal"><span class="pre">SAVEPOINT</span></tt> transaction for databases
 which support this feature.</p>
 
     </div>
@@ -339,7 +343,7 @@ are first needed.</p>
     <A name=""></a>
     <b>def commit(<i>self</i>)</b>
     <div class="docstring">
-    <p>commit the current transaction in progress.</p>
+    <p>Commit the current transaction in progress.</p>
 <p>If no transaction is in progress, this method raises
 an InvalidRequestError.</p>
 <p>If the <tt class="docutils literal"><span class="pre">begin()</span></tt> method was called on this <tt class="docutils literal"><span class="pre">Session</span></tt>
@@ -364,11 +368,11 @@ transactional context, if any.</p>
 the context of this session's transaction.  Otherwise, the
 connection is returned by the <tt class="docutils literal"><span class="pre">contextual_connect()</span></tt> method
 on the engine.</p>
-<p>the &quot;mapper&quot; argument is a class or mapper to which a bound engine
+<p>The <cite>mapper</cite> argument is a class or mapper to which a bound engine
 will be located; use this when the Session itself is either bound
 to multiple engines or connections, or is not bound to any connectable.</p>
 <p>**kwargs are additional arguments which will be passed to get_bind().
-See the get_bind() method for details.  Note that the &quot;ShardedSession&quot;
+See the get_bind() method for details.  Note that the <tt class="docutils literal"><span class="pre">ShardedSession</span></tt>
 subclass takes a different get_bind() argument signature.</p>
 
     </div>
@@ -378,7 +382,7 @@ subclass takes a different get_bind() argument signature.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def delete(<i>self</i>, <i>object</i>)</b>
+    <b>def delete(<i>self</i>, <i>instance</i>)</b>
     <div class="docstring">
     <p>Mark the given instance as deleted.</p>
 <p>The delete operation occurs upon <tt class="docutils literal"><span class="pre">flush()</span></tt>.</p>
@@ -391,7 +395,7 @@ subclass takes a different get_bind() argument signature.</p>
          <A name=""></a>
          <b>deleted = property()</b>
          <div class="docstring">
-         <p>A <tt class="docutils literal"><span class="pre">Set</span></tt> of all objects marked as 'deleted' within this <tt class="docutils literal"><span class="pre">Session</span></tt></p>
+         <p>Return a <tt class="docutils literal"><span class="pre">Set</span></tt> of all instances marked as 'deleted' within this <tt class="docutils literal"><span class="pre">Session</span></tt></p>
 
          </div> 
          </div>
@@ -401,7 +405,7 @@ subclass takes a different get_bind() argument signature.</p>
          <A name=""></a>
          <b>dirty = property()</b>
          <div class="docstring">
-         <p>A <tt class="docutils literal"><span class="pre">Set</span></tt> of all objects marked as 'dirty' within this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
+         <p>Return a <tt class="docutils literal"><span class="pre">Set</span></tt> of all instances marked as 'dirty' within this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
 <p>Note that the 'dirty' state here is 'optimistic'; most attribute-setting or collection
 modification operations will mark an instance as 'dirty' and place it in this set,
 even if there is no net change to the attribute's value.  At flush time, the value
@@ -435,7 +439,7 @@ resources of the underlying <tt class="docutils literal"><span class="pre">Conne
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def expire(<i>self</i>, <i>obj</i>, <i>attribute_names=None</i>)</b>
+    <b>def expire(<i>self</i>, <i>instance</i>, <i>attribute_names=None</i>)</b>
     <div class="docstring">
     <p>Expire the attributes on the given instance.</p>
 <p>The instance's attributes are instrumented such that
@@ -458,10 +462,10 @@ expired.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def expunge(<i>self</i>, <i>object</i>)</b>
+    <b>def expunge(<i>self</i>, <i>instance</i>)</b>
     <div class="docstring">
-    <p>Remove the given <cite>object</cite> from this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
-<p>This will free all internal references to the object.
+    <p>Remove the given <cite>instance</cite> from this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
+<p>This will free all internal references to the instance.
 Cascading will be applied according to the <em>expunge</em> cascade
 rule.</p>
 
@@ -506,7 +510,7 @@ query.</p>
     <A name=""></a>
     <b>def get_bind(<i>self</i>, <i>mapper</i>, <i>clause=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>return an engine corresponding to the given arguments.</p>
+    <p>Return an engine corresponding to the given arguments.</p>
 <dl class="docutils">
 <dt>mapper</dt>
 <dd>mapper relative to the desired operation</dd>
@@ -574,18 +578,18 @@ to get_bind() which are passed through here.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def is_modified(<i>self</i>, <i>obj</i>, <i>include_collections=True</i>, <i>passive=False</i>)</b>
+    <b>def is_modified(<i>self</i>, <i>instance</i>, <i>include_collections=True</i>, <i>passive=False</i>)</b>
     <div class="docstring">
-    <p>return True if the given object has modified attributes.</p>
+    <p>Return True if the given instance has modified attributes.</p>
 <p>This method retrieves a history instance for each instrumented attribute
 on the instance and performs a comparison of the current value to its
 previously committed value.  Note that instances present in the 'dirty'
 collection may result in a value of <tt class="docutils literal"><span class="pre">False</span></tt> when tested with this method.</p>
-<p>'include_collections' indicates if multivalued collections should be included
+<p><cite>include_collections</cite> indicates if multivalued collections should be included
 in the operation.  Setting this to False is a way to detect only local-column
 based properties (i.e. scalar columns or many-to-one foreign keys) that would
 result in an UPDATE for this instance upon flush.</p>
-<p>the 'passive' flag indicates if unloaded attributes and collections should
+<p>The <cite>passive</cite> flag indicates if unloaded attributes and collections should
 not be loaded in the course of performing this test.</p>
 
     </div>
@@ -615,10 +619,10 @@ query.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def merge(<i>self</i>, <i>object</i>, <i>entity_name=None</i>, <i>dont_load=False</i>, <i>_recursive=None</i>)</b>
+    <b>def merge(<i>self</i>, <i>instance</i>, <i>entity_name=None</i>, <i>dont_load=False</i>, <i>_recursive=None</i>)</b>
     <div class="docstring">
-    <p>Copy the state of the given <cite>object</cite> onto the persistent
-object with the same identifier.</p>
+    <p>Copy the state of the given <cite>instance</cite> onto the persistent
+instance with the same identifier.</p>
 <p>If there is no persistent instance currently associated with
 the session, it will be loaded.  Return the persistent
 instance. If the given instance is unsaved, save a copy of and
@@ -635,7 +639,7 @@ association is mapped with <tt class="docutils literal"><span class="pre">cascad
          <A name=""></a>
          <b>new = property()</b>
          <div class="docstring">
-         <p>A <tt class="docutils literal"><span class="pre">Set</span></tt> of all objects marked as 'new' within this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
+         <p>Return a <tt class="docutils literal"><span class="pre">Set</span></tt> of all instances marked as 'new' within this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
 
          </div> 
          </div>
@@ -644,9 +648,9 @@ association is mapped with <tt class="docutils literal"><span class="pre">cascad
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def object_session(<i>cls</i>, <i>obj</i>)</b>
+    <b>def object_session(<i>cls</i>, <i>instance</i>)</b>
     <div class="docstring">
-    <p>return the <tt class="docutils literal"><span class="pre">Session</span></tt> to which the given object belongs.</p>
+    <p>Return the <tt class="docutils literal"><span class="pre">Session</span></tt> to which the given object belongs.</p>
 
     </div>
     </div>
@@ -657,7 +661,7 @@ association is mapped with <tt class="docutils literal"><span class="pre">cascad
     <A name=""></a>
     <b>def prune(<i>self</i>)</b>
     <div class="docstring">
-    <p>Removes unreferenced instances cached in the identity map.</p>
+    <p>Remove unreferenced instances cached in the identity map.</p>
 <p>Note that this method is only meaningful if &quot;weak_identity_map&quot;
 is set to False.</p>
 <p>Removes any object in this Session's identity map that is not
@@ -683,7 +687,7 @@ the mapper, or the classes' primary mapper.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def refresh(<i>self</i>, <i>obj</i>, <i>attribute_names=None</i>)</b>
+    <b>def refresh(<i>self</i>, <i>instance</i>, <i>attribute_names=None</i>)</b>
     <div class="docstring">
     <p>Refresh the attributes on the given instance.</p>
 <p>When called, a query will be issued
@@ -707,7 +711,7 @@ refreshed.</p>
     <A name=""></a>
     <b>def rollback(<i>self</i>)</b>
     <div class="docstring">
-    <p>rollback the current transaction in progress.</p>
+    <p>Rollback the current transaction in progress.</p>
 <p>If no transaction is in progress, this method is a
 pass-thru.</p>
 
@@ -718,7 +722,7 @@ pass-thru.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def save(<i>self</i>, <i>object</i>, <i>entity_name=None</i>)</b>
+    <b>def save(<i>self</i>, <i>instance</i>, <i>entity_name=None</i>)</b>
     <div class="docstring">
     <p>Add a transient (unsaved) instance to this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
 <p>This operation cascades the <cite>save_or_update</cite> method to
@@ -734,9 +738,9 @@ specific <tt class="docutils literal"><span class="pre">Mapper</span></tt> used 
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def save_or_update(<i>self</i>, <i>object</i>, <i>entity_name=None</i>)</b>
+    <b>def save_or_update(<i>self</i>, <i>instance</i>, <i>entity_name=None</i>)</b>
     <div class="docstring">
-    <p>Save or update the given object into this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
+    <p>Save or update the given instance into this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
 <p>The presence of an <cite>_instance_key</cite> attribute on the instance
 determines whether to <tt class="docutils literal"><span class="pre">save()</span></tt> or <tt class="docutils literal"><span class="pre">update()</span></tt> the instance.</p>
 
@@ -767,7 +771,7 @@ determines whether to <tt class="docutils literal"><span class="pre">save()</spa
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def update(<i>self</i>, <i>object</i>, <i>entity_name=None</i>)</b>
+    <b>def update(<i>self</i>, <i>instance</i>, <i>entity_name=None</i>)</b>
     <div class="docstring">
     <p>Bring the given detached (saved) instance into this
 <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
@@ -785,9 +789,9 @@ associated instances if the relation is mapped with
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __contains__(<i>self</i>, <i>obj</i>)</b>
+    <b>def __contains__(<i>self</i>, <i>instance</i>)</b>
     <div class="docstring">
-    <p>return True if the given object is associated with this session.</p>
+    <p>Return True if the given instance is associated with this session.</p>
 <p>The instance may be pending or persistent within the Session for a
 result of True.</p>
 
@@ -800,7 +804,7 @@ result of True.</p>
     <A name=""></a>
     <b>def __iter__(<i>self</i>)</b>
     <div class="docstring">
-    <p>return an iterator of all objects which are pending or persistent within this Session.</p>
+    <p>Return an iterator of all instances which are pending or persistent within this Session.</p>
 
     </div>
     </div>
@@ -825,7 +829,7 @@ result of True.</p>
     <h3>class SessionExtension(object)</h3>
     
     
-    <div class="darkcell"><p>an extension hook object for Sessions.  Subclasses may be installed into a Session
+    <div class="darkcell"><p>An extension hook object for Sessions.  Subclasses may be installed into a Session
 (or sessionmaker) using the <tt class="docutils literal"><span class="pre">extension</span></tt> keyword argument.</p>
 </div>
     
@@ -836,7 +840,7 @@ result of True.</p>
     <A name=""></a>
     <b>def after_commit(<i>self</i>, <i>session</i>)</b>
     <div class="docstring">
-    <p>execute after a commit has occured.</p>
+    <p>Execute after a commit has occured.</p>
 <p>Note that this may not be per-flush if a longer running transaction is ongoing.</p>
 
     </div>
@@ -848,7 +852,7 @@ result of True.</p>
     <A name=""></a>
     <b>def after_flush(<i>self</i>, <i>session</i>, <i>flush_context</i>)</b>
     <div class="docstring">
-    <p>execute after flush has completed, but before commit has been called.</p>
+    <p>Execute after flush has completed, but before commit has been called.</p>
 <p>Note that the session's state is still in pre-flush, i.e. 'new', 'dirty',
 and 'deleted' lists still show pre-flush state as well as the history
 settings on instance attributes.</p>
@@ -862,8 +866,8 @@ settings on instance attributes.</p>
     <A name=""></a>
     <b>def after_flush_postexec(<i>self</i>, <i>session</i>, <i>flush_context</i>)</b>
     <div class="docstring">
-    <p>execute after flush has completed, and after the post-exec state occurs.</p>
-<p>this will be when the 'new', 'dirty', and 'deleted' lists are in their final
+    <p>Execute after flush has completed, and after the post-exec state occurs.</p>
+<p>This will be when the 'new', 'dirty', and 'deleted' lists are in their final
 state.  An actual commit() may or may not have occured, depending on whether or not
 the flush started its own transaction or participated in a larger transaction.</p>
 
@@ -876,7 +880,7 @@ the flush started its own transaction or participated in a larger transaction.</
     <A name=""></a>
     <b>def after_rollback(<i>self</i>, <i>session</i>)</b>
     <div class="docstring">
-    <p>execute after a rollback has occured.</p>
+    <p>Execute after a rollback has occured.</p>
 <p>Note that this may not be per-flush if a longer running transaction is ongoing.</p>
 
     </div>
@@ -888,7 +892,7 @@ the flush started its own transaction or participated in a larger transaction.</
     <A name=""></a>
     <b>def before_commit(<i>self</i>, <i>session</i>)</b>
     <div class="docstring">
-    <p>execute right before commit is called.</p>
+    <p>Execute right before commit is called.</p>
 <p>Note that this may not be per-flush if a longer running transaction is ongoing.</p>
 
     </div>
@@ -898,10 +902,10 @@ the flush started its own transaction or participated in a larger transaction.</
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def before_flush(<i>self</i>, <i>session</i>, <i>flush_context</i>, <i>objects</i>)</b>
+    <b>def before_flush(<i>self</i>, <i>session</i>, <i>flush_context</i>, <i>instances</i>)</b>
     <div class="docstring">
-    <p>execute before flush process has started.</p>
-<p>'objects' is an optional list of objects which were passed to the <tt class="docutils literal"><span class="pre">flush()</span></tt>
+    <p>Execute before flush process has started.</p>
+<p><cite>instances</cite> is an optional list of objects which were passed to the <tt class="docutils literal"><span class="pre">flush()</span></tt>
 method.</p>
 
     </div>

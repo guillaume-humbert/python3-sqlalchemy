@@ -1,5 +1,5 @@
 # strategies.py
-# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -8,9 +8,9 @@
 
 from sqlalchemy import sql, util, exceptions, logging
 from sqlalchemy.sql import util as sql_util
-from sqlalchemy.sql import visitors
+from sqlalchemy.sql import visitors, expression, operators
 from sqlalchemy.orm import mapper, attributes
-from sqlalchemy.orm.interfaces import LoaderStrategy, StrategizedOption, MapperOption, PropertyOption
+from sqlalchemy.orm.interfaces import LoaderStrategy, StrategizedOption, MapperOption, PropertyOption, serialize_path, deserialize_path
 from sqlalchemy.orm import session as sessionlib
 from sqlalchemy.orm import util as mapperutil
 
@@ -51,12 +51,12 @@ class ColumnLoader(LoaderStrategy):
                     return False
             else:
                 return True
-        sessionlib.attribute_manager.register_attribute(self.parent.class_, self.key, uselist=False, useobject=False, copy_function=copy, compare_function=compare, mutable_scalars=True, comparator=self.parent_property.comparator)
+        sessionlib.register_attribute(self.parent.class_, self.key, uselist=False, useobject=False, copy_function=copy, compare_function=compare, mutable_scalars=True, comparator=self.parent_property.comparator)
 
     def _init_scalar_attribute(self):
         self.logger.info("register managed attribute %s on class %s" % (self.key, self.parent.class_.__name__))
         coltype = self.columns[0].type
-        sessionlib.attribute_manager.register_attribute(self.parent.class_, self.key, uselist=False, useobject=False, copy_function=coltype.copy_value, compare_function=coltype.compare_values, mutable_scalars=self.columns[0].type.is_mutable(), comparator=self.parent_property.comparator)
+        sessionlib.register_attribute(self.parent.class_, self.key, uselist=False, useobject=False, copy_function=coltype.copy_value, compare_function=coltype.compare_values, mutable_scalars=self.columns[0].type.is_mutable(), comparator=self.parent_property.comparator)
         
     def create_row_processor(self, selectcontext, mapper, row):
         if self.is_composite:
@@ -80,52 +80,13 @@ class ColumnLoader(LoaderStrategy):
             if self._should_log_debug:
                 self.logger.debug("Returning active column fetcher for %s %s" % (mapper, self.key))
             return (new_execute, None, None)
-
-        # our mapped column is not present in the row.  check if we need to initialize a polymorphic
-        # row fetcher used by inheritance.
-        (hosted_mapper, needs_tables) = selectcontext.attributes.get(('polymorphic_fetch', mapper), (None, None))
-
-        if hosted_mapper is None:
-            return (None, None, None)
-        
-        if hosted_mapper.polymorphic_fetch == 'deferred':
-            # 'deferred' polymorphic row fetcher, put a callable on the property.
-            # create a deferred column loader which will query the remaining not-yet-loaded tables in an inheritance load.
-            # the mapper for the object creates the WHERE criterion using the mapper who originally 
-            # "hosted" the query and the list of tables which are unloaded between the "hosted" mapper
-            # and this mapper.  (i.e. A->B->C, the query used mapper A.  therefore will need B's and C's tables
-            # in the query).
-            
-            # deferred loader strategy
-            strategy = self.parent_property._get_strategy(DeferredColumnLoader)
-            
-            # full list of ColumnProperty objects to be loaded in the deferred fetch
-            props = [p.key for p in mapper.iterate_properties if isinstance(p.strategy, ColumnLoader) and p.columns[0].table in needs_tables]
-
-            # TODO: we are somewhat duplicating efforts from mapper._get_poly_select_loader 
-            # and should look for ways to simplify.
-            cond, param_names = mapper._deferred_inheritance_condition(hosted_mapper, needs_tables)
-            statement = sql.select(needs_tables, cond, use_labels=True)
-            def create_statement(instance):
-                params = {}
-                for c in param_names:
-                    params[c.name] = mapper.get_attr_by_column(instance, c)
-                return (statement, params)
-            
+        else:
             def new_execute(instance, row, isnew, **flags):
                 if isnew:
-                    instance._state.set_callable(self.key, strategy.setup_loader(instance, props=props, create_statement=create_statement))
-                    
+                    instance._state.expire_attributes([self.key])
             if self._should_log_debug:
-                self.logger.debug("Returning deferred column fetcher for %s %s" % (mapper, self.key))
-                
+                self.logger.debug("Deferring load for %s %s" % (mapper, self.key))
             return (new_execute, None, None)
-        else:  
-            # immediate polymorphic row fetcher.  no processing needed for this row.
-            if self._should_log_debug:
-                self.logger.debug("Returning no column fetcher for %s %s" % (mapper, self.key))
-            return (None, None, None)
-
 
 ColumnLoader.logger = logging.class_logger(ColumnLoader)
 
@@ -159,7 +120,7 @@ class DeferredColumnLoader(LoaderStrategy):
     def init_class_attribute(self):
         self.is_class_level = True
         self.logger.info("register managed attribute %s on class %s" % (self.key, self.parent.class_.__name__))
-        sessionlib.attribute_manager.register_attribute(self.parent.class_, self.key, uselist=False, useobject=False, callable_=self.setup_loader, copy_function=self.columns[0].type.copy_value, compare_function=self.columns[0].type.compare_values, mutable_scalars=self.columns[0].type.is_mutable(), comparator=self.parent_property.comparator)
+        sessionlib.register_attribute(self.parent.class_, self.key, uselist=False, useobject=False, callable_=self.class_level_loader, copy_function=self.columns[0].type.copy_value, compare_function=self.columns[0].type.compare_values, mutable_scalars=self.columns[0].type.is_mutable(), comparator=self.parent_property.comparator)
 
     def setup_query(self, context, only_load_props=None, **kwargs):
         if \
@@ -167,11 +128,12 @@ class DeferredColumnLoader(LoaderStrategy):
             (only_load_props and self.key in only_load_props):
             
             self.parent_property._get_strategy(ColumnLoader).setup_query(context, **kwargs)
-        
-    def setup_loader(self, instance, props=None, create_statement=None):
-        localparent = mapper.object_mapper(instance, raiseerror=False)
-        if localparent is None:
+    
+    def class_level_loader(self, instance, props=None):
+        if not mapper.has_mapper(instance):
             return None
+            
+        localparent = mapper.object_mapper(instance)
 
         # adjust for the ColumnProperty associated with the instance
         # not being our own ColumnProperty.  This can occur when entity_name
@@ -180,38 +142,66 @@ class DeferredColumnLoader(LoaderStrategy):
         prop = localparent.get_property(self.key)
         if prop is not self.parent_property:
             return prop._get_strategy(DeferredColumnLoader).setup_loader(instance)
-            
-        def lazyload():
-            if not mapper.has_identity(instance):
-                return None
-            
-            if props is not None:
-                group = props
-            elif self.group is not None:
-                group = [p.key for p in localparent.iterate_properties if isinstance(p.strategy, DeferredColumnLoader) and p.group==self.group]
-            else:
-                group = [self.parent_property.key]
-            
-            # narrow the keys down to just those which aren't present on the instance
-            group = [k for k in group if k not in instance.__dict__]
-            
-            if self._should_log_debug:
-                self.logger.debug("deferred load %s group %s" % (mapperutil.attribute_str(instance, self.key), group and ','.join(group) or 'None'))
 
-            session = sessionlib.object_session(instance)
-            if session is None:
-                raise exceptions.InvalidRequestError("Parent instance %s is not bound to a Session; deferred load operation of attribute '%s' cannot proceed" % (instance.__class__, self.key))
-
-            if create_statement is None:
-                ident = instance._instance_key[1]
-                session.query(localparent)._get(None, ident=ident, only_load_props=group, refresh_instance=instance)
-            else:
-                statement, params = create_statement(instance)
-                session.query(localparent).from_statement(statement).params(params)._get(None, only_load_props=group, refresh_instance=instance)
-            return attributes.ATTR_WAS_SET
-        return lazyload
+        return LoadDeferredColumns(instance, self.key, props)
+        
+    def setup_loader(self, instance, props=None, create_statement=None):
+        return LoadDeferredColumns(instance, self.key, props, optimizing_statement=create_statement)
                 
 DeferredColumnLoader.logger = logging.class_logger(DeferredColumnLoader)
+
+class LoadDeferredColumns(object):
+    """callable, serializable loader object used by DeferredColumnLoader"""
+    
+    def __init__(self, instance, key, keys, optimizing_statement=None):
+        self.instance = instance
+        self.key = key
+        self.keys = keys
+        self.optimizing_statement = optimizing_statement
+
+    def __getstate__(self):
+        return {'instance':self.instance, 'key':self.key, 'keys':self.keys}
+    
+    def __setstate__(self, state):
+        self.instance = state['instance']
+        self.key = state['key']
+        self.keys = state['keys']
+        self.optimizing_statement = None
+        
+    def __call__(self):
+        if not mapper.has_identity(self.instance):
+            return None
+            
+        localparent = mapper.object_mapper(self.instance, raiseerror=False)
+        
+        prop = localparent.get_property(self.key)
+        strategy = prop._get_strategy(DeferredColumnLoader)
+
+        if self.keys:
+            toload = self.keys
+        elif strategy.group:
+            toload = [p.key for p in localparent.iterate_properties if isinstance(p.strategy, DeferredColumnLoader) and p.group==strategy.group]
+        else:
+            toload = [self.key]
+
+        # narrow the keys down to just those which have no history
+        group = [k for k in toload if k in self.instance._state.unmodified]
+
+        if strategy._should_log_debug:
+            strategy.logger.debug("deferred load %s group %s" % (mapperutil.attribute_str(self.instance, self.key), group and ','.join(group) or 'None'))
+
+        session = sessionlib.object_session(self.instance)
+        if session is None:
+            raise exceptions.InvalidRequestError("Parent instance %s is not bound to a Session; deferred load operation of attribute '%s' cannot proceed" % (self.instance.__class__, self.key))
+
+        query = session.query(localparent)
+        if not self.optimizing_statement:
+            ident = self.instance._instance_key[1]
+            query._get(None, ident=ident, only_load_props=group, refresh_instance=self.instance._state)
+        else:
+            statement, params = self.optimizing_statement(self.instance)
+            query.from_statement(statement).params(params)._get(None, only_load_props=group, refresh_instance=self.instance._state)
+        return attributes.ATTR_WAS_SET
 
 class DeferredOption(StrategizedOption):
     def __init__(self, key, defer=False):
@@ -245,7 +235,7 @@ class AbstractRelationLoader(LoaderStrategy):
         
     def _register_attribute(self, class_, callable_=None, **kwargs):
         self.logger.info("register managed %s attribute %s on class %s" % ((self.uselist and "list-holding" or "scalar"), self.key, self.parent.class_.__name__))
-        sessionlib.attribute_manager.register_attribute(class_, self.key, uselist=self.uselist, useobject=True, extension=self.attributeext, cascade=self.cascade,  trackparent=True, typecallable=self.parent_property.collection_class, callable_=callable_, comparator=self.parent_property.comparator, **kwargs)
+        sessionlib.register_attribute(class_, self.key, uselist=self.uselist, useobject=True, extension=self.attributeext, cascade=self.cascade,  trackparent=True, typecallable=self.parent_property.collection_class, callable_=callable_, comparator=self.parent_property.comparator, **kwargs)
 
 class DynaLoader(AbstractRelationLoader):
     def init_class_attribute(self):
@@ -275,7 +265,7 @@ NoLoader.logger = logging.class_logger(NoLoader)
 class LazyLoader(AbstractRelationLoader):
     def init(self):
         super(LazyLoader, self).init()
-        (self.lazywhere, self.lazybinds, self.lazyreverse) = self._create_lazy_clause(self)
+        (self.lazywhere, self.lazybinds, self.equated_columns) = self._create_lazy_clause(self)
         
         self.logger.info(str(self.parent_property) + " lazy loading clause " + str(self.lazywhere))
 
@@ -288,89 +278,63 @@ class LazyLoader(AbstractRelationLoader):
 
     def init_class_attribute(self):
         self.is_class_level = True
-        self._register_attribute(self.parent.class_, callable_=lambda i: self.setup_loader(i))
+        self._register_attribute(self.parent.class_, callable_=self.class_level_loader)
 
     def lazy_clause(self, instance, reverse_direction=False):
+        if instance is None:
+            return self._lazy_none_clause(reverse_direction)
+            
         if not reverse_direction:
-            (criterion, lazybinds, rev) = (self.lazywhere, self.lazybinds, self.lazyreverse)
+            (criterion, lazybinds, rev) = (self.lazywhere, self.lazybinds, self.equated_columns)
         else:
             (criterion, lazybinds, rev) = LazyLoader._create_lazy_clause(self.parent_property, reverse_direction=reverse_direction)
         bind_to_col = dict([(lazybinds[col].key, col) for col in lazybinds])
 
-        class Visitor(visitors.ClauseVisitor):
-            def visit_bindparam(s, bindparam):
-                mapper = reverse_direction and self.parent_property.mapper or self.parent_property.parent
-                if bindparam.key in bind_to_col:
-                    bindparam.value = mapper.get_attr_by_column(instance, bind_to_col[bindparam.key])
-        return Visitor().traverse(criterion, clone=True)
+        def visit_bindparam(bindparam):
+            mapper = reverse_direction and self.parent_property.mapper or self.parent_property.parent
+            if bindparam.key in bind_to_col:
+                # use the "committed" (database) version to get query column values
+                bindparam.value = mapper._get_committed_attr_by_column(instance, bind_to_col[bindparam.key])
+        return visitors.traverse(criterion, clone=True, visit_bindparam=visit_bindparam)
     
-    def setup_loader(self, instance, options=None, path=None):
+    def _lazy_none_clause(self, reverse_direction=False):
+        if not reverse_direction:
+            (criterion, lazybinds, rev) = (self.lazywhere, self.lazybinds, self.equated_columns)
+        else:
+            (criterion, lazybinds, rev) = LazyLoader._create_lazy_clause(self.parent_property, reverse_direction=reverse_direction)
+        bind_to_col = dict([(lazybinds[col].key, col) for col in lazybinds])
+
+        def visit_binary(binary):
+            mapper = reverse_direction and self.parent_property.mapper or self.parent_property.parent
+            if isinstance(binary.left, expression._BindParamClause) and binary.left.key in bind_to_col:
+                # reverse order if the NULL is on the left side
+                binary.left = binary.right
+                binary.right = expression.null()
+                binary.operator = operators.is_
+            elif isinstance(binary.right, expression._BindParamClause) and binary.right.key in bind_to_col:
+                binary.right = expression.null()
+                binary.operator = operators.is_
+        
+        return visitors.traverse(criterion, clone=True, visit_binary=visit_binary)
+        
+    def class_level_loader(self, instance, options=None, path=None):
         if not mapper.has_mapper(instance):
             return None
-        else:
-            # adjust for the PropertyLoader associated with the instance
-            # not being our own PropertyLoader.  This can occur when entity_name
-            # mappers are used to map different versions of the same PropertyLoader
-            # to the class.
-            prop = mapper.object_mapper(instance).get_property(self.key)
-            if prop is not self.parent_property:
-                return prop._get_strategy(LazyLoader).setup_loader(instance)
 
-        def lazyload():
-            if self._should_log_debug:
-                self.logger.debug("lazy load attribute %s on instance %s" % (self.key, mapperutil.instance_str(instance)))
+        localparent = mapper.object_mapper(instance)
 
-            if not mapper.has_identity(instance):
-                return None
+        # adjust for the PropertyLoader associated with the instance
+        # not being our own PropertyLoader.  This can occur when entity_name
+        # mappers are used to map different versions of the same PropertyLoader
+        # to the class.
+        prop = localparent.get_property(self.key)
+        if prop is not self.parent_property:
+            return prop._get_strategy(LazyLoader).setup_loader(instance)
+        
+        return LoadLazyAttribute(instance, self.key, options, path)
 
-            session = sessionlib.object_session(instance)
-            if session is None:
-                try:
-                    session = mapper.object_mapper(instance).get_session()
-                except exceptions.InvalidRequestError:
-                    raise exceptions.InvalidRequestError("Parent instance %s is not bound to a Session, and no contextual session is established; lazy load operation of attribute '%s' cannot proceed" % (instance.__class__, self.key))
-
-            # if we have a simple straight-primary key load, use mapper.get()
-            # to possibly save a DB round trip
-            q = session.query(self.mapper).autoflush(False)
-            if path:
-                q = q._with_current_path(path)
-            if self.use_get:
-                params = {}
-                for col, bind in self.lazybinds.iteritems():
-                    params[bind.key] = self.parent.get_attr_by_column(instance, col)
-                ident = []
-                nonnulls = False
-                for primary_key in self.select_mapper.primary_key: 
-                    bind = self.lazyreverse[primary_key]
-                    v = params[bind.key]
-                    if v is not None:
-                        nonnulls = True
-                    ident.append(v)
-                if not nonnulls:
-                    return None
-                if options:
-                    q = q.options(*options)
-                return q.get(ident)
-            elif self.order_by is not False:
-                q = q.order_by(self.order_by)
-            elif self.secondary is not None and self.secondary.default_order_by() is not None:
-                q = q.order_by(self.secondary.default_order_by())
-
-            if options:
-                q = q.options(*options)
-            q = q.filter(self.lazy_clause(instance))
-
-            result = q.all()
-            if self.uselist:
-                return result
-            else:
-                if result:
-                    return result[0]
-                else:
-                    return None
-
-        return lazyload
+    def setup_loader(self, instance, options=None, path=None):
+        return LoadLazyAttribute(instance, self.key, options, path)
 
     def create_row_processor(self, selectcontext, mapper, row):
         if not self.is_class_level or len(selectcontext.options):
@@ -399,7 +363,7 @@ class LazyLoader(AbstractRelationLoader):
         (primaryjoin, secondaryjoin, remote_side) = (prop.polymorphic_primaryjoin, prop.polymorphic_secondaryjoin, prop.remote_side)
         
         binds = {}
-        reverse = {}
+        equated_columns = {}
 
         def should_bind(targetcol, othercol):
             if reverse_direction and not secondaryjoin:
@@ -407,51 +371,112 @@ class LazyLoader(AbstractRelationLoader):
             else:
                 return othercol in remote_side
 
-        def find_column_in_expr(expr):
-            if not isinstance(expr, sql.ColumnElement):
-                return None
-            columns = []
-            class FindColumnInColumnClause(visitors.ClauseVisitor):
-                def visit_column(self, c):
-                    columns.append(c)
-            FindColumnInColumnClause().traverse(expr)
-            return len(columns) and columns[0] or None
-        
         def visit_binary(binary):
-            leftcol = find_column_in_expr(binary.left)
-            rightcol = find_column_in_expr(binary.right)
-            if leftcol is None or rightcol is None:
+            if not isinstance(binary.left, sql.ColumnElement) or not isinstance(binary.right, sql.ColumnElement):
                 return
-            
+            leftcol = binary.left
+            rightcol = binary.right
+
+            equated_columns[rightcol] = leftcol
+            equated_columns[leftcol] = rightcol
+
             if should_bind(leftcol, rightcol):
-                col = leftcol
-                binary.left = binds.setdefault(leftcol,
-                        sql.bindparam(None, None, type_=binary.right.type, unique=True))
-                reverse[rightcol] = binds[col]
+                binary.left = binds[leftcol] = sql.bindparam(None, None, type_=binary.right.type)
 
             # the "left is not right" compare is to handle part of a join clause that is "table.c.col1==table.c.col1",
             # which can happen in rare cases (test/orm/relationships.py RelationTest2)
             if leftcol is not rightcol and should_bind(rightcol, leftcol):
-                col = rightcol
-                binary.right = binds.setdefault(rightcol,
-                        sql.bindparam(None, None, type_=binary.left.type, unique=True))
-                reverse[leftcol] = binds[col]
+                binary.right = binds[rightcol] = sql.bindparam(None, None, type_=binary.left.type)
 
         lazywhere = primaryjoin
-        li = mapperutil.BinaryVisitor(visit_binary)
         
         if not secondaryjoin or not reverse_direction:
-            lazywhere = li.traverse(lazywhere, clone=True)
+            lazywhere = visitors.traverse(lazywhere, clone=True, visit_binary=visit_binary)
         
         if secondaryjoin is not None:
             if reverse_direction:
-                secondaryjoin = li.traverse(secondaryjoin, clone=True)
+                secondaryjoin = visitors.traverse(secondaryjoin, clone=True, visit_binary=visit_binary)
             lazywhere = sql.and_(lazywhere, secondaryjoin)
-        return (lazywhere, binds, reverse)
+        return (lazywhere, binds, equated_columns)
     _create_lazy_clause = classmethod(_create_lazy_clause)
     
 LazyLoader.logger = logging.class_logger(LazyLoader)
 
+class LoadLazyAttribute(object):
+    """callable, serializable loader object used by LazyLoader"""
+
+    def __init__(self, instance, key, options, path):
+        self.instance = instance
+        self.key = key
+        self.options = options
+        self.path = path
+        
+    def __getstate__(self):
+        return {'instance':self.instance, 'key':self.key, 'options':self.options, 'path':serialize_path(self.path)}
+
+    def __setstate__(self, state):
+        self.instance = state['instance']
+        self.key = state['key']
+        self.options= state['options']
+        self.path = deserialize_path(state['path'])
+        
+    def __call__(self):
+        instance = self.instance
+        
+        if not mapper.has_identity(instance):
+            return None
+
+        instance_mapper = mapper.object_mapper(instance)
+        prop = instance_mapper.get_property(self.key)
+        strategy = prop._get_strategy(LazyLoader)
+        
+        if strategy._should_log_debug:
+            strategy.logger.debug("lazy load attribute %s on instance %s" % (self.key, mapperutil.instance_str(instance)))
+
+        session = sessionlib.object_session(instance)
+        if session is None:
+            try:
+                session = instance_mapper.get_session()
+            except exceptions.InvalidRequestError:
+                raise exceptions.InvalidRequestError("Parent instance %s is not bound to a Session, and no contextual session is established; lazy load operation of attribute '%s' cannot proceed" % (instance.__class__, self.key))
+
+        q = session.query(prop.mapper).autoflush(False)
+        if self.path:
+            q = q._with_current_path(self.path)
+            
+        # if we have a simple primary key load, use mapper.get()
+        # to possibly save a DB round trip
+        if strategy.use_get:
+            ident = []
+            allnulls = True
+            for primary_key in prop.select_mapper.primary_key: 
+                val = instance_mapper._get_committed_attr_by_column(instance, strategy.equated_columns[primary_key])
+                allnulls = allnulls and val is None
+                ident.append(val)
+            if allnulls:
+                return None
+            if self.options:
+                q = q._conditional_options(*self.options)
+            return q.get(ident)
+            
+        if strategy.order_by is not False:
+            q = q.order_by(strategy.order_by)
+        elif strategy.secondary is not None and strategy.secondary.default_order_by() is not None:
+            q = q.order_by(strategy.secondary.default_order_by())
+
+        if self.options:
+            q = q._conditional_options(*self.options)
+        q = q.filter(strategy.lazy_clause(instance))
+
+        result = q.all()
+        if strategy.uselist:
+            return result
+        else:
+            if result:
+                return result[0]
+            else:
+                return None
+        
 
 class EagerLoader(AbstractRelationLoader):
     """Loads related objects inline with a parent query."""
@@ -493,24 +518,11 @@ class EagerLoader(AbstractRelationLoader):
         
         if context.eager_joins:
             towrap = context.eager_joins
-        elif isinstance(localparent.mapped_table, sql.Join):
-            towrap = localparent.mapped_table
         else:
-            # look for the mapper's selectable expressed within the current "from" criterion.
-            # this will locate the selectable inside of any containers it may be a part of (such
-            # as a join).  if its inside of a join, we want to outer join on that join, not the 
-            # selectable.
-            # TODO: slightly hacky way to get at all the froms
-            for fromclause in sql.select(from_obj=context.from_clauses).froms:
-                if fromclause is localparent.mapped_table:
-                    towrap = fromclause
-                    break
-                elif isinstance(fromclause, sql.Join):
-                    if localparent.mapped_table in sql_util.TableFinder(fromclause, include_aliases=True):
-                        towrap = fromclause
-                        break
+            if isinstance(context.from_clause, sql.Join):
+                towrap = context.from_clause
             else:
-                raise exceptions.InvalidRequestError("EagerLoader cannot locate a clause with which to outer join onto, for mapped table %s" % (localparent.mapped_table))
+                towrap = localparent.mapped_table
         
         # create AliasedClauses object to build up the eager query.  this is cached after 1st creation.    
         try:
@@ -602,21 +614,24 @@ class EagerLoader(AbstractRelationLoader):
                         # so that we further descend into properties
                         self.select_mapper._instance(selectcontext, decorated_row, None)
                 else:
-                    if isnew:
+                    if isnew or self.key not in instance._state.appenders:
+                        # appender_key can be absent from selectcontext.attributes with isnew=False
+                        # when self-referential eager loading is used; the same instance may be present
+                        # in two distinct sets of result columns
+                        
                         if self._should_log_debug:
                             self.logger.debug("initialize UniqueAppender on %s" % mapperutil.attribute_str(instance, self.key))
 
-                        collection = sessionlib.attribute_manager.init_collection(instance, self.key)
+                        collection = attributes.init_collection(instance, self.key)
                         appender = util.UniqueAppender(collection, 'append_without_event')
 
-                        # store it in the "scratch" area, which is local to this load operation.
-                        selectcontext.attributes[('appender', id(instance), self.key)] = appender
-                    result_list = selectcontext.attributes[('appender', id(instance), self.key)]
+                        instance._state.appenders[self.key] = appender
+                    
+                    result_list = instance._state.appenders[self.key]
                     if self._should_log_debug:
                         self.logger.debug("eagerload list instance on %s" % mapperutil.attribute_str(instance, self.key))
-                        
-                    self.select_mapper._instance(selectcontext, decorated_row, result_list)
 
+                    self.select_mapper._instance(selectcontext, decorated_row, result_list)
 
             if self._should_log_debug:
                 self.logger.debug("Returning eager instance loader for %s" % str(self))
@@ -626,16 +641,15 @@ class EagerLoader(AbstractRelationLoader):
             if self._should_log_debug:
                 self.logger.debug("eager loader %s degrading to lazy loader" % str(self))
             return self.parent_property._get_strategy(LazyLoader).create_row_processor(selectcontext, mapper, row)
-        
-            
+
     def __str__(self):
         return str(self.parent) + "." + self.key
         
 EagerLoader.logger = logging.class_logger(EagerLoader)
 
 class EagerLazyOption(StrategizedOption):
-    def __init__(self, key, lazy=True, chained=False):
-        super(EagerLazyOption, self).__init__(key)
+    def __init__(self, key, lazy=True, chained=False, mapper=None):
+        super(EagerLazyOption, self).__init__(key, mapper)
         self.lazy = lazy
         self.chained = chained
         

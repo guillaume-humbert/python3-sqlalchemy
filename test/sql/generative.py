@@ -218,13 +218,33 @@ class ClauseTest(SQLCompileTest):
             def visit_binary(self, binary):
                 if binary.left is t1.c.col3:
                     binary.left = t1.c.col1
-                    binary.right = bindparam("table1_col1")
+                    binary.right = bindparam("table1_col1", unique=True)
         s5 = Vis().traverse(s4, clone=True)
         print str(s4)
         print str(s5)
         assert str(s5) == s5_assert
         assert str(s4) == s4_assert
+    
+    def test_binds(self):
+        """test that unique bindparams change their name upon clone() to prevent conflicts"""
+        
+        s = select([t1], t1.c.col1==bindparam(None, unique=True)).alias()
+        s2 = ClauseVisitor().traverse(s, clone=True).alias()
+        s3 = select([s], s.c.col2==s2.c.col2)
 
+        self.assert_compile(s3, "SELECT anon_1.col1, anon_1.col2, anon_1.col3 FROM (SELECT table1.col1 AS col1, table1.col2 AS col2, "\
+        "table1.col3 AS col3 FROM table1 WHERE table1.col1 = :param_1) AS anon_1, "\
+        "(SELECT table1.col1 AS col1, table1.col2 AS col2, table1.col3 AS col3 FROM table1 WHERE table1.col1 = :param_2) AS anon_2 "\
+        "WHERE anon_1.col2 = anon_2.col2")
+        
+        s = select([t1], t1.c.col1==4).alias()
+        s2 = ClauseVisitor().traverse(s, clone=True).alias()
+        s3 = select([s], s.c.col2==s2.c.col2)
+        self.assert_compile(s3, "SELECT anon_1.col1, anon_1.col2, anon_1.col3 FROM (SELECT table1.col1 AS col1, table1.col2 AS col2, "\
+        "table1.col3 AS col3 FROM table1 WHERE table1.col1 = :table1_col1_1) AS anon_1, "\
+        "(SELECT table1.col1 AS col1, table1.col2 AS col2, table1.col3 AS col3 FROM table1 WHERE table1.col1 = :table1_col1_2) AS anon_2 "\
+        "WHERE anon_1.col2 = anon_2.col2")
+        
     def test_alias(self):
         subq = t2.select().alias('subq')
         s = select([t1.c.col1, subq.c.col1], from_obj=[t1, subq, t1.join(subq, t1.c.col1==subq.c.col2)])
@@ -247,9 +267,24 @@ class ClauseTest(SQLCompileTest):
             def visit_select(self, select):
                 select.append_whereclause(t1.c.col2==7)
                 
-        self.assert_compile(Vis().traverse(s, clone=True), "SELECT * FROM table1 WHERE table1.col1 = table2.col1 AND table1.col2 = :table1_col2")
+        self.assert_compile(Vis().traverse(s, clone=True), "SELECT * FROM table1 WHERE table1.col1 = table2.col1 AND table1.col2 = :table1_col2_1")
 
-    def test_clause_adapter(self):
+class ClauseAdapterTest(SQLCompileTest):
+    def setUpAll(self):
+        global t1, t2
+        t1 = table("table1", 
+            column("col1"),
+            column("col2"),
+            column("col3"),
+            )
+        t2 = table("table2", 
+            column("col1"),
+            column("col2"),
+            column("col3"),
+            )
+            
+
+    def test_table_to_alias(self):
         
         t1alias = t1.alias('t1alias')
         
@@ -282,7 +317,7 @@ class ClauseTest(SQLCompileTest):
         self.assert_compile(vis.traverse(select(['*'], t1.c.col1==t2.c.col2, from_obj=[t1, t2]).correlate(t1), clone=True), "SELECT * FROM table2 AS t2alias WHERE t1alias.col1 = t2alias.col2")
         self.assert_compile(vis.traverse(select(['*'], t1.c.col1==t2.c.col2, from_obj=[t1, t2]).correlate(t2), clone=True), "SELECT * FROM table1 AS t1alias WHERE t1alias.col1 = t2alias.col2")
     
-    def test_selfreferential(self):
+    def test_include_exclude(self):
         m = MetaData()
         a=Table( 'a',m,
           Column( 'id',    Integer, primary_key=True),
@@ -299,10 +334,7 @@ class ClauseTest(SQLCompileTest):
         
         assert str(e) == "a_1.id = a.xxx_id"
 
-    def test_joins(self):
-        """test that ClauseAdapter can target a Join object, replace it, and not dig into the sub-joins after
-        replacing."""
-        
+    def test_join_to_alias(self):
         metadata = MetaData()
         a = Table('a', metadata,
             Column('id', Integer, primary_key=True))
@@ -339,6 +371,42 @@ class ClauseTest(SQLCompileTest):
                                 "c JOIN (SELECT a.id AS a_id, b.id AS b_id, b.aid AS b_aid FROM a LEFT OUTER JOIN b ON a.id = b.aid) "
                                 "ON b_id = c.bid) AS foo"
                                 " LEFT OUTER JOIN d ON foo.a_id = d.aid")
+    
+    def test_derived_from(self):
+        assert select([t1]).is_derived_from(t1)
+        assert not select([t2]).is_derived_from(t1)
+        assert not t1.is_derived_from(select([t1]))
+        assert t1.alias().is_derived_from(t1)
+        
+        
+        s1 = select([t1, t2]).alias('foo')
+        s2 = select([s1]).limit(5).offset(10).alias()
+        assert s2.is_derived_from(s1)
+        s2 = s2._clone()
+        assert s2.is_derived_from(s1)
+        
+    def test_aliasedselect_to_aliasedselect(self):
+        # original issue from ticket #904
+        s1 = select([t1]).alias('foo')
+        s2 = select([s1]).limit(5).offset(10).alias()
+
+        self.assert_compile(sql_util.ClauseAdapter(s2).traverse(s1), 
+            "SELECT foo.col1, foo.col2, foo.col3 FROM (SELECT table1.col1 AS col1, table1.col2 AS col2, table1.col3 AS col3 FROM table1) AS foo  LIMIT 5 OFFSET 10")
+        
+        j = s1.outerjoin(t2, s1.c.col1==t2.c.col1)
+        self.assert_compile(sql_util.ClauseAdapter(s2).traverse(j).select(), 
+            "SELECT anon_1.col1, anon_1.col2, anon_1.col3, table2.col1, table2.col2, table2.col3 FROM "\
+            "(SELECT foo.col1 AS col1, foo.col2 AS col2, foo.col3 AS col3 FROM "\
+            "(SELECT table1.col1 AS col1, table1.col2 AS col2, table1.col3 AS col3 FROM table1) AS foo  LIMIT 5 OFFSET 10) AS anon_1 "\
+            "LEFT OUTER JOIN table2 ON anon_1.col1 = table2.col1")
+
+        talias = t1.alias('bar')
+        j = s1.outerjoin(talias, s1.c.col1==talias.c.col1)
+        self.assert_compile(sql_util.ClauseAdapter(s2).traverse(j).select(), 
+            "SELECT anon_1.col1, anon_1.col2, anon_1.col3, bar.col1, bar.col2, bar.col3 FROM "\
+            "(SELECT foo.col1 AS col1, foo.col2 AS col2, foo.col3 AS col3 FROM "\
+            "(SELECT table1.col1 AS col1, table1.col2 AS col2, table1.col3 AS col3 FROM table1) AS foo  LIMIT 5 OFFSET 10) AS anon_1 "\
+            "LEFT OUTER JOIN table1 AS bar ON anon_1.col1 = bar.col1")
         
         
 class SelectTest(SQLCompileTest):
@@ -358,13 +426,18 @@ class SelectTest(SQLCompileTest):
             )
     
     def test_select(self):
-        self.assert_compile(t1.select().where(t1.c.col1==5).order_by(t1.c.col3), "SELECT table1.col1, table1.col2, table1.col3 FROM table1 WHERE table1.col1 = :table1_col1 ORDER BY table1.col3")
+        self.assert_compile(t1.select().where(t1.c.col1==5).order_by(t1.c.col3), 
+        "SELECT table1.col1, table1.col2, table1.col3 FROM table1 WHERE table1.col1 = :table1_col1_1 ORDER BY table1.col3")
     
-        self.assert_compile(t1.select().select_from(select([t2], t2.c.col1==t1.c.col1)).order_by(t1.c.col3), "SELECT table1.col1, table1.col2, table1.col3 FROM table1, (SELECT table2.col1 AS col1, table2.col2 AS col2, table2.col3 AS col3 FROM table2 WHERE table2.col1 = table1.col1) ORDER BY table1.col3")
+        self.assert_compile(t1.select().select_from(select([t2], t2.c.col1==t1.c.col1)).order_by(t1.c.col3), 
+            "SELECT table1.col1, table1.col2, table1.col3 FROM table1, (SELECT table2.col1 AS col1, table2.col2 AS col2, table2.col3 AS col3 "\
+            "FROM table2 WHERE table2.col1 = table1.col1) ORDER BY table1.col3")
         
         s = select([t2], t2.c.col1==t1.c.col1, correlate=False)
         s = s.correlate(t1).order_by(t2.c.col3)
-        self.assert_compile(t1.select().select_from(s).order_by(t1.c.col3), "SELECT table1.col1, table1.col2, table1.col3 FROM table1, (SELECT table2.col1 AS col1, table2.col2 AS col2, table2.col3 AS col3 FROM table2 WHERE table2.col1 = table1.col1 ORDER BY table2.col3) ORDER BY table1.col3")
+        self.assert_compile(t1.select().select_from(s).order_by(t1.c.col3), 
+            "SELECT table1.col1, table1.col2, table1.col3 FROM table1, (SELECT table2.col1 AS col1, table2.col2 AS col2, table2.col3 AS col3 "\
+            "FROM table2 WHERE table2.col1 = table1.col1 ORDER BY table2.col3) ORDER BY table1.col3")
 
     def test_columns(self):
         s = t1.select()

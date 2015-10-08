@@ -1,27 +1,28 @@
 # mapper/__init__.py
-# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 """
-The mapper package provides object-relational functionality, building upon
-the schema and sql packages and tying operations to class properties and
-constructors.
+Functional constructs for ORM configuration.
+
+See the SQLAlchemy object relational tutorial and mapper configuration 
+documentation for an overview of how this module is used.
 """
 
 from sqlalchemy import util as sautil
-from sqlalchemy.orm.mapper import Mapper, object_mapper, class_mapper, mapper_registry
-from sqlalchemy.orm.interfaces import SynonymProperty, MapperExtension, EXT_CONTINUE, EXT_STOP, EXT_PASS, ExtensionOption, PropComparator
-from sqlalchemy.orm.properties import PropertyLoader, ColumnProperty, CompositeProperty, BackRef
+from sqlalchemy.orm.mapper import Mapper, object_mapper, class_mapper, _mapper_registry
+from sqlalchemy.orm.interfaces import MapperExtension, EXT_CONTINUE, EXT_STOP, EXT_PASS, ExtensionOption, PropComparator
+from sqlalchemy.orm.properties import SynonymProperty, PropertyLoader, ColumnProperty, CompositeProperty, BackRef
 from sqlalchemy.orm import mapper as mapperlib
 from sqlalchemy.orm import strategies
 from sqlalchemy.orm.query import Query
 from sqlalchemy.orm.util import polymorphic_union, create_row_adapter
 from sqlalchemy.orm.session import Session as _Session
-from sqlalchemy.orm.session import object_session, attribute_manager, sessionmaker
+from sqlalchemy.orm.session import object_session, sessionmaker
 from sqlalchemy.orm.scoping import ScopedSession
-
+from itertools import chain
 
 __all__ = [ 'relation', 'column_property', 'composite', 'backref', 'eagerload',
             'eagerload_all', 'lazyload', 'noload', 'deferred', 'defer',
@@ -170,7 +171,8 @@ def relation(argument, secondary=None, **kwargs):
           indicates the ordering that should be applied when loading these items.
 
         passive_deletes=False
-          Indicates the behavior of delete operations. 
+          Indicates loading behavior during delete operations. 
+          
           A value of True indicates that unloaded child items should not be loaded
           during a delete operation on the parent.  Normally, when a parent
           item is deleted, all child items are loaded so that they can either be
@@ -185,7 +187,29 @@ def relation(argument, secondary=None, **kwargs):
           or error raise scenario is in place on the database side.  Note that
           the foreign key attributes on in-session child objects will not be changed
           after a flush occurs so this is a very special use-case setting.
-
+         
+        passive_updates=True
+          Indicates loading and INSERT/UPDATE/DELETE behavior when the source
+          of a foreign key value changes (i.e. an "on update" cascade), which are
+          typically the primary key columns of the source row.
+          
+          When True, it is assumed that ON UPDATE CASCADE is configured on the
+          foreign key in the database, and that the database will handle propagation of an
+          UPDATE from a source column to dependent rows.  Note that with databases
+          which enforce referential integrity (ie. Postgres, MySQL with InnoDB tables),
+          ON UPDATE CASCADE is required for this operation.  The relation() will 
+          update the value of the attribute on related items which are locally present
+          in the session during a flush.
+          
+          When False, it is assumed that the database does not enforce referential
+          integrity and will not be issuing its own CASCADE operation for an update.
+          The relation() will issue the appropriate UPDATE statements to the database
+          in response to the change of a referenced key, and items locally present
+          in the session during a flush will also be refreshed.  
+          
+          This flag should probably be set to False if primary key changes are expected
+          and the database in use doesn't support CASCADE (i.e. SQLite, MySQL MyISAM tables).
+          
         post_update
           this indicates that the relationship should be handled by a second
           UPDATE statement after an INSERT or before a DELETE. Currently, it also
@@ -245,7 +269,8 @@ def relation(argument, secondary=None, **kwargs):
     return PropertyLoader(argument, secondary=secondary, **kwargs)
 
 def dynamic_loader(argument, secondary=None, primaryjoin=None, secondaryjoin=None, entity_name=None, 
-    foreign_keys=None, backref=None, post_update=False, cascade=None, remote_side=None, enable_typechecks=True):
+    foreign_keys=None, backref=None, post_update=False, cascade=None, remote_side=None, enable_typechecks=True,
+    passive_deletes=False):
     """construct a dynamically-loading mapper property.
     
     This property is similar to relation(), except read operations
@@ -263,6 +288,7 @@ def dynamic_loader(argument, secondary=None, primaryjoin=None, secondaryjoin=Non
     return PropertyLoader(argument, secondary=secondary, primaryjoin=primaryjoin, 
             secondaryjoin=secondaryjoin, entity_name=entity_name, foreign_keys=foreign_keys, backref=backref, 
             post_update=post_update, cascade=cascade, remote_side=remote_side, enable_typechecks=enable_typechecks, 
+            passive_deletes=passive_deletes,
             strategy_class=DynaLoader)
 
 #def _relation_loader(mapper, secondary=None, primaryjoin=None, secondaryjoin=None, lazy=True, **kwargs):
@@ -517,13 +543,49 @@ def mapper(class_, local_table=None, *args, **params):
 
     return Mapper(class_, local_table, *args, **params)
 
-def synonym(name, proxy=False):
-    """Set up `name` as a synonym to another ``MapperProperty``.
+def synonym(name, map_column=False, proxy=False):
+    """Set up `name` as a synonym to another mapped property.
 
-    Used with the `properties` dictionary sent to ``mapper()``.
+    Used with the ``properties`` dictionary sent to  [sqlalchemy.orm#mapper()].
+    
+    Any existing attributes on the class which map the key name sent
+    to the ``properties`` dictionary will be used by the synonym to 
+    provide instance-attribute behavior (that is, any Python property object,
+    provided by the ``property`` builtin or providing a ``__get__()``, 
+    ``__set__()`` and ``__del__()`` method).  If no name exists for the key,
+    the ``synonym()`` creates a default getter/setter object automatically
+    and applies it to the class.
+    
+    `name` refers to the name of the existing mapped property, which
+    can be any other ``MapperProperty`` including column-based
+    properties and relations.
+    
+    if `map_column` is ``True``, an additional ``ColumnProperty``
+    is created on the mapper automatically, using the synonym's 
+    name as the keyname of the property, and the keyname of this ``synonym()``
+    as the name of the column to map.  For example, if a table has a column
+    named ``status``::
+    
+        class MyClass(object):
+            def _get_status(self):
+                return self._status
+            def _set_status(self, value):
+                self._status = value
+            status = property(_get_status, _set_status)
+            
+        mapper(MyClass, sometable, properties={
+            "status":synonym("_status", map_column=True)
+        })
+        
+    The column named ``status`` will be mapped to the attribute named ``_status``, 
+    and the ``status`` attribute on ``MyClass`` will be used to proxy access to the
+    column-based attribute.
+    
+    The `proxy` keyword argument is deprecated and currently does nothing; synonyms 
+    now always establish an attribute getter/setter funciton if one is not already available.
     """
 
-    return SynonymProperty(name, proxy=proxy)
+    return SynonymProperty(name, map_column=map_column)
 
 def compile_mappers():
     """Compile all mappers that have been defined.
@@ -531,9 +593,8 @@ def compile_mappers():
     This is equivalent to calling ``compile()`` on any individual mapper.
     """
 
-    if not mapper_registry:
-        return
-    mapper_registry.values()[0].compile()
+    for m in list(_mapper_registry):
+        m.compile()
 
 def clear_mappers():
     """Remove all mappers that have been created thus far.
@@ -543,12 +604,8 @@ def clear_mappers():
     """
     mapperlib._COMPILE_MUTEX.acquire()
     try:
-        for mapper in mapper_registry.values():
+        for mapper in list(_mapper_registry):
             mapper.dispose()
-        mapper_registry.clear()
-        mapperlib.ClassKey.dispose(mapperlib.ClassKey)
-        from sqlalchemy.orm import dependency
-        dependency.MapperStub.dispose(dependency.MapperStub)
     finally:
         mapperlib._COMPILE_MUTEX.release()
         
@@ -562,15 +619,15 @@ def extension(ext):
 
     return ExtensionOption(ext)
 
-def eagerload(name):
+def eagerload(name, mapper=None):
     """Return a ``MapperOption`` that will convert the property of the given name into an eager load.
 
     Used with ``query.options()``.
     """
 
-    return strategies.EagerLazyOption(name, lazy=False)
+    return strategies.EagerLazyOption(name, lazy=False, mapper=mapper)
 
-def eagerload_all(name):
+def eagerload_all(name, mapper=None):
     """Return a ``MapperOption`` that will convert all properties along the given dot-separated path into an eager load.
     
     For example, this::
@@ -583,16 +640,16 @@ def eagerload_all(name):
     Used with ``query.options()``.
     """
 
-    return strategies.EagerLazyOption(name, lazy=False, chained=True)
+    return strategies.EagerLazyOption(name, lazy=False, chained=True, mapper=mapper)
 
-def lazyload(name):
+def lazyload(name, mapper=None):
     """Return a ``MapperOption`` that will convert the property of the
     given name into a lazy load.
 
     Used with ``query.options()``.
     """
 
-    return strategies.EagerLazyOption(name, lazy=True)
+    return strategies.EagerLazyOption(name, lazy=True, mapper=mapper)
 
 def fetchmode(name, type):
     return strategies.FetchModeOption(name, type)

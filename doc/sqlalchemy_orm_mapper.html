@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
+<div class="versionheader">Version: 0.4.2   Last Updated: 01/01/08 20:56:05</div>
 
 
 
@@ -100,6 +100,11 @@
     <h3>module sqlalchemy.orm.mapper</h3>
     
     
+    <div class="darkcell"><p>Defines the <a href="sqlalchemy_orm_mapper.html#docstrings_sqlalchemy.orm.mapper_Mapper">Mapper</a> class, the central configurational
+unit which associates a class with a database table.</p>
+<p>This is a semi-private module; the main configurational API of the ORM is
+avaiable in <a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm">module sqlalchemy.orm</a>.</p>
+</div>
     
 
         
@@ -167,7 +172,7 @@ be located.  If False, return None.</dd>
     <div class="darkcell"><p>Define the correlation of class attributes to database table
 columns.</p>
 <p>Instances of this class should be constructed via the
-<tt class="docutils literal"><span class="pre">sqlalchemy.orm.mapper()</span></tt> function.</p>
+<a href="sqlalchemy_orm.html#docstrings_sqlalchemy.orm_modfunc_mapper">mapper()</a> function.</p>
 </div>
     
 
@@ -215,56 +220,23 @@ the given MapperProperty is compiled immediately.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def canload(<i>self</i>, <i>instance</i>)</b>
+    <b>def cascade_iterator(<i>self</i>, <i>type</i>, <i>state</i>, <i>recursive=None</i>, <i>halt_on=None</i>)</b>
     <div class="docstring">
-    <p>return true if this mapper is capable of loading the given instance</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def cascade_callable(<i>self</i>, <i>type</i>, <i>object</i>, <i>callable_</i>, <i>recursive=None</i>, <i>halt_on=None</i>)</b>
-    <div class="docstring">
-    <p>Execute a callable for each element in an object graph, for
-all relations that meet the given cascade rule.</p>
-<dl class="docutils">
-<dt>type</dt>
-<dd>The name of the cascade rule (i.e. save-update, delete, etc.)</dd>
-<dt>object</dt>
-<dd>The lead object instance.  child items will be processed per
-the relations defined for this object's mapper.</dd>
-<dt>callable_</dt>
-<dd>The callable function.</dd>
-<dt>recursive</dt>
-<dd>Used by the function for internal context during recursive
-calls, leave as None.</dd>
-</dl>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def cascade_iterator(<i>self</i>, <i>type</i>, <i>object</i>, <i>recursive=None</i>, <i>halt_on=None</i>)</b>
-    <div class="docstring">
-    <p>Iterate each element in an object graph, for all relations
-taht meet the given cascade rule.</p>
+    <p>Iterate each element and its mapper in an object graph,
+for all relations that meet the given cascade rule.</p>
 <dl class="docutils">
 <dt>type</dt>
 <dd>The name of the cascade rule (i.e. save-update, delete,
 etc.)</dd>
-<dt>object</dt>
-<dd>The lead object instance.  child items will be processed per
+<dt>state</dt>
+<dd>The lead InstanceState.  child items will be processed per
 the relations defined for this object's mapper.</dd>
 <dt>recursive</dt>
 <dd>Used by the function for internal context during recursive
 calls, leave as None.</dd>
 </dl>
+<p>the return value are object instances; this provides a strong
+reference so that they don't fall out of scope immediately.</p>
 
     </div>
     </div>
@@ -292,17 +264,14 @@ calls, leave as None.</dd>
     </div>
 
                     
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def delete_obj(<i>self</i>, <i>objects</i>, <i>uowtransaction</i>)</b>
-    <div class="docstring">
-    <p>Issue <tt class="docutils literal"><span class="pre">DELETE</span></tt> statements for a list of objects.</p>
-<p>This is called within the context of a UOWTransaction during a
-flush operation.</p>
+         <div class="darkcell">
+         <A name=""></a>
+         <b>compiled = property()</b>
+         <div class="docstring">
+         <p>return True if this mapper is compiled</p>
 
-    </div>
-    </div>
+         </div> 
+         </div>
 
                     
     <div class="darkcell">
@@ -318,20 +287,9 @@ flush operation.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_attr_by_column(<i>self</i>, <i>obj</i>, <i>column</i>, <i>raiseerror=True</i>)</b>
-    <div class="docstring">
-    <p>Return an instance attribute using a Column as the key.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def get_property(<i>self</i>, <i>key</i>, <i>resolve_synonyms=False</i>, <i>raiseerr=True</i>)</b>
     <div class="docstring">
-    <p>return MapperProperty with the given key.</p>
+    <p>return a MapperProperty associated with the given key.</p>
 
     </div>
     </div>
@@ -359,18 +317,6 @@ select_table argument was specified for this mapper.</p>
 extension chain, if any.</p>
 <p>Raise <tt class="docutils literal"><span class="pre">InvalidRequestError</span></tt> if a session cannot be retrieved
 from the extension chain.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def has_eager(<i>self</i>)</b>
-    <div class="docstring">
-    <p>Return True if one of the properties attached to this
-Mapper is eager loading.</p>
 
     </div>
     </div>
@@ -427,23 +373,11 @@ instances to their values within a row.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def instances(<i>self</i>, <i>cursor</i>, <i>session</i>, <i>*mappers</i>, <i>**kwargs</i>)</b>
+    <b>def instances(<i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Return a list of mapped instances corresponding to the rows
 in a given ResultProxy.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def is_assigned(<i>self</i>, <i>instance</i>)</b>
-    <div class="docstring">
-    <p>Return True if this mapper handles the given instance.</p>
-<p>This is dependent not only on class assignment but the
-optional <cite>entity_name</cite> parameter as well.</p>
+<p>DEPRECATED.</p>
 
     </div>
     </div>
@@ -537,50 +471,6 @@ instance.</p>
          
          </div> 
          </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def register_dependencies(<i>self</i>, <i>uowcommit</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    <p>Register <tt class="docutils literal"><span class="pre">DependencyProcessor</span></tt> instances with a
-<tt class="docutils literal"><span class="pre">unitofwork.UOWTransaction</span></tt>.</p>
-<p>This call <cite>register_dependencies</cite> on all attached
-<tt class="docutils literal"><span class="pre">MapperProperty</span></tt> instances.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def save_obj(<i>self</i>, <i>objects</i>, <i>uowtransaction</i>, <i>postupdate=False</i>, <i>post_update_cols=None</i>, <i>single=False</i>)</b>
-    <div class="docstring">
-    <p>Issue <tt class="docutils literal"><span class="pre">INSERT</span></tt> and/or <tt class="docutils literal"><span class="pre">UPDATE</span></tt> statements for a list of objects.</p>
-<p>This is called within the context of a UOWTransaction during a
-flush operation.</p>
-<p><cite>save_obj</cite> issues SQL statements not just for instances mapped
-directly by this mapper, but for instances mapped by all
-inheriting mappers as well.  This is to maintain proper insert
-ordering among a polymorphic chain of instances. Therefore
-save_obj is typically called only on a <em>base mapper</em>, or a
-mapper which does not inherit from any other mapper.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def set_attr_by_column(<i>self</i>, <i>obj</i>, <i>column</i>, <i>value</i>)</b>
-    <div class="docstring">
-    <p>Set the value of an instance attribute using a Column as the key.</p>
-
-    </div>
-    </div>
 
                     
     <div class="darkcell">

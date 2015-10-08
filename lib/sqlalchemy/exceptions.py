@@ -1,9 +1,12 @@
 # exceptions.py - exceptions for SQLAlchemy
-# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
+"""Exceptions used with SQLAlchemy.
 
+The base exception class is SQLAlchemyError.  Exceptions which are raised as a result
+of DBAPI exceptions are all subclasses of [sqlalchemy.exceptions#DBAPIError]."""
 
 class SQLAlchemyError(Exception):
     """Generic error class."""
@@ -59,7 +62,11 @@ class NoSuchColumnError(KeyError, SQLAlchemyError):
 
 
 class DisconnectionError(SQLAlchemyError):
-    """Raised within ``Pool`` when a disconnect is detected on a raw DB-API connection."""
+    """Raised within ``Pool`` when a disconnect is detected on a raw DB-API connection.
+    
+    This error is consumed internally by a connection pool.  It can be raised by
+    a ``PoolListener`` so that the host pool forces a disconnect.
+    """
 
 
 class DBAPIError(SQLAlchemyError):
@@ -81,7 +88,7 @@ class DBAPIError(SQLAlchemyError):
     Its type and properties are DB-API implementation specific.  
     """
 
-    def instance(cls, statement, params, orig):
+    def instance(cls, statement, params, orig, connection_invalidated=False):
         # Don't ever wrap these, just return them directly as if
         # DBAPIError didn't exist.
         if isinstance(orig, (KeyboardInterrupt, SystemExit)):
@@ -92,10 +99,10 @@ class DBAPIError(SQLAlchemyError):
             if name in glob and issubclass(glob[name], DBAPIError):
                 cls = glob[name]
             
-        return cls(statement, params, orig)
+        return cls(statement, params, orig, connection_invalidated)
     instance = classmethod(instance)
     
-    def __init__(self, statement, params, orig):
+    def __init__(self, statement, params, orig, connection_invalidated=False):
         try:
             text = str(orig)
         except (KeyboardInterrupt, SystemExit):
@@ -107,6 +114,7 @@ class DBAPIError(SQLAlchemyError):
         self.statement = statement
         self.params = params
         self.orig = orig
+        self.connection_invalidated = connection_invalidated
 
     def __str__(self):
         return ' '.join([SQLAlchemyError.__str__(self),

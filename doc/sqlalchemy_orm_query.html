@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
+<div class="versionheader">Version: 0.4.2   Last Updated: 01/01/08 20:56:05</div>
 
 
 
@@ -85,6 +85,14 @@
     <h3>module sqlalchemy.orm.query</h3>
     
     
+    <div class="darkcell"><p>Defines the <a href="sqlalchemy_orm_query.html#docstrings_sqlalchemy.orm.query_Query">Query</a> class, the central
+construct used by the ORM to construct database queries.</p>
+<p>The <tt class="docutils literal"><span class="pre">Query</span></tt> class should not be confused with the <a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_Select">Select</a>
+class, which defines database SELECT operations at the SQL (non-ORM) level.
+<tt class="docutils literal"><span class="pre">Query</span></tt> differs from <tt class="docutils literal"><span class="pre">Select</span></tt> in that it returns ORM-mapped objects and interacts
+with an ORM session, whereas the <tt class="docutils literal"><span class="pre">Select</span></tt> construct interacts directly with the database
+to return iterable result sets.</p>
+</div>
     
 
 
@@ -352,7 +360,14 @@ and other generative methods to establish modifiers.</p>
     <A name=""></a>
     <b>def from_statement(<i>self</i>, <i>statement</i>)</b>
     <div class="docstring">
-    
+    <p>Execute the given SELECT statement and return results.</p>
+<p>This method bypasses all internal statement compilation, and the
+statement is executed without modification.</p>
+<p>The statement argument is either a string, a <tt class="docutils literal"><span class="pre">select()</span></tt> construct,
+or a <tt class="docutils literal"><span class="pre">text()</span></tt> construct, and should return the set of columns
+appropriate to the entity class represented by this <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+<p>Also see the <tt class="docutils literal"><span class="pre">instances()</span></tt> method.</p>
+
     </div>
     </div>
 
@@ -410,12 +425,7 @@ columns.</p>
     <A name=""></a>
     <b>def instances(<i>self</i>, <i>cursor</i>, <i>*mappers_or_columns</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>Return a list of mapped instances corresponding to the rows
-in a given <em>cursor</em> (i.e. <tt class="docutils literal"><span class="pre">ResultProxy</span></tt>).</p>
-<p>The *mappers_or_columns and **kwargs arguments are deprecated.
-To add instances or columns to the results, use add_entity()
-and add_column().</p>
-
+    
     </div>
     </div>
 
@@ -709,8 +719,9 @@ the root.</p>
     <b>def select_from(<i>self</i>, <i>from_obj</i>)</b>
     <div class="docstring">
     <p>Set the <cite>from_obj</cite> parameter of the query and return the newly
-resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
-<p><cite>from_obj</cite> is a list of one or more tables.</p>
+resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.  This replaces the table which this Query selects
+from with the given table.</p>
+<p><cite>from_obj</cite> is a single table or selectable.</p>
 
     </div>
     </div>
