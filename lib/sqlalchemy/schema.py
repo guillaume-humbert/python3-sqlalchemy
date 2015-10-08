@@ -14,7 +14,7 @@ structure with its own clause-specific objects as well as the visitor interface,
 the schema package "plugs in" to the SQL package.
 
 """
-from sqlalchemy import sql, types, exceptions,util
+from sqlalchemy import sql, types, exceptions,util, databases
 import sqlalchemy
 import copy, re, string
 
@@ -125,7 +125,7 @@ class _TableSingleton(type):
             table = metadata.tables[key]
             if len(args):
                 if not useexisting:
-                    raise exceptions.ArgumentError("Table '%s.%s' is already defined for this MetaData instance." % (schema, name))
+                    raise exceptions.ArgumentError("Table '%s' is already defined for this MetaData instance." % key)
             return table
         except KeyError:
             if mustexist:
@@ -183,8 +183,7 @@ class Table(SchemaItem, sql.TableClause):
         else an exception is raised.
         
         useexisting=False : indicates that if this Table was already defined elsewhere in the application, disregard
-        the rest of the constructor arguments.  If this flag and the "redefine" flag are not set, constructing 
-        the same table twice will result in an exception.
+        the rest of the constructor arguments.  
         
         owner=None : optional owning user of this table.  useful for databases such as Oracle to aid in table
         reflection.
@@ -207,8 +206,8 @@ class Table(SchemaItem, sql.TableClause):
         self.indexes = util.Set()
         self.constraints = util.Set()
         self.primary_key = PrimaryKeyConstraint()
-        self.quote = kwargs.get('quote', False)
-        self.quote_schema = kwargs.get('quote_schema', False)
+        self.quote = kwargs.pop('quote', False)
+        self.quote_schema = kwargs.pop('quote_schema', False)
         if self.schema is not None:
             self.fullname = "%s.%s" % (self.schema, self.name)
         else:
@@ -217,8 +216,13 @@ class Table(SchemaItem, sql.TableClause):
 
         self._set_casing_strategy(name, kwargs)
         self._set_casing_strategy(self.schema or '', kwargs, keyname='case_sensitive_schema')
+        
+        if len([k for k in kwargs if not re.match(r'^(?:%s)_' % '|'.join(databases.__all__), k)]):
+            raise TypeError("Invalid argument(s) for Table: %s" % repr(kwargs.keys()))
+        
+        # store extra kwargs, which should only contain db-specific options
         self.kwargs = kwargs
-
+        
     def _get_case_sensitive_schema(self):
         try:
             return getattr(self, '_case_sensitive_schema')
@@ -241,7 +245,7 @@ class Table(SchemaItem, sql.TableClause):
         [repr(self.name)] + [repr(self.metadata)] +
         [repr(x) for x in self.columns] +
         ["%s=%s" % (k, repr(getattr(self, k))) for k in ['schema']]
-       , ',\n')
+       , ',')
     
     def __str__(self):
         return _get_table_key(self.name, self.schema)
@@ -311,6 +315,11 @@ class Column(SchemaItem, sql._ColumnClause):
         type: the TypeEngine for this column.
         This can be any subclass of types.AbstractType, including the database-agnostic types defined 
         in the types module, database-specific types defined within specific database modules, or user-defined types.
+
+        type: the TypeEngine for this column. This can be any subclass of types.AbstractType, including 
+        the database-agnostic types defined in the types module, database-specific types defined within 
+        specific database modules, or user-defined types. If the column contains a ForeignKey, 
+        the type can also be None, in which case the type assigned will be that of the referenced column.
         
         *args: Constraint, ForeignKey, ColumnDefault and Sequence objects should be added as list values.
         
@@ -389,7 +398,6 @@ class Column(SchemaItem, sql._ColumnClause):
                 return self.table.name + "." + self.name
             else:
                 return self.name
-            return self.name
         else:
             return self.name
     
@@ -402,10 +410,22 @@ class Column(SchemaItem, sql._ColumnClause):
         fk._set_parent(self)
             
     def __repr__(self):
-       return "Column(%s)" % string.join(
+        kwarg = []
+        if self.key != self.name:
+            kwarg.append('key')
+        if self._primary_key:
+            kwarg.append('primary_key')
+        if not self.nullable:
+            kwarg.append('nullable')
+        if self.onupdate:
+            kwarg.append('onupdate')
+        if self.default:
+            kwarg.append('default')
+        return "Column(%s)" % string.join(
         [repr(self.name)] + [repr(self.type)] +
         [repr(x) for x in self.foreign_keys if x is not None] +
-        ["%s=%s" % (k, repr(getattr(self, k))) for k in ['key', 'primary_key', 'nullable', 'default', 'onupdate']]
+        [repr(x) for x in self.constraints] +
+        ["%s=%s" % (k, repr(getattr(self, k))) for k in kwarg]
        , ',')
         
     def _get_parent(self):
@@ -486,7 +506,7 @@ class ForeignKey(SchemaItem):
     
     One or more ForeignKey objects are used within a ForeignKeyConstraint
     object which represents the table-level constraint definition."""
-    def __init__(self, column, constraint=None, use_alter=False, name=None):
+    def __init__(self, column, constraint=None, use_alter=False, name=None, onupdate=None, ondelete=None):
         """Construct a new ForeignKey object.  
         
         "column" can be a schema.Column object representing the relationship, 
@@ -503,6 +523,8 @@ class ForeignKey(SchemaItem):
         self.constraint = constraint
         self.use_alter = use_alter
         self.name = name
+        self.onupdate = onupdate
+        self.ondelete = ondelete
         
     def __repr__(self):
         return "ForeignKey(%s)" % repr(self._get_colspec())
@@ -573,7 +595,7 @@ class ForeignKey(SchemaItem):
         self.parent = column
 
         if self.constraint is None and isinstance(self.parent.table, Table):
-            self.constraint = ForeignKeyConstraint([],[], use_alter=self.use_alter, name=self.name)
+            self.constraint = ForeignKeyConstraint([],[], use_alter=self.use_alter, name=self.name, onupdate=self.onupdate, ondelete=self.ondelete)
             self.parent.table.append_constraint(self.constraint)
             self.constraint._append_fk(self)
 

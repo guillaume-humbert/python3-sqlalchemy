@@ -73,11 +73,14 @@ class UnitOfWork(object):
     """main UOW object which stores lists of dirty/new/deleted objects.  
     provides top-level "flush" functionality as well as the transaction 
     boundaries with the SQLEngine(s) involved in a write operation."""
-    def __init__(self, identity_map=None):
+    def __init__(self, identity_map=None, weak_identity_map=False):
         if identity_map is not None:
             self.identity_map = identity_map
         else:
-            self.identity_map = weakref.WeakValueDictionary()
+            if weak_identity_map:
+                self.identity_map = weakref.WeakValueDictionary()
+            else:
+                self.identity_map = {}
             
         self.new = util.Set() #OrderedSet()
         self.deleted = util.Set()
@@ -101,7 +104,14 @@ class UnitOfWork(object):
         if (hasattr(obj, '_instance_key') and not self.identity_map.has_key(obj._instance_key)) or \
             (not hasattr(obj, '_instance_key') and obj not in self.new):
             raise InvalidRequestError("Instance '%s' is not attached or pending within this session" % repr(obj))
-
+    
+    def _is_valid(self, obj):
+        if (hasattr(obj, '_instance_key') and not self.identity_map.has_key(obj._instance_key)) or \
+            (not hasattr(obj, '_instance_key') and obj not in self.new):
+            return False
+        else:
+            return True
+        
     def register_attribute(self, class_, key, uselist, **kwargs):
         attribute_manager.register_attribute(class_, key, uselist, **kwargs)
 
@@ -109,17 +119,13 @@ class UnitOfWork(object):
         attribute_manager.set_callable(obj, key, func, uselist, **kwargs)
     
     def register_clean(self, obj):
-        try:
+        if obj in self.new:
             self.new.remove(obj)
-        except KeyError:
-            pass
         if not hasattr(obj, '_instance_key'):
             mapper = object_mapper(obj)
             obj._instance_key = mapper.instance_key(obj)
-        try:
+        if hasattr(obj, '_sa_insert_order'):
             delattr(obj, '_sa_insert_order')
-        except AttributeError:
-            pass
         self.identity_map[obj._instance_key] = obj
         attribute_manager.commit(obj)
         
@@ -219,9 +225,9 @@ class UOWTransaction(object):
         registration is entered for the object."""
         #print "REGISTER", repr(obj), repr(getattr(obj, '_instance_key', None)), str(isdelete), str(listonly)
         
-        # things can get really confusing if theres duplicate instances floating around,
-        # so make sure everything is OK
-        self.uow._validate_obj(obj)
+        # if object is not in the overall session, do nothing
+        if not self.uow._is_valid(obj):
+            return
             
         mapper = object_mapper(obj)
         self.mappers.add(mapper)

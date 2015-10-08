@@ -12,7 +12,6 @@ from sqlalchemy import *
 class SessionTest(AssertMixin):
     def setUpAll(self):
         tables.create()
-        tables.data()
     def tearDownAll(self):
         tables.drop()
     def tearDown(self):
@@ -61,6 +60,91 @@ class SessionTest(AssertMixin):
             tran.close()
         finally:
             c.close()
+            
+    def test_update(self):
+        """test that the update() method functions and doesnet blow away changes"""
+        tables.delete()
+        s = create_session()
+        class User(object):pass
+        mapper(User, users)
+        
+        # save user
+        s.save(User())
+        s.flush()
+        user = s.query(User).selectone()
+        s.expunge(user)
+        assert user not in s
+        
+        # modify outside of session, assert changes remain/get saved
+        user.user_name = "fred"
+        s.update(user)
+        assert user in s
+        assert user in s.dirty
+        s.flush()
+        s.clear()
+        user = s.query(User).selectone()
+        assert user.user_name == 'fred'
+        
+        # insure its not dirty if no changes occur
+        s.clear()
+        assert user not in s
+        s.update(user)
+        assert user in s
+        assert user not in s.dirty
+    
+    def test_strong_ref(self):
+        """test that the session is strong-referencing"""
+        tables.delete()
+        s = create_session()
+        class User(object):pass
+        mapper(User, users)
+        
+        # save user
+        s.save(User())
+        s.flush()
+        user = s.query(User).selectone()
+        user = None
+        print s.identity_map
+        import gc
+        gc.collect()
+        assert len(s.identity_map) == 1
+        
+    def test_no_save_cascade(self):
+        mapper(Address, addresses)
+        mapper(User, users, properties=dict(
+            addresses=relation(Address, cascade="none", backref="user")
+        ))
+        s = create_session()
+        u = User()
+        s.save(u)
+        a = Address()
+        u.addresses.append(a)
+        assert u in s
+        assert a not in s
+        s.flush()
+        s.clear()
+        assert s.query(User).selectone().user_id == u.user_id
+        assert s.query(Address).selectfirst() is None
+        
+        clear_mappers()
+        
+        tables.delete()
+        mapper(Address, addresses)
+        mapper(User, users, properties=dict(
+            addresses=relation(Address, cascade="all", backref=backref("user", cascade="none"))
+        ))
+        
+        s = create_session()
+        u = User()
+        a = Address()
+        a.user = u
+        s.save(a)
+        assert u not in s
+        assert a in s
+        s.flush()
+        s.clear()
+        assert s.query(Address).selectone().address_id == a.address_id
+        assert s.query(User).selectfirst() is None
         
 class OrphanDeletionTest(AssertMixin):
 

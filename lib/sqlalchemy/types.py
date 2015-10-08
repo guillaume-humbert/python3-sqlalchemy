@@ -6,24 +6,26 @@
 
 __all__ = [ 'TypeEngine', 'TypeDecorator', 'NullTypeEngine',
             'INT', 'CHAR', 'VARCHAR', 'NCHAR', 'TEXT', 'FLOAT', 'DECIMAL', 
-            'TIMESTAMP', 'DATETIME', 'CLOB', 'BLOB', 'BOOLEAN', 'String', 'Integer', 'Smallinteger',
+            'TIMESTAMP', 'DATETIME', 'CLOB', 'BLOB', 'BOOLEAN', 'String', 'Integer', 'SmallInteger','Smallinteger',
             'Numeric', 'Float', 'DateTime', 'Date', 'Time', 'Binary', 'Boolean', 'Unicode', 'PickleType', 'NULLTYPE',
         'SMALLINT', 'DATE', 'TIME'
             ]
 
 from sqlalchemy import util, exceptions
+import inspect, weakref
 try:
     import cPickle as pickle
 except:
     import pickle
 
+_impl_cache = weakref.WeakKeyDictionary()
+
 class AbstractType(object):
     def _get_impl_dict(self):
         try:
-            return self._impl_dict
-        except AttributeError:
-            self._impl_dict = {}
-            return self._impl_dict
+            return _impl_cache[self]
+        except KeyError:
+            return _impl_cache.setdefault(self, {})
     impl_dict = property(_get_impl_dict)
 
     def copy_value(self, value):
@@ -37,7 +39,9 @@ class AbstractType(object):
         
         this can be useful for calling setinputsizes(), for example."""
         return None
-            
+    def __repr__(self):
+        return "%s(%s)" % (self.__class__.__name__, ",".join(["%s=%s" % (k, getattr(self, k)) for k in inspect.getargspec(self.__init__)[0][1:]]))
+        
 class TypeEngine(AbstractType):
     def __init__(self, *args, **params):
         pass

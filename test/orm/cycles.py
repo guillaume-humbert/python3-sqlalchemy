@@ -43,7 +43,7 @@ class SelfReferentialTest(AssertMixin):
             pass
         m1 = mapper(C1, t1, properties = {
             'c1s':relation(C1, cascade="all"),
-            'parent':relation(C1, primaryjoin=t1.c.parent_c1==t1.c.c1, foreignkey=t1.c.c1, lazy=True, uselist=False)
+            'parent':relation(C1, primaryjoin=t1.c.parent_c1==t1.c.c1, remote_side=t1.c.c1, lazy=True, uselist=False)
         })
         a = C1('head c1')
         a.c1s.append(C1('another c1'))
@@ -64,7 +64,7 @@ class SelfReferentialTest(AssertMixin):
         class C1(Tester):
             pass
         mapper(C1, t1, properties={
-            'parent':relation(C1, primaryjoin=t1.c.parent_c1==t1.c.c1, foreignkey=t1.c.c1)
+            'parent':relation(C1, primaryjoin=t1.c.parent_c1==t1.c.c1, remote_side=t1.c.c1)
         })
         sess = create_session()
         c1 = C1()
@@ -118,7 +118,52 @@ class SelfReferentialTest(AssertMixin):
             assert False
         except exceptions.ArgumentError:
             assert True
-            
+
+class SelfReferentialNoPKTest(AssertMixin):
+    def setUpAll(self):
+        global table, meta
+        meta = BoundMetaData(testbase.db)
+        table = Table('item', meta,
+           Column('id', Integer, primary_key=True),
+           Column('uuid', String(32), unique=True, nullable=False),
+           Column('parent_uuid', String(32), ForeignKey('item.uuid'), nullable=True),
+        )
+        meta.create_all()
+    def tearDown(self):
+        table.delete().execute()
+    def tearDownAll(self):
+        meta.drop_all()
+    def testbasic(self):
+        class TT(object):
+            def __init__(self):
+                self.uuid = hex(id(self))
+        mapper(TT, table, properties={'children':relation(TT, remote_side=[table.c.parent_uuid], backref=backref('parent', remote_side=[table.c.uuid]))})
+        s = create_session()
+        t1 = TT()
+        t1.children.append(TT())
+        t1.children.append(TT())
+        s.save(t1)
+        s.flush()
+        s.clear()
+        t = s.query(TT).get_by(id=t1.id)
+        assert t.children[0].parent_uuid == t1.uuid
+    def testlazyclause(self):
+        class TT(object):
+            def __init__(self):
+                self.uuid = hex(id(self))
+        mapper(TT, table, properties={'children':relation(TT, remote_side=[table.c.parent_uuid], backref=backref('parent', remote_side=[table.c.uuid]))})
+        s = create_session()
+        t1 = TT()
+        t2 = TT()
+        t1.children.append(t2)
+        s.save(t1)
+        s.flush()
+        s.clear()
+
+        t = s.query(TT).get_by(id=t2.id)
+        assert t.uuid == t2.uuid
+        assert t.parent.uuid == t1.uuid
+        
 class InheritTestOne(AssertMixin):
     def setUpAll(self):
         global parent, child1, child2, meta
@@ -320,8 +365,8 @@ class OneToManyManyToOneTest(AssertMixin):
 
         Ball.mapper = mapper(Ball, ball)
         Person.mapper = mapper(Person, person, properties= dict(
-         balls = relation(Ball.mapper, primaryjoin=ball.c.person_id==person.c.id, foreignkey=ball.c.person_id),
-         favorateBall = relation(Ball.mapper, primaryjoin=person.c.favorite_ball_id==ball.c.id, foreignkey=person.c.favorite_ball_id),
+         balls = relation(Ball.mapper, primaryjoin=ball.c.person_id==person.c.id, remote_side=ball.c.person_id),
+         favorateBall = relation(Ball.mapper, primaryjoin=person.c.favorite_ball_id==ball.c.id, remote_side=person.c.favorite_ball_id),
          )
         )
 
@@ -347,8 +392,8 @@ class OneToManyManyToOneTest(AssertMixin):
 
         Ball.mapper = mapper(Ball, ball)
         Person.mapper = mapper(Person, person, properties= dict(
-         balls = relation(Ball.mapper, primaryjoin=ball.c.person_id==person.c.id, foreignkey=ball.c.person_id, post_update=False, private=True),
-         favorateBall = relation(Ball.mapper, primaryjoin=person.c.favorite_ball_id==ball.c.id, foreignkey=person.c.favorite_ball_id, post_update=True),
+         balls = relation(Ball.mapper, primaryjoin=ball.c.person_id==person.c.id, remote_side=ball.c.person_id, post_update=False, private=True),
+         favorateBall = relation(Ball.mapper, primaryjoin=person.c.favorite_ball_id==ball.c.id, remote_side=person.c.favorite_ball_id, post_update=True),
          )
         )
 
@@ -451,8 +496,8 @@ class OneToManyManyToOneTest(AssertMixin):
 
         Ball.mapper = mapper(Ball, ball)
         Person.mapper = mapper(Person, person, properties= dict(
-         balls = relation(Ball.mapper, primaryjoin=ball.c.person_id==person.c.id, foreignkey=ball.c.person_id, private=True, post_update=True),
-         favorateBall = relation(Ball.mapper, primaryjoin=person.c.favorite_ball_id==ball.c.id, foreignkey=person.c.favorite_ball_id),
+         balls = relation(Ball.mapper, primaryjoin=ball.c.person_id==person.c.id, remote_side=ball.c.person_id, private=True, post_update=True, backref='person'),
+         favorateBall = relation(Ball.mapper, primaryjoin=person.c.favorite_ball_id==ball.c.id, remote_side=person.c.favorite_ball_id),
          )
         )
 
@@ -606,19 +651,19 @@ class SelfReferentialPostUpdateTest(AssertMixin):
                 primaryjoin=node_table.c.id==node_table.c.parent_id,
                 lazy=True,
                 cascade="all",
-                backref=backref("parent", primaryjoin=node_table.c.parent_id==node_table.c.id, foreignkey=node_table.c.id)
+                backref=backref("parent", primaryjoin=node_table.c.parent_id==node_table.c.id, remote_side=node_table.c.id)
             ),
             'prev_sibling': relation(
                 Node,
                 primaryjoin=node_table.c.prev_sibling_id==node_table.c.id,
-                foreignkey=node_table.c.id,
+                remote_side=node_table.c.id,
                 lazy=True,
                 uselist=False
             ),
             'next_sibling': relation(
                 Node,
                 primaryjoin=node_table.c.next_sibling_id==node_table.c.id,
-                foreignkey=node_table.c.id,
+                remote_side=node_table.c.id,
                 lazy=True,
                 uselist=False,
                 post_update=True

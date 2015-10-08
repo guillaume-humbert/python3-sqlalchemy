@@ -18,8 +18,15 @@
 
 <div class="docheader">
 
+
 <h1>SQLAlchemy 0.3 Documentation</h1>
-<div class="">Version: 0.3.1   Last Updated: 11/12/06 18:46:51</div>
+
+<div class="multipage">
+<a href="index.html">Multiple Pages</a> |
+<a href="documentation.html">One Page</a>
+</div>
+
+<div class="">Version: 0.3.2   Last Updated: 12/10/06 12:24:21</div>
 </div>
 
 
@@ -640,7 +647,11 @@ Next: <a href="types.html">The Types System</a>
  </li>
 
  <li>
-     foreignkey - a single Column, or list of Columns, specifying which column(s) in this relationship are "foreign", i.e. which column refers to the remote object.  This value is automatically determined in most cases from the primary join condition, by looking at which column in the join condition contains a <code>ForeignKey</code> pointing to the other column in an equality expression.  Specifying it here can override the normal foreign key properties of the join condition, which is useful for self-referential table relationships, join conditions where a <code>ForeignKey</code> is not present, or where the same column might appear on both sides of the join condition.
+     remote_side - used for self-referential relationships, indicates the column or list of columns that form the "remote side" of the relationship.
+ </li>
+
+ <li>
+     foreignkey - deprecated.  As of 0.3.2, use remote_side to indicate the direction of self-referential relationships.  For ForeignKey specification, this field is only partially functional (i.e. does not work for many-to-many relationships).  a new field "foreign_keys" will be added in a future release to implement this functionality.
  </li>
 
  <li>
@@ -1265,17 +1276,17 @@ Next: <a href="types.html">The Types System</a>
                         <span class="python_name">TreeNode</span><span class="python_operator">, </span>
                         <span class="python_name">primaryjoin</span><span class="python_operator">=</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">parent_node_id</span><span class="python_operator">==</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">node_id</span>
                         <span class="python_name">cascade</span><span class="python_operator">=</span><span class="python_literal">"all"</span><span class="python_operator">,</span>
-                        <span class="python_name">backref</span><span class="python_operator">=</span><span class="python_name">backref</span><span class="python_enclosure">(</span><span class="python_literal">"parent"</span><span class="python_operator">, </span><span class="python_name">foreignkey</span><span class="python_operator">=</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">node_id</span><span class="python_enclosure">)</span>
+                        <span class="python_name">backref</span><span class="python_operator">=</span><span class="python_name">backref</span><span class="python_enclosure">(</span><span class="python_literal">"parent"</span><span class="python_operator">, </span><span class="python_name">remote_side</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">node_id</span><span class="python_enclosure">])</span>
                      <span class="python_enclosure">)</span><span class="python_operator">,</span>
         <span class="python_literal">'root' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span>
                 <span class="python_name">TreeNode</span><span class="python_operator">,</span>
                 <span class="python_name">primaryjoin</span><span class="python_operator">=</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">root_node_id</span><span class="python_operator">=</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">node_id</span><span class="python_operator">, </span>
-                <span class="python_name">foreignkey</span><span class="python_operator">=</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">node_id</span><span class="python_operator">,</span>
+                <span class="python_name">remote_side</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">node_id</span><span class="python_enclosure">]</span><span class="python_operator">,</span>
                 <span class="python_name">uselist</span><span class="python_operator">=</span><span class="python_name">False</span>
             <span class="python_enclosure">)</span>
         <span class="python_enclosure">}</span>
     <span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
-<p>The "root" property on a TreeNode is a many-to-one relationship.  By default, a self-referential mapper declares relationships as one-to-many, so the extra parameter <code>foreignkey</code>, pointing to a column or list of columns on the remote side of a relationship, is needed to indicate a "many-to-one" self-referring relationship.
+<p>The "root" property on a TreeNode is a many-to-one relationship.  By default, a self-referential mapper declares relationships as one-to-many, so the extra parameter <code>remote_side</code>, pointing to a column or list of columns on the remote side of a relationship, is needed to indicate a "many-to-one" self-referring relationship (note the previous keyword argument <code>foreignkey</code> is deprecated).
    Both TreeNode examples above are available in functional form in the <code>examples/adjacencytree</code> directory of the distribution.    <br></br>
 </p>
 
@@ -1298,7 +1309,7 @@ Next: <a href="types.html">The Types System</a>
     <div class="sectiontext">
     
 
-<p>Take any result set and feed it into a mapper to produce objects.  Multiple mappers can be combined to retrieve unrelated objects from the same row in one step.  The <code>instances</code> method on mapper takes a ResultProxy object, which is the result type generated from SQLEngine, and delivers object instances.
+<p>Take any result set and feed it into a Query to produce objects.  Multiple mappers can be combined to retrieve unrelated objects from the same row in one step.  The <code>instances</code> method on Query takes a ResultProxy object, which is the result type generated from SQLEngine, and delivers object instances.  (note: this method has been moved off of Mapper, where it is deprecated).
 </p>
 
 
@@ -1306,25 +1317,25 @@ Next: <a href="types.html">The Types System</a>
 <pre><span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_keyword">pass</span><span class="python_operator">
 </span>
-<span class="python_operator"></span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># select users
 </span><span class="python_name">c </span><span class="python_operator">= </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_comment"># get objects
-</span><span class="python_name">userlist </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">c</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">userlist </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">c</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># define a second class/mapper
 </span><span class="python_keyword">class </span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_keyword">pass</span><span class="python_operator">
 </span>
-<span class="python_operator"></span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># select users and addresses in one query
 </span><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># execute it, and process the results with the User mapper, chained to the Address mapper
-</span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">s</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator">, </span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">s</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator">, </span><span class="python_name">class_mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">))</span><span class="python_operator">
 </span>
 <span class="python_comment"># result rows are an array of objects, one for each mapper used
 </span><span class="python_keyword">for </span><span class="python_name">entry </span><span class="python_keyword">in </span><span class="python_name">r</span><span class="python_operator">:

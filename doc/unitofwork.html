@@ -18,8 +18,15 @@
 
 <div class="docheader">
 
+
 <h1>SQLAlchemy 0.3 Documentation</h1>
-<div class="">Version: 0.3.1   Last Updated: 11/12/06 18:46:51</div>
+
+<div class="multipage">
+<a href="index.html">Multiple Pages</a> |
+<a href="documentation.html">One Page</a>
+</div>
+
+<div class="">Version: 0.3.2   Last Updated: 12/10/06 12:24:21</div>
 </div>
 
 
@@ -129,6 +136,8 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
         
     <li><A href="unitofwork.html#unitofwork_api_flush_whatis">Notes on Flush</a></li>
 
+    <ul class="small_toc_list">
+    </ul>
 
 
     </ul>
@@ -309,7 +318,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
  </li>
 
  <li>
-     The Session object in SQLAlchemy 0.2 borrows conceptually from that of <a href='http://www.hibernate.org'>Hibernate</a>, a leading ORM for Java that was a great influence on the creation of the <a href='http://jcp.org/aboutJava/communityprocess/pfd/jsr220/index.html'>JSR-220</a> specification.  SQLAlchemy, under no obligation to conform to EJB specifications, is in general very different from Hibernate, providing a different paradigm for producing queries, a SQL API that is useable independently of the ORM, and of course Pythonic configuration as opposed to XML; however, JSR-220/Hibernate makes some pretty good suggestions with regards to the mechanisms of persistence.
+     The Session object borrows conceptually from that of <a href='http://www.hibernate.org'>Hibernate</a>, a leading ORM for Java that was a great influence on the creation of the <a href='http://jcp.org/aboutJava/communityprocess/pfd/jsr220/index.html'>JSR-220</a> specification.  SQLAlchemy, under no obligation to conform to EJB specifications, is in general very different from Hibernate, providing a different paradigm for producing queries, a SQL API that is useable independently of the ORM, and of course Pythonic configuration as opposed to XML; however, JSR-220/Hibernate makes some pretty good suggestions with regards to the mechanisms of persistence.
  </li>
 </ul>
 
@@ -450,7 +459,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 </span>
 <span class="python_literal">>>> </span><span class="python_name">obj1 </span><span class="python_keyword">is </span><span class="python_name">obj2</span><span class="python_operator">
 </span><span class="python_name">True</span><span class="python_operator"></span></pre></div>
-<p>The Identity Map is an instance of <code>weakref.WeakValueDictionary</code>, so that when an in-memory object falls out of scope, it will be removed automatically.  However, this may not be instant if there are circular references upon the object.  To guarantee that an instance is removed from the identity map before removing references to it, use the <code>expunge()</code> method, described later, to remove it.
+<p>The Identity Map is an instance of <code>dict</code> by default.  (This is new as of version 0.3.2).  As an option, you can specify the flag <code>weak_identity_map=True</code> to the <code>create_session</code> function so that it will use a <code>weakref.WeakValueDictionary</code>, so that when an in-memory object falls out of scope, it will be removed automatically, thereby providing some automatic management of memory.   However, this may not be instant if there are circular references upon the object.  To guarantee that an instance is removed from the identity map before removing references to it, use the <code>expunge()</code> method, described later, to remove it.  Additionally, note that an object that has changes marked on it (i.e. "dirty") can still fall out of scope when using <code>weak_identity_map</code>.
 </p>
 <p>The Session supports an iterator interface in order to see all objects in the identity map:
 </p>
@@ -506,7 +515,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <p>The next concept is that in addition to the <code>Session</code> storing a record of all objects loaded or saved, it also stores lists of all <em>newly created</em> (i.e. pending) objects and lists of all persistent objects that have been marked as <em>deleted</em>.  These lists are used when a <code>flush()</code> call is issued to save all changes.  During a flush operation, it also scans its list of persistent instances for changes which are marked as dirty.
 </p>
-<p>These records are all tracked by a collection of <code>Set</code> objects (which are a SQLAlchemy-specific instance called a <code>HashSet</code>) that are also viewable off the <code>Session</code>:
+<p>These records are all tracked by collection functions that are also viewable off the <code>Session</code> as properties:
 </p>
 
 
@@ -515,12 +524,14 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">new</span><span class="python_operator">
 </span>
 <span class="python_comment"># persistent objects which currently have changes detected
-# (this Set is now created on the fly each time the property is called)
+# (this collection is now created on the fly each time the property is called)
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">dirty</span><span class="python_operator">
 </span>
 <span class="python_comment"># persistent objects that have been marked as deleted via session.delete(obj)
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">deleted</span><span class="python_operator"></span></pre></div>
-<p>Unlike the identity map, the <code>new</code>, <code>dirty</code>, and <code>deleted</code> lists are <em>not weak referencing.</em>  This means if you abandon all references to new or modified objects within a session, <em>they are still present</em> and will be saved on the next flush operation, unless they are removed from the Session explicitly (more on that later).  The <code>new</code> list may change in a future release to be weak-referencing, however for the <code>deleted</code> list, one can see that its quite natural for a an object marked as deleted to have no references in the application, yet a DELETE operation is still required.
+<p>Note that if a session is created with the <code>weak_identity_map</code> flag, an item which is marked as "dirty" will be silently removed from the session if the item falls out of scope in the user application.  This is because the unit of work does not look for "dirty" changes except for within a flush operation (or any time the session.dirty collection is accessed). 
+</p>
+<p>As for objects inside of <code>new</code> and <code>deleted</code>, if you abandon all references to new or modified objects within a session, <em>they are still present</em> in either of those two lists, and will be saved on the next flush operation, unless they are removed from the Session explicitly (more on that later).  <br></br>
 </p>
 
 

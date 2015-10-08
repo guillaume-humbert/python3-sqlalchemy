@@ -18,8 +18,15 @@
 
 <div class="docheader">
 
+
 <h1>SQLAlchemy 0.3 Documentation</h1>
-<div class="">Version: 0.3.1   Last Updated: 11/12/06 18:46:51</div>
+
+<div class="multipage">
+<a href="index.html">Multiple Pages</a> |
+<a href="documentation.html">One Page</a>
+</div>
+
+<div class="">Version: 0.3.2   Last Updated: 12/10/06 12:24:21</div>
 </div>
 
 
@@ -215,7 +222,7 @@ Next: <a href="unitofwork.html">Session / Unit of Work</a>
 </p>
 <p>When a <code>Mapper</code> is created to associate a <code>Table</code> object with a class, all of the columns defined in the <code>Table</code> object are associated with the class via property accessors, which add overriding functionality to the normal process of setting and getting object attributes.  These property accessors keep track of changes to object attributes; these changes will be stored to the database when the application "flushes" the current state of objects (known as a <em>Unit of Work</em>).
 </p>
-<p>Two objects provide the primary interface for interacting with Mappers and the "unit of work" in SA 0.2, which are the <code>Query</code> object and the <code>Session</code> object.  <code>Query</code> deals with selecting objects from the database, whereas <code>Session</code> provides a context for loaded objects and the ability to communicate changes on those objects back to the database.
+<p>Two objects provide the primary interface for interacting with Mappers and the "unit of work", which are the <code>Query</code> object and the <code>Session</code> object.  <code>Query</code> deals with selecting objects from the database, whereas <code>Session</code> provides a context for loaded objects and the ability to communicate changes on those objects back to the database.
 </p>
 <p>The primary method on <code>Query</code> for loading objects is its <code>select()</code> method, which has similar arguments to a <code>sqlalchemy.sql.Select</code> object.  But this select method executes automatically and returns results, instead of awaiting an execute() call.  Instead of returning a cursor-like object, it returns an array of objects.
 </p>
