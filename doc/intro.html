@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
+<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
 
 
 
@@ -92,6 +92,9 @@
 
         
         <li><a style="" href="intro.html#overview_migration_metadata">BoundMetaData is now MetaData</a></li>
+
+        
+        <li><a style="" href="intro.html#overview_migration_global">"Magic" Global MetaData removed</a></li>
 
         
         <li><a style="" href="intro.html#overview_migration_generative">Some existing select() methods become generative</a></li>
@@ -443,6 +446,25 @@
 </span></pre>
     </div>
 <p>Additionally, <code>DynamicMetaData</code> is now known as <code>ThreadLocalMetaData</code>.
+</p>
+
+
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="overview_migration_global"></a>
+    
+    <div class="sectionL3">
+
+    <h3>"Magic" Global MetaData removed</h3>
+    
+    
+
+<p>There was an old way to specify <code>Table</code> objects using an implicit, global <code>MetaData</code> object.  To do this you'd omit the second positional argument, and specify <code>Table('tablename', Column(...))</code>.  This no longer exists in 0.4 and the second <code>MetaData</code> positional argument is required, i.e. <code>Table('tablename', meta, Column(...))</code>.
 </p>
 
 

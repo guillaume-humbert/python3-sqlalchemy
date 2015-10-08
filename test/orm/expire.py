@@ -39,14 +39,24 @@ class ExpireTest(FixtureTest):
         sess.expire(u)
         # object isnt refreshed yet, using dict to bypass trigger
         assert u.__dict__.get('name') != 'jack'
+        assert 'name' in u._state.expired_attributes
 
         sess.query(User).all()
         # test that it refreshed
         assert u.__dict__['name'] == 'jack'
+        assert 'name' not in u._state.expired_attributes
 
         def go():
             assert u.name == 'jack'
         self.assert_sql_count(testing.db, go, 0)
+
+    def test_persistence_check(self):
+        mapper(User, users)
+        s = create_session()
+        u = s.get(User, 7)
+        s.clear()
+
+        self.assertRaisesMessage(exceptions.InvalidRequestError, r"is not persistent within this Session", lambda: s.expire(u))
 
     def test_expire_doesntload_on_set(self):
         mapper(User, users)
@@ -676,7 +686,14 @@ class RefreshTest(FixtureTest):
 #        print u._state.callables
         assert u.name == 'jack'
         assert id(a) not in [id(x) for x in u.addresses]
-
+    
+    def test_persistence_check(self):
+        mapper(User, users)
+        s = create_session()
+        u = s.get(User, 7)
+        s.clear()
+        self.assertRaisesMessage(exceptions.InvalidRequestError, r"is not persistent within this Session", lambda: s.refresh(u))
+        
     def test_refresh_expired(self):
         mapper(User, users)
         s = create_session()

@@ -344,6 +344,35 @@ def warn_exception(func, *args, **kwargs):
     except:
         warn("%s('%s') ignored" % sys.exc_info()[0:2])
 
+def monkeypatch_proxied_specials(into_cls, from_cls, skip=None, only=None,
+                                 name='self.proxy', from_instance=None):
+    """Automates delegation of __specials__ for a proxying type."""
+
+    if only:
+        dunders = only
+    else:
+        if skip is None:
+            skip = ('__slots__', '__del__', '__getattribute__',
+                    '__metaclass__', '__getstate__', '__setstate__')
+        dunders = [m for m in dir(from_cls)
+                   if (m.startswith('__') and m.endswith('__') and
+                       not hasattr(into_cls, m) and m not in skip)]
+    for method in dunders:
+        try:
+            spec = inspect.getargspec(getattr(from_cls, method))
+            fn_args = inspect.formatargspec(spec[0])
+            d_args = inspect.formatargspec(spec[0][1:])
+        except TypeError:
+            fn_args = '(self, *args, **kw)'
+            d_args = '(*args, **kw)'
+
+        py = ("def %(method)s%(fn_args)s: "
+              "return %(name)s.%(method)s%(d_args)s" % locals())
+
+        env = from_instance is not None and {name: from_instance} or {}
+        exec py in env
+        setattr(into_cls, method, env[method])
+
 class SimpleProperty(object):
     """A *default* property accessor."""
 
@@ -951,6 +980,42 @@ class ScopedRegistry(object):
 
     def _get_key(self):
         return self.scopefunc()
+
+class symbol(object):
+    """A constant symbol.
+
+    >>> symbol('foo') is symbol('foo')
+    True
+    >>> symbol('foo')
+    <symbol 'foo>
+
+    A slight refinement of the MAGICCOOKIE=object() pattern.  The primary
+    advantage of symbol() is its repr().  They are also singletons.
+    """
+
+    symbols = {}
+    _lock = threading.Lock()
+
+    def __new__(cls, name):
+        try:
+            symbol._lock.acquire()
+            sym = cls.symbols.get(name)
+            if sym is None:
+                cls.symbols[name] = sym = object.__new__(cls, name)
+            return sym
+        finally:
+            symbol._lock.release()
+
+    def __init__(self, name):
+        """Construct a new named symbol.
+
+        Repeated calls of symbol('name') will all return the same instance.
+        """
+
+        assert isinstance(name, str)
+        self.name = name
+    def __repr__(self):
+        return "<symbol '%s>" % self.name
 
 def warn(msg):
     if isinstance(msg, basestring):

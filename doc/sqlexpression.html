@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
+<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
 
 
 
@@ -406,9 +406,8 @@ COMMIT</div><pre>
 
     <div class="sliding_code">
         <pre>
-<span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">databases</span><span class="python_operator">.</span><span class="python_name">sqlite </span><span class="python_keyword">import </span><span class="python_name">SQLiteDialect</span><span class="python_operator">
-</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">compiled </span><span class="python_operator">= </span><span class="python_name">ins</span><span class="python_operator">.</span><span class="python_name">compile</span><span class="python_enclosure">(</span><span class="python_name">dialect</span><span class="python_operator">=</span><span class="python_name">SQLiteDialect</span><span class="python_enclosure">())</span><span class="python_operator">
-</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">str</span><span class="python_enclosure">(</span><span class="python_name">compiled</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">ins</span><span class="python_operator">.</span><span class="python_name">bind </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">
+</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">str</span><span class="python_enclosure">(</span><span class="python_name">ins</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_literal">'INSERT INTO users (name, fullname) VALUES (?, ?)'</span><span class="python_operator">
 </span></pre>
     </div>
@@ -821,12 +820,11 @@ WHERE users.id = addresses.user_id<br/>
 
     <div class="sliding_code">
         <pre>
-<span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">databases</span><span class="python_operator">.</span><span class="python_name">mysql </span><span class="python_keyword">import </span><span class="python_name">MySQLDialect</span><span class="python_operator">
-</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name </span><span class="python_operator">+ </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">fullname</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">compile</span><span class="python_enclosure">(</span><span class="python_name">dialect</span><span class="python_operator">=</span><span class="python_name">MySQLDialect</span><span class="python_enclosure">())</span><span class="python_operator">
+<span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">print </span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name </span><span class="python_operator">+ </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">fullname</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">compile</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'mysql://'</span><span class="python_enclosure">))</span><span class="python_operator">
 </span><span class="python_name">concat</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">fullname</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>The above illustrates the SQL that's generated for an <code>Engine</code> that's connected to a MySQL database (note that the <code>Dialect</code> is normally created behind the scenes; we created one above just to illustrate without using an engine).
+<p>The above illustrates the SQL that's generated for an <code>Engine</code> that's connected to a MySQL database; the <code>||</code> operator now compiles as MySQL's <code>concat()</code> function.
 </p>
 <p>If you have come across an operator which really isn't available, you can always use the <code>op()</code> method; this generates whatever operator you need:
 </p>

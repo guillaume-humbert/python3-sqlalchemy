@@ -4,7 +4,7 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-import weakref, threading, operator
+import operator, weakref
 from itertools import chain
 import UserDict
 from sqlalchemy import util
@@ -12,10 +12,10 @@ from sqlalchemy.orm import interfaces, collections
 from sqlalchemy.orm.util import identity_equal
 from sqlalchemy import exceptions
 
-PASSIVE_NORESULT = object()
-ATTR_WAS_SET = object()
-NO_VALUE = object()
-NEVER_SET = object()
+PASSIVE_NORESULT = util.symbol('PASSIVE_NORESULT')
+ATTR_WAS_SET = util.symbol('ATTR_WAS_SET')
+NO_VALUE = util.symbol('NO_VALUE')
+NEVER_SET = util.symbol('NEVER_SET')
 
 class InstrumentedAttribute(interfaces.PropComparator):
     """public-facing instrumented attribute, placed in the
@@ -67,8 +67,9 @@ class InstrumentedAttribute(interfaces.PropComparator):
     property = property(_property, doc="the MapperProperty object associated with this attribute")
 
 class ProxiedAttribute(InstrumentedAttribute):
-    """a 'proxy' attribute which adds InstrumentedAttribute
-    class-level behavior to any user-defined class property.
+    """Adds InstrumentedAttribute class-level behavior to a regular descriptor.
+
+    Obsoleted by proxied_attribute_factory.
     """
 
     class ProxyImpl(object):
@@ -100,6 +101,59 @@ class ProxiedAttribute(InstrumentedAttribute):
 
     def __delete__(self, instance):
         return self.user_prop.__delete__(instance)
+
+def proxied_attribute_factory(descriptor):
+    """Create an InstrumentedAttribute / user descriptor hybrid.
+
+    Returns a new InstrumentedAttribute type that delegates descriptor
+    behavior and getattr() to the given descriptor.
+    """
+
+    class ProxyImpl(object):
+        accepts_scalar_loader = False
+        def __init__(self, key):
+            self.key = key
+
+    class Proxy(InstrumentedAttribute):
+        """A combination of InsturmentedAttribute and a regular descriptor."""
+
+        def __init__(self, key, descriptor, comparator):
+            self.key = key
+            # maintain ProxiedAttribute.user_prop compatability.
+            self.descriptor = self.user_prop = descriptor
+            self._comparator = comparator
+            self.impl = ProxyImpl(key)
+
+        def comparator(self):
+            if callable(self._comparator):
+                self._comparator = self._comparator()
+            return self._comparator
+        comparator = property(comparator)
+
+        def __get__(self, instance, owner):
+            """Delegate __get__ to the original descriptor."""
+            if instance is None:
+                descriptor.__get__(instance, owner)
+                return self
+            return descriptor.__get__(instance, owner)
+
+        def __set__(self, instance, value):
+            """Delegate __set__ to the original descriptor."""
+            return descriptor.__set__(instance, value)
+
+        def __delete__(self, instance):
+            """Delegate __delete__ to the original descriptor."""
+            return descriptor.__delete__(instance)
+
+        def __getattr__(self, attribute):
+            """Delegate __getattr__ to the original descriptor."""
+            return getattr(descriptor, attribute)
+    Proxy.__name__ = type(descriptor).__name__ + 'Proxy'
+
+    util.monkeypatch_proxied_specials(Proxy, type(descriptor),
+                                      name='descriptor',
+                                      from_instance=descriptor)
+    return Proxy
 
 class AttributeImpl(object):
     """internal implementation for instrumented attributes."""
@@ -246,7 +300,10 @@ class AttributeImpl(object):
         """return the unchanged value of this attribute"""
 
         if self.key in state.committed_state:
-            return state.committed_state.get(self.key)
+            if state.committed_state[self.key] is NO_VALUE:
+                return None
+            else:
+                return state.committed_state.get(self.key)
         else:
             return self.get(state)
 
@@ -254,9 +311,6 @@ class AttributeImpl(object):
         """set an attribute value on the given instance and 'commit' it."""
 
         state.commit_attr(self, value)
-        # remove per-instance callable, if any
-        state.callables.pop(self.key, None)
-        state.dict[self.key] = value
         return value
 
 class ScalarAttributeImpl(AttributeImpl):
@@ -370,6 +424,11 @@ class ScalarObjectAttributeImpl(ScalarAttributeImpl):
 
         if initiator is self:
             return
+
+        if value is not None and not hasattr(value, '_state'):
+            raise TypeError("Can not assign %s instance to %s's %r attribute, "
+                            "a mapped instance was expected." % (
+                type(value).__name__, type(state.obj()).__name__, self.key))
 
         # TODO: add options to allow the get() to be passive
         old = self.get(state)
@@ -624,7 +683,7 @@ class CollectionAttributeImpl(AttributeImpl):
         try:
             return getattr(user_data, '_sa_adapter')
         except AttributeError:
-            # TODO: this codepath never occurs, and this 
+            # TODO: this codepath never occurs, and this
             # except/initialize should be removed
             collections.CollectionAdapter(self, state, user_data)
             return getattr(user_data, '_sa_adapter')
@@ -669,6 +728,9 @@ class ClassState(object):
         self.attrs = {}
         self.has_mutable_scalars = False
 
+import sets
+_empty_set = sets.ImmutableSet()
+
 class InstanceState(object):
     """tracks state information at the instance level."""
 
@@ -684,6 +746,7 @@ class InstanceState(object):
         self.appenders = {}
         self.instance_dict = None
         self.runid = None
+        self.expired_attributes = _empty_set
 
     def __cleanup(self, ref):
         # tiptoe around Python GC unpredictableness
@@ -748,7 +811,7 @@ class InstanceState(object):
             return None
 
     def __getstate__(self):
-        return {'committed_state':self.committed_state, 'pending':self.pending, 'parents':self.parents, 'modified':self.modified, 'instance':self.obj(), 'expired_attributes':getattr(self, 'expired_attributes', None), 'callables':self.callables}
+        return {'committed_state':self.committed_state, 'pending':self.pending, 'parents':self.parents, 'modified':self.modified, 'instance':self.obj(), 'expired_attributes':self.expired_attributes, 'callables':self.callables}
 
     def __setstate__(self, state):
         self.committed_state = state['committed_state']
@@ -761,8 +824,7 @@ class InstanceState(object):
         self.callables = state['callables']
         self.runid = None
         self.appenders = {}
-        if state['expired_attributes'] is not None:
-            self.expire_attributes(state['expired_attributes'])
+        self.expired_attributes = state['expired_attributes']
 
     def initialize(self, key):
         getattr(self.class_, key).impl.initialize(self)
@@ -777,12 +839,11 @@ class InstanceState(object):
         serializable.
         """
         instance = self.obj()
-        
         unmodified = self.unmodified
         self.class_._class_state.deferred_scalar_loader(instance, [
-            attr.impl.key for attr in _managed_attributes(self.class_) if 
-                attr.impl.accepts_scalar_loader and 
-                attr.impl.key in self.expired_attributes and 
+            attr.impl.key for attr in _managed_attributes(self.class_) if
+                attr.impl.accepts_scalar_loader and
+                attr.impl.key in self.expired_attributes and
                 attr.impl.key in unmodified
             ])
         for k in self.expired_attributes:
@@ -801,8 +862,7 @@ class InstanceState(object):
     unmodified = property(unmodified)
 
     def expire_attributes(self, attribute_names):
-        if not hasattr(self, 'expired_attributes'):
-            self.expired_attributes = util.Set()
+        self.expired_attributes = util.Set(self.expired_attributes)
 
         if attribute_names is None:
             for attr in _managed_attributes(self.class_):
@@ -826,18 +886,29 @@ class InstanceState(object):
         self.callables.pop(key, None)
 
     def commit_attr(self, attr, value):
+        """set the value of an attribute and mark it 'committed'."""
+
         if hasattr(attr, 'commit_to_state'):
             attr.commit_to_state(self, value)
         else:
             self.committed_state.pop(attr.key, None)
+        self.dict[attr.key] = value
         self.pending.pop(attr.key, None)
         self.appenders.pop(attr.key, None)
+
+        # we have a value so we can also unexpire it
+        self.callables.pop(attr.key, None)
+        if attr.key in self.expired_attributes:
+            self.expired_attributes.remove(attr.key)
 
     def commit(self, keys):
         """commit all attributes named in the given list of key names.
 
         This is used by a partial-attribute load operation to mark committed those attributes
         which were refreshed from the database.
+
+        Attributes marked as "expired" can potentially remain "expired" after this step
+        if a value was not populated in state.dict.
         """
 
         if self.class_._class_state.has_mutable_scalars:
@@ -855,17 +926,33 @@ class InstanceState(object):
                 self.pending.pop(key, None)
                 self.appenders.pop(key, None)
 
+        # unexpire attributes which have loaded
+        for key in self.expired_attributes.intersection(keys):
+            if key in self.dict:
+                self.expired_attributes.remove(key)
+                self.callables.pop(key, None)
+
+
     def commit_all(self):
         """commit all attributes unconditionally.
 
         This is used after a flush() or a regular instance load or refresh operation
         to mark committed all populated attributes.
+
+        Attributes marked as "expired" can potentially remain "expired" after this step
+        if a value was not populated in state.dict.
         """
 
         self.committed_state = {}
         self.modified = False
         self.pending = {}
         self.appenders = {}
+
+        # unexpire attributes which have loaded
+        for key in list(self.expired_attributes):
+            if key in self.dict:
+                self.expired_attributes.remove(key)
+                self.callables.pop(key, None)
 
         if self.class_._class_state.has_mutable_scalars:
             for attr in _managed_attributes(self.class_):
@@ -881,9 +968,9 @@ class WeakInstanceDict(UserDict.UserDict):
 
     def __init__(self, *args, **kw):
         self._wr = weakref.ref(self)
-        # RLock because the mutex is used by a cleanup
-        # handler, which can be called at any time (including within an already mutexed block)
-        self._mutex = threading.RLock()
+        # RLock because the mutex is used by a cleanup handler, which can be
+        # called at any time (including within an already mutexed block)
+        self._mutex = util.threading.RLock()
         UserDict.UserDict.__init__(self, *args, **kw)
 
     def __getitem__(self, key):
@@ -1200,7 +1287,8 @@ def register_attribute(class_, key, uselist, useobject, callable_=None, proxy_pr
         return
 
     if proxy_property:
-        inst = ProxiedAttribute(key, proxy_property, comparator=comparator)
+        proxy_type = proxied_attribute_factory(proxy_property)
+        inst = proxy_type(key, proxy_property, comparator)
     else:
         inst = InstrumentedAttribute(_create_prop(class_, key, uselist, callable_, useobject=useobject,
                                        typecallable=typecallable, mutable_scalars=mutable_scalars, **kwargs), comparator=comparator)

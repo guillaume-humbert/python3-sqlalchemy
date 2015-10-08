@@ -274,6 +274,10 @@ def insert(table, values=None, inline=False, **kwargs):
       column specifications will be generated from the full list of
       table columns.
 
+    prefixes
+      A list of modifier keywords to be inserted between INSERT and INTO,
+      see ``Insert.prefix_with``.
+
     inline
       if True, SQL defaults will be compiled 'inline' into the statement
       and not pre-executed.
@@ -1001,11 +1005,11 @@ class ClauseElement(object):
         e = self.bind
         if e is None:
             label = getattr(self, 'description', self.__class__.__name__)
-            msg = ('This %s is not bound to an Engine or Connection.  '
-                   'Execution can not proceed without a database to execute '
-                   'against.  Either execute with an explicit connection or '
-                   'bind the MetaData of the underlying tables to enable '
-                   'implicit execution.') % label
+            msg = ('This %s is not bound and does not support direct '
+                   'execution. Supply this statement to a Connection or '
+                   'Engine for execution. Or, assign a bind to the statement '
+                   'or the Metadata of its underlying tables to enable '
+                   'implicit execution via this method.' % label)
             raise exceptions.UnboundExecutionError(msg)
         return e.execute_clauseelement(self, multiparams, params)
 
@@ -1424,17 +1428,15 @@ class ColumnElement(ClauseElement, _CompareMixin):
 
         """
 
-        if name is not None:
+        if name:
             co = _ColumnClause(name, selectable, type_=getattr(self, 'type', None))
-            co.proxies = [self]
-            selectable.columns[name]= co
-            return co
         else:
             name = str(self)
             co = _ColumnClause(self.anon_label.name, selectable, type_=getattr(self, 'type', None))
-            co.proxies = [self]
-            selectable.columns[name] = co
-            return co
+
+        co.proxies = [self]
+        selectable.columns[name]= co
+        return co
 
     def anon_label(self):
         """provides a constant 'anonymous label' for this ColumnElement.
@@ -1718,6 +1720,7 @@ class _TextFromClause(FromClause):
 
     def __init__(self, text):
         self.name = text
+        self.oid_column = None
 
 class _BindParamClause(ClauseElement, _CompareMixin):
     """Represent a bind parameter.
@@ -2926,8 +2929,6 @@ class CompoundSelect(_SelectBaseMixin, FromClause):
             else:
                 self.selects.append(s)
 
-        self._col_map = {}
-
         _SelectBaseMixin.__init__(self, **kwargs)
 
         for s in self.selects:
@@ -2943,11 +2944,15 @@ class CompoundSelect(_SelectBaseMixin, FromClause):
                 yield c
 
     def _proxy_column(self, column):
-        selectable = column.table
-        col_ordering = self._col_map.get(selectable, None)
-        if col_ordering is None:
-            self._col_map[selectable] = col_ordering = []
-
+        if not hasattr(self, '_col_map'):
+            self._col_map = dict([(s, []) for s in self.selects])
+            for s in self.selects:
+                for c in s.c + [s.oid_column]:
+                    self._col_map[c] = s
+        
+        selectable = self._col_map[column]
+        col_ordering = self._col_map[selectable]
+        
         if selectable is self.selects[0]:
             if self.use_labels:
                 col = column._make_proxy(self, name=column._label)
@@ -2963,8 +2968,9 @@ class CompoundSelect(_SelectBaseMixin, FromClause):
 
     def _copy_internals(self, clone=_clone):
         self._clone_from_clause()
-        self._col_map = {}
         self.selects = [clone(s) for s in self.selects]
+        if hasattr(self, '_col_map'):
+            del self._col_map
         for attr in ('_order_by_clause', '_group_by_clause'):
             if getattr(self, attr) is not None:
                 setattr(self, attr, clone(getattr(self, attr)))
@@ -2979,13 +2985,17 @@ class CompoundSelect(_SelectBaseMixin, FromClause):
                 yield t
 
     def bind(self):
+        if self._bind:
+            return self._bind
         for s in self.selects:
             e = s.bind
             if e:
                 return e
         else:
             return None
-    bind = property(bind)
+    def _set_bind(self, bind):
+        self._bind = bind
+    bind = property(bind, _set_bind)
 
 class Select(_SelectBaseMixin, FromClause):
     """Represents a ``SELECT`` statement.
@@ -3416,13 +3426,13 @@ class Select(_SelectBaseMixin, FromClause):
                 yield t
 
     def bind(self):
-        if self._bind is not None:
+        if self._bind:
             return self._bind
         for f in self._froms:
             if f is self:
                 continue
             e = f.bind
-            if e is not None:
+            if e:
                 self._bind = e
                 return e
         # look through the columns (largely synomous with looking
@@ -3431,11 +3441,13 @@ class Select(_SelectBaseMixin, FromClause):
             if getattr(c, 'table', None) is self:
                 continue
             e = c.bind
-            if e is not None:
+            if e:
                 self._bind = e
                 return e
         return None
-    bind = property(bind)
+    def _set_bind(self, bind):
+        self._bind = bind
+    bind = property(bind, _set_bind)
 
 class _UpdateBase(ClauseElement):
     """Form the base for ``INSERT``, ``UPDATE``, and ``DELETE`` statements."""
@@ -3460,14 +3472,23 @@ class _UpdateBase(ClauseElement):
             return parameters
 
     def bind(self):
-        return self.table.bind
-    bind = property(bind)
+        return self._bind or self.table.bind
+        
+    def _set_bind(self, bind):
+        self._bind = bind
+    bind = property(bind, _set_bind)
 
 class Insert(_UpdateBase):
-    def __init__(self, table, values=None, inline=False, **kwargs):
+    def __init__(self, table, values=None, inline=False, bind=None, prefixes=None, **kwargs):
+        self._bind = bind
         self.table = table
         self.select = None
         self.inline=inline
+        if prefixes:
+            self._prefixes = [_literal_as_text(p) for p in prefixes]
+        else:
+            self._prefixes = []
+
         self.parameters = self._process_colparams(values)
 
         self.kwargs = kwargs
@@ -3492,8 +3513,20 @@ class Insert(_UpdateBase):
             u.parameters.update(u._process_colparams(v))
         return u
 
+    def prefix_with(self, clause):
+        """Add a word or expression between INSERT and INTO. Generative.
+
+        If multiple prefixes are supplied, they will be separated with
+        spaces.
+        """
+        gen = self._clone()
+        clause = _literal_as_text(clause)
+        gen._prefixes = self._prefixes + [clause]
+        return gen
+
 class Update(_UpdateBase):
-    def __init__(self, table, whereclause, values=None, inline=False, **kwargs):
+    def __init__(self, table, whereclause, values=None, inline=False, bind=None, **kwargs):
+        self._bind = bind
         self.table = table
         if whereclause:
             self._whereclause = _literal_as_text(whereclause)
@@ -3537,7 +3570,8 @@ class Update(_UpdateBase):
         return u
 
 class Delete(_UpdateBase):
-    def __init__(self, table, whereclause):
+    def __init__(self, table, whereclause, bind=None):
+        self._bind = bind
         self.table = table
         if whereclause:
             self._whereclause = _literal_as_text(whereclause)

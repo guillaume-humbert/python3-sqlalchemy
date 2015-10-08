@@ -14,7 +14,7 @@ ORM.
 """
 
 from itertools import chain
-from sqlalchemy import exceptions, logging
+from sqlalchemy import exceptions, logging, util
 from sqlalchemy.sql import expression
 class_mapper = None
 
@@ -24,8 +24,8 @@ __all__ = ['EXT_CONTINUE', 'EXT_STOP', 'EXT_PASS', 'MapperExtension',
            'ExtensionOption', 'PropertyOption',
            'AttributeExtension', 'StrategizedOption', 'LoaderStrategy' ]
 
-EXT_CONTINUE = EXT_PASS = object()
-EXT_STOP = object()
+EXT_CONTINUE = EXT_PASS = util.symbol('EXT_CONTINUE')
+EXT_STOP = util.symbol('EXT_STOP')
 
 class MapperExtension(object):
     """Base implementation for customizing Mapper behavior.
@@ -435,8 +435,31 @@ class PropComparator(expression.ColumnOperators):
     has_op = staticmethod(has_op)
 
     def __init__(self, prop):
-        self.prop = prop
+        self.prop = self.property = prop
+    
+    def of_type_op(a, class_):
+        return a.of_type(class_)
+    of_type_op = staticmethod(of_type_op)
+    
+    def of_type(self, class_):
+        """Redefine this object in terms of a polymorphic subclass.
+        
+        Returns a new PropComparator from which further criterion can be evaluated.
 
+        e.g.::
+        
+            query.join(Company.employees.of_type(Engineer)).\\
+               filter(Engineer.name=='foo')
+              
+        \class_
+            a class or mapper indicating that criterion will be against
+            this specific subclass.
+
+         
+        """
+        
+        return self.operate(PropComparator.of_type_op, class_)
+        
     def contains(self, other):
         """Return true if this collection contains other"""
         return self.operate(PropComparator.contains_op, other)

@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
+<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
 
 
 
@@ -817,9 +817,10 @@ and result_processor to actual conversion code</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
+    <b>def __init__(<i>self</i>)</b>
     <div class="docstring">
-    
+    <p>Construct a new <tt class="docutils literal"><span class="pre">Interval</span></tt>.</p>
+
     </div>
     </div>
 
@@ -829,10 +830,7 @@ and result_processor to actual conversion code</p>
     <A name=""></a>
     <b>def load_dialect_impl(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
-    <p>Checks if engine has native implementation of timedelta python type,
-if so it returns right class to handle it, if there is no native support,
-it fallback to engine's DateTime implementation class</p>
-
+    
     </div>
     </div>
 
@@ -840,7 +838,17 @@ it fallback to engine's DateTime implementation class</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
+    <b>def process_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def process_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1002,16 +1010,6 @@ it fallback to engine's DateTime implementation class</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def compare_values(<i>self</i>, <i>x</i>, <i>y</i>)</b>
     <div class="docstring">
     
@@ -1042,7 +1040,17 @@ it fallback to engine's DateTime implementation class</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
+    <b>def process_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def process_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1345,6 +1353,24 @@ object at the dialect level (this behavior is deprecated in 0.4).</p>
     <h3>class TypeDecorator(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_AbstractType">AbstractType</a>)</h3>
     
     
+    <div class="darkcell"><p>Allows the creation of types which add additional functionality
+to an existing type.  Typical usage:</p>
+<pre class="literal-block">
+class MyCustomType(TypeDecorator):
+    impl = String
+
+    def process_bind_param(self, value, dialect):
+        return value + &quot;incoming string&quot;
+
+    def process_result_value(self, value, dialect):
+        return value[0:-16]
+</pre>
+<p>The class-level &quot;impl&quot; variable is required, and can reference any
+TypeEngine class.  Alternatively, the load_dialect_impl() method can
+be used to provide different type classes based on the dialect given;
+in this case, the &quot;impl&quot; variable can reference <tt class="docutils literal"><span class="pre">TypeEngine</span></tt> as a
+placeholder.</p>
+</div>
     
 
                     

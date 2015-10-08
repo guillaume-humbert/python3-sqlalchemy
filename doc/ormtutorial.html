@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.3   Last Updated: 02/14/08 18:54:07</div>
+<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
 
 
 
@@ -73,6 +73,9 @@
 
         
         <li><a style="" href="ormtutorial.html#datamapping_setting">Setting up the Mapping</a></li>
+
+        
+        <li><a style="" href="ormtutorial.html#datamapping_too">Too Verbose ?  There are alternatives</a></li>
 
         
         <li><a style="" href="ormtutorial.html#datamapping_creating">Creating a Session</a></li>
@@ -324,6 +327,36 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
 </span></pre>
     </div>
 <p>What was that last <code>id</code> attribute?  That was placed there by the <code>Mapper</code>, to track the value of the <code>id</code> column in the <code>users_table</code>.  Since our <code>User</code> doesn't exist in the database, its id is <code>None</code>.  When we save the object, it will get populated automatically with its new id.
+</p>
+
+
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="datamapping_too"></a>
+    
+    <div class="sectionL2">
+
+    <h3>Too Verbose ?  There are alternatives</h3>
+    
+    
+
+<p>The full set of steps to map a class, which are to define a <code>Table</code>, define a class, and then define a <code>mapper()</code>, are fairly verbose and for simple cases may appear overly disjoint.   Most popular object relational products use the so-called "active record" approach, where the table definition and its class mapping are all defined at once.  With SQLAlchemy, there are two excellent alternatives to its usual configuration which provide this approach:
+</p>
+<ul>
+ <li>
+     <a href='http://elixir.ematia.de/'>Elixir</a> is a "sister" product to SQLAlchemy, which is a full "declarative" layer built on top of SQLAlchemy.  It has existed almost as long as SA itself and defines a rich featureset on top of SA's normal configuration, adding many new capabilities such as plugins, automatic generation of table and column names based on configurations, and an intuitive system of defining relations.
+ </li>
+
+ <li>
+     <a href="plugins.html#plugins_declarative">declarative</a> is a so-called "micro-declarative" plugin included with SQLAlchemy 0.4.4 and above.  In contrast to Elixir, it maintains the use of the same configurational constructs outlined in this tutorial, except it allows the <code>Column</code>, <code>relation()</code>, and other constructs to be defined "inline" with the mapped class itself, so that explicit calls to <code>Table</code> and <code>mapper()</code> are not needed in most cases.
+ </li>
+</ul>
+<p>With either declarative layer it's a good idea to be familiar with SQLAlchemy's "base" configurational style in any case.  But now that we have our configuration started, we're ready to look at how to build sessions and query the database; this process is the same regardless of configurational style.
 </p>
 
 
@@ -764,9 +797,9 @@ LIMIT 2 OFFSET 0<br/>
 <span class="python_operator">...     </span><span class="python_name">select</span><span class="python_enclosure">(</span>
 <span class="python_operator">...            </span><span class="python_enclosure">[</span><span class="python_name">users_table</span><span class="python_enclosure">]</span><span class="python_operator">, </span>
 <span class="python_operator">...            </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">max</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_enclosure">)])</span><span class="python_operator">.</span><span class="python_name">label</span><span class="python_enclosure">(</span><span class="python_literal">'maxuser'</span><span class="python_enclosure">)</span><span class="python_operator">==</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_enclosure">) </span>
-<span class="python_operator">...    </span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_19_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
+<span class="python_operator">...    </span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"> </span></pre><div id="popbox_19_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users <br/>
-WHERE (SELECT max(users.name) <br/>
+WHERE (SELECT max(users.name) AS max_1<br/>
 FROM users) = users.name<br/>
 []</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'wendy'</span><span class="python_operator">,</span><span class="python_literal">'Wendy Williams'</span><span class="python_operator">, </span><span class="python_literal">'foobar'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
 </span></pre>
@@ -780,7 +813,7 @@ FROM users) = users.name<br/>
         <pre>
 <span class="python_literal"><a href="javascript:togglePopbox('popbox_20', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_keyword">for </span><span class="python_name">r </span><span class="python_keyword">in </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.\
 ...     </span><span class="python_name">add_column</span><span class="python_enclosure">(</span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">max</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_enclosure">)])</span><span class="python_operator">.</span><span class="python_name">label</span><span class="python_enclosure">(</span><span class="python_literal">'maxuser'</span><span class="python_enclosure">))</span><span class="python_operator">:
-...     </span><span class="python_keyword">print </span><span class="python_name">r</span><span class="python_operator"></span></pre><div id="popbox_20_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password, (SELECT max(users.name) <br/>
+...     </span><span class="python_keyword">print </span><span class="python_name">r</span><span class="python_operator"> </span></pre><div id="popbox_20_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password, (SELECT max(users.name) AS max_1<br/>
 FROM users) AS maxuser <br/>
 FROM users ORDER BY users.oid<br/>
 []</div><pre><span class="python_enclosure">(</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'ed'</span><span class="python_operator">,</span><span class="python_literal">'Ed Jones'</span><span class="python_operator">, </span><span class="python_literal">'f8s7ccs'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;, </span><span class="python_literal">u'wendy'</span><span class="python_enclosure">)</span><span class="python_operator">
@@ -1460,13 +1493,13 @@ WHERE users.id = addresses.user_id AND addresses.id = ?)) ORDER BY users.oid<br/
     <div class="code">
         <pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">delete</span><span class="python_enclosure">(</span><span class="python_name">jack</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_49', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'jack'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_49_div" class="codepop" style="display:none;">UPDATE addresses SET user_id=? WHERE addresses.id = ?<br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_49', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'jack'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"> </span></pre><div id="popbox_49_div" class="codepop" style="display:none;">UPDATE addresses SET user_id=? WHERE addresses.id = ?<br/>
 [None, 1]<br/>
 UPDATE addresses SET user_id=? WHERE addresses.id = ?<br/>
 [None, 2]<br/>
 DELETE FROM users WHERE users.id = ?<br/>
 [5]<br/>
-SELECT count(users.id) <br/>
+SELECT count(users.id) AS count_1<br/>
 FROM users <br/>
 WHERE users.name = ?<br/>
 ['jack']</div><pre><span class="python_number">0</span><span class="python_operator">
@@ -1481,7 +1514,7 @@ WHERE users.name = ?<br/>
         <pre>
 <span class="python_literal"><a href="javascript:togglePopbox('popbox_50', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span>
 <span class="python_operator">...     </span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">.</span><span class="python_name">in_</span><span class="python_enclosure">([</span><span class="python_literal">'jack@google.com'</span><span class="python_operator">, </span><span class="python_literal">'j25@yahoo.com'</span><span class="python_enclosure">])</span>
-<span class="python_operator">...  </span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_50_div" class="codepop" style="display:none;">SELECT count(addresses.id) <br/>
+<span class="python_operator">...  </span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"> </span></pre><div id="popbox_50_div" class="codepop" style="display:none;">SELECT count(addresses.id) AS count_1<br/>
 FROM addresses <br/>
 WHERE addresses.email_address IN (?, ?)<br/>
 ['jack@google.com', 'j25@yahoo.com']</div><pre><span class="python_number">2</span><span class="python_operator">
@@ -1539,9 +1572,9 @@ WHERE ? = addresses.user_id ORDER BY addresses.oid<br/>
 <span class="python_comment"># only one address remains
 </span><span class="python_literal"><a href="javascript:togglePopbox('popbox_54', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span>
 <span class="python_operator">...     </span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">.</span><span class="python_name">in_</span><span class="python_enclosure">([</span><span class="python_literal">'jack@google.com'</span><span class="python_operator">, </span><span class="python_literal">'j25@yahoo.com'</span><span class="python_enclosure">])</span>
-<span class="python_operator">... </span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_54_div" class="codepop" style="display:none;">DELETE FROM addresses WHERE addresses.id = ?<br/>
+<span class="python_operator">... </span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"> </span></pre><div id="popbox_54_div" class="codepop" style="display:none;">DELETE FROM addresses WHERE addresses.id = ?<br/>
 [2]<br/>
-SELECT count(addresses.id) <br/>
+SELECT count(addresses.id) AS count_1<br/>
 FROM addresses <br/>
 WHERE addresses.email_address IN (?, ?)<br/>
 ['jack@google.com', 'j25@yahoo.com']</div><pre><span class="python_number">1</span><span class="python_operator">
@@ -1562,15 +1595,15 @@ DELETE FROM users WHERE users.id = ?<br/>
 [5]<br/>
 COMMIT</div><pre>
 
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_56', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'jack'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_56_div" class="codepop" style="display:none;">BEGIN<br/>
-SELECT count(users.id) <br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_56', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'jack'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"> </span></pre><div id="popbox_56_div" class="codepop" style="display:none;">BEGIN<br/>
+SELECT count(users.id) AS count_1<br/>
 FROM users <br/>
 WHERE users.name = ?<br/>
 ['jack']</div><pre><span class="python_number">0</span><span class="python_operator">
 </span>
 <span class="python_literal"><a href="javascript:togglePopbox('popbox_57', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span>
 <span class="python_operator">...    </span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">.</span><span class="python_name">in_</span><span class="python_enclosure">([</span><span class="python_literal">'jack@google.com'</span><span class="python_operator">, </span><span class="python_literal">'j25@yahoo.com'</span><span class="python_enclosure">])</span>
-<span class="python_operator">... </span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_57_div" class="codepop" style="display:none;">SELECT count(addresses.id) <br/>
+<span class="python_operator">... </span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"> </span></pre><div id="popbox_57_div" class="codepop" style="display:none;">SELECT count(addresses.id) AS count_1<br/>
 FROM addresses <br/>
 WHERE addresses.email_address IN (?, ?)<br/>
 ['jack@google.com', 'j25@yahoo.com']</div><pre><span class="python_number">0</span><span class="python_operator">
@@ -1602,11 +1635,12 @@ WHERE addresses.email_address IN (?, ?)<br/>
 
     <div class="code">
         <pre>
-<span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">post_table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'posts'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">, </span>
+<span class="python_literal">&gt;&gt;&gt; </span><span class="python_keyword">from </span><span class="python_name">sqlalchemy </span><span class="python_keyword">import </span><span class="python_name">Text</span><span class="python_operator">
+</span><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">post_table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'posts'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">, </span>
 <span class="python_operator">...        </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
 <span class="python_operator">...        </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'users.id'</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
 <span class="python_operator">...        </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'headline'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">255</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-<span class="python_operator">...        </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'body'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">)</span>
+<span class="python_operator">...        </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'body'</span><span class="python_operator">, </span><span class="python_name">Text</span><span class="python_enclosure">)</span>
 <span class="python_operator">...        </span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">post_keywords </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'post_keywords'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>

@@ -213,10 +213,19 @@ class DefaultCompiler(engine.Compiled):
                         pd[name] = params[paramname]
                         break
                 else:
-                    pd[name] = bindparam.value
+                    if callable(bindparam.value):
+                        pd[name] = bindparam.value()
+                    else:
+                        pd[name] = bindparam.value
             return pd
         else:
-            return dict([(self.bind_names[bindparam], bindparam.value) for bindparam in self.bind_names])
+            pd = {}
+            for bindparam in self.bind_names:
+                if callable(bindparam.value):
+                    pd[self.bind_names[bindparam]] = bindparam.value()
+                else:
+                    pd[self.bind_names[bindparam]] = bindparam.value
+            return pd
 
     params = property(construct_params)
 
@@ -340,7 +349,7 @@ class DefaultCompiler(engine.Compiled):
         name = self.function_string(func)
 
         if callable(name):
-            return name(*[self.process(x) for x in func.clause_expr])
+            return name(*[self.process(x) for x in func.clauses])
         else:
             return ".".join(func.packagenames + [name]) % {'expr':self.function_argspec(func)}
 
@@ -348,7 +357,7 @@ class DefaultCompiler(engine.Compiled):
         return self.process(func.clause_expr)
 
     def function_string(self, func):
-        return self.functions.get(func.__class__, func.name + "%(expr)s")
+        return self.functions.get(func.__class__, self.functions.get(func.name, func.name + "%(expr)s"))
 
     def visit_compound_select(self, cs, asfrom=False, parens=True, **kwargs):
         stack_entry = {'select':cs}
@@ -617,7 +626,10 @@ class DefaultCompiler(engine.Compiled):
         colparams = self._get_colparams(insert_stmt)
         preparer = self.preparer
 
-        return ("INSERT INTO %s (%s) VALUES (%s)" %
+        insert = ' '.join(["INSERT"] +
+                          [self.process(x) for x in insert_stmt._prefixes])
+
+        return (insert + " INTO %s (%s) VALUES (%s)" %
                 (preparer.format_table(insert_stmt.table),
                  ', '.join([preparer.quote(c[0], c[0].name)
                             for c in colparams]),

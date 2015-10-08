@@ -224,7 +224,29 @@ class ClauseTest(TestBase, AssertsCompiledSQL):
         print str(s5)
         assert str(s5) == s5_assert
         assert str(s4) == s4_assert
+    
+    def test_union(self):
+        u = union(t1.select(), t2.select())
+        u2 = ClauseVisitor().traverse(u, clone=True)
+        assert str(u) == str(u2)
+        assert [str(c) for c in u2.c] == [str(c) for c in u.c]
 
+        u = union(t1.select(), t2.select())
+        cols = [str(c) for c in u.c]
+        u2 = ClauseVisitor().traverse(u, clone=True)
+        assert str(u) == str(u2)
+        assert [str(c) for c in u2.c] == cols
+        
+        s1 = select([t1], t1.c.col1 == bindparam('id_param'))
+        s2 = select([t2])
+        u = union(s1, s2)
+        
+        u2 = u.params(id_param=7)
+        u3 = u.params(id_param=10)
+        assert str(u) == str(u2) == str(u3)
+        assert u2.compile().params == {'id_param':7}
+        assert u3.compile().params == {'id_param':10}
+        
     def test_binds(self):
         """test that unique bindparams change their name upon clone() to prevent conflicts"""
 
@@ -487,6 +509,51 @@ class SelectTest(TestBase, AssertsCompiledSQL):
         select_copy = s.prefix_with("FOOBER")
         self.assert_compile(select_copy, "SELECT FOOBER table1.col1, table1.col2, table1.col3 FROM table1")
         self.assert_compile(s, "SELECT table1.col1, table1.col2, table1.col3 FROM table1")
+
+
+class InsertTest(TestBase, AssertsCompiledSQL):
+    """Tests the generative capability of Insert"""
+
+    # fixme: consolidate converage from elsewhere here and expand
+
+    def setUpAll(self):
+        global t1, t2
+        t1 = table("table1",
+            column("col1"),
+            column("col2"),
+            column("col3"),
+            )
+        t2 = table("table2",
+            column("col1"),
+            column("col2"),
+            column("col3"),
+            )
+
+    def test_prefixes(self):
+        i = t1.insert()
+        self.assert_compile(i,
+                            "INSERT INTO table1 (col1, col2, col3) "
+                            "VALUES (:col1, :col2, :col3)")
+
+        gen = i.prefix_with("foober")
+        self.assert_compile(gen,
+                            "INSERT foober INTO table1 (col1, col2, col3) "
+                            "VALUES (:col1, :col2, :col3)")
+
+        self.assert_compile(i,
+                            "INSERT INTO table1 (col1, col2, col3) "
+                            "VALUES (:col1, :col2, :col3)")
+
+        i2 = t1.insert(prefixes=['squiznart'])
+        self.assert_compile(i2,
+                            "INSERT squiznart INTO table1 (col1, col2, col3) "
+                            "VALUES (:col1, :col2, :col3)")
+
+        gen2 = i2.prefix_with("quux")
+        self.assert_compile(gen2,
+                            "INSERT squiznart quux INTO "
+                            "table1 (col1, col2, col3) "
+                            "VALUES (:col1, :col2, :col3)")
 
 if __name__ == '__main__':
     testenv.main()

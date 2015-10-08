@@ -322,6 +322,13 @@ class MapperTest(MapperSuperTest):
         except exceptions.ArgumentError, e:
             assert "Attempting to assign a new relation 'addresses' to a non-primary mapper on class 'User'" in str(e)
 
+    def test_illegal_non_primary_2(self):
+        try:
+            mapper(User, users, non_primary=True)
+            assert False
+        except exceptions.InvalidRequestError, e:
+            assert "Configure a primary mapper first" in str(e)
+
     def test_propfilters(self):
         t = Table('person', MetaData(),
                   Column('id', Integer, primary_key=True),
@@ -545,6 +552,11 @@ class MapperTest(MapperSuperTest):
         sess = create_session()
 
         assert_col = []
+        class extendedproperty(property):
+            attribute = 123
+            def __getitem__(self, key):
+                return 'value'
+
         class User(object):
             def _get_user_name(self):
                 assert_col.append(('get', self.user_name))
@@ -552,10 +564,10 @@ class MapperTest(MapperSuperTest):
             def _set_user_name(self, name):
                 assert_col.append(('set', name))
                 self.user_name = name
-            uname = property(_get_user_name, _set_user_name)
+            uname = extendedproperty(_get_user_name, _set_user_name)
 
         mapper(User, users, properties = dict(
-            addresses = relation(mapper(Address, addresses), lazy = True),
+            addresses = relation(mapper(Address, addresses), lazy=True),
             uname = synonym('user_name'),
             adlist = synonym('addresses', proxy=True),
             adname = synonym('addresses')
@@ -585,6 +597,8 @@ class MapperTest(MapperSuperTest):
         assert u.user_name == "some user name"
         assert u in sess.dirty
 
+        assert User.uname.attribute == 123
+        assert User.uname['key'] == 'value'
 
     def test_column_synonyms(self):
         """test new-style synonyms which automatically instrument properties, set up aliased column, etc."""

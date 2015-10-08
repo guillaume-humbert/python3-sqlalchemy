@@ -113,11 +113,26 @@ class PGBoolean(sqltypes.Boolean):
     def get_col_spec(self):
         return "BOOLEAN"
 
-class PGArray(sqltypes.Concatenable, sqltypes.TypeEngine):
-    def __init__(self, item_type):
+class PGArray(sqltypes.MutableType, sqltypes.Concatenable, sqltypes.TypeEngine):
+    def __init__(self, item_type, mutable=True):
         if isinstance(item_type, type):
             item_type = item_type()
         self.item_type = item_type
+        self.mutable = mutable
+
+    def copy_value(self, value):
+        if value is None:
+            return None
+        elif self.mutable:
+            return list(value)
+        else:
+            return value
+
+    def compare_values(self, x, y):
+        return x == y
+
+    def is_mutable(self):
+        return self.mutable
 
     def dialect_impl(self, dialect, **kwargs):
         impl = self.__class__.__new__(self.__class__)
@@ -384,7 +399,7 @@ class PGDialect(default.DefaultDialect):
         if isinstance(e, self.dbapi.OperationalError):
             return 'closed the connection' in str(e) or 'connection not open' in str(e)
         elif isinstance(e, self.dbapi.InterfaceError):
-            return 'connection already closed' in str(e)
+            return 'connection already closed' in str(e) or 'cursor already closed' in str(e)
         elif isinstance(e, self.dbapi.ProgrammingError):
             # yes, it really says "losed", not "closed"
             return "losed the connection unexpectedly" in str(e)
@@ -628,6 +643,13 @@ class PGCompiler(compiler.DefaultCompiler):
             sql_operators.mod : '%%',
             sql_operators.ilike_op: 'ILIKE',
             sql_operators.notilike_op: 'NOT ILIKE'
+        }
+    )
+
+    functions = compiler.DefaultCompiler.functions.copy()
+    functions.update (
+        {
+            'TIMESTAMP':lambda x:'TIMESTAMP %s' % x,
         }
     )
 
