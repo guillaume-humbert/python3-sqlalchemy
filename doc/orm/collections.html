@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -785,9 +785,9 @@ collection.removes_return.</p>
 <dt id="sqlalchemy.orm.collections.collection.removes_return">
 <em class="property">static </em><tt class="descname">removes_return</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.collections.collection.removes_return" title="Permalink to this definition">¶</a></dt>
 <dd><p>Mark the method as removing an entity in the collection.</p>
-<p>Adds &#8220;remove from collection&#8221; handling to the method.  The return value
-of the method, if any, is considered the value to remove.  The method
-arguments are not inspected:</p>
+<p>Adds &#8220;remove from collection&#8221; handling to the method.  The return
+value of the method, if any, is considered the value to remove.  The
+method arguments are not inspected:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="nd">@collection.removes_return</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">pop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="o">...</span></pre></div>
 </div>

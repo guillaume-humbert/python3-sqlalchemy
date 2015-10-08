@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -449,11 +449,14 @@ This can be important when using the with_polymorphic()
 to create the target of a JOIN on a backend that does not
 support parenthesized joins, such as SQLite and older
 versions of MySQL.</li>
-<li><span class="target" id="sqlalchemy.orm.with_polymorphic.params.flat"></span><strong>flat</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.with_polymorphic.params.flat">¶</a> &#8211; <p>Boolean, will be passed through to the <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.FromClause.alias" title="sqlalchemy.sql.expression.FromClause.alias"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.alias()</span></tt></a>
-call so that aliases of <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> objects don&#8217;t include an enclosing
-SELECT.  This can lead to more efficient queries in many circumstances.
-A JOIN against a nested JOIN will be rewritten as a JOIN against an aliased
-SELECT subquery on backends that don&#8217;t support this syntax.</p>
+<li><span class="target" id="sqlalchemy.orm.with_polymorphic.params.flat"></span><strong>flat</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.with_polymorphic.params.flat">¶</a> &#8211; <dl class="docutils">
+<dt>Boolean, will be passed through to the</dt>
+<dd><a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.FromClause.alias" title="sqlalchemy.sql.expression.FromClause.alias"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.alias()</span></tt></a> call so that aliases of <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a>
+objects don&#8217;t include an enclosing SELECT.  This can lead to more
+efficient queries in many circumstances.  A JOIN against a nested JOIN
+will be rewritten as a JOIN against an aliased SELECT subquery on
+backends that don&#8217;t support this syntax.</dd>
+</dl>
 <p>Setting <tt class="docutils literal"><span class="pre">flat</span></tt> to <tt class="docutils literal"><span class="pre">True</span></tt> implies the <tt class="docutils literal"><span class="pre">aliased</span></tt> flag is
 also <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
 <div class="versionadded">

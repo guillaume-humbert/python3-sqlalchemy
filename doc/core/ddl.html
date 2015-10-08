@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -736,9 +736,10 @@ This is essentially how to produce the same effect as using the
 <tt class="docutils literal"><span class="pre">system=True</span></tt> argument on <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, which marks a column
 as an implicitly-present &#8220;system&#8221; column.</p>
 <p>For example, suppose we wish to produce a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> which skips
-rendering of the Postgresql <tt class="docutils literal"><span class="pre">xmin</span></tt> column against the Postgresql backend,
-but on other backends does render it, in anticipation of a triggered rule.
-A conditional compilation rule could skip this name only on Postgresql:</p>
+rendering of the Postgresql <tt class="docutils literal"><span class="pre">xmin</span></tt> column against the Postgresql
+backend, but on other backends does render it, in anticipation of a
+triggered rule.  A conditional compilation rule could skip this name only
+on Postgresql:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.schema</span> <span class="kn">import</span> <span class="n">CreateColumn</span>
 
 <span class="nd">@compiles</span><span class="p">(</span><span class="n">CreateColumn</span><span class="p">,</span> <span class="s">&quot;postgresql&quot;</span><span class="p">)</span>
@@ -759,7 +760,8 @@ which only includes the <tt class="docutils literal"><span class="pre">id</span>
 will be omitted, but only against the Postgresql backend.</p>
 <div class="versionadded">
 <p><span>New in version 0.8.3: </span>The <a class="reference internal" href="#sqlalchemy.schema.CreateColumn" title="sqlalchemy.schema.CreateColumn"><tt class="xref py py-class docutils literal"><span class="pre">CreateColumn</span></tt></a> construct supports
-skipping of columns by returning <tt class="docutils literal"><span class="pre">None</span></tt> from a custom compilation rule.</p>
+skipping of columns by returning <tt class="docutils literal"><span class="pre">None</span></tt> from a custom compilation
+rule.</p>
 </div>
 <div class="versionadded">
 <p><span>New in version 0.8: </span>The <a class="reference internal" href="#sqlalchemy.schema.CreateColumn" title="sqlalchemy.schema.CreateColumn"><tt class="xref py py-class docutils literal"><span class="pre">CreateColumn</span></tt></a> construct was added

@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -251,8 +251,9 @@ from its original value by backref handlers in order to control
 chained event propagation.</p>
 <div class="versionchanged">
 <p><span>Changed in version 0.9.0: </span>the <tt class="docutils literal"><span class="pre">initiator</span></tt> argument is now
-passed as a <a class="reference internal" href="internals.html#sqlalchemy.orm.attributes.Event" title="sqlalchemy.orm.attributes.Event"><tt class="xref py py-class docutils literal"><span class="pre">attributes.Event</span></tt></a> object, and may be modified
-by backref handlers within a chain of backref-linked events.</p>
+passed as a <a class="reference internal" href="internals.html#sqlalchemy.orm.attributes.Event" title="sqlalchemy.orm.attributes.Event"><tt class="xref py py-class docutils literal"><span class="pre">attributes.Event</span></tt></a> object, and may be
+modified by backref handlers within a chain of backref-linked
+events.</p>
 </div>
 </li>
 </ul>
@@ -297,8 +298,9 @@ from its original value by backref handlers in order to control
 chained event propagation.</p>
 <div class="versionchanged">
 <p><span>Changed in version 0.9.0: </span>the <tt class="docutils literal"><span class="pre">initiator</span></tt> argument is now
-passed as a <a class="reference internal" href="internals.html#sqlalchemy.orm.attributes.Event" title="sqlalchemy.orm.attributes.Event"><tt class="xref py py-class docutils literal"><span class="pre">attributes.Event</span></tt></a> object, and may be modified
-by backref handlers within a chain of backref-linked events.</p>
+passed as a <a class="reference internal" href="internals.html#sqlalchemy.orm.attributes.Event" title="sqlalchemy.orm.attributes.Event"><tt class="xref py py-class docutils literal"><span class="pre">attributes.Event</span></tt></a> object, and may be
+modified by backref handlers within a chain of backref-linked
+events.</p>
 </div>
 </li>
 </ul>
@@ -360,8 +362,9 @@ from its original value by backref handlers in order to control
 chained event propagation.</p>
 <div class="versionchanged">
 <p><span>Changed in version 0.9.0: </span>the <tt class="docutils literal"><span class="pre">initiator</span></tt> argument is now
-passed as a <a class="reference internal" href="internals.html#sqlalchemy.orm.attributes.Event" title="sqlalchemy.orm.attributes.Event"><tt class="xref py py-class docutils literal"><span class="pre">attributes.Event</span></tt></a> object, and may be modified
-by backref handlers within a chain of backref-linked events.</p>
+passed as a <a class="reference internal" href="internals.html#sqlalchemy.orm.attributes.Event" title="sqlalchemy.orm.attributes.Event"><tt class="xref py py-class docutils literal"><span class="pre">attributes.Event</span></tt></a> object, and may be
+modified by backref handlers within a chain of backref-linked
+events.</p>
 </div>
 </li>
 </ul>
@@ -1874,8 +1877,8 @@ details about the update, including these attributes:</p>
 <blockquote>
 <div><ul class="simple">
 <li><tt class="docutils literal"><span class="pre">session</span></tt> - the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> involved</li>
-<li><tt class="docutils literal"><span class="pre">query</span></tt> -the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object that this update operation was
-called upon.</li>
+<li><tt class="docutils literal"><span class="pre">query</span></tt> -the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object that this update operation
+was called upon.</li>
 <li><tt class="docutils literal"><span class="pre">context</span></tt> The <a class="reference internal" href="internals.html#sqlalchemy.orm.query.QueryContext" title="sqlalchemy.orm.query.QueryContext"><tt class="xref py py-class docutils literal"><span class="pre">QueryContext</span></tt></a> object, corresponding
 to the invocation of an ORM query.</li>
 <li><tt class="docutils literal"><span class="pre">result</span></tt> the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.ResultProxy" title="sqlalchemy.engine.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> returned as a result of the
@@ -1928,8 +1931,8 @@ details about the update, including these attributes:</p>
 <blockquote>
 <div><ul class="simple">
 <li><tt class="docutils literal"><span class="pre">session</span></tt> - the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> involved</li>
-<li><tt class="docutils literal"><span class="pre">query</span></tt> -the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object that this update operation was
-called upon.</li>
+<li><tt class="docutils literal"><span class="pre">query</span></tt> -the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object that this update operation
+was called upon.</li>
 <li><tt class="docutils literal"><span class="pre">context</span></tt> The <a class="reference internal" href="internals.html#sqlalchemy.orm.query.QueryContext" title="sqlalchemy.orm.query.QueryContext"><tt class="xref py py-class docutils literal"><span class="pre">QueryContext</span></tt></a> object, corresponding
 to the invocation of an ORM query.</li>
 <li><tt class="docutils literal"><span class="pre">result</span></tt> the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.ResultProxy" title="sqlalchemy.engine.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> returned as a result of the
@@ -1963,16 +1966,19 @@ bulk UPDATE operation.</li>
 <p class="last">The <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_commit" title="sqlalchemy.orm.events.SessionEvents.after_commit"><tt class="xref py py-meth docutils literal"><span class="pre">after_commit()</span></tt></a> hook is <em>not</em> per-flush,
 that is, the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> can emit SQL to the database
 many times within the scope of a transaction.
-For interception of these events, use the <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_flush" title="sqlalchemy.orm.events.SessionEvents.before_flush"><tt class="xref py py-meth docutils literal"><span class="pre">before_flush()</span></tt></a>,
-<a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_flush" title="sqlalchemy.orm.events.SessionEvents.after_flush"><tt class="xref py py-meth docutils literal"><span class="pre">after_flush()</span></tt></a>, or <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_flush_postexec" title="sqlalchemy.orm.events.SessionEvents.after_flush_postexec"><tt class="xref py py-meth docutils literal"><span class="pre">after_flush_postexec()</span></tt></a>
+For interception of these events, use the
+<a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_flush" title="sqlalchemy.orm.events.SessionEvents.before_flush"><tt class="xref py py-meth docutils literal"><span class="pre">before_flush()</span></tt></a>,
+<a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_flush" title="sqlalchemy.orm.events.SessionEvents.after_flush"><tt class="xref py py-meth docutils literal"><span class="pre">after_flush()</span></tt></a>, or
+<a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_flush_postexec" title="sqlalchemy.orm.events.SessionEvents.after_flush_postexec"><tt class="xref py py-meth docutils literal"><span class="pre">after_flush_postexec()</span></tt></a>
 events.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is not in an active tranasction
-when the <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_commit" title="sqlalchemy.orm.events.SessionEvents.after_commit"><tt class="xref py py-meth docutils literal"><span class="pre">after_commit()</span></tt></a> event is invoked, and therefore
-can not emit SQL.  To emit SQL corresponding to every transaction,
-use the <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_commit" title="sqlalchemy.orm.events.SessionEvents.before_commit"><tt class="xref py py-meth docutils literal"><span class="pre">before_commit()</span></tt></a> event.</p>
+<p class="last">The <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is not in an active transaction
+when the <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_commit" title="sqlalchemy.orm.events.SessionEvents.after_commit"><tt class="xref py py-meth docutils literal"><span class="pre">after_commit()</span></tt></a> event is invoked,
+and therefore can not emit SQL.  To emit SQL corresponding to
+every transaction, use the <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_commit" title="sqlalchemy.orm.events.SessionEvents.before_commit"><tt class="xref py py-meth docutils literal"><span class="pre">before_commit()</span></tt></a>
+event.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2263,8 +2269,8 @@ and subtransactions, and is always matched by a corresponding
 <p>This is called before an add, delete or merge causes
 the object to be part of the session.</p>
 <div class="versionadded">
-<p><span>New in version 0.8.: </span>Note that <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_attach" title="sqlalchemy.orm.events.SessionEvents.after_attach"><tt class="xref py py-meth docutils literal"><span class="pre">after_attach()</span></tt></a> now
-fires off after the item is part of the session.
+<p><span>New in version 0.8.: </span>Note that <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_attach" title="sqlalchemy.orm.events.SessionEvents.after_attach"><tt class="xref py py-meth docutils literal"><span class="pre">after_attach()</span></tt></a>
+now fires off after the item is part of the session.
 <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_attach" title="sqlalchemy.orm.events.SessionEvents.before_attach"><tt class="xref py py-meth docutils literal"><span class="pre">before_attach()</span></tt></a> is provided for those cases where
 the item should not yet be part of the session state.</p>
 </div>
@@ -2295,8 +2301,10 @@ the item should not yet be part of the session state.</p>
 <p class="last">The <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_commit" title="sqlalchemy.orm.events.SessionEvents.before_commit"><tt class="xref py py-meth docutils literal"><span class="pre">before_commit()</span></tt></a> hook is <em>not</em> per-flush,
 that is, the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> can emit SQL to the database
 many times within the scope of a transaction.
-For interception of these events, use the <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_flush" title="sqlalchemy.orm.events.SessionEvents.before_flush"><tt class="xref py py-meth docutils literal"><span class="pre">before_flush()</span></tt></a>,
-<a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_flush" title="sqlalchemy.orm.events.SessionEvents.after_flush"><tt class="xref py py-meth docutils literal"><span class="pre">after_flush()</span></tt></a>, or <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_flush_postexec" title="sqlalchemy.orm.events.SessionEvents.after_flush_postexec"><tt class="xref py py-meth docutils literal"><span class="pre">after_flush_postexec()</span></tt></a>
+For interception of these events, use the
+<a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.before_flush" title="sqlalchemy.orm.events.SessionEvents.before_flush"><tt class="xref py py-meth docutils literal"><span class="pre">before_flush()</span></tt></a>,
+<a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_flush" title="sqlalchemy.orm.events.SessionEvents.after_flush"><tt class="xref py py-meth docutils literal"><span class="pre">after_flush()</span></tt></a>, or
+<a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.after_flush_postexec" title="sqlalchemy.orm.events.SessionEvents.after_flush_postexec"><tt class="xref py py-meth docutils literal"><span class="pre">after_flush_postexec()</span></tt></a>
 events.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">

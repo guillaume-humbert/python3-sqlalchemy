@@ -1395,12 +1395,24 @@ class FilterTest(QueryTest, AssertsCompiledSQL):
 
         sess = create_session()
         item = sess.query(Item).get(3)
-        assert [Order(id=1), Order(id=2), Order(id=3)] == sess.query(Order).filter(Order.items.contains(item)).all()
 
-        assert [Order(id=4), Order(id=5)] == sess.query(Order).filter(~Order.items.contains(item)).all()
+        eq_(
+            sess.query(Order).filter(Order.items.contains(item)).
+            order_by(Order.id).all(),
+            [Order(id=1), Order(id=2), Order(id=3)]
+        )
+        eq_(
+            sess.query(Order).filter(~Order.items.contains(item)).
+            order_by(Order.id).all(),
+            [Order(id=4), Order(id=5)]
+        )
 
         item2 = sess.query(Item).get(5)
-        assert [Order(id=3)] == sess.query(Order).filter(Order.items.contains(item)).filter(Order.items.contains(item2)).all()
+        eq_(
+            sess.query(Order).filter(Order.items.contains(item)).
+            filter(Order.items.contains(item2)).all(),
+            [Order(id=3)]
+        )
 
 
     def test_comparison(self):
@@ -1448,6 +1460,7 @@ class FilterTest(QueryTest, AssertsCompiledSQL):
         # one to many generates WHERE NOT EXISTS
         assert [User(name='chuck')] == sess.query(User).filter_by(addresses = None).all()
         assert [User(name='chuck')] == sess.query(User).filter_by(addresses = null()).all()
+
 
     def test_filter_by_tables(self):
         users = self.tables.users

@@ -1,5 +1,6 @@
 # engine/__init__.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -54,6 +55,7 @@ from .interfaces import (
     Connectable,
     Dialect,
     ExecutionContext,
+    ExceptionContext,
 
     # backwards compat
     Compiled,
@@ -67,7 +69,7 @@ from .base import (
     RootTransaction,
     Transaction,
     TwoPhaseTransaction,
-    )
+)
 
 from .result import (
     BufferedColumnResultProxy,
@@ -76,11 +78,11 @@ from .result import (
     FullyBufferedResultProxy,
     ResultProxy,
     RowProxy,
-    )
+)
 
 from .util import (
     connection_memoize
-    )
+)
 
 
 from . import util, strategies
@@ -369,4 +371,4 @@ def engine_from_config(configuration, prefix='sqlalchemy.', **kwargs):
 __all__ = (
     'create_engine',
     'engine_from_config',
-    )
+)

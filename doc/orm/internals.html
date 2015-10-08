@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -763,8 +763,8 @@ some backends such as SQLite have no support.</li>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.notin_" title="sqlalchemy.sql.operators.ColumnOperators.notin_"><tt class="xref py py-meth docutils literal"><span class="pre">notin_()</span></tt></a> <em>method of</em> <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>implement the <tt class="docutils literal"><span class="pre">NOT</span> <span class="pre">IN</span></tt> operator.</p>
-<p>This is equivalent to using negation with <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.in_" title="sqlalchemy.sql.operators.ColumnOperators.in_"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.in_()</span></tt></a>,
-i.e. <tt class="docutils literal"><span class="pre">~x.in_(y)</span></tt>.</p>
+<p>This is equivalent to using negation with
+<a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.in_" title="sqlalchemy.sql.operators.ColumnOperators.in_"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.in_()</span></tt></a>, i.e. <tt class="docutils literal"><span class="pre">~x.in_(y)</span></tt>.</p>
 <div class="versionadded">
 <p><span>New in version 0.8.</span></p>
 </div>
@@ -869,13 +869,13 @@ will be lower than or equal to all operators.</p>
 </div>
 </li>
 <li><span class="target" id="sqlalchemy.orm.properties.ColumnProperty.Comparator.op.params.is_comparison"></span><strong>is_comparison</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.properties.ColumnProperty.Comparator.op.params.is_comparison">¶</a> &#8211; <p>if True, the operator will be considered as a
-&#8220;comparison&#8221; operator, that is which evaulates to a boolean true/false
-value, like <tt class="docutils literal"><span class="pre">==</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt>, etc.  This flag should be set so that
-ORM relationships can establish that the operator is a comparison
-operator when used in a custom join condition.</p>
+&#8220;comparison&#8221; operator, that is which evaulates to a boolean
+true/false value, like <tt class="docutils literal"><span class="pre">==</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt>, etc.  This flag should be set
+so that ORM relationships can establish that the operator is a
+comparison operator when used in a custom join condition.</p>
 <div class="versionadded">
-<p><span>New in version 0.9.2: </span>- added the <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.Operators.op.params.is_comparison" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-paramref docutils literal"><span class="pre">Operators.op.is_comparison</span></tt></a>
-flag.</p>
+<p><span>New in version 0.9.2: </span>- added the
+<a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.Operators.op.params.is_comparison" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-paramref docutils literal"><span class="pre">Operators.op.is_comparison</span></tt></a> flag.</p>
 </div>
 </li>
 </ul>
@@ -1966,8 +1966,8 @@ some backends such as SQLite have no support.</li>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.notin_" title="sqlalchemy.sql.operators.ColumnOperators.notin_"><tt class="xref py py-meth docutils literal"><span class="pre">notin_()</span></tt></a> <em>method of</em> <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>implement the <tt class="docutils literal"><span class="pre">NOT</span> <span class="pre">IN</span></tt> operator.</p>
-<p>This is equivalent to using negation with <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.in_" title="sqlalchemy.sql.operators.ColumnOperators.in_"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.in_()</span></tt></a>,
-i.e. <tt class="docutils literal"><span class="pre">~x.in_(y)</span></tt>.</p>
+<p>This is equivalent to using negation with
+<a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.in_" title="sqlalchemy.sql.operators.ColumnOperators.in_"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.in_()</span></tt></a>, i.e. <tt class="docutils literal"><span class="pre">~x.in_(y)</span></tt>.</p>
 <div class="versionadded">
 <p><span>New in version 0.8.</span></p>
 </div>
@@ -2070,13 +2070,13 @@ will be lower than or equal to all operators.</p>
 </div>
 </li>
 <li><span class="target" id="sqlalchemy.orm.interfaces.PropComparator.op.params.is_comparison"></span><strong>is_comparison</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.interfaces.PropComparator.op.params.is_comparison">¶</a> &#8211; <p>if True, the operator will be considered as a
-&#8220;comparison&#8221; operator, that is which evaulates to a boolean true/false
-value, like <tt class="docutils literal"><span class="pre">==</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt>, etc.  This flag should be set so that
-ORM relationships can establish that the operator is a comparison
-operator when used in a custom join condition.</p>
+&#8220;comparison&#8221; operator, that is which evaulates to a boolean
+true/false value, like <tt class="docutils literal"><span class="pre">==</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt>, etc.  This flag should be set
+so that ORM relationships can establish that the operator is a
+comparison operator when used in a custom join condition.</p>
 <div class="versionadded">
-<p><span>New in version 0.9.2: </span>- added the <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.Operators.op.params.is_comparison" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-paramref docutils literal"><span class="pre">Operators.op.is_comparison</span></tt></a>
-flag.</p>
+<p><span>New in version 0.9.2: </span>- added the
+<a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.Operators.op.params.is_comparison" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-paramref docutils literal"><span class="pre">Operators.op.is_comparison</span></tt></a> flag.</p>
 </div>
 </li>
 </ul>
@@ -2160,8 +2160,8 @@ of items that correspond to a related database table.</p>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.orm.interfaces.PropComparator</span></tt></a></p>
 <p>Produce boolean, comparison, and other operators for
 <a class="reference internal" href="#sqlalchemy.orm.properties.RelationshipProperty" title="sqlalchemy.orm.properties.RelationshipProperty"><tt class="xref py py-class docutils literal"><span class="pre">RelationshipProperty</span></tt></a> attributes.</p>
-<p>See the documentation for <a class="reference internal" href="#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a> for a brief overview
-of ORM level operator definition.</p>
+<p>See the documentation for <a class="reference internal" href="#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a> for a brief
+overview of ORM level operator definition.</p>
 <p>See also:</p>
 <p><a class="reference internal" href="#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a></p>
 <p><a class="reference internal" href="#sqlalchemy.orm.properties.ColumnProperty.Comparator" title="sqlalchemy.orm.properties.ColumnProperty.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">ColumnProperty.Comparator</span></tt></a></p>
@@ -2611,8 +2611,8 @@ some backends such as SQLite have no support.</li>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.notin_" title="sqlalchemy.sql.operators.ColumnOperators.notin_"><tt class="xref py py-meth docutils literal"><span class="pre">notin_()</span></tt></a> <em>method of</em> <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>implement the <tt class="docutils literal"><span class="pre">NOT</span> <span class="pre">IN</span></tt> operator.</p>
-<p>This is equivalent to using negation with <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.in_" title="sqlalchemy.sql.operators.ColumnOperators.in_"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.in_()</span></tt></a>,
-i.e. <tt class="docutils literal"><span class="pre">~x.in_(y)</span></tt>.</p>
+<p>This is equivalent to using negation with
+<a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.in_" title="sqlalchemy.sql.operators.ColumnOperators.in_"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.in_()</span></tt></a>, i.e. <tt class="docutils literal"><span class="pre">~x.in_(y)</span></tt>.</p>
 <div class="versionadded">
 <p><span>New in version 0.8.</span></p>
 </div>
@@ -2703,13 +2703,13 @@ will be lower than or equal to all operators.</p>
 </div>
 </li>
 <li><span class="target" id="sqlalchemy.orm.properties.RelationshipProperty.Comparator.op.params.is_comparison"></span><strong>is_comparison</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.properties.RelationshipProperty.Comparator.op.params.is_comparison">¶</a> &#8211; <p>if True, the operator will be considered as a
-&#8220;comparison&#8221; operator, that is which evaulates to a boolean true/false
-value, like <tt class="docutils literal"><span class="pre">==</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt>, etc.  This flag should be set so that
-ORM relationships can establish that the operator is a comparison
-operator when used in a custom join condition.</p>
+&#8220;comparison&#8221; operator, that is which evaulates to a boolean
+true/false value, like <tt class="docutils literal"><span class="pre">==</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt>, etc.  This flag should be set
+so that ORM relationships can establish that the operator is a
+comparison operator when used in a custom join condition.</p>
 <div class="versionadded">
-<p><span>New in version 0.9.2: </span>- added the <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.Operators.op.params.is_comparison" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-paramref docutils literal"><span class="pre">Operators.op.is_comparison</span></tt></a>
-flag.</p>
+<p><span>New in version 0.9.2: </span>- added the
+<a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.Operators.op.params.is_comparison" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-paramref docutils literal"><span class="pre">Operators.op.is_comparison</span></tt></a> flag.</p>
 </div>
 </li>
 </ul>
@@ -3298,20 +3298,21 @@ will return the <a class="reference internal" href="../core/metadata.html#sqlalc
 with the core-level <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> object.</li>
 <li>If the attribute is a <a class="reference internal" href="#sqlalchemy.orm.properties.ColumnProperty" title="sqlalchemy.orm.properties.ColumnProperty"><tt class="xref py py-class docutils literal"><span class="pre">ColumnProperty</span></tt></a> but is mapped to
 any other kind of SQL expression other than a <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>,
-the attribute will refer to the <a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperProperty.info" title="sqlalchemy.orm.interfaces.MapperProperty.info"><tt class="xref py py-attr docutils literal"><span class="pre">MapperProperty.info</span></tt></a> dictionary
-associated directly with the <a class="reference internal" href="#sqlalchemy.orm.properties.ColumnProperty" title="sqlalchemy.orm.properties.ColumnProperty"><tt class="xref py py-class docutils literal"><span class="pre">ColumnProperty</span></tt></a>, assuming the SQL
-expression itself does not have its own <tt class="docutils literal"><span class="pre">.info</span></tt> attribute
-(which should be the case, unless a user-defined SQL construct
-has defined one).</li>
-<li>If the attribute refers to any other kind of <a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperProperty" title="sqlalchemy.orm.interfaces.MapperProperty"><tt class="xref py py-class docutils literal"><span class="pre">MapperProperty</span></tt></a>,
-including <a class="reference internal" href="#sqlalchemy.orm.properties.RelationshipProperty" title="sqlalchemy.orm.properties.RelationshipProperty"><tt class="xref py py-class docutils literal"><span class="pre">RelationshipProperty</span></tt></a>, the attribute will refer
-to the <a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperProperty.info" title="sqlalchemy.orm.interfaces.MapperProperty.info"><tt class="xref py py-attr docutils literal"><span class="pre">MapperProperty.info</span></tt></a> dictionary associated with
-that <a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperProperty" title="sqlalchemy.orm.interfaces.MapperProperty"><tt class="xref py py-class docutils literal"><span class="pre">MapperProperty</span></tt></a>.</li>
-<li>To access the <a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperProperty.info" title="sqlalchemy.orm.interfaces.MapperProperty.info"><tt class="xref py py-attr docutils literal"><span class="pre">MapperProperty.info</span></tt></a> dictionary of the <a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperProperty" title="sqlalchemy.orm.interfaces.MapperProperty"><tt class="xref py py-class docutils literal"><span class="pre">MapperProperty</span></tt></a>
-unconditionally, including for a <a class="reference internal" href="#sqlalchemy.orm.properties.ColumnProperty" title="sqlalchemy.orm.properties.ColumnProperty"><tt class="xref py py-class docutils literal"><span class="pre">ColumnProperty</span></tt></a> that&#8217;s
-associated directly with a <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">schema.Column</span></tt></a>, the attribute
-can be referred to using <a class="reference internal" href="#sqlalchemy.orm.attributes.QueryableAttribute.property" title="sqlalchemy.orm.attributes.QueryableAttribute.property"><tt class="xref py py-attr docutils literal"><span class="pre">QueryableAttribute.property</span></tt></a>
-attribute, as <tt class="docutils literal"><span class="pre">MyClass.someattribute.property.info</span></tt>.</li>
+the attribute will refer to the <a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperProperty.info" title="sqlalchemy.orm.interfaces.MapperProperty.info"><tt class="xref py py-attr docutils literal"><span class="pre">MapperProperty.info</span></tt></a>
+dictionary associated directly with the <a class="reference internal" href="#sqlalchemy.orm.properties.ColumnProperty" title="sqlalchemy.orm.properties.ColumnProperty"><tt class="xref py py-class docutils literal"><span class="pre">ColumnProperty</span></tt></a>,
+assuming the SQL expression itself does not have its own <tt class="docutils literal"><span class="pre">.info</span></tt>
+attribute (which should be the case, unless a user-defined SQL
+construct has defined one).</li>
+<li>If the attribute refers to any other kind of
+<a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperProperty" title="sqlalchemy.orm.interfaces.MapperProperty"><tt class="xref py py-class docutils literal"><span class="pre">MapperProperty</span></tt></a>, including <a class="reference internal" href="#sqlalchemy.orm.properties.RelationshipProperty" title="sqlalchemy.orm.properties.RelationshipProperty"><tt class="xref py py-class docutils literal"><span class="pre">RelationshipProperty</span></tt></a>,
+the attribute will refer to the <a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperProperty.info" title="sqlalchemy.orm.interfaces.MapperProperty.info"><tt class="xref py py-attr docutils literal"><span class="pre">MapperProperty.info</span></tt></a>
+dictionary associated with that <a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperProperty" title="sqlalchemy.orm.interfaces.MapperProperty"><tt class="xref py py-class docutils literal"><span class="pre">MapperProperty</span></tt></a>.</li>
+<li>To access the <a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperProperty.info" title="sqlalchemy.orm.interfaces.MapperProperty.info"><tt class="xref py py-attr docutils literal"><span class="pre">MapperProperty.info</span></tt></a> dictionary of the
+<a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperProperty" title="sqlalchemy.orm.interfaces.MapperProperty"><tt class="xref py py-class docutils literal"><span class="pre">MapperProperty</span></tt></a> unconditionally, including for a
+<a class="reference internal" href="#sqlalchemy.orm.properties.ColumnProperty" title="sqlalchemy.orm.properties.ColumnProperty"><tt class="xref py py-class docutils literal"><span class="pre">ColumnProperty</span></tt></a> that&#8217;s associated directly with a
+<a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">schema.Column</span></tt></a>, the attribute can be referred to using
+<a class="reference internal" href="#sqlalchemy.orm.attributes.QueryableAttribute.property" title="sqlalchemy.orm.attributes.QueryableAttribute.property"><tt class="xref py py-attr docutils literal"><span class="pre">QueryableAttribute.property</span></tt></a> attribute, as
+<tt class="docutils literal"><span class="pre">MyClass.someattribute.property.info</span></tt>.</li>
 </ul>
 <div class="versionadded">
 <p><span>New in version 0.8.0.</span></p>
@@ -3434,8 +3435,8 @@ some backends such as SQLite have no support.</li>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.notin_" title="sqlalchemy.sql.operators.ColumnOperators.notin_"><tt class="xref py py-meth docutils literal"><span class="pre">notin_()</span></tt></a> <em>method of</em> <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a></div>
 <p>implement the <tt class="docutils literal"><span class="pre">NOT</span> <span class="pre">IN</span></tt> operator.</p>
-<p>This is equivalent to using negation with <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.in_" title="sqlalchemy.sql.operators.ColumnOperators.in_"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.in_()</span></tt></a>,
-i.e. <tt class="docutils literal"><span class="pre">~x.in_(y)</span></tt>.</p>
+<p>This is equivalent to using negation with
+<a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.in_" title="sqlalchemy.sql.operators.ColumnOperators.in_"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.in_()</span></tt></a>, i.e. <tt class="docutils literal"><span class="pre">~x.in_(y)</span></tt>.</p>
 <div class="versionadded">
 <p><span>New in version 0.8.</span></p>
 </div>
@@ -3517,13 +3518,13 @@ will be lower than or equal to all operators.</p>
 </div>
 </li>
 <li><span class="target" id="sqlalchemy.orm.attributes.QueryableAttribute.op.params.is_comparison"></span><strong>is_comparison</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.attributes.QueryableAttribute.op.params.is_comparison">¶</a> &#8211; <p>if True, the operator will be considered as a
-&#8220;comparison&#8221; operator, that is which evaulates to a boolean true/false
-value, like <tt class="docutils literal"><span class="pre">==</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt>, etc.  This flag should be set so that
-ORM relationships can establish that the operator is a comparison
-operator when used in a custom join condition.</p>
+&#8220;comparison&#8221; operator, that is which evaulates to a boolean
+true/false value, like <tt class="docutils literal"><span class="pre">==</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt>, etc.  This flag should be set
+so that ORM relationships can establish that the operator is a
+comparison operator when used in a custom join condition.</p>
 <div class="versionadded">
-<p><span>New in version 0.9.2: </span>- added the <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.Operators.op.params.is_comparison" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-paramref docutils literal"><span class="pre">Operators.op.is_comparison</span></tt></a>
-flag.</p>
+<p><span>New in version 0.9.2: </span>- added the
+<a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.Operators.op.params.is_comparison" title="sqlalchemy.sql.operators.Operators.op"><tt class="xref py py-paramref docutils literal"><span class="pre">Operators.op.is_comparison</span></tt></a> flag.</p>
 </div>
 </li>
 </ul>

@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -128,7 +128,7 @@
 <li><a class="reference internal" href="#">SQLite</a><ul>
 <li><a class="reference internal" href="#dialect-sqlite">Support for the SQLite database.</a></li>
 <li><a class="reference internal" href="#date-and-time-types">Date and Time Types</a></li>
-<li><a class="reference internal" href="#auto-incrementing-behavior">Auto Incrementing Behavior</a></li>
+<li><a class="reference internal" href="#sqlite-auto-incrementing-behavior">SQLite Auto Incrementing Behavior</a></li>
 <li><a class="reference internal" href="#transaction-isolation-level">Transaction Isolation Level</a></li>
 <li><a class="reference internal" href="#database-locking-behavior-concurrency">Database Locking Behavior / Concurrency</a></li>
 <li><a class="reference internal" href="#foreign-key-support">Foreign Key Support</a></li>
@@ -186,8 +186,8 @@ These types represent dates and times as ISO formatted strings, which also
 nicely support ordering. There&#8217;s no reliance on typical &#8220;libc&#8221; internals for
 these functions so historical dates are fully supported.</p>
 </div>
-<div class="section" id="auto-incrementing-behavior">
-<h2>Auto Incrementing Behavior<a class="headerlink" href="#auto-incrementing-behavior" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="sqlite-auto-incrementing-behavior">
+<span id="sqlite-autoincrement"></span><h2>SQLite Auto Incrementing Behavior<a class="headerlink" href="#sqlite-auto-incrementing-behavior" title="Permalink to this headline">¶</a></h2>
 <p>Background on SQLite&#8217;s autoincrement is at: <a class="reference external" href="http://sqlite.org/autoinc.html">http://sqlite.org/autoinc.html</a></p>
 <p>Two things to note:</p>
 <ul class="simple">
@@ -198,8 +198,8 @@ algorithm used to generate ROWID values should be slightly different.</li>
 one column, if the table has a composite (i.e. multi-column) primary key.
 This is regardless of the AUTOINCREMENT keyword being present or not.</li>
 </ul>
-<p>To specifically render the AUTOINCREMENT keyword on the primary key column when
-rendering DDL, add the flag <tt class="docutils literal"><span class="pre">sqlite_autoincrement=True</span></tt> to the Table
+<p>To specifically render the AUTOINCREMENT keyword on the primary key column
+when rendering DDL, add the flag <tt class="docutils literal"><span class="pre">sqlite_autoincrement=True</span></tt> to the Table
 construct:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Table</span><span class="p">(</span><span class="s">&#39;sometable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
         <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
@@ -220,27 +220,27 @@ serializable isolation with Pysqlite.</p>
 <p>Note that SQLite is not designed for a high level of concurrency. The database
 itself, being a file, is locked completely during write operations and within
 transactions, meaning exactly one connection has exclusive access to the
-database during this period - all other connections will be blocked during this
-time.</p>
-<p>The Python DBAPI specification also calls for a connection model that is always
-in a transaction; there is no BEGIN method, only commit and rollback. This
-implies that a SQLite DBAPI driver would technically allow only serialized
-access to a particular database file at all times. The pysqlite driver attempts
-to ameliorate this by deferring the actual BEGIN statement until the first DML
-(INSERT, UPDATE, or DELETE) is received within a transaction. While this breaks
-serializable isolation, it at least delays the exclusive locking inherent in
-SQLite&#8217;s design.</p>
-<p>SQLAlchemy&#8217;s default mode of usage with the ORM is known as &#8220;autocommit=False&#8221;,
-which means the moment the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> begins to be used, a transaction
-is begun. As the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is used, the autoflush feature, also on by
-default, will flush out pending changes to the database before each query. The
-effect of this is that a <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> used in its default mode will often
-emit DML early on, long before the transaction is actually committed. This
-again will have the effect of serializing access to the SQLite database. If
-highly concurrent reads are desired against the SQLite database, it is advised
-that the autoflush feature be disabled, and potentially even that autocommit be
-re-enabled, which has the effect of each SQL statement and flush committing
-changes immediately.</p>
+database during this period - all other connections will be blocked during
+this time.</p>
+<p>The Python DBAPI specification also calls for a connection model that is
+always in a transaction; there is no BEGIN method, only commit and rollback.
+This implies that a SQLite DBAPI driver would technically allow only
+serialized access to a particular database file at all times. The pysqlite
+driver attempts to ameliorate this by deferring the actual BEGIN statement
+until the first DML (INSERT, UPDATE, or DELETE) is received within a
+transaction. While this breaks serializable isolation, it at least delays the
+exclusive locking inherent in SQLite&#8217;s design.</p>
+<p>SQLAlchemy&#8217;s default mode of usage with the ORM is known as
+&#8220;autocommit=False&#8221;, which means the moment the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> begins to be
+used, a transaction is begun. As the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is used, the autoflush
+feature, also on by default, will flush out pending changes to the database
+before each query. The effect of this is that a <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> used in its
+default mode will often emit DML early on, long before the transaction is
+actually committed. This again will have the effect of serializing access to
+the SQLite database. If highly concurrent reads are desired against the SQLite
+database, it is advised that the autoflush feature be disabled, and
+potentially even that autocommit be re-enabled, which has the effect of each
+SQL statement and flush committing changes immediately.</p>
 <p>For more information on SQLite&#8217;s lack of concurrency by design, please see
 <a class="reference external" href="http://www.sqlite.org/whentouse.html">Situations Where Another RDBMS May Work Better - High Concurrency</a> near the bottom of the page.</p>
 </div>
@@ -254,8 +254,8 @@ table.</p>
 <li>At least version 3.6.19 of SQLite must be in use</li>
 <li>The SQLite library must be compiled <em>without</em> the SQLITE_OMIT_FOREIGN_KEY
 or SQLITE_OMIT_TRIGGER symbols enabled.</li>
-<li>The <tt class="docutils literal"><span class="pre">PRAGMA</span> <span class="pre">foreign_keys</span> <span class="pre">=</span> <span class="pre">ON</span></tt> statement must be emitted on all connections
-before use.</li>
+<li>The <tt class="docutils literal"><span class="pre">PRAGMA</span> <span class="pre">foreign_keys</span> <span class="pre">=</span> <span class="pre">ON</span></tt> statement must be emitted on all
+connections before use.</li>
 </ul>
 <p>SQLAlchemy allows for the <tt class="docutils literal"><span class="pre">PRAGMA</span></tt> statement to be emitted automatically for
 new connections through the usage of events:</p>
@@ -270,8 +270,8 @@ new connections through the usage of events:</p>
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p><a class="reference external" href="http://www.sqlite.org/foreignkeys.html">SQLite Foreign Key Support</a> - on
-the SQLite web site.</p>
+<p><a class="reference external" href="http://www.sqlite.org/foreignkeys.html">SQLite Foreign Key Support</a>
+- on the SQLite web site.</p>
 <p class="last"><a class="reference internal" href="../core/event.html"><em>Events</em></a> - SQLAlchemy event API.</p>
 </div>
 </div>
@@ -356,8 +356,8 @@ they originate from <a class="reference internal" href="../core/types.html#modul
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.dialects.sqlite.DATETIME.params.storage_format"></span><strong>storage_format</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.DATETIME.params.storage_format">¶</a> &#8211; format string which will be applied to the dict with
-keys year, month, day, hour, minute, second, and microsecond.</li>
+<li><span class="target" id="sqlalchemy.dialects.sqlite.DATETIME.params.storage_format"></span><strong>storage_format</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.DATETIME.params.storage_format">¶</a> &#8211; format string which will be applied to the dict
+with keys year, month, day, hour, minute, second, and microsecond.</li>
 <li><span class="target" id="sqlalchemy.dialects.sqlite.DATETIME.params.regexp"></span><strong>regexp</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.DATETIME.params.regexp">¶</a> &#8211; regular expression which will be applied to incoming result
 rows. If the regexp contains named groups, the resulting match dict is
 applied to the Python datetime() constructor as keyword arguments.
@@ -438,8 +438,8 @@ date() constructor is called with positional arguments via
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.dialects.sqlite.TIME.params.storage_format"></span><strong>storage_format</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.TIME.params.storage_format">¶</a> &#8211; format string which will be applied to the dict with
-keys hour, minute, second, and microsecond.</li>
+<li><span class="target" id="sqlalchemy.dialects.sqlite.TIME.params.storage_format"></span><strong>storage_format</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.TIME.params.storage_format">¶</a> &#8211; format string which will be applied to the dict
+with keys hour, minute, second, and microsecond.</li>
 <li><span class="target" id="sqlalchemy.dialects.sqlite.TIME.params.regexp"></span><strong>regexp</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.TIME.params.regexp">¶</a> &#8211; regular expression which will be applied to incoming result
 rows. If the regexp contains named groups, the resulting match dict is
 applied to the Python time() constructor as keyword arguments. Otherwise,
@@ -531,7 +531,8 @@ without expensive per-row type checks.</p>
 nor should be necessary, for use with SQLAlchemy, usage of PARSE_DECLTYPES
 can be forced if one configures &#8220;native_datetime=True&#8221; on create_engine():</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite://&#39;</span><span class="p">,</span>
-    <span class="n">connect_args</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;detect_types&#39;</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">PARSE_DECLTYPES</span><span class="o">|</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">PARSE_COLNAMES</span><span class="p">},</span>
+    <span class="n">connect_args</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;detect_types&#39;</span><span class="p">:</span>
+        <span class="n">sqlite3</span><span class="o">.</span><span class="n">PARSE_DECLTYPES</span><span class="o">|</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">PARSE_COLNAMES</span><span class="p">},</span>
     <span class="n">native_datetime</span><span class="o">=</span><span class="bp">True</span>
 <span class="p">)</span></pre></div>
 </div>
@@ -539,7 +540,8 @@ can be forced if one configures &#8220;native_datetime=True&#8221; on create_eng
 DATETIME or TIME types...confused yet ?) will not perform any bind parameter
 or result processing. Execution of &#8220;func.current_date()&#8221; will return a string.
 &#8220;func.current_timestamp()&#8221; is registered as returning a DATETIME type in
-SQLAlchemy, so this function still receives SQLAlchemy-level result processing.</p>
+SQLAlchemy, so this function still receives SQLAlchemy-level result
+processing.</p>
 </div>
 <div class="section" id="threading-pooling-behavior">
 <span id="pysqlite-threading-pooling"></span><h3>Threading/Pooling Behavior<a class="headerlink" href="#threading-pooling-behavior" title="Permalink to this headline">¶</a></h3>
@@ -550,12 +552,12 @@ various circumstances.  In particular, older SQLite versions
 did not allow a <tt class="docutils literal"><span class="pre">:memory:</span></tt> database to be used in multiple threads
 under any circumstances.</p>
 <p>Pysqlite does include a now-undocumented flag known as
-<tt class="docutils literal"><span class="pre">check_same_thread</span></tt> which will disable this check, however note that pysqlite
-connections are still not safe to use in concurrently in multiple threads.
-In particular, any statement execution calls would need to be externally
-mutexed, as Pysqlite does not provide for thread-safe propagation of error
-messages among other things.   So while even <tt class="docutils literal"><span class="pre">:memory:</span></tt> databases can be
-shared among threads in modern SQLite, Pysqlite doesn&#8217;t provide enough
+<tt class="docutils literal"><span class="pre">check_same_thread</span></tt> which will disable this check, however note that
+pysqlite connections are still not safe to use in concurrently in multiple
+threads.  In particular, any statement execution calls would need to be
+externally mutexed, as Pysqlite does not provide for thread-safe propagation
+of error messages among other things.   So while even <tt class="docutils literal"><span class="pre">:memory:</span></tt> databases
+can be shared among threads in modern SQLite, Pysqlite doesn&#8217;t provide enough
 thread-safety to make this usage worth it.</p>
 <p>SQLAlchemy sets up pooling to work with Pysqlite&#8217;s default behavior:</p>
 <ul>
@@ -580,8 +582,8 @@ default for all SQLite databases.</p>
 </ul>
 <div class="section" id="using-a-memory-database-in-multiple-threads">
 <h4>Using a Memory Database in Multiple Threads<a class="headerlink" href="#using-a-memory-database-in-multiple-threads" title="Permalink to this headline">¶</a></h4>
-<p>To use a <tt class="docutils literal"><span class="pre">:memory:</span></tt> database in a multithreaded scenario, the same connection
-object must be shared among threads, since the database exists
+<p>To use a <tt class="docutils literal"><span class="pre">:memory:</span></tt> database in a multithreaded scenario, the same
+connection object must be shared among threads, since the database exists
 only within the scope of that connection.   The
 <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.StaticPool" title="sqlalchemy.pool.StaticPool"><tt class="xref py py-class docutils literal"><span class="pre">StaticPool</span></tt></a> implementation will maintain a single connection
 globally, and the <tt class="docutils literal"><span class="pre">check_same_thread</span></tt> flag can be passed to Pysqlite
@@ -600,10 +602,10 @@ version of SQLite.</p>
 temporary table in a file-based SQLite database across multiple checkouts
 from the connection pool, such as when using an ORM <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> where
 the temporary table should continue to remain after <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">Session.commit()</span></tt></a> or
-<a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session.rollback" title="sqlalchemy.orm.session.Session.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">Session.rollback()</span></tt></a> is called, a pool which maintains a single connection must
-be used.   Use <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.SingletonThreadPool" title="sqlalchemy.pool.SingletonThreadPool"><tt class="xref py py-class docutils literal"><span class="pre">SingletonThreadPool</span></tt></a> if the scope is only needed
-within the current thread, or <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.StaticPool" title="sqlalchemy.pool.StaticPool"><tt class="xref py py-class docutils literal"><span class="pre">StaticPool</span></tt></a> is scope is needed within
-multiple threads for this case:</p>
+<a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session.rollback" title="sqlalchemy.orm.session.Session.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">Session.rollback()</span></tt></a> is called, a pool which maintains a single
+connection must be used.   Use <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.SingletonThreadPool" title="sqlalchemy.pool.SingletonThreadPool"><tt class="xref py py-class docutils literal"><span class="pre">SingletonThreadPool</span></tt></a> if the scope is
+only needed within the current thread, or <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.StaticPool" title="sqlalchemy.pool.StaticPool"><tt class="xref py py-class docutils literal"><span class="pre">StaticPool</span></tt></a> is scope is
+needed within multiple threads for this case:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># maintain the same connection per thread</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.pool</span> <span class="kn">import</span> <span class="n">SingletonThreadPool</span>
 <span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:///mydb.db&#39;</span><span class="p">,</span>
@@ -645,7 +647,8 @@ at the start of each transaction.   The following recipe establishes
 a <a class="reference internal" href="../core/events.html#sqlalchemy.events.ConnectionEvents.begin" title="sqlalchemy.events.ConnectionEvents.begin"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.begin()</span></tt></a> handler to achieve this:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">event</span>
 
-<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;sqlite:///myfile.db&quot;</span><span class="p">,</span> <span class="n">isolation_level</span><span class="o">=</span><span class="s">&#39;SERIALIZABLE&#39;</span><span class="p">)</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;sqlite:///myfile.db&quot;</span><span class="p">,</span>
+                       <span class="n">isolation_level</span><span class="o">=</span><span class="s">&#39;SERIALIZABLE&#39;</span><span class="p">)</span>
 
 <span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s">&quot;begin&quot;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">do_begin</span><span class="p">(</span><span class="n">conn</span><span class="p">):</span>

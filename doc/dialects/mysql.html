@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -238,19 +238,21 @@ supported in any given server release.</p>
 </div>
 <div class="section" id="connection-timeouts">
 <span id="mysql-connection-timeouts"></span><h2>Connection Timeouts<a class="headerlink" href="#connection-timeouts" title="Permalink to this headline">¶</a></h2>
-<p>MySQL features an automatic connection close behavior, for connections that have
-been idle for eight hours or more.   To circumvent having this issue, use the
-<tt class="docutils literal"><span class="pre">pool_recycle</span></tt> option which controls the maximum age of any connection:</p>
+<p>MySQL features an automatic connection close behavior, for connections that
+have been idle for eight hours or more.   To circumvent having this issue, use
+the <tt class="docutils literal"><span class="pre">pool_recycle</span></tt> option which controls the maximum age of any connection:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+mysqldb://...&#39;</span><span class="p">,</span> <span class="n">pool_recycle</span><span class="o">=</span><span class="mi">3600</span><span class="p">)</span></pre></div>
 </div>
 </div>
 <div class="section" id="create-table-arguments-including-storage-engines">
 <span id="mysql-storage-engines"></span><h2>CREATE TABLE arguments including Storage Engines<a class="headerlink" href="#create-table-arguments-including-storage-engines" title="Permalink to this headline">¶</a></h2>
 <p>MySQL&#8217;s CREATE TABLE syntax includes a wide array of special options,
-including <tt class="docutils literal"><span class="pre">ENGINE</span></tt>, <tt class="docutils literal"><span class="pre">CHARSET</span></tt>, <tt class="docutils literal"><span class="pre">MAX_ROWS</span></tt>, <tt class="docutils literal"><span class="pre">ROW_FORMAT</span></tt>, <tt class="docutils literal"><span class="pre">INSERT_METHOD</span></tt>, and many more.
+including <tt class="docutils literal"><span class="pre">ENGINE</span></tt>, <tt class="docutils literal"><span class="pre">CHARSET</span></tt>, <tt class="docutils literal"><span class="pre">MAX_ROWS</span></tt>, <tt class="docutils literal"><span class="pre">ROW_FORMAT</span></tt>,
+<tt class="docutils literal"><span class="pre">INSERT_METHOD</span></tt>, and many more.
 To accommodate the rendering of these arguments, specify the form
 <tt class="docutils literal"><span class="pre">mysql_argument_name=&quot;value&quot;</span></tt>.  For example, to specify a table with
-<tt class="docutils literal"><span class="pre">ENGINE</span></tt> of <tt class="docutils literal"><span class="pre">InnoDB</span></tt>, <tt class="docutils literal"><span class="pre">CHARSET</span></tt> of <tt class="docutils literal"><span class="pre">utf8</span></tt>, and <tt class="docutils literal"><span class="pre">KEY_BLOCK_SIZE</span></tt> of <tt class="docutils literal"><span class="pre">1024</span></tt>:</p>
+<tt class="docutils literal"><span class="pre">ENGINE</span></tt> of <tt class="docutils literal"><span class="pre">InnoDB</span></tt>, <tt class="docutils literal"><span class="pre">CHARSET</span></tt> of <tt class="docutils literal"><span class="pre">utf8</span></tt>, and <tt class="docutils literal"><span class="pre">KEY_BLOCK_SIZE</span></tt>
+of <tt class="docutils literal"><span class="pre">1024</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
       <span class="n">Column</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">32</span><span class="p">)),</span>
       <span class="n">mysql_engine</span><span class="o">=</span><span class="s">&#39;InnoDB&#39;</span><span class="p">,</span>
@@ -258,24 +260,26 @@ To accommodate the rendering of these arguments, specify the form
       <span class="n">mysql_key_block_size</span><span class="o">=</span><span class="s">&quot;1024&quot;</span>
      <span class="p">)</span></pre></div>
 </div>
-<p>The MySQL dialect will normally transfer any keyword specified as <tt class="docutils literal"><span class="pre">mysql_keyword_name</span></tt>
-to be rendered as <tt class="docutils literal"><span class="pre">KEYWORD_NAME</span></tt> in the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statement.  A handful
-of these names will render with a space instead of an underscore; to support this,
-the MySQL dialect has awareness of these particular names, which include
-<tt class="docutils literal"><span class="pre">DATA</span> <span class="pre">DIRECTORY</span></tt> (e.g. <tt class="docutils literal"><span class="pre">mysql_data_directory</span></tt>), <tt class="docutils literal"><span class="pre">CHARACTER</span> <span class="pre">SET</span></tt> (e.g.
-<tt class="docutils literal"><span class="pre">mysql_character_set</span></tt>) and <tt class="docutils literal"><span class="pre">INDEX</span> <span class="pre">DIRECTORY</span></tt> (e.g. <tt class="docutils literal"><span class="pre">mysql_index_directory</span></tt>).</p>
-<p>The most common argument is <tt class="docutils literal"><span class="pre">mysql_engine</span></tt>, which refers to the storage engine
-for the table.  Historically, MySQL server installations would default
+<p>The MySQL dialect will normally transfer any keyword specified as
+<tt class="docutils literal"><span class="pre">mysql_keyword_name</span></tt> to be rendered as <tt class="docutils literal"><span class="pre">KEYWORD_NAME</span></tt> in the
+<tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statement.  A handful of these names will render with a space
+instead of an underscore; to support this, the MySQL dialect has awareness of
+these particular names, which include <tt class="docutils literal"><span class="pre">DATA</span> <span class="pre">DIRECTORY</span></tt>
+(e.g. <tt class="docutils literal"><span class="pre">mysql_data_directory</span></tt>), <tt class="docutils literal"><span class="pre">CHARACTER</span> <span class="pre">SET</span></tt> (e.g.
+<tt class="docutils literal"><span class="pre">mysql_character_set</span></tt>) and <tt class="docutils literal"><span class="pre">INDEX</span> <span class="pre">DIRECTORY</span></tt> (e.g.
+<tt class="docutils literal"><span class="pre">mysql_index_directory</span></tt>).</p>
+<p>The most common argument is <tt class="docutils literal"><span class="pre">mysql_engine</span></tt>, which refers to the storage
+engine for the table.  Historically, MySQL server installations would default
 to <tt class="docutils literal"><span class="pre">MyISAM</span></tt> for this value, although newer versions may be defaulting
 to <tt class="docutils literal"><span class="pre">InnoDB</span></tt>.  The <tt class="docutils literal"><span class="pre">InnoDB</span></tt> engine is typically preferred for its support
 of transactions and foreign keys.</p>
 <p>A <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> that is created in a MySQL database with a storage engine
-of <tt class="docutils literal"><span class="pre">MyISAM</span></tt> will be essentially non-transactional, meaning any INSERT/UPDATE/DELETE
-statement referring to this table will be invoked as autocommit.   It also will have no
-support for foreign key constraints; while the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statement
-accepts foreign key options, when using the <tt class="docutils literal"><span class="pre">MyISAM</span></tt> storage engine these
-arguments are discarded.  Reflecting such a table will also produce no
-foreign key constraint information.</p>
+of <tt class="docutils literal"><span class="pre">MyISAM</span></tt> will be essentially non-transactional, meaning any
+INSERT/UPDATE/DELETE statement referring to this table will be invoked as
+autocommit.   It also will have no support for foreign key constraints; while
+the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statement accepts foreign key options, when using the
+<tt class="docutils literal"><span class="pre">MyISAM</span></tt> storage engine these arguments are discarded.  Reflecting such a
+table will also produce no foreign key constraint information.</p>
 <p>For fully atomic transactions as well as support for foreign key
 constraints, all participating <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statements must specify a
 transactional engine, which in the vast majority of cases is <tt class="docutils literal"><span class="pre">InnoDB</span></tt>.</p>
@@ -319,7 +323,8 @@ every new connection. Valid values for this parameter are
 <div class="section" id="auto-increment-behavior">
 <h2>AUTO_INCREMENT Behavior<a class="headerlink" href="#auto-increment-behavior" title="Permalink to this headline">¶</a></h2>
 <p>When creating tables, SQLAlchemy will automatically set <tt class="docutils literal"><span class="pre">AUTO_INCREMENT</span></tt> on
-the first <a class="reference internal" href="../core/types.html#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">Integer</span></tt></a> primary key column which is not marked as a foreign key:</p>
+the first <a class="reference internal" href="../core/types.html#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">Integer</span></tt></a> primary key column which is not marked as a
+foreign key:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
 <span class="gp">... </span>  <span class="n">Column</span><span class="p">(</span><span class="s">&#39;mytable_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="gp">... </span><span class="p">)</span>
@@ -329,10 +334,10 @@ the first <a class="reference internal" href="../core/types.html#sqlalchemy.type
 <span class="go">        PRIMARY KEY (id)</span>
 <span class="go">)</span></pre></div>
 </div>
-<p>You can disable this behavior by passing <tt class="docutils literal"><span class="pre">False</span></tt> to the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column.params.autoincrement" title="sqlalchemy.schema.Column"><tt class="xref py py-paramref docutils literal"><span class="pre">autoincrement</span></tt></a>
-argument of <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>.  This flag can also be used to enable
-auto-increment on a secondary column in a multi-column key for some storage
-engines:</p>
+<p>You can disable this behavior by passing <tt class="docutils literal"><span class="pre">False</span></tt> to the
+<a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column.params.autoincrement" title="sqlalchemy.schema.Column"><tt class="xref py py-paramref docutils literal"><span class="pre">autoincrement</span></tt></a> argument of <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>.  This flag
+can also be used to enable auto-increment on a secondary column in a
+multi-column key for some storage engines:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
       <span class="n">Column</span><span class="p">(</span><span class="s">&#39;gid&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoincrement</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
       <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -382,8 +387,8 @@ usual definition of &#8220;number of rows matched by an UPDATE or DELETE&#8221; 
 This is in contradiction to the default setting on most MySQL DBAPI drivers,
 which is &#8220;number of rows actually modified/deleted&#8221;.  For this reason, the
 SQLAlchemy MySQL dialects always set the <tt class="docutils literal"><span class="pre">constants.CLIENT.FOUND_ROWS</span></tt> flag,
-or whatever is equivalent for the DBAPI in use, on connect, unless the flag value
-is overridden using DBAPI-specific options
+or whatever is equivalent for the DBAPI in use, on connect, unless the flag
+value is overridden using DBAPI-specific options
 (such as <tt class="docutils literal"><span class="pre">client_flag</span></tt> for the MySQL-Python driver, <tt class="docutils literal"><span class="pre">found_rows</span></tt> for the
 OurSQL driver).</p>
 <p>See also:</p>
@@ -391,13 +396,13 @@ OurSQL driver).</p>
 </div>
 <div class="section" id="cast-support">
 <h2>CAST Support<a class="headerlink" href="#cast-support" title="Permalink to this headline">¶</a></h2>
-<p>MySQL documents the CAST operator as available in version 4.0.2.  When using the
-SQLAlchemy <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a> function, SQLAlchemy
-will not render the CAST token on MySQL before this version, based on server version
-detection, instead rendering the internal expression directly.</p>
-<p>CAST may still not be desirable on an early MySQL version post-4.0.2, as it didn&#8217;t
-add all datatype support until 4.1.1.   If your application falls into this
-narrow area, the behavior of CAST can be controlled using the
+<p>MySQL documents the CAST operator as available in version 4.0.2.  When using
+the SQLAlchemy <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a> function, SQLAlchemy
+will not render the CAST token on MySQL before this version, based on server
+version detection, instead rendering the internal expression directly.</p>
+<p>CAST may still not be desirable on an early MySQL version post-4.0.2, as it
+didn&#8217;t add all datatype support until 4.1.1.   If your application falls into
+this narrow area, the behavior of CAST can be controlled using the
 <a class="reference internal" href="../core/compiler.html"><em>Custom SQL Constructs and Compilation Extension</em></a> system, as per the recipe below:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql.expression</span> <span class="kn">import</span> <span class="n">Cast</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.ext.compiler</span> <span class="kn">import</span> <span class="n">compiles</span>
@@ -426,7 +431,8 @@ become part of the index. SQLAlchemy provides this feature via the
 <tt class="docutils literal"><span class="pre">mysql_length</span></tt> parameter:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Index</span><span class="p">(</span><span class="s">&#39;my_index&#39;</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">mysql_length</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 
-<span class="n">Index</span><span class="p">(</span><span class="s">&#39;a_b_idx&#39;</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b</span><span class="p">,</span> <span class="n">mysql_length</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;a&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">:</span> <span class="mi">9</span><span class="p">})</span></pre></div>
+<span class="n">Index</span><span class="p">(</span><span class="s">&#39;a_b_idx&#39;</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b</span><span class="p">,</span> <span class="n">mysql_length</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;a&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                                                           <span class="s">&#39;b&#39;</span><span class="p">:</span> <span class="mi">9</span><span class="p">})</span></pre></div>
 </div>
 <p>Prefix lengths are given in characters for nonbinary string types and in bytes
 for binary string types. The value passed to the keyword argument <em>must</em> be
@@ -465,10 +471,10 @@ type for your MySQL storage engine.</p>
 <h3>Foreign Key Arguments to Avoid<a class="headerlink" href="#foreign-key-arguments-to-avoid" title="Permalink to this headline">¶</a></h3>
 <p>MySQL does not support the foreign key arguments &#8220;DEFERRABLE&#8221;, &#8220;INITIALLY&#8221;,
 or &#8220;MATCH&#8221;.  Using the <tt class="docutils literal"><span class="pre">deferrable</span></tt> or <tt class="docutils literal"><span class="pre">initially</span></tt> keyword argument with
-<a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> or <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> will have the effect of these keywords being
-rendered in a DDL expression, which will then raise an error on MySQL.
-In order to use these keywords on a foreign key while having them ignored
-on a MySQL backend, use a custom compile rule:</p>
+<a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> or <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> will have the effect of
+these keywords being rendered in a DDL expression, which will then raise an
+error on MySQL.  In order to use these keywords on a foreign key while having
+them ignored on a MySQL backend, use a custom compile rule:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.compiler</span> <span class="kn">import</span> <span class="n">compiles</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.schema</span> <span class="kn">import</span> <span class="n">ForeignKeyConstraint</span>
 
@@ -479,19 +485,20 @@ on a MySQL backend, use a custom compile rule:</p>
 </div>
 <div class="versionchanged">
 <p><span>Changed in version 0.9.0: </span>- the MySQL backend no longer silently ignores
-the <tt class="docutils literal"><span class="pre">deferrable</span></tt> or <tt class="docutils literal"><span class="pre">initially</span></tt> keyword arguments of <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>
-and <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a>.</p>
+the <tt class="docutils literal"><span class="pre">deferrable</span></tt> or <tt class="docutils literal"><span class="pre">initially</span></tt> keyword arguments of
+<a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> and <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a>.</p>
 </div>
 <p>The &#8220;MATCH&#8221; keyword is in fact more insidious, and is explicitly disallowed
-by SQLAlchemy in conjunction with the MySQL backend.  This argument is silently
-ignored by MySQL, but in addition has the effect of ON UPDATE and ON DELETE options
-also being ignored by the backend.   Therefore MATCH should never be used with the
-MySQL backend; as is the case with DEFERRABLE and INITIALLY, custom compilation
-rules can be used to correct a MySQL ForeignKeyConstraint at DDL definition time.</p>
+by SQLAlchemy in conjunction with the MySQL backend.  This argument is
+silently ignored by MySQL, but in addition has the effect of ON UPDATE and ON
+DELETE options also being ignored by the backend.   Therefore MATCH should
+never be used with the MySQL backend; as is the case with DEFERRABLE and
+INITIALLY, custom compilation rules can be used to correct a MySQL
+ForeignKeyConstraint at DDL definition time.</p>
 <div class="versionadded">
-<p><span>New in version 0.9.0: </span>- the MySQL backend will raise a <tt class="xref py py-class docutils literal"><span class="pre">CompileError</span></tt>
-when the <tt class="docutils literal"><span class="pre">match</span></tt> keyword is used with <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>
-or <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a>.</p>
+<p><span>New in version 0.9.0: </span>- the MySQL backend will raise a
+<tt class="xref py py-class docutils literal"><span class="pre">CompileError</span></tt> when the <tt class="docutils literal"><span class="pre">match</span></tt> keyword is used with
+<a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> or <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a>.</p>
 </div>
 </div>
 <div class="section" id="reflection-of-foreign-key-constraints">
@@ -565,9 +572,9 @@ numeric.</li>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">BIT</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.BIT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>MySQL BIT type.</p>
-<p>This type is for MySQL 5.0.3 or greater for MyISAM, and 5.0.5 or greater for
-MyISAM, MEMORY, InnoDB and BDB.  For older versions, use a MSTinyInteger()
-type.</p>
+<p>This type is for MySQL 5.0.3 or greater for MyISAM, and 5.0.5 or greater
+for MyISAM, MEMORY, InnoDB and BDB.  For older versions, use a
+MSTinyInteger() type.</p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.mysql.BIT.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.BIT.__init__" title="Permalink to this definition">¶</a></dt>
@@ -764,10 +771,10 @@ numeric.</li>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The <a class="reference internal" href="#sqlalchemy.dialects.mysql.DOUBLE" title="sqlalchemy.dialects.mysql.DOUBLE"><tt class="xref py py-class docutils literal"><span class="pre">DOUBLE</span></tt></a> type by default converts from float
-to Decimal, using a truncation that defaults to 10 digits.  Specify
-either <tt class="docutils literal"><span class="pre">scale=n</span></tt> or <tt class="docutils literal"><span class="pre">decimal_return_scale=n</span></tt> in order to change
-this scale, or <tt class="docutils literal"><span class="pre">asdecimal=False</span></tt> to return values directly as
-Python floating points.</p>
+to Decimal, using a truncation that defaults to 10 digits.
+Specify either <tt class="docutils literal"><span class="pre">scale=n</span></tt> or <tt class="docutils literal"><span class="pre">decimal_return_scale=n</span></tt> in order
+to change this scale, or <tt class="docutils literal"><span class="pre">asdecimal=False</span></tt> to return values
+directly as Python floating points.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1130,10 +1137,10 @@ compatible with the national character set.</li>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The <a class="reference internal" href="#sqlalchemy.dialects.mysql.REAL" title="sqlalchemy.dialects.mysql.REAL"><tt class="xref py py-class docutils literal"><span class="pre">REAL</span></tt></a> type by default converts from float
-to Decimal, using a truncation that defaults to 10 digits.  Specify
-either <tt class="docutils literal"><span class="pre">scale=n</span></tt> or <tt class="docutils literal"><span class="pre">decimal_return_scale=n</span></tt> in order to change
-this scale, or <tt class="docutils literal"><span class="pre">asdecimal=False</span></tt> to return values directly as
-Python floating points.</p>
+to Decimal, using a truncation that defaults to 10 digits.
+Specify either <tt class="docutils literal"><span class="pre">scale=n</span></tt> or <tt class="docutils literal"><span class="pre">decimal_return_scale=n</span></tt> in order
+to change this scale, or <tt class="docutils literal"><span class="pre">asdecimal=False</span></tt> to return values
+directly as Python floating points.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1575,8 +1582,8 @@ defaults to, there is a separate parameter:</p>
 <div class="section" id="mysql-python-compatibility">
 <h3>MySQL-Python Compatibility<a class="headerlink" href="#mysql-python-compatibility" title="Permalink to this headline">¶</a></h3>
 <p>The pymysql DBAPI is a pure Python port of the MySQL-python (MySQLdb) driver,
-and targets 100% compatibility.   Most behavioral notes for MySQL-python apply to
-the pymysql driver as well.</p>
+and targets 100% compatibility.   Most behavioral notes for MySQL-python apply
+to the pymysql driver as well.</p>
 </div>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.mysql.mysqlconnector">
@@ -1611,8 +1618,8 @@ the pymysql driver as well.</p>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.mysql.gaerdbms">
 <span id="google-app-engine"></span><h2>Google App Engine<a class="headerlink" href="#module-sqlalchemy.dialects.mysql.gaerdbms" title="Permalink to this headline">¶</a></h2>
-<p>Support for the MySQL database via the Google Cloud SQL driver.<p>This dialect is based primarily on the <a class="reference internal" href="#module-sqlalchemy.dialects.mysql.mysqldb" title="sqlalchemy.dialects.mysql.mysqldb"><tt class="xref py py-mod docutils literal"><span class="pre">mysql.mysqldb</span></tt></a> dialect with minimal
-changes.</p>
+<p>Support for the MySQL database via the Google Cloud SQL driver.<p>This dialect is based primarily on the <a class="reference internal" href="#module-sqlalchemy.dialects.mysql.mysqldb" title="sqlalchemy.dialects.mysql.mysqldb"><tt class="xref py py-mod docutils literal"><span class="pre">mysql.mysqldb</span></tt></a> dialect with
+minimal changes.</p>
 <div class="versionadded">
 <p><span>New in version 0.7.8.</span></p>
 </div>

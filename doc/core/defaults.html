@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -524,8 +524,10 @@ a construct that can be &#8220;executed&#8221; by a SQLAlchemy <a class="referen
 or <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>, rendering the appropriate &#8220;next value&#8221; function
 for the target database and returning a result.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a> is typically associated with a primary key column:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">some_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;some_table&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">(</span><span class="s">&#39;some_table_seq&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">some_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+    <span class="s">&#39;some_table&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">(</span><span class="s">&#39;some_table_seq&#39;</span><span class="p">),</span>
+    <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="p">)</span></pre></div>
 </div>
 <p>When CREATE TABLE is emitted for the above <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, if the
@@ -567,8 +569,8 @@ this sequence on the Postgresql backend, where the SERIAL keyword
 creates a sequence for us automatically&#8221;.</li>
 <li><span class="target" id="sqlalchemy.schema.Sequence.params.quote"></span><strong>quote</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Sequence.params.quote">¶</a> &#8211; boolean value, when <tt class="docutils literal"><span class="pre">True</span></tt> or <tt class="docutils literal"><span class="pre">False</span></tt>, explicitly
 forces quoting of the schema name on or off.  When left at its
-default of <tt class="docutils literal"><span class="pre">None</span></tt>, normal quoting rules based on casing and reserved
-words take place.</li>
+default of <tt class="docutils literal"><span class="pre">None</span></tt>, normal quoting rules based on casing and
+reserved words take place.</li>
 <li><span class="target" id="sqlalchemy.schema.Sequence.params.quote_schema"></span><strong>quote_schema</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Sequence.params.quote_schema">¶</a> &#8211; set the quoting preferences for the <tt class="docutils literal"><span class="pre">schema</span></tt>
 name.</li>
 <li><span class="target" id="sqlalchemy.schema.Sequence.params.metadata"></span><strong>metadata</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Sequence.params.metadata">¶</a> &#8211; <p>optional <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object which will be

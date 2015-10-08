@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -403,10 +403,11 @@ string collations between the database and Python.</p>
 </table>
 <p>This method has several key caveats:</p>
 <ul>
-<li><p class="first">The method does <strong>not</strong> offer in-Python cascading of relationships - it
-is assumed that ON DELETE CASCADE/SET NULL/etc. is configured for any foreign key
-references which require it, otherwise the database may emit an
-integrity violation if foreign key references are being enforced.</p>
+<li><p class="first">The method does <strong>not</strong> offer in-Python cascading of relationships
+- it is assumed that ON DELETE CASCADE/SET NULL/etc. is configured
+for any foreign key references which require it, otherwise the
+database may emit an integrity violation if foreign key references
+are being enforced.</p>
 <p>After the DELETE, dependent objects in the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> which
 were impacted by an ON DELETE may not contain the current
 state, or may have been deleted. This issue is resolved once the
@@ -414,8 +415,8 @@ state, or may have been deleted. This issue is resolved once the
 which normally occurs upon <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">Session.commit()</span></tt></a> or can be forced
 by using <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.expire_all" title="sqlalchemy.orm.session.Session.expire_all"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire_all()</span></tt></a>.  Accessing an expired object
 whose row has been deleted will invoke a SELECT to locate the
-row; when the row is not found, an <a class="reference internal" href="exceptions.html#sqlalchemy.orm.exc.ObjectDeletedError" title="sqlalchemy.orm.exc.ObjectDeletedError"><tt class="xref py py-class docutils literal"><span class="pre">ObjectDeletedError</span></tt></a>
-is raised.</p>
+row; when the row is not found, an
+<a class="reference internal" href="exceptions.html#sqlalchemy.orm.exc.ObjectDeletedError" title="sqlalchemy.orm.exc.ObjectDeletedError"><tt class="xref py py-class docutils literal"><span class="pre">ObjectDeletedError</span></tt></a> is raised.</p>
 </li>
 <li><p class="first">The <a class="reference internal" href="events.html#sqlalchemy.orm.events.MapperEvents.before_delete" title="sqlalchemy.orm.events.MapperEvents.before_delete"><tt class="xref py py-meth docutils literal"><span class="pre">MapperEvents.before_delete()</span></tt></a> and
 <a class="reference internal" href="events.html#sqlalchemy.orm.events.MapperEvents.after_delete" title="sqlalchemy.orm.events.MapperEvents.after_delete"><tt class="xref py py-meth docutils literal"><span class="pre">MapperEvents.after_delete()</span></tt></a>
@@ -677,7 +678,8 @@ the newly resulting <a class="reference internal" href="#sqlalchemy.orm.query.Qu
 <tt class="descname">having</tt><big>(</big><em>criterion</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.having" title="Permalink to this definition">¶</a></dt>
 <dd><p>apply a HAVING criterion to the query and return the
 newly resulting <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>.</p>
-<p><a class="reference internal" href="#sqlalchemy.orm.query.Query.having" title="sqlalchemy.orm.query.Query.having"><tt class="xref py py-meth docutils literal"><span class="pre">having()</span></tt></a> is used in conjunction with <a class="reference internal" href="#sqlalchemy.orm.query.Query.group_by" title="sqlalchemy.orm.query.Query.group_by"><tt class="xref py py-meth docutils literal"><span class="pre">group_by()</span></tt></a>.</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.query.Query.having" title="sqlalchemy.orm.query.Query.having"><tt class="xref py py-meth docutils literal"><span class="pre">having()</span></tt></a> is used in conjunction with
+<a class="reference internal" href="#sqlalchemy.orm.query.Query.group_by" title="sqlalchemy.orm.query.Query.group_by"><tt class="xref py py-meth docutils literal"><span class="pre">group_by()</span></tt></a>.</p>
 <p>HAVING criterion makes it possible to use filters on aggregate
 functions like COUNT, SUM, AVG, MAX, and MIN, eg.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">q</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span>\
@@ -723,8 +725,8 @@ and apply generatively, returning the newly resulting <a class="reference intern
 <p><strong>Simple Relationship Joins</strong></p>
 <p>Consider a mapping between two classes <tt class="docutils literal"><span class="pre">User</span></tt> and <tt class="docutils literal"><span class="pre">Address</span></tt>,
 with a relationship <tt class="docutils literal"><span class="pre">User.addresses</span></tt> representing a collection
-of <tt class="docutils literal"><span class="pre">Address</span></tt> objects associated with each <tt class="docutils literal"><span class="pre">User</span></tt>.   The most common
-usage of <a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> is to create a JOIN along this
+of <tt class="docutils literal"><span class="pre">Address</span></tt> objects associated with each <tt class="docutils literal"><span class="pre">User</span></tt>.   The most
+common usage of <a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> is to create a JOIN along this
 relationship, using the <tt class="docutils literal"><span class="pre">User.addresses</span></tt> attribute as an indicator
 for how this should occur:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">q</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">)</span></pre></div>
@@ -932,8 +934,8 @@ FROM clauses of the query.</li>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="tutorial.html#ormtutorial-joins"><em>Querying with Joins</em></a> in the ORM tutorial.</p>
-<p><a class="reference internal" href="inheritance.html"><em>Mapping Class Inheritance Hierarchies</em></a> for details on how <a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a>
-is used for inheritance relationships.</p>
+<p><a class="reference internal" href="inheritance.html"><em>Mapping Class Inheritance Hierarchies</em></a> for details on how
+<a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> is used for inheritance relationships.</p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.orm.join" title="sqlalchemy.orm.join"><tt class="xref py py-func docutils literal"><span class="pre">orm.join()</span></tt></a> - a standalone ORM-level join function,
 used internally by <a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a>, which in previous
 SQLAlchemy versions was the primary ORM-level joining interface.</p>
@@ -1391,9 +1393,9 @@ string collations between the database and Python.</p>
 </table>
 <p>This method has several key caveats:</p>
 <ul>
-<li><p class="first">The method does <strong>not</strong> offer in-Python cascading of relationships - it
-is assumed that ON UPDATE CASCADE is configured for any foreign key
-references which require it, otherwise the database may emit an
+<li><p class="first">The method does <strong>not</strong> offer in-Python cascading of relationships
+- it is assumed that ON UPDATE CASCADE is configured for any foreign
+key references which require it, otherwise the database may emit an
 integrity violation if foreign key references are being enforced.</p>
 <p>After the UPDATE, dependent objects in the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> which
 were impacted by an ON UPDATE CASCADE may not contain the current
@@ -1401,16 +1403,16 @@ state; this issue is resolved once the <a class="reference internal" href="sessi
 which normally occurs upon <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">Session.commit()</span></tt></a> or can be forced
 by using <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.expire_all" title="sqlalchemy.orm.session.Session.expire_all"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire_all()</span></tt></a>.</p>
 </li>
-<li><p class="first">As of 0.8, this method will support multiple table updates, as detailed
-in <a class="reference internal" href="../core/tutorial.html#multi-table-updates"><em>Multiple Table Updates</em></a>, and this behavior does extend to support
-updates of joined-inheritance and other multiple table mappings.  However,
-the <strong>join condition of an inheritance mapper is currently not
-automatically rendered</strong>.
-Care must be taken in any multiple-table update to explicitly include
-the joining condition between those tables, even in mappings where
-this is normally automatic.
-E.g. if a class <tt class="docutils literal"><span class="pre">Engineer</span></tt> subclasses <tt class="docutils literal"><span class="pre">Employee</span></tt>, an UPDATE of the
-<tt class="docutils literal"><span class="pre">Engineer</span></tt> local table using criteria against the <tt class="docutils literal"><span class="pre">Employee</span></tt>
+<li><p class="first">As of 0.8, this method will support multiple table updates, as
+detailed in <a class="reference internal" href="../core/tutorial.html#multi-table-updates"><em>Multiple Table Updates</em></a>, and this behavior does
+extend to support updates of joined-inheritance and other multiple
+table mappings.  However, the <strong>join condition of an inheritance
+mapper is currently not automatically rendered</strong>.
+Care must be taken in any multiple-table update to explicitly
+include the joining condition between those tables, even in mappings
+where this is normally automatic.
+E.g. if a class <tt class="docutils literal"><span class="pre">Engineer</span></tt> subclasses <tt class="docutils literal"><span class="pre">Employee</span></tt>, an UPDATE of
+the <tt class="docutils literal"><span class="pre">Engineer</span></tt> local table using criteria against the <tt class="docutils literal"><span class="pre">Employee</span></tt>
 local table might look like:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Engineer</span><span class="p">)</span><span class="o">.</span>\
     <span class="nb">filter</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">Employee</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span>\
@@ -1649,10 +1651,11 @@ loading, the full result for all rows is fetched which generally
 defeats the purpose of <a class="reference internal" href="#sqlalchemy.orm.query.Query.yield_per" title="sqlalchemy.orm.query.Query.yield_per"><tt class="xref py py-meth docutils literal"><span class="pre">yield_per()</span></tt></a>.</p>
 <p>Also note that while <a class="reference internal" href="#sqlalchemy.orm.query.Query.yield_per" title="sqlalchemy.orm.query.Query.yield_per"><tt class="xref py py-meth docutils literal"><span class="pre">yield_per()</span></tt></a>
 will set the <tt class="docutils literal"><span class="pre">stream_results</span></tt> execution option to True, currently
-this is only understood by <a class="reference internal" href="../dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg2" title="sqlalchemy.dialects.postgresql.psycopg2"><tt class="xref py py-mod docutils literal"><span class="pre">psycopg2</span></tt></a> dialect
-which will stream results using server side cursors instead of pre-buffer
-all rows for this query. Other DBAPIs pre-buffer all rows before
-making them available.</p>
+this is only understood by
+<a class="reference internal" href="../dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg2" title="sqlalchemy.dialects.postgresql.psycopg2"><tt class="xref py py-mod docutils literal"><span class="pre">psycopg2</span></tt></a> dialect which will
+stream results using server side cursors instead of pre-buffer all
+rows for this query. Other DBAPIs pre-buffer all rows before making
+them available.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1700,11 +1703,12 @@ alias of the mapped table is generated.</li>
 by the <tt class="docutils literal"><span class="pre">alias</span></tt> parameter.  The name, among other things, forms the
 attribute name that will be accessible via tuples returned by a
 <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object.</li>
-<li><span class="target" id="sqlalchemy.orm.aliased.params.flat"></span><strong>flat</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.aliased.params.flat">¶</a> &#8211; <p>Boolean, will be passed through to the <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.FromClause.alias" title="sqlalchemy.sql.expression.FromClause.alias"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.alias()</span></tt></a>
-call so that aliases of <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> objects don&#8217;t include an enclosing
-SELECT.  This can lead to more efficient queries in many circumstances.
-A JOIN against a nested JOIN will be rewritten as a JOIN against an aliased
-SELECT subquery on backends that don&#8217;t support this syntax.</p>
+<li><span class="target" id="sqlalchemy.orm.aliased.params.flat"></span><strong>flat</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.aliased.params.flat">¶</a> &#8211; <p>Boolean, will be passed through to the
+<a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.FromClause.alias" title="sqlalchemy.sql.expression.FromClause.alias"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.alias()</span></tt></a> call so that aliases of <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> objects
+don&#8217;t include an enclosing SELECT.  This can lead to more efficient
+queries in many circumstances.  A JOIN against a nested JOIN will be
+rewritten as a JOIN against an aliased SELECT subquery on backends that
+don&#8217;t support this syntax.</p>
 <div class="versionadded">
 <p><span>New in version 0.9.0.</span></p>
 </div>
@@ -1847,7 +1851,8 @@ involving ORM identity-mapped classes.</p>
 <p>e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">bn</span> <span class="o">=</span> <span class="n">Bundle</span><span class="p">(</span><span class="s">&quot;mybundle&quot;</span><span class="p">,</span> <span class="n">MyClass</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">MyClass</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
 
-<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">bn</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">bn</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">bn</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">y</span> <span class="o">==</span> <span class="mi">4</span><span class="p">):</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">bn</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">bn</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">bn</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">y</span> <span class="o">==</span> <span class="mi">4</span><span class="p">):</span>
     <span class="k">print</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">mybundle</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">mybundle</span><span class="o">.</span><span class="n">y</span><span class="p">)</span></pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1889,7 +1894,8 @@ in the same manner as a mapped entity.</li>
         <span class="n">Bundle</span><span class="p">(</span><span class="s">&#39;b3&#39;</span><span class="p">,</span> <span class="n">MyClass</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">MyClass</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
     <span class="p">)</span>
 
-<span class="n">q</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">b1</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">b1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b2</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">a</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">b1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b3</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">y</span> <span class="o">==</span> <span class="mi">9</span><span class="p">)</span></pre></div>
+<span class="n">q</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">b1</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+    <span class="n">b1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b2</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">a</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">b1</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">b3</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">y</span> <span class="o">==</span> <span class="mi">9</span><span class="p">)</span></pre></div>
 </div>
 </div></blockquote>
 <div class="admonition seealso">
@@ -2000,13 +2006,15 @@ with the exception that the dictionary returned is <strong>not</strong> ordered.
 <em class="property">class </em><tt class="descclassname">sqlalchemy.orm.strategy_options.</tt><tt class="descname">Load</tt><big>(</big><em>entity</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.strategy_options.Load" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.Generative</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.orm.interfaces.MapperOption</span></tt></p>
 <p>Represents loader options which modify the state of a
-<a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> in order to affect how various mapped attributes are loaded.</p>
+<a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> in order to affect how various mapped attributes are
+loaded.</p>
 <div class="versionadded">
 <p><span>New in version 0.9.0: </span>The <tt class="xref py py-meth docutils literal"><span class="pre">Load()</span></tt> system is a new foundation for
 the existing system of loader options, including options such as
-<a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">orm.joinedload()</span></tt></a>, <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.defer" title="sqlalchemy.orm.defer"><tt class="xref py py-func docutils literal"><span class="pre">orm.defer()</span></tt></a>, and others.   In particular,
-it introduces a new method-chained system that replaces the need for
-dot-separated paths as well as &#8220;_all()&#8221; options such as <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload_all" title="sqlalchemy.orm.joinedload_all"><tt class="xref py py-func docutils literal"><span class="pre">orm.joinedload_all()</span></tt></a>.</p>
+<a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">orm.joinedload()</span></tt></a>, <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.defer" title="sqlalchemy.orm.defer"><tt class="xref py py-func docutils literal"><span class="pre">orm.defer()</span></tt></a>, and others.   In
+particular, it introduces a new method-chained system that replaces the
+need for dot-separated paths as well as &#8220;_all()&#8221; options such as
+<a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload_all" title="sqlalchemy.orm.joinedload_all"><tt class="xref py py-func docutils literal"><span class="pre">orm.joinedload_all()</span></tt></a>.</p>
 </div>
 <p>A <a class="reference internal" href="#sqlalchemy.orm.strategy_options.Load" title="sqlalchemy.orm.strategy_options.Load"><tt class="xref py py-class docutils literal"><span class="pre">Load</span></tt></a> object can be used directly or indirectly.  To use one
 directly, instantiate given the parent class.  This style of usage is
@@ -2019,11 +2027,12 @@ any style of query:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">myopt</span><span class="p">)</span></pre></div>
 </div>
 <p>The <a class="reference internal" href="#sqlalchemy.orm.strategy_options.Load" title="sqlalchemy.orm.strategy_options.Load"><tt class="xref py py-class docutils literal"><span class="pre">Load</span></tt></a> construct is invoked indirectly whenever one makes use
-of the various loader options that are present in <tt class="docutils literal"><span class="pre">sqlalchemy.orm</span></tt>, including
-options such as <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">orm.joinedload()</span></tt></a>, <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.defer" title="sqlalchemy.orm.defer"><tt class="xref py py-func docutils literal"><span class="pre">orm.defer()</span></tt></a>, <a class="reference internal" href="loading.html#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">orm.subqueryload()</span></tt></a>,
-and all the rest.  These constructs produce an &#8220;anonymous&#8221; form of the
-<a class="reference internal" href="#sqlalchemy.orm.strategy_options.Load" title="sqlalchemy.orm.strategy_options.Load"><tt class="xref py py-class docutils literal"><span class="pre">Load</span></tt></a> object which tracks attributes and options, but is not linked
-to a parent class until it is associated with a parent <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>:</p>
+of the various loader options that are present in <tt class="docutils literal"><span class="pre">sqlalchemy.orm</span></tt>,
+including options such as <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">orm.joinedload()</span></tt></a>, <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.defer" title="sqlalchemy.orm.defer"><tt class="xref py py-func docutils literal"><span class="pre">orm.defer()</span></tt></a>,
+<a class="reference internal" href="loading.html#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">orm.subqueryload()</span></tt></a>, and all the rest.  These constructs produce an
+&#8220;anonymous&#8221; form of the <a class="reference internal" href="#sqlalchemy.orm.strategy_options.Load" title="sqlalchemy.orm.strategy_options.Load"><tt class="xref py py-class docutils literal"><span class="pre">Load</span></tt></a> object which tracks attributes and
+options, but is not linked to a parent class until it is associated with a
+parent <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># produce &quot;unbound&quot; Load object</span>
 <span class="n">myopt</span> <span class="o">=</span> <span class="n">joinedload</span><span class="p">(</span><span class="s">&quot;widgets&quot;</span><span class="p">)</span>
 
@@ -2032,19 +2041,20 @@ to a parent class until it is associated with a parent <a class="reference inter
 <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">myopt</span><span class="p">)</span></pre></div>
 </div>
 <p>Whether the direct or indirect style is used, the <a class="reference internal" href="#sqlalchemy.orm.strategy_options.Load" title="sqlalchemy.orm.strategy_options.Load"><tt class="xref py py-class docutils literal"><span class="pre">Load</span></tt></a> object
-returned now represents a specific &#8220;path&#8221; along the entities of a <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>.
-This path can be traversed using a standard method-chaining approach.
-Supposing a class hierarchy such as <tt class="docutils literal"><span class="pre">User</span></tt>, <tt class="docutils literal"><span class="pre">User.addresses</span> <span class="pre">-&gt;</span> <span class="pre">Address</span></tt>,
-<tt class="docutils literal"><span class="pre">User.orders</span> <span class="pre">-&gt;</span> <span class="pre">Order</span></tt> and <tt class="docutils literal"><span class="pre">Order.items</span> <span class="pre">-&gt;</span> <span class="pre">Item</span></tt>, we can specify a variety
-of loader options along each element in the &#8220;path&#8221;:</p>
+returned now represents a specific &#8220;path&#8221; along the entities of a
+<a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>.  This path can be traversed using a standard
+method-chaining approach.  Supposing a class hierarchy such as <tt class="docutils literal"><span class="pre">User</span></tt>,
+<tt class="docutils literal"><span class="pre">User.addresses</span> <span class="pre">-&gt;</span> <span class="pre">Address</span></tt>, <tt class="docutils literal"><span class="pre">User.orders</span> <span class="pre">-&gt;</span> <span class="pre">Order</span></tt> and
+<tt class="docutils literal"><span class="pre">Order.items</span> <span class="pre">-&gt;</span> <span class="pre">Item</span></tt>, we can specify a variety of loader options along
+each element in the &#8220;path&#8221;:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span>
             <span class="n">joinedload</span><span class="p">(</span><span class="s">&quot;addresses&quot;</span><span class="p">),</span>
             <span class="n">subqueryload</span><span class="p">(</span><span class="s">&quot;orders&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">joinedload</span><span class="p">(</span><span class="s">&quot;items&quot;</span><span class="p">)</span>
         <span class="p">)</span></pre></div>
 </div>
 <p>Where above, the <tt class="docutils literal"><span class="pre">addresses</span></tt> collection will be joined-loaded, the
-<tt class="docutils literal"><span class="pre">orders</span></tt> collection will be subquery-loaded, and within that subquery load
-the <tt class="docutils literal"><span class="pre">items</span></tt> collection will be joined-loaded.</p>
+<tt class="docutils literal"><span class="pre">orders</span></tt> collection will be subquery-loaded, and within that subquery
+load the <tt class="docutils literal"><span class="pre">items</span></tt> collection will be joined-loaded.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.strategy_options.Load.contains_eager">
 <tt class="descname">contains_eager</tt><big>(</big><em>loadopt</em>, <em>attr</em>, <em>alias=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.strategy_options.Load.contains_eager" title="Permalink to this definition">¶</a></dt>

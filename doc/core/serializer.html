@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -149,21 +149,22 @@ etc. which are referenced by the structure are not persisted in serialized
 form, but are instead re-associated with the query structure
 when it is deserialized.</p>
 <p>Usage is nearly the same as that of the standard Python pickle module:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.serializer</span> <span class="kn">import</span> <span class="n">loads</span><span class="p">,</span> <span class="n">dumps</span>
-<span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">some_engine</span><span class="p">)</span>
-<span class="n">Session</span> <span class="o">=</span> <span class="n">scoped_session</span><span class="p">(</span><span class="n">sessionmaker</span><span class="p">())</span>
+<div class="highlight-python"><pre>from sqlalchemy.ext.serializer import loads, dumps
+metadata = MetaData(bind=some_engine)
+Session = scoped_session(sessionmaker())
 
-<span class="c"># ... define mappers</span>
+# ... define mappers
 
-<span class="n">query</span> <span class="o">=</span> <span class="n">Session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">MyClass</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">somedata</span><span class="o">==</span><span class="s">&#39;foo&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">sortkey</span><span class="p">)</span>
+query = Session.query(MyClass).
+    filter(MyClass.somedata=='foo').order_by(MyClass.sortkey)
 
-<span class="c"># pickle the query</span>
-<span class="n">serialized</span> <span class="o">=</span> <span class="n">dumps</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+# pickle the query
+serialized = dumps(query)
 
-<span class="c"># unpickle.  Pass in metadata + scoped_session</span>
-<span class="n">query2</span> <span class="o">=</span> <span class="n">loads</span><span class="p">(</span><span class="n">serialized</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">Session</span><span class="p">)</span>
+# unpickle.  Pass in metadata + scoped_session
+query2 = loads(serialized, metadata, Session)
 
-<span class="k">print</span> <span class="n">query2</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></pre></div>
+print query2.all()</pre>
 </div>
 <p>Similar restrictions as when using raw pickle apply; mapped classes must be
 themselves be pickleable, meaning they are importable from a module-level

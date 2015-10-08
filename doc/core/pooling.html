@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -489,10 +489,10 @@ when the flag is set.</p>
 <p class="first admonition-title">Warning</p>
 <p>The <a class="reference internal" href="#sqlalchemy.pool.Pool.params.use_threadlocal" title="sqlalchemy.pool.Pool"><tt class="xref py py-paramref docutils literal"><span class="pre">Pool.use_threadlocal</span></tt></a> flag
 <strong>does not affect the behavior</strong> of <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine.connect" title="sqlalchemy.engine.Engine.connect"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.connect()</span></tt></a>.
-<a class="reference internal" href="connections.html#sqlalchemy.engine.Engine.connect" title="sqlalchemy.engine.Engine.connect"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.connect()</span></tt></a> makes use of the <a class="reference internal" href="#sqlalchemy.pool.Pool.unique_connection" title="sqlalchemy.pool.Pool.unique_connection"><tt class="xref py py-meth docutils literal"><span class="pre">Pool.unique_connection()</span></tt></a>
-method which <strong>does not use thread local context</strong>.
-To produce a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> which refers to the
-<a class="reference internal" href="#sqlalchemy.pool.Pool.connect" title="sqlalchemy.pool.Pool.connect"><tt class="xref py py-meth docutils literal"><span class="pre">Pool.connect()</span></tt></a> method, use
+<a class="reference internal" href="connections.html#sqlalchemy.engine.Engine.connect" title="sqlalchemy.engine.Engine.connect"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.connect()</span></tt></a> makes use of the
+<a class="reference internal" href="#sqlalchemy.pool.Pool.unique_connection" title="sqlalchemy.pool.Pool.unique_connection"><tt class="xref py py-meth docutils literal"><span class="pre">Pool.unique_connection()</span></tt></a> method which <strong>does not use thread
+local context</strong>.  To produce a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> which refers
+to the <a class="reference internal" href="#sqlalchemy.pool.Pool.connect" title="sqlalchemy.pool.Pool.connect"><tt class="xref py py-meth docutils literal"><span class="pre">Pool.connect()</span></tt></a> method, use
 <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine.contextual_connect" title="sqlalchemy.engine.Engine.contextual_connect"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.contextual_connect()</span></tt></a>.</p>
 <p class="last">Note that other SQLAlchemy connectivity systems such as
 <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine.execute" title="sqlalchemy.engine.Engine.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.execute()</span></tt></a> as well as the orm
@@ -598,8 +598,9 @@ its place.</p>
 thread-local context.</p>
 <p>This method is equivalent to <a class="reference internal" href="#sqlalchemy.pool.Pool.connect" title="sqlalchemy.pool.Pool.connect"><tt class="xref py py-meth docutils literal"><span class="pre">Pool.connect()</span></tt></a> when the
 <a class="reference internal" href="#sqlalchemy.pool.Pool.params.use_threadlocal" title="sqlalchemy.pool.Pool"><tt class="xref py py-paramref docutils literal"><span class="pre">Pool.use_threadlocal</span></tt></a> flag is not set to True.
-When <a class="reference internal" href="#sqlalchemy.pool.Pool.params.use_threadlocal" title="sqlalchemy.pool.Pool"><tt class="xref py py-paramref docutils literal"><span class="pre">Pool.use_threadlocal</span></tt></a> is True, the <a class="reference internal" href="#sqlalchemy.pool.Pool.unique_connection" title="sqlalchemy.pool.Pool.unique_connection"><tt class="xref py py-meth docutils literal"><span class="pre">Pool.unique_connection()</span></tt></a>
-method provides a means of bypassing the threadlocal context.</p>
+When <a class="reference internal" href="#sqlalchemy.pool.Pool.params.use_threadlocal" title="sqlalchemy.pool.Pool"><tt class="xref py py-paramref docutils literal"><span class="pre">Pool.use_threadlocal</span></tt></a> is True, the
+<a class="reference internal" href="#sqlalchemy.pool.Pool.unique_connection" title="sqlalchemy.pool.Pool.unique_connection"><tt class="xref py py-meth docutils literal"><span class="pre">Pool.unique_connection()</span></tt></a> method provides a means of bypassing
+the threadlocal context.</p>
 </dd></dl>
 
 </dd></dl>
@@ -644,14 +645,15 @@ will be placed on the total number of concurrent
 connections. Defaults to 10.</li>
 <li><span class="target" id="sqlalchemy.pool.QueuePool.params.timeout"></span><strong>timeout</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.pool.QueuePool.params.timeout">¶</a> &#8211; The number of seconds to wait before giving up
 on returning a connection. Defaults to 30.</li>
-<li><span class="target" id="sqlalchemy.pool.QueuePool.params.**kw"></span><strong>**kw</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.pool.QueuePool.params.**kw">¶</a> &#8211; Other keyword arguments including <a class="reference internal" href="#sqlalchemy.pool.Pool.params.recycle" title="sqlalchemy.pool.Pool"><tt class="xref py py-paramref docutils literal"><span class="pre">Pool.recycle</span></tt></a>,
-<a class="reference internal" href="#sqlalchemy.pool.Pool.params.echo" title="sqlalchemy.pool.Pool"><tt class="xref py py-paramref docutils literal"><span class="pre">Pool.echo</span></tt></a>, <a class="reference internal" href="#sqlalchemy.pool.Pool.params.reset_on_return" title="sqlalchemy.pool.Pool"><tt class="xref py py-paramref docutils literal"><span class="pre">Pool.reset_on_return</span></tt></a> and others
-are passed to the <a class="reference internal" href="#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> constructor.</li>
+<li><span class="target" id="sqlalchemy.pool.QueuePool.params.**kw"></span><strong>**kw</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.pool.QueuePool.params.**kw">¶</a> &#8211; Other keyword arguments including</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<p><a class="reference internal" href="#sqlalchemy.pool.Pool.params.recycle" title="sqlalchemy.pool.Pool"><tt class="xref py py-paramref docutils literal"><span class="pre">Pool.recycle</span></tt></a>, <a class="reference internal" href="#sqlalchemy.pool.Pool.params.echo" title="sqlalchemy.pool.Pool"><tt class="xref py py-paramref docutils literal"><span class="pre">Pool.echo</span></tt></a>,
+<a class="reference internal" href="#sqlalchemy.pool.Pool.params.reset_on_return" title="sqlalchemy.pool.Pool"><tt class="xref py py-paramref docutils literal"><span class="pre">Pool.reset_on_return</span></tt></a> and others are passed to the
+<a class="reference internal" href="#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> constructor.</p>
 </dd></dl>
 
 <dl class="method">
@@ -670,8 +672,9 @@ the pool.</p>
 thread-local context.</p>
 <p>This method is equivalent to <a class="reference internal" href="#sqlalchemy.pool.Pool.connect" title="sqlalchemy.pool.Pool.connect"><tt class="xref py py-meth docutils literal"><span class="pre">Pool.connect()</span></tt></a> when the
 <a class="reference internal" href="#sqlalchemy.pool.Pool.params.use_threadlocal" title="sqlalchemy.pool.Pool"><tt class="xref py py-paramref docutils literal"><span class="pre">Pool.use_threadlocal</span></tt></a> flag is not set to True.
-When <a class="reference internal" href="#sqlalchemy.pool.Pool.params.use_threadlocal" title="sqlalchemy.pool.Pool"><tt class="xref py py-paramref docutils literal"><span class="pre">Pool.use_threadlocal</span></tt></a> is True, the <a class="reference internal" href="#sqlalchemy.pool.Pool.unique_connection" title="sqlalchemy.pool.Pool.unique_connection"><tt class="xref py py-meth docutils literal"><span class="pre">Pool.unique_connection()</span></tt></a>
-method provides a means of bypassing the threadlocal context.</p>
+When <a class="reference internal" href="#sqlalchemy.pool.Pool.params.use_threadlocal" title="sqlalchemy.pool.Pool"><tt class="xref py py-paramref docutils literal"><span class="pre">Pool.use_threadlocal</span></tt></a> is True, the
+<a class="reference internal" href="#sqlalchemy.pool.Pool.unique_connection" title="sqlalchemy.pool.Pool.unique_connection"><tt class="xref py py-meth docutils literal"><span class="pre">Pool.unique_connection()</span></tt></a> method provides a means of bypassing
+the threadlocal context.</p>
 </dd></dl>
 
 </dd></dl>
@@ -754,10 +757,11 @@ support.</p>
 <p>This is an internal object used by the <a class="reference internal" href="#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> implementation
 to provide context management to a DBAPI connection delivered by
 that <a class="reference internal" href="#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>.</p>
-<p>The name &#8220;fairy&#8221; is inspired by the fact that the <a class="reference internal" href="#sqlalchemy.pool._ConnectionFairy" title="sqlalchemy.pool._ConnectionFairy"><tt class="xref py py-class docutils literal"><span class="pre">_ConnectionFairy</span></tt></a>
-object&#8217;s lifespan is transitory, as it lasts only for the length of a
-specific DBAPI connection being checked out from the pool, and additionally
-that as a transparent proxy, it is mostly invisible.</p>
+<p>The name &#8220;fairy&#8221; is inspired by the fact that the
+<a class="reference internal" href="#sqlalchemy.pool._ConnectionFairy" title="sqlalchemy.pool._ConnectionFairy"><tt class="xref py py-class docutils literal"><span class="pre">_ConnectionFairy</span></tt></a> object&#8217;s lifespan is transitory, as it lasts
+only for the length of a specific DBAPI connection being checked out from
+the pool, and additionally that as a transparent proxy, it is mostly
+invisible.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.pool._ConnectionRecord" title="sqlalchemy.pool._ConnectionRecord"><tt class="xref py py-class docutils literal"><span class="pre">_ConnectionRecord</span></tt></a></p>
@@ -882,9 +886,9 @@ and <a class="reference internal" href="connections.html#sqlalchemy.engine.Conne
 <tt class="descname">invalidate</tt><big>(</big><em>e=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool._ConnectionRecord.invalidate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Invalidate the DBAPI connection held by this <a class="reference internal" href="#sqlalchemy.pool._ConnectionRecord" title="sqlalchemy.pool._ConnectionRecord"><tt class="xref py py-class docutils literal"><span class="pre">_ConnectionRecord</span></tt></a>.</p>
 <p>This method is called for all connection invalidations, including
-when the <a class="reference internal" href="#sqlalchemy.pool._ConnectionFairy.invalidate" title="sqlalchemy.pool._ConnectionFairy.invalidate"><tt class="xref py py-meth docutils literal"><span class="pre">_ConnectionFairy.invalidate()</span></tt></a> or <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.invalidate" title="sqlalchemy.engine.Connection.invalidate"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.invalidate()</span></tt></a>
-methods are called, as well as when any so-called &#8220;automatic invalidation&#8221;
-condition occurs.</p>
+when the <a class="reference internal" href="#sqlalchemy.pool._ConnectionFairy.invalidate" title="sqlalchemy.pool._ConnectionFairy.invalidate"><tt class="xref py py-meth docutils literal"><span class="pre">_ConnectionFairy.invalidate()</span></tt></a> or
+<a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.invalidate" title="sqlalchemy.engine.Connection.invalidate"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.invalidate()</span></tt></a> methods are called, as well as when any
+so-called &#8220;automatic invalidation&#8221; condition occurs.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="#pool-connection-invalidation"><em>More on Invalidation</em></a></p>

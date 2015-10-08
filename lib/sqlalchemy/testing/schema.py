@@ -1,5 +1,6 @@
 # testing/schema.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -71,7 +72,7 @@ def Column(*args, **kw):
 
     col = schema.Column(*args, **kw)
     if 'test_needs_autoincrement' in test_opts and \
-        kw.get('primary_key', False):
+            kw.get('primary_key', False):
 
         # allow any test suite to pick up on this
         col.info['test_needs_autoincrement'] = True
@@ -82,19 +83,16 @@ def Column(*args, **kw):
             def add_seq(c, tbl):
                 c._init_items(
                     schema.Sequence(_truncate_name(
-                            config.db.dialect, tbl.name + '_' + c.name + '_seq'),
+                        config.db.dialect, tbl.name + '_' + c.name + '_seq'),
                         optional=True)
                 )
             event.listen(col, 'after_parent_attach', add_seq, propagate=True)
     return col
 
 
-
-
-
 def _truncate_name(dialect, name):
     if len(name) > dialect.max_identifier_length:
         return name[0:max(dialect.max_identifier_length - 6, 0)] + \
-                "_" + hex(hash(name) % 64)[2:]
+            "_" + hex(hash(name) % 64)[2:]
     else:
         return name

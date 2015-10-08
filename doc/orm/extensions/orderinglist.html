@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -221,11 +221,11 @@ s.bullets.insert(1, Bullet())
 s.bullets[2].position
 &gt;&gt;&gt; 2</pre>
 </div>
-<p>The <a class="reference internal" href="#sqlalchemy.ext.orderinglist.OrderingList" title="sqlalchemy.ext.orderinglist.OrderingList"><tt class="xref py py-class docutils literal"><span class="pre">OrderingList</span></tt></a> construct only works with <strong>changes</strong> to a collection,
-and not the initial load from the database, and requires that the list be
-sorted when loaded.  Therefore, be sure to
-specify <tt class="docutils literal"><span class="pre">order_by</span></tt> on the <a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> against the target ordering
-attribute, so that the ordering is correct when first loaded.</p>
+<p>The <a class="reference internal" href="#sqlalchemy.ext.orderinglist.OrderingList" title="sqlalchemy.ext.orderinglist.OrderingList"><tt class="xref py py-class docutils literal"><span class="pre">OrderingList</span></tt></a> construct only works with <strong>changes</strong> to a
+collection, and not the initial load from the database, and requires that the
+list be sorted when loaded.  Therefore, be sure to specify <tt class="docutils literal"><span class="pre">order_by</span></tt> on the
+<a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> against the target ordering attribute, so that the
+ordering is correct when first loaded.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p><a class="reference internal" href="#sqlalchemy.ext.orderinglist.OrderingList" title="sqlalchemy.ext.orderinglist.OrderingList"><tt class="xref py py-class docutils literal"><span class="pre">OrderingList</span></tt></a> only provides limited functionality when a primary
@@ -250,11 +250,11 @@ are to be handled in this way.</li>
 </ul>
 </div></blockquote>
 </div>
-<p><a class="reference internal" href="#sqlalchemy.ext.orderinglist.ordering_list" title="sqlalchemy.ext.orderinglist.ordering_list"><tt class="xref py py-func docutils literal"><span class="pre">ordering_list()</span></tt></a> takes the name of the related object&#8217;s ordering attribute as
-an argument.  By default, the zero-based integer index of the object&#8217;s
-position in the <a class="reference internal" href="#sqlalchemy.ext.orderinglist.ordering_list" title="sqlalchemy.ext.orderinglist.ordering_list"><tt class="xref py py-func docutils literal"><span class="pre">ordering_list()</span></tt></a> is synchronized with the ordering attribute:
-index 0 will get position 0, index 1 position 1, etc.  To start numbering at 1
-or some other integer, provide <tt class="docutils literal"><span class="pre">count_from=1</span></tt>.</p>
+<p><a class="reference internal" href="#sqlalchemy.ext.orderinglist.ordering_list" title="sqlalchemy.ext.orderinglist.ordering_list"><tt class="xref py py-func docutils literal"><span class="pre">ordering_list()</span></tt></a> takes the name of the related object&#8217;s ordering
+attribute as an argument.  By default, the zero-based integer index of the
+object&#8217;s position in the <a class="reference internal" href="#sqlalchemy.ext.orderinglist.ordering_list" title="sqlalchemy.ext.orderinglist.ordering_list"><tt class="xref py py-func docutils literal"><span class="pre">ordering_list()</span></tt></a> is synchronized with the
+ordering attribute: index 0 will get position 0, index 1 position 1, etc.  To
+start numbering at 1 or some other integer, provide <tt class="docutils literal"><span class="pre">count_from=1</span></tt>.</p>
 <div class="section" id="api-reference">
 <h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
 <dl class="function">

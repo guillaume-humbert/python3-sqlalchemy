@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.6',
+          VERSION:     '0.9.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -80,7 +80,7 @@
 <div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+        Release: <span class="version-num">0.9.7</span> | Release Date: July 22, 2014
     </div>
 
     <h1>SQLAlchemy 0.9 Documentation</h1>
@@ -277,25 +277,27 @@ for details.</p>
 <dd><p>Produce a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> object, given two <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
 expressions.</p>
 <p>E.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">user_table</span><span class="p">,</span> <span class="n">address_table</span><span class="p">,</span> <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">user_table</span><span class="p">,</span> <span class="n">address_table</span><span class="p">,</span>
+         <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
 <span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">user_table</span><span class="p">])</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">j</span><span class="p">)</span></pre></div>
 </div>
 <p>would emit SQL along the lines of:</p>
 <div class="highlight-python"><pre>SELECT user.id, user.name FROM user
 JOIN address ON user.id = address.user_id</pre>
 </div>
-<p>Similar functionality is available given any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object
-(e.g. such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>) using the <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a>
-method.</p>
+<p>Similar functionality is available given any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object (e.g. such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>) using
+the <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><span class="target" id="sqlalchemy.sql.expression.join.params.left"></span><strong>left</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.join.params.left">¶</a> &#8211; The left side of the join.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
-object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
-object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.join.params.right">¶</a> &#8211; the right side of the join; this is any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and
+may also be a selectable-compatible object such as an ORM-mapped
+class.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
 join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
 join the two tables based on a foreign key relationship.</li>
@@ -344,10 +346,10 @@ left and right otherwise.</li>
 <dt id="sqlalchemy.sql.expression.select">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">select</tt><big>(</big><em>columns=None</em>, <em>whereclause=None</em>, <em>from_obj=None</em>, <em>distinct=False</em>, <em>having=None</em>, <em>correlate=True</em>, <em>prefixes=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.select" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a new <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a>.</p>
-<p>Similar functionality is also available via the <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.select" title="sqlalchemy.sql.expression.FromClause.select"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.select()</span></tt></a>
-method on any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
-<p>All arguments which accept <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> arguments also accept
-string arguments, which will be converted as appropriate into
+<p>Similar functionality is also available via the
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.select" title="sqlalchemy.sql.expression.FromClause.select"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.select()</span></tt></a> method on any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>All arguments which accept <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> arguments also
+accept string arguments, which will be converted as appropriate into
 either <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> or <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> constructs.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
@@ -362,41 +364,41 @@ either <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expres
 <li><span class="target" id="sqlalchemy.sql.expression.select.params.columns"></span><strong>columns</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.columns">¶</a> &#8211; <p>A list of <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> objects, typically
 <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> objects or subclasses, which will form the
 columns clause of the resulting statement. For all members which are
-instances of <a class="reference internal" href="#sqlalchemy.sql.expression.Selectable" title="sqlalchemy.sql.expression.Selectable"><tt class="xref py py-class docutils literal"><span class="pre">Selectable</span></tt></a>, the individual <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>
-members of the <a class="reference internal" href="#sqlalchemy.sql.expression.Selectable" title="sqlalchemy.sql.expression.Selectable"><tt class="xref py py-class docutils literal"><span class="pre">Selectable</span></tt></a> will be added individually to the
-columns clause. For example, specifying a
+instances of <a class="reference internal" href="#sqlalchemy.sql.expression.Selectable" title="sqlalchemy.sql.expression.Selectable"><tt class="xref py py-class docutils literal"><span class="pre">Selectable</span></tt></a>, the individual
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> members of the <a class="reference internal" href="#sqlalchemy.sql.expression.Selectable" title="sqlalchemy.sql.expression.Selectable"><tt class="xref py py-class docutils literal"><span class="pre">Selectable</span></tt></a> will be
+added individually to the columns clause. For example, specifying a
 <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> instance will result in all the
-contained <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects within to be added
-to the columns clause.</p>
+contained <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects within to be
+added to the columns clause.</p>
 <p>This argument is not present on the form of <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>
 available on <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</p>
 </li>
 <li><span class="target" id="sqlalchemy.sql.expression.select.params.whereclause"></span><strong>whereclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.whereclause">¶</a> &#8211; A <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> expression which will be used to form the
 <tt class="docutils literal"><span class="pre">WHERE</span></tt> clause.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.select.params.from_obj"></span><strong>from_obj</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.from_obj">¶</a> &#8211; A list of <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> objects which will be added to the
-<tt class="docutils literal"><span class="pre">FROM</span></tt> clause of the resulting statement. Note that &#8220;from&#8221; objects are
-automatically located within the columns and whereclause ClauseElements.
-Use this parameter to explicitly specify &#8220;from&#8221; objects which are not
-automatically locatable. This could include
-<a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects that aren&#8217;t otherwise present,
-or <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> objects whose presence will supersede that of the
-<a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects already located in the other
-clauses.</li>
+<tt class="docutils literal"><span class="pre">FROM</span></tt> clause of the resulting statement. Note that &#8220;from&#8221; objects
+are automatically located within the columns and whereclause
+ClauseElements.  Use this parameter to explicitly specify &#8220;from&#8221;
+objects which are not automatically locatable. This could include
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects that aren&#8217;t otherwise
+present, or <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> objects whose presence will supersede
+that of the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects already
+located in the other clauses.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.select.params.autocommit"></span><strong>autocommit</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.autocommit">¶</a> &#8211; Deprecated.  Use .execution_options(autocommit=&lt;True|False&gt;)
 to set the autocommit option.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.select.params.bind"></span><strong>bind=None</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.bind">¶</a> &#8211; an <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> or <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> instance
 to which the
-resulting <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object will be bound.  The <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a>
-object will otherwise automatically bind to whatever
-<tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt> instances can be located within its contained
-<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> members.</li>
+resulting <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object will be bound.  The
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object will otherwise automatically bind to
+whatever <tt class="xref py py-class docutils literal"><span class="pre">Connectable</span></tt> instances can be located within
+its contained <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> members.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.select.params.correlate"></span><strong>correlate=True</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.correlate">¶</a> &#8211; indicates that this <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object should have its
 contained <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> elements &#8220;correlated&#8221; to an enclosing
-<a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object.  This means that any <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>
-instance within the &#8220;froms&#8221; collection of this <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a>
-which is also present in the &#8220;froms&#8221; collection of an
-enclosing select will not be rendered in the <tt class="docutils literal"><span class="pre">FROM</span></tt> clause
-of this select statement.</li>
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object.  This means that any
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> instance within the &#8220;froms&#8221; collection of
+this <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> which is also present in the &#8220;froms&#8221;
+collection of an enclosing select will not be rendered in the
+<tt class="docutils literal"><span class="pre">FROM</span></tt> clause of this select statement.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.select.params.distinct"></span><strong>distinct=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.distinct">¶</a> &#8211; <p>when <tt class="docutils literal"><span class="pre">True</span></tt>, applies a <tt class="docutils literal"><span class="pre">DISTINCT</span></tt> qualifier to the columns
 clause of the resulting statement.</p>
 <p>The boolean argument may also be a column expression or list
@@ -409,8 +411,9 @@ generative method.</p>
 <li><span class="target" id="sqlalchemy.sql.expression.select.params.for_update"></span><strong>for_update=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.for_update">¶</a> &#8211; <blockquote>
 <div>when <tt class="docutils literal"><span class="pre">True</span></tt>, applies <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span></tt> to the end of the
 resulting statement.<div class="deprecated">
-<p><span>Deprecated since version 0.9.0: </span>- use <a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.with_for_update" title="sqlalchemy.sql.expression.GenerativeSelect.with_for_update"><tt class="xref py py-meth docutils literal"><span class="pre">GenerativeSelect.with_for_update()</span></tt></a>
-to specify the structure of the <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span></tt> clause.</p>
+<p><span>Deprecated since version 0.9.0: </span>- use
+<a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.with_for_update" title="sqlalchemy.sql.expression.GenerativeSelect.with_for_update"><tt class="xref py py-meth docutils literal"><span class="pre">GenerativeSelect.with_for_update()</span></tt></a> to specify the
+structure of the <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span></tt> clause.</p>
 </div>
 <p><tt class="docutils literal"><span class="pre">for_update</span></tt> accepts various string values interpreted by
 specific backends, including:</p>
@@ -450,8 +453,8 @@ conflicts between columns in different tables don&#8217;t occur.
 The format of the label is &lt;tablename&gt;_&lt;column&gt;.  The &#8220;c&#8221;
 collection of the resulting <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object will use these
 names as well for targeting column members.</p>
-<p>use_labels is also available via the <a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.apply_labels" title="sqlalchemy.sql.expression.GenerativeSelect.apply_labels"><tt class="xref py py-meth docutils literal"><span class="pre">apply_labels()</span></tt></a>
-generative method.</p>
+<p>use_labels is also available via the
+<a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.apply_labels" title="sqlalchemy.sql.expression.GenerativeSelect.apply_labels"><tt class="xref py py-meth docutils literal"><span class="pre">apply_labels()</span></tt></a> generative method.</p>
 </li>
 </ul>
 </td>
@@ -544,9 +547,9 @@ the <tt class="docutils literal"><span class="pre">sqlalchemy</span></tt> namesp
 <p>Represents an alias, as typically applied to any table or
 sub-select within a SQL statement using the <tt class="docutils literal"><span class="pre">AS</span></tt> keyword (or
 without the keyword on certain databases such as Oracle).</p>
-<p>This object is constructed from the <a class="reference internal" href="#sqlalchemy.sql.expression.alias" title="sqlalchemy.sql.expression.alias"><tt class="xref py py-func docutils literal"><span class="pre">alias()</span></tt></a> module level
-function as well as the <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.alias" title="sqlalchemy.sql.expression.FromClause.alias"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.alias()</span></tt></a> method available on all
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> subclasses.</p>
+<p>This object is constructed from the <a class="reference internal" href="#sqlalchemy.sql.expression.alias" title="sqlalchemy.sql.expression.alias"><tt class="xref py py-func docutils literal"><span class="pre">alias()</span></tt></a> module
+level function as well as the <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.alias" title="sqlalchemy.sql.expression.FromClause.alias"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.alias()</span></tt></a> method available
+on all <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> subclasses.</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Alias.alias">
 <tt class="descname">alias</tt><big>(</big><em>name=None</em>, <em>flat=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Alias.alias" title="Permalink to this definition">¶</a></dt>
@@ -621,8 +624,8 @@ compiled statement. If <tt class="docutils literal"><span class="pre">None</span
 object are rendered.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.Alias.compile.params.dialect"></span><strong>dialect</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Alias.compile.params.dialect">¶</a> &#8211; A <tt class="docutils literal"><span class="pre">Dialect</span></tt> instance from which a <tt class="docutils literal"><span class="pre">Compiled</span></tt>
 will be acquired. This argument takes precedence over the <cite>bind</cite>
-argument as well as this <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>&#8216;s bound engine, if
-any.</li>
+argument as well as this <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>&#8216;s bound engine,
+if any.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.Alias.compile.params.inline"></span><strong>inline</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Alias.compile.params.inline">¶</a> &#8211; Used for INSERT statements, for a dialect which does
 not support inline retrieval of newly generated primary key
 columns, will force the expression used to create the new primary
@@ -684,8 +687,8 @@ column.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><span class="target" id="sqlalchemy.sql.expression.Alias.corresponding_column.params.column"></span><strong>column</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Alias.corresponding_column.params.column">¶</a> &#8211; the target <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> to be matched</li>
 <li><span class="target" id="sqlalchemy.sql.expression.Alias.corresponding_column.params.require_embedded"></span><strong>require_embedded</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Alias.corresponding_column.params.require_embedded">¶</a> &#8211; only return corresponding columns for
-the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, if the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>
-is actually present within a sub-element
+the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, if the given
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> is actually present within a sub-element
 of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.  Normally the column will match if
 it merely shares a common ancestor with one of the exported
 columns of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</li>
@@ -737,9 +740,10 @@ JOIN address ON user.id = address.user_id</pre>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.Alias.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Alias.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
-object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
-object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Alias.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Alias.join.params.right">¶</a> &#8211; the right side of the join; this is any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and
+may also be a selectable-compatible object such as an ORM-mapped
+class.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.Alias.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Alias.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
 join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
 join the two tables based on a foreign key relationship.</li>
@@ -771,17 +775,20 @@ True.</p>
                 <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span></pre></div>
 </div>
 <p>The above is equivalent to:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
-                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">address_table</span><span class="p">,</span>
+    <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
+    <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.Alias.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Alias.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
-object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
-object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Alias.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Alias.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and
+may also be a selectable-compatible object such as an ORM-mapped
+class.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.Alias.outerjoin.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Alias.outerjoin.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
 join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
 join the two tables based on a foreign key relationship.</li>
@@ -921,8 +928,8 @@ used.</p>
 <p>Append the given GROUP BY criterion applied to this selectable.</p>
 <p>The criterion will be appended to any pre-existing GROUP BY criterion.</p>
 <p>This is an <strong>in-place</strong> mutation method; the
-<a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.group_by" title="sqlalchemy.sql.expression.GenerativeSelect.group_by"><tt class="xref py py-meth docutils literal"><span class="pre">group_by()</span></tt></a> method is preferred, as it provides standard
-<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
+<a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.group_by" title="sqlalchemy.sql.expression.GenerativeSelect.group_by"><tt class="xref py py-meth docutils literal"><span class="pre">group_by()</span></tt></a> method is preferred, as it
+provides standard <a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -933,8 +940,8 @@ used.</p>
 <p>Append the given ORDER BY criterion applied to this selectable.</p>
 <p>The criterion will be appended to any pre-existing ORDER BY criterion.</p>
 <p>This is an <strong>in-place</strong> mutation method; the
-<a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.order_by" title="sqlalchemy.sql.expression.GenerativeSelect.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">order_by()</span></tt></a> method is preferred, as it provides standard
-<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
+<a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.order_by" title="sqlalchemy.sql.expression.GenerativeSelect.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">order_by()</span></tt></a> method is preferred, as it
+provides standard <a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1036,8 +1043,8 @@ compiled statement. If <tt class="docutils literal"><span class="pre">None</span
 object are rendered.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.compile.params.dialect"></span><strong>dialect</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.compile.params.dialect">¶</a> &#8211; A <tt class="docutils literal"><span class="pre">Dialect</span></tt> instance from which a <tt class="docutils literal"><span class="pre">Compiled</span></tt>
 will be acquired. This argument takes precedence over the <cite>bind</cite>
-argument as well as this <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>&#8216;s bound engine, if
-any.</li>
+argument as well as this <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>&#8216;s bound engine,
+if any.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.compile.params.inline"></span><strong>inline</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.compile.params.inline">¶</a> &#8211; Used for INSERT statements, for a dialect which does
 not support inline retrieval of newly generated primary key
 columns, will force the expression used to create the new primary
@@ -1099,8 +1106,8 @@ column.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.corresponding_column.params.column"></span><strong>column</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.corresponding_column.params.column">¶</a> &#8211; the target <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> to be matched</li>
 <li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.corresponding_column.params.require_embedded"></span><strong>require_embedded</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.corresponding_column.params.require_embedded">¶</a> &#8211; only return corresponding columns for
-the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, if the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>
-is actually present within a sub-element
+the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, if the given
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> is actually present within a sub-element
 of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.  Normally the column will match if
 it merely shares a common ancestor with one of the exported
 columns of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</li>
@@ -1161,8 +1168,8 @@ from those already selected.</li>
 Postgresql&#8217;s documentation at
 <a class="reference external" href="http://www.postgresql.org/docs/8.4/static/queries-with.html">http://www.postgresql.org/docs/8.4/static/queries-with.html</a>.</p>
 <p>Example 1, non recursive:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">MetaData</span><span class="p">,</span> \
-    <span class="n">select</span><span class="p">,</span> <span class="n">func</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span>
+                        <span class="n">MetaData</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
 
 <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
 
@@ -1199,8 +1206,8 @@ Postgresql&#8217;s documentation at
 <span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></pre></div>
 </div>
 <p>Example 2, WITH RECURSIVE:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">MetaData</span><span class="p">,</span> \
-    <span class="n">select</span><span class="p">,</span> <span class="n">func</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span>
+                        <span class="n">MetaData</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
 
 <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
 
@@ -1240,7 +1247,8 @@ Postgresql&#8217;s documentation at
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.cte" title="sqlalchemy.orm.query.Query.cte"><tt class="xref py py-meth docutils literal"><span class="pre">orm.query.Query.cte()</span></tt></a> - ORM version of <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.cte" title="sqlalchemy.sql.expression.SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.cte()</span></tt></a>.</p>
+<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.cte" title="sqlalchemy.orm.query.Query.cte"><tt class="xref py py-meth docutils literal"><span class="pre">orm.query.Query.cte()</span></tt></a> - ORM version of
+<a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.cte" title="sqlalchemy.sql.expression.SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.cte()</span></tt></a>.</p>
 </div>
 </dd></dl>
 
@@ -1341,9 +1349,10 @@ JOIN address ON user.id = address.user_id</pre>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
-object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
-object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.join.params.right">¶</a> &#8211; the right side of the join; this is any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and
+may also be a selectable-compatible object such as an ORM-mapped
+class.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
 join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
 join the two tables based on a foreign key relationship.</li>
@@ -1417,17 +1426,20 @@ True.</p>
                 <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span></pre></div>
 </div>
 <p>The above is equivalent to:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
-                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">address_table</span><span class="p">,</span>
+    <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
+    <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
-object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
-object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and
+may also be a selectable-compatible object such as an ORM-mapped
+class.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.outerjoin.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.outerjoin.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
 join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
 join the two tables based on a foreign key relationship.</li>
@@ -1536,8 +1548,8 @@ variants.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.with_for_update.params.nowait"></span><strong>nowait</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.with_for_update.params.nowait">¶</a> &#8211; boolean; will render <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span> <span class="pre">NOWAIT</span></tt> on Oracle and
-Postgresql dialects.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.with_for_update.params.nowait"></span><strong>nowait</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.with_for_update.params.nowait">¶</a> &#8211; boolean; will render <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span> <span class="pre">NOWAIT</span></tt> on Oracle
+and Postgresql dialects.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.with_for_update.params.read"></span><strong>read</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.with_for_update.params.read">¶</a> &#8211; boolean; will render <tt class="docutils literal"><span class="pre">LOCK</span> <span class="pre">IN</span> <span class="pre">SHARE</span> <span class="pre">MODE</span></tt> on MySQL,
 <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span></tt> on Postgresql.  On Postgresql, when combined with
 <tt class="docutils literal"><span class="pre">nowait</span></tt>, will render <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span> <span class="pre">NOWAIT</span></tt>.</li>
@@ -1630,8 +1642,8 @@ compiled statement. If <tt class="docutils literal"><span class="pre">None</span
 object are rendered.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.CTE.compile.params.dialect"></span><strong>dialect</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CTE.compile.params.dialect">¶</a> &#8211; A <tt class="docutils literal"><span class="pre">Dialect</span></tt> instance from which a <tt class="docutils literal"><span class="pre">Compiled</span></tt>
 will be acquired. This argument takes precedence over the <cite>bind</cite>
-argument as well as this <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>&#8216;s bound engine, if
-any.</li>
+argument as well as this <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>&#8216;s bound engine,
+if any.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.CTE.compile.params.inline"></span><strong>inline</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CTE.compile.params.inline">¶</a> &#8211; Used for INSERT statements, for a dialect which does
 not support inline retrieval of newly generated primary key
 columns, will force the expression used to create the new primary
@@ -1693,8 +1705,8 @@ column.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><span class="target" id="sqlalchemy.sql.expression.CTE.corresponding_column.params.column"></span><strong>column</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CTE.corresponding_column.params.column">¶</a> &#8211; the target <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> to be matched</li>
 <li><span class="target" id="sqlalchemy.sql.expression.CTE.corresponding_column.params.require_embedded"></span><strong>require_embedded</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CTE.corresponding_column.params.require_embedded">¶</a> &#8211; only return corresponding columns for
-the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, if the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>
-is actually present within a sub-element
+the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, if the given
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> is actually present within a sub-element
 of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.  Normally the column will match if
 it merely shares a common ancestor with one of the exported
 columns of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</li>
@@ -1746,9 +1758,10 @@ JOIN address ON user.id = address.user_id</pre>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.CTE.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CTE.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
-object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
-object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.CTE.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CTE.join.params.right">¶</a> &#8211; the right side of the join; this is any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and
+may also be a selectable-compatible object such as an ORM-mapped
+class.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.CTE.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CTE.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
 join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
 join the two tables based on a foreign key relationship.</li>
@@ -1780,17 +1793,20 @@ True.</p>
                 <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span></pre></div>
 </div>
 <p>The above is equivalent to:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
-                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">address_table</span><span class="p">,</span>
+    <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
+    <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.CTE.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CTE.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
-object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
-object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.CTE.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CTE.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and
+may also be a selectable-compatible object such as an ORM-mapped
+class.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.CTE.outerjoin.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CTE.outerjoin.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
 join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
 join the two tables based on a foreign key relationship.</li>
@@ -2021,8 +2037,8 @@ column.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><span class="target" id="sqlalchemy.sql.expression.FromClause.corresponding_column.params.column"></span><strong>column</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.FromClause.corresponding_column.params.column">¶</a> &#8211; the target <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> to be matched</li>
 <li><span class="target" id="sqlalchemy.sql.expression.FromClause.corresponding_column.params.require_embedded"></span><strong>require_embedded</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.FromClause.corresponding_column.params.require_embedded">¶</a> &#8211; only return corresponding columns for
-the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, if the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>
-is actually present within a sub-element
+the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, if the given
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> is actually present within a sub-element
 of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.  Normally the column will match if
 it merely shares a common ancestor with one of the exported
 columns of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</li>
@@ -2083,9 +2099,10 @@ JOIN address ON user.id = address.user_id</pre>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.FromClause.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.FromClause.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
-object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
-object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.FromClause.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.FromClause.join.params.right">¶</a> &#8211; the right side of the join; this is any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and
+may also be a selectable-compatible object such as an ORM-mapped
+class.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.FromClause.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.FromClause.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
 join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
 join the two tables based on a foreign key relationship.</li>
@@ -2115,17 +2132,20 @@ True.</p>
                 <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span></pre></div>
 </div>
 <p>The above is equivalent to:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
-                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">address_table</span><span class="p">,</span>
+    <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
+    <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.FromClause.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.FromClause.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
-object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
-object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.FromClause.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.FromClause.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and
+may also be a selectable-compatible object such as an ORM-mapped
+class.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.FromClause.outerjoin.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.FromClause.outerjoin.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
 join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
 join the two tables based on a foreign key relationship.</li>
@@ -2159,8 +2179,9 @@ object, returning a copy of this <a class="reference internal" href="#sqlalchemy
 <dt id="sqlalchemy.sql.expression.FromClause.schema">
 <tt class="descname">schema</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.sql.expression.FromClause.schema" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define the &#8216;schema&#8217; attribute for this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
-<p>This is typically <tt class="docutils literal"><span class="pre">None</span></tt> for most objects except that of <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>,
-where it is taken as the value of the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table.params.schema" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.schema</span></tt></a> argument.</p>
+<p>This is typically <tt class="docutils literal"><span class="pre">None</span></tt> for most objects except that of
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, where it is taken as the value of the
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.Table.params.schema" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.schema</span></tt></a> argument.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2183,16 +2204,16 @@ method which allows for arbitrary column lists.</p>
 <p>Base class for SELECT statements where additional elements can be
 added.</p>
 <p>This serves as the base for <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> and <a class="reference internal" href="#sqlalchemy.sql.expression.CompoundSelect" title="sqlalchemy.sql.expression.CompoundSelect"><tt class="xref py py-class docutils literal"><span class="pre">CompoundSelect</span></tt></a>
-where elements such as ORDER BY, GROUP BY can be added and column rendering
-can be controlled.  Compare to <a class="reference internal" href="#sqlalchemy.sql.expression.TextAsFrom" title="sqlalchemy.sql.expression.TextAsFrom"><tt class="xref py py-class docutils literal"><span class="pre">TextAsFrom</span></tt></a>, which, while it
-subclasses <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase" title="sqlalchemy.sql.expression.SelectBase"><tt class="xref py py-class docutils literal"><span class="pre">SelectBase</span></tt></a> and is also a SELECT construct, represents
-a fixed textual string which cannot be altered at this level, only
-wrapped as a subquery.</p>
+where elements such as ORDER BY, GROUP BY can be added and column
+rendering can be controlled.  Compare to <a class="reference internal" href="#sqlalchemy.sql.expression.TextAsFrom" title="sqlalchemy.sql.expression.TextAsFrom"><tt class="xref py py-class docutils literal"><span class="pre">TextAsFrom</span></tt></a>, which,
+while it subclasses <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase" title="sqlalchemy.sql.expression.SelectBase"><tt class="xref py py-class docutils literal"><span class="pre">SelectBase</span></tt></a> and is also a SELECT construct,
+represents a fixed textual string which cannot be altered at this level,
+only wrapped as a subquery.</p>
 <div class="versionadded">
 <p><span>New in version 0.9.0: </span><a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect" title="sqlalchemy.sql.expression.GenerativeSelect"><tt class="xref py py-class docutils literal"><span class="pre">GenerativeSelect</span></tt></a> was added to
-provide functionality specific to <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> and <a class="reference internal" href="#sqlalchemy.sql.expression.CompoundSelect" title="sqlalchemy.sql.expression.CompoundSelect"><tt class="xref py py-class docutils literal"><span class="pre">CompoundSelect</span></tt></a>
-while allowing <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase" title="sqlalchemy.sql.expression.SelectBase"><tt class="xref py py-class docutils literal"><span class="pre">SelectBase</span></tt></a> to be used for other SELECT-like
-objects, e.g. <a class="reference internal" href="#sqlalchemy.sql.expression.TextAsFrom" title="sqlalchemy.sql.expression.TextAsFrom"><tt class="xref py py-class docutils literal"><span class="pre">TextAsFrom</span></tt></a>.</p>
+provide functionality specific to <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> and
+<a class="reference internal" href="#sqlalchemy.sql.expression.CompoundSelect" title="sqlalchemy.sql.expression.CompoundSelect"><tt class="xref py py-class docutils literal"><span class="pre">CompoundSelect</span></tt></a> while allowing <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase" title="sqlalchemy.sql.expression.SelectBase"><tt class="xref py py-class docutils literal"><span class="pre">SelectBase</span></tt></a> to be
+used for other SELECT-like objects, e.g. <a class="reference internal" href="#sqlalchemy.sql.expression.TextAsFrom" title="sqlalchemy.sql.expression.TextAsFrom"><tt class="xref py py-class docutils literal"><span class="pre">TextAsFrom</span></tt></a>.</p>
 </div>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.GenerativeSelect.alias">
@@ -2213,8 +2234,8 @@ objects, e.g. <a class="reference internal" href="#sqlalchemy.sql.expression.Tex
 <dd><p>Append the given GROUP BY criterion applied to this selectable.</p>
 <p>The criterion will be appended to any pre-existing GROUP BY criterion.</p>
 <p>This is an <strong>in-place</strong> mutation method; the
-<a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.group_by" title="sqlalchemy.sql.expression.GenerativeSelect.group_by"><tt class="xref py py-meth docutils literal"><span class="pre">group_by()</span></tt></a> method is preferred, as it provides standard
-<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
+<a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.group_by" title="sqlalchemy.sql.expression.GenerativeSelect.group_by"><tt class="xref py py-meth docutils literal"><span class="pre">group_by()</span></tt></a> method is preferred, as it
+provides standard <a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2223,8 +2244,8 @@ objects, e.g. <a class="reference internal" href="#sqlalchemy.sql.expression.Tex
 <dd><p>Append the given ORDER BY criterion applied to this selectable.</p>
 <p>The criterion will be appended to any pre-existing ORDER BY criterion.</p>
 <p>This is an <strong>in-place</strong> mutation method; the
-<a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.order_by" title="sqlalchemy.sql.expression.GenerativeSelect.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">order_by()</span></tt></a> method is preferred, as it provides standard
-<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
+<a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.order_by" title="sqlalchemy.sql.expression.GenerativeSelect.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">order_by()</span></tt></a> method is preferred, as it
+provides standard <a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2336,8 +2357,8 @@ compiled statement. If <tt class="docutils literal"><span class="pre">None</span
 object are rendered.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.compile.params.dialect"></span><strong>dialect</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.compile.params.dialect">¶</a> &#8211; A <tt class="docutils literal"><span class="pre">Dialect</span></tt> instance from which a <tt class="docutils literal"><span class="pre">Compiled</span></tt>
 will be acquired. This argument takes precedence over the <cite>bind</cite>
-argument as well as this <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>&#8216;s bound engine, if
-any.</li>
+argument as well as this <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>&#8216;s bound engine,
+if any.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.compile.params.inline"></span><strong>inline</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.compile.params.inline">¶</a> &#8211; Used for INSERT statements, for a dialect which does
 not support inline retrieval of newly generated primary key
 columns, will force the expression used to create the new primary
@@ -2399,8 +2420,8 @@ column.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.corresponding_column.params.column"></span><strong>column</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.corresponding_column.params.column">¶</a> &#8211; the target <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> to be matched</li>
 <li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.corresponding_column.params.require_embedded"></span><strong>require_embedded</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.corresponding_column.params.require_embedded">¶</a> &#8211; only return corresponding columns for
-the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, if the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>
-is actually present within a sub-element
+the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, if the given
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> is actually present within a sub-element
 of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.  Normally the column will match if
 it merely shares a common ancestor with one of the exported
 columns of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</li>
@@ -2461,8 +2482,8 @@ from those already selected.</li>
 Postgresql&#8217;s documentation at
 <a class="reference external" href="http://www.postgresql.org/docs/8.4/static/queries-with.html">http://www.postgresql.org/docs/8.4/static/queries-with.html</a>.</p>
 <p>Example 1, non recursive:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">MetaData</span><span class="p">,</span> \
-    <span class="n">select</span><span class="p">,</span> <span class="n">func</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span>
+                        <span class="n">MetaData</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
 
 <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
 
@@ -2499,8 +2520,8 @@ Postgresql&#8217;s documentation at
 <span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></pre></div>
 </div>
 <p>Example 2, WITH RECURSIVE:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">MetaData</span><span class="p">,</span> \
-    <span class="n">select</span><span class="p">,</span> <span class="n">func</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span>
+                        <span class="n">MetaData</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
 
 <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
 
@@ -2540,7 +2561,8 @@ Postgresql&#8217;s documentation at
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.cte" title="sqlalchemy.orm.query.Query.cte"><tt class="xref py py-meth docutils literal"><span class="pre">orm.query.Query.cte()</span></tt></a> - ORM version of <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.cte" title="sqlalchemy.sql.expression.SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.cte()</span></tt></a>.</p>
+<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.cte" title="sqlalchemy.orm.query.Query.cte"><tt class="xref py py-meth docutils literal"><span class="pre">orm.query.Query.cte()</span></tt></a> - ORM version of
+<a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.cte" title="sqlalchemy.sql.expression.SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.cte()</span></tt></a>.</p>
 </div>
 </dd></dl>
 
@@ -2661,9 +2683,10 @@ JOIN address ON user.id = address.user_id</pre>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
-object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
-object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.join.params.right">¶</a> &#8211; the right side of the join; this is any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and
+may also be a selectable-compatible object such as an ORM-mapped
+class.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
 join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
 join the two tables based on a foreign key relationship.</li>
@@ -2731,17 +2754,20 @@ True.</p>
                 <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span></pre></div>
 </div>
 <p>The above is equivalent to:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
-                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">address_table</span><span class="p">,</span>
+    <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
+    <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
-object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
-object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and
+may also be a selectable-compatible object such as an ORM-mapped
+class.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.outerjoin.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.outerjoin.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
 join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
 join the two tables based on a foreign key relationship.</li>
@@ -2874,8 +2900,8 @@ variants.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.with_for_update.params.nowait"></span><strong>nowait</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.with_for_update.params.nowait">¶</a> &#8211; boolean; will render <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span> <span class="pre">NOWAIT</span></tt> on Oracle and
-Postgresql dialects.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.with_for_update.params.nowait"></span><strong>nowait</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.with_for_update.params.nowait">¶</a> &#8211; boolean; will render <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span> <span class="pre">NOWAIT</span></tt> on Oracle
+and Postgresql dialects.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.with_for_update.params.read"></span><strong>read</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.with_for_update.params.read">¶</a> &#8211; boolean; will render <tt class="docutils literal"><span class="pre">LOCK</span> <span class="pre">IN</span> <span class="pre">SHARE</span> <span class="pre">MODE</span></tt> on MySQL,
 <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span></tt> on Postgresql.  On Postgresql, when combined with
 <tt class="docutils literal"><span class="pre">nowait</span></tt>, will render <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span> <span class="pre">NOWAIT</span></tt>.</li>
@@ -2988,8 +3014,8 @@ SELECT context look like:</p>
 columns as that of the two individual selectables presented under
 a single name - the individual columns are &#8220;auto-labeled&#8221;, meaning
 the <tt class="docutils literal"><span class="pre">.c.</span></tt> collection of the resulting <a class="reference internal" href="#sqlalchemy.sql.expression.Alias" title="sqlalchemy.sql.expression.Alias"><tt class="xref py py-class docutils literal"><span class="pre">Alias</span></tt></a> represents
-the names of the individual columns using a <tt class="docutils literal"><span class="pre">&lt;tablename&gt;_&lt;columname&gt;</span></tt>
-scheme:</p>
+the names of the individual columns using a
+<tt class="docutils literal"><span class="pre">&lt;tablename&gt;_&lt;columname&gt;</span></tt> scheme:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">j</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">table_a_id</span>
 <span class="n">j</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">table_b_a_id</span></pre></div>
 </div>
@@ -3116,8 +3142,8 @@ compiled statement. If <tt class="docutils literal"><span class="pre">None</span
 object are rendered.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.Join.compile.params.dialect"></span><strong>dialect</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Join.compile.params.dialect">¶</a> &#8211; A <tt class="docutils literal"><span class="pre">Dialect</span></tt> instance from which a <tt class="docutils literal"><span class="pre">Compiled</span></tt>
 will be acquired. This argument takes precedence over the <cite>bind</cite>
-argument as well as this <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>&#8216;s bound engine, if
-any.</li>
+argument as well as this <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>&#8216;s bound engine,
+if any.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.Join.compile.params.inline"></span><strong>inline</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Join.compile.params.inline">¶</a> &#8211; Used for INSERT statements, for a dialect which does
 not support inline retrieval of newly generated primary key
 columns, will force the expression used to create the new primary
@@ -3179,8 +3205,8 @@ column.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><span class="target" id="sqlalchemy.sql.expression.Join.corresponding_column.params.column"></span><strong>column</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Join.corresponding_column.params.column">¶</a> &#8211; the target <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> to be matched</li>
 <li><span class="target" id="sqlalchemy.sql.expression.Join.corresponding_column.params.require_embedded"></span><strong>require_embedded</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Join.corresponding_column.params.require_embedded">¶</a> &#8211; only return corresponding columns for
-the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, if the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>
-is actually present within a sub-element
+the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, if the given
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> is actually present within a sub-element
 of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.  Normally the column will match if
 it merely shares a common ancestor with one of the exported
 columns of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</li>
@@ -3232,9 +3258,10 @@ JOIN address ON user.id = address.user_id</pre>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.Join.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Join.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
-object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
-object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Join.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Join.join.params.right">¶</a> &#8211; the right side of the join; this is any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and
+may also be a selectable-compatible object such as an ORM-mapped
+class.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.Join.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Join.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
 join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
 join the two tables based on a foreign key relationship.</li>
@@ -3266,17 +3293,20 @@ True.</p>
                 <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span></pre></div>
 </div>
 <p>The above is equivalent to:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
-                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">address_table</span><span class="p">,</span>
+    <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
+    <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.Join.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Join.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
-object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
-object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Join.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Join.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and
+may also be a selectable-compatible object such as an ORM-mapped
+class.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.Join.outerjoin.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Join.outerjoin.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
 join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
 join the two tables based on a foreign key relationship.</li>
@@ -3420,8 +3450,8 @@ select() construct.</p>
 <dd><p>append the given correlation expression to this select()
 construct.</p>
 <p>This is an <strong>in-place</strong> mutation method; the
-<a class="reference internal" href="#sqlalchemy.sql.expression.Select.correlate" title="sqlalchemy.sql.expression.Select.correlate"><tt class="xref py py-meth docutils literal"><span class="pre">correlate()</span></tt></a> method is preferred, as it provides standard
-<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select.correlate" title="sqlalchemy.sql.expression.Select.correlate"><tt class="xref py py-meth docutils literal"><span class="pre">correlate()</span></tt></a> method is preferred, as it provides
+standard <a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3430,8 +3460,8 @@ construct.</p>
 <dd><p>append the given FromClause expression to this select() construct&#8217;s
 FROM clause.</p>
 <p>This is an <strong>in-place</strong> mutation method; the
-<a class="reference internal" href="#sqlalchemy.sql.expression.Select.select_from" title="sqlalchemy.sql.expression.Select.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">select_from()</span></tt></a> method is preferred, as it provides standard
-<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select.select_from" title="sqlalchemy.sql.expression.Select.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">select_from()</span></tt></a> method is preferred, as it provides
+standard <a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3442,8 +3472,8 @@ FROM clause.</p>
 <p>Append the given GROUP BY criterion applied to this selectable.</p>
 <p>The criterion will be appended to any pre-existing GROUP BY criterion.</p>
 <p>This is an <strong>in-place</strong> mutation method; the
-<a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.group_by" title="sqlalchemy.sql.expression.GenerativeSelect.group_by"><tt class="xref py py-meth docutils literal"><span class="pre">group_by()</span></tt></a> method is preferred, as it provides standard
-<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
+<a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.group_by" title="sqlalchemy.sql.expression.GenerativeSelect.group_by"><tt class="xref py py-meth docutils literal"><span class="pre">group_by()</span></tt></a> method is preferred, as it
+provides standard <a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3465,8 +3495,8 @@ criterion.</p>
 <p>Append the given ORDER BY criterion applied to this selectable.</p>
 <p>The criterion will be appended to any pre-existing ORDER BY criterion.</p>
 <p>This is an <strong>in-place</strong> mutation method; the
-<a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.order_by" title="sqlalchemy.sql.expression.GenerativeSelect.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">order_by()</span></tt></a> method is preferred, as it provides standard
-<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
+<a class="reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.order_by" title="sqlalchemy.sql.expression.GenerativeSelect.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">order_by()</span></tt></a> method is preferred, as it
+provides standard <a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3475,8 +3505,8 @@ criterion.</p>
 <dd><p>append the given columns clause prefix expression to this select()
 construct.</p>
 <p>This is an <strong>in-place</strong> mutation method; the
-<a class="reference internal" href="#sqlalchemy.sql.expression.Select.prefix_with" title="sqlalchemy.sql.expression.Select.prefix_with"><tt class="xref py py-meth docutils literal"><span class="pre">prefix_with()</span></tt></a> method is preferred, as it provides standard
-<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select.prefix_with" title="sqlalchemy.sql.expression.Select.prefix_with"><tt class="xref py py-meth docutils literal"><span class="pre">prefix_with()</span></tt></a> method is preferred, as it provides
+standard <a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3596,8 +3626,8 @@ compiled statement. If <tt class="docutils literal"><span class="pre">None</span
 object are rendered.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.Select.compile.params.dialect"></span><strong>dialect</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.compile.params.dialect">¶</a> &#8211; A <tt class="docutils literal"><span class="pre">Dialect</span></tt> instance from which a <tt class="docutils literal"><span class="pre">Compiled</span></tt>
 will be acquired. This argument takes precedence over the <cite>bind</cite>
-argument as well as this <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>&#8216;s bound engine, if
-any.</li>
+argument as well as this <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>&#8216;s bound engine,
+if any.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.Select.compile.params.inline"></span><strong>inline</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.compile.params.inline">¶</a> &#8211; Used for INSERT statements, for a dialect which does
 not support inline retrieval of newly generated primary key
 columns, will force the expression used to create the new primary
@@ -3677,17 +3707,17 @@ classes) to become part of the correlate collection.</p>
 </table>
 <div class="versionchanged">
 <p><span>Changed in version 0.8.0: </span>The <a class="reference internal" href="#sqlalchemy.sql.expression.Select.correlate" title="sqlalchemy.sql.expression.Select.correlate"><tt class="xref py py-meth docutils literal"><span class="pre">Select.correlate()</span></tt></a> method no
-longer unconditionally removes entries from the FROM clause; instead,
-the candidate FROM entries must also be matched by a FROM entry
-located in an enclosing <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a>, which ultimately encloses
-this one as present in the WHERE clause, ORDER BY clause, HAVING
-clause, or columns clause of an enclosing <tt class="xref py py-meth docutils literal"><span class="pre">Select()</span></tt>.</p>
+longer unconditionally removes entries from the FROM clause;
+instead, the candidate FROM entries must also be matched by a FROM
+entry located in an enclosing <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a>, which ultimately
+encloses this one as present in the WHERE clause, ORDER BY clause,
+HAVING clause, or columns clause of an enclosing <tt class="xref py py-meth docutils literal"><span class="pre">Select()</span></tt>.</p>
 </div>
 <div class="versionchanged">
 <p><span>Changed in version 0.8.2: </span>explicit correlation takes place
 via any level of nesting of <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> objects; in previous
-0.8 versions, correlation would only occur relative to the immediate
-enclosing <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> construct.</p>
+0.8 versions, correlation would only occur relative to the
+immediate enclosing <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> construct.</p>
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
@@ -3762,8 +3792,8 @@ column.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><span class="target" id="sqlalchemy.sql.expression.Select.corresponding_column.params.column"></span><strong>column</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.corresponding_column.params.column">¶</a> &#8211; the target <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> to be matched</li>
 <li><span class="target" id="sqlalchemy.sql.expression.Select.corresponding_column.params.require_embedded"></span><strong>require_embedded</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.corresponding_column.params.require_embedded">¶</a> &#8211; only return corresponding columns for
-the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, if the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>
-is actually present within a sub-element
+the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, if the given
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> is actually present within a sub-element
 of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.  Normally the column will match if
 it merely shares a common ancestor with one of the exported
 columns of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</li>
@@ -3824,8 +3854,8 @@ from those already selected.</li>
 Postgresql&#8217;s documentation at
 <a class="reference external" href="http://www.postgresql.org/docs/8.4/static/queries-with.html">http://www.postgresql.org/docs/8.4/static/queries-with.html</a>.</p>
 <p>Example 1, non recursive:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">MetaData</span><span class="p">,</span> \
-    <span class="n">select</span><span class="p">,</span> <span class="n">func</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span>
+                        <span class="n">MetaData</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
 
 <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
 
@@ -3862,8 +3892,8 @@ Postgresql&#8217;s documentation at
 <span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></pre></div>
 </div>
 <p>Example 2, WITH RECURSIVE:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">MetaData</span><span class="p">,</span> \
-    <span class="n">select</span><span class="p">,</span> <span class="n">func</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span>
+                        <span class="n">MetaData</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
 
 <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
 
@@ -3903,7 +3933,8 @@ Postgresql&#8217;s documentation at
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.cte" title="sqlalchemy.orm.query.Query.cte"><tt class="xref py py-meth docutils literal"><span class="pre">orm.query.Query.cte()</span></tt></a> - ORM version of <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.cte" title="sqlalchemy.sql.expression.SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.cte()</span></tt></a>.</p>
+<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.cte" title="sqlalchemy.orm.query.Query.cte"><tt class="xref py py-meth docutils literal"><span class="pre">orm.query.Query.cte()</span></tt></a> - ORM version of
+<a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.cte" title="sqlalchemy.sql.expression.SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.cte()</span></tt></a>.</p>
 </div>
 </dd></dl>
 
@@ -4075,9 +4106,10 @@ JOIN address ON user.id = address.user_id</pre>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.Select.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
-object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
-object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Select.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.join.params.right">¶</a> &#8211; the right side of the join; this is any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and
+may also be a selectable-compatible object such as an ORM-mapped
+class.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.Select.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
 join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
 join the two tables based on a foreign key relationship.</li>
@@ -4160,17 +4192,20 @@ True.</p>
                 <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span></pre></div>
 </div>
 <p>The above is equivalent to:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
-                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">address_table</span><span class="p">,</span>
+    <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
+    <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.Select.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
-object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
-object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Select.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and
+may also be a selectable-compatible object such as an ORM-mapped
+class.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.Select.outerjoin.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.outerjoin.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
 join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
 join the two tables based on a foreign key relationship.</li>
@@ -4402,8 +4437,8 @@ variants.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.Select.with_for_update.params.nowait"></span><strong>nowait</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.with_for_update.params.nowait">¶</a> &#8211; boolean; will render <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span> <span class="pre">NOWAIT</span></tt> on Oracle and
-Postgresql dialects.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Select.with_for_update.params.nowait"></span><strong>nowait</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.with_for_update.params.nowait">¶</a> &#8211; boolean; will render <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span> <span class="pre">NOWAIT</span></tt> on Oracle
+and Postgresql dialects.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.Select.with_for_update.params.read"></span><strong>read</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.with_for_update.params.read">¶</a> &#8211; boolean; will render <tt class="docutils literal"><span class="pre">LOCK</span> <span class="pre">IN</span> <span class="pre">SHARE</span> <span class="pre">MODE</span></tt> on MySQL,
 <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span></tt> on Postgresql.  On Postgresql, when combined with
 <tt class="docutils literal"><span class="pre">nowait</span></tt>, will render <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">SHARE</span> <span class="pre">NOWAIT</span></tt>.</li>
@@ -4445,7 +4480,8 @@ following:</p>
 hint to a particular backend. Such as, to add hints for both Oracle
 and Sybase simultaneously:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">mytable</span><span class="p">])</span><span class="o">.</span>\
-    <span class="n">with_hint</span><span class="p">(</span><span class="n">mytable</span><span class="p">,</span> <span class="s">&quot;+ index(</span><span class="si">%(name)s</span><span class="s"> ix_mytable)&quot;</span><span class="p">,</span> <span class="s">&#39;oracle&#39;</span><span class="p">)</span><span class="o">.</span>\
+    <span class="n">with_hint</span><span class="p">(</span>
+        <span class="n">mytable</span><span class="p">,</span> <span class="s">&quot;+ index(</span><span class="si">%(name)s</span><span class="s"> ix_mytable)&quot;</span><span class="p">,</span> <span class="s">&#39;oracle&#39;</span><span class="p">)</span><span class="o">.</span>\
     <span class="n">with_hint</span><span class="p">(</span><span class="n">mytable</span><span class="p">,</span> <span class="s">&quot;WITH INDEX ix_mytable&quot;</span><span class="p">,</span> <span class="s">&#39;sybase&#39;</span><span class="p">)</span></pre></div>
 </div>
 </dd></dl>
@@ -4607,8 +4643,8 @@ from those already selected.</li>
 Postgresql&#8217;s documentation at
 <a class="reference external" href="http://www.postgresql.org/docs/8.4/static/queries-with.html">http://www.postgresql.org/docs/8.4/static/queries-with.html</a>.</p>
 <p>Example 1, non recursive:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">MetaData</span><span class="p">,</span> \
-    <span class="n">select</span><span class="p">,</span> <span class="n">func</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span>
+                        <span class="n">MetaData</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
 
 <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
 
@@ -4645,8 +4681,8 @@ Postgresql&#8217;s documentation at
 <span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></pre></div>
 </div>
 <p>Example 2, WITH RECURSIVE:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">MetaData</span><span class="p">,</span> \
-    <span class="n">select</span><span class="p">,</span> <span class="n">func</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span>
+                        <span class="n">MetaData</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
 
 <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
 
@@ -4686,7 +4722,8 @@ Postgresql&#8217;s documentation at
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.cte" title="sqlalchemy.orm.query.Query.cte"><tt class="xref py py-meth docutils literal"><span class="pre">orm.query.Query.cte()</span></tt></a> - ORM version of <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.cte" title="sqlalchemy.sql.expression.SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.cte()</span></tt></a>.</p>
+<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.cte" title="sqlalchemy.orm.query.Query.cte"><tt class="xref py py-meth docutils literal"><span class="pre">orm.query.Query.cte()</span></tt></a> - ORM version of
+<a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.cte" title="sqlalchemy.sql.expression.SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.cte()</span></tt></a>.</p>
 </div>
 </dd></dl>
 
@@ -4810,8 +4847,8 @@ compiled statement. If <tt class="docutils literal"><span class="pre">None</span
 object are rendered.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.TableClause.compile.params.dialect"></span><strong>dialect</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.TableClause.compile.params.dialect">¶</a> &#8211; A <tt class="docutils literal"><span class="pre">Dialect</span></tt> instance from which a <tt class="docutils literal"><span class="pre">Compiled</span></tt>
 will be acquired. This argument takes precedence over the <cite>bind</cite>
-argument as well as this <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>&#8216;s bound engine, if
-any.</li>
+argument as well as this <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>&#8216;s bound engine,
+if any.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.TableClause.compile.params.inline"></span><strong>inline</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.TableClause.compile.params.inline">¶</a> &#8211; Used for INSERT statements, for a dialect which does
 not support inline retrieval of newly generated primary key
 columns, will force the expression used to create the new primary
@@ -4873,8 +4910,8 @@ column.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><span class="target" id="sqlalchemy.sql.expression.TableClause.corresponding_column.params.column"></span><strong>column</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.TableClause.corresponding_column.params.column">¶</a> &#8211; the target <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> to be matched</li>
 <li><span class="target" id="sqlalchemy.sql.expression.TableClause.corresponding_column.params.require_embedded"></span><strong>require_embedded</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.TableClause.corresponding_column.params.require_embedded">¶</a> &#8211; only return corresponding columns for
-the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, if the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>
-is actually present within a sub-element
+the given <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>, if the given
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> is actually present within a sub-element
 of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.  Normally the column will match if
 it merely shares a common ancestor with one of the exported
 columns of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</li>
@@ -4963,9 +5000,10 @@ JOIN address ON user.id = address.user_id</pre>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.TableClause.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.TableClause.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
-object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
-object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.TableClause.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.TableClause.join.params.right">¶</a> &#8211; the right side of the join; this is any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and
+may also be a selectable-compatible object such as an ORM-mapped
+class.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.TableClause.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.TableClause.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
 join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
 join the two tables based on a foreign key relationship.</li>
@@ -4997,17 +5035,20 @@ True.</p>
                 <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span></pre></div>
 </div>
 <p>The above is equivalent to:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
-                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">address_table</span><span class="p">,</span>
+    <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
+    <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.sql.expression.TableClause.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.TableClause.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
-object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
-object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.TableClause.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.TableClause.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any
+<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and
+may also be a selectable-compatible object such as an ORM-mapped
+class.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.TableClause.outerjoin.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.TableClause.outerjoin.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
 join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
 join the two tables based on a foreign key relationship.</li>
@@ -5099,8 +5140,8 @@ just returns self.</p>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase" title="sqlalchemy.sql.expression.SelectBase"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.SelectBase</span></tt></a></p>
 <p>Wrap a <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.TextClause" title="sqlalchemy.sql.expression.TextClause"><tt class="xref py py-class docutils literal"><span class="pre">TextClause</span></tt></a> construct within a <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase" title="sqlalchemy.sql.expression.SelectBase"><tt class="xref py py-class docutils literal"><span class="pre">SelectBase</span></tt></a>
 interface.</p>
-<p>This allows the <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.TextClause" title="sqlalchemy.sql.expression.TextClause"><tt class="xref py py-class docutils literal"><span class="pre">TextClause</span></tt></a> object to gain a <tt class="docutils literal"><span class="pre">.c</span></tt> collection and
-other FROM-like capabilities such as <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.alias" title="sqlalchemy.sql.expression.FromClause.alias"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.alias()</span></tt></a>,
+<p>This allows the <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.TextClause" title="sqlalchemy.sql.expression.TextClause"><tt class="xref py py-class docutils literal"><span class="pre">TextClause</span></tt></a> object to gain a <tt class="docutils literal"><span class="pre">.c</span></tt> collection
+and other FROM-like capabilities such as <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.alias" title="sqlalchemy.sql.expression.FromClause.alias"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.alias()</span></tt></a>,
 <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.cte" title="sqlalchemy.sql.expression.SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.cte()</span></tt></a>, etc.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.sql.expression.TextAsFrom" title="sqlalchemy.sql.expression.TextAsFrom"><tt class="xref py py-class docutils literal"><span class="pre">TextAsFrom</span></tt></a> construct is produced via the
 <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.TextClause.columns" title="sqlalchemy.sql.expression.TextClause.columns"><tt class="xref py py-meth docutils literal"><span class="pre">TextClause.columns()</span></tt></a> method - see that method for details.</p>

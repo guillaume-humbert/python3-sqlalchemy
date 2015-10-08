@@ -1,5 +1,6 @@
 # mysql/mysqlconnector.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -8,15 +9,16 @@
 .. dialect:: mysql+mysqlconnector
     :name: MySQL Connector/Python
     :dbapi: myconnpy
-    :connectstring: mysql+mysqlconnector://<user>:<password>@<host>[:<port>]/<dbname>
+    :connectstring: mysql+mysqlconnector://<user>:<password>@\
+<host>[:<port>]/<dbname>
     :url: http://dev.mysql.com/downloads/connector/python/
 
 
 """
 
-from .base import (MySQLDialect,
-    MySQLExecutionContext, MySQLCompiler, MySQLIdentifierPreparer,
-    BIT)
+from .base import (MySQLDialect, MySQLExecutionContext,
+                   MySQLCompiler, MySQLIdentifierPreparer,
+                   BIT)
 
 from ... import util
 
@@ -30,7 +32,7 @@ class MySQLExecutionContext_mysqlconnector(MySQLExecutionContext):
 class MySQLCompiler_mysqlconnector(MySQLCompiler):
     def visit_mod_binary(self, binary, operator, **kw):
         return self.process(binary.left, **kw) + " %% " + \
-                        self.process(binary.right, **kw)
+            self.process(binary.right, **kw)
 
     def post_process_text(self, text):
         return text.replace('%', '%%')
@@ -95,7 +97,8 @@ class MySQLDialect_mysqlconnector(MySQLDialect):
         if self.dbapi is not None:
             try:
                 from mysql.connector.constants import ClientFlag
-                client_flags = opts.get('client_flags', ClientFlag.get_default())
+                client_flags = opts.get(
+                    'client_flags', ClientFlag.get_default())
                 client_flags |= ClientFlag.FOUND_ROWS
                 opts['client_flags'] = client_flags
             except:

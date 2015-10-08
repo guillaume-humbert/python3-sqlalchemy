@@ -1,5 +1,6 @@
 # event/registry.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -46,6 +47,7 @@ ref(listenercollection) -> {
                         }
 """
 
+
 def _collection_gced(ref):
     # defaultdict, so can't get a KeyError
     if not _collection_to_key or ref not in _collection_to_key:
@@ -58,6 +60,7 @@ def _collection_gced(ref):
             dispatch_reg.pop(ref)
             if not dispatch_reg:
                 _key_to_collection.pop(key)
+
 
 def _stored_in_collection(event_key, owner):
     key = event_key._key
@@ -75,6 +78,7 @@ def _stored_in_collection(event_key, owner):
     listener_to_key = _collection_to_key[owner_ref]
     listener_to_key[listen_ref] = key
 
+
 def _removed_from_collection(event_key, owner):
     key = event_key._key
 
@@ -90,6 +94,7 @@ def _removed_from_collection(event_key, owner):
     if owner_ref in _collection_to_key:
         listener_to_key = _collection_to_key[owner_ref]
         listener_to_key.pop(listen_ref)
+
 
 def _stored_in_collection_multi(newowner, oldowner, elements):
     if not elements:
@@ -112,6 +117,7 @@ def _stored_in_collection_multi(newowner, oldowner, elements):
 
         new_listener_to_key[listen_ref] = key
 
+
 def _clear(owner, elements):
     if not elements:
         return
@@ -132,8 +138,8 @@ class _EventKey(object):
     """Represent :func:`.listen` arguments.
     """
 
-
-    def __init__(self, target, identifier, fn, dispatch_target, _fn_wrap=None):
+    def __init__(self, target, identifier,
+                 fn, dispatch_target, _fn_wrap=None):
         self.target = target
         self.identifier = identifier
         self.fn = fn
@@ -158,7 +164,7 @@ class _EventKey(object):
                 self.fn,
                 self.dispatch_target,
                 _fn_wrap=fn_wrap
-                )
+            )
 
     def with_dispatch_target(self, dispatch_target):
         if dispatch_target is self.dispatch_target:
@@ -170,12 +176,13 @@ class _EventKey(object):
                 self.fn,
                 dispatch_target,
                 _fn_wrap=self.fn_wrap
-                )
+            )
 
     def listen(self, *args, **kw):
         once = kw.pop("once", False)
         if once:
-            self.with_wrapper(util.only_once(self._listen_fn)).listen(*args, **kw)
+            self.with_wrapper(
+                util.only_once(self._listen_fn)).listen(*args, **kw)
         else:
             self.dispatch_target.dispatch._listen(self, *args, **kw)
 
@@ -184,9 +191,9 @@ class _EventKey(object):
 
         if key not in _key_to_collection:
             raise exc.InvalidRequestError(
-                    "No listeners found for event %s / %r / %s " %
-                    (self.target, self.identifier, self.fn)
-                )
+                "No listeners found for event %s / %r / %s " %
+                (self.target, self.identifier, self.fn)
+            )
         dispatch_reg = _key_to_collection.pop(key)
 
         for collection_ref, listener_ref in dispatch_reg.items():
@@ -201,7 +208,7 @@ class _EventKey(object):
         return self._key in _key_to_collection
 
     def base_listen(self, propagate=False, insert=False,
-                            named=False):
+                    named=False):
 
         target, identifier, fn = \
             self.dispatch_target, self.identifier, self._listen_fn
@@ -213,10 +220,10 @@ class _EventKey(object):
 
         if insert:
             dispatch_descriptor.\
-                    for_modify(target.dispatch).insert(self, propagate)
+                for_modify(target.dispatch).insert(self, propagate)
         else:
             dispatch_descriptor.\
-                    for_modify(target.dispatch).append(self, propagate)
+                for_modify(target.dispatch).append(self, propagate)
 
     @property
     def _listen_fn(self):
@@ -237,5 +244,3 @@ class _EventKey(object):
     def prepend_to_list(self, owner, list_):
         _stored_in_collection(self, owner)
         list_.insert(0, self._listen_fn)
-
-
