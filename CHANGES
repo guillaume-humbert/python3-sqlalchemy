@@ -3,6 +3,158 @@
 =======
 CHANGES
 =======
+
+0.5.7
+=====
+- orm
+    - contains_eager() now works with the automatically 
+      generated subquery that results when you say 
+      "query(Parent).join(Parent.somejoinedsubclass)", i.e. 
+      when Parent joins to a joined-table-inheritance subclass.  
+      Previously contains_eager() would erroneously add the 
+      subclass table to the query separately producing a 
+      cartesian product.  An example is in the ticket
+      description.  [ticket:1543]
+
+    - query.options() now only propagate to loaded objects
+      for potential further sub-loads only for options where
+      such behavior is relevant, keeping
+      various unserializable options like those generated
+      by contains_eager() out of individual instance states.
+      [ticket:1553]
+    
+    - Session.execute() now locates table- and 
+      mapper-specific binds based on a passed
+      in expression which is an insert()/update()/delete() 
+      construct. [ticket:1054]
+      
+    - Session.merge() now properly overwrites a many-to-one or 
+      uselist=False attribute to None if the attribute 
+      is also None in the given object to be merged.
+     
+    - Fixed a needless select which would occur when merging
+      transient objects that contained a null primary key
+      identifier.  [ticket:1618]
+
+    - Mutable collection passed to the "extension" attribute
+      of relation(), column_property() etc. will not be mutated
+      or shared among multiple instrumentation calls, preventing
+      duplicate extensions, such as backref populators,
+      from being inserted into the list.
+      [ticket:1585]
+    
+    - Fixed the call to get_committed_value() on CompositeProperty.
+      [ticket:1504]
+    
+    - Fixed bug where Query would crash if a join() with no clear
+      "left" side were called when a non-mapped column entity
+      appeared in the columns list. [ticket:1602]
+    
+    - Fixed bug whereby composite columns wouldn't load properly
+      when configured on a joined-table subclass, introduced in
+      version 0.5.6 as a result of the fix for [ticket:1480].
+      [ticket:1616] thx to Scott Torborg.
+    
+    - The "use get" behavior of many-to-one relations, i.e. that a 
+      lazy load will fallback to the possibly cached query.get() 
+      value, now works across join conditions where the two compared 
+      types are not exactly the same class, but share the same 
+      "affinity" - i.e. Integer and SmallInteger.  Also allows
+      combinations of reflected and non-reflected types to work
+      with 0.5 style type reflection, such as PGText/Text (note 0.6 
+      reflects types as their generic versions).   [ticket:1556]
+    
+    - Fixed bug in query.update() when passing Cls.attribute
+      as keys in the value dict and using synchronize_session='expire'.
+      [ticket:1436]
+      
+- sql
+    - Fixed bug in two-phase transaction whereby commit() method
+      didn't set the full state which allows subsequent close()
+      call to succeed. [ticket:1603]
+
+    - Fixed the "numeric" paramstyle, which apparently is the
+      default paramstyle used by Informixdb.
+      
+    - Repeat expressions in the columns clause of a select
+      are deduped based on the identity of each clause element,
+      not the actual string.  This allows positional 
+      elements to render correctly even if they all render
+      identically, such as "qmark" style bind parameters.
+      [ticket:1574]
+    
+    - The cursor associated with connection pool connections
+      (i.e. _CursorFairy) now proxies `__iter__()` to the 
+      underlying cursor correctly. [ticket:1632]
+
+    - types now support an "affinity comparison" operation, i.e.
+      that an Integer/SmallInteger are "compatible", or 
+      a Text/String, PickleType/Binary, etc.  Part of 
+      [ticket:1556].
+      
+    - Fixed bug preventing alias() of an alias() from being
+      cloned or adapted (occurs frequently in ORM operations).
+      [ticket:1641]
+      
+- sqlite
+    - sqlite dialect properly generates CREATE INDEX for a table
+      that is in an alternate schema.  [ticket:1439]
+      
+- postgresql
+    - Added support for reflecting the DOUBLE PRECISION type,
+      via a new postgres.PGDoublePrecision object.  
+      This is postgresql.DOUBLE_PRECISION in 0.6.
+      [ticket:1085]
+    
+    - Added support for reflecting the INTERVAL YEAR TO MONTH
+      and INTERVAL DAY TO SECOND syntaxes of the INTERVAL 
+      type.  [ticket:460]
+      
+    - Corrected the "has_sequence" query to take current schema,
+      or explicit sequence-stated schema, into account.
+      [ticket:1576]
+
+    - Fixed the behavior of extract() to apply operator
+      precedence rules to the "::" operator when applying
+      the "timestamp" cast - ensures proper parenthesization.  
+      [ticket:1611]
+
+- firebird
+    - FBDate now extends Date instead of DateTime. [ticket:1573]
+    
+- mssql
+    - Changed the name of TrustedConnection to 
+      Trusted_Connection when constructing pyodbc connect
+      arguments [ticket:1561]
+
+- informix
+    - Fixed erroneous reference to "owner" attribute in 
+      Informix dialect when reflecting tables.
+      [ticket:1645]
+
+- oracle
+     - The "table_names" dialect function, used by MetaData
+       .reflect(), omits "index overflow tables", a system
+       table generated by Oracle when "index only tables"
+       with overflow are used.  These tables aren't accessible
+       via SQL and can't be reflected.  [ticket:1637]
+       
+- ext 
+    - A column can be added to a joined-table declarative 
+      superclass after the class has been constructed 
+      (i.e. via class-level attribute assignment), and
+      the column will be propagated down to 
+      subclasses. [ticket:1570]  This is the reverse
+      situation as that of [ticket:1523], fixed in 0.5.6.
+
+    - Fixed a slight inaccuracy in the sharding example.
+      Comparing equivalence of columns in the ORM is best 
+      accomplished using col1.shares_lineage(col2).
+      [ticket:1491]
+    
+    - Removed unused `load()` method from ShardedQuery.
+      [ticket:1606]
+      
 0.5.6
 =====
 - orm
@@ -28,7 +180,7 @@ CHANGES
       would populate the related object's "subclass" table with
       data from the "subclass" table of the parent.
       [ticket:1485]
-      
+    
     - relations() now have greater ability to be "overridden",
       meaning a subclass that explicitly specifies a relation()
       overriding that of the parent class will be honored

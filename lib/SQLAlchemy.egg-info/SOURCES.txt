@@ -19,6 +19,7 @@ doc/search.html
 doc/searchindex.js
 doc/session.html
 doc/sqlexpression.html
+doc/_images/sqla_arch_small.jpg
 doc/_sources/copyright.txt
 doc/_sources/dbengine.txt
 doc/_sources/index.txt
@@ -79,6 +80,7 @@ doc/build/mappers.rst
 doc/build/metadata.rst
 doc/build/ormtutorial.rst
 doc/build/session.rst
+doc/build/sqla_arch_small.jpg
 doc/build/sqlexpression.rst
 doc/build/testdocs.py
 doc/build/builder/__init__.py

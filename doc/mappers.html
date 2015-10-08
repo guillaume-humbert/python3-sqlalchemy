@@ -7,7 +7,7 @@
         
         <title>
     Mapper Configuration
- &mdash; SQLAlchemy 0.5.6 Documentation</title>
+ &mdash; SQLAlchemy 0.5.7 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.6',
+          VERSION:     '0.5.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.6 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.7 Documentation" href="index.html" />
         <link rel="next" title="Using the Session" href="session.html" />
         <link rel="prev" title="SQL Expression Language Tutorial" href="sqlexpression.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.6 Documentation</h1>
+        <h1>SQLAlchemy 0.5.7 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.6</span> Last Updated: 09/13/2009 10:45:11
+            Version: <span class="versionnum">0.5.7</span> Last Updated: 12/26/2009 18:22:23
         </div>
         <div class="clearboth"></div>
 
@@ -869,7 +869,7 @@ the ORM, allowing mappers to be compiled automatically and will fire a <tt class
 </div>
 </div>
 <div class="section" id="relation-configuration">
-<h2>Relation Configuration<a class="headerlink" href="#relation-configuration" title="Permalink to this headline">¶</a></h2>
+<span id="advdatamapping-relation"></span><h2>Relation Configuration<a class="headerlink" href="#relation-configuration" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="basic-relational-patterns">
 <h3>Basic Relational Patterns<a class="headerlink" href="#basic-relational-patterns" title="Permalink to this headline">¶</a></h3>
 <p>A quick walkthrough of the basic relational patterns.</p>
@@ -1322,7 +1322,7 @@ widget_id     name        favorite_entry_id             entry_id      name      
 </div>
 <div class="section" id="dictionary-based-collections">
 <h4>Dictionary-Based Collections<a class="headerlink" href="#dictionary-based-collections" title="Permalink to this headline">¶</a></h4>
-<p>A <tt class="docutils literal"><span class="pre">dict</span></tt> can be used as a collection, but a keying strategy is needed to map entities loaded by the ORM to key, value pairs.  The <cite>sqlalchemy.orm.collections</cite> package provides several built-in types for dictionary-based collections:</p>
+<p>A <tt class="docutils literal"><span class="pre">dict</span></tt> can be used as a collection, but a keying strategy is needed to map entities loaded by the ORM to key, value pairs.  The <a title="" class="reference external" href="reference/orm/collections.html#module-sqlalchemy.orm.collections"><tt class="xref docutils literal"><span class="pre">sqlalchemy.orm.collections</span></tt></a> package provides several built-in types for dictionary-based collections:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm.collections</span> <span class="kn">import</span> <span class="n">column_mapped_collection</span><span class="p">,</span> <span class="n">attribute_mapped_collection</span><span class="p">,</span> <span class="n">mapped_collection</span>
 
 <span class="n">mapper</span><span class="p">(</span><span class="n">Item</span><span class="p">,</span> <span class="n">items_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
@@ -1340,7 +1340,7 @@ widget_id     name        favorite_entry_id             entry_id      name      
 <span class="k">print</span> <span class="n">item</span><span class="o">.</span><span class="n">notes</span><span class="p">[</span><span class="s">&#39;color&#39;</span><span class="p">]</span></pre></div>
 </div>
 <p>These functions each provide a <tt class="docutils literal"><span class="pre">dict</span></tt> subclass with decorated <tt class="docutils literal"><span class="pre">set</span></tt> and <tt class="docutils literal"><span class="pre">remove</span></tt> methods and the keying strategy of your choice.</p>
-<p>The <cite>sqlalchemy.orm.collections.MappedCollection</cite> class can be used as a base class for your custom types or as a mix-in to quickly add <tt class="docutils literal"><span class="pre">dict</span></tt> collection support to other classes.  It uses a keying function to delegate to <tt class="docutils literal"><span class="pre">__setitem__</span></tt> and <tt class="docutils literal"><span class="pre">__delitem__</span></tt>:</p>
+<p>The <a title="sqlalchemy.orm.collections.MappedCollection" class="reference external" href="reference/orm/collections.html#sqlalchemy.orm.collections.MappedCollection"><tt class="xref docutils literal"><span class="pre">sqlalchemy.orm.collections.MappedCollection</span></tt></a> class can be used as a base class for your custom types or as a mix-in to quickly add <tt class="docutils literal"><span class="pre">dict</span></tt> collection support to other classes.  It uses a keying function to delegate to <tt class="docutils literal"><span class="pre">__setitem__</span></tt> and <tt class="docutils literal"><span class="pre">__delitem__</span></tt>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.util</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.orm.collections</span> <span class="kn">import</span> <span class="n">MappedCollection</span>
 
@@ -1363,7 +1363,7 @@ widget_id     name        favorite_entry_id             entry_id      name      
 <span class="c"># ... relation(..., collection_class=MyAwesomeList)</span></pre></div>
 </div>
 <p>The ORM uses this approach for built-ins, quietly substituting a trivial subclass when a <tt class="docutils literal"><span class="pre">list</span></tt>, <tt class="docutils literal"><span class="pre">set</span></tt> or <tt class="docutils literal"><span class="pre">dict</span></tt> is used directly.</p>
-<p>The collections package provides additional decorators and support for authoring custom types.  See the <cite>sqlalchemy.orm.collections</cite> for more information and discussion of advanced usage and Python 2.3-compatible decoration options.</p>
+<p>The collections package provides additional decorators and support for authoring custom types.  See the <a title="" class="reference external" href="reference/orm/collections.html#module-sqlalchemy.orm.collections"><tt class="xref docutils literal"><span class="pre">sqlalchemy.orm.collections</span></tt></a> package for more information and discussion of advanced usage and Python 2.3-compatible decoration options.</p>
 </div>
 </div>
 <div class="section" id="configuring-loader-strategies-lazy-loading-eager-loading">

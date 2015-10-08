@@ -7,7 +7,7 @@
         
         <title>
     Collection Mapping
- &mdash; SQLAlchemy 0.5.6 Documentation</title>
+ &mdash; SQLAlchemy 0.5.7 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.6',
+          VERSION:     '0.5.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.6 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.7 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Querying" href="query.html" />
         <link rel="prev" title="Class Mapping" href="mapping.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.6 Documentation</h1>
+        <h1>SQLAlchemy 0.5.7 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.6</span> Last Updated: 09/13/2009 10:45:11
+            Version: <span class="versionnum">0.5.7</span> Last Updated: 12/26/2009 18:22:23
         </div>
         <div class="clearboth"></div>
 
@@ -214,6 +214,41 @@ def popitem(self): ...</pre>
 <p>Decorators can be specified in long-hand for Python 2.3, or with
 the class-level dict attribute &#8216;__instrumentation__&#8217;- see the source
 for details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.orm.collections.MappedCollection">
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.orm.collections.</tt><tt class="descname">MappedCollection</tt><big>(</big><em>keyfunc</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.collections.MappedCollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>A basic dictionary-based collection class.</p>
+<p>Extends dict with the minimal bag semantics that collection classes require.
+<tt class="docutils literal"><span class="pre">set</span></tt> and <tt class="docutils literal"><span class="pre">remove</span></tt> are implemented in terms of a keying function: any
+callable that takes an object and returns an object for use as a dictionary
+key.</p>
+<dl class="method">
+<dt id="sqlalchemy.orm.collections.MappedCollection.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>keyfunc</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.collections.MappedCollection.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new collection with keying provided by keyfunc.</p>
+<p>keyfunc may be any callable any callable that takes an object and
+returns an object for use as a dictionary key.</p>
+<p>The keyfunc will be called every time the ORM needs to add a member by
+value-only (such as when loading instances from the database) or
+remove a member.  The usual cautions about dictionary keying apply-
+<tt class="docutils literal"><span class="pre">keyfunc(object)</span></tt> should return the same output for the life of the
+collection.  Keying based on mutable properties can result in
+unreachable instances &#8220;lost&#8221; in the collection.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.orm.collections.MappedCollection.remove">
+<tt class="descname">remove</tt><big>(</big><em>value</em>, <em>_sa_initiator=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.collections.MappedCollection.remove" title="Permalink to this definition">¶</a></dt>
+<dd>Remove an item by value, consulting the keyfunc for the key.</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.orm.collections.MappedCollection.set">
+<tt class="descname">set</tt><big>(</big><em>value</em>, <em>_sa_initiator=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.collections.MappedCollection.set" title="Permalink to this definition">¶</a></dt>
+<dd>Add an item by value, consulting the keyfunc for the key.</dd></dl>
+
 </dd></dl>
 
 <dl class="function">

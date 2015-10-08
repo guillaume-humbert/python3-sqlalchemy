@@ -32,7 +32,7 @@ def _register_attribute(strategy, mapper, useobject,
 ):
 
     prop = strategy.parent_property
-    attribute_ext = util.to_list(prop.extension) or []
+    attribute_ext = list(util.to_list(prop.extension, default=[]))
         
     if useobject and prop.single_parent:
         attribute_ext.append(_SingleParentValidator(prop))
@@ -303,6 +303,8 @@ class LoadDeferredColumns(object):
         return attributes.ATTR_WAS_SET
 
 class DeferredOption(StrategizedOption):
+    propagate_to_loaders = True
+    
     def __init__(self, key, defer=False):
         super(DeferredOption, self).__init__(key)
         self.defer = defer
@@ -314,6 +316,8 @@ class DeferredOption(StrategizedOption):
             return ColumnLoader
 
 class UndeferGroupOption(MapperOption):
+    propagate_to_loaders = True
+
     def __init__(self, group):
         self.group = group
     def process_query(self, query):
@@ -368,7 +372,6 @@ class LazyLoader(AbstractRelationLoader):
 
         # determine if our "lazywhere" clause is the same as the mapper's
         # get() clause.  then we can just use mapper.get()
-        #from sqlalchemy.orm import query
         self.use_get = not self.uselist and self.mapper._get_clause[0].compare(self.__lazywhere)
         if self.use_get:
             self.logger.info("%s will use query.get() to optimize instance loads" % self)
@@ -794,16 +797,13 @@ class EagerLoader(AbstractRelationLoader):
 log.class_logger(EagerLoader)
 
 class EagerLazyOption(StrategizedOption):
-    def __init__(self, key, lazy=True, chained=False, mapper=None, _only_on_lead=False):
+
+    def __init__(self, key, lazy=True, chained=False, mapper=None, propagate_to_loaders=True):
         super(EagerLazyOption, self).__init__(key, mapper)
         self.lazy = lazy
         self.chained = chained
-        self._only_on_lead = _only_on_lead
+        self.propagate_to_loaders = propagate_to_loaders
         
-    def process_query_conditionally(self, query):
-        if not self._only_on_lead:
-            StrategizedOption.process_query_conditionally(self, query)
-            
     def is_chained(self):
         return not self.lazy and self.chained
         
@@ -816,6 +816,7 @@ class EagerLazyOption(StrategizedOption):
             return NoLoader
 
 class LoadEagerFromAliasOption(PropertyOption):
+    
     def __init__(self, key, alias=None):
         super(LoadEagerFromAliasOption, self).__init__(key)
         if alias:
@@ -823,20 +824,20 @@ class LoadEagerFromAliasOption(PropertyOption):
                 m, alias, is_aliased_class = mapperutil._entity_info(alias)
         self.alias = alias
 
-    def process_query_conditionally(self, query):
-        # dont run this option on a secondary load
-        pass
-        
-    def process_query_property(self, query, paths):
+    def process_query_property(self, query, paths, mappers):
         if self.alias:
             if isinstance(self.alias, basestring):
-                (mapper, propname) = paths[-1][-2:]
-
+                mapper = mappers[-1]
+                (root_mapper, propname) = paths[-1][-2:]
                 prop = mapper.get_property(propname, resolve_synonyms=True)
                 self.alias = prop.target.alias(self.alias)
             query._attributes[("user_defined_eager_row_processor", paths[-1])] = sql_util.ColumnAdapter(self.alias)
         else:
-            query._attributes[("user_defined_eager_row_processor", paths[-1])] = None
+            (root_mapper, propname) = paths[-1][-2:]
+            mapper = mappers[-1]
+            prop = mapper.get_property(propname, resolve_synonyms=True)
+            adapter = query._polymorphic_adapters.get(prop.mapper, None)
+            query._attributes[("user_defined_eager_row_processor", paths[-1])] = adapter
 
 class _SingleParentValidator(interfaces.AttributeExtension):
     def __init__(self, prop):

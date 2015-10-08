@@ -66,9 +66,14 @@ class CompileTest(TestBase, AssertsCompiledSQL):
         for field in 'year', 'month', 'day':
             self.assert_compile(
                 select([extract(field, t.c.col1)]),
-                "SELECT EXTRACT(%s FROM t.col1::timestamp) AS anon_1 "
+                "SELECT EXTRACT(%s FROM t.col1 :: timestamp) AS anon_1 "
                 "FROM t" % field)
 
+        for field in 'year', 'month', 'day':
+            self.assert_compile(
+                select([extract(field, func.timestamp() - datetime.timedelta(days =5))]),
+                "SELECT EXTRACT(%s FROM (timestamp() - %%(timestamp_1)s) :: timestamp) AS anon_1"
+                 % field)
 
 class ReturningTest(TestBase, AssertsExecutionResults):
     __only_on__ = 'postgres'
@@ -507,7 +512,18 @@ class MiscTest(TestBase, AssertsExecutionResults):
             self.assert_((subject.c['id$']==referer.c.ref).compare(subject.join(referer).onclause))
         finally:
             meta1.drop_all()
-
+    
+    def test_extract(self):
+        for field, exp in (
+                    ('year', 2009),
+                    ('month', 11),
+                    ('day', 10),
+            ):
+            r = testing.db.execute(
+                select([extract(field, datetime.datetime(2009, 11, 15, 12, 15, 35) - datetime.timedelta(days =5))])
+            ).scalar()
+            eq_(r, exp)
+            
     def test_checksfor_sequence(self):
         meta1 = MetaData(testing.db)
         t = Table('mytable', meta1,
@@ -934,16 +950,35 @@ class SpecialTypesTest(TestBase, ComparesTables):
     def setup_class(cls):
         global metadata, table
         metadata = MetaData(testing.db)
+
+        # create these types so that we can issue
+        # special SQL92 INTERVAL syntax
+        class y2m(postgres.PGInterval):
+            def get_col_spec(self):
+                return "INTERVAL YEAR TO MONTH"
+
+        class d2s(postgres.PGInterval):
+            def get_col_spec(self):
+                return "INTERVAL DAY TO SECOND"
         
         table = Table('sometable', metadata,
             Column('id', postgres.PGUuid, primary_key=True),
             Column('flag', postgres.PGBit),
             Column('addr', postgres.PGInet),
             Column('addr2', postgres.PGMacAddr),
-            Column('addr3', postgres.PGCidr)
+            Column('addr3', postgres.PGCidr),
+            Column('doubleprec', postgres.PGDoublePrecision),
+            Column('plain_interval', postgres.PGInterval),
+            Column('year_interval', y2m()),
+            Column('month_interval', d2s()),
         )
         
         metadata.create_all()
+
+        # cheat so that the "strict type check"
+        # works
+        table.c.year_interval.type = postgres.PGInterval()
+        table.c.month_interval.type = postgres.PGInterval()
     
     @classmethod
     def teardown_class(cls):
@@ -953,8 +988,7 @@ class SpecialTypesTest(TestBase, ComparesTables):
         m = MetaData(testing.db)
         t = Table('sometable', m, autoload=True)
         
-        self.assert_tables_equal(table, t)
-        
+        self.assert_tables_equal(table, t, strict_types=True)
 
 class MatchTest(TestBase, AssertsCompiledSQL):
     __only_on__ = 'postgres'

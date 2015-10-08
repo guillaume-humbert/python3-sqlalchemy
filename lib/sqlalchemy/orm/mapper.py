@@ -41,6 +41,7 @@ __all__ = (
 _mapper_registry = weakref.WeakKeyDictionary()
 _new_mappers = False
 _already_compiling = False
+_none_set = frozenset([None])
 
 # a list of MapperExtensions that will be installed in all mappers by default
 global_extensions = []
@@ -551,6 +552,7 @@ class Mapper(object):
                         if mc:
                             # if the column is in the local table but not the mapped table,
                             # this corresponds to adding a column after the fact to the local table.
+                            # [ticket:1523]
                             self.mapped_table._reset_exported()
                         mc = self.mapped_table.corresponding_column(c)
                         if not mc:
@@ -569,7 +571,24 @@ class Mapper(object):
 
         if isinstance(prop, ColumnProperty):
             col = self.mapped_table.corresponding_column(prop.columns[0])
-            # col might not be present! the selectable given to the mapper need not include "deferred"
+            
+            # if the column is not present in the mapped table, 
+            # test if a column has been added after the fact to the parent table
+            # (or their parent, etc.)
+            # [ticket:1570]
+            if col is None and self.inherits:
+                path = [self]
+                for m in self.inherits.iterate_to_root():
+                    col = m.local_table.corresponding_column(prop.columns[0])
+                    if col is not None:
+                        for m2 in path:
+                            m2.mapped_table._reset_exported()
+                        col = self.mapped_table.corresponding_column(prop.columns[0])
+                        break
+                    path.append(m)
+                
+            # otherwise, col might not be present! the selectable given 
+            # to the mapper need not include "deferred"
             # columns (included in zblog tests)
             if col is None:
                 col = prop.columns[0]
@@ -1154,7 +1173,10 @@ class Mapper(object):
 
         cond = sql.and_(*allconds)
 
-        return sql.select([props[key].columns[0] for key in attribute_names], cond, use_labels=True)
+        cols = []
+        for key in attribute_names:
+            cols.extend(props[key].columns)
+        return sql.select(cols, cond, use_labels=True)
 
     def cascade_iterator(self, type_, state, halt_on=None):
         """Iterate each element and its mapper in an object graph,
@@ -1576,8 +1598,8 @@ class Mapper(object):
 
         def populate_state(state, dict_, row, isnew, only_load_props, **flags):
             if isnew:
-                if context.options:
-                    state.load_options = context.options
+                if context.propagate_options:
+                    state.load_options = context.propagate_options
                 if state.load_options:
                     state.load_path = context.query._current_path + path
 
@@ -1663,10 +1685,7 @@ class Mapper(object):
                     self._log_debug("_instance(): identity key %s not in session" % (identitykey,))
 
                 if self.allow_null_pks:
-                    for x in identitykey[1]:
-                        if x is not None:
-                            break
-                    else:
+                    if _none_set.issuperset(identitykey[1]):
                         return None
                 else:
                     if None in identitykey[1]:

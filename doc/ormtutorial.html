@@ -7,7 +7,7 @@
         
         <title>
     Object Relational Tutorial
- &mdash; SQLAlchemy 0.5.6 Documentation</title>
+ &mdash; SQLAlchemy 0.5.7 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.6',
+          VERSION:     '0.5.7',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.6 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.7 Documentation" href="index.html" />
         <link rel="next" title="SQL Expression Language Tutorial" href="sqlexpression.html" />
         <link rel="prev" title="Overview / Installation" href="intro.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.6 Documentation</h1>
+        <h1>SQLAlchemy 0.5.7 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.6</span> Last Updated: 09/13/2009 10:45:11
+            Version: <span class="versionnum">0.5.7</span> Last Updated: 12/26/2009 18:22:23
         </div>
         <div class="clearboth"></div>
 
@@ -458,11 +458,23 @@ WHERE users.name = ? AND users.fullname = ?
 </div>
 </li>
 <li><p class="first">IN:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">in_</span><span class="p">([</span><span class="s">&#39;ed&#39;</span><span class="p">,</span> <span class="s">&#39;wendy&#39;</span><span class="p">,</span> <span class="s">&#39;jack&#39;</span><span class="p">]))</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">in_</span><span class="p">([</span><span class="s">&#39;ed&#39;</span><span class="p">,</span> <span class="s">&#39;wendy&#39;</span><span class="p">,</span> <span class="s">&#39;jack&#39;</span><span class="p">]))</span>
+
+<span class="c"># works with query objects too:</span>
+
+<span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%e</span><span class="s">d%&#39;</span><span class="p">))))</span></pre></div>
+</div>
+</li>
+<li><p class="first">NOT IN:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="o">~</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">in_</span><span class="p">([</span><span class="s">&#39;ed&#39;</span><span class="p">,</span> <span class="s">&#39;wendy&#39;</span><span class="p">,</span> <span class="s">&#39;jack&#39;</span><span class="p">]))</span></pre></div>
 </div>
 </li>
 <li><p class="first">IS NULL:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="nb">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="bp">None</span><span class="p">)</span></pre></div>
+</div>
+</li>
+<li><p class="first">IS NOT NULL:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nb">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">)</span></pre></div>
 </div>
 </li>
 <li><p class="first">AND:</p>
@@ -703,7 +715,7 @@ ON anon_1.users_id = addresses_1.user_id ORDER BY addresses_1.id
 <span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span><span class="o">.</span><span class="n">addresses</span>
 <span class="p">[</span><span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;j25@yahoo.com&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span></pre></div>
 </div>
-<p>SQLAlchemy has the ability to control exactly which attributes and how many levels deep should be joined together in a single SQL query.  More information on this feature is available in <cite>advdatamapping_relation</cite>.</p>
+<p>SQLAlchemy has the ability to control exactly which attributes and how many levels deep should be joined together in a single SQL query.  More information on this feature is available in <a class="reference external" href="mappers.html#advdatamapping-relation"><em>Relation Configuration</em></a>.</p>
 </div>
 <div class="section" id="querying-with-joins">
 <h2>Querying with Joins<a class="headerlink" href="#querying-with-joins" title="Permalink to this headline">¶</a></h2>
