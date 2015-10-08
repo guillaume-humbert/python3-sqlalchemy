@@ -44,6 +44,8 @@ class ScopedSession(object):
             return self.registry()
     
     def remove(self):
+        if self.registry.has():
+            self.registry().close()
         self.registry.clear()
     
     def mapper(self, *args, **kwargs):
@@ -51,7 +53,7 @@ class ScopedSession(object):
         
         from sqlalchemy.orm import mapper
         validate = kwargs.pop('validate', False)
-        extension = to_list(kwargs.setdefault('extension', []))
+        kwargs['extension'] = extension = to_list(kwargs.get('extension', []))
         if validate:
             extension.append(self.extension.validating())
         else:

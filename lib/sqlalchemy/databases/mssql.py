@@ -447,7 +447,7 @@ class MSSQLDialect(default.DefaultDialect):
     dbapi = classmethod(dbapi)
     
     def create_connect_args(self, url):
-        opts = url.translate_connect_args(['host', 'database', 'user', 'password', 'port'])
+        opts = url.translate_connect_args(username='user')
         opts.update(url.query)
         if 'auto_identity_insert' in opts:
             self.auto_identity_insert = bool(int(opts.pop('auto_identity_insert')))
@@ -494,7 +494,7 @@ class MSSQLDialect(default.DefaultDialect):
             self.context.rowcount = c.rowcount
             c.DBPROP_COMMITPRESERVE = "Y"
         except Exception, e:
-            raise exceptions.SQLError(statement, parameters, e)
+            raise exceptions.DBAPIError.instance(statement, parameters, e)
 
     def table_names(self, connection, schema):
         from sqlalchemy.databases import information_schema as ischema

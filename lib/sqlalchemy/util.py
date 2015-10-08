@@ -53,6 +53,12 @@ except ImportError:
     Decimal.warn = True
     decimal_type = float
 
+try:
+    from operator import attrgetter
+except:
+    def attrgetter(attribute):
+        return lambda value: getattr(value, attribute)
+
 if sys.version_info >= (2, 5):
     class PopulateDict(dict):
         """a dict which populates missing values via a creation function.
@@ -269,10 +275,10 @@ class OrderedProperties(object):
         self._data[key] = object
 
     def __getstate__(self):
-        return self._data
+        return {'_data': self.__dict__['_data']}
     
-    def __setstate__(self, value):
-        self.__dict__['_data'] = value
+    def __setstate__(self, state):
+        self.__dict__['_data'] = state['_data']
 
     def __getattr__(self, key):
         try:

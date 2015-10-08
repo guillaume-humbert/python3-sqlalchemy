@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/22/07 15:48:11</div>
+<div class="versionheader">Version: svn   Last Updated: 09/01/07 20:31:55</div>
 
 
 
@@ -155,7 +155,7 @@
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>dialect</i>, <i>statement</i>, <i>parameters=None</i>, <i>**kwargs</i>)</b>
+    <b>def __init__(<i>self</i>, <i>dialect</i>, <i>statement</i>, <i>parameters=None</i>, <i>inline=False</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">DefaultCompiler</span></tt> object.</p>
 <dl class="docutils">
@@ -349,16 +349,6 @@ A shortcut for <cite>construct_params()</cite>.</p>
     
     <A name=""></a>
     <b>def process(<i>self</i>, <i>obj</i>, <i>stack=None</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def uses_sequences_for_inserts(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
@@ -569,6 +559,16 @@ A shortcut for <cite>construct_params()</cite>.</p>
     
     <A name=""></a>
     <b>def visit_select(<i>self</i>, <i>select</i>, <i>asfrom=False</i>, <i>parens=True</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def visit_sequence(<i>self</i>, <i>seq</i>)</b>
     <div class="docstring">
     
     </div>

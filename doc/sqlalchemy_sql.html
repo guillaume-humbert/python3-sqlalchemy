@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/22/07 15:48:11</div>
+<div class="versionheader">Version: svn   Last Updated: 09/01/07 20:31:55</div>
 
 
 
@@ -520,7 +520,7 @@ function to produce a <tt class="docutils literal"><span class="pre">SELECT</spa
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.sql_modfunc_insert"></a>
-    <b>def insert(<i>table</i>, <i>values=None</i>, <i>**kwargs</i>)</b>
+    <b>def insert(<i>table</i>, <i>values=None</i>, <i>inline=False</i>)</b>
     <div class="docstring">
     <p>Return an <a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_Insert">Insert</a> clause element.</p>
 <p>Similar functionality is available via the <tt class="docutils literal"><span class="pre">insert()</span></tt> method on
@@ -536,6 +536,9 @@ during the compile phase of the <tt class="docutils literal"><span class="pre">I
 bind parameters also are None during the compile phase, then the
 column specifications will be generated from the full list of
 table columns.</dd>
+<dt>inline</dt>
+<dd>if True, SQL defaults will be compiled 'inline' into the statement
+and not pre-executed.</dd>
 </dl>
 <p>If both <cite>values</cite> and compile-time bind parameters are present, the
 compile-time bind parameters override the information specified
@@ -970,7 +973,7 @@ sets).</dd>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.sql_modfunc_update"></a>
-    <b>def update(<i>table</i>, <i>whereclause=None</i>, <i>values=None</i>, <i>**kwargs</i>)</b>
+    <b>def update(<i>table</i>, <i>whereclause=None</i>, <i>values=None</i>, <i>inline=False</i>)</b>
     <div class="docstring">
     <p>Return an <a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_Update">Update</a> clause element.</p>
 <p>Similar functionality is available via the <tt class="docutils literal"><span class="pre">update()</span></tt> method on
@@ -989,6 +992,9 @@ the compile phase of the <tt class="docutils literal"><span class="pre">UPDATE</
 parameters also are None during the compile phase, then the
 <tt class="docutils literal"><span class="pre">SET</span></tt> conditions will be generated from the full list of table
 columns.</dd>
+<dt>inline</dt>
+<dd>if True, SQL defaults will be compiled 'inline' into the statement
+and not pre-executed.</dd>
 </dl>
 <p>If both <cite>values</cite> and compile-time bind parameters are present, the
 compile-time bind parameters override the information specified
@@ -1147,7 +1153,7 @@ straight identity comparison.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def compile(<i>self</i>, <i>bind=None</i>, <i>parameters=None</i>, <i>compiler=None</i>, <i>dialect=None</i>)</b>
+    <b>def compile(<i>self</i>, <i>bind=None</i>, <i>parameters=None</i>, <i>compiler=None</i>, <i>dialect=None</i>, <i>inline=False</i>)</b>
     <div class="docstring">
     <p>Compile this SQL expression.</p>
 <p>Uses the given <tt class="docutils literal"><span class="pre">Compiler</span></tt>, or the given <tt class="docutils literal"><span class="pre">AbstractDialect</span></tt>
@@ -1910,7 +1916,7 @@ column to a proxied column in this FromClause.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>table</i>, <i>values=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>table</i>, <i>values=None</i>, <i>inline=False</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">Insert</span></tt>.</p>
 
@@ -2537,7 +2543,7 @@ functionality.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def insert(<i>self</i>, <i>values=None</i>)</b>
+    <b>def insert(<i>self</i>, <i>values=None</i>, <i>inline=False</i>)</b>
     <div class="docstring">
     
     </div>
@@ -2596,7 +2602,7 @@ functionality.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def update(<i>self</i>, <i>whereclause=None</i>, <i>values=None</i>)</b>
+    <b>def update(<i>self</i>, <i>whereclause=None</i>, <i>values=None</i>, <i>inline=False</i>)</b>
     <div class="docstring">
     
     </div>
@@ -2628,7 +2634,7 @@ functionality.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>table</i>, <i>whereclause</i>, <i>values=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>table</i>, <i>whereclause</i>, <i>values=None</i>, <i>inline=False</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">Update</span></tt>.</p>
 

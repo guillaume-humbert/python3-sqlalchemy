@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/22/07 15:48:11</div>
+<div class="versionheader">Version: svn   Last Updated: 09/01/07 20:31:55</div>
 
 
 
@@ -185,10 +185,10 @@
     </span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">keyword</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">keyword </span><span class="python_operator">= </span><span class="python_name">keyword</span><span class="python_operator">
 </span>
-<span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
-    <span class="python_literal">'kw'</span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Keyword</span><span class="python_operator">, </span><span class="python_name">secondary</span><span class="python_operator">=</span><span class="python_name">userkeywords</span><span class="python_enclosure">)</span>
+<span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+    <span class="python_literal">'kw'</span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Keyword</span><span class="python_operator">, </span><span class="python_name">secondary</span><span class="python_operator">=</span><span class="python_name">userkeywords_table</span><span class="python_enclosure">)</span>
     <span class="python_enclosure">})</span><span class="python_operator">
-</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Keyword</span><span class="python_operator">, </span><span class="python_name">keywords</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Keyword</span><span class="python_operator">, </span><span class="python_name">keywords_table</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
 <p>Above are three simple tables, modeling users, keywords and a many-to-many relationship between the two.  These <code>Keyword</code> objects are little more than a container for a name, and accessing them via the relation is awkward:
