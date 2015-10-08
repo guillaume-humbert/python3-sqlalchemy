@@ -13,7 +13,7 @@ def col_references_table(col, table):
 def _history_mapper(local_mapper):
     cls = local_mapper.class_
 
-    # SLIGHT SQLA HACK #1 - set the "active_history" flag
+    # set the "active_history" flag
     # on on column-mapped attributes so that the old version
     # of the info is always loaded (currently sets it on all attributes)
     for prop in local_mapper.iterate_properties:
@@ -31,6 +31,7 @@ def _history_mapper(local_mapper):
                 continue
                 
             col = column.copy()
+            col.unique = False
 
             if super_mapper and col_references_table(column, super_mapper.local_table):
                 super_fks.append((col.key, list(super_history_mapper.base_mapper.local_table.primary_key)[0]))
@@ -117,12 +118,12 @@ def create_version(obj, session, deleted = False):
                 
             obj_col = om.local_table.c[hist_col.key]
 
-            # SLIGHT SQLA HACK #3 - get the value of the
+            # get the value of the
             # attribute based on the MapperProperty related to the
             # mapped column.  this will allow usage of MapperProperties
             # that have a different keyname than that of the mapped column.
             try:
-                prop = obj_mapper._get_col_to_prop(obj_col)
+                prop = obj_mapper.get_property_by_column(obj_col)
             except UnmappedColumnError:
                 # in the case of single table inheritance, there may be 
                 # columns on the mapped table intended for the subclass only.
@@ -143,7 +144,9 @@ def create_version(obj, session, deleted = False):
             elif u:
                 attr[hist_col.key] = u[0]
             else:
-                raise Exception("TODO: what makes us arrive here ?")
+                # if the attribute had no value.
+                attr[hist_col.key] = a[0]
+                obj_changed = True
                 
     if not obj_changed and not deleted:            
         return
@@ -161,4 +164,3 @@ class VersionedListener(SessionExtension):
             create_version(obj, session)
         for obj in versioned_objects(session.deleted):
             create_version(obj, session, deleted = True)
-            

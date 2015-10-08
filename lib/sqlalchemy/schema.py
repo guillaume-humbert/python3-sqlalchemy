@@ -118,7 +118,7 @@ class Table(SchemaItem, expression.TableClause):
     :param \*args: Additional positional arguments are used primarily
         to add the list of :class:`Column` objects contained within this
         table. Similar to the style of a CREATE TABLE statement, other
-        :class:`SchemaItem` constructs may be added here, including
+        :class:`.SchemaItem` constructs may be added here, including
         :class:`PrimaryKeyConstraint`, and :class:`ForeignKeyConstraint`.
         
     :param autoload: Defaults to False: the Columns for this table should 
@@ -450,8 +450,22 @@ class Table(SchemaItem, expression.TableClause):
         
 
     def tometadata(self, metadata, schema=RETAIN_SCHEMA):
-        """Return a copy of this ``Table`` associated with a different
-        ``MetaData``."""
+        """Return a copy of this :class:`Table` associated with a different
+        :class:`MetaData`.
+        
+        E.g.::
+        
+            # create two metadata
+            meta1 = MetaData('sqlite:///querytest.db')
+            meta2 = MetaData()
+
+            # load 'users' from the sqlite engine
+            users_table = Table('users', meta1, autoload=True)
+
+            # create the same Table object for the plain metadata
+            users_table_2 = users_table.tometadata(meta2)
+        
+        """
 
         try:
             if schema is RETAIN_SCHEMA:
@@ -512,7 +526,7 @@ class Column(SchemaItem, expression.ColumnClause):
           may not function in all cases.
 
         :param \*args: Additional positional arguments include various 
-          :class:`SchemaItem` derived constructs which will be applied 
+          :class:`.SchemaItem` derived constructs which will be applied 
           as options to the column.  These include instances of 
           :class:`Constraint`, :class:`ForeignKey`, :class:`ColumnDefault`, 
           and :class:`Sequence`.  In some cases an equivalent keyword 
@@ -806,7 +820,11 @@ class Column(SchemaItem, expression.ColumnClause):
             for fk in col.foreign_keys:
                 col.foreign_keys.remove(fk)
                 table.foreign_keys.remove(fk)
-                table.constraints.remove(fk.constraint)
+                if fk.constraint in table.constraints:
+                    # this might have been removed
+                    # already, if it's a composite constraint
+                    # and more than one col being replaced
+                    table.constraints.remove(fk.constraint)
             
         table._columns.replace(self)
 
@@ -825,7 +843,7 @@ class Column(SchemaItem, expression.ColumnClause):
                     "The 'index' keyword argument on Column is boolean only. "
                     "To create indexes with a specific name, create an "
                     "explicit Index object external to the Table.")
-            Index('ix_%s' % self._label, self, unique=self.unique)
+            Index(expression._generated_label('ix_%s' % self._label), self, unique=self.unique)
         elif self.unique:
             if isinstance(self.unique, basestring):
                 raise exc.ArgumentError(
@@ -1019,7 +1037,20 @@ class ForeignKey(SchemaItem):
         return "ForeignKey(%r)" % self._get_colspec()
 
     def copy(self, schema=None):
-        """Produce a copy of this ForeignKey object."""
+        """Produce a copy of this :class:`ForeignKey` object.
+        
+        The new :class:`ForeignKey` will not be bound
+        to any :class:`Column`.
+        
+        This method is usually used by the internal
+        copy procedures of :class:`Column`, :class:`Table`,
+        and :class:`MetaData`.
+        
+        :param schema: The returned :class:`ForeignKey` will
+          reference the original table and column name, qualified
+          by the given string schema name.
+          
+        """
         
         return ForeignKey(
                 self._get_colspec(schema=schema),
@@ -1033,6 +1064,12 @@ class ForeignKey(SchemaItem):
                 )
 
     def _get_colspec(self, schema=None):
+        """Return a string based 'column specification' for this :class:`ForeignKey`.
+        
+        This is usually the equivalent of the string-based "tablename.colname"
+        argument first passed to the object's constructor.
+        
+        """
         if schema:
             return schema + "." + self.column.table.name + \
                                     "." + self.column.key
@@ -1048,15 +1085,16 @@ class ForeignKey(SchemaItem):
     target_fullname = property(_get_colspec)
 
     def references(self, table):
-        """Return True if the given table is referenced by this ForeignKey."""
+        """Return True if the given :class:`Table` is referenced by this :class:`ForeignKey`."""
         
         return table.corresponding_column(self.column) is not None
 
     def get_referent(self, table):
-        """Return the column in the given table referenced by this ForeignKey.
+        """Return the :class:`.Column` in the given :class:`.Table` 
+        referenced by this :class:`ForeignKey`.
 
-        Returns None if this ``ForeignKey`` does not reference the given
-        table.
+        Returns None if this :class:`ForeignKey` does not reference the given
+        :class:`Table`.
 
         """
 
@@ -1064,6 +1102,18 @@ class ForeignKey(SchemaItem):
 
     @util.memoized_property
     def column(self):
+        """Return the target :class:`.Column` referenced by this :class:`.ForeignKey`.
+        
+        If this :class:`ForeignKey` was created using a
+        string-based target column specification, this
+        attribute will on first access initiate a resolution
+        process to locate the referenced remote
+        :class:`.Column`.  The resolution process traverses
+        to the parent :class:`.Column`, :class:`.Table`, and
+        :class:`.MetaData` to proceed - if any of these aren't 
+        yet present, an error is raised.
+        
+        """
         # ForeignKey inits its remote column as late as possible, so tables
         # can be defined without dependencies
         if isinstance(self._colspec, basestring):
@@ -1108,8 +1158,9 @@ class ForeignKey(SchemaItem):
 
             if _get_table_key(tname, schema) not in parenttable.metadata:
                 raise exc.NoReferencedTableError(
-                    "Could not find table '%s' with which to generate a "
-                    "foreign key" % tname)
+                    "Foreign key assocated with column '%s' could not find "
+                    "table '%s' with which to generate a "
+                    "foreign key to target column '%s'" % (self.parent, tname, colname))
             table = Table(tname, parenttable.metadata,
                           mustexist=True, schema=schema)
                           
@@ -1206,7 +1257,23 @@ class DefaultGenerator(SchemaItem):
 class ColumnDefault(DefaultGenerator):
     """A plain default value on a column.
 
-    This could correspond to a constant, a callable function, or a SQL clause.
+    This could correspond to a constant, a callable function, 
+    or a SQL clause.
+    
+    :class:`.ColumnDefault` is generated automatically
+    whenever the ``default``, ``onupdate`` arguments of
+    :class:`.Column` are used.  A :class:`.ColumnDefault`
+    can be passed positionally as well.
+    
+    For example, the following::
+    
+        Column('foo', Integer, default=50)
+        
+    Is equivalent to::
+    
+        Column('foo', Integer, ColumnDefault(50))
+
+    
     """
 
     def __init__(self, arg, **kwargs):
@@ -1337,7 +1404,20 @@ class Sequence(DefaultGenerator):
 
 
 class FetchedValue(object):
-    """A default that takes effect on the database side."""
+    """A marker for a transparent database-side default.
+    
+    Use :class:`.FetchedValue` when the database is configured
+    to provide some automatic default for a column.
+    
+    E.g.::
+    
+        Column('foo', Integer, FetchedValue())
+    
+    Would indicate that some trigger or default generator
+    will create a new value for the ``foo`` column during an
+    INSERT.
+    
+    """
 
     def __init__(self, for_update=False):
         self.for_update = for_update
@@ -1354,7 +1434,26 @@ class FetchedValue(object):
 
 
 class DefaultClause(FetchedValue):
-    """A DDL-specified DEFAULT column value."""
+    """A DDL-specified DEFAULT column value.
+    
+    :class:`.DefaultClause` is a :class:`.FetchedValue`
+    that also generates a "DEFAULT" clause when
+    "CREATE TABLE" is emitted.
+    
+    :class:`.DefaultClause` is generated automatically
+    whenever the ``server_default``, ``server_onupdate`` arguments of
+    :class:`.Column` are used.  A :class:`.DefaultClause`
+    can be passed positionally as well.
+    
+    For example, the following::
+    
+        Column('foo', Integer, server_default="50")
+        
+    Is equivalent to::
+    
+        Column('foo', Integer, DefaultClause("50"))
+    
+    """
 
     def __init__(self, arg, for_update=False):
         util.assert_arg_type(arg, (basestring,
@@ -1368,9 +1467,16 @@ class DefaultClause(FetchedValue):
                         (self.arg, self.for_update)
 
 class PassiveDefault(DefaultClause):
+    """A DDL-specified DEFAULT column value.
+    
+    .. deprecated:: 0.6 :class:`.PassiveDefault` is deprecated. 
+        Use :class:`.DefaultClause`.
+    """
+    @util.deprecated("0.6", 
+                ":class:`.PassiveDefault` is deprecated.  "
+                "Use :class:`.DefaultClause`.",
+                False)
     def __init__(self, *arg, **kw):
-        util.warn_deprecated("PassiveDefault is deprecated. "
-                                "Use DefaultClause.")
         DefaultClause.__init__(self, *arg, **kw)
 
 class Constraint(SchemaItem):

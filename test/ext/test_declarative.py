@@ -690,6 +690,40 @@ class DeclarativeTest(DeclarativeTestBase):
         eq_(sess.query(User).all(), [User(name='u1', address_count=2,
             addresses=[Address(email='one'), Address(email='two')])])
 
+    def test_useless_classproperty(self):
+        class Address(Base, ComparableEntity):
+
+            __tablename__ = 'addresses'
+            id = Column('id', Integer, primary_key=True,
+                        test_needs_autoincrement=True)
+            email = Column('email', String(50))
+            user_id = Column('user_id', Integer, ForeignKey('users.id'))
+
+        class User(Base, ComparableEntity):
+
+            __tablename__ = 'users'
+            id = Column('id', Integer, primary_key=True,
+                        test_needs_autoincrement=True)
+            name = Column('name', String(50))
+            addresses = relationship('Address', backref='user')
+            
+            @classproperty
+            def address_count(cls):
+                # this doesn't really gain us anything.  but if
+                # one is used, lets have it function as expected...
+                return sa.orm.column_property(sa.select([sa.func.count(Address.id)]).
+                        where(Address.user_id == cls.id))
+            
+        Base.metadata.create_all()
+        u1 = User(name='u1', addresses=[Address(email='one'),
+                  Address(email='two')])
+        sess = create_session()
+        sess.add(u1)
+        sess.flush()
+        sess.expunge_all()
+        eq_(sess.query(User).all(), [User(name='u1', address_count=2,
+            addresses=[Address(email='one'), Address(email='two')])])
+        
     def test_column(self):
 
         class User(Base, ComparableEntity):
@@ -1282,7 +1316,42 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
             primary_language = Column('primary_language', String(50))
 
         assert class_mapper(Engineer).inherits is class_mapper(Person)
+    
+    @testing.fails_if(lambda: True, "Not implemented until 0.7")
+    def test_foreign_keys_with_col(self):
+        """Test that foreign keys that reference a literal 'id' subclass 
+        'id' attribute behave intuitively.  
+        
+        See ticket 1892.
+        
+        """
+        class Booking(Base):
+            __tablename__ = 'booking'
+            id = Column(Integer, primary_key=True)
 
+        class PlanBooking(Booking):
+            __tablename__ = 'plan_booking'
+            id = Column(Integer, ForeignKey(Booking.id),
+                            primary_key=True)
+
+        # referencing PlanBooking.id gives us the column
+        # on plan_booking, not booking
+        class FeatureBooking(Booking):
+            __tablename__ = 'feature_booking'
+            id = Column(Integer, ForeignKey(Booking.id),
+                                        primary_key=True)
+            plan_booking_id = Column(Integer,
+                                ForeignKey(PlanBooking.id))
+            
+            plan_booking = relationship(PlanBooking,
+                        backref='feature_bookings')
+        
+        assert FeatureBooking.__table__.c.plan_booking_id.\
+                    references(PlanBooking.__table__.c.id)
+
+        assert FeatureBooking.__table__.c.id.\
+                    references(Booking.__table__.c.id)
+      
     def test_with_undefined_foreignkey(self):
 
         class Parent(Base):
@@ -2585,17 +2654,18 @@ class DeclarativeMixinTest(DeclarativeTestBase):
     def test_table_in_model_and_different_named_column_in_mixin(self):
 
         class ColumnMixin:
-
             tada = Column(Integer)
-
+            
+            
         def go():
 
             class Model(Base, ColumnMixin):
 
-                __table__ = Table('foo', Base.metadata, Column('data',
-                                  Integer), Column('id', Integer,
-                                  primary_key=True))
-
+                __table__ = Table('foo', Base.metadata, 
+                                Column('data',Integer), 
+                                Column('id', Integer,primary_key=True))
+                foo = relationship("Dest")
+                
         assert_raises_message(sa.exc.ArgumentError,
                               "Can't add additional column 'tada' when "
                               "specifying __table__", go)
