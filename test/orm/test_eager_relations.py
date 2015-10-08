@@ -10,6 +10,7 @@ from sqlalchemy import Integer, String, Date, ForeignKey, and_, select, \
 from test.lib.schema import Table, Column
 from sqlalchemy.orm import mapper, relationship, create_session, \
     lazyload, aliased, column_property
+from sqlalchemy.sql import operators
 from test.lib.testing import eq_, assert_raises, \
     assert_raises_message
 from test.lib.assertsql import CompiledSQL
@@ -1976,8 +1977,9 @@ class SelfReferentialEagerTest(fixtures.MappedTest):
         # test that the query isn't wrapping the initial query for eager loading.
         self.assert_sql_execution(testing.db, go, 
             CompiledSQL(
-                "SELECT nodes.id AS nodes_id, nodes.parent_id AS nodes_parent_id, nodes.data AS nodes_data FROM nodes "
-                "WHERE nodes.data = :data_1 ORDER BY nodes.id LIMIT :param_1 OFFSET :param_2",
+                "SELECT nodes.id AS nodes_id, nodes.parent_id AS "
+                "nodes_parent_id, nodes.data AS nodes_data FROM nodes "
+                "WHERE nodes.data = :data_1 ORDER BY nodes.id LIMIT :param_1",
                 {'data_1': 'n1'}
             )
         )
@@ -2538,18 +2540,25 @@ class CorrelatedSubqueryTest(fixtures.MappedTest):
             stuff_view = select([salias.c.id]).where(salias.c.user_id==users.c.id).\
                                     correlate(users).order_by(salias.c.date.desc()).limit(1)
 
+        # can't win on this one
+        if testing.against("mssql"):
+            operator = operators.in_op
+        else:
+            operator = operators.eq
+
         if labeled == 'label':
             stuff_view = stuff_view.label('foo')
+            operator = operators.eq
         elif labeled == 'scalar':
             stuff_view = stuff_view.as_scalar()
 
         if ondate:
             mapper(User, users, properties={
-                'stuff':relationship(Stuff, primaryjoin=and_(users.c.id==stuff.c.user_id, stuff.c.date==stuff_view))
+                'stuff':relationship(Stuff, primaryjoin=and_(users.c.id==stuff.c.user_id, operator(stuff.c.date, stuff_view)))
             })
         else:
             mapper(User, users, properties={
-                'stuff':relationship(Stuff, primaryjoin=and_(users.c.id==stuff.c.user_id, stuff.c.id==stuff_view))
+                'stuff':relationship(Stuff, primaryjoin=and_(users.c.id==stuff.c.user_id, operator(stuff.c.id, stuff_view)))
             })
 
         sess = create_session()

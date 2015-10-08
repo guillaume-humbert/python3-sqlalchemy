@@ -7,7 +7,8 @@
 """ORM event interfaces.
 
 """
-from sqlalchemy import event, exc
+from sqlalchemy import event, exc, util
+orm = util.importlater("sqlalchemy", "orm")
 import inspect
 
 class InstrumentationEvents(event.Events):
@@ -24,10 +25,8 @@ class InstrumentationEvents(event.Events):
 
     @classmethod
     def _accept_with(cls, target):
-        from sqlalchemy.orm.instrumentation import instrumentation_registry
-
         if isinstance(target, type):
-            return instrumentation_registry
+            return orm.instrumentation.instrumentation_registry
         else:
             return None
 
@@ -103,20 +102,17 @@ class InstanceEvents(event.Events):
     """
     @classmethod
     def _accept_with(cls, target):
-        from sqlalchemy.orm.instrumentation import ClassManager, manager_of_class
-        from sqlalchemy.orm import Mapper, mapper
-
-        if isinstance(target, ClassManager):
+        if isinstance(target, orm.instrumentation.ClassManager):
             return target
-        elif isinstance(target, Mapper):
+        elif isinstance(target, orm.Mapper):
             return target.class_manager
-        elif target is mapper:
-            return ClassManager
+        elif target is orm.mapper:
+            return orm.instrumentation.ClassManager
         elif isinstance(target, type):
-            if issubclass(target, Mapper):
-                return ClassManager
+            if issubclass(target, orm.Mapper):
+                return orm.instrumentation.ClassManager
             else:
-                manager = manager_of_class(target)
+                manager = orm.instrumentation.manager_of_class(target)
                 if manager:
                     return manager
         return None
@@ -333,21 +329,19 @@ class MapperEvents(event.Events):
 
     @classmethod
     def _accept_with(cls, target):
-        from sqlalchemy.orm import mapper, class_mapper, Mapper
-        if target is mapper:
-            return Mapper
+        if target is orm.mapper:
+            return orm.Mapper
         elif isinstance(target, type):
-            if issubclass(target, Mapper):
+            if issubclass(target, orm.Mapper):
                 return target
             else:
-                return class_mapper(target)
+                return orm.class_mapper(target)
         else:
             return target
 
     @classmethod
     def _listen(cls, target, identifier, fn, 
                             raw=False, retval=False, propagate=False):
-        from sqlalchemy.orm.interfaces import EXT_CONTINUE
 
         if not raw or not retval:
             if not raw:
@@ -364,7 +358,7 @@ class MapperEvents(event.Events):
                     arg[target_index] = arg[target_index].obj()
                 if not retval:
                     wrapped_fn(*arg, **kw)
-                    return EXT_CONTINUE
+                    return orm.interfaces.EXT_CONTINUE
                 else:
                     return wrapped_fn(*arg, **kw)
             fn = wrap
@@ -403,6 +397,21 @@ class MapperEvents(event.Events):
 
         """
         # TODO: need coverage for this event
+
+    def after_configured(self):
+        """Called after a series of mappers have been configured.
+
+        This corresponds to the :func:`.orm.configure_mappers` call, which
+        note is usually called automatically as mappings are first
+        used.
+        
+        Theoretically this event is called once per
+        application, but is actually called any time new mappers
+        have been affected by a :func:`.orm.configure_mappers` call.   If new mappings
+        are constructed after existing ones have already been used, 
+        this event can be called again.
+
+        """
 
     def translate_row(self, mapper, context, row):
         """Perform pre-processing on the given result row and return a
@@ -581,6 +590,14 @@ class MapperEvents(event.Events):
         into individual (and more poorly performing)
         event->persist->event steps.
 
+        Handlers should **not** alter mapped attributes on the objects
+        just flushed or on other objects of the same class, nor
+        should any other ORM-based operation such as :class:`.Session.add`
+        take place here.   Attribute changes on objects that were
+        already flushed will be discarded, and changes to the flush
+        plan will also not take place.  Use :meth:`.SessionEvents.before_flush`
+        to change the flush plan on flush.
+        
         :param mapper: the :class:`.Mapper` which is the target
          of this event.
         :param connection: the :class:`.Connection` being used to 
@@ -689,6 +706,14 @@ class MapperEvents(event.Events):
         (and more poorly performing) event->persist->event
         steps.
 
+        Handlers should **not** alter mapped attributes on the objects
+        just flushed or on other objects of the same class, nor
+        should any other ORM-based operation such as :class:`.Session.add`
+        take place here.   Attribute changes on objects that were
+        already flushed will be discarded, and changes to the flush
+        plan will also not take place.  Use :meth:`.SessionEvents.before_flush`
+        to change the flush plan on flush.
+
         :param mapper: the :class:`.Mapper` which is the target
          of this event.
         :param connection: the :class:`.Connection` being used to 
@@ -749,6 +774,14 @@ class MapperEvents(event.Events):
         same class after their DELETE statements have been emitted at
         once in a previous step. 
 
+        Handlers should **not** alter mapped attributes on the objects
+        just flushed or on other objects of the same class, nor
+        should any other ORM-based operation such as :class:`.Session.add`
+        take place here.   Attribute changes on objects that were
+        already flushed will be discarded, and changes to the flush
+        plan will also not take place.  Use :meth:`.SessionEvents.before_flush`
+        to change the flush plan on flush.
+
         :param mapper: the :class:`.Mapper` which is the target
          of this event.
         :param connection: the :class:`.Connection` being used to 
@@ -794,21 +827,20 @@ class SessionEvents(event.Events):
 
     @classmethod
     def _accept_with(cls, target):
-        from sqlalchemy.orm import ScopedSession, Session
-        if isinstance(target, ScopedSession):
+        if isinstance(target, orm.ScopedSession):
             if not isinstance(target.session_factory, type) or \
-                not issubclass(target.session_factory, Session):
+                not issubclass(target.session_factory, orm.Session):
                 raise exc.ArgumentError(
                             "Session event listen on a ScopedSession "
                             "requires that its creation callable "
                             "is a Session subclass.")
             return target.session_factory
         elif isinstance(target, type):
-            if issubclass(target, ScopedSession):
-                return Session
-            elif issubclass(target, Session):
+            if issubclass(target, orm.ScopedSession):
+                return orm.Session
+            elif issubclass(target, orm.Session):
                 return target
-        elif isinstance(target, Session):
+        elif isinstance(target, orm.Session):
             return target
         else:
             return None
@@ -821,25 +853,82 @@ class SessionEvents(event.Events):
         """Execute before commit is called.
 
         Note that this may not be per-flush if a longer running
-        transaction is ongoing."""
+        transaction is ongoing.
+
+        :param session: The target :class:`.Session`.
+        
+        """
 
     def after_commit(self, session):
         """Execute after a commit has occurred.
 
         Note that this may not be per-flush if a longer running
-        transaction is ongoing."""
+        transaction is ongoing.
+        
+        :param session: The target :class:`.Session`.
+        
+        """
 
     def after_rollback(self, session):
-        """Execute after a rollback has occurred.
+        """Execute after a real DBAPI rollback has occurred.
+        
+        Note that this event only fires when the *actual* rollback against
+        the database occurs - it does *not* fire each time the 
+        :meth:`.Session.rollback` method is called, if the underlying 
+        DBAPI transaction has already been rolled back.  In many
+        cases, the :class:`.Session` will not be in 
+        an "active" state during this event, as the current
+        transaction is not valid.   To acquire a :class:`.Session`
+        which is active after the outermost rollback has proceeded,
+        use the :meth:`.SessionEvents.after_soft_rollback` event, checking the
+        :attr:`.Session.is_active` flag.
 
-        Note that this may not be per-flush if a longer running
-        transaction is ongoing."""
+        :param session: The target :class:`.Session`.
+
+        """
+
+    def after_soft_rollback(self, session, previous_transaction):
+        """Execute after any rollback has occurred, including "soft" 
+        rollbacks that don't actually emit at the DBAPI level.
+        
+        This corresponds to both nested and outer rollbacks, i.e.
+        the innermost rollback that calls the DBAPI's 
+        rollback() method, as well as the enclosing rollback 
+        calls that only pop themselves from the transaction stack.
+        
+        The given :class:`.Session` can be used to invoke SQL and 
+        :meth:`.Session.query` operations after an outermost rollback 
+        by first checking the :attr:`.Session.is_active` flag::
+
+            @event.listens_for(Session, "after_soft_rollback")
+            def do_something(session, previous_transaction):
+                if session.is_active:
+                    session.execute("select * from some_table")
+        
+        :param session: The target :class:`.Session`.
+        :param previous_transaction: The :class:`.SessionTransaction` transactional
+         marker object which was just closed.   The current :class:`.SessionTransaction`
+         for the given :class:`.Session` is available via the
+         :attr:`.Session.transaction` attribute.
+
+        New in 0.7.3.
+
+        """
 
     def before_flush( self, session, flush_context, instances):
         """Execute before flush process has started.
 
         `instances` is an optional list of objects which were passed to
-        the ``flush()`` method. """
+        the ``flush()`` method. 
+        
+        :param session: The target :class:`.Session`.
+        :param flush_context: Internal :class:`.UOWTransaction` object
+         which handles the details of the flush.
+        :param instances: Usually ``None``, this is the collection of
+         objects which can be passed to the :meth:`.Session.flush` method
+         (note this usage is deprecated).
+
+        """
 
     def after_flush(self, session, flush_context):
         """Execute after flush has completed, but before commit has been
@@ -847,7 +936,13 @@ class SessionEvents(event.Events):
 
         Note that the session's state is still in pre-flush, i.e. 'new',
         'dirty', and 'deleted' lists still show pre-flush state as well
-        as the history settings on instance attributes."""
+        as the history settings on instance attributes.
+        
+        :param session: The target :class:`.Session`.
+        :param flush_context: Internal :class:`.UOWTransaction` object
+         which handles the details of the flush.
+
+        """
 
     def after_flush_postexec(self, session, flush_context):
         """Execute after flush has completed, and after the post-exec
@@ -856,13 +951,25 @@ class SessionEvents(event.Events):
         This will be when the 'new', 'dirty', and 'deleted' lists are in
         their final state.  An actual commit() may or may not have
         occurred, depending on whether or not the flush started its own
-        transaction or participated in a larger transaction. """
+        transaction or participated in a larger transaction. 
+        
+        :param session: The target :class:`.Session`.
+        :param flush_context: Internal :class:`.UOWTransaction` object
+         which handles the details of the flush.
+        """
 
     def after_begin( self, session, transaction, connection):
         """Execute after a transaction is begun on a connection
 
         `transaction` is the SessionTransaction. This method is called
-        after an engine level transaction is begun on a connection. """
+        after an engine level transaction is begun on a connection. 
+        
+        :param session: The target :class:`.Session`.
+        :param transaction: The :class:`.SessionTransaction`.
+        :param connection: The :class:`~.engine.base.Connection` object 
+         which will be used for SQL statements.
+        
+        """
 
     def after_attach(self, session, instance):
         """Execute after an instance is attached to a session.
@@ -949,9 +1056,8 @@ class AttributeEvents(event.Events):
 
     @classmethod
     def _accept_with(cls, target):
-        from sqlalchemy.orm import interfaces
         # TODO: coverage
-        if isinstance(target, interfaces.MapperProperty):
+        if isinstance(target, orm.interfaces.MapperProperty):
             return getattr(target.parent.class_, target.key)
         else:
             return target
@@ -981,9 +1087,7 @@ class AttributeEvents(event.Events):
         event.Events._listen(target, identifier, fn, propagate)
 
         if propagate:
-            from sqlalchemy.orm.instrumentation import manager_of_class
-
-            manager = manager_of_class(target.class_)
+            manager = orm.instrumentation.manager_of_class(target.class_)
 
             for mgr in manager.subclass_managers(True):
                 event.Events._listen(mgr[target.key], identifier, fn, True)

@@ -55,6 +55,8 @@ class ColumnProperty(StrategizedProperty):
 
         :param descriptor:
 
+        :param expire_on_flush:
+
         :param extension:
 
         """
@@ -67,6 +69,7 @@ class ColumnProperty(StrategizedProperty):
         self.descriptor = kwargs.pop('descriptor', None)
         self.extension = kwargs.pop('extension', None)
         self.active_history = kwargs.pop('active_history', False)
+        self.expire_on_flush = kwargs.pop('expire_on_flush', True)
 
         if 'doc' in kwargs:
             self.doc = kwargs.pop('doc')
@@ -267,6 +270,7 @@ class RelationshipProperty(StrategizedProperty):
         else:
             self.backref = backref
 
+
     def instrument_class(self, mapper):
         attributes.register_descriptor(
             mapper.class_, 
@@ -449,7 +453,8 @@ class RelationshipProperty(StrategizedProperty):
 
             crit = j & criterion
 
-            return sql.exists([1], crit, from_obj=dest).correlate(source)
+            return sql.exists([1], crit, from_obj=dest).\
+                            correlate(source._annotate({'_orm_adapt':True}))
 
         def any(self, criterion=None, **kwargs):
             """Produce an expression that tests a collection against
@@ -1406,6 +1411,7 @@ class RelationshipProperty(StrategizedProperty):
                 **kwargs
                 )
             mapper._configure_property(backref_key, relationship)
+
         if self.back_populates:
             self._add_reverse_property(self.back_populates)
 

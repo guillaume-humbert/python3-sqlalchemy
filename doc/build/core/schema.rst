@@ -148,9 +148,6 @@ table include::
     # get the table related by a foreign key
     list(employees.c.employee_dept.foreign_keys)[0].column.table
 
-.. _metadata_binding:
-
-
 Creating and Dropping Database Tables
 -------------------------------------
 
@@ -253,6 +250,7 @@ To enable the "check first for the table existing" logic, add the
     employees.create(engine, checkfirst=True)
     employees.drop(engine, checkfirst=False)
 
+.. _metadata_binding:
 
 Binding MetaData to an Engine or Connection
 --------------------------------------------
@@ -926,6 +924,8 @@ composite foreign key. While we could also have placed individual
 would not be aware that these two values should be paired together - it would
 be two individual foreign key constraints instead of a single composite
 foreign key referencing two columns.
+
+.. _use_alter:
 
 Creating/Dropping Foreign Key Constraints via ALTER
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

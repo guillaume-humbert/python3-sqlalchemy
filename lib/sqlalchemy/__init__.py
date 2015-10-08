@@ -117,6 +117,9 @@ from sqlalchemy.engine import create_engine, engine_from_config
 __all__ = sorted(name for name, obj in locals().items()
                  if not (name.startswith('_') or inspect.ismodule(obj)))
 
-__version__ = '0.7.2'
+__version__ = '0.7.3'
 
 del inspect, sys
+
+from sqlalchemy import util as _sa_util
+_sa_util.importlater.resolve_all()

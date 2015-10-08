@@ -746,11 +746,13 @@ class DefaultTest(fixtures.MappedTest):
                    test_needs_autoincrement=True),
             Column('hoho', hohotype, server_default=str(hohoval)),
             Column('counter', Integer, default=sa.func.char_length("1234567", type_=Integer)),
-            Column('foober', String(30), default="im foober", onupdate="im the update"))
+            Column('foober', String(30), default="im foober", onupdate="im the update"),
+            mysql_engine='MyISAM')
 
         st = Table('secondary_table', metadata,
             Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
-            Column('data', String(50)))
+            Column('data', String(50)),
+            mysql_engine='MyISAM')
 
         if testing.against('postgresql', 'oracle'):
             dt.append_column(
@@ -938,14 +940,23 @@ class ColumnPropertyTest(fixtures.MappedTest):
         mapper(Data, data, properties={
             'aplusb':column_property(data.c.a + literal_column("' '") + data.c.b)
         })
-        self._test()
+        self._test(True)
+
+    def test_no_refresh(self):
+        Data, data = self.classes.Data, self.tables.data
+
+        mapper(Data, data, properties={
+            'aplusb':column_property(data.c.a + literal_column("' '") + data.c.b, 
+                        expire_on_flush=False)
+        })
+        self._test(False)
 
     def test_refreshes_post_init(self):
         Data, data = self.classes.Data, self.tables.data
 
         m = mapper(Data, data)
         m.add_property('aplusb', column_property(data.c.a + literal_column("' '") + data.c.b))
-        self._test()
+        self._test(True)
 
     def test_with_inheritance(self):
         subdata, data, Data = (self.tables.subdata,
@@ -965,7 +976,7 @@ class ColumnPropertyTest(fixtures.MappedTest):
         sess.flush()
         eq_(sd1.aplusb, "hello there")
 
-    def _test(self):
+    def _test(self, expect_expiry):
         Data = self.classes.Data
 
         sess = create_session()
@@ -978,7 +989,11 @@ class ColumnPropertyTest(fixtures.MappedTest):
 
         d1.b = "bye"
         sess.flush()
-        eq_(d1.aplusb, "hello bye")
+        if expect_expiry:
+            eq_(d1.aplusb, "hello bye")
+        else:
+            eq_(d1.aplusb, "hello there")
+
 
         d1.b = 'foobar'
         d1.aplusb = 'im setting this explicitly'

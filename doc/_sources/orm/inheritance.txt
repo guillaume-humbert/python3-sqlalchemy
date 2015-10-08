@@ -1,3 +1,5 @@
+.. _inheritance_toplevel:
+
 Mapping Class Inheritance Hierarchies
 ======================================
 
@@ -12,6 +14,11 @@ common scenario with some particular problems so is not quite as flexible.
 When mappers are configured in an inheritance relationship, SQLAlchemy has the
 ability to load elements "polymorphically", meaning that a single query can
 return objects of multiple types.
+
+.. note:: This section currently uses classical mappings to illustrate inheritance
+   configurations, and will soon be updated to standardize on Declarative.
+   Until then, please refer to :ref:`declarative_inheritance` for information on
+   how common inheritance mappings are constructed declaratively.
 
 For the following sections, assume this class relationship:
 
@@ -521,8 +528,11 @@ Upon select, the polymorphic union produces a query like this:
     ) AS pjoin
     []
 
-For a recipe that sets up concrete inheritance using declarative, see the `DeclarativeAbstractConcreteBase
-<http://www.sqlalchemy.org/trac/wiki/UsageRecipes/DeclarativeAbstractConcreteBase>`_ recipe on the wiki.
+Concrete Inheritance with Declarative
+++++++++++++++++++++++++++++++++++++++
+
+As of 0.7.3, the :ref:`declarative_toplevel` module includes helpers for concrete inheritance.
+See :ref:`declarative_concrete_helpers` for more information.
 
 Using Relationships with Inheritance
 ------------------------------------

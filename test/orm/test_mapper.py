@@ -246,8 +246,8 @@ class MapperTest(_fixtures.FixtureTest):
         """test that _sort_states() doesn't compare 
         insert_order to state.key, for set of mixed
         persistent/pending.  In particular Python 3 disallows
-        this.  
-        
+        this.
+
         """
         class Foo(object):
             def __init__(self, id):
@@ -429,6 +429,21 @@ class MapperTest(_fixtures.FixtureTest):
         sess.add(u3)
         sess.flush()
         sess.rollback()
+
+    def test_add_prop_via_backref_resets_memoizations_reconfigures(self):
+        users, User = self.tables.users, self.classes.User
+        addresses, Address = self.tables.addresses, self.classes.Address
+
+        m1 = mapper(User, users)
+        User()
+
+        m2 = mapper(Address, addresses, properties={
+            'user':relationship(User, backref="addresses")
+        })
+        # configure mappers takes place when User is generated
+        User()
+        assert hasattr(User, 'addresses')
+        assert "addresses" in [p.key for p in m1._polymorphic_properties]
 
     def test_replace_property(self):
         users, User = self.tables.users, self.classes.User
@@ -675,6 +690,28 @@ class MapperTest(_fixtures.FixtureTest):
         s.add(A())
         s.commit()
 
+    def test_we_dont_call_eq(self):
+        class NoEqAllowed(object):
+            def __eq__(self, other):
+                raise Exception("nope")
+
+        addresses, users = self.tables.addresses, self.tables.users
+        Address = self.classes.Address
+
+        mapper(NoEqAllowed, users, properties={
+            'addresses':relationship(Address, backref='user')
+        })
+        mapper(Address, addresses)
+
+        u1 = NoEqAllowed()
+        u1.name = "some name"
+        u1.addresses = [Address(id=12, email_address='a1')]
+        s = Session(testing.db)
+        s.add(u1)
+        s.commit()
+
+        a1 = s.query(Address).filter_by(id=12).one()
+        assert a1.user is u1
 
     def test_mapping_to_join_raises(self):
         """Test implicit merging of two cols raises."""
@@ -1037,6 +1074,20 @@ class MapperTest(_fixtures.FixtureTest):
         eq_(User.uname.attribute, 123)
         eq_(User.uname['key'], 'value')
 
+    def test_synonym_of_synonym(self):
+        users,  User = (self.tables.users,
+                                self.classes.User)
+
+        mapper(User, users, properties={
+            'x':synonym('id'),
+            'y':synonym('x')
+        })
+
+        s = Session()
+        u = s.query(User).filter(User.y==8).one()
+        eq_(u.y, 8)
+
+
     def test_synonym_column_location(self):
         users, User = self.tables.users, self.classes.User
 
@@ -1337,7 +1388,17 @@ class MapperTest(_fixtures.FixtureTest):
             'addresses':relationship(Address)
         })
 
-        assert_raises(sa.orm.exc.UnmappedClassError, sa.orm.configure_mappers)
+        assert_raises_message(
+            sa.orm.exc.UnmappedClassError, 
+            "Class 'test.orm._fixtures.Address' is not mapped",
+            sa.orm.configure_mappers)
+
+    def test_unmapped_not_type_error(self):
+        assert_raises_message(
+            sa.exc.ArgumentError, 
+            "Class object expected, got '5'.",
+            class_mapper, 5
+        )
 
     def test_unmapped_subclass_error_postmap(self):
         users = self.tables.users
@@ -1479,8 +1540,6 @@ class ORMLoggingTest(_fixtures.FixtureTest):
 
 class OptionsTest(_fixtures.FixtureTest):
 
-    @testing.fails_if(lambda: True, "0.7 regression, may not support "
-                                "synonyms for relationship")
     @testing.fails_on('maxdb', 'FIXME: unknown')
     def test_synonym_options(self):
         Address, addresses, users, User = (self.classes.Address,

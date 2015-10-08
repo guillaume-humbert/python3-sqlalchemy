@@ -124,6 +124,21 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
         assert_raises(ValueError, select, offset="foo")
         assert_raises(ValueError, select, limit="foo")
 
+    def test_limit_offset(self):
+        for lim, offset, exp, params in [
+            (5, 10, "LIMIT :param_1 OFFSET :param_2", 
+                                {'param_1':5, 'param_2':10}),
+            (None, 10, "LIMIT -1 OFFSET :param_1", {'param_1':10}),
+            (5, None, "LIMIT :param_1", {'param_1':5}),
+            (0, 0, "LIMIT :param_1 OFFSET :param_2", 
+                                {'param_1':0, 'param_2':0}),
+        ]:
+            self.assert_compile(
+                select([1]).limit(lim).offset(offset),
+                "SELECT 1 " + exp,
+                checkparams =params
+            )
+
     def test_from_subquery(self):
         """tests placing select statements in the column clause of another select, for the
         purposes of selecting from the exported columns of that select."""
@@ -687,6 +702,27 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
             checkparams = {'othername_1': 'asdf', 'othername_2':'foo', 'otherid_1': 9, 'myid_1': 12}
         )
 
+    def test_nested_conjunctions_short_circuit(self):
+        """test that empty or_(), and_() conjunctions are collapsed by
+        an enclosing conjunction."""
+
+        t = table('t', column('x'))
+
+        self.assert_compile(
+            select([t]).where(and_(t.c.x==5, 
+                or_(and_(or_(t.c.x==7))))),
+            "SELECT t.x FROM t WHERE t.x = :x_1 AND t.x = :x_2"
+        )
+        self.assert_compile(
+            select([t]).where(and_(or_(t.c.x==12, 
+                and_(or_(t.c.x==8))))),
+            "SELECT t.x FROM t WHERE t.x = :x_1 OR t.x = :x_2"
+        )
+        self.assert_compile(
+            select([t]).where(and_(or_(or_(t.c.x==12), 
+                and_(or_(), or_(and_(t.c.x==8)), and_())))),
+            "SELECT t.x FROM t WHERE t.x = :x_1 OR t.x = :x_2"
+        )
 
     def test_distinct(self):
         self.assert_compile(
@@ -2055,7 +2091,7 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
 
         # then the Oracle engine
         check_results(oracle.dialect(), ['NUMERIC', 'NUMERIC(12, 9)',
-                      'DATE', 'CLOB', 'VARCHAR(20 CHAR)'], ':param_1')
+                      'DATE', 'CLOB', 'VARCHAR2(20 CHAR)'], ':param_1')
 
         # then the sqlite engine
         check_results(sqlite.dialect(), ['NUMERIC', 'NUMERIC(12, 9)',

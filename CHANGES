@@ -3,6 +3,353 @@
 =======
 CHANGES
 =======
+0.7.3
+=====
+- general
+   - Adjusted the "importlater" mechanism, which is
+     used internally to resolve import cycles,
+     such that the usage of __import__ is completed
+     when the import of sqlalchemy or sqlalchemy.orm
+     is done, thereby avoiding any usage of __import__
+     after the application starts new threads,
+     fixes [ticket:2279].  Also in 0.6.9.
+
+- orm
+   - Improved query.join() such that the "left" side
+     can more flexibly be a non-ORM selectable, 
+     such as a subquery.   A selectable placed
+     in select_from() will now be used as the left
+     side, favored over implicit usage
+     of a mapped entity.
+     If the join still fails based on lack of
+     foreign keys, the error message includes 
+     this detail.  Thanks to brianrhude
+     on IRC for the test case.  [ticket:2298]
+
+   - Added after_soft_rollback() Session event.  This
+     event fires unconditionally whenever rollback()
+     is called, regardless of if an actual DBAPI
+     level rollback occurred.  This event
+     is specifically designed to allow operations
+     with the Session to proceed after a rollback
+     when the Session.is_active is True.
+     [ticket:2241]
+ 
+  - added "adapt_on_names" boolean flag to orm.aliased()
+    construct.  Allows an aliased() construct
+    to link the ORM entity to a selectable that contains
+    aggregates or other derived forms of a particular
+    attribute, provided the name is the same as that
+    of the entity mapped column.
+
+  - Added new flag expire_on_flush=False to column_property(),
+    marks those properties that would otherwise be considered
+    to be "readonly", i.e. derived from SQL expressions,
+    to retain their value after a flush has occurred, including
+    if the parent object itself was involved in an update.
+
+  - Enhanced the instrumentation in the ORM to support
+    Py3K's new argument style of "required kw arguments",
+    i.e. fn(a, b, *, c, d), fn(a, b, *args, c, d).
+    Argument signatures of mapped object's __init__
+    method will be preserved, including required kw rules.
+    [ticket:2237]
+
+  - Fixed bug in unit of work whereby detection of 
+    "cycles" among classes in highly interlinked patterns
+    would not produce a deterministic
+    result; thereby sometimes missing some nodes that
+    should be considered cycles and causing further
+    issues down the road.  Note this bug is in 0.6 
+    also; not backported at the moment.
+    [ticket:2282]
+
+  - Fixed a variety of synonym()-related regressions
+    from 0.6:
+        - making a synonym against a synonym now works.
+        - synonyms made against a relationship() can
+          be passed to query.join(), options sent
+          to query.options(), passed by name
+          to query.with_parent().
+
+  - Fixed bug whereby mapper.order_by attribute would
+    be ignored in the "inner" query within a 
+    subquery eager load.  [ticket:2287].
+    Also in 0.6.9.
+
+  - Identity map .discard() uses dict.pop(,None) 
+    internally instead of "del" to avoid KeyError/warning 
+    during a non-determinate gc teardown [ticket:2267]
+
+  - Fixed regression in new composite rewrite where
+    deferred=True option failed due to missing
+    import [ticket:2253]
+
+  - Reinstated "comparator_factory" argument to 
+    composite(), removed when 0.7 was released.  
+    [ticket:2248]
+
+  - Fixed bug in query.join() which would occur
+    in a complex multiple-overlapping path scenario,
+    where the same table could be joined to
+    twice.  Thanks *much* to Dave Vitek 
+    for the excellent fix here.  [ticket:2247]
+
+  - Query will convert an OFFSET of zero when
+    slicing into None, so that needless OFFSET
+    clauses are not invoked.
+
+  - Repaired edge case where mapper would fail
+    to fully update internal state when a relationship
+    on a new mapper would establish a backref on the
+    first mapper.
+
+  - Fixed bug whereby if __eq__() was
+    redefined, a relationship many-to-one lazyload
+    would hit the __eq__() and fail.  [ticket:2260]
+    Does not apply to 0.6.9.
+
+  - Calling class_mapper() and passing in an object
+    that is not a "type" (i.e. a class that could 
+    potentially be mapped) now raises an informative
+    ArgumentError, rather than UnmappedClassError.
+    [ticket:2196]
+
+  - New event hook, MapperEvents.after_configured().  
+    Called after a configure() step has completed and
+    mappers were in fact affected.   Theoretically this
+    event is called once per application, unless new mappings
+    are constructed after existing ones have been used
+    already.
+
+  - When an open Session is garbage collected, the objects
+    within it which remain are considered detached again
+    when they are add()-ed to a new Session.
+    This is accomplished by an extra check that the previous
+    "session_key" doesn't actually exist among the pool
+    of Sessions.  [ticket:2281]
+
+  - New declarative features:
+        - __declare_last__() method, establishes an event
+        listener for the class method that will be called
+        when mappers are completed with the final "configure"
+        step.
+        - __abstract__ flag.   The class will not be mapped
+        at all when this flag is present on the class.
+        - New helper classes ConcreteBase, AbstractConcreteBase.
+        Allow concrete mappings using declarative which automatically
+        set up the "polymorphic_union" when the "configure"
+        mapper step is invoked.
+        - The mapper itself has semi-private methods that allow
+        the "with_polymorphic" selectable to be assigned
+        to the mapper after it has already been configured.
+        [ticket:2239]
+
+   - Declarative will warn when a subclass' base uses 
+     @declared_attr for a regular column - this attribute
+     does not propagate to subclasses. [ticket:2283]
+
+   - The integer "id" used to link a mapped instance with
+     its owning Session is now generated by a sequence
+     generation function rather than id(Session), to
+     eliminate the possibility of recycled id() values 
+     causing an incorrect result, no need to check that 
+     object actually in the session.  [ticket:2280]
+
+-sql
+  - Behavioral improvement: empty
+    conjunctions such as and_() and or_() will be
+    flattened in the context of an enclosing conjunction,
+    i.e. and_(x, or_()) will produce 'X' and not 'X AND
+    ()'. [ticket:2257].
+
+  - Fixed bug regarding calculation of "from" list 
+    for a select() element.  The "from" calc is now
+    delayed, so that if the construct uses a Column
+    object that is not yet attached to a Table,
+    but is later associated with a Table, it generates
+    SQL using the table as a FROM.   This change
+    impacted fairly deeply the mechanics of how 
+    the FROM list as well as the "correlates" collection
+    is calculated, as some "clause adaption" schemes
+    (these are used very heavily in the ORM)
+    were relying upon the fact that the "froms" 
+    collection would typically be cached before the 
+    adaption completed.   The rework allows it
+    such that the "froms" collection can be cleared
+    and re-generated at any time.  [ticket:2261]
+
+  - Fixed bug whereby with_only_columns() method of
+    Select would fail if a selectable were passed.
+    [ticket:2270].  Also in 0.6.9.
+
+- schema
+  - Modified Column.copy() to use _constructor(), 
+    which defaults to self.__class__, in order to 
+    create the new object.  This allows easier support
+    of subclassing Column.  [ticket:2284]
+
+  - Added a slightly nicer __repr__() to SchemaItem
+    classes.  Note the repr here can't fully support
+    the "repr is the constructor" idea since schema
+    items can be very deeply nested/cyclical, have
+    late initialization of some things, etc.
+    [ticket:2223]
+
+- engine
+  - The recreate() method in all pool classes uses
+    self.__class__ to get at the type of pool
+    to produce, in the case of subclassing.  Note 
+    there's no usual need to subclass pools.
+    [ticket:2254]
+
+  - Improvement to multi-param statement logging,
+    long lists of bound parameter sets will be 
+    compressed with an informative indicator
+    of the compression taking place.  Exception
+    messages use the same improved formatting.  
+    [ticket:2243]
+
+  - Added optional "sa_pool_key" argument to 
+    pool.manage(dbapi).connect() so that serialization
+    of args is not necessary.
+
+  - The entry point resolution supported by 
+    create_engine() now supports resolution of
+    individual DBAPI drivers on top of a built-in
+    or entry point-resolved dialect, using the 
+    standard '+' notation - it's converted to
+    a '.' before being resolved as an entry
+    point.  [ticket:2286]
+
+  - Added an exception catch + warning for the
+    "return unicode detection" step within connect,
+    allows databases that crash on NVARCHAR to
+    continue initializing, assuming no NVARCHAR
+    type implemented.  [ticket:2299]
+
+- types
+  - Extra keyword arguments to the base Float 
+    type beyond "precision" and "asdecimal" are ignored;
+    added a deprecation warning here and additional
+    docs, related to [ticket:2258]
+
+- sqlite
+  - Ensured that the same ValueError is raised for
+    illegal date/time/datetime string parsed from
+    the database regardless of whether C 
+    extensions are in use or not.
+
+- postgresql
+  - Added "postgresql_using" argument to Index(), produces
+    USING clause to specify index implementation for
+    PG.  [ticket:2290].  Thanks to Ryan P. Kelly for
+    the patch.
+
+  - Added client_encoding parameter to create_engine()
+    when the postgresql+psycopg2 dialect is used;
+    calls the psycopg2 set_client_encoding() method
+    with the value upon connect.  [ticket:1839]
+
+  - Fixed bug related to [ticket:2141] whereby the 
+    same modified index behavior in PG 9 affected
+    primary key reflection on a renamed column.
+    [ticket:2291].  Also in 0.6.9.
+
+  - Reflection functions for Table, Sequence no longer
+    case insensitive.  Names can be differ only in case
+    and will be correctly distinguished.  [ticket:2256]
+
+  - Use an atomic counter as the "random number" 
+    source for server side cursor names; 
+    conflicts have been reported in rare cases.
+
+  - Narrowed the assumption made when reflecting
+    a foreign-key referenced table with schema in
+    the current search path; an explicit schema will
+    be applied to the referenced table only if 
+    it actually matches that of the referencing table,
+    which also has an explicit schema.   Previously
+    it was assumed that "current" schema was synonymous
+    with the full search_path.  [ticket:2249]
+
+- mysql
+  - a CREATE TABLE will put the COLLATE option 
+    after CHARSET, which appears to be part of 
+    MySQL's arbitrary rules regarding if it will actually
+    work or not.  [ticket:2225]  Also in 0.6.9.
+
+  - Added mysql_length parameter to Index construct,
+    specifies "length" for indexes.  [ticket:2293]
+
+- mssql
+  - Changes to attempt support of FreeTDS 0.91 with 
+    Pyodbc.  This includes that string binds are sent as 
+    Python unicode objects when FreeTDS 0.91 is detected,
+    and a CAST(? AS NVARCHAR) is used when we detect 
+    for a table.   However, I'd continue
+    to characterize Pyodbc + FreeTDS 0.91 behavior as 
+    pretty crappy, there are still many queries such 
+    as used in reflection which cause a core dump on 
+    Linux, and it is not really usable at all
+    on OSX, MemoryErrors abound and just plain broken 
+    unicode support.   [ticket:2273]
+
+  - The behavior of =/!= when comparing a scalar select
+    to a value will no longer produce IN/NOT IN as of 0.8;
+    this behavior is a little too heavy handed (use in_() if
+    you want to emit IN) and now emits a deprecation warning.   
+    To get the 0.8 behavior immediately and remove the warning, 
+    a compiler recipe is given at 
+    http://www.sqlalchemy.org/docs/07/dialects/mssql.html#scalar-select-comparisons
+    to override the behavior of visit_binary().
+    [ticket:2277]
+
+  - "0" is accepted as an argument for limit() which
+    will produce "TOP 0". [ticket:2222]
+
+- oracle
+  - Fixed ReturningResultProxy for zxjdbc dialect.
+    [ticket:2272].  Regression from 0.6.
+
+  - The String type now generates VARCHAR2 on Oracle
+    which is recommended as the default VARCHAR.
+    Added an explicit VARCHAR2 and NVARCHAR2 to the Oracle
+    dialect as well.   Using NVARCHAR still generates
+    "NVARCHAR2" - there is no "NVARCHAR" on Oracle -
+    this remains a slight breakage of the "uppercase types
+    always give exactly that" policy.  VARCHAR still 
+    generates "VARCHAR", keeping with the policy.   If
+    Oracle were to ever define "VARCHAR" as something 
+    different as they claim (IMHO this will never happen), 
+    the type would be available.  [ticket:2252]
+
+- ext
+  - SQLSoup will not be included in version 0.8
+    of SQLAlchemy; while useful, we would like to
+    keep SQLAlchemy itself focused on one ORM
+    usage paradigm.  SQLSoup will hopefully
+    soon be superseded by a third party 
+    project.  [ticket:2262]
+
+  - Added local_attr, remote_attr, attr accessors
+    to AssociationProxy, providing quick access
+    to the proxied attributes at the class
+    level. [ticket:2236]
+
+  - Changed the update() method on association proxy
+    dictionary to use a duck typing approach, i.e.
+    checks for "keys", to discern between update({}) 
+    and update((a, b)).   Previously, passing a 
+    dictionary that had tuples as keys would be misinterpreted
+    as a sequence. [ticket:2275]
+
+- examples
+  - Adjusted dictlike-polymorphic.py example
+    to apply the CAST such that it works on 
+    PG, other databases.  [ticket:2266]
+    Also in 0.6.9.
+
 0.7.2
 =====
 - orm

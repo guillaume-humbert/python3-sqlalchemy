@@ -170,6 +170,28 @@ def _quote_ddl_expr(element):
     else:
         return repr(element)
 
+class _repr_params(object):
+    """A string view of bound parameters, truncating
+    display to the given number of 'multi' parameter sets.
+    
+    """
+    def __init__(self, params, batches):
+        self.params = params
+        self.batches = batches
+
+    def __repr__(self):
+        if isinstance(self.params, (list, tuple)) and \
+            len(self.params) > self.batches and \
+            isinstance(self.params[0], (list, dict, tuple)):
+            return ' '.join((
+                        repr(self.params[:self.batches - 2])[0:-1],
+                        " ... displaying %i of %i total bound parameter sets ... " % (self.batches, len(self.params)),
+                        repr(self.params[-2:])[1:]
+                    ))
+        else:
+            return repr(self.params)
+
+
 def expression_as_ddl(clause):
     """Given a SQL expression, convert for usage in DDL, such as 
      CREATE INDEX and CHECK CONSTRAINT.
@@ -653,18 +675,18 @@ class ClauseAdapter(visitors.ReplacingCloningVisitor):
       s.c.col1 == table2.c.col1
 
     """
-    def __init__(self, selectable, equivalents=None, include=None, exclude=None):
+    def __init__(self, selectable, equivalents=None, include=None, exclude=None, adapt_on_names=False):
         self.__traverse_options__ = {'stop_on':[selectable]}
         self.selectable = selectable
         self.include = include
         self.exclude = exclude
         self.equivalents = util.column_dict(equivalents or {})
+        self.adapt_on_names = adapt_on_names
 
     def _corresponding_column(self, col, require_embedded, _seen=util.EMPTY_SET):
         newcol = self.selectable.corresponding_column(
                                     col, 
                                     require_embedded=require_embedded)
-
         if newcol is None and col in self.equivalents and col not in _seen:
             for equiv in self.equivalents[col]:
                 newcol = self._corresponding_column(equiv, 
@@ -672,6 +694,8 @@ class ClauseAdapter(visitors.ReplacingCloningVisitor):
                                 _seen=_seen.union([col]))
                 if newcol is not None:
                     return newcol
+        if self.adapt_on_names and newcol is None:
+            newcol = self.selectable.c.get(col.name)
         return newcol
 
     def replace(self, col):

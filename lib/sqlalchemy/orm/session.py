@@ -105,15 +105,35 @@ def sessionmaker(bind=None, class_=None, autoflush=True, autocommit=False,
 class SessionTransaction(object):
     """A Session-level transaction.
 
-    This corresponds to one or more :class:`~sqlalchemy.engine.Transaction`
-    instances behind the scenes, with one ``Transaction`` per ``Engine`` in
-    use.
+    This corresponds to one or more Core :class:`~.engine.base.Transaction`
+    instances behind the scenes, with one :class:`~.engine.base.Transaction`
+    per :class:`~.engine.base.Engine` in use.
 
-    Direct usage of ``SessionTransaction`` is not necessary as of SQLAlchemy
-    0.4; use the ``begin()`` and ``commit()`` methods on ``Session`` itself.
+    Direct usage of :class:`.SessionTransaction` is not typically 
+    necessary as of SQLAlchemy 0.4; use the :meth:`.Session.rollback` and 
+    :meth:`.Session.commit` methods on :class:`.Session` itself to 
+    control the transaction.
+    
+    The current instance of :class:`.SessionTransaction` for a given
+    :class:`.Session` is available via the :attr:`.Session.transaction`
+    attribute.
 
-    The ``SessionTransaction`` object is **not** thread-safe.
+    The :class:`.SessionTransaction` object is **not** thread-safe.
 
+    See also:
+    
+    :meth:`.Session.rollback`
+    
+    :meth:`.Session.commit`
+
+    :attr:`.Session.is_active`
+    
+    :meth:`.SessionEvents.after_commit`
+    
+    :meth:`.SessionEvents.after_rollback`
+    
+    :meth:`.SessionEvents.after_soft_rollback`
+    
     .. index::
       single: thread safety; SessionTransaction
 
@@ -321,9 +341,14 @@ class SessionTransaction(object):
                 else:
                     transaction._deactivate()
 
+        sess = self.session
+
         self.close()
         if self._parent and _capture_exception:
             self._parent._rollback_exception = sys.exc_info()[1]
+
+        sess.dispatch.after_soft_rollback(sess, self)
+
         return self._parent
 
     def _rollback_impl(self):
@@ -501,7 +526,7 @@ class Session(object):
         self.__binds = {}
         self._flushing = False
         self.transaction = None
-        self.hash_key = id(self)
+        self.hash_key = _new_sessionid()
         self.autoflush = autoflush
         self.autocommit = autocommit
         self.expire_on_commit = expire_on_commit
@@ -527,6 +552,9 @@ class Session(object):
     dispatch = event.dispatcher(SessionEvents)
 
     connection_callable = None
+
+    transaction = None
+    """The current active or inactive :class:`.SessionTransaction`."""
 
     def begin(self, subtransactions=False, nested=False):
         """Begin a transaction on this Session.
@@ -851,7 +879,31 @@ class Session(object):
         For a multiply-bound or unbound :class:`.Session`, the 
         ``mapper`` or ``clause`` arguments are used to determine the 
         appropriate bind to return.
-
+        
+        Note that the "mapper" argument is usually present
+        when :meth:`.Session.get_bind` is called via an ORM
+        operation such as a :meth:`.Session.query`, each 
+        individual INSERT/UPDATE/DELETE operation within a 
+        :meth:`.Session.flush`, call, etc.
+        
+        The order of resolution is:
+        
+        1. if mapper given and session.binds is present,
+           locate a bind based on mapper.
+        2. if clause given and session.binds is present,
+           locate a bind based on :class:`.Table` objects
+           found in the given clause present in session.binds.
+        3. if session.bind is present, return that.
+        4. if clause given, attempt to return a bind 
+           linked to the :class:`.MetaData` ultimately
+           associated with the clause.
+        5. if mapper given, attempt to return a bind
+           linked to the :class:`.MetaData` ultimately 
+           associated with the :class:`.Table` or other
+           selectable to which the mapper is mapped.
+        6. No bind can be found, :class:`.UnboundExecutionError`
+           is raised.
+         
         :param mapper:
           Optional :func:`.mapper` mapped class or instance of
           :class:`.Mapper`.   The bind can be derived from a :class:`.Mapper`
@@ -1421,7 +1473,9 @@ class Session(object):
                     "present in this session."
                     % (mapperutil.state_str(state), state.key))
 
-        if state.session_id and state.session_id is not self.hash_key:
+        if state.session_id and \
+                state.session_id is not self.hash_key and \
+                state.session_id in _sessions:
             raise sa_exc.InvalidRequestError(
                 "Object '%s' is already attached to session '%s' "
                 "(this is '%s')" % (mapperutil.state_str(state),
@@ -1459,7 +1513,7 @@ class Session(object):
         Writes out all pending object creations, deletions and modifications
         to the database as INSERTs, DELETEs, UPDATEs, etc.  Operations are
         automatically ordered by the Session's unit of work dependency
-        solver..
+        solver.
 
         Database operations will be issued in the current transactional
         context and do not affect the state of the transaction, unless an
@@ -1648,7 +1702,19 @@ class Session(object):
 
     @property
     def is_active(self):
-        """True if this Session has an active transaction."""
+        """True if this :class:`.Session` has an active transaction.
+        
+        This indicates if the :class:`.Session` is capable of emitting
+        SQL, as from the :meth:`.Session.execute`, :meth:`.Session.query`,
+        or :meth:`.Session.flush` methods.   If False, it indicates 
+        that the innermost transaction has been rolled back, but enclosing
+        :class:`.SessionTransaction` objects remain in the transactional
+        stack, which also must be rolled back.
+        
+        This flag is generally only useful with a :class:`.Session`
+        configured in its default mode of ``autocommit=False``.
+
+        """
 
         return self.transaction and self.transaction.is_active
 
@@ -1750,3 +1816,4 @@ def _state_session(state):
             pass
     return None
 
+_new_sessionid = util.counter()

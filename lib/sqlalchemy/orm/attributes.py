@@ -193,6 +193,10 @@ def create_proxied_attribute(descriptor):
             self.adapter = adapter
             self.__doc__ = doc
 
+        @property
+        def property(self):
+            return self.comparator.property
+
         @util.memoized_property
         def comparator(self):
             if util.callable(self._comparator):
@@ -421,7 +425,7 @@ class AttributeImpl(object):
                 else:
                     value = ATTR_EMPTY
 
-                if value in (PASSIVE_NO_RESULT, NEVER_SET):
+                if value is PASSIVE_NO_RESULT or value is NEVER_SET:
                     return value
                 elif value is ATTR_WAS_SET:
                     try:

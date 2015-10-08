@@ -221,15 +221,61 @@ class AliasedClass(object):
         session.query(User, user_alias).\\
                         join((user_alias, User.id > user_alias.id)).\\
                         filter(User.name==user_alias.name)
-
+    
+    The resulting object is an instance of :class:`.AliasedClass`, however
+    it implements a ``__getattribute__()`` scheme which will proxy attribute
+    access to that of the ORM class being aliased.  All classmethods
+    on the mapped entity should also be available here, including 
+    hybrids created with the :ref:`hybrids_toplevel` extension,
+    which will receive the :class:`.AliasedClass` as the "class" argument
+    when classmethods are called.
+    
+    :param cls: ORM mapped entity which will be "wrapped" around an alias.
+    :param alias: a selectable, such as an :func:`.alias` or :func:`.select`
+     construct, which will be rendered in place of the mapped table of the
+     ORM entity.  If left as ``None``, an ordinary :class:`.Alias` of the 
+     ORM entity's mapped table will be generated.
+    :param name: A name which will be applied both to the :class:`.Alias`
+     if one is generated, as well as the name present in the "named tuple"
+     returned by the :class:`.Query` object when results are returned.
+    :param adapt_on_names: if True, more liberal "matching" will be used when
+     mapping the mapped columns of the ORM entity to those of the given selectable - 
+     a name-based match will be performed if the given selectable doesn't 
+     otherwise have a column that corresponds to one on the entity.  The 
+     use case for this is when associating an entity with some derived
+     selectable such as one that uses aggregate functions::
+     
+        class UnitPrice(Base):
+            __tablename__ = 'unit_price'
+            ...
+            unit_id = Column(Integer)
+            price = Column(Numeric)
+        
+        aggregated_unit_price = Session.query(
+                                    func.sum(UnitPrice.price).label('price')
+                                ).group_by(UnitPrice.unit_id).subquery()
+                                
+        aggregated_unit_price = aliased(UnitPrice, alias=aggregated_unit_price, adapt_on_names=True)
+    
+     Above, functions on ``aggregated_unit_price`` which
+     refer to ``.price`` will return the
+     ``fund.sum(UnitPrice.price).label('price')`` column,
+     as it is matched on the name "price".  Ordinarily, the "price" function wouldn't
+     have any "column correspondence" to the actual ``UnitPrice.price`` column
+     as it is not a proxy of the original.
+     
+     ``adapt_on_names`` is new in 0.7.3.
+        
     """
-    def __init__(self, cls, alias=None, name=None):
+    def __init__(self, cls, alias=None, name=None, adapt_on_names=False):
         self.__mapper = _class_to_mapper(cls)
         self.__target = self.__mapper.class_
+        self.__adapt_on_names = adapt_on_names
         if alias is None:
             alias = self.__mapper._with_polymorphic_selectable.alias(name=name)
         self.__adapter = sql_util.ClauseAdapter(alias,
-                                equivalents=self.__mapper._equivalent_columns)
+                                equivalents=self.__mapper._equivalent_columns,
+                                adapt_on_names=self.__adapt_on_names)
         self.__alias = alias
         # used to assign a name to the RowTuple object
         # returned by Query.
@@ -240,15 +286,18 @@ class AliasedClass(object):
         return {
             'mapper':self.__mapper, 
             'alias':self.__alias, 
-            'name':self._sa_label_name
+            'name':self._sa_label_name,
+            'adapt_on_names':self.__adapt_on_names,
         }
 
     def __setstate__(self, state):
         self.__mapper = state['mapper']
         self.__target = self.__mapper.class_
+        self.__adapt_on_names = state['adapt_on_names']
         alias = state['alias']
         self.__adapter = sql_util.ClauseAdapter(alias,
-                                equivalents=self.__mapper._equivalent_columns)
+                                equivalents=self.__mapper._equivalent_columns,
+                                adapt_on_names=self.__adapt_on_names)
         self.__alias = alias
         name = state['name']
         self._sa_label_name = name
@@ -300,11 +349,13 @@ class AliasedClass(object):
         return '<AliasedClass at 0x%x; %s>' % (
             id(self), self.__target.__name__)
 
-def aliased(element, alias=None, name=None):
+def aliased(element, alias=None, name=None, adapt_on_names=False):
     if isinstance(element, expression.FromClause):
+        if adapt_on_names:
+            raise sa_exc.ArgumentError("adapt_on_names only applies to ORM elements")
         return element.alias(name)
     else:
-        return AliasedClass(element, alias=alias, name=name)
+        return AliasedClass(element, alias=alias, name=name, adapt_on_names=adapt_on_names)
 
 def _orm_annotate(element, exclude=None):
     """Deep copy the given ClauseElement, annotating each element with the
@@ -381,29 +432,52 @@ class _ORMJoin(expression.Join):
 
 def join(left, right, onclause=None, isouter=False, join_to_left=True):
     """Produce an inner join between left and right clauses.
+    
+    :func:`.orm.join` is an extension to the core join interface
+    provided by :func:`.sql.expression.join()`, where the
+    left and right selectables may be not only core selectable
+    objects such as :class:`.Table`, but also mapped classes or
+    :class:`.AliasedClass` instances.   The "on" clause can
+    be a SQL expression, or an attribute or string name
+    referencing a configured :func:`.relationship`.
 
-    In addition to the interface provided by
-    :func:`~sqlalchemy.sql.expression.join()`, left and right may be mapped
-    classes or AliasedClass instances. The onclause may be a
-    string name of a relationship(), or a class-bound descriptor
-    representing a relationship.
-
-    join_to_left indicates to attempt aliasing the ON clause,
+    ``join_to_left`` indicates to attempt aliasing the ON clause,
     in whatever form it is passed, to the selectable
     passed as the left side.  If False, the onclause
     is used as is.
+    
+    :func:`.orm.join` is not commonly needed in modern usage,
+    as its functionality is encapsulated within that of the
+    :meth:`.Query.join` method, which features a
+    significant amount of automation beyond :func:`.orm.join`
+    by itself.  Explicit usage of :func:`.orm.join` 
+    with :class:`.Query` involves usage of the 
+    :meth:`.Query.select_from` method, as in::
+    
+        from sqlalchemy.orm import join
+        session.query(User).\\
+            select_from(join(User, Address, User.addresses)).\\
+            filter(Address.email_address=='foo@bar.com')
+    
+    In modern SQLAlchemy the above join can be written more 
+    succinctly as::
+    
+        session.query(User).\\
+                join(User.addresses).\\
+                filter(Address.email_address=='foo@bar.com')
 
+    See :meth:`.Query.join` for information on modern usage
+    of ORM level joins.
+    
     """
     return _ORMJoin(left, right, onclause, isouter, join_to_left)
 
 def outerjoin(left, right, onclause=None, join_to_left=True):
     """Produce a left outer join between left and right clauses.
 
-    In addition to the interface provided by
-    :func:`~sqlalchemy.sql.expression.outerjoin()`, left and right may be
-    mapped classes or AliasedClass instances. The onclause may be a string
-    name of a relationship(), or a class-bound descriptor representing a
-    relationship.
+    This is the "outer join" version of the :func:`.orm.join` function,
+    featuring the same behavior except that an OUTER JOIN is generated.
+    See that function's documentation for other usage details.
 
     """
     return _ORMJoin(left, right, onclause, True, join_to_left)
@@ -436,7 +510,7 @@ def with_parent(instance, prop):
     """
     if isinstance(prop, basestring):
         mapper = object_mapper(instance)
-        prop = mapper.get_property(prop)
+        prop = getattr(mapper.class_, prop).property
     elif isinstance(prop, attributes.QueryableAttribute):
         prop = prop.property
 
@@ -532,9 +606,12 @@ def object_mapper(instance):
         raise exc.UnmappedInstanceError(instance)
 
 def class_mapper(class_, compile=True):
-    """Given a class, return the primary Mapper associated with the key.
+    """Given a class, return the primary :class:`.Mapper` associated 
+    with the key.
 
-    Raises UnmappedClassError if no mapping is configured.
+    Raises :class:`.UnmappedClassError` if no mapping is configured
+    on the given class, or :class:`.ArgumentError` if a non-class
+    object is passed.
 
     """
 
@@ -543,6 +620,8 @@ def class_mapper(class_, compile=True):
         mapper = class_manager.mapper
 
     except exc.NO_STATE:
+        if not isinstance(class_, type): 
+            raise sa_exc.ArgumentError("Class object expected, got '%r'." % class_) 
         raise exc.UnmappedClassError(class_)
 
     if compile and mapperlib.module._new_mappers:
@@ -573,6 +652,9 @@ def has_identity(object):
     return state.has_identity
 
 def _is_mapped_class(cls):
+    """Return True if the given object is a mapped class, 
+    :class:`.Mapper`, or :class:`.AliasedClass`."""
+
     if isinstance(cls, (AliasedClass, mapperlib.Mapper)):
         return True
     if isinstance(cls, expression.ClauseElement):
@@ -581,6 +663,16 @@ def _is_mapped_class(cls):
         manager = attributes.manager_of_class(cls)
         return manager and _INSTRUMENTOR in manager.info
     return False
+
+def _mapper_or_none(cls):
+    """Return the :class:`.Mapper` for the given class or None if the 
+    class is not mapped."""
+
+    manager = attributes.manager_of_class(cls)
+    if manager is not None and _INSTRUMENTOR in manager.info:
+        return manager.info[_INSTRUMENTOR]
+    else:
+        return None
 
 def instance_str(instance):
     """Return a string describing an instance."""

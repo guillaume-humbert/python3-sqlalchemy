@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.2',
+          VERSION:     '0.7.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
+    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -163,6 +163,7 @@ column as it appears across each table.</li>
 <li><strong>deferred</strong> &#8211; </li>
 <li><strong>comparator_factory</strong> &#8211; </li>
 <li><strong>descriptor</strong> &#8211; </li>
+<li><strong>expire_on_flush</strong> &#8211; </li>
 <li><strong>extension</strong> &#8211; </li>
 </ul>
 </td>
@@ -303,6 +304,11 @@ key.</p>
 attribute, as well as that attribute as it appears on individual
 instances of the class, including attribute instrumentation,
 attribute access, loading behavior, and dependency calculations.</p>
+<p>The most common occurrences of <a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperProperty" title="sqlalchemy.orm.interfaces.MapperProperty"><tt class="xref py py-class docutils literal"><span class="pre">MapperProperty</span></tt></a> are the
+mapped <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, which is represented in a mapping as 
+an instance of <a class="reference internal" href="#sqlalchemy.orm.properties.ColumnProperty" title="sqlalchemy.orm.properties.ColumnProperty"><tt class="xref py py-class docutils literal"><span class="pre">ColumnProperty</span></tt></a>,
+and a reference to another class produced by <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>,
+represented in the mapping as an instance of <a class="reference internal" href="#sqlalchemy.orm.properties.RelationshipProperty" title="sqlalchemy.orm.properties.RelationshipProperty"><tt class="xref py py-class docutils literal"><span class="pre">RelationshipProperty</span></tt></a>.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.orm.interfaces.MapperProperty.cascade">
 <tt class="descname">cascade</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperProperty.cascade" title="Permalink to this definition">¶</a></dt>
@@ -434,14 +440,23 @@ adaption function on the local side of generated expressions.</p>
 <tt class="descname">any</tt><big>(</big><em>criterion=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.PropComparator.any" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return true if this collection contains any member that meets the
 given criterion.</p>
-<dl class="docutils">
-<dt>criterion</dt>
-<dd>an optional ClauseElement formulated against the member class&#8217; table
-or attributes.</dd>
-<dt>**kwargs</dt>
-<dd>key/value pairs corresponding to member class attribute names which
-will be compared via equality to the corresponding values.</dd>
-</dl>
+<p>The usual implementation of <tt class="docutils literal"><span class="pre">any()</span></tt> is 
+<a class="reference internal" href="#sqlalchemy.orm.properties.RelationshipProperty.Comparator.any" title="sqlalchemy.orm.properties.RelationshipProperty.Comparator.any"><tt class="xref py py-meth docutils literal"><span class="pre">RelationshipProperty.Comparator.any()</span></tt></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>criterion</strong> &#8211; an optional ClauseElement formulated against the 
+member class&#8217; table or attributes.</li>
+<li><strong>**kwargs</strong> &#8211; key/value pairs corresponding to member class attribute 
+names which will be compared via equality to the corresponding
+values.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -449,14 +464,23 @@ will be compared via equality to the corresponding values.</dd>
 <tt class="descname">has</tt><big>(</big><em>criterion=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.PropComparator.has" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return true if this element references a member which meets the
 given criterion.</p>
-<dl class="docutils">
-<dt>criterion</dt>
-<dd>an optional ClauseElement formulated against the member class&#8217; table
-or attributes.</dd>
-<dt>**kwargs</dt>
-<dd>key/value pairs corresponding to member class attribute names which
-will be compared via equality to the corresponding values.</dd>
-</dl>
+<p>The usual implementation of <tt class="docutils literal"><span class="pre">has()</span></tt> is 
+<a class="reference internal" href="#sqlalchemy.orm.properties.RelationshipProperty.Comparator.has" title="sqlalchemy.orm.properties.RelationshipProperty.Comparator.has"><tt class="xref py py-meth docutils literal"><span class="pre">RelationshipProperty.Comparator.has()</span></tt></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>criterion</strong> &#8211; an optional ClauseElement formulated against the 
+member class&#8217; table or attributes.</li>
+<li><strong>**kwargs</strong> &#8211; key/value pairs corresponding to member class attribute 
+names which will be compared via equality to the corresponding
+values.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -469,11 +493,15 @@ evaluated.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Company</span><span class="o">.</span><span class="n">employees</span><span class="o">.</span><span class="n">of_type</span><span class="p">(</span><span class="n">Engineer</span><span class="p">))</span><span class="o">.</span>\
    <span class="nb">filter</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="s">&#39;foo&#39;</span><span class="p">)</span></pre></div>
 </div>
-<dl class="docutils">
-<dt>class_</dt>
-<dd>a class or mapper indicating that criterion will be against
-this specific subclass.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>class_</strong> &#8211; a class or mapper indicating that criterion will be against
+this specific subclass.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>

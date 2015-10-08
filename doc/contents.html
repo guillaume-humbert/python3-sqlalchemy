@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '#',
-          VERSION:     '0.7.2',
+          VERSION:     '0.7.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -48,7 +48,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Release: <span class="versionnum">0.7.2</span> | Release Date: July 31, 2011
+    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
 </div>
 <div class="clearboth"></div>
 
@@ -113,23 +113,23 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#version-check">Version Check</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#connecting">Connecting</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#define-and-create-a-table">Define and Create a Table</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#define-a-python-class-to-be-mapped">Define a Python Class to be Mapped</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#setting-up-the-mapping">Setting up the Mapping</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#creating-table-class-and-mapper-all-at-once-declaratively">Creating Table, Class and Mapper All at Once Declaratively</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#declare-a-mapping">Declare a Mapping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#create-an-instance-of-the-mapped-class">Create an Instance of the Mapped Class</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#creating-a-session">Creating a Session</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#adding-new-objects">Adding new Objects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#adding-new-objects">Adding New Objects</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#rolling-back">Rolling Back</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#querying">Querying</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#building-a-relationship">Building a Relationship</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#working-with-related-objects">Working with Related Objects</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#querying-with-joins">Querying with Joins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#eager-loading">Eager Loading</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#deleting">Deleting</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#building-a-many-to-many-relationship">Building a Many To Many Relationship</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/tutorial.html#further-reference">Further Reference</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="orm/mapper_config.html">Mapper Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="orm/mapper_config.html#classical-mappings">Classical Mappings</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/mapper_config.html#customizing-column-properties">Customizing Column Properties</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/mapper_config.html#deferred-column-loading">Deferred Column Loading</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/mapper_config.html#sql-expressions-as-mapped-attributes">SQL Expressions as Mapped Attributes</a></li>
@@ -146,7 +146,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l2"><a class="reference internal" href="orm/relationships.html">Relationship Configuration</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#basic-relational-patterns">Basic Relational Patterns</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#adjacency-list-relationships">Adjacency List Relationships</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#linking-relationships-with-backref">Linking relationships with Backref</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#linking-relationships-with-backref">Linking Relationships with Backref</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#specifying-alternate-join-conditions-to-relationship">Specifying Alternate Join Conditions to relationship()</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#rows-that-point-to-themselves-mutually-dependent-rows">Rows that point to themselves / Mutually Dependent Rows</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#mutable-primary-keys-update-cascades">Mutable Primary Keys / Update Cascades</a></li>
@@ -293,6 +293,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="core/pooling.html#using-a-custom-connection-function">Using a Custom Connection Function</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/pooling.html#constructing-a-pool">Constructing a Pool</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/pooling.html#pool-event-listeners">Pool Event Listeners</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core/pooling.html#dealing-with-disconnects">Dealing with Disconnects</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/pooling.html#api-documentation-available-pool-implementations">API Documentation - Available Pool Implementations</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/pooling.html#pooling-plain-db-api-connections">Pooling Plain DB-API Connections</a></li>
 </ul>
@@ -331,6 +332,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="core/compiler.html#synopsis">Synopsis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/compiler.html#dialect-specific-compilation-rules">Dialect-specific compilation rules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/compiler.html#compiling-sub-elements-of-a-custom-expression-construct">Compiling sub-elements of a custom expression construct</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core/compiler.html#enabling-autocommit-on-a-construct">Enabling Autocommit on a Construct</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/compiler.html#changing-the-default-compilation-of-existing-constructs">Changing the default compilation of existing constructs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/compiler.html#changing-compilation-of-types">Changing Compilation of Types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/compiler.html#subclassing-guidelines">Subclassing Guidelines</a></li>
@@ -387,6 +389,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#compatibility-levels">Compatibility Levels</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#triggers">Triggers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#enabling-snapshot-isolation">Enabling Snapshot Isolation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#scalar-select-comparisons">Scalar Select Comparisons</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#known-issues">Known Issues</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#sql-server-data-types">SQL Server Data Types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#module-sqlalchemy.dialects.mssql.pyodbc">PyODBC</a></li>
@@ -405,6 +408,8 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#keys">Keys</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#sql-mode">SQL Mode</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#mysql-sql-extensions">MySQL SQL Extensions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#cast-support">CAST Support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#mysql-specific-index-options">MySQL Specific Index Options</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#mysql-data-types">MySQL Data Types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#module-sqlalchemy.dialects.mysql.mysqldb">MySQL-Python Notes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#module-sqlalchemy.dialects.mysql.oursql">OurSQL Notes</a></li>
@@ -431,6 +436,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l2"><a class="reference internal" href="dialects/postgresql.html">PostgreSQL</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#sequences-serial">Sequences/SERIAL</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#transaction-isolation-level">Transaction Isolation Level</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#remote-cross-schema-table-introspection">Remote / Cross-Schema Table Introspection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#insert-update-returning">INSERT/UPDATE...RETURNING</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#postgresql-specific-index-options">Postgresql-Specific Index Options</a></li>
 <li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#postgresql-data-types">PostgreSQL Data Types</a></li>

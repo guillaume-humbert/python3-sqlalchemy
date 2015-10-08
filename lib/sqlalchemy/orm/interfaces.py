@@ -21,7 +21,7 @@ from itertools import chain
 from sqlalchemy import exc as sa_exc
 from sqlalchemy import util
 from sqlalchemy.sql import operators
-deque = util.importlater('collections').deque
+deque = __import__('collections').deque
 
 mapperutil = util.importlater('sqlalchemy.orm', 'util')
 
@@ -61,6 +61,13 @@ class MapperProperty(object):
     attribute, as well as that attribute as it appears on individual
     instances of the class, including attribute instrumentation,
     attribute access, loading behavior, and dependency calculations.
+    
+    The most common occurrences of :class:`.MapperProperty` are the
+    mapped :class:`.Column`, which is represented in a mapping as 
+    an instance of :class:`.ColumnProperty`,
+    and a reference to another class produced by :func:`.relationship`,
+    represented in the mapping as an instance of :class:`.RelationshipProperty`.
+    
     """
 
     cascade = ()
@@ -244,8 +251,7 @@ class PropComparator(operators.ColumnOperators):
             query.join(Company.employees.of_type(Engineer)).\\
                filter(Engineer.name=='foo')
 
-        \class_
-            a class or mapper indicating that criterion will be against
+        :param \class_: a class or mapper indicating that criterion will be against
             this specific subclass.
 
 
@@ -257,13 +263,16 @@ class PropComparator(operators.ColumnOperators):
         """Return true if this collection contains any member that meets the
         given criterion.
 
-        criterion
-          an optional ClauseElement formulated against the member class' table
-          or attributes.
+        The usual implementation of ``any()`` is 
+        :meth:`.RelationshipProperty.Comparator.any`.
 
-        \**kwargs
-          key/value pairs corresponding to member class attribute names which
-          will be compared via equality to the corresponding values.
+        :param criterion: an optional ClauseElement formulated against the 
+          member class' table or attributes.
+
+        :param \**kwargs: key/value pairs corresponding to member class attribute 
+          names which will be compared via equality to the corresponding
+          values.
+
         """
 
         return self.operate(PropComparator.any_op, criterion, **kwargs)
@@ -272,13 +281,16 @@ class PropComparator(operators.ColumnOperators):
         """Return true if this element references a member which meets the
         given criterion.
 
-        criterion
-          an optional ClauseElement formulated against the member class' table
-          or attributes.
+        The usual implementation of ``has()`` is 
+        :meth:`.RelationshipProperty.Comparator.has`.
 
-        \**kwargs
-          key/value pairs corresponding to member class attribute names which
-          will be compared via equality to the corresponding values.
+        :param criterion: an optional ClauseElement formulated against the 
+          member class' table or attributes.
+
+        :param \**kwargs: key/value pairs corresponding to member class attribute 
+          names which will be compared via equality to the corresponding
+          values.
+
         """
 
         return self.operate(PropComparator.has_op, criterion, **kwargs)
@@ -380,7 +392,8 @@ class MapperOption(object):
 
 class PropertyOption(MapperOption):
     """A MapperOption that is applied to a property off the mapper or
-    one of its child mappers, identified by a dot-separated key. """
+    one of its child mappers, identified by a dot-separated key
+    or list of class-bound attributes. """
 
     def __init__(self, key, mapper=None):
         self.key = key
@@ -504,8 +517,8 @@ class PropertyOption(MapperOption):
                     path_element = entity.path_entity
                     mapper = entity.mapper
                 mappers.append(mapper)
-                if mapper.has_property(token):
-                    prop = mapper.get_property(token)
+                if hasattr(mapper.class_, token):
+                    prop = getattr(mapper.class_, token).property
                 else:
                     if raiseerr:
                         raise sa_exc.ArgumentError(
