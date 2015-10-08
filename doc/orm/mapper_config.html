@@ -7,7 +7,7 @@
         
         <title>
     Mapper Configuration
- &mdash; SQLAlchemy 0.6.4 Documentation</title>
+ &mdash; SQLAlchemy 0.6.5 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.4',
+          VERSION:     '0.6.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.4 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Relationship Configuration" href="relationships.html" />
         <link rel="prev" title="Object Relational Tutorial" href="tutorial.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.4 Documentation</h1>
+        <h1>SQLAlchemy 0.6.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.4</span> Last Updated: 09/07/2010 13:07:48
+            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
         </div>
         <div class="clearboth"></div>
 
@@ -117,8 +117,8 @@
         <div class="document">
             <div class="body">
                 
-<span class="target" id="module-sqlalchemy.orm"><span id="mapper-config-toplevel"></span></span><div class="section" id="mapper-configuration">
-<h1>Mapper Configuration<a class="headerlink" href="#mapper-configuration" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-sqlalchemy.orm"></span><div class="section" id="mapper-configuration">
+<span id="mapper-config-toplevel"></span><h1>Mapper Configuration<a class="headerlink" href="#mapper-configuration" title="Permalink to this headline">¶</a></h1>
 <p>This section describes a variety of configurational patterns that are usable
 with mappers. It assumes you&#8217;ve worked through <a class="reference internal" href="tutorial.html"><em>Object Relational Tutorial</em></a> and
 know how to construct and use rudimentary mappers and relationships.</p>
@@ -487,6 +487,10 @@ case of a collection to be added to the collection.  The function
 can then raise validation exceptions to halt the process from continuing,
 or can modify or replace the value before proceeding.   The function
 should otherwise return the given value.</p>
+<p>Note that a validator for a collection <strong>cannot</strong> issue a load of that
+collection within the validation routine - this usage raises
+an assertion to avoid recursion overflows.  This is a reentrant
+condition which is not supported.</p>
 </dd></dl>
 
 </div>
@@ -1141,9 +1145,21 @@ instance.</p>
 <dl class="function">
 <dt id="sqlalchemy.orm.clear_mappers">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">clear_mappers</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.clear_mappers" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove all mappers that have been created thus far.</p>
-<p>The mapped classes will return to their initial &#8220;unmapped&#8221; state and can
-be re-mapped with new mappers.</p>
+<dd><p>Remove all mappers from all classes.</p>
+<p>This function removes all instrumentation from classes and disposes
+of their associated mappers.  Once called, the classes are unmapped 
+and can be later re-mapped with new mappers.</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.clear_mappers" title="sqlalchemy.orm.clear_mappers"><tt class="xref py py-func docutils literal"><span class="pre">clear_mappers()</span></tt></a> is <em>not</em> for normal use, as there is literally no
+valid usage for it outside of very specific testing scenarios. Normally,
+mappers are permanent structural components of user-defined classes, and
+are never discarded independently of their class.  If a mapped class itself
+is garbage collected, its mapper is automatically disposed of as well. As
+such, <a class="reference internal" href="#sqlalchemy.orm.clear_mappers" title="sqlalchemy.orm.clear_mappers"><tt class="xref py py-func docutils literal"><span class="pre">clear_mappers()</span></tt></a> is only for usage in test suites that re-use
+the same classes with different mappings, which is itself an extremely rare
+use case - the only such use case is in fact SQLAlchemy&#8217;s own test suite,
+and possibly the test suites of other ORM extension libraries which 
+intend to test various combinations of mapper construction upon a fixed
+set of classes.</p>
 </dd></dl>
 
 <dl class="function">

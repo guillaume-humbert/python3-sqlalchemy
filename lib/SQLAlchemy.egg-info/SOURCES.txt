@@ -17,13 +17,15 @@ doc/index.html
 doc/intro.html
 doc/search.html
 doc/searchindex.js
-doc/_images/sqla_arch_small.jpg
+doc/_images/sqla_arch_small.png
+doc/_images/sqla_engine_arch.png
 doc/_sources/copyright.txt
 doc/_sources/index.txt
 doc/_sources/intro.txt
 doc/_sources/core/compiler.txt
 doc/_sources/core/connections.txt
 doc/_sources/core/engines.txt
+doc/_sources/core/exceptions.txt
 doc/_sources/core/expression_api.txt
 doc/_sources/core/index.txt
 doc/_sources/core/interfaces.txt
@@ -46,6 +48,7 @@ doc/_sources/dialects/sybase.txt
 doc/_sources/orm/collections.txt
 doc/_sources/orm/deprecated.txt
 doc/_sources/orm/examples.txt
+doc/_sources/orm/exceptions.txt
 doc/_sources/orm/index.txt
 doc/_sources/orm/inheritance.txt
 doc/_sources/orm/interfaces.txt
@@ -79,7 +82,7 @@ doc/build/conf.py
 doc/build/copyright.rst
 doc/build/index.rst
 doc/build/intro.rst
-doc/build/sqla_arch_small.jpg
+doc/build/sqla_arch_small.png
 doc/build/testdocs.py
 doc/build/builder/__init__.py
 doc/build/builder/builders.py
@@ -87,12 +90,14 @@ doc/build/builder/util.py
 doc/build/core/compiler.rst
 doc/build/core/connections.rst
 doc/build/core/engines.rst
+doc/build/core/exceptions.rst
 doc/build/core/expression_api.rst
 doc/build/core/index.rst
 doc/build/core/interfaces.rst
 doc/build/core/pooling.rst
 doc/build/core/schema.rst
 doc/build/core/serializer.rst
+doc/build/core/sqla_engine_arch.png
 doc/build/core/tutorial.rst
 doc/build/core/types.rst
 doc/build/dialects/access.rst
@@ -109,6 +114,7 @@ doc/build/dialects/sybase.rst
 doc/build/orm/collections.rst
 doc/build/orm/deprecated.rst
 doc/build/orm/examples.rst
+doc/build/orm/exceptions.rst
 doc/build/orm/index.rst
 doc/build/orm/inheritance.rst
 doc/build/orm/interfaces.rst
@@ -136,6 +142,7 @@ doc/build/texinputs/sphinx.sty
 doc/core/compiler.html
 doc/core/connections.html
 doc/core/engines.html
+doc/core/exceptions.html
 doc/core/expression_api.html
 doc/core/index.html
 doc/core/interfaces.html
@@ -158,6 +165,7 @@ doc/dialects/sybase.html
 doc/orm/collections.html
 doc/orm/deprecated.html
 doc/orm/examples.html
+doc/orm/exceptions.html
 doc/orm/index.html
 doc/orm/inheritance.html
 doc/orm/interfaces.html
@@ -341,10 +349,8 @@ lib/sqlalchemy/sql/util.py
 lib/sqlalchemy/sql/visitors.py
 lib/sqlalchemy/test/__init__.py
 lib/sqlalchemy/test/assertsql.py
-lib/sqlalchemy/test/config.py
 lib/sqlalchemy/test/engines.py
 lib/sqlalchemy/test/entities.py
-lib/sqlalchemy/test/noseplugin.py
 lib/sqlalchemy/test/orm.py
 lib/sqlalchemy/test/pickleable.py
 lib/sqlalchemy/test/profiling.py
@@ -352,6 +358,9 @@ lib/sqlalchemy/test/requires.py
 lib/sqlalchemy/test/schema.py
 lib/sqlalchemy/test/testing.py
 lib/sqlalchemy/test/util.py
+lib/sqlalchemy_nose/__init__.py
+lib/sqlalchemy_nose/config.py
+lib/sqlalchemy_nose/noseplugin.py
 test/__init__.py
 test/binary_data_one.dat
 test/binary_data_two.dat
@@ -420,9 +429,11 @@ test/orm/test_evaluator.py
 test/orm/test_expire.py
 test/orm/test_extendedattr.py
 test/orm/test_generative.py
+test/orm/test_immediate_load.py
 test/orm/test_instrumentation.py
 test/orm/test_lazy_relations.py
 test/orm/test_lazytest1.py
+test/orm/test_load_on_fks.py
 test/orm/test_manytomany.py
 test/orm/test_mapper.py
 test/orm/test_merge.py

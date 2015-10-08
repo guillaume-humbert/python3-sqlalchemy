@@ -7,7 +7,7 @@
         
         <title>
     PostgreSQL
- &mdash; SQLAlchemy 0.6.4 Documentation</title>
+ &mdash; SQLAlchemy 0.6.5 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.4',
+          VERSION:     '0.6.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.4 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="SQLite" href="sqlite.html" />
         <link rel="prev" title="Oracle" href="oracle.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.4 Documentation</h1>
+        <h1>SQLAlchemy 0.6.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.4</span> Last Updated: 09/07/2010 13:07:48
+            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
         </div>
         <div class="clearboth"></div>
 
@@ -212,7 +212,7 @@ they originate from <a class="reference internal" href="../core/types.html#modul
 construction arguments, are as follows:</p>
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.base.ARRAY">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">ARRAY</tt><big>(</big><em>item_type</em>, <em>mutable=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.ARRAY" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">ARRAY</tt><big>(</big><em>item_type</em>, <em>mutable=True</em>, <em>as_tuple=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.ARRAY" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.MutableType</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.Concatenable" title="sqlalchemy.types.Concatenable"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Concatenable</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Postgresql ARRAY type.</p>
 <p>Represents values as Python lists.</p>
@@ -221,7 +221,7 @@ construction arguments, are as follows:</p>
 performance implications.</p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.base.ARRAY.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>item_type</em>, <em>mutable=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.ARRAY.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>item_type</em>, <em>mutable=True</em>, <em>as_tuple=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.ARRAY.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an ARRAY.</p>
 <p>E.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Column</span><span class="p">(</span><span class="s">&#39;myarray&#39;</span><span class="p">,</span> <span class="n">ARRAY</span><span class="p">(</span><span class="n">Integer</span><span class="p">))</span></pre></div>
@@ -237,9 +237,13 @@ dimensionality is irrelevant here, so multi-dimensional arrays like
 <tt class="docutils literal"><span class="pre">INTEGER[][]</span></tt>, are constructed as <tt class="docutils literal"><span class="pre">ARRAY(Integer)</span></tt>, not as
 <tt class="docutils literal"><span class="pre">ARRAY(ARRAY(Integer))</span></tt> or such. The type mapping figures out on
 the fly</li>
-<li><strong>mutable</strong> &#8211; Defaults to True: specify whether lists passed to this
+<li><strong>mutable=True</strong> &#8211; Specify whether lists passed to this
 class should be considered mutable. If so, generic copy operations
 (typically used by the ORM) will shallow-copy values.</li>
+<li><strong>as_tuple=False</strong> &#8211; Specify whether return results should be converted
+to tuples from lists.  DBAPIs such as psycopg2 return lists by default.
+When tuples are returned, the results are hashable.   This flag can only
+be set to <tt class="xref docutils literal"><span class="pre">True</span></tt> when <tt class="docutils literal"><span class="pre">mutable</span></tt> is set to <tt class="xref docutils literal"><span class="pre">False</span></tt>. (new in 0.6.5)</li>
 </ul>
 </td>
 </tr>

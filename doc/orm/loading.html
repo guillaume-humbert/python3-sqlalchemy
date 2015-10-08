@@ -7,7 +7,7 @@
         
         <title>
     Relationship Loading Techniques
- &mdash; SQLAlchemy 0.6.4 Documentation</title>
+ &mdash; SQLAlchemy 0.6.5 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.6.4',
+          VERSION:     '0.6.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6.4 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.5 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="ORM Event Interfaces" href="interfaces.html" />
         <link rel="prev" title="Querying" href="query.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.4 Documentation</h1>
+        <h1>SQLAlchemy 0.6.5 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.4</span> Last Updated: 09/07/2010 13:07:48
+            Version: <span class="versionnum">0.6.5</span> Last Updated: 10/24/2010 13:31:44
         </div>
         <div class="clearboth"></div>
 
@@ -507,7 +507,7 @@ relationship().</p>
 <dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the given
 name into a lazy load.</p>
 <p>Used with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.options" title="sqlalchemy.orm.query.Query.options"><tt class="xref py py-meth docutils literal"><span class="pre">options()</span></tt></a>.</p>
-<p>See also:  <a class="reference internal" href="#sqlalchemy.orm.eagerload" title="sqlalchemy.orm.eagerload"><tt class="xref py py-func docutils literal"><span class="pre">eagerload()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a></p>
+<p>See also:  <a class="reference internal" href="#sqlalchemy.orm.eagerload" title="sqlalchemy.orm.eagerload"><tt class="xref py py-func docutils literal"><span class="pre">eagerload()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a>, <tt class="xref py py-func docutils literal"><span class="pre">immediateload()</span></tt></p>
 </dd></dl>
 
 <dl class="function">
@@ -546,7 +546,7 @@ load in one subquery eager load.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">subqueryload_all</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">orders</span><span class="p">,</span> <span class="n">Order</span><span class="o">.</span><span class="n">items</span><span class="p">,</span>
 <span class="n">Item</span><span class="o">.</span><span class="n">keywords</span><span class="p">))</span></pre></div>
 </div>
-<p>See also:  <a class="reference internal" href="#sqlalchemy.orm.joinedload_all" title="sqlalchemy.orm.joinedload_all"><tt class="xref py py-func docutils literal"><span class="pre">joinedload_all()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.lazyload" title="sqlalchemy.orm.lazyload"><tt class="xref py py-func docutils literal"><span class="pre">lazyload()</span></tt></a></p>
+<p>See also:  <a class="reference internal" href="#sqlalchemy.orm.joinedload_all" title="sqlalchemy.orm.joinedload_all"><tt class="xref py py-func docutils literal"><span class="pre">joinedload_all()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.lazyload" title="sqlalchemy.orm.lazyload"><tt class="xref py py-func docutils literal"><span class="pre">lazyload()</span></tt></a>, <tt class="xref py py-func docutils literal"><span class="pre">immediateload()</span></tt></p>
 </dd></dl>
 
 </div>
