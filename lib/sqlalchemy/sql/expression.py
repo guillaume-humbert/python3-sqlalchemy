@@ -34,8 +34,8 @@ from sqlalchemy.sql import operators
 from sqlalchemy.sql.visitors import Visitable, cloned_traverse
 import operator
 
-functions, schema, sql_util, sqltypes = None, None, None, None
-DefaultDialect, ClauseAdapter, Annotated = None, None, None
+functions, sql_util, sqltypes = None, None, None
+DefaultDialect = None
 
 __all__ = [
     'Alias', 'ClauseElement',
@@ -855,7 +855,9 @@ class _FunctionGenerator(object):
             if functions is None:
                 from sqlalchemy.sql import functions
             func = getattr(functions, self.__names[-1].lower(), None)
-            if func is not None:
+            if func is not None and \
+                    isinstance(func, type) and \
+                    issubclass(func, Function):
                 return func(*c, **o)
 
         return Function(
@@ -1037,6 +1039,18 @@ class ClauseElement(Visitable):
 
         return c
 
+    @property
+    def _constructor(self):
+        """return the 'constructor' for this ClauseElement.
+        
+        This is for the purposes for creating a new object of 
+        this type.   Usually, its just the element's __class__.  
+        However, the "Annotated" version of the object overrides
+        to return the class of its proxied element.
+
+        """
+        return self.__class__
+
     @util.memoized_property
     def _cloned_set(self):
         """Return the set consisting all cloned anscestors of this
@@ -1075,10 +1089,10 @@ class ClauseElement(Visitable):
         dictionary.
         
         """
-        global Annotated
-        if Annotated is None:
-            from sqlalchemy.sql.util import Annotated
-        return Annotated(self, values)
+        global sql_util
+        if sql_util is None:
+            from sqlalchemy.sql import util as sql_util
+        return sql_util.Annotated(self, values)
 
     def _deannotate(self):
         """return a copy of this ClauseElement with an empty annotations
@@ -1522,9 +1536,10 @@ class _CompareMixin(ColumnOperators):
             # column selectable that does not export itself as a FROM clause
             return self.__compare( op, seq_or_selectable.as_scalar(), negate=negate_op)
 
-        elif isinstance(seq_or_selectable, Selectable):
+        elif isinstance(seq_or_selectable, (Selectable, _TextClause)):
             return self.__compare( op, seq_or_selectable, negate=negate_op)
-
+        
+            
         # Handle non selectable arguments as sequences
         args = []
         for o in seq_or_selectable:
@@ -1973,10 +1988,11 @@ class FromClause(Selectable):
         object, returning a copy of this :class:`FromClause`.
         
         """
-        global ClauseAdapter
-        if ClauseAdapter is None:
-            from sqlalchemy.sql.util import ClauseAdapter
-        return ClauseAdapter(alias).traverse(self)
+
+        global sql_util
+        if sql_util is None:
+            from sqlalchemy.sql import util as sql_util
+        return sql_util.ClauseAdapter(alias).traverse(self)
 
     def correspond_on_equivalents(self, column, equivalents):
         """Return corresponding_column for the given column, or if None
@@ -2356,6 +2372,12 @@ class _TextClause(Executable, ClauseElement):
             return list(self.typemap)[0]
         else:
             return None
+
+    def self_group(self, against=None):
+        if against is operators.in_op:
+            return _Grouping(self)
+        else:
+            return self
 
     def _copy_internals(self, clone=_clone):
         self.bindparams = dict((b.key, clone(b))
@@ -3236,7 +3258,7 @@ class ColumnClause(_Immutable, ColumnElement):
         # propagate the "is_literal" flag only if we are keeping our name,
         # otherwise its considered to be a label
         is_literal = self.is_literal and (name is None or name == self.name)
-        c = ColumnClause(
+        c = self._constructor(
                     name or self.name, 
                     selectable=selectable, 
                     type_=self.type, 

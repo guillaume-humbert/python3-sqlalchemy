@@ -41,7 +41,15 @@ to the Table construct::
     Table('sometable', metadata,
             Column('id', Integer, primary_key=True), 
             sqlite_autoincrement=True)
-    
+
+Transaction Isolation Level
+---------------------------
+
+:func:`create_engine` accepts an ``isolation_level`` parameter which results in 
+the command ``PRAGMA read_uncommitted <level>`` being invoked for every new 
+connection.   Valid values for this parameter are ``SERIALIZABLE`` and 
+``READ UNCOMMITTED`` corresponding to a value of 0 and 1, respectively.
+
 """
 
 import datetime, re, time
@@ -258,7 +266,7 @@ class SQLiteDDLCompiler(compiler.DDLCompiler):
                 c.table.kwargs.get('sqlite_autoincrement', False) and \
                 isinstance(c.type, sqltypes.Integer) and \
                 not c.foreign_keys:
-                return ''
+                return None
  
         return super(SQLiteDDLCompiler, self).\
                     visit_primary_key_constraint(constraint)

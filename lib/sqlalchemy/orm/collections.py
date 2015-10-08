@@ -471,15 +471,20 @@ class CollectionAdapter(object):
 
     """
     def __init__(self, attr, owner_state, data):
-        self.attr = attr
-        # TODO: figure out what this being a weakref buys us
+        self._key = attr.key
         self._data = weakref.ref(data)
         self.owner_state = owner_state
         self.link_to_self(data)
+    
+    @property
+    def data(self):
+        "The entity collection being adapted."
+        return self._data()
 
-    data = property(lambda s: s._data(),
-                    doc="The entity collection being adapted.")
-
+    @util.memoized_property
+    def attr(self):
+        return self.owner_state.manager[self._key].impl
+        
     def link_to_self(self, data):
         """Link a collection to this adapter, and fire a link event."""
         setattr(data, '_sa_adapter', self)
@@ -585,7 +590,10 @@ class CollectionAdapter(object):
 
         """
         if initiator is not False and item is not None:
-            return self.attr.fire_append_event(self.owner_state, self.owner_state.dict, item, initiator)
+            return self.attr.fire_append_event(
+                                    self.owner_state, 
+                                    self.owner_state.dict, 
+                                    item, initiator)
         else:
             return item
 
@@ -598,7 +606,10 @@ class CollectionAdapter(object):
 
         """
         if initiator is not False and item is not None:
-            self.attr.fire_remove_event(self.owner_state, self.owner_state.dict, item, initiator)
+            self.attr.fire_remove_event(
+                                    self.owner_state, 
+                                    self.owner_state.dict, 
+                                    item, initiator)
 
     def fire_pre_remove_event(self, initiator=None):
         """Notify that an entity is about to be removed from the collection.
@@ -607,15 +618,18 @@ class CollectionAdapter(object):
         fire_remove_event().
 
         """
-        self.attr.fire_pre_remove_event(self.owner_state, self.owner_state.dict, initiator=initiator)
+        self.attr.fire_pre_remove_event(
+                                    self.owner_state, 
+                                    self.owner_state.dict, 
+                                    initiator=initiator)
 
     def __getstate__(self):
-        return {'key': self.attr.key,
+        return {'key': self._key,
                 'owner_state': self.owner_state,
                 'data': self.data}
 
     def __setstate__(self, d):
-        self.attr = getattr(d['owner_state'].obj().__class__, d['key']).impl
+        self._key = d['key']
         self.owner_state = d['owner_state']
         self._data = weakref.ref(d['data'])
 

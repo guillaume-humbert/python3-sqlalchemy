@@ -5,7 +5,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
-        <title>Index &mdash; SQLAlchemy 0.6.0 Documentation</title>
+        <title>Index &mdash; SQLAlchemy 0.6.1 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -13,7 +13,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '#',
-          VERSION:     '0.6.0',
+          VERSION:     '0.6.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/init.js"></script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.0 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="index.html" />
     
 
     </head>
@@ -33,7 +33,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.0 Documentation</h1>
+        <h1>SQLAlchemy 0.6.1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -45,7 +45,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.0</span> Last Updated: 04/18/2010 19:16:18
+            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
         </div>
         <div class="clearboth"></div>
 
@@ -192,6 +192,20 @@
     <dt><a href="reference/dialects/mysql.html#sqlalchemy.dialects.mysql.VARCHAR.__init__">(sqlalchemy.dialects.mysql.VARCHAR method)</a>
     </dt>
     <dt><a href="reference/dialects/mysql.html#sqlalchemy.dialects.mysql.YEAR.__init__">(sqlalchemy.dialects.mysql.YEAR method)</a>
+    </dt>
+    <dt><a href="reference/dialects/oracle.html#sqlalchemy.dialects.oracle.BFILE.__init__">(sqlalchemy.dialects.oracle.BFILE method)</a>
+    </dt>
+    <dt><a href="reference/dialects/oracle.html#sqlalchemy.dialects.oracle.DOUBLE_PRECISION.__init__">(sqlalchemy.dialects.oracle.DOUBLE_PRECISION method)</a>
+    </dt>
+    <dt><a href="reference/dialects/oracle.html#sqlalchemy.dialects.oracle.INTERVAL.__init__">(sqlalchemy.dialects.oracle.INTERVAL method)</a>
+    </dt>
+    <dt><a href="reference/dialects/oracle.html#sqlalchemy.dialects.oracle.LONG.__init__">(sqlalchemy.dialects.oracle.LONG method)</a>
+    </dt>
+    <dt><a href="reference/dialects/oracle.html#sqlalchemy.dialects.oracle.NCLOB.__init__">(sqlalchemy.dialects.oracle.NCLOB method)</a>
+    </dt>
+    <dt><a href="reference/dialects/oracle.html#sqlalchemy.dialects.oracle.NUMBER.__init__">(sqlalchemy.dialects.oracle.NUMBER method)</a>
+    </dt>
+    <dt><a href="reference/dialects/oracle.html#sqlalchemy.dialects.oracle.RAW.__init__">(sqlalchemy.dialects.oracle.RAW method)</a>
     </dt>
     <dt><a href="reference/dialects/postgresql.html#sqlalchemy.dialects.postgresql.base.ARRAY.__init__">(sqlalchemy.dialects.postgresql.base.ARRAY method)</a>
     </dt>
@@ -365,6 +379,8 @@
     </dt>
     <dt><a href="reference/sqlalchemy/util.html#sqlalchemy.util.IdentitySet.__init__">(sqlalchemy.util.IdentitySet method)</a>
     </dt>
+    <dt><a href="reference/sqlalchemy/util.html#sqlalchemy.util.LRUCache.__init__">(sqlalchemy.util.LRUCache method)</a>
+    </dt>
     <dt><a href="reference/sqlalchemy/util.html#sqlalchemy.util.OrderedDict.__init__">(sqlalchemy.util.OrderedDict method)</a>
     </dt>
     <dt><a href="reference/sqlalchemy/util.html#sqlalchemy.util.OrderedProperties.__init__">(sqlalchemy.util.OrderedProperties method)</a>
@@ -480,6 +496,12 @@
 
 <dt>
         <a href="reference/orm/query.html#sqlalchemy.orm.query.Query.add_entity">add_entity() (sqlalchemy.orm.query.Query method)</a>
+    
+  
+
+
+<dt>
+        <a href="reference/sqlalchemy/schema.html#sqlalchemy.schema.Table.add_is_dependent_on">add_is_dependent_on() (sqlalchemy.schema.Table method)</a>
     
   
 
@@ -914,6 +936,12 @@
     <dt><a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression._CompareMixin.between">(sqlalchemy.sql.expression._CompareMixin method)</a>
     </dt>
   </dl></dd>
+  
+
+
+<dt>
+        <a href="reference/dialects/oracle.html#sqlalchemy.dialects.oracle.BFILE">BFILE (class in sqlalchemy.dialects.oracle)</a>
+    
   
 
 
@@ -1940,9 +1968,11 @@
 
 
 <dt>
-        <a href="reference/orm/interfaces.html#sqlalchemy.orm.interfaces.InstrumentationManager.dispose">dispose() (sqlalchemy.orm.interfaces.InstrumentationManager method)</a>
+        <a href="reference/sqlalchemy/connections.html#sqlalchemy.engine.base.Engine.dispose">dispose() (sqlalchemy.engine.base.Engine method)</a>
     
   <dd><dl>
+    <dt><a href="reference/orm/interfaces.html#sqlalchemy.orm.interfaces.InstrumentationManager.dispose">(sqlalchemy.orm.interfaces.InstrumentationManager method)</a>
+    </dt>
     <dt><a href="reference/sqlalchemy/pooling.html#sqlalchemy.pool.Pool.dispose">(sqlalchemy.pool.Pool method)</a>
     </dt>
     <dt><a href="reference/sqlalchemy/pooling.html#sqlalchemy.pool.SingletonThreadPool.dispose">(sqlalchemy.pool.SingletonThreadPool method)</a>
@@ -2080,8 +2110,12 @@
 
 
 <dt>
-        <a href="reference/dialects/postgresql.html#sqlalchemy.dialects.postgresql.base.DOUBLE_PRECISION">DOUBLE_PRECISION (class in sqlalchemy.dialects.postgresql.base)</a>
+        <a href="reference/dialects/oracle.html#sqlalchemy.dialects.oracle.DOUBLE_PRECISION">DOUBLE_PRECISION (class in sqlalchemy.dialects.oracle)</a>
     
+  <dd><dl>
+    <dt><a href="reference/dialects/postgresql.html#sqlalchemy.dialects.postgresql.base.DOUBLE_PRECISION">(class in sqlalchemy.dialects.postgresql.base)</a>
+    </dt>
+  </dl></dd>
   
 
 
@@ -2990,14 +3024,14 @@
         <a href="reference/ext/declarative.html#sqlalchemy.ext.declarative.instrument_declarative">instrument_declarative() (in module sqlalchemy.ext.declarative)</a>
     
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
         <a href="reference/orm/interfaces.html#sqlalchemy.orm.interfaces.InstrumentationManager">InstrumentationManager (class in sqlalchemy.orm.interfaces)</a>
     
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -3047,8 +3081,12 @@
 
 
 <dt>
-        <a href="reference/dialects/postgresql.html#sqlalchemy.dialects.postgresql.base.INTERVAL">INTERVAL (class in sqlalchemy.dialects.postgresql.base)</a>
+        <a href="reference/dialects/oracle.html#sqlalchemy.dialects.oracle.INTERVAL">INTERVAL (class in sqlalchemy.dialects.oracle)</a>
     
+  <dd><dl>
+    <dt><a href="reference/dialects/postgresql.html#sqlalchemy.dialects.postgresql.base.INTERVAL">(class in sqlalchemy.dialects.postgresql.base)</a>
+    </dt>
+  </dl></dd>
   
 
 
@@ -3281,14 +3319,14 @@
         <a href="reference/sqlalchemy/connections.html#sqlalchemy.engine.base.ResultProxy.lastrowid">lastrowid (sqlalchemy.engine.base.ResultProxy attribute)</a>
     
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
         <a href="reference/orm/query.html#sqlalchemy.orm.lazyload">lazyload() (in module sqlalchemy.orm)</a>
     
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -3344,6 +3382,12 @@
 
 
 <dt>
+        <a href="reference/dialects/oracle.html#sqlalchemy.dialects.oracle.LONG">LONG (class in sqlalchemy.dialects.oracle)</a>
+    
+  
+
+
+<dt>
         <a href="reference/dialects/mysql.html#sqlalchemy.dialects.mysql.LONGBLOB">LONGBLOB (class in sqlalchemy.dialects.mysql)</a>
     
   
@@ -3351,6 +3395,12 @@
 
 <dt>
         <a href="reference/dialects/mysql.html#sqlalchemy.dialects.mysql.LONGTEXT">LONGTEXT (class in sqlalchemy.dialects.mysql)</a>
+    
+  
+
+
+<dt>
+        <a href="reference/sqlalchemy/util.html#sqlalchemy.util.LRUCache">LRUCache (class in sqlalchemy.util)</a>
     
   
 
@@ -3528,6 +3578,12 @@
 
 
 <dt>
+        <a href="reference/dialects/oracle.html#sqlalchemy.dialects.oracle.NCLOB">NCLOB (class in sqlalchemy.dialects.oracle)</a>
+    
+  
+
+
+<dt>
         <a href="examples.html#module-nested_sets">nested_sets (module)</a>
     
   
@@ -3578,6 +3634,12 @@
 
 
 <dt>
+        <a href="reference/dialects/oracle.html#sqlalchemy.dialects.oracle.NUMBER">NUMBER (class in sqlalchemy.dialects.oracle)</a>
+    
+  
+
+
+<dt>
         <a href="reference/dialects/mysql.html#sqlalchemy.dialects.mysql.NUMERIC">NUMERIC (class in sqlalchemy.dialects.mysql)</a>
     
   <dd><dl>
@@ -3596,6 +3658,10 @@
 <dt>
         <a href="reference/dialects/mysql.html#sqlalchemy.dialects.mysql.NVARCHAR">NVARCHAR (class in sqlalchemy.dialects.mysql)</a>
     
+  <dd><dl>
+    <dt><a href="reference/sqlalchemy/types.html#sqlalchemy.types.NVARCHAR">(class in sqlalchemy.types)</a>
+    </dt>
+  </dl></dd>
   
 
 </dl></td></tr></table>
@@ -3985,6 +4051,12 @@
 
 <dt>
         <a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.functions.random">random (class in sqlalchemy.sql.functions)</a>
+    
+  
+
+
+<dt>
+        <a href="reference/dialects/oracle.html#sqlalchemy.dialects.oracle.RAW">RAW (class in sqlalchemy.dialects.oracle)</a>
     
   
 
@@ -4550,6 +4622,12 @@
 
 <dt>
         <a href="reference/dialects/mysql.html#module-sqlalchemy.dialects.mysql.zxjdbc">sqlalchemy.dialects.mysql.zxjdbc (module)</a>
+    
+  
+
+
+<dt>
+        <a href="reference/dialects/oracle.html#module-sqlalchemy.dialects.oracle">sqlalchemy.dialects.oracle (module)</a>
     
   
 
@@ -5158,14 +5236,14 @@
         <a href="reference/sqlalchemy/pooling.html#sqlalchemy.pool.Pool.unique_connection">unique_connection() (sqlalchemy.pool.Pool method)</a>
     
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
         <a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.ClauseElement.unique_params">unique_params() (sqlalchemy.sql.expression.ClauseElement method)</a>
     
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -5200,6 +5278,12 @@
 
 <dt>
         <a href="reference/sqlalchemy/util.html#sqlalchemy.util.update_copy">update_copy() (in module sqlalchemy.util)</a>
+    
+  
+
+
+<dt>
+        <a href="reference/sqlalchemy/connections.html#sqlalchemy.engine.base.Engine.update_execution_options">update_execution_options() (sqlalchemy.engine.base.Engine method)</a>
     
   
 

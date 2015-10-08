@@ -7,7 +7,7 @@
         
         <title>
     PostgreSQL
- &mdash; SQLAlchemy 0.6.0 Documentation</title>
+ &mdash; SQLAlchemy 0.6.1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.0',
+          VERSION:     '0.6.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.0 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.dialects" href="index.html" />
         <link rel="next" title="SQLite" href="sqlite.html" />
         <link rel="prev" title="Oracle" href="oracle.html" />
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.0 Documentation</h1>
+        <h1>SQLAlchemy 0.6.1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.0</span> Last Updated: 04/18/2010 19:16:18
+            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
         </div>
         <div class="clearboth"></div>
 
@@ -88,11 +88,13 @@
                 <ul>
 <li><a class="reference external" href="#">PostgreSQL</a><ul>
 <li><a class="reference external" href="#sequences-serial">Sequences/SERIAL</a></li>
+<li><a class="reference external" href="#transaction-isolation-level">Transaction Isolation Level</a></li>
 <li><a class="reference external" href="#insert-update-returning">INSERT/UPDATE...RETURNING</a></li>
 <li><a class="reference external" href="#indexes">Indexes</a></li>
 <li><a class="reference external" href="#postgressql-column-types">PostgresSQL Column Types</a></li>
 <li><a class="reference external" href="#module-sqlalchemy.dialects.postgresql.psycopg2">psycopg2 Notes</a><ul>
 <li><a class="reference external" href="#driver">Driver</a></li>
+<li><a class="reference external" href="#unicode">Unicode</a></li>
 <li><a class="reference external" href="#connecting">Connecting</a></li>
 <li><a class="reference external" href="#transactions">Transactions</a></li>
 <li><a class="reference external" href="#notice-logging">NOTICE logging</a></li>
@@ -101,7 +103,7 @@
 </li>
 <li><a class="reference external" href="#module-sqlalchemy.dialects.postgresql.pg8000">pg8000 Notes</a><ul>
 <li><a class="reference external" href="#id1">Connecting</a></li>
-<li><a class="reference external" href="#unicode">Unicode</a></li>
+<li><a class="reference external" href="#id2">Unicode</a></li>
 <li><a class="reference external" href="#interval">Interval</a></li>
 </ul>
 </li>
@@ -146,6 +148,13 @@ is used.</p>
 <p>PostgreSQL 8.2 supports an <tt class="docutils literal"><span class="pre">INSERT...RETURNING</span></tt> syntax which SQLAlchemy supports 
 as well.  A future release of SQLA will use this feature by default in lieu of 
 sequence pre-execution in order to retrieve new primary key values, when available.</p>
+</div>
+<div class="section" id="transaction-isolation-level">
+<h2>Transaction Isolation Level<a class="headerlink" href="#transaction-isolation-level" title="Permalink to this headline">¶</a></h2>
+<p><tt class="xref docutils literal"><span class="pre">create_engine()</span></tt> accepts an <tt class="docutils literal"><span class="pre">isolation_level</span></tt> parameter which results in 
+the command <tt class="docutils literal"><span class="pre">SET</span> <span class="pre">SESSION</span> <span class="pre">CHARACTERISTICS</span> <span class="pre">AS</span> <span class="pre">TRANSACTION</span> <span class="pre">ISOLATION</span> <span class="pre">LEVEL</span> <span class="pre">&lt;level&gt;</span></tt>
+being invoked for every new connection.   Valid values for this parameter are 
+<tt class="docutils literal"><span class="pre">READ_COMMITTED</span></tt>,  <tt class="docutils literal"><span class="pre">READ_UNCOMMITTED</span></tt>, <tt class="docutils literal"><span class="pre">REPEATABLE_READ</span></tt>, and <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt>.</p>
 </div>
 <div class="section" id="insert-update-returning">
 <h2>INSERT/UPDATE...RETURNING<a class="headerlink" href="#insert-update-returning" title="Permalink to this headline">¶</a></h2>
@@ -422,6 +431,10 @@ The dialect has several behaviors  which are specifically tailored towards compa
 with this module.</p>
 <p>Note that psycopg1 is <strong>not</strong> supported.</p>
 </div>
+<div class="section" id="unicode">
+<h3>Unicode<a class="headerlink" href="#unicode" title="Permalink to this headline">¶</a></h3>
+<p>By default, the Psycopg2 driver uses the <tt class="docutils literal"><span class="pre">psycopg2.extensions.UNICODE</span></tt> extension, such that the DBAPI receives and returns all strings as Python Unicode objects directly - SQLAlchemy passes these values through without change.   Note that this setting requires that the PG client encoding be set to one which can accomodate the kind of character data being passed - typically <tt class="docutils literal"><span class="pre">utf-8</span></tt>.   If the Postgresql database is configured for <tt class="docutils literal"><span class="pre">SQL_ASCII</span></tt> encoding, which is often the default for PG installations, it may be necessary for non-ascii strings to be encoded into a specific encoding before being passed to the DBAPI. If changing the database&#8217;s client encoding setting is not an option, specify <tt class="docutils literal"><span class="pre">use_native_unicode=False</span></tt> as a keyword argument to <tt class="docutils literal"><span class="pre">create_engine()</span></tt>, and take note of the <tt class="docutils literal"><span class="pre">encoding</span></tt> setting as well, which also defaults to <tt class="docutils literal"><span class="pre">utf-8</span></tt>.   Note that disabling &#8220;native unicode&#8221; mode has a slight performance penalty, as SQLAlchemy now must translate unicode strings to/from an encoding such as utf-8, a task that is handled more efficiently within the Psycopg2 driver natively.</p>
+</div>
 <div class="section" id="connecting">
 <h3>Connecting<a class="headerlink" href="#connecting" title="Permalink to this headline">¶</a></h3>
 <p>URLs are of the form <cite>postgresql+psycopg2://user:password&#64;host:port/dbname[?key=value&amp;key=value...]</cite>.</p>
@@ -436,9 +449,6 @@ uses special row-buffering behavior when this feature is enabled, such that grou
 at a time are fetched over the wire to reduce conversational overhead.</li>
 <li><em>use_native_unicode</em> - Enable the usage of Psycopg2 &#8220;native unicode&#8221; mode per connection.  True  
 by default.</li>
-<li><em>isolation_level</em> - Sets the transaction isolation level for each transaction
-within the engine. Valid isolation levels are <cite>READ_COMMITTED</cite>,
-<cite>READ_UNCOMMITTED</cite>, <cite>REPEATABLE_READ</cite>, and <cite>SERIALIZABLE</cite>.</li>
 </ul>
 </div>
 <div class="section" id="transactions">
@@ -471,8 +481,8 @@ auto-commit is enabled, the option is ignored.</li>
 <p>URLs are of the form
 <cite>postgresql+pg8000://user:password&#64;host:port/dbname[?key=value&amp;key=value...]</cite>.</p>
 </div>
-<div class="section" id="unicode">
-<h3>Unicode<a class="headerlink" href="#unicode" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id2">
+<h3>Unicode<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <p>pg8000 requires that the postgresql client encoding be configured in the postgresql.conf file
 in order to use encodings other than ascii.  Set this value to the same value as 
 the &#8220;encoding&#8221; parameter on create_engine(), usually &#8220;utf-8&#8221;.</p>

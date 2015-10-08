@@ -5,7 +5,7 @@ from sqlalchemy import *
 from sqlalchemy import types as sqltypes, exc
 from sqlalchemy.sql import table, column
 from sqlalchemy.test import *
-from sqlalchemy.test.testing import eq_, assert_raises
+from sqlalchemy.test.testing import eq_, assert_raises, assert_raises_message
 from sqlalchemy.test.engines import testing_engine
 from sqlalchemy.dialects.oracle import cx_oracle, base as oracle
 from sqlalchemy.engine import default
@@ -113,6 +113,25 @@ class CompileTest(TestBase, AssertsCompiledSQL):
         self.assert_compile(s, "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM "
             "AS ora_rn FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 FROM sometable "
             "ORDER BY sometable.col2) WHERE ROWNUM <= :ROWNUM_1) WHERE ora_rn > :ora_rn_1")
+
+        s = select([t], for_update=True).limit(10).order_by(t.c.col2)
+        self.assert_compile(
+            s,
+            "SELECT col1, col2 FROM (SELECT sometable.col1 "
+            "AS col1, sometable.col2 AS col2 FROM sometable "
+            "ORDER BY sometable.col2) WHERE ROWNUM <= :ROWNUM_1 FOR UPDATE"
+        )
+        
+        s = select([t], for_update=True).limit(10).offset(20).order_by(t.c.col2)
+        self.assert_compile(
+            s,
+            "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM "
+            "AS ora_rn FROM (SELECT sometable.col1 AS col1, "
+            "sometable.col2 AS col2 FROM sometable ORDER BY "
+            "sometable.col2) WHERE ROWNUM <= :ROWNUM_1) WHERE "
+            "ora_rn > :ora_rn_1 FOR UPDATE"
+        )
+        
     
     def test_long_labels(self):
         dialect = default.DefaultDialect()
@@ -280,6 +299,22 @@ class CompileTest(TestBase, AssertsCompiledSQL):
                         "WHERE mytable.myid = myothertable.otherid(+)) anon_1 "
                         "WHERE thirdtable.userid = anon_1.myid(+)", 
                         dialect=oracle.dialect(use_ansi=False))
+    
+        q = select([table1.c.name]).where(table1.c.name=='foo')
+        self.assert_compile(q, 
+                "SELECT mytable.name FROM mytable WHERE mytable.name = :name_1", 
+                dialect=oracle.dialect(use_ansi=False))
+
+        subq = select([table3.c.otherstuff]).\
+                    where(table3.c.otherstuff==table1.c.name).\
+                    label('bar')
+        q = select([table1.c.name, subq])
+        self.assert_compile(q, 
+                "SELECT mytable.name, "
+                "(SELECT thirdtable.otherstuff FROM thirdtable "
+                "WHERE thirdtable.otherstuff = mytable.name) AS bar FROM mytable", 
+                dialect=oracle.dialect(use_ansi=False))
+
         
     def test_alias_outer_join(self):
         address_types = table('address_types',
@@ -321,7 +356,47 @@ class CompileTest(TestBase, AssertsCompiledSQL):
             except_(t1.select(), t2.select()),
             "SELECT t1.c1, t1.c2, t1.c3 FROM t1 MINUS SELECT t2.c1, t2.c2, t2.c3 FROM t2"
         )
-        
+
+class CompatFlagsTest(TestBase, AssertsCompiledSQL):
+    __only_on__ = 'oracle'
+    
+    def test_ora8_flags(self):
+        def server_version_info(self):
+            return (8, 2, 5)
+            
+        dialect = oracle.dialect()
+        dialect._get_server_version_info = server_version_info
+        dialect.initialize(testing.db.connect())
+        assert not dialect._supports_char_length
+        assert not dialect._supports_nchar
+        assert not dialect.use_ansi
+        self.assert_compile(String(50),"VARCHAR(50)",dialect=dialect)
+        self.assert_compile(Unicode(50),"VARCHAR(50)",dialect=dialect)
+        self.assert_compile(UnicodeText(),"CLOB",dialect=dialect)
+
+    def test_default_flags(self):
+        """test with no initialization or server version info"""
+        dialect = oracle.dialect()
+        assert dialect._supports_char_length
+        assert dialect._supports_nchar
+        assert dialect.use_ansi
+        self.assert_compile(String(50),"VARCHAR(50 CHAR)",dialect=dialect)
+        self.assert_compile(Unicode(50),"NVARCHAR2(50)",dialect=dialect)
+        self.assert_compile(UnicodeText(),"NCLOB",dialect=dialect)
+    
+    def test_ora10_flags(self):
+        def server_version_info(self):
+            return (10, 2, 5)
+        dialect = oracle.dialect()
+        dialect._get_server_version_info = server_version_info
+        dialect.initialize(testing.db.connect())
+        assert dialect._supports_char_length
+        assert dialect._supports_nchar
+        assert dialect.use_ansi
+        self.assert_compile(String(50),"VARCHAR(50 CHAR)",dialect=dialect)
+        self.assert_compile(Unicode(50),"NVARCHAR2(50)",dialect=dialect)
+        self.assert_compile(UnicodeText(),"NCLOB",dialect=dialect)
+    
 class MultiSchemaTest(TestBase, AssertsCompiledSQL):
     __only_on__ = 'oracle'
     
@@ -737,27 +812,15 @@ class TypesTest(TestBase, AssertsCompiledSQL):
             metadata.drop_all()
        
     def test_char_length(self):
-        self.assert_compile(
-            VARCHAR(50),
-            "VARCHAR(50 CHAR)",
-        )
+        self.assert_compile(VARCHAR(50),"VARCHAR(50 CHAR)")
 
         oracle8dialect = oracle.dialect()
-        oracle8dialect.supports_char_length = False
-        self.assert_compile(
-            VARCHAR(50),
-            "VARCHAR(50)",
-            dialect=oracle8dialect
-        )
+        oracle8dialect._supports_char_length = False
+        self.assert_compile(VARCHAR(50),"VARCHAR(50)",dialect=oracle8dialect)
 
-        self.assert_compile(
-            NVARCHAR(50),
-            "NVARCHAR2(50)",
-        )
-        self.assert_compile(
-            CHAR(50),
-            "CHAR(50)",
-        )
+        self.assert_compile(NVARCHAR(50),"NVARCHAR2(50)")
+        self.assert_compile(CHAR(50),"CHAR(50)")
+        
         metadata = MetaData(testing.db)
         t1 = Table('t1', metadata,
               Column("c1", VARCHAR(50)),
@@ -773,8 +836,6 @@ class TypesTest(TestBase, AssertsCompiledSQL):
             eq_(t2.c.c3.type.length, 200)
         finally:
             t1.drop()
-
-
  
     def test_longstring(self):
         metadata = MetaData(testing.db)
@@ -908,9 +969,45 @@ class SequenceTest(TestBase, AssertsCompiledSQL):
 
 class ExecuteTest(TestBase):
     __only_on__ = 'oracle'
+    
+    
     def test_basic(self):
         eq_(
             testing.db.execute("/*+ this is a comment */ SELECT 1 FROM DUAL").fetchall(),
             [(1,)]
         )
 
+    @testing.provide_metadata
+    def test_limit_offset_for_update(self):
+        # oracle can't actually do the ROWNUM thing with FOR UPDATE
+        # very well.
+        
+        t = Table('t1', metadata, Column('id', Integer, primary_key=True),
+            Column('data', Integer)
+        )
+        metadata.create_all()
+        
+        t.insert().execute(
+            {'id':1, 'data':1},
+            {'id':2, 'data':7},
+            {'id':3, 'data':12},
+            {'id':4, 'data':15},
+            {'id':5, 'data':32},
+        )
+        
+        # here, we can't use ORDER BY.
+        eq_(
+            t.select(for_update=True).limit(2).execute().fetchall(),
+            [(1, 1),
+             (2, 7)]
+        )
+
+        # here, its impossible.  But we'd prefer it to raise ORA-02014
+        # instead of issuing a syntax error.
+        assert_raises_message(
+            exc.DatabaseError,
+            "ORA-02014",
+            t.select(for_update=True).limit(2).offset(3).execute
+        )
+        
+        

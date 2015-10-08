@@ -7,7 +7,7 @@
         
         <title>
     Class Mapping
- &mdash; SQLAlchemy 0.6.0 Documentation</title>
+ &mdash; SQLAlchemy 0.6.1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.0',
+          VERSION:     '0.6.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.0 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Collection Mapping" href="collections.html" />
         <link rel="prev" title="sqlalchemy.orm" href="index.html" />
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.0 Documentation</h1>
+        <h1>SQLAlchemy 0.6.1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.0</span> Last Updated: 04/18/2010 19:16:18
+            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
         </div>
         <div class="clearboth"></div>
 
@@ -903,17 +903,19 @@ as though it were part of its original loaded state.</p>
 <h2>Internals<a class="headerlink" href="#internals" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sqlalchemy.orm.mapper.Mapper">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.mapper.</tt><tt class="descname">Mapper</tt><big>(</big><em>class_</em>, <em>local_table</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>version_id_generator=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_null_pks=None</em>, <em>allow_partial_pks=True</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>eager_defaults=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.mapper.</tt><tt class="descname">Mapper</tt><big>(</big><em>class_</em>, <em>local_table</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>version_id_generator=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_null_pks=None</em>, <em>allow_partial_pks=True</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>eager_defaults=False</em>, <em>_compiled_cache_size=100</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define the correlation of class attributes to database table
 columns.</p>
 <p>Instances of this class should be constructed via the
 <a title="sqlalchemy.orm.mapper" class="reference internal" href="#sqlalchemy.orm.mapper"><tt class="xref docutils literal"><span class="pre">mapper()</span></tt></a> function.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.mapper.Mapper.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>class_</em>, <em>local_table</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>version_id_generator=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_null_pks=None</em>, <em>allow_partial_pks=True</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>eager_defaults=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>class_</em>, <em>local_table</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>version_id_generator=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_null_pks=None</em>, <em>allow_partial_pks=True</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>eager_defaults=False</em>, <em>_compiled_cache_size=100</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a new mapper.</p>
-<p>Mappers are normally constructed via the <a title="sqlalchemy.orm.mapper" class="reference internal" href="#sqlalchemy.orm.mapper"><tt class="xref docutils literal"><span class="pre">mapper()</span></tt></a>
-function.  See for details.</p>
+<dl class="docutils">
+<dt>Mappers are normally constructed via the</dt>
+<dd><a title="sqlalchemy.orm.mapper" class="reference internal" href="#sqlalchemy.orm.mapper"><tt class="xref docutils literal"><span class="pre">mapper()</span></tt></a> function.  See for details.</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -952,7 +954,8 @@ reference so that they don&#8217;t fall out of scope immediately.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.mapper.Mapper.common_parent">
 <tt class="descname">common_parent</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.common_parent" title="Permalink to this definition">¶</a></dt>
-<dd>Return true if the given mapper shares a common inherited parent as this mapper.</dd></dl>
+<dd>Return true if the given mapper shares a common inherited parent as
+this mapper.</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.mapper.Mapper.compile">
@@ -1031,7 +1034,8 @@ instance.</dd></dl>
 <dl class="method">
 <dt id="sqlalchemy.orm.mapper.Mapper.primary_mapper">
 <tt class="descname">primary_mapper</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.primary_mapper" title="Permalink to this definition">¶</a></dt>
-<dd>Return the primary mapper corresponding to this mapper&#8217;s class key (class).</dd></dl>
+<dd>Return the primary mapper corresponding to this mapper&#8217;s class key
+(class).</dd></dl>
 
 </dd></dl>
 

@@ -7,7 +7,7 @@
         
         <title>
     Database Engines
- &mdash; SQLAlchemy 0.6.0 Documentation</title>
+ &mdash; SQLAlchemy 0.6.1 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '#',
-          VERSION:     '0.6.0',
+          VERSION:     '0.6.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/init.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.0 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="index.html" />
         <link rel="next" title="Database Meta Data" href="metadata.html" />
         <link rel="prev" title="Using the Session" href="session.html" />
     
@@ -37,7 +37,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.0 Documentation</h1>
+        <h1>SQLAlchemy 0.6.1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -49,7 +49,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.0</span> Last Updated: 04/18/2010 19:16:18
+            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
         </div>
         <div class="clearboth"></div>
 
@@ -127,6 +127,7 @@ connect() &lt;--|   Engine    |---x                       x----| DBAPI  |---| da
 <div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://scott:tiger@localhost:5432/mydatabase&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>The above engine invokes the <tt class="docutils literal"><span class="pre">postgresql</span></tt> dialect and a connection pool which references <tt class="docutils literal"><span class="pre">localhost:5432</span></tt>.</p>
+<p>Note that the appropriate usage of <tt class="xref docutils literal"><span class="pre">create_engine()</span></tt> is once per particular configuration, held globally for the lifetime of a single application process (not including child processes via <tt class="docutils literal"><span class="pre">fork()</span></tt> - these would require a new engine).   A single <a title="sqlalchemy.engine.base.Engine" class="reference external" href="reference/sqlalchemy/connections.html#sqlalchemy.engine.base.Engine"><tt class="xref docutils literal"><span class="pre">Engine</span></tt></a> manages connections on behalf of the process and is intended to be called upon in a concurrent fashion.   Creating engines for each particular operation is not the intended usage.</p>
 <p>The engine can be used directly to issue SQL to the database.  The most generic way is to use connections, which you get via the <tt class="docutils literal"><span class="pre">connect()</span></tt> method:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">connection</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;select username from users&quot;</span><span class="p">)</span>
@@ -304,7 +305,7 @@ information on current support.</li>
 <td>yes with <a class="reference external" href="http://www.freetds.org/">FreeTDS</a></td>
 <td>yes</td>
 </tr>
-<tr><td><a class="reference external" href="http://pymssql.sourceforge.net/">pymssql</a></td>
+<tr><td><a class="reference external" href="http://code.google.com/p/pymssql/">pymssql</a></td>
 <td><tt class="docutils literal"><span class="pre">mssql+pymssql</span></tt></td>
 <td>yes</td>
 <td>development</td>
