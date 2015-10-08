@@ -30,6 +30,15 @@ class ConstraintTest(TestBase, AssertsExecutionResults):
             )
         metadata.create_all()
 
+    def test_double_fk_usage_raises(self):
+        f = ForeignKey('b.id')
+        
+        self.assertRaises(exc.InvalidRequestError, Table, "a", metadata,
+            Column('x', Integer, f),
+            Column('y', Integer, f)
+        )
+        
+        
     def test_circular_constraint(self):
         a = Table("a", metadata,
             Column('id', Integer, primary_key=True),
@@ -54,7 +63,7 @@ class ConstraintTest(TestBase, AssertsExecutionResults):
             )
         metadata.create_all()
 
-    @testing.fails_on('mysql')
+    @testing.fails_on('mysql', 'FIXME: unknown')
     def test_check_constraint(self):
         foo = Table('foo', metadata,
             Column('id', Integer, primary_key=True),
