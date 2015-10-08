@@ -7,7 +7,7 @@
         
         <title>
     Class Mapping
- &mdash; SQLAlchemy 0.6beta1 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta1',
+          VERSION:     '0.6beta2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Collection Mapping" href="collections.html" />
         <link rel="prev" title="sqlalchemy.orm" href="index.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
+            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
         </div>
         <div class="clearboth"></div>
 
@@ -87,7 +87,7 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="">Class Mapping</a><ul>
+<li><a class="reference external" href="#">Class Mapping</a><ul>
 <li><a class="reference external" href="#defining-mappings">Defining Mappings</a></li>
 <li><a class="reference external" href="#mapper-properties">Mapper Properties</a></li>
 <li><a class="reference external" href="#decorators">Decorators</a></li>
@@ -113,63 +113,70 @@
 <dt id="sqlalchemy.orm.mapper">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">mapper</tt><big>(</big><em>class_</em>, <em>local_table=None</em>, <em>*args</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new <tt class="xref docutils literal"><span class="pre">Mapper</span></tt> object.</p>
-<dl class="docutils">
-<dt>class_</dt>
-<dd>The class to be mapped.</dd>
-<dt>local_table</dt>
-<dd>The table to which the class is mapped, or None if this mapper
-inherits from another mapper using concrete table inheritance.</dd>
-<dt>always_refresh</dt>
-<dd>If True, all query operations for this mapped class will overwrite all
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><em>class_</em> &#8211; The class to be mapped.</li>
+<li><em>local_table</em> &#8211; The table to which the class is mapped, or None if this mapper
+inherits from another mapper using concrete table inheritance.</li>
+<li><em>always_refresh</em> &#8211; If True, all query operations for this mapped class will overwrite all
 data within object instances that already exist within the session,
 erasing any in-memory changes with whatever information was loaded
 from the database.  Usage of this flag is highly discouraged; as an
 alternative, see the method <cite>populate_existing()</cite> on
-<a title="sqlalchemy.orm.query.Query" class="reference external" href="query.html#sqlalchemy.orm.query.Query"><tt class="xref docutils literal"><span class="pre">Query</span></tt></a>.</dd>
-<dt>allow_null_pks</dt>
-<dd>This flag is deprecated - allow_null_pks is now &#8220;on&#8221; in all cases.
-Rows which contain NULL for some (but not all) of its primary key
-columns will be considered to have a valid primary key.</dd>
-<dt>batch</dt>
-<dd>Indicates that save operations of multiple entities can be batched
+<a title="sqlalchemy.orm.query.Query" class="reference external" href="query.html#sqlalchemy.orm.query.Query"><tt class="xref docutils literal"><span class="pre">Query</span></tt></a>.</li>
+<li><em>allow_null_pks</em> &#8211; This flag is deprecated - this is stated as allow_partial_pks
+which defaults to True.</li>
+<li><em>allow_partial_pks</em> &#8211; Defaults to True.  Indicates that a composite primary key with
+some NULL values should be considered as possibly existing
+within the database.   This affects whether a mapper will assign
+an incoming row to an existing identity, as well as if 
+session.merge() will check the database first for a particular
+primary key value.  A &#8220;partial primary key&#8221; can occur if one 
+has mapped to an OUTER JOIN, for example.</li>
+<li><em>batch</em> &#8211; Indicates that save operations of multiple entities can be batched
 together for efficiency.  setting to False indicates that an instance
 will be fully saved before saving the next instance, which includes
 inserting/updating all table rows corresponding to the entity as well
 as calling all <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> methods corresponding to the save
-operation.</dd>
-<dt>column_prefix</dt>
-<dd>A string which will be prepended to the <cite>key</cite> name of all Columns when
+operation.</li>
+<li><em>column_prefix</em> &#8211; A string which will be prepended to the <cite>key</cite> name of all Columns when
 creating column-based properties from the given Table.  Does not
-affect explicitly specified column-based properties</dd>
-<dt>concrete</dt>
-<dd>If True, indicates this mapper should use concrete table inheritance
-with its parent mapper.</dd>
-<dt>extension</dt>
-<dd>A <tt class="xref docutils literal"><span class="pre">MapperExtension</span></tt> instance or list of
-<tt class="docutils literal"><span class="pre">MapperExtension</span></tt> instances which will be applied to all
-operations by this <tt class="docutils literal"><span class="pre">Mapper</span></tt>.</dd>
-<dt>inherits</dt>
-<dd>Another <tt class="docutils literal"><span class="pre">Mapper</span></tt> for which this <tt class="docutils literal"><span class="pre">Mapper</span></tt> will have an inheritance
-relationship with.</dd>
-<dt>inherit_condition</dt>
-<dd>For joined table inheritance, a SQL expression (constructed
+affect explicitly specified column-based properties</li>
+<li><em>concrete</em> &#8211; If True, indicates this mapper should use concrete table inheritance
+with its parent mapper.</li>
+<li><em>exclude_properties</em> &#8211; A list of properties not to map.  Columns present in the mapped table
+and present in this list will not be automatically converted into
+properties.  Note that neither this option nor include_properties will
+allow an end-run around Python inheritance.  If mapped class <tt class="docutils literal"><span class="pre">B</span></tt>
+inherits from mapped class <tt class="docutils literal"><span class="pre">A</span></tt>, no combination of includes or
+excludes will allow <tt class="docutils literal"><span class="pre">B</span></tt> to have fewer properties than its
+superclass, <tt class="docutils literal"><span class="pre">A</span></tt>.</li>
+<li><em>extension</em> &#8211; A <a title="sqlalchemy.orm.interfaces.MapperExtension" class="reference external" href="interfaces.html#sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref docutils literal"><span class="pre">MapperExtension</span></tt></a> instance or list of
+<a title="sqlalchemy.orm.interfaces.MapperExtension" class="reference external" href="interfaces.html#sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref docutils literal"><span class="pre">MapperExtension</span></tt></a> instances which will be applied to all
+operations by this <a title="sqlalchemy.orm.mapper.Mapper" class="reference internal" href="#sqlalchemy.orm.mapper.Mapper"><tt class="xref docutils literal"><span class="pre">Mapper</span></tt></a>.</li>
+<li><em>include_properties</em> &#8211; An inclusive list of properties to map.  Columns present in the mapped
+table but not present in this list will not be automatically converted
+into properties.</li>
+<li><em>inherits</em> &#8211; Another <tt class="xref docutils literal"><span class="pre">Mapper</span></tt> for which 
+this <tt class="xref docutils literal"><span class="pre">Mapper</span></tt> will have an inheritance
+relationship with.</li>
+<li><em>inherit_condition</em> &#8211; For joined table inheritance, a SQL expression (constructed
 <tt class="docutils literal"><span class="pre">ClauseElement</span></tt>) which will define how the two tables are joined;
-defaults to a natural join between the two tables.</dd>
-<dt>inherit_foreign_keys</dt>
-<dd>when inherit_condition is used and the condition contains no
+defaults to a natural join between the two tables.</li>
+<li><em>inherit_foreign_keys</em> &#8211; When inherit_condition is used and the condition contains no
 ForeignKey columns, specify the &#8220;foreign&#8221; columns of the join
-condition in this list.  else leave as None.</dd>
-<dt>order_by</dt>
-<dd>A single <tt class="docutils literal"><span class="pre">Column</span></tt> or list of <tt class="docutils literal"><span class="pre">Columns</span></tt> for which
+condition in this list.  else leave as None.</li>
+<li><em>non_primary</em> &#8211; Construct a <tt class="docutils literal"><span class="pre">Mapper</span></tt> that will define only the selection of
+instances, not their persistence.  Any number of non_primary mappers
+may be created for a particular class.</li>
+<li><em>order_by</em> &#8211; A single <tt class="docutils literal"><span class="pre">Column</span></tt> or list of <tt class="docutils literal"><span class="pre">Columns</span></tt> for which
 selection operations should use as the default ordering for entities.
 Defaults to the OID/ROWID of the table if any, or the first primary
-key column of the table.</dd>
-<dt>non_primary</dt>
-<dd>Construct a <tt class="docutils literal"><span class="pre">Mapper</span></tt> that will define only the selection of
-instances, not their persistence.  Any number of non_primary mappers
-may be created for a particular class.</dd>
-<dt>passive_updates</dt>
-<dd><p class="first">Indicates UPDATE behavior of foreign keys when a primary key changes 
+key column of the table.</li>
+<li><em>passive_updates</em> &#8211; <p>Indicates UPDATE behavior of foreign keys when a primary key changes 
 on a joined-table inheritance or other joined table mapping.</p>
 <p>When True, it is assumed that ON UPDATE CASCADE is configured on
 the foreign key in the database, and that the database will
@@ -177,61 +184,59 @@ handle propagation of an UPDATE from a source column to
 dependent rows.  Note that with databases which enforce
 referential integrity (i.e. PostgreSQL, MySQL with InnoDB tables),
 ON UPDATE CASCADE is required for this operation.  The
-relation() will update the value of the attribute on related
+relationship() will update the value of the attribute on related
 items which are locally present in the session during a flush.</p>
 <p>When False, it is assumed that the database does not enforce
 referential integrity and will not be issuing its own CASCADE
-operation for an update.  The relation() will issue the
+operation for an update.  The relationship() will issue the
 appropriate UPDATE statements to the database in response to the
 change of a referenced key, and items locally present in the
 session during a flush will also be refreshed.</p>
 <p>This flag should probably be set to False if primary key changes
 are expected and the database in use doesn&#8217;t support CASCADE
 (i.e. SQLite, MySQL MyISAM tables).</p>
-<p>Also see the passive_updates flag on <tt class="docutils literal"><span class="pre">relation()</span></tt>.</p>
-<p class="last">A future SQLAlchemy release will provide a &#8220;detect&#8221; feature for
+<p>Also see the passive_updates flag on <a title="sqlalchemy.orm.relationship" class="reference internal" href="#sqlalchemy.orm.relationship"><tt class="xref docutils literal"><span class="pre">relationship()</span></tt></a>.</p>
+<p>A future SQLAlchemy release will provide a &#8220;detect&#8221; feature for
 this flag.</p>
-</dd>
-<dt>polymorphic_on</dt>
-<dd>Used with mappers in an inheritance relationship, a <tt class="docutils literal"><span class="pre">Column</span></tt> which
+</li>
+<li><em>polymorphic_on</em> &#8211; Used with mappers in an inheritance relationship, a <tt class="docutils literal"><span class="pre">Column</span></tt> which
 will identify the class/mapper combination to be used with a
 particular row.  Requires the <tt class="docutils literal"><span class="pre">polymorphic_identity</span></tt> value to be set
 for all mappers in the inheritance hierarchy.  The column specified by
 <tt class="docutils literal"><span class="pre">polymorphic_on</span></tt> is usually a column that resides directly within
 the base mapper&#8217;s mapped table; alternatively, it may be a column that
 is only present within the &lt;selectable&gt; portion of the
-<tt class="docutils literal"><span class="pre">with_polymorphic</span></tt> argument.</dd>
-<dt>_polymorphic_map</dt>
-<dd>Used internally to propagate the full map of polymorphic identifiers
-to surrogate mappers.</dd>
-<dt>polymorphic_identity</dt>
-<dd>A value which will be stored in the Column denoted by polymorphic_on,
-corresponding to the <em>class identity</em> of this mapper.</dd>
-<dt>properties</dt>
-<dd>A dictionary mapping the string names of object attributes to
+<tt class="docutils literal"><span class="pre">with_polymorphic</span></tt> argument.</li>
+<li><em>polymorphic_identity</em> &#8211; A value which will be stored in the Column denoted by polymorphic_on,
+corresponding to the <em>class identity</em> of this mapper.</li>
+<li><em>properties</em> &#8211; A dictionary mapping the string names of object attributes to
 <tt class="docutils literal"><span class="pre">MapperProperty</span></tt> instances, which define the persistence behavior of
 that attribute.  Note that the columns in the mapped table are
 automatically converted into <tt class="docutils literal"><span class="pre">ColumnProperty</span></tt> instances based on the
 <cite>key</cite> property of each <tt class="docutils literal"><span class="pre">Column</span></tt> (although they can be overridden
-using this dictionary).</dd>
-<dt>include_properties</dt>
-<dd>An inclusive list of properties to map.  Columns present in the mapped
-table but not present in this list will not be automatically converted
-into properties.</dd>
-<dt>exclude_properties</dt>
-<dd>A list of properties not to map.  Columns present in the mapped table
-and present in this list will not be automatically converted into
-properties.  Note that neither this option nor include_properties will
-allow an end-run around Python inheritance.  If mapped class <tt class="docutils literal"><span class="pre">B</span></tt>
-inherits from mapped class <tt class="docutils literal"><span class="pre">A</span></tt>, no combination of includes or
-excludes will allow <tt class="docutils literal"><span class="pre">B</span></tt> to have fewer properties than its
-superclass, <tt class="docutils literal"><span class="pre">A</span></tt>.</dd>
-<dt>primary_key</dt>
-<dd>A list of <tt class="docutils literal"><span class="pre">Column</span></tt> objects which define the <em>primary key</em> to be used
+using this dictionary).</li>
+<li><em>primary_key</em> &#8211; A list of <tt class="docutils literal"><span class="pre">Column</span></tt> objects which define the <em>primary key</em> to be used
 against this mapper&#8217;s selectable unit.  This is normally simply the
-primary key of the <cite>local_table</cite>, but can be overridden here.</dd>
-<dt>with_polymorphic</dt>
-<dd>A tuple in the form <tt class="docutils literal"><span class="pre">(&lt;classes&gt;,</span> <span class="pre">&lt;selectable&gt;)</span></tt> indicating the
+primary key of the <cite>local_table</cite>, but can be overridden here.</li>
+<li><em>version_id_col</em> &#8211; A <tt class="docutils literal"><span class="pre">Column</span></tt> which must have an integer type that will be used to keep
+a running <em>version id</em> of mapped entities in the database.  this is
+used during save operations to ensure that no other thread or process
+has updated the instance during the lifetime of the entity, else a
+<tt class="docutils literal"><span class="pre">ConcurrentModificationError</span></tt> exception is thrown.</li>
+<li><em>version_id_generator</em> &#8211; <p>A callable which defines the algorithm used to generate new version 
+ids.  Defaults to an integer generator.  Can be replaced with one that
+generates timestamps, uuids, etc.  e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="n">mapper</span><span class="p">(</span><span class="n">Cls</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> 
+<span class="n">version_id_col</span><span class="o">=</span><span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">version_uuid</span><span class="p">,</span>
+<span class="n">version_id_generator</span><span class="o">=</span><span class="k">lambda</span> <span class="n">version</span><span class="p">:</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span>
+<span class="p">)</span></pre></div>
+</div>
+<p>The callable receives the current version identifier as its 
+single argument.</p>
+</li>
+<li><em>with_polymorphic</em> &#8211; A tuple in the form <tt class="docutils literal"><span class="pre">(&lt;classes&gt;,</span> <span class="pre">&lt;selectable&gt;)</span></tt> indicating the
 default style of &#8220;polymorphic&#8221; loading, that is, which tables are
 queried at once. &lt;classes&gt; is any single or list of mappers and/or
 classes indicating the inherited classes that should be loaded at
@@ -244,14 +249,12 @@ all desired sub-mappers.  When specified, it provides the selectable
 to be used for polymorphic loading. When with_polymorphic includes
 mappers which load from a &#8220;concrete&#8221; inheriting table, the
 &lt;selectable&gt; argument is required, since it usually requires more
-complex UNION queries.</dd>
-<dt>version_id_col</dt>
-<dd>A <tt class="docutils literal"><span class="pre">Column</span></tt> which must have an integer type that will be used to keep
-a running <em>version id</em> of mapped entities in the database.  this is
-used during save operations to ensure that no other thread or process
-has updated the instance during the lifetime of the entity, else a
-<tt class="docutils literal"><span class="pre">ConcurrentModificationError</span></tt> exception is thrown.</dd>
-</dl>
+complex UNION queries.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -261,19 +264,19 @@ has updated the instance during the lifetime of the entity, else a
 database table or selectable available as attributes on the class.
 <strong>Mapper properties</strong> allow you to customize and add additional
 properties to your classes, for example making the results one-to-many
-join available as a Python list of <a title="sqlalchemy.orm.relation" class="reference internal" href="#sqlalchemy.orm.relation"><tt class="xref docutils literal"><span class="pre">related</span></tt></a> objects.</p>
+join available as a Python list of <a title="sqlalchemy.orm.relationship" class="reference internal" href="#sqlalchemy.orm.relationship"><tt class="xref docutils literal"><span class="pre">related</span></tt></a> objects.</p>
 <p>Mapper properties are most commonly included in the <a title="sqlalchemy.orm.mapper" class="reference internal" href="#sqlalchemy.orm.mapper"><tt class="xref docutils literal"><span class="pre">mapper()</span></tt></a>
 call:</p>
 <div class="highlight-python"><pre>mapper(Parent, properties={
-   'children': relation(Children)
+   'children': relationship(Children)
 }</pre>
 </div>
 <dl class="function">
 <dt id="sqlalchemy.orm.backref">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">backref</tt><big>(</big><em>name</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.backref" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a back reference with explicit arguments, which are the same
-arguments one can send to <tt class="docutils literal"><span class="pre">relation()</span></tt>.</p>
-<p>Used with the <cite>backref</cite> keyword argument to <tt class="docutils literal"><span class="pre">relation()</span></tt> in
+arguments one can send to <tt class="docutils literal"><span class="pre">relationship()</span></tt>.</p>
+<p>Used with the <cite>backref</cite> keyword argument to <tt class="docutils literal"><span class="pre">relationship()</span></tt> in
 place of a string argument.</p>
 </dd></dl>
 
@@ -424,14 +427,14 @@ table column when first accessed.</p>
 <dt id="sqlalchemy.orm.dynamic_loader">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">dynamic_loader</tt><big>(</big><em>argument</em>, <em>secondary=None</em>, <em>primaryjoin=None</em>, <em>secondaryjoin=None</em>, <em>foreign_keys=None</em>, <em>backref=None</em>, <em>post_update=False</em>, <em>cascade=False</em>, <em>remote_side=None</em>, <em>enable_typechecks=True</em>, <em>passive_deletes=False</em>, <em>order_by=None</em>, <em>comparator_factory=None</em>, <em>query_class=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.dynamic_loader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a dynamically-loading mapper property.</p>
-<p>This property is similar to <a title="sqlalchemy.orm.relation" class="reference internal" href="#sqlalchemy.orm.relation"><tt class="xref docutils literal"><span class="pre">relation()</span></tt></a>, except read
+<p>This property is similar to <a title="sqlalchemy.orm.relationship" class="reference internal" href="#sqlalchemy.orm.relationship"><tt class="xref docutils literal"><span class="pre">relationship()</span></tt></a>, except read
 operations return an active <tt class="xref docutils literal"><span class="pre">Query</span></tt> object which reads from
 the database when accessed.  Items may be appended to the
 attribute via <tt class="docutils literal"><span class="pre">append()</span></tt>, or removed via <tt class="docutils literal"><span class="pre">remove()</span></tt>; changes
 will be persisted to the database during a <tt class="xref docutils literal"><span class="pre">Sesion.flush()</span></tt>.
 However, no other Python list or collection mutation operations
 are available.</p>
-<p>A subset of arguments available to <a title="sqlalchemy.orm.relation" class="reference internal" href="#sqlalchemy.orm.relation"><tt class="xref docutils literal"><span class="pre">relation()</span></tt></a> are available
+<p>A subset of arguments available to <a title="sqlalchemy.orm.relationship" class="reference internal" href="#sqlalchemy.orm.relationship"><tt class="xref docutils literal"><span class="pre">relationship()</span></tt></a> are available
 here.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -439,7 +442,7 @@ here.</p>
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><em>argument</em> &#8211; a class or <tt class="xref docutils literal"><span class="pre">Mapper</span></tt> instance, representing the target of
-the relation.</li>
+the relationship.</li>
 <li><em>secondary</em> &#8211; for a many-to-many relationship, specifies the intermediary
 table. The <em>secondary</em> keyword argument should generally only
 be used for a table that is not otherwise expressed in any class
@@ -457,13 +460,26 @@ dynamic collection.</li>
 
 <dl class="function">
 <dt id="sqlalchemy.orm.relation">
-<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">relation</tt><big>(</big><em>argument</em>, <em>secondary=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.relation" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">relation</tt><big>(</big><em>*arg</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.relation" title="Permalink to this definition">¶</a></dt>
+<dd>A synonym for <a title="sqlalchemy.orm.relationship" class="reference internal" href="#sqlalchemy.orm.relationship"><tt class="xref docutils literal"><span class="pre">relationship()</span></tt></a>.</dd></dl>
+
+<dl class="function">
+<dt id="sqlalchemy.orm.relationship">
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">relationship</tt><big>(</big><em>argument</em>, <em>secondary=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.relationship" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provide a relationship of a primary Mapper to a secondary Mapper.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function is known as <a title="sqlalchemy.orm.relation" class="reference internal" href="#sqlalchemy.orm.relation"><tt class="xref docutils literal"><span class="pre">relation()</span></tt></a> in all versions
+of SQLAlchemy prior to version 0.6beta2, including the 0.5 and 0.4 series.
+<a title="sqlalchemy.orm.relationship" class="reference internal" href="#sqlalchemy.orm.relationship"><tt class="xref docutils literal"><span class="pre">relationship()</span></tt></a> is only available starting with 
+SQLAlchemy 0.6beta2.  The <a title="sqlalchemy.orm.relation" class="reference internal" href="#sqlalchemy.orm.relation"><tt class="xref docutils literal"><span class="pre">relation()</span></tt></a> name will remain available for 
+the foreseeable future in order to enable cross-compatibility.</p>
+</div>
 <p>This corresponds to a parent-child or associative table relationship.  The
-constructed class is an instance of <tt class="xref docutils literal"><span class="pre">RelationProperty</span></tt>.</p>
-<p>A typical <a title="sqlalchemy.orm.relation" class="reference internal" href="#sqlalchemy.orm.relation"><tt class="xref docutils literal"><span class="pre">relation()</span></tt></a>:</p>
+constructed class is an instance of <tt class="xref docutils literal"><span class="pre">RelationshipProperty</span></tt>.</p>
+<p>A typical <a title="sqlalchemy.orm.relationship" class="reference internal" href="#sqlalchemy.orm.relationship"><tt class="xref docutils literal"><span class="pre">relationship()</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-  <span class="s">&#39;children&#39;</span><span class="p">:</span> <span class="n">relation</span><span class="p">(</span><span class="n">Children</span><span class="p">)</span>
+  <span class="s">&#39;children&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Children</span><span class="p">)</span>
 <span class="p">})</span></pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -472,7 +488,7 @@ constructed class is an instance of <tt class="xref docutils literal"><span clas
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><em>argument</em> &#8211; a class or <tt class="xref docutils literal"><span class="pre">Mapper</span></tt> instance, representing the target of
-the relation.</li>
+the relationship.</li>
 <li><em>secondary</em> &#8211; for a many-to-many relationship, specifies the intermediary
 table. The <em>secondary</em> keyword argument should generally only
 be used for a table that is not otherwise expressed in any class
@@ -484,12 +500,12 @@ mapper&#8217;s class that will handle this relationship in the other
 direction. The other property will be created automatically 
 when the mappers are configured.  Can also be passed as a
 <a title="sqlalchemy.orm.backref" class="reference internal" href="#sqlalchemy.orm.backref"><tt class="xref docutils literal"><span class="pre">backref()</span></tt></a> object to control the configuration of the
-new relation.</li>
+new relationship.</li>
 <li><em>back_populates</em> &#8211; Takes a string name and has the same meaning as <tt class="docutils literal"><span class="pre">backref</span></tt>, 
 except the complementing property is <strong>not</strong> created automatically, 
 and instead must be configured explicitly on the other mapper.  The 
 complementing property should also indicate <tt class="docutils literal"><span class="pre">back_populates</span></tt> 
-to this relation to ensure proper functioning.</li>
+to this relationship to ensure proper functioning.</li>
 <li><em>cascade</em> &#8211; <p>a comma-separated list of cascade rules which determines how
 Session operations should be &#8220;cascaded&#8221; from parent to child.
 This defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>, which means the default cascade
@@ -512,7 +528,7 @@ expunge, delete&#8221;</p>
 </li>
 <li><em>collection_class</em> &#8211; a class or callable that returns a new list-holding object. will
 be used in place of a plain list for storing elements.</li>
-<li><em>comparator_factory</em> &#8211; a class which extends <tt class="xref docutils literal"><span class="pre">RelationProperty.Comparator</span></tt> which
+<li><em>comparator_factory</em> &#8211; a class which extends <tt class="xref docutils literal"><span class="pre">RelationshipProperty.Comparator</span></tt> which
 provides custom SQL clause generation for comparison operations.</li>
 <li><em>extension</em> &#8211; an <tt class="xref docutils literal"><span class="pre">AttributeExtension</span></tt> instance, or list of extensions,
 which will be prepended to the list of attribute listeners for
@@ -524,7 +540,7 @@ change the value used in the operation.</li>
 this parameter should be used in conjunction with explicit
 <tt class="docutils literal"><span class="pre">primaryjoin</span></tt> and <tt class="docutils literal"><span class="pre">secondaryjoin</span></tt> (if needed) arguments, and
 the columns within the <tt class="docutils literal"><span class="pre">foreign_keys</span></tt> list should be present
-within those join conditions. Normally, <tt class="docutils literal"><span class="pre">relation()</span></tt> will
+within those join conditions. Normally, <tt class="docutils literal"><span class="pre">relationship()</span></tt> will
 inspect the columns within the join conditions to determine
 which columns are the &#8220;foreign key&#8221; columns, based on
 information in the <tt class="docutils literal"><span class="pre">Table</span></tt> metadata. Use this argument when no
@@ -534,7 +550,7 @@ the table-defined foreign keys.</li>
 against related tables instead of an outer join.  The purpose
 of this option is strictly one of performance, as inner joins
 generally perform better than outer joins.  This flag can
-be set to <tt class="xref docutils literal"><span class="pre">True</span></tt> when the relation references an object
+be set to <tt class="xref docutils literal"><span class="pre">True</span></tt> when the relationship references an object
 via many-to-one using local foreign keys that are not nullable,
 or when the reference is one-to-one or a collection that is 
 guaranteed to have one or at least one entry.</li>
@@ -592,11 +608,11 @@ handle propagation of an UPDATE from a source column to
 dependent rows.  Note that with databases which enforce
 referential integrity (i.e. PostgreSQL, MySQL with InnoDB tables),
 ON UPDATE CASCADE is required for this operation.  The
-relation() will update the value of the attribute on related
+relationship() will update the value of the attribute on related
 items which are locally present in the session during a flush.</p>
 <p>When False, it is assumed that the database does not enforce
 referential integrity and will not be issuing its own CASCADE
-operation for an update.  The relation() will issue the
+operation for an update.  The relationship() will issue the
 appropriate UPDATE statements to the database in response to the
 change of a referenced key, and items locally present in the
 session during a flush will also be refreshed.</p>
@@ -640,15 +656,15 @@ from being associated with more than one parent at a time.
 This is used for many-to-one or many-to-many relationships that
 should be treated either as one-to-one or one-to-many.  Its
 usage is optional unless delete-orphan cascade is also 
-set on this relation(), in which case its required (new in 0.5.2).</li>
+set on this relationship(), in which case its required (new in 0.5.2).</li>
 <li><em>uselist=(True|False)</em> &#8211; a boolean that indicates if this property should be loaded as a
 list or a scalar. In most cases, this value is determined
-automatically by <tt class="docutils literal"><span class="pre">relation()</span></tt>, based on the type and direction
+automatically by <tt class="docutils literal"><span class="pre">relationship()</span></tt>, based on the type and direction
 of the relationship - one to many forms a list, many to one
 forms a scalar, many to many is a list. If a scalar is desired
 where normally a list would be present, such as a bi-directional
 one-to-one relationship, set uselist to False.</li>
-<li><em>viewonly=False</em> &#8211; when set to True, the relation is used only for loading objects
+<li><em>viewonly=False</em> &#8211; when set to True, the relationship is used only for loading objects
 within the relationship, and has no effect on the unit-of-work
 flush process.  Relationships with viewonly can specify any kind of
 join conditions to provide additional views of related objects
@@ -677,7 +693,7 @@ and <tt class="docutils literal"><span class="pre">__del__()</span></tt> method)
 applies it to the class.</p>
 <p><cite>name</cite> refers to the name of the existing mapped property, which can be
 any other <tt class="docutils literal"><span class="pre">MapperProperty</span></tt> including column-based properties and
-relations.</p>
+relationships.</p>
 <p>If <cite>map_column</cite> is <tt class="xref docutils literal"><span class="pre">True</span></tt>, an additional <tt class="docutils literal"><span class="pre">ColumnProperty</span></tt> is created
 on the mapper automatically, using the synonym&#8217;s name as the keyname of
 the property, and the keyname of this <tt class="docutils literal"><span class="pre">synonym()</span></tt> as the name of the
@@ -861,15 +877,14 @@ as though it were part of its original loaded state.</p>
 <h2>Internals<a class="headerlink" href="#internals" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sqlalchemy.orm.mapper.Mapper">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.orm.mapper.</tt><tt class="descname">Mapper</tt><big>(</big><em>class_</em>, <em>local_table</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_null_pks=None</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>eager_defaults=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.mapper.</tt><tt class="descname">Mapper</tt><big>(</big><em>class_</em>, <em>local_table</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>version_id_generator=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_null_pks=None</em>, <em>allow_partial_pks=True</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>eager_defaults=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define the correlation of class attributes to database table
 columns.</p>
 <p>Instances of this class should be constructed via the
 <a title="sqlalchemy.orm.mapper" class="reference internal" href="#sqlalchemy.orm.mapper"><tt class="xref docutils literal"><span class="pre">mapper()</span></tt></a> function.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.mapper.Mapper.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>class_</em>, <em>local_table</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_null_pks=None</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>eager_defaults=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>class_</em>, <em>local_table</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>version_id_generator=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_null_pks=None</em>, <em>allow_partial_pks=True</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>eager_defaults=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a new mapper.</p>
 <p>Mappers are normally constructed via the <a title="sqlalchemy.orm.mapper" class="reference internal" href="#sqlalchemy.orm.mapper"><tt class="xref docutils literal"><span class="pre">mapper()</span></tt></a>
 function.  See for details.</p>
@@ -895,14 +910,14 @@ the given MapperProperty is compiled immediately.</p>
 <dt id="sqlalchemy.orm.mapper.Mapper.cascade_iterator">
 <tt class="descname">cascade_iterator</tt><big>(</big><em>type_</em>, <em>state</em>, <em>halt_on=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.cascade_iterator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iterate each element and its mapper in an object graph,
-for all relations that meet the given cascade rule.</p>
+for all relationships that meet the given cascade rule.</p>
 <dl class="docutils">
 <dt><tt class="docutils literal"><span class="pre">type\_</span></tt>:</dt>
 <dd>The name of the cascade rule (i.e. save-update, delete,
 etc.)</dd>
 <dt><tt class="docutils literal"><span class="pre">state</span></tt>:</dt>
 <dd>The lead InstanceState.  child items will be processed per
-the relations defined for this object&#8217;s mapper.</dd>
+the relationships defined for this object&#8217;s mapper.</dd>
 </dl>
 <p>the return value are object instances; this provides a strong
 reference so that they don&#8217;t fall out of scope immediately.</p>
@@ -1013,7 +1028,7 @@ instance.</dd></dl>
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>
         

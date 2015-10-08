@@ -33,7 +33,7 @@ db = None
 # more sugar, installed by __init__
 requires = None
 
-def fails_if(callable_):
+def fails_if(callable_, reason=None):
     """Mark a test as expected to fail if callable_ returns True.
 
     If the callable returns false, the test is run and reported as normal.
@@ -207,7 +207,24 @@ def _block_unconditionally(db, reason):
         return function_named(maybe, fn_name)
     return decorate
 
-
+def only_on(db, reason):
+    carp = _should_carp_about_exclusion(reason)
+    spec = db_spec(db)
+    def decorate(fn):
+        fn_name = fn.__name__
+        def maybe(*args, **kw):
+            if spec(config.db):
+                return fn(*args, **kw)
+            else:
+                msg = "'%s' unsupported on DB implementation '%s+%s': %s" % (
+                    fn_name, config.db.name, config.db.driver, reason)
+                print msg
+                if carp:
+                    print >> sys.stderr, msg
+                return True
+        return function_named(maybe, fn_name)
+    return decorate
+    
 def exclude(db, op, spec, reason):
     """Mark a test as unsupported by specific database server versions.
 
@@ -291,13 +308,18 @@ def _server_version(bind=None):
 def skip_if(predicate, reason=None):
     """Skip a test if predicate is true."""
     reason = reason or predicate.__name__
+    carp = _should_carp_about_exclusion(reason)
+    
     def decorate(fn):
         fn_name = fn.__name__
         def maybe(*args, **kw):
             if predicate():
                 msg = "'%s' skipped on DB %s version '%s': %s" % (
                     fn_name, config.db.name, _server_version(), reason)
-                raise SkipTest(msg)
+                print msg
+                if carp:
+                    print >> sys.stderr, msg
+                return True
             else:
                 return fn(*args, **kw)
         return function_named(maybe, fn_name)
@@ -606,21 +628,11 @@ class AssertsCompiledSQL(object):
             
         c = clause.compile(dialect=dialect, **kw)
 
+        param_str = repr(getattr(c, 'params', {}))
         # Py3K
-        ## I kid you not.
-        ##
-        ## 1. Doesn't work:
-        ## http://mail.python.org/pipermail/python-3000/2008-February/012144.html
-        ##
-        ## 2. no more setdefaultencoding(). (although this is undocumented)
-        ##
-        ## 3. Therefore:
-        ## http://docs.python.org/3.1/library/sys.html#sys.stdin
-        ## 
-        #sys.stdout.buffer.write(("\nSQL String:\n" + str(c) + repr(getattr(c, 'params', {}))).encode('utf-8'))
-        # Py2K
-        print "\nSQL String:\n" + str(c) + repr(getattr(c, 'params', {}))
-        # end Py2K
+        #param_str = param_str.encode('utf-8').decode('ascii', 'ignore')
+        
+        print "\nSQL String:\n" + str(c) + param_str
         
         cc = re.sub(r'[\n\t]', '', str(c))
         

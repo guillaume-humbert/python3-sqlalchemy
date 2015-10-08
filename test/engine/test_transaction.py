@@ -830,9 +830,6 @@ class TLTransactionTest(TestBase):
         tlengine.execute(users.insert(), user_id=3, user_name='user3')
         tlengine.rollback()
         
-        # TODO: removing this line, the test still tends to pass in most
-        # cases, except sporadically on PG.  this should be nailed down
-        # in TLEngine - removing this line should be guaranteed fail.
         tlengine.rollback()
         
         tlengine.execute(users.insert(), user_id=4, user_name='user4')
@@ -853,7 +850,8 @@ class TLTransactionTest(TestBase):
         c2.close()
         assert not c1.closed
         assert not tlengine.closed
-        
+
+    @testing.requires.independent_cursors
     def test_result_closing(self):
         """tests that contextual_connect is threadlocal"""
         

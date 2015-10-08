@@ -7,7 +7,7 @@
         
         <title>
     Sessions
- &mdash; SQLAlchemy 0.6beta1 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta1',
+          VERSION:     '0.6beta2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Interfaces" href="interfaces.html" />
         <link rel="prev" title="Querying" href="query.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
+            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
         </div>
         <div class="clearboth"></div>
 
@@ -298,8 +298,7 @@ present until they are removed using expunge(), clear(), or purge().</dd>
 
 <dl class="class">
 <dt id="sqlalchemy.orm.session.Session">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.orm.session.</tt><tt class="descname">Session</tt><big>(</big><em>bind=None</em>, <em>autoflush=True</em>, <em>expire_on_commit=True</em>, <em>_enable_transaction_accounting=True</em>, <em>autocommit=False</em>, <em>twophase=False</em>, <em>weak_identity_map=True</em>, <em>binds=None</em>, <em>extension=None</em>, <em>query_cls=&lt;class 'sqlalchemy.orm.query.Query'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.session.</tt><tt class="descname">Session</tt><big>(</big><em>bind=None</em>, <em>autoflush=True</em>, <em>expire_on_commit=True</em>, <em>_enable_transaction_accounting=True</em>, <em>autocommit=False</em>, <em>twophase=False</em>, <em>weak_identity_map=True</em>, <em>binds=None</em>, <em>extension=None</em>, <em>query_cls=&lt;class 'sqlalchemy.orm.query.Query'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session" title="Permalink to this definition">¶</a></dt>
 <dd><p>Manages persistence operations for ORM-mapped objects.</p>
 <p>The Session is the front end to SQLAlchemy&#8217;s <strong>Unit of Work</strong>
 implementation.  The concept behind Unit of Work is to track modifications
@@ -452,8 +451,7 @@ not use any connection resources until they are first needed.</p>
 
 <dl class="classmethod">
 <dt id="sqlalchemy.orm.session.Session.close_all">
-<em class="property">
-classmethod </em><tt class="descname">close_all</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.close_all" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><tt class="descname">close_all</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.close_all" title="Permalink to this definition">¶</a></dt>
 <dd>Close <em>all</em> sessions in memory.</dd></dl>
 
 <dl class="method">
@@ -661,8 +659,7 @@ mapped with <tt class="docutils literal"><span class="pre">cascade=&quot;merge&q
 
 <dl class="classmethod">
 <dt id="sqlalchemy.orm.session.Session.object_session">
-<em class="property">
-classmethod </em><tt class="descname">object_session</tt><big>(</big><em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.object_session" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><tt class="descname">object_session</tt><big>(</big><em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.object_session" title="Permalink to this definition">¶</a></dt>
 <dd>Return the <tt class="docutils literal"><span class="pre">Session</span></tt> to which an object belongs.</dd></dl>
 
 <dl class="method">
@@ -693,7 +690,7 @@ Returns the number of objects pruned.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.session.Session.refresh">
-<tt class="descname">refresh</tt><big>(</big><em>instance</em>, <em>attribute_names=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.refresh" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">refresh</tt><big>(</big><em>instance</em>, <em>attribute_names=None</em>, <em>lockmode=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.refresh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Refresh the attributes on the given instance.</p>
 <p>A query will be issued to the database and all attributes will be
 refreshed with their current database value.</p>
@@ -702,8 +699,21 @@ the instance-wide refresh operation will be followed immediately by
 the lazy load of that attribute.</p>
 <p>Eagerly-loaded relational attributes will eagerly load within the
 single refresh operation.</p>
-<p>The <tt class="docutils literal"><span class="pre">attribute_names</span></tt> argument is an iterable collection of
-attribute names indicating a subset of attributes to be refreshed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><em>attribute_names</em> &#8211; optional.  An iterable collection of
+string attribute names indicating a subset of attributes to 
+be refreshed.</li>
+<li><em>lockmode</em> &#8211; Passed to the <a title="sqlalchemy.orm.query.Query" class="reference external" href="query.html#sqlalchemy.orm.query.Query"><tt class="xref docutils literal"><span class="pre">Query</span></tt></a> 
+as used by <a title="sqlalchemy.orm.query.Query.with_lockmode" class="reference external" href="query.html#sqlalchemy.orm.query.Query.with_lockmode"><tt class="xref docutils literal"><span class="pre">with_lockmode()</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -726,8 +736,7 @@ begin() is called multiple times.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.orm.scoping.ScopedSession">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.orm.scoping.</tt><tt class="descname">ScopedSession</tt><big>(</big><em>session_factory</em>, <em>scopefunc=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.scoping.ScopedSession" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.scoping.</tt><tt class="descname">ScopedSession</tt><big>(</big><em>session_factory</em>, <em>scopefunc=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.scoping.ScopedSession" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provides thread-local management of Sessions.</p>
 <p>Usage:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Session</span> <span class="o">=</span> <span class="n">scoped_session</span><span class="p">(</span><span class="n">sessionmaker</span><span class="p">(</span><span class="n">autoflush</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
@@ -777,6 +786,11 @@ keyword argument.</p>
 a class.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="sqlalchemy.orm.scoping.ScopedSession.remove">
+<tt class="descname">remove</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.scoping.ScopedSession.remove" title="Permalink to this definition">¶</a></dt>
+<dd>Dispose of the current contextual session.</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -797,7 +811,7 @@ a class.</p>
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>
         

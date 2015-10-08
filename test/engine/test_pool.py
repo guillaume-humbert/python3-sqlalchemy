@@ -73,14 +73,34 @@ class PoolTest(PoolTestBase):
         self.assert_(connection.cursor() is not None)
         self.assert_(connection is not connection2)
 
+    @testing.fails_on('+pyodbc', "pyodbc cursor doesn't implement tuple __eq__")
     def test_cursor_iterable(self):
         conn = testing.db.raw_connection()
         cursor = conn.cursor()
-        cursor.execute(str(select([1]).compile(testing.db)))
+        cursor.execute(str(select([1], bind=testing.db)))
         expected = [(1,)]
         for row in cursor:
             eq_(row, expected.pop(0))
+    
+    def test_no_connect_on_recreate(self):
+        def creator():
+            raise Exception("no creates allowed")
         
+        for cls in (pool.SingletonThreadPool, pool.StaticPool, 
+                    pool.QueuePool, pool.NullPool, pool.AssertionPool):
+            p = cls(creator=creator)
+            p.dispose()
+            p.recreate()
+        
+            mock_dbapi = MockDBAPI()
+            p = cls(creator=mock_dbapi.connect)
+            conn = p.connect()
+            conn.close()
+            mock_dbapi.throw_error = True
+            p.dispose()
+            p.recreate()
+            
+            
     def testthreadlocal_del(self):
         self._do_testthreadlocal(useclose=False)
 
@@ -499,7 +519,10 @@ class QueuePoolTest(PoolTestBase):
         # wait for the timeout on queue.get().  the fix involves checking the
         # timeout again within the mutex, and if so, unlocking and throwing
         # them back to the start of do_get()
-        p = pool.QueuePool(creator = lambda: mock_dbapi.connect(delay=.05), pool_size = 2, max_overflow = 1, use_threadlocal = False, timeout=3)
+        p = pool.QueuePool(
+                creator = lambda: mock_dbapi.connect(delay=.05), 
+                pool_size = 2, 
+                max_overflow = 1, use_threadlocal = False, timeout=3)
         timeouts = []
         def checkout():
             for x in xrange(1):
@@ -507,7 +530,7 @@ class QueuePoolTest(PoolTestBase):
                 try:
                     c1 = p.connect()
                 except tsa.exc.TimeoutError, e:
-                    timeouts.append(int(time.time()) - now)
+                    timeouts.append(time.time() - now)
                     continue
                 time.sleep(4)
                 c1.close()  
@@ -520,12 +543,16 @@ class QueuePoolTest(PoolTestBase):
         for th in threads:
             th.join() 
 
-        print timeouts
         assert len(timeouts) > 0
         for t in timeouts:
-            assert abs(t - 3) < 1, "Not all timeouts were 3 seconds: " + repr(timeouts)
+            assert t >= 3, "Not all timeouts were >= 3 seconds %r" % timeouts
+            # normally, the timeout should under 4 seconds,
+            # but on a loaded down buildbot it can go up.
+            assert t < 10, "Not all timeouts were < 10 seconds %r" % timeouts
 
     def _test_overflow(self, thread_count, max_overflow):
+        gc_collect()
+        
         def creator():
             time.sleep(.05)
             return mock_dbapi.connect()

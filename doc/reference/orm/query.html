@@ -7,7 +7,7 @@
         
         <title>
     Querying
- &mdash; SQLAlchemy 0.6beta1 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta1',
+          VERSION:     '0.6beta2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Sessions" href="sessions.html" />
         <link rel="prev" title="Collection Mapping" href="collections.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
+            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
         </div>
         <div class="clearboth"></div>
 
@@ -87,7 +87,7 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="">Querying</a><ul>
+<li><a class="reference external" href="#">Querying</a><ul>
 <li><a class="reference external" href="#the-query-object">The Query Object</a></li>
 <li><a class="reference external" href="#orm-specific-query-constructs">ORM-Specific Query Constructs</a></li>
 <li><a class="reference external" href="#query-options">Query Options</a></li>
@@ -111,8 +111,7 @@
 <p>Following is the full interface for the <tt class="xref docutils literal"><span class="pre">Query</span></tt> object.</p>
 <dl class="class">
 <dt id="sqlalchemy.orm.query.Query">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.orm.query.</tt><tt class="descname">Query</tt><big>(</big><em>entities</em>, <em>session=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.query.</tt><tt class="descname">Query</tt><big>(</big><em>entities</em>, <em>session=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query" title="Permalink to this definition">¶</a></dt>
 <dd><p>ORM-level SQL construction object.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.__init__">
@@ -196,7 +195,8 @@ removed from the session. Matched objects are removed from the
 session.</p>
 <p>&#8216;evaluate&#8217; - Evaluate the query&#8217;s criteria in Python straight on
 the objects in the session. If evaluation of the criteria isn&#8217;t
-implemented, the &#8216;fetch&#8217; strategy will be used as a fallback.</p>
+implemented, an error is raised.  In that case you probably 
+want to use the &#8216;fetch&#8217; strategy as a fallback.</p>
 <p>The expression evaluator currently doesn&#8217;t account for differing
 string collations between the database and Python.</p>
 </td>
@@ -204,7 +204,7 @@ string collations between the database and Python.</p>
 </tbody>
 </table>
 <p>Returns the number of rows deleted, excluding any cascades.</p>
-<p>The method does <em>not</em> offer in-Python cascading of relations - it is
+<p>The method does <em>not</em> offer in-Python cascading of relationships - it is
 assumed that ON DELETE CASCADE is configured for any foreign key
 references which require it. The Session needs to be expired (occurs
 automatically after commit(), or call expire_all()) in order for the
@@ -273,13 +273,12 @@ method for usage examples.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.execution_options">
 <tt class="descname">execution_options</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.execution_options" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set non-SQL options for the resulting statement, 
-such as dialect-specific options.</p>
-<p>The only option currently understood is <tt class="docutils literal"><span class="pre">stream_results=True</span></tt>, 
-only used by Psycopg2 to enable &#8220;server side cursors&#8221;.  This option
-only has a useful effect if used in conjunction with
-<a title="sqlalchemy.orm.query.Query.yield_per" class="reference internal" href="#sqlalchemy.orm.query.Query.yield_per"><tt class="xref docutils literal"><span class="pre">yield_per()</span></tt></a>,
-which currently sets <tt class="docutils literal"><span class="pre">stream_results</span></tt> to <tt class="xref docutils literal"><span class="pre">True</span></tt> automatically.</p>
+<dd><p>Set non-SQL options which take effect during execution.</p>
+<p>The options are the same as those accepted by 
+<a title="sqlalchemy.sql.expression.Executable.execution_options" class="reference external" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.Executable.execution_options"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.Executable.execution_options()</span></tt></a>.</p>
+<p>Note that the <tt class="docutils literal"><span class="pre">stream_results</span></tt> execution option is enabled
+automatically if the <a title="sqlalchemy.orm.query.Query.yield_per" class="reference internal" href="#sqlalchemy.orm.query.Query.yield_per"><tt class="xref docutils literal"><span class="pre">yield_per()</span></tt></a>
+method is used.</p>
 </dd></dl>
 
 <dl class="method">
@@ -297,8 +296,13 @@ which currently sets <tt class="docutils literal"><span class="pre">stream_resul
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.first">
 <tt class="descname">first</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.first" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the first result of this <tt class="docutils literal"><span class="pre">Query</span></tt> or None if the result doesn&#8217;t contain any row.</p>
-<p>This results in an execution of the underlying query.</p>
+<dd><p>Return the first result of this <tt class="docutils literal"><span class="pre">Query</span></tt> or 
+None if the result doesn&#8217;t contain any row.</p>
+<p>first() applies a limit of one within the generated SQL, so that
+only one primary entity row is generated on the server side 
+(note this may consist of multiple result rows if eagerly loaded
+collections are present).</p>
+<p>Calling <tt class="docutils literal"><span class="pre">first()</span></tt> results in an execution of the underlying query.</p>
 </dd></dl>
 
 <dl class="method">
@@ -342,10 +346,8 @@ in the order of the table def&#8217;s primary key columns.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.instances">
 <tt class="descname">instances</tt><big>(</big><em>cursor</em>, <em>_Query__context=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.instances" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Given a ResultProxy cursor as returned by connection.execute(),</dt>
-<dd>return an ORM result as an iterator.</dd>
-</dl>
+<dd><p>Given a ResultProxy cursor as returned by connection.execute(),
+return an ORM result as an iterator.</p>
 <p>e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">result</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;select * from users&quot;</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">instances</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
@@ -378,10 +380,10 @@ and apply generatively, returning the newly resulting <tt class="docutils litera
 <blockquote>
 <ul class="simple">
 <li>a string property name, i.e. &#8220;rooms&#8221;.  This will join along the
-relation of the same name from this Query&#8217;s &#8220;primary&#8221; mapper, if
+relationship of the same name from this Query&#8217;s &#8220;primary&#8221; mapper, if
 one is present.</li>
 <li>a class-mapped attribute, i.e. Houses.rooms.  This will create a
-join from &#8220;Houses&#8221; table to that of the &#8220;rooms&#8221; relation.</li>
+join from &#8220;Houses&#8221; table to that of the &#8220;rooms&#8221; relationship.</li>
 <li>a 2-tuple containing a target class or selectable, and an &#8220;ON&#8221;
 clause.  The ON clause can be the property name/ attribute like
 above, or a SQL expression.</li>
@@ -393,13 +395,13 @@ above, or a SQL expression.</li>
 <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&#39;employees&#39;</span><span class="p">,</span> <span class="s">&#39;tasks&#39;</span><span class="p">)</span>
 
 <span class="c"># join the Person entity to an alias of itself,</span>
-<span class="c"># along the &quot;friends&quot; relation</span>
+<span class="c"># along the &quot;friends&quot; relationship</span>
 <span class="n">PAlias</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">Person</span><span class="p">)</span>
 <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Person</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">Palias</span><span class="p">,</span> <span class="n">Person</span><span class="o">.</span><span class="n">friends</span><span class="p">))</span>
 
 <span class="c"># join from Houses to the &quot;rooms&quot; attribute on the</span>
 <span class="c"># &quot;Colonials&quot; subclass of Houses, then join to the</span>
-<span class="c"># &quot;closets&quot; relation on Room</span>
+<span class="c"># &quot;closets&quot; relationship on Room</span>
 <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Houses</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Colonials</span><span class="o">.</span><span class="n">rooms</span><span class="p">,</span> <span class="n">Room</span><span class="o">.</span><span class="n">closets</span><span class="p">)</span>
 
 <span class="c"># join from Company entities to the &quot;employees&quot; collection,</span>
@@ -408,7 +410,7 @@ above, or a SQL expression.</li>
 <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">people</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">engineers</span><span class="p">),</span> <span class="s">&#39;employees&#39;</span><span class="p">),</span> <span class="n">Engineer</span><span class="o">.</span><span class="n">computers</span><span class="p">)</span>
 
 <span class="c"># join from Articles to Keywords, using the &quot;keywords&quot; attribute.</span>
-<span class="c"># assume this is a many-to-many relation.</span>
+<span class="c"># assume this is a many-to-many relationship.</span>
 <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Article</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Article</span><span class="o">.</span><span class="n">keywords</span><span class="p">)</span>
 
 <span class="c"># same thing, but spelled out entirely explicitly</span>
@@ -462,10 +464,19 @@ of this Query - if these do not correspond, unchecked errors will occur.</p>
 <dt id="sqlalchemy.orm.query.Query.one">
 <tt class="descname">one</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.one" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return exactly one result or raise an exception.</p>
-<p>Raises <tt class="docutils literal"><span class="pre">sqlalchemy.orm.exc.NoResultFound</span></tt> if the query selects no rows.
-Raises <tt class="docutils literal"><span class="pre">sqlalchemy.orm.exc.MultipleResultsFound</span></tt> if multiple rows are
-selected.</p>
-<p>This results in an execution of the underlying query.</p>
+<p>Raises <tt class="docutils literal"><span class="pre">sqlalchemy.orm.exc.NoResultFound</span></tt> if the query selects 
+no rows.  Raises <tt class="docutils literal"><span class="pre">sqlalchemy.orm.exc.MultipleResultsFound</span></tt> 
+if multiple object identities are returned, or if multiple
+rows are returned for a query that does not return object
+identities.</p>
+<p>Note that an entity query, that is, one which selects one or
+more mapped classes as opposed to individual column attributes,
+may ultimately represent many rows but only one row of 
+unique entity or entities - this is a successful result for one().</p>
+<p>Calling <tt class="docutils literal"><span class="pre">one()</span></tt> results in an execution of the underlying query.
+As of 0.6, <tt class="docutils literal"><span class="pre">one()</span></tt> fully fetches all results instead of applying 
+any kind of limit, so that the &#8220;unique&#8221;-ing of entities does not 
+conceal multiple object identities.</p>
 </dd></dl>
 
 <dl class="method">
@@ -522,7 +533,9 @@ the root.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.scalar">
 <tt class="descname">scalar</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.scalar" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the first element of the first result or None.</p>
+<dd><p>Return the first element of the first result or None
+if no rows present.  If multiple rows are returned,
+raises MultipleResultsFound.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Item</span><span class="p">)</span><span class="o">.</span><span class="n">scalar</span><span class="p">()</span>
 <span class="go">&lt;Item&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Item</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">scalar</span><span class="p">()</span>
@@ -551,18 +564,26 @@ for joined-table mappers.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.slice">
 <tt class="descname">slice</tt><big>(</big><em>start</em>, <em>stop</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.slice" title="Permalink to this definition">¶</a></dt>
-<dd>apply LIMIT/OFFSET to the <tt class="docutils literal"><span class="pre">Query</span></tt> based on a range and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</dd></dl>
+<dd>apply LIMIT/OFFSET to the <tt class="docutils literal"><span class="pre">Query</span></tt> based on a &#8221;
+&#8220;range and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</dd></dl>
 
 <dl class="attribute">
 <dt id="sqlalchemy.orm.query.Query.statement">
 <tt class="descname">statement</tt><a class="headerlink" href="#sqlalchemy.orm.query.Query.statement" title="Permalink to this definition">¶</a></dt>
-<dd>The full SELECT statement represented by this Query.</dd></dl>
+<dd><p>The full SELECT statement represented by this Query.</p>
+<p>The statement by default will not have disambiguating labels
+applied to the construct unless with_labels(True) is called
+first.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.subquery">
 <tt class="descname">subquery</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.subquery" title="Permalink to this definition">¶</a></dt>
 <dd><p>return the full SELECT statement represented by this Query, embedded within an Alias.</p>
 <p>Eager JOIN generation within the query is disabled.</p>
+<p>The statement by default will not have disambiguating labels
+applied to the construct unless with_labels(True) is called
+first.</p>
 </dd></dl>
 
 <dl class="method">
@@ -633,7 +654,7 @@ string collations between the database and Python.</p>
 </tbody>
 </table>
 <p>Returns the number of rows matched by the update.</p>
-<p>The method does <em>not</em> offer in-Python cascading of relations - it is assumed that
+<p>The method does <em>not</em> offer in-Python cascading of relationships - it is assumed that
 ON UPDATE CASCADE is configured for any foreign key references which require it.</p>
 <p>The Session needs to be expired (occurs automatically after commit(), or call expire_all())
 in order for the state of dependent objects subject foreign key cascade to be
@@ -762,6 +783,23 @@ and causes server side cursors to be used.</p>
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">aliased</tt><a class="headerlink" href="#sqlalchemy.orm.aliased" title="Permalink to this definition">¶</a></dt>
 <dd>alias of <tt class="xref docutils literal"><span class="pre">AliasedClass</span></tt></dd></dl>
 
+<dl class="class">
+<dt id="sqlalchemy.orm.util.AliasedClass">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.util.</tt><tt class="descname">AliasedClass</tt><big>(</big><em>cls</em>, <em>alias=None</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.AliasedClass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents an &#8220;aliased&#8221; form of a mapped class for usage with Query.</p>
+<p>The ORM equivalent of a <a title="sqlalchemy.sql.expression.alias" class="reference external" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.alias"><tt class="xref docutils literal"><span class="pre">sqlalchemy.sql.expression.alias()</span></tt></a>
+construct, this object mimics the mapped class using a
+__getattr__ scheme and maintains a reference to a
+real <a title="sqlalchemy.sql.expression.Alias" class="reference external" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.Alias"><tt class="xref docutils literal"><span class="pre">Alias</span></tt></a> object.</p>
+<p>Usage is via the <a title="sqlalchemy.orm.aliased" class="reference internal" href="#sqlalchemy.orm.aliased"><tt class="xref docutils literal"><span class="pre">aliased()</span></tt></a> synonym:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># find all pairs of users with the same name</span>
+<span class="n">user_alias</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">User</span><span class="p">)</span>
+<span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">user_alias</span><span class="p">)</span><span class="o">.</span>\
+                <span class="n">join</span><span class="p">((</span><span class="n">user_alias</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">id</span> <span class="o">&gt;</span> <span class="n">user_alias</span><span class="o">.</span><span class="n">id</span><span class="p">))</span><span class="o">.</span>\
+                <span class="nb">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="n">user_alias</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></pre></div>
+</div>
+</dd></dl>
+
 <dl class="function">
 <dt id="sqlalchemy.orm.join">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">join</tt><big>(</big><em>left</em>, <em>right</em>, <em>onclause=None</em>, <em>isouter=False</em>, <em>join_to_left=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.join" title="Permalink to this definition">¶</a></dt>
@@ -769,8 +807,8 @@ and causes server side cursors to be used.</p>
 <p>In addition to the interface provided by
 <a title="sqlalchemy.sql.expression.join" class="reference external" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.join"><tt class="xref docutils literal"><span class="pre">join()</span></tt></a>, left and right may be mapped
 classes or AliasedClass instances. The onclause may be a
-string name of a relation(), or a class-bound descriptor
-representing a relation.</p>
+string name of a relationship(), or a class-bound descriptor
+representing a relationship.</p>
 <p>join_to_left indicates to attempt aliasing the ON clause,
 in whatever form it is passed, to the selectable
 passed as the left side.  If False, the onclause
@@ -784,8 +822,8 @@ is used as is.</p>
 <p>In addition to the interface provided by
 <a title="sqlalchemy.sql.expression.outerjoin" class="reference external" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.outerjoin"><tt class="xref docutils literal"><span class="pre">outerjoin()</span></tt></a>, left and right may be mapped
 classes or AliasedClass instances. The onclause may be a
-string name of a relation(), or a class-bound descriptor
-representing a relation.</p>
+string name of a relationship(), or a class-bound descriptor
+representing a relationship.</p>
 </dd></dl>
 
 </div>
@@ -796,13 +834,29 @@ representing a relation.</p>
 <dt id="sqlalchemy.orm.contains_eager">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">contains_eager</tt><big>(</big><em>*keys</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.contains_eager" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will indicate to the query that
-the given attribute will be eagerly loaded.</p>
-<p>Used when feeding SQL result sets directly into <tt class="docutils literal"><span class="pre">query.instances()</span></tt>.
-Also bundles an <tt class="docutils literal"><span class="pre">EagerLazyOption</span></tt> to turn on eager loading in case it
-isn&#8217;t already.</p>
-<p><cite>alias</cite> is the string name of an alias, <strong>or</strong> an <tt class="docutils literal"><span class="pre">sql.Alias</span></tt> object,
-which represents the aliased columns in the query.  This argument is
-optional.</p>
+the given attribute should be eagerly loaded from columns currently
+in the query.</p>
+<p>Used with <a title="sqlalchemy.orm.query.Query.options" class="reference internal" href="#sqlalchemy.orm.query.Query.options"><tt class="xref docutils literal"><span class="pre">options()</span></tt></a>.</p>
+<p>The option is used in conjunction with an explicit join that loads 
+the desired rows, i.e.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Order</span><span class="p">)</span><span class="o">.</span>\
+        <span class="n">join</span><span class="p">(</span><span class="n">Order</span><span class="o">.</span><span class="n">user</span><span class="p">)</span><span class="o">.</span>\
+        <span class="n">options</span><span class="p">(</span><span class="n">contains_eager</span><span class="p">(</span><span class="n">Order</span><span class="o">.</span><span class="n">user</span><span class="p">))</span></pre></div>
+</div>
+<p>The above query would join from the <tt class="docutils literal"><span class="pre">Order</span></tt> entity to its related
+<tt class="docutils literal"><span class="pre">User</span></tt> entity, and the returned <tt class="docutils literal"><span class="pre">Order</span></tt> objects would have the
+<tt class="docutils literal"><span class="pre">Order.user</span></tt> attribute pre-populated.</p>
+<p><a title="sqlalchemy.orm.contains_eager" class="reference internal" href="#sqlalchemy.orm.contains_eager"><tt class="xref docutils literal"><span class="pre">contains_eager()</span></tt></a> also accepts an <cite>alias</cite> argument, which
+is the string name of an alias, an <a title="sqlalchemy.sql.expression.alias" class="reference external" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.alias"><tt class="xref docutils literal"><span class="pre">alias()</span></tt></a>
+construct, or an <a title="sqlalchemy.orm.aliased" class="reference internal" href="#sqlalchemy.orm.aliased"><tt class="xref docutils literal"><span class="pre">aliased()</span></tt></a> construct.  Use this
+when the eagerly-loaded rows are to come from an aliased table:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">user_alias</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">User</span><span class="p">)</span>
+<span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Order</span><span class="p">)</span><span class="o">.</span>\
+        <span class="n">join</span><span class="p">((</span><span class="n">user_alias</span><span class="p">,</span> <span class="n">Order</span><span class="o">.</span><span class="n">user</span><span class="p">))</span><span class="o">.</span>\
+        <span class="n">options</span><span class="p">(</span><span class="n">contains_eager</span><span class="p">(</span><span class="n">Order</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="n">user_alias</span><span class="p">))</span></pre></div>
+</div>
+<p>See also <a title="sqlalchemy.orm.eagerload" class="reference internal" href="#sqlalchemy.orm.eagerload"><tt class="xref docutils literal"><span class="pre">eagerload()</span></tt></a> for the &#8220;automatic&#8221; version of this 
+functionality.</p>
 </dd></dl>
 
 <dl class="function">
@@ -810,7 +864,7 @@ optional.</p>
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">defer</tt><big>(</big><em>*keys</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.defer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the column property of the
 given name into a deferred load.</p>
-<p>Used with <tt class="docutils literal"><span class="pre">query.options()</span></tt></p>
+<p>Used with <a title="sqlalchemy.orm.query.Query.options" class="reference internal" href="#sqlalchemy.orm.query.Query.options"><tt class="xref docutils literal"><span class="pre">options()</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -818,7 +872,7 @@ given name into a deferred load.</p>
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">eagerload</tt><big>(</big><em>*keys</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.eagerload" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the given
 name into an eager load.</p>
-<p>Used with <tt class="docutils literal"><span class="pre">query.options()</span></tt>.</p>
+<p>Used with <a title="sqlalchemy.orm.query.Query.options" class="reference internal" href="#sqlalchemy.orm.query.Query.options"><tt class="xref docutils literal"><span class="pre">options()</span></tt></a>.</p>
 <p>examples:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># eagerload the &quot;orders&quot; colleciton on &quot;User&quot;</span>
 <span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">eagerload</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">orders</span><span class="p">))</span>
@@ -831,8 +885,14 @@ name into an eager load.</p>
 <span class="c"># to eagerload across both, use eagerload_all()</span>
 <span class="n">query</span><span class="p">(</span><span class="n">Order</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">eagerload_all</span><span class="p">(</span><span class="n">Order</span><span class="o">.</span><span class="n">items</span><span class="p">,</span> <span class="n">Item</span><span class="o">.</span><span class="n">keywords</span><span class="p">))</span></pre></div>
 </div>
-<p>The keyword arguments accept a flag <cite>innerjoin=True|False</cite> which will 
-override the value of the <cite>innerjoin</cite> flag specified on the relation().</p>
+<p><a title="sqlalchemy.orm.eagerload" class="reference internal" href="#sqlalchemy.orm.eagerload"><tt class="xref docutils literal"><span class="pre">eagerload()</span></tt></a> also accepts a keyword argument <cite>innerjoin=True</cite> which
+indicates using an inner join instead of an outer:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="p">(</span><span class="n">Order</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">eagerload</span><span class="p">(</span><span class="n">Order</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">innerjoin</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span></pre></div>
+</div>
+<p>Note that the join created by <a title="sqlalchemy.orm.eagerload" class="reference internal" href="#sqlalchemy.orm.eagerload"><tt class="xref docutils literal"><span class="pre">eagerload()</span></tt></a> is aliased such that
+no other aspects of the query will affect what it loads.  To use eager
+loading with a join that is constructed manually using <a title="sqlalchemy.orm.query.Query.join" class="reference internal" href="#sqlalchemy.orm.query.Query.join"><tt class="xref docutils literal"><span class="pre">join()</span></tt></a>
+or <a title="sqlalchemy.orm.join" class="reference internal" href="#sqlalchemy.orm.join"><tt class="xref docutils literal"><span class="pre">join()</span></tt></a>, see <a title="sqlalchemy.orm.contains_eager" class="reference internal" href="#sqlalchemy.orm.contains_eager"><tt class="xref docutils literal"><span class="pre">contains_eager()</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -840,7 +900,7 @@ override the value of the <cite>innerjoin</cite> flag specified on the relation(
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">eagerload_all</tt><big>(</big><em>*keys</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.eagerload_all" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert all properties along the
 given dot-separated path into an eager load.</p>
-<p>Used with <tt class="docutils literal"><span class="pre">query.options()</span></tt>.</p>
+<p>Used with <a title="sqlalchemy.orm.query.Query.options" class="reference internal" href="#sqlalchemy.orm.query.Query.options"><tt class="xref docutils literal"><span class="pre">options()</span></tt></a>.</p>
 <p>For example:</p>
 <div class="highlight-python"><pre>query.options(eagerload_all('orders.items.keywords'))...</pre>
 </div>
@@ -850,7 +910,7 @@ load in one eager load.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">eagerload_all</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">orders</span><span class="p">,</span> <span class="n">Order</span><span class="o">.</span><span class="n">items</span><span class="p">,</span> <span class="n">Item</span><span class="o">.</span><span class="n">keywords</span><span class="p">))</span></pre></div>
 </div>
 <p>The keyword arguments accept a flag <cite>innerjoin=True|False</cite> which will 
-override the value of the <cite>innerjoin</cite> flag specified on the relation().</p>
+override the value of the <cite>innerjoin</cite> flag specified on the relationship().</p>
 </dd></dl>
 
 <dl class="function">
@@ -859,7 +919,7 @@ override the value of the <cite>innerjoin</cite> flag specified on the relation(
 <dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will insert the given
 <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> to the beginning of the list of extensions
 that will be called in the context of the <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
-<p>Used with <tt class="docutils literal"><span class="pre">query.options()</span></tt>.</p>
+<p>Used with <a title="sqlalchemy.orm.query.Query.options" class="reference internal" href="#sqlalchemy.orm.query.Query.options"><tt class="xref docutils literal"><span class="pre">options()</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -867,7 +927,7 @@ that will be called in the context of the <tt class="docutils literal"><span cla
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">lazyload</tt><big>(</big><em>*keys</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.lazyload" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the given
 name into a lazy load.</p>
-<p>Used with <tt class="docutils literal"><span class="pre">query.options()</span></tt>.</p>
+<p>Used with <a title="sqlalchemy.orm.query.Query.options" class="reference internal" href="#sqlalchemy.orm.query.Query.options"><tt class="xref docutils literal"><span class="pre">options()</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -875,7 +935,7 @@ name into a lazy load.</p>
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">undefer</tt><big>(</big><em>*keys</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.undefer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the column property of the
 given name into a non-deferred (regular column) load.</p>
-<p>Used with <tt class="docutils literal"><span class="pre">query.options()</span></tt>.</p>
+<p>Used with <a title="sqlalchemy.orm.query.Query.options" class="reference internal" href="#sqlalchemy.orm.query.Query.options"><tt class="xref docutils literal"><span class="pre">options()</span></tt></a>.</p>
 </dd></dl>
 
 </div>
@@ -897,7 +957,7 @@ given name into a non-deferred (regular column) load.</p>
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>
         

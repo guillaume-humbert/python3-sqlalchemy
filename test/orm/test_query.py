@@ -32,24 +32,24 @@ class QueryTest(_fixtures.FixtureTest):
     @classmethod
     def setup_mappers(cls):
         mapper(User, users, properties={
-            'addresses':relation(Address, backref='user', order_by=addresses.c.id),
-            'orders':relation(Order, backref='user', order_by=orders.c.id), # o2m, m2o
+            'addresses':relationship(Address, backref='user', order_by=addresses.c.id),
+            'orders':relationship(Order, backref='user', order_by=orders.c.id), # o2m, m2o
         })
         mapper(Address, addresses, properties={
-            'dingaling':relation(Dingaling, uselist=False, backref="address")  #o2o
+            'dingaling':relationship(Dingaling, uselist=False, backref="address")  #o2o
         })
         mapper(Dingaling, dingalings)
         mapper(Order, orders, properties={
-            'items':relation(Item, secondary=order_items, order_by=items.c.id),  #m2m
-            'address':relation(Address),  # m2o
+            'items':relationship(Item, secondary=order_items, order_by=items.c.id),  #m2m
+            'address':relationship(Address),  # m2o
         })
         mapper(Item, items, properties={
-            'keywords':relation(Keyword, secondary=item_keywords) #m2m
+            'keywords':relationship(Keyword, secondary=item_keywords) #m2m
         })
         mapper(Keyword, keywords)
 
         mapper(Node, nodes, properties={
-            'children':relation(Node, 
+            'children':relationship(Node, 
                 backref=backref('parent', remote_side=[nodes.c.id])
             )
         })
@@ -167,7 +167,7 @@ class GetTest(QueryTest):
         try:
             metadata.create_all()
             # Py3K
-            #ustring = 'petit voix m\xe2\x80\x99a'
+            #ustring = b'petit voix m\xe2\x80\x99a'.decode('utf-8')
             # Py2K
             ustring = 'petit voix m\xe2\x80\x99a'.decode('utf-8')
             # end Py2K
@@ -283,6 +283,25 @@ class InvalidGenerationsTest(QueryTest):
         s = create_session()
         q = s.query(User)
         assert_raises(sa_exc.InvalidRequestError, q.add_column, object())
+    
+    def test_distinct(self):
+        """test that a distinct() call is not valid before 'clauseelement' conditions."""
+        
+        s = create_session()
+        q = s.query(User).distinct()
+        assert_raises(sa_exc.InvalidRequestError, q.select_from, User)
+        assert_raises(sa_exc.InvalidRequestError, q.from_statement, text("select * from table"))
+        assert_raises(sa_exc.InvalidRequestError, q.with_polymorphic, User)
+
+    def test_order_by(self):
+        """test that an order_by() call is not valid before 'clauseelement' conditions."""
+
+        s = create_session()
+        q = s.query(User).order_by(User.id)
+        assert_raises(sa_exc.InvalidRequestError, q.select_from, User)
+        assert_raises(sa_exc.InvalidRequestError, q.from_statement, text("select * from table"))
+        assert_raises(sa_exc.InvalidRequestError, q.with_polymorphic, User)
+        
         
     def test_mapper_zero(self):
         s = create_session()
@@ -381,7 +400,7 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
         self._test(None == Address.user, "addresses.user_id IS NULL")
         self._test(~(None == Address.user), "addresses.user_id IS NOT NULL")
         
-    def test_relation(self):
+    def test_relationship(self):
         self._test(User.addresses.any(Address.id==17), 
                         "EXISTS (SELECT 1 "
                         "FROM addresses "
@@ -399,7 +418,7 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
 
         self._test(Address.user != None, "addresses.user_id IS NOT NULL")
 
-    def test_selfref_relation(self):
+    def test_selfref_relationship(self):
         nalias = aliased(Node)
 
         # auto self-referential aliasing
@@ -478,8 +497,12 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
          self._test(User.id.in_(['a', 'b']),
                     "users.id IN (:id_1, :id_2)")
 
-    def test_in_on_relation_not_supported(self):
+    def test_in_on_relationship_not_supported(self):
         assert_raises(NotImplementedError, Address.user.in_, [User(id=5)])
+    
+    def test_neg(self):
+        self._test(-User.id, "-users.id")
+        self._test(User.id + -User.id, "users.id + -users.id")
         
     def test_between(self):
         self._test(User.id.between('a', 'b'),
@@ -582,9 +605,12 @@ class ExpressionTest(QueryTest, AssertsCompiledSQL):
         
         # this is actually not legal on most DBs since the subquery has no alias
         q1 = s.query(User).filter(User.name=='ed')
+
+
         self.assert_compile(
             select([q1]),
-            "SELECT id, name FROM (SELECT users.id AS id, users.name AS name FROM users WHERE users.name = :name_1)",
+            "SELECT users_id, users_name FROM (SELECT users.id AS users_id, "
+            "users.name AS users_name FROM users WHERE users.name = :name_1)",
             dialect=default.DefaultDialect()
         )
         
@@ -955,8 +981,27 @@ class SetOpsTest(QueryTest, AssertsCompiledSQL):
             [User(name='ed'), User(name='fred'), User(name='jack')]
         )
     
+    def test_statement_labels(self):
+        """test that label conflicts don't occur with joins etc."""
+        
+        s = create_session()
+        q1 = s.query(User, Address).join(User.addresses).\
+                                    filter(Address.email_address=="ed@wood.com")
+        q2 = s.query(User, Address).join(User.addresses).\
+                                    filter(Address.email_address=="jack@bean.com")
+        q3 = q1.union(q2).order_by(User.name)
+        
+        eq_(
+            q3.all(),
+            [
+                (User(name='ed'), Address(email_address="ed@wood.com")),
+                (User(name='jack'), Address(email_address="jack@bean.com")),
+            ]
+        )
+        
     def test_union_labels(self):
-        """test that column expressions translate during the _from_statement() portion of union(), others"""
+        """test that column expressions translate during 
+            the _from_statement() portion of union(), others"""
         
         s = create_session()
         q1 = s.query(User, literal("x"))
@@ -965,9 +1010,10 @@ class SetOpsTest(QueryTest, AssertsCompiledSQL):
 
         self.assert_compile(
             q3,
-            "SELECT anon_1.id AS anon_1_id, anon_1.name AS anon_1_name, anon_1.anon_2 AS anon_1_anon_2 FROM "
-            "(SELECT users.id AS id, users.name AS name, :param_1 AS anon_2 FROM users "
-            "UNION SELECT users.id AS id, users.name AS name, 'y' FROM users) AS anon_1"
+            "SELECT anon_1.users_id AS anon_1_users_id, anon_1.users_name AS anon_1_users_name,"
+            " anon_1.anon_2 AS anon_1_anon_2 FROM (SELECT users.id AS users_id, users.name AS"
+            " users_name, :param_1 AS anon_2 FROM users UNION SELECT users.id AS users_id, "
+            "users.name AS users_name, 'y' FROM users) AS anon_1"
             , use_default_dialect = True
         )
 
@@ -1273,18 +1319,20 @@ class InheritedJoinTest(_base.MappedTest, AssertsCompiledSQL):
             pass
 
         mapper(Company, companies, properties={
-            'employees':relation(Person, order_by=people.c.person_id)
+            'employees':relationship(Person, order_by=people.c.person_id)
         })
 
         mapper(Machine, machines)
 
         mapper(Person, people, 
-            polymorphic_on=people.c.type, polymorphic_identity='person', order_by=people.c.person_id, 
+            polymorphic_on=people.c.type, 
+            polymorphic_identity='person', 
+            order_by=people.c.person_id, 
             properties={
-                'paperwork':relation(Paperwork, order_by=paperwork.c.paperwork_id)
+                'paperwork':relationship(Paperwork, order_by=paperwork.c.paperwork_id)
             })
         mapper(Engineer, engineers, inherits=Person, polymorphic_identity='engineer', properties={
-                'machines':relation(Machine, order_by=machines.c.machine_id)
+                'machines':relationship(Machine, order_by=machines.c.machine_id)
             })
         mapper(Manager, managers, 
                     inherits=Person, polymorphic_identity='manager')
@@ -1336,11 +1384,14 @@ class InheritedJoinTest(_base.MappedTest, AssertsCompiledSQL):
         self.assert_compile(
             sess.query(Company).join(Company.employees.of_type(Engineer)),
             "SELECT companies.company_id AS companies_company_id, companies.name AS companies_name "
-            "FROM companies JOIN (SELECT people.person_id AS people_person_id, people.company_id AS "
-            "people_company_id, people.name AS people_name, people.type AS people_type, engineers.person_id AS "
-            "engineers_person_id, engineers.status AS engineers_status, engineers.engineer_name AS engineers_engineer_name, "
+            "FROM companies JOIN (SELECT people.person_id AS people_person_id, "
+            "people.company_id AS people_company_id, people.name AS people_name, "
+            "people.type AS people_type, engineers.person_id AS "
+            "engineers_person_id, engineers.status AS engineers_status, "
+            "engineers.engineer_name AS engineers_engineer_name, "
             "engineers.primary_language AS engineers_primary_language "
-            "FROM people JOIN engineers ON people.person_id = engineers.person_id) AS anon_1 ON companies.company_id = anon_1.people_company_id"
+            "FROM people JOIN engineers ON people.person_id = engineers.person_id) AS "
+            "anon_1 ON companies.company_id = anon_1.people_company_id"
             , use_default_dialect = True
         )
 
@@ -1349,19 +1400,28 @@ class InheritedJoinTest(_base.MappedTest, AssertsCompiledSQL):
         sess = create_session()
         
         self.assert_compile(
-            sess.query(Person).with_polymorphic(Manager).join('paperwork').filter(Paperwork.description.like('%review%')),
-                "SELECT people.person_id AS people_person_id, people.company_id AS people_company_id, "
-                "people.name AS people_name, people.type AS people_type, managers.person_id AS managers_person_id, "
-                "managers.status AS managers_status, managers.manager_name AS managers_manager_name FROM people "
-                "LEFT OUTER JOIN managers ON people.person_id = managers.person_id JOIN paperwork ON people.person_id = "
-                "paperwork.person_id WHERE paperwork.description LIKE :description_1 ORDER BY people.person_id"
+            sess.query(Person).with_polymorphic(Manager).
+                    join('paperwork').filter(Paperwork.description.like('%review%')),
+                "SELECT people.person_id AS people_person_id, people.company_id AS"
+                " people_company_id, "
+                "people.name AS people_name, people.type AS people_type, managers.person_id "
+                "AS managers_person_id, "
+                "managers.status AS managers_status, managers.manager_name AS "
+                "managers_manager_name FROM people "
+                "LEFT OUTER JOIN managers ON people.person_id = managers.person_id JOIN "
+                "paperwork ON people.person_id = "
+                "paperwork.person_id WHERE paperwork.description LIKE :description_1 "
+                "ORDER BY people.person_id"
                 , use_default_dialect=True
             )
         
         self.assert_compile(
-            sess.query(Person).with_polymorphic(Manager).join('paperwork', aliased=True).filter(Paperwork.description.like('%review%')),
+            sess.query(Person).with_polymorphic(Manager).
+                    join('paperwork', aliased=True).
+                    filter(Paperwork.description.like('%review%')),
             "SELECT people.person_id AS people_person_id, people.company_id AS people_company_id, "
-            "people.name AS people_name, people.type AS people_type, managers.person_id AS managers_person_id, "
+            "people.name AS people_name, people.type AS people_type, managers.person_id "
+            "AS managers_person_id, "
             "managers.status AS managers_status, managers.manager_name AS managers_manager_name "
             "FROM people LEFT OUTER JOIN managers ON people.person_id = managers.person_id JOIN "
             "paperwork AS paperwork_1 ON people.person_id = paperwork_1.person_id "
@@ -1375,24 +1435,35 @@ class InheritedJoinTest(_base.MappedTest, AssertsCompiledSQL):
         
         self.assert_compile(
             sess.query(Company).join(Engineer).filter(Engineer.engineer_name=='vlad'),
-            "SELECT companies.company_id AS companies_company_id, companies.name AS companies_name "
-            "FROM companies JOIN (SELECT people.person_id AS people_person_id, people.company_id AS "
-            "people_company_id, people.name AS people_name, people.type AS people_type, engineers.person_id AS "
-            "engineers_person_id, engineers.status AS engineers_status, engineers.engineer_name AS engineers_engineer_name, "
+            "SELECT companies.company_id AS companies_company_id, companies.name AS "
+            "companies_name "
+            "FROM companies JOIN (SELECT people.person_id AS people_person_id, "
+            "people.company_id AS "
+            "people_company_id, people.name AS people_name, people.type AS people_type,"
+            " engineers.person_id AS "
+            "engineers_person_id, engineers.status AS engineers_status, "
+            "engineers.engineer_name AS engineers_engineer_name, "
             "engineers.primary_language AS engineers_primary_language "
-            "FROM people JOIN engineers ON people.person_id = engineers.person_id) AS anon_1 ON "
+            "FROM people JOIN engineers ON people.person_id = engineers.person_id) "
+            "AS anon_1 ON "
             "companies.company_id = anon_1.people_company_id "
             "WHERE anon_1.engineers_engineer_name = :engineer_name_1"
             , use_default_dialect=True
         )
         self.assert_compile(
-            sess.query(Company).join((Engineer, Company.company_id==Engineer.company_id)).filter(Engineer.engineer_name=='vlad'),
-            "SELECT companies.company_id AS companies_company_id, companies.name AS companies_name "
-            "FROM companies JOIN (SELECT people.person_id AS people_person_id, people.company_id AS "
-            "people_company_id, people.name AS people_name, people.type AS people_type, engineers.person_id AS "
-            "engineers_person_id, engineers.status AS engineers_status, engineers.engineer_name AS engineers_engineer_name, "
+            sess.query(Company).join((Engineer, Company.company_id==Engineer.company_id)).
+                    filter(Engineer.engineer_name=='vlad'),
+            "SELECT companies.company_id AS companies_company_id, companies.name "
+            "AS companies_name "
+            "FROM companies JOIN (SELECT people.person_id AS people_person_id, "
+            "people.company_id AS "
+            "people_company_id, people.name AS people_name, people.type AS "
+            "people_type, engineers.person_id AS "
+            "engineers_person_id, engineers.status AS engineers_status, "
+            "engineers.engineer_name AS engineers_engineer_name, "
             "engineers.primary_language AS engineers_primary_language "
-            "FROM people JOIN engineers ON people.person_id = engineers.person_id) AS anon_1 ON "
+            "FROM people JOIN engineers ON people.person_id = engineers.person_id) AS "
+            "anon_1 ON "
             "companies.company_id = anon_1.people_company_id "
             "WHERE anon_1.engineers_engineer_name = :engineer_name_1"
             , use_default_dialect=True
@@ -1400,39 +1471,151 @@ class InheritedJoinTest(_base.MappedTest, AssertsCompiledSQL):
 
     @testing.resolve_artifact_names
     def test_multiple_adaption(self):
-        """test that multiple filter() adapters get chained together and work correctly within a multiple-entry join()."""
+        """test that multiple filter() adapters get chained together "
+        and work correctly within a multiple-entry join()."""
         
         sess = create_session()
 
         self.assert_compile(
             sess.query(Company).join((people.join(engineers), Company.employees)).
                 filter(Engineer.name=='dilbert'),
-            "SELECT companies.company_id AS companies_company_id, companies.name AS companies_name "
-            "FROM companies JOIN (SELECT people.person_id AS people_person_id, people.company_id AS "
-            "people_company_id, people.name AS people_name, people.type AS people_type, engineers.person_id "
-            "AS engineers_person_id, engineers.status AS engineers_status, engineers.engineer_name AS engineers_engineer_name, "
-            "engineers.primary_language AS engineers_primary_language FROM people JOIN engineers ON people.person_id = "
-            "engineers.person_id) AS anon_1 ON companies.company_id = anon_1.people_company_id WHERE anon_1.people_name = :name_1"
+            "SELECT companies.company_id AS companies_company_id, companies.name AS "
+            "companies_name "
+            "FROM companies JOIN (SELECT people.person_id AS people_person_id, "
+            "people.company_id AS "
+            "people_company_id, people.name AS people_name, people.type AS "
+            "people_type, engineers.person_id "
+            "AS engineers_person_id, engineers.status AS engineers_status, "
+            "engineers.engineer_name AS engineers_engineer_name, "
+            "engineers.primary_language AS engineers_primary_language FROM people "
+            "JOIN engineers ON people.person_id = "
+            "engineers.person_id) AS anon_1 ON companies.company_id = "
+            "anon_1.people_company_id WHERE anon_1.people_name = :name_1"
             , use_default_dialect = True
         )
         
         mach_alias = machines.select()
         self.assert_compile(
-            sess.query(Company).join((people.join(engineers), Company.employees), (mach_alias, Engineer.machines)).
+            sess.query(Company).join((people.join(engineers), Company.employees), 
+                                        (mach_alias, Engineer.machines)).
                 filter(Engineer.name=='dilbert').filter(Machine.name=='foo'),
-            "SELECT companies.company_id AS companies_company_id, companies.name AS companies_name "
-            "FROM companies JOIN (SELECT people.person_id AS people_person_id, people.company_id AS "
-            "people_company_id, people.name AS people_name, people.type AS people_type, engineers.person_id "
-            "AS engineers_person_id, engineers.status AS engineers_status, engineers.engineer_name AS engineers_engineer_name, "
-            "engineers.primary_language AS engineers_primary_language FROM people JOIN engineers ON people.person_id = "
-            "engineers.person_id) AS anon_1 ON companies.company_id = anon_1.people_company_id JOIN "
-            "(SELECT machines.machine_id AS machine_id, machines.name AS name, machines.engineer_id AS engineer_id "
+            "SELECT companies.company_id AS companies_company_id, companies.name AS "
+            "companies_name "
+            "FROM companies JOIN (SELECT people.person_id AS people_person_id, "
+            "people.company_id AS "
+            "people_company_id, people.name AS people_name, people.type AS people_type,"
+            " engineers.person_id "
+            "AS engineers_person_id, engineers.status AS engineers_status, "
+            "engineers.engineer_name AS engineers_engineer_name, "
+            "engineers.primary_language AS engineers_primary_language FROM people "
+            "JOIN engineers ON people.person_id = "
+            "engineers.person_id) AS anon_1 ON companies.company_id = "
+            "anon_1.people_company_id JOIN "
+            "(SELECT machines.machine_id AS machine_id, machines.name AS name, "
+            "machines.engineer_id AS engineer_id "
             "FROM machines) AS anon_2 ON anon_1.engineers_person_id = anon_2.engineer_id "
             "WHERE anon_1.people_name = :name_1 AND anon_2.name = :name_2"
             , use_default_dialect = True
         )
+
+class AddEntityEquivalenceTest(_base.MappedTest, AssertsCompiledSQL):
+    run_setup_mappers = 'once'
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('a', metadata,
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
+            Column('name', String(50)),
+            Column('type', String(20)),
+            Column('bid', Integer, ForeignKey('b.id'))
+        )
+
+        Table('b', metadata,
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
+            Column('name', String(50)),
+            Column('type', String(20))
+        )
+
+        Table('c', metadata,
+            Column('id', Integer, ForeignKey('b.id'), primary_key=True),
+            Column('age', Integer)
+        )
+
+        Table('d', metadata,
+            Column('id', Integer, ForeignKey('a.id'), primary_key=True),
+            Column('dede', Integer)
+        )
+
+    @classmethod
+    @testing.resolve_artifact_names
+    def setup_classes(cls):
+        class A(_fixtures.Base):
+            pass
+            
+        class B(_fixtures.Base):
+            pass
         
+        class C(B):
+            pass
         
+        class D(A):
+            pass
+            
+        mapper(A, a, 
+                    polymorphic_identity='a', 
+                    polymorphic_on=a.c.type,
+                    with_polymorphic= ('*', None),
+                    properties={
+                        'link':relation( B, uselist=False, backref='back')
+                    })
+        mapper(B, b, 
+                    polymorphic_identity='b', 
+                    polymorphic_on=b.c.type,
+                    with_polymorphic= ('*', None)
+                    )
+        mapper(C, c, inherits=B, polymorphic_identity='c')
+        mapper(D, d, inherits=A, polymorphic_identity='d')
+        
+    @classmethod
+    @testing.resolve_artifact_names
+    def insert_data(cls):
+        sess = create_session()
+        sess.add_all([
+            B(name='b1'), 
+            A(name='a1', link= C(name='c1',age=3)), 
+            C(name='c2',age=6), 
+            A(name='a2')
+            ])
+        sess.flush()
+    
+    @testing.resolve_artifact_names
+    def test_add_entity_equivalence(self):
+        sess = create_session()
+        
+        for q in [
+            sess.query( A,B).join( A.link),
+            sess.query( A).join( A.link).add_entity(B),
+        ]:
+            eq_(
+                q.all(),
+                [(
+                    A(bid=2, id=1, name=u'a1', type=u'a'), 
+                    C(age=3, id=2, name=u'c1', type=u'c')
+                )]
+            )
+
+        for q in [
+            sess.query( B,A).join( B.back),
+            sess.query( B).join( B.back).add_entity(A),
+            sess.query( B).add_entity(A).join( B.back)
+        ]:
+            eq_(
+                q.all(),
+                [(
+                    C(age=3, id=2, name=u'c1', type=u'c'), 
+                    A(bid=2, id=1, name=u'a1', type=u'a')
+                )]
+            )
         
 class JoinTest(QueryTest, AssertsCompiledSQL):
     
@@ -1570,6 +1753,32 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             "JOIN order_items AS order_items_1 ON orders_1.id = order_items_1.order_id "
             "JOIN items AS items_1 ON items_1.id = order_items_1.item_id "
             "WHERE items_1.id = :id_1"
+            , use_default_dialect=True
+        )
+        
+        # test #1 for [ticket:1706]
+        ualias = aliased(User)
+        self.assert_compile(
+            sess.query(ualias).
+                    join((oalias1, ualias.orders)).\
+                    join((Address, ualias.addresses)),
+            "SELECT users_1.id AS users_1_id, users_1.name AS "
+            "users_1_name FROM users AS users_1 JOIN orders AS orders_1 "
+            "ON users_1.id = orders_1.user_id JOIN addresses ON users_1.id "
+            "= addresses.user_id"
+            , use_default_dialect=True
+        )
+        
+        # test #2 for [ticket:1706]
+        ualias2 = aliased(User)
+        self.assert_compile(
+            sess.query(ualias).
+                    join((Address, ualias.addresses)).
+                    join((ualias2, Address.user)).
+                    join((Order, ualias.orders)),
+            "SELECT users_1.id AS users_1_id, users_1.name AS users_1_name FROM users "
+            "AS users_1 JOIN addresses ON users_1.id = addresses.user_id JOIN users AS users_2 "
+            "ON users_2.id = addresses.user_id JOIN orders ON users_1.id = orders.user_id"
             , use_default_dialect=True
         )
         
@@ -2095,8 +2304,8 @@ class MultiplePathTest(_base.MappedTest, AssertsCompiledSQL):
         class T2(object):pass
 
         mapper(T1, t1, properties={
-            't2s_1':relation(T2, secondary=t1t2_1),
-            't2s_2':relation(T2, secondary=t1t2_2),
+            't2s_1':relationship(T2, secondary=t1t2_1),
+            't2s_2':relationship(T2, secondary=t1t2_2),
         })
         mapper(T2, t2)
 
@@ -2116,18 +2325,18 @@ class SynonymTest(QueryTest):
     def setup_mappers(cls):
         mapper(User, users, properties={
             'name_syn':synonym('name'),
-            'addresses':relation(Address),
-            'orders':relation(Order, backref='user'), # o2m, m2o
+            'addresses':relationship(Address),
+            'orders':relationship(Order, backref='user'), # o2m, m2o
             'orders_syn':synonym('orders')
         })
         mapper(Address, addresses)
         mapper(Order, orders, properties={
-            'items':relation(Item, secondary=order_items),  #m2m
-            'address':relation(Address),  # m2o
+            'items':relationship(Item, secondary=order_items),  #m2m
+            'address':relationship(Address),  # m2o
             'items_syn':synonym('items')
         })
         mapper(Item, items, properties={
-            'keywords':relation(Keyword, secondary=item_keywords) #m2m
+            'keywords':relationship(Keyword, secondary=item_keywords) #m2m
         })
         mapper(Keyword, keywords)
 
@@ -2779,7 +2988,7 @@ class ImmediateTest(_fixtures.FixtureTest):
         mapper(Address, addresses)
 
         mapper(User, users, properties=dict(
-            addresses=relation(Address)))
+            addresses=relationship(Address)))
 
     @testing.resolve_artifact_names
     def test_one(self):
@@ -2809,12 +3018,35 @@ class ImmediateTest(_fixtures.FixtureTest):
                            filter(Address.id == 99)).one)
 
         eq_((sess.query(User, Address).
-             join(User.addresses).
-             filter(Address.id == 4)).one(),
-            (User(id=8), Address(id=4)))
+            join(User.addresses).
+            filter(Address.id == 4)).one(),
+           (User(id=8), Address(id=4)))
 
         assert_raises(sa.orm.exc.MultipleResultsFound,
-                          sess.query(User, Address).join(User.addresses).one)
+                         sess.query(User, Address).join(User.addresses).one)
+
+        # this result returns multiple rows, the first
+        # two rows being the same.  but uniquing is 
+        # not applied for a column based result.
+        assert_raises(sa.orm.exc.MultipleResultsFound,
+                       sess.query(User.id).
+                       join(User.addresses).
+                       filter(User.id.in_([8, 9])).
+                       order_by(User.id).
+                       one)
+
+        # test that a join which ultimately returns 
+        # multiple identities across many rows still 
+        # raises, even though the first two rows are of 
+        # the same identity and unique filtering 
+        # is applied ([ticket:1688])
+        assert_raises(sa.orm.exc.MultipleResultsFound,
+                        sess.query(User).
+                        join(User.addresses).
+                        filter(User.id.in_([8, 9])).
+                        order_by(User.id).
+                        one)
+                        
 
     @testing.future
     def test_getslice(self):
@@ -2829,7 +3061,10 @@ class ImmediateTest(_fixtures.FixtureTest):
         eq_(sess.query(User.id).filter_by(id=0).scalar(), None)
         eq_(sess.query(User).filter_by(id=7).scalar(),
             sess.query(User).filter_by(id=7).one())
-
+        
+        assert_raises(sa.orm.exc.MultipleResultsFound, sess.query(User).scalar)
+        assert_raises(sa.orm.exc.MultipleResultsFound, sess.query(User.id, User.name).scalar)
+        
     @testing.resolve_artifact_names
     def test_value(self):
         sess = create_session()
@@ -2847,7 +3082,7 @@ class SelectFromTest(QueryTest):
 
     def test_replace_with_select(self):
         mapper(User, users, properties = {
-            'addresses':relation(Address)
+            'addresses':relationship(Address)
         })
         mapper(Address, addresses)
 
@@ -2898,7 +3133,7 @@ class SelectFromTest(QueryTest):
 
     def test_join(self):
         mapper(User, users, properties = {
-            'addresses':relation(Address)
+            'addresses':relationship(Address)
         })
         mapper(Address, addresses)
 
@@ -2927,13 +3162,13 @@ class SelectFromTest(QueryTest):
 
     def test_more_joins(self):
         mapper(User, users, properties={
-            'orders':relation(Order, backref='user'), # o2m, m2o
+            'orders':relationship(Order, backref='user'), # o2m, m2o
         })
         mapper(Order, orders, properties={
-            'items':relation(Item, secondary=order_items, order_by=items.c.id),  #m2m
+            'items':relationship(Item, secondary=order_items, order_by=items.c.id),  #m2m
         })
         mapper(Item, items, properties={
-            'keywords':relation(Keyword, secondary=item_keywords, order_by=keywords.c.id) #m2m
+            'keywords':relationship(Keyword, secondary=item_keywords, order_by=keywords.c.id) #m2m
         })
         mapper(Keyword, keywords)
 
@@ -2982,7 +3217,7 @@ class SelectFromTest(QueryTest):
 
     def test_replace_with_eager(self):
         mapper(User, users, properties = {
-            'addresses':relation(Address, order_by=addresses.c.id)
+            'addresses':relationship(Address, order_by=addresses.c.id)
         })
         mapper(Address, addresses)
 
@@ -3017,13 +3252,13 @@ class CustomJoinTest(QueryTest):
         """test aliasing of joins with a custom join condition"""
         mapper(Address, addresses)
         mapper(Order, orders, properties={
-            'items':relation(Item, secondary=order_items, lazy=True, order_by=items.c.id),
+            'items':relationship(Item, secondary=order_items, lazy=True, order_by=items.c.id),
         })
         mapper(Item, items)
         mapper(User, users, properties = dict(
-            addresses = relation(Address, lazy=True),
-            open_orders = relation(Order, primaryjoin = and_(orders.c.isopen == 1, users.c.id==orders.c.user_id), lazy=True),
-            closed_orders = relation(Order, primaryjoin = and_(orders.c.isopen == 0, users.c.id==orders.c.user_id), lazy=True)
+            addresses = relationship(Address, lazy=True),
+            open_orders = relationship(Order, primaryjoin = and_(orders.c.isopen == 1, users.c.id==orders.c.user_id), lazy=True),
+            closed_orders = relationship(Order, primaryjoin = and_(orders.c.isopen == 0, users.c.id==orders.c.user_id), lazy=True)
         ))
         q = create_session().query(User)
 
@@ -3051,7 +3286,7 @@ class SelfReferentialTest(_base.MappedTest):
                 self.children.append(node)
 
         mapper(Node, nodes, properties={
-            'children':relation(Node, lazy=True, join_depth=3,
+            'children':relationship(Node, lazy=True, join_depth=3,
                 backref=backref('parent', remote_side=[nodes.c.id])
             )
         })
@@ -3234,7 +3469,7 @@ class SelfReferentialM2MTest(_base.MappedTest):
             pass
 
         mapper(Node, nodes, properties={
-            'children':relation(Node, lazy=True, secondary=node_to_nodes,
+            'children':relationship(Node, lazy=True, secondary=node_to_nodes,
                 primaryjoin=nodes.c.id==node_to_nodes.c.left_node_id,
                 secondaryjoin=nodes.c.id==node_to_nodes.c.right_node_id,
             )
@@ -3300,7 +3535,7 @@ class ExternalColumnsTest(QueryTest):
         })
 
         mapper(Address, addresses, properties={
-            'user':relation(User)
+            'user':relationship(User)
         })
 
         sess = create_session()
@@ -3387,13 +3622,13 @@ class ExternalColumnsTest(QueryTest):
         # therefore the long standing practice of eager adapters being "chained" has been removed
         # since its unnecessary and breaks this exact condition.
         mapper(User, users, properties={
-            'addresses':relation(Address, backref='user', order_by=addresses.c.id),
+            'addresses':relationship(Address, backref='user', order_by=addresses.c.id),
             'concat': column_property((users.c.id * 2)),
             'count': column_property(select([func.count(addresses.c.id)], users.c.id==addresses.c.user_id).correlate(users))
         })
         mapper(Address, addresses)
         mapper(Order, orders, properties={
-            'address':relation(Address),  # m2o
+            'address':relationship(Address),  # m2o
         })
 
         sess = create_session()
@@ -3436,8 +3671,8 @@ class TestOverlyEagerEquivalentCols(_base.MappedTest):
             pass
     
         mapper(Base, base, properties={
-            'sub1':relation(Sub1),
-            'sub2':relation(Sub2)
+            'sub1':relationship(Sub1),
+            'sub2':relationship(Sub2)
         })
     
         mapper(Sub1, sub1)
@@ -3511,7 +3746,7 @@ class UpdateDeleteTest(_base.MappedTest):
     def setup_mappers(cls):
         mapper(User, users)
         mapper(Document, documents, properties={
-            'user': relation(User, lazy=False, backref=backref('documents', lazy=True))
+            'user': relationship(User, lazy=False, backref=backref('documents', lazy=True))
         })
 
     @testing.resolve_artifact_names
@@ -3722,7 +3957,7 @@ class UpdateDeleteTest(_base.MappedTest):
         eq_(rowcount, 3)
 
     @testing.resolve_artifact_names
-    def test_update_with_eager_relations(self):
+    def test_update_with_eager_relationships(self):
         self.insert_documents()
 
         sess = create_session(bind=testing.db, autocommit=False)
@@ -3744,7 +3979,7 @@ class UpdateDeleteTest(_base.MappedTest):
         eq_(sess.query(User.age).order_by(User.id).all(), zip([25,37,29,27]))
 
     @testing.resolve_artifact_names
-    def test_delete_with_eager_relations(self):
+    def test_delete_with_eager_relationships(self):
         self.insert_documents()
 
         sess = create_session(bind=testing.db, autocommit=False)

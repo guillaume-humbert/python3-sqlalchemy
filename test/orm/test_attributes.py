@@ -142,21 +142,21 @@ class AttributesTest(_base.ORMTest):
         attributes.register_attribute(Foo, 'b', uselist=False, useobject=False)
 
         f = Foo()
-        attributes.instance_state(f).expire_attributes(None)
+        attributes.instance_state(f).expire_attributes(attributes.instance_dict(f), None)
         eq_(f.a, "this is a")
         eq_(f.b, 12)
 
         f.a = "this is some new a"
-        attributes.instance_state(f).expire_attributes(None)
+        attributes.instance_state(f).expire_attributes(attributes.instance_dict(f), None)
         eq_(f.a, "this is a")
         eq_(f.b, 12)
 
-        attributes.instance_state(f).expire_attributes(None)
+        attributes.instance_state(f).expire_attributes(attributes.instance_dict(f), None)
         f.a = "this is another new a"
         eq_(f.a, "this is another new a")
         eq_(f.b, 12)
 
-        attributes.instance_state(f).expire_attributes(None)
+        attributes.instance_state(f).expire_attributes(attributes.instance_dict(f), None)
         eq_(f.a, "this is a")
         eq_(f.b, 12)
 
@@ -182,7 +182,7 @@ class AttributesTest(_base.ORMTest):
         attributes.register_attribute(MyTest, 'b', uselist=False, useobject=False)
 
         m = MyTest()
-        attributes.instance_state(m).expire_attributes(None)
+        attributes.instance_state(m).expire_attributes(attributes.instance_dict(m), None)
         assert 'a' not in m.__dict__
         m2 = pickle.loads(pickle.dumps(m))
         assert 'a' not in m2.__dict__
@@ -355,7 +355,7 @@ class AttributesTest(_base.ORMTest):
         x.bars
         b = Bar(id=4)
         b.foos.append(x)
-        attributes.instance_state(x).expire_attributes(['bars'])
+        attributes.instance_state(x).expire_attributes(attributes.instance_dict(x), ['bars'])
         assert_raises(AssertionError, b.foos.remove, x)
         
         
@@ -400,7 +400,10 @@ class AttributesTest(_base.ORMTest):
         
         
     def test_lazytrackparent(self):
-        """test that the "hasparent" flag works properly when lazy loaders and backrefs are used"""
+        """test that the "hasparent" flag works properly 
+           when lazy loaders and backrefs are used
+           
+        """
 
         class Post(object):pass
         class Blog(object):pass
@@ -408,14 +411,20 @@ class AttributesTest(_base.ORMTest):
         attributes.register_class(Blog)
 
         # set up instrumented attributes with backrefs
-        attributes.register_attribute(Post, 'blog', uselist=False, extension=attributes.GenericBackrefExtension('posts'), trackparent=True, useobject=True)
-        attributes.register_attribute(Blog, 'posts', uselist=True, extension=attributes.GenericBackrefExtension('blog'), trackparent=True, useobject=True)
+        attributes.register_attribute(Post, 'blog', uselist=False,
+                                        extension=attributes.GenericBackrefExtension('posts'),
+                                        trackparent=True, useobject=True)
+        attributes.register_attribute(Blog, 'posts', uselist=True,
+                                        extension=attributes.GenericBackrefExtension('blog'),
+                                        trackparent=True, useobject=True)
 
         # create objects as if they'd been freshly loaded from the database (without history)
         b = Blog()
         p1 = Post()
-        attributes.instance_state(b).set_callable('posts', lambda **kw:[p1])
-        attributes.instance_state(p1).set_callable('blog', lambda **kw:b)
+        attributes.instance_state(b).set_callable(attributes.instance_dict(b), 
+                                                    'posts', lambda **kw:[p1])
+        attributes.instance_state(p1).set_callable(attributes.instance_dict(p1), 
+                                                    'blog', lambda **kw:b)
         p1, attributes.instance_state(b).commit_all(attributes.instance_dict(b))
 
         # no orphans (called before the lazy loaders fire off)
@@ -443,17 +452,17 @@ class AttributesTest(_base.ORMTest):
         attributes.register_class(Bar)
 
         def func1(**kw):
-            print "func1"
             return "this is the foo attr"
         def func2(**kw):
-            print "func2"
             return "this is the bar attr"
         def func3(**kw):
-            print "func3"
             return "this is the shared attr"
-        attributes.register_attribute(Foo, 'element', uselist=False, callable_=lambda o:func1, useobject=True)
-        attributes.register_attribute(Foo, 'element2', uselist=False, callable_=lambda o:func3, useobject=True)
-        attributes.register_attribute(Bar, 'element', uselist=False, callable_=lambda o:func2, useobject=True)
+        attributes.register_attribute(Foo, 'element', uselist=False, 
+                                            callable_=lambda o:func1, useobject=True)
+        attributes.register_attribute(Foo, 'element2', uselist=False, 
+                                            callable_=lambda o:func3, useobject=True)
+        attributes.register_attribute(Bar, 'element', uselist=False, 
+                                            callable_=lambda o:func2, useobject=True)
 
         x = Foo()
         y = Bar()
@@ -1294,7 +1303,7 @@ class HistoryTest(_base.ORMTest):
         eq_(attributes.get_state_history(attributes.instance_state(f), 'bars'), ([bar4], [], []))
 
         lazy_load = [bar1, bar2, bar3]
-        attributes.instance_state(f).expire_attributes(['bars'])
+        attributes.instance_state(f).expire_attributes(attributes.instance_dict(f), ['bars'])
         eq_(attributes.get_state_history(attributes.instance_state(f), 'bars'), ((), [bar1, bar2, bar3], ()))
 
     def test_collections_via_lazyload(self):

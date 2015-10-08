@@ -12,40 +12,35 @@ import decimal
 from sqlalchemy import util
 from sqlalchemy import types as sqltypes
 from sqlalchemy.dialects.postgresql.base import PGDialect, PGExecutionContext
+from sqlalchemy import processors
 
 class PGNumeric(sqltypes.Numeric):
     def bind_processor(self, dialect):
-        return None
+        return processors.to_str
 
     def result_processor(self, dialect, coltype):
         if self.asdecimal:
             return None
         else:
-            def process(value):
-                if value is not None:
-                    return float(value)
-                else:
-                    return value
-            return process
+            return processors.to_float
 
-class PostgreSQL_pypostgresqlExecutionContext(PGExecutionContext):
+class PGExecutionContext_pypostgresql(PGExecutionContext):
     pass
 
-class PostgreSQL_pypostgresql(PGDialect):
+class PGDialect_pypostgresql(PGDialect):
     driver = 'pypostgresql'
 
     supports_unicode_statements = True
-    
     supports_unicode_binds = True
     description_encoding = None
-    
-    default_paramstyle = 'format'
-    
-    supports_sane_rowcount = False  # alas....posting a bug now
-    
+    default_paramstyle = 'pyformat'
+
+    # requires trunk version to support sane rowcounts
+    # TODO: use dbapi version information to set this flag appropariately
+    supports_sane_rowcount = True
     supports_sane_multi_rowcount = False
-    
-    execution_ctx_cls = PostgreSQL_pypostgresqlExecutionContext
+
+    execution_ctx_cls = PGExecutionContext_pypostgresql
     colspecs = util.update_copy(
         PGDialect.colspecs,
         {
@@ -53,7 +48,7 @@ class PostgreSQL_pypostgresql(PGDialect):
             sqltypes.Float: sqltypes.Float,  # prevents PGNumeric from being used
         }
     )
-    
+
     @classmethod
     def dbapi(cls):
         from postgresql.driver import dbapi20
@@ -71,4 +66,4 @@ class PostgreSQL_pypostgresql(PGDialect):
     def is_disconnect(self, e):
         return "connection is closed" in str(e)
 
-dialect = PostgreSQL_pypostgresql
+dialect = PGDialect_pypostgresql

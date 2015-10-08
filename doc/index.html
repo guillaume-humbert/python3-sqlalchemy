@@ -7,15 +7,15 @@
         
         <title>
     Table of Contents
- &mdash; SQLAlchemy 0.6beta1 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta2 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-          URL_ROOT:    '',
-          VERSION:     '0.6beta1',
+          URL_ROOT:    '#',
+          VERSION:     '0.6beta2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="" />
+    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="#" />
         <link rel="next" title="Overview / Installation" href="intro.html" />
     
 
@@ -37,7 +37,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -49,7 +49,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
+            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
         </div>
         <div class="clearboth"></div>
 
@@ -63,7 +63,7 @@
             </div>
             
             <div class="navbanner">
-                <a class="totoc" href="">Table of Contents</a>
+                <a class="totoc" href="#">Table of Contents</a>
                 
                 
 <div class="prevnext">
@@ -90,6 +90,7 @@
 <li class="toctree-l2"><a class="reference external" href="intro.html#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference external" href="intro.html#tutorials">Tutorials</a></li>
 <li class="toctree-l2"><a class="reference external" href="intro.html#main-documentation">Main Documentation</a></li>
+<li class="toctree-l2"><a class="reference external" href="intro.html#code-examples">Code Examples</a></li>
 <li class="toctree-l2"><a class="reference external" href="intro.html#api-reference">API Reference</a></li>
 <li class="toctree-l2"><a class="reference external" href="intro.html#installing-sqlalchemy">Installing SQLAlchemy</a></li>
 <li class="toctree-l2"><a class="reference external" href="intro.html#installing-a-database-api">Installing a Database API</a></li>
@@ -114,21 +115,22 @@
 <li class="toctree-l3"><a class="reference external" href="ormtutorial.html#counting">Counting</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference external" href="ormtutorial.html#building-a-relation">Building a Relation</a></li>
+<li class="toctree-l2"><a class="reference external" href="ormtutorial.html#building-a-relationship">Building a Relationship</a></li>
 <li class="toctree-l2"><a class="reference external" href="ormtutorial.html#working-with-related-objects">Working with Related Objects</a></li>
 <li class="toctree-l2"><a class="reference external" href="ormtutorial.html#querying-with-joins">Querying with Joins</a><ul>
+<li class="toctree-l3"><a class="reference external" href="ormtutorial.html#using-join-to-eagerly-load-collections-attributes">Using join() to Eagerly Load Collections/Attributes</a></li>
 <li class="toctree-l3"><a class="reference external" href="ormtutorial.html#using-aliases">Using Aliases</a></li>
 <li class="toctree-l3"><a class="reference external" href="ormtutorial.html#using-subqueries">Using Subqueries</a></li>
 <li class="toctree-l3"><a class="reference external" href="ormtutorial.html#selecting-entities-from-subqueries">Selecting Entities from Subqueries</a></li>
 <li class="toctree-l3"><a class="reference external" href="ormtutorial.html#using-exists">Using EXISTS</a></li>
-<li class="toctree-l3"><a class="reference external" href="ormtutorial.html#common-relation-operators">Common Relation Operators</a></li>
+<li class="toctree-l3"><a class="reference external" href="ormtutorial.html#common-relationship-operators">Common Relationship Operators</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference external" href="ormtutorial.html#deleting">Deleting</a><ul>
 <li class="toctree-l3"><a class="reference external" href="ormtutorial.html#configuring-delete-delete-orphan-cascade">Configuring delete/delete-orphan Cascade</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference external" href="ormtutorial.html#building-a-many-to-many-relation">Building a Many To Many Relation</a></li>
+<li class="toctree-l2"><a class="reference external" href="ormtutorial.html#building-a-many-to-many-relationship">Building a Many To Many Relationship</a></li>
 <li class="toctree-l2"><a class="reference external" href="ormtutorial.html#further-reference">Further Reference</a></li>
 </ul>
 </li>
@@ -185,17 +187,18 @@
 </li>
 <li class="toctree-l4"><a class="reference external" href="mappers.html#single-table-inheritance">Single Table Inheritance</a></li>
 <li class="toctree-l4"><a class="reference external" href="mappers.html#concrete-table-inheritance">Concrete Table Inheritance</a></li>
-<li class="toctree-l4"><a class="reference external" href="mappers.html#using-relations-with-inheritance">Using Relations with Inheritance</a></li>
+<li class="toctree-l4"><a class="reference external" href="mappers.html#using-relationships-with-inheritance">Using Relationships with Inheritance</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference external" href="mappers.html#mapping-a-class-against-multiple-tables">Mapping a Class against Multiple Tables</a></li>
 <li class="toctree-l3"><a class="reference external" href="mappers.html#mapping-a-class-against-arbitrary-selects">Mapping a Class against Arbitrary Selects</a></li>
 <li class="toctree-l3"><a class="reference external" href="mappers.html#multiple-mappers-for-one-class">Multiple Mappers for One Class</a></li>
+<li class="toctree-l3"><a class="reference external" href="mappers.html#multiple-persistence-mappers-for-one-class">Multiple &#8220;Persistence&#8221; Mappers for One Class</a></li>
 <li class="toctree-l3"><a class="reference external" href="mappers.html#constructors-and-object-initialization">Constructors and Object Initialization</a></li>
 <li class="toctree-l3"><a class="reference external" href="mappers.html#extending-mapper">Extending Mapper</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference external" href="mappers.html#relation-configuration">Relation Configuration</a><ul>
+<li class="toctree-l2"><a class="reference external" href="mappers.html#relationship-configuration">Relationship Configuration</a><ul>
 <li class="toctree-l3"><a class="reference external" href="mappers.html#basic-relational-patterns">Basic Relational Patterns</a><ul>
 <li class="toctree-l4"><a class="reference external" href="mappers.html#one-to-many">One To Many</a></li>
 <li class="toctree-l4"><a class="reference external" href="mappers.html#many-to-one">Many To One</a></li>
@@ -209,10 +212,10 @@
 <li class="toctree-l4"><a class="reference external" href="mappers.html#configuring-eager-loading">Configuring Eager Loading</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference external" href="mappers.html#specifying-alternate-join-conditions-to-relation">Specifying Alternate Join Conditions to relation()</a><ul>
+<li class="toctree-l3"><a class="reference external" href="mappers.html#specifying-alternate-join-conditions-to-relationship">Specifying Alternate Join Conditions to relationship()</a><ul>
 <li class="toctree-l4"><a class="reference external" href="mappers.html#specifying-foreign-keys">Specifying Foreign Keys</a></li>
 <li class="toctree-l4"><a class="reference external" href="mappers.html#building-query-enabled-properties">Building Query-Enabled Properties</a></li>
-<li class="toctree-l4"><a class="reference external" href="mappers.html#multiple-relations-against-the-same-parent-child">Multiple Relations against the Same Parent/Child</a></li>
+<li class="toctree-l4"><a class="reference external" href="mappers.html#multiple-relationships-against-the-same-parent-child">Multiple Relationships against the Same Parent/Child</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference external" href="mappers.html#rows-that-point-to-themselves-mutually-dependent-rows">Rows that point to themselves / Mutually Dependent Rows</a></li>
@@ -228,7 +231,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference external" href="mappers.html#working-with-large-collections">Working with Large Collections</a><ul>
-<li class="toctree-l4"><a class="reference external" href="mappers.html#dynamic-relation-loaders">Dynamic Relation Loaders</a></li>
+<li class="toctree-l4"><a class="reference external" href="mappers.html#dynamic-relationship-loaders">Dynamic Relationship Loaders</a></li>
 <li class="toctree-l4"><a class="reference external" href="mappers.html#setting-noload">Setting Noload</a></li>
 <li class="toctree-l4"><a class="reference external" href="mappers.html#using-passive-deletes">Using Passive Deletes</a></li>
 </ul>
@@ -446,7 +449,6 @@
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference external" href="reference/dialects/mssql.html">Microsoft SQL Server</a><ul>
-<li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#driver">Driver</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#connecting">Connecting</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#auto-increment-behavior">Auto Increment Behavior</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#collation-support">Collation Support</a></li>
@@ -456,13 +458,13 @@
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#compatibility-levels">Compatibility Levels</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#known-issues">Known Issues</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#module-sqlalchemy.dialects.mssql.pyodbc">PyODBC</a></li>
-<li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#module-sqlalchemy.dialects.mssql.adodbapi">AdoDBAPI</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#module-sqlalchemy.dialects.mssql.pymssql">pymssql</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#module-sqlalchemy.dialects.mssql.zxjdbc">zxjdbc Notes</a><ul>
 <li class="toctree-l6"><a class="reference external" href="reference/dialects/mssql.html#jdbc-driver">JDBC Driver</a></li>
 <li class="toctree-l6"><a class="reference external" href="reference/dialects/mssql.html#id1">Connecting</a></li>
 </ul>
 </li>
+<li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#module-sqlalchemy.dialects.mssql.adodbapi">AdoDBAPI</a></li>
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference external" href="reference/dialects/mysql.html">MySQL</a><ul>
@@ -541,10 +543,11 @@
 </li>
 <li class="toctree-l4"><a class="reference external" href="reference/dialects/sqlite.html">SQLite</a><ul>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/sqlite.html#date-and-time-types">Date and Time Types</a></li>
-<li class="toctree-l5"><a class="reference external" href="reference/dialects/sqlite.html#auto-incrementing-beahvior">Auto Incrementing Beahvior</a></li>
+<li class="toctree-l5"><a class="reference external" href="reference/dialects/sqlite.html#auto-incrementing-behavior">Auto Incrementing Behavior</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/sqlite.html#module-sqlalchemy.dialects.sqlite.pysqlite">Pysqlite</a><ul>
 <li class="toctree-l6"><a class="reference external" href="reference/dialects/sqlite.html#driver">Driver</a></li>
 <li class="toctree-l6"><a class="reference external" href="reference/dialects/sqlite.html#connect-strings">Connect Strings</a></li>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/sqlite.html#compatibility-with-sqlite3-native-date-and-datetime-types">Compatibility with sqlite3 &#8220;native&#8221; date and datetime types</a></li>
 <li class="toctree-l6"><a class="reference external" href="reference/dialects/sqlite.html#threading-behavior">Threading Behavior</a></li>
 <li class="toctree-l6"><a class="reference external" href="reference/dialects/sqlite.html#unicode">Unicode</a></li>
 </ul>
@@ -562,7 +565,18 @@
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/maxdb.html#implementation-notes">Implementation Notes</a></li>
 </ul>
 </li>
-<li class="toctree-l4"><a class="reference external" href="reference/dialects/sybase.html">Sybase</a></li>
+<li class="toctree-l4"><a class="reference external" href="reference/dialects/sybase.html">Sybase</a><ul>
+<li class="toctree-l5"><a class="reference external" href="reference/dialects/sybase.html#module-sqlalchemy.dialects.sybase.pysybase">python-sybase notes</a><ul>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/sybase.html#unicode-support">Unicode Support</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference external" href="reference/dialects/sybase.html#module-sqlalchemy.dialects.sybase.pyodbc">pyodbc notes</a><ul>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/sybase.html#id1">Unicode Support</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference external" href="reference/dialects/sybase.html#module-sqlalchemy.dialects.sybase.mxodbc">mxodbc notes</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -572,8 +586,8 @@
 <li class="toctree-l4"><a class="reference external" href="reference/ext/declarative.html#synopsis">Synopsis</a></li>
 <li class="toctree-l4"><a class="reference external" href="reference/ext/declarative.html#defining-attributes">Defining Attributes</a></li>
 <li class="toctree-l4"><a class="reference external" href="reference/ext/declarative.html#association-of-metadata-and-engine">Association of Metadata and Engine</a></li>
-<li class="toctree-l4"><a class="reference external" href="reference/ext/declarative.html#configuring-relations">Configuring Relations</a></li>
-<li class="toctree-l4"><a class="reference external" href="reference/ext/declarative.html#configuring-many-to-many-relations">Configuring Many-to-Many Relations</a></li>
+<li class="toctree-l4"><a class="reference external" href="reference/ext/declarative.html#configuring-relationships">Configuring Relationships</a></li>
+<li class="toctree-l4"><a class="reference external" href="reference/ext/declarative.html#configuring-many-to-many-relationships">Configuring Many-to-Many Relationships</a></li>
 <li class="toctree-l4"><a class="reference external" href="reference/ext/declarative.html#defining-synonyms">Defining Synonyms</a></li>
 <li class="toctree-l4"><a class="reference external" href="reference/ext/declarative.html#table-configuration">Table Configuration</a></li>
 <li class="toctree-l4"><a class="reference external" href="reference/ext/declarative.html#mapper-configuration">Mapper Configuration</a></li>
@@ -583,12 +597,15 @@
 <li class="toctree-l5"><a class="reference external" href="reference/ext/declarative.html#concrete-table-inheritance">Concrete Table Inheritance</a></li>
 </ul>
 </li>
-<li class="toctree-l4"><a class="reference external" href="reference/ext/declarative.html#class-usage">Class Usage</a></li>
+<li class="toctree-l4"><a class="reference external" href="reference/ext/declarative.html#mix-in-classes">Mix-in Classes</a></li>
+<li class="toctree-l4"><a class="reference external" href="reference/ext/declarative.html#class-constructor">Class Constructor</a></li>
+<li class="toctree-l4"><a class="reference external" href="reference/ext/declarative.html#sessions">Sessions</a></li>
+<li class="toctree-l4"><a class="reference external" href="reference/ext/declarative.html#api-reference">API Reference</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference external" href="reference/ext/associationproxy.html">associationproxy</a><ul>
-<li class="toctree-l4"><a class="reference external" href="reference/ext/associationproxy.html#simplifying-relations">Simplifying Relations</a></li>
-<li class="toctree-l4"><a class="reference external" href="reference/ext/associationproxy.html#simplifying-association-object-relations">Simplifying Association Object Relations</a></li>
+<li class="toctree-l4"><a class="reference external" href="reference/ext/associationproxy.html#simplifying-relationships">Simplifying Relationships</a></li>
+<li class="toctree-l4"><a class="reference external" href="reference/ext/associationproxy.html#simplifying-association-object-relationships">Simplifying Association Object Relationships</a></li>
 <li class="toctree-l4"><a class="reference external" href="reference/ext/associationproxy.html#building-complex-views">Building Complex Views</a></li>
 <li class="toctree-l4"><a class="reference external" href="reference/ext/associationproxy.html#api">API</a></li>
 </ul>
@@ -603,7 +620,7 @@
 </li>
 <li class="toctree-l4"><a class="reference external" href="reference/ext/sqlsoup.html#modifying-objects">Modifying objects</a></li>
 <li class="toctree-l4"><a class="reference external" href="reference/ext/sqlsoup.html#joins">Joins</a></li>
-<li class="toctree-l4"><a class="reference external" href="reference/ext/sqlsoup.html#relations">Relations</a></li>
+<li class="toctree-l4"><a class="reference external" href="reference/ext/sqlsoup.html#relationships">Relationships</a></li>
 <li class="toctree-l4"><a class="reference external" href="reference/ext/sqlsoup.html#advanced-use">Advanced Use</a><ul>
 <li class="toctree-l5"><a class="reference external" href="reference/ext/sqlsoup.html#sessions-transations-and-application-integration">Sessions, Transations and Application Integration</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/ext/sqlsoup.html#mapping-arbitrary-selectables">Mapping arbitrary Selectables</a></li>
@@ -652,7 +669,7 @@
 
                 <div class="doc_copyright">
                     &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>
         

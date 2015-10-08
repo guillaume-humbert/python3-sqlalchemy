@@ -152,6 +152,10 @@ Classes
    :members: where
    :show-inheritance:
 
+.. autoclass:: Executable
+   :members:
+   :show-inheritance:
+
 .. autoclass:: FunctionElement
    :members:
    :show-inheritance:
@@ -205,3 +209,5 @@ SQL functions which are known to SQLAlchemy with regards to database-specific re
    :members:
    :undoc-members:
    :show-inheritance:
+   
+   

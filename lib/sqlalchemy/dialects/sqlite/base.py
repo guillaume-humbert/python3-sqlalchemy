@@ -20,7 +20,7 @@ These types represent dates and times as ISO formatted strings, which also nicel
 support ordering.   There's no reliance on typical "libc" internals for these functions
 so historical dates are fully supported.
 
-Auto Incrementing Beahvior
+Auto Incrementing Behavior
 --------------------------
 
 Background on SQLite's autoincrement is at: http://sqlite.org/autoinc.html
@@ -54,54 +54,24 @@ from sqlalchemy import types as sqltypes
 from sqlalchemy import util
 from sqlalchemy.sql import compiler, functions as sql_functions
 from sqlalchemy.util import NoneType
+from sqlalchemy import processors
 
 from sqlalchemy.types import BLOB, BOOLEAN, CHAR, DATE, DATETIME, DECIMAL,\
                             FLOAT, INTEGER, NUMERIC, SMALLINT, TEXT, TIME,\
                             TIMESTAMP, VARCHAR
                             
 
-class _NumericMixin(object):
-    def bind_processor(self, dialect):
-        type_ = self.asdecimal and str or float
-        def process(value):
-            if value is not None:
-                return type_(value)
-            else:
-                return value
-        return process
-
-class _SLNumeric(_NumericMixin, sqltypes.Numeric):
-    pass
-
-class _SLFloat(_NumericMixin, sqltypes.Float):
-    pass
-
-# since SQLite has no date types, we're assuming that SQLite via ODBC
-# or JDBC would similarly have no built in date support, so the "string" based logic
-# would apply to all implementing dialects.
 class _DateTimeMixin(object):
     _reg = None
     _storage_format = None
-
+    
     def __init__(self, storage_format=None, regexp=None, **kwargs):
         if regexp is not None:
             self._reg = re.compile(regexp)
         if storage_format is not None:
             self._storage_format = storage_format
-
-    def _result_processor(self, fn):
-        rmatch = self._reg.match
-        # Even on python2.6 datetime.strptime is both slower than this code
-        # and it does not support microseconds.
-        def process(value):
-            if value is not None:
-                return fn(*map(int, rmatch(value).groups(0)))
-            else:
-                return None
-        return process
-
+            
 class DATETIME(_DateTimeMixin, sqltypes.DateTime):
-    _reg = re.compile(r"(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)(?:\.(\d+))?")
     _storage_format = "%04d-%02d-%02d %02d:%02d:%02d.%06d"
   
     def bind_processor(self, dialect):
@@ -124,10 +94,13 @@ class DATETIME(_DateTimeMixin, sqltypes.DateTime):
         return process
 
     def result_processor(self, dialect, coltype):
-        return self._result_processor(datetime.datetime)
+        if self._reg:
+            return processors.str_to_datetime_processor_factory(
+                self._reg, datetime.datetime)
+        else:
+            return processors.str_to_datetime
 
 class DATE(_DateTimeMixin, sqltypes.Date):
-    _reg = re.compile(r"(\d+)-(\d+)-(\d+)")
     _storage_format = "%04d-%02d-%02d"
 
     def bind_processor(self, dialect):
@@ -144,10 +117,13 @@ class DATE(_DateTimeMixin, sqltypes.Date):
         return process
   
     def result_processor(self, dialect, coltype):
-        return self._result_processor(datetime.date)
+        if self._reg:
+            return processors.str_to_datetime_processor_factory(
+                self._reg, datetime.date)
+        else:
+            return processors.str_to_date
 
 class TIME(_DateTimeMixin, sqltypes.Time):
-    _reg = re.compile(r"(\d+):(\d+):(\d+)(?:\.(\d+))?")
     _storage_format = "%02d:%02d:%02d.%06d"
 
     def bind_processor(self, dialect):
@@ -165,13 +141,15 @@ class TIME(_DateTimeMixin, sqltypes.Time):
         return process
   
     def result_processor(self, dialect, coltype):
-        return self._result_processor(datetime.time)
+        if self._reg:
+            return processors.str_to_datetime_processor_factory(
+                self._reg, datetime.time)
+        else:
+            return processors.str_to_time
 
 colspecs = {
     sqltypes.Date: DATE,
     sqltypes.DateTime: DATETIME,
-    sqltypes.Float: _SLFloat,
-    sqltypes.Numeric: _SLNumeric,
     sqltypes.Time: TIME,
 }
 
@@ -198,8 +176,9 @@ ischema_names = {
 
 
 class SQLiteCompiler(compiler.SQLCompiler):
-    extract_map = compiler.SQLCompiler.extract_map.copy()
-    extract_map.update({
+    extract_map = util.update_copy(
+        compiler.SQLCompiler.extract_map,
+        {
         'month': '%m',
         'day': '%d',
         'year': '%Y',
@@ -224,10 +203,10 @@ class SQLiteCompiler(compiler.SQLCompiler):
         else:
             return self.process(cast.clause)
 
-    def visit_extract(self, extract):
+    def visit_extract(self, extract, **kw):
         try:
             return "CAST(STRFTIME('%s', %s) AS INTEGER)" % (
-                self.extract_map[extract.field], self.process(extract.expr))
+                self.extract_map[extract.field], self.process(extract.expr, **kw))
         except KeyError:
             raise exc.ArgumentError(
                 "%s is not a valid extract argument." % extract.field)
@@ -342,7 +321,7 @@ class SQLiteDialect(default.DefaultDialect):
     supports_default_values = True
     supports_empty_insert = False
     supports_cast = True
-
+    
     default_paramstyle = 'qmark'
     statement_compiler = SQLiteCompiler
     ddl_compiler = SQLiteDDLCompiler
@@ -352,7 +331,7 @@ class SQLiteDialect(default.DefaultDialect):
     colspecs = colspecs
     isolation_level = None
 
-    def __init__(self, isolation_level=None, **kwargs):
+    def __init__(self, isolation_level=None, native_datetime=False, **kwargs):
         default.DefaultDialect.__init__(self, **kwargs)
         if isolation_level and isolation_level not in ('SERIALIZABLE',
                 'READ UNCOMMITTED'):
@@ -360,23 +339,30 @@ class SQLiteDialect(default.DefaultDialect):
                 "Valid isolation levels for sqlite are 'SERIALIZABLE' and "
                 "'READ UNCOMMITTED'.")
         self.isolation_level = isolation_level
-
-    def visit_pool(self, pool):
+        
+        # this flag used by pysqlite dialect, and perhaps others in the
+        # future, to indicate the driver is handling date/timestamp
+        # conversions (and perhaps datetime/time as well on some 
+        # hypothetical driver ?)
+        self.native_datetime = native_datetime
+        
+    def on_connect(self):
         if self.isolation_level is not None:
-            class SetIsolationLevel(object):
-                def __init__(self, isolation_level):
-                    if isolation_level == 'READ UNCOMMITTED':
-                        self.isolation_level = 1
-                    else:
-                        self.isolation_level = 0
+            if self.isolation_level == 'READ UNCOMMITTED':
+                isolation_level = 1
+            else:
+                isolation_level = 0
+                
+            def connect(conn):
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA read_uncommitted = %d" % isolation_level)
+                cursor.close()
+            return connect
+        else:
+            return None
 
-                def connect(self, conn, rec):
-                    cursor = conn.cursor()
-                    cursor.execute("PRAGMA read_uncommitted = %d" % self.isolation_level)
-                    cursor.close()
-            pool.add_listener(SetIsolationLevel(self.isolation_level))
-
-    def table_names(self, connection, schema):
+    @reflection.cache
+    def get_table_names(self, connection, schema=None, **kw):
         if schema is not None:
             qschema = self.identifier_preparer.quote_identifier(schema)
             master = '%s.sqlite_master' % qschema
@@ -414,10 +400,6 @@ class SQLiteDialect(default.DefaultDialect):
             pass
 
         return (row is not None)
-
-    @reflection.cache
-    def get_table_names(self, connection, schema=None, **kw):
-        return self.table_names(connection, schema)
 
     @reflection.cache
     def get_view_names(self, connection, schema=None, **kw):

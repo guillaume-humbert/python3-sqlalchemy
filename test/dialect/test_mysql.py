@@ -289,6 +289,7 @@ class TypesTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
         charset_table.drop()
 
     @testing.exclude('mysql', '<', (5, 0, 5), 'a 5.0+ feature')
+    @testing.fails_on('mysql+oursql', 'some round trips fail, oursql bug ?')
     def test_bit_50(self):
         """Exercise BIT types on 5.0+ (not valid for all engine types)"""
 
@@ -359,12 +360,14 @@ class TypesTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
                            Column('b1', BOOLEAN),
                            Column('b2', Boolean),
                            Column('b3', mysql.MSTinyInteger(1)),
-                           Column('b4', mysql.MSTinyInteger))
+                           Column('b4', mysql.MSTinyInteger(1, unsigned=True)),
+                           Column('b5', mysql.MSTinyInteger))
 
         eq_(colspec(bool_table.c.b1), 'b1 BOOL')
         eq_(colspec(bool_table.c.b2), 'b2 BOOL')
         eq_(colspec(bool_table.c.b3), 'b3 TINYINT(1)')
-        eq_(colspec(bool_table.c.b4), 'b4 TINYINT')
+        eq_(colspec(bool_table.c.b4), 'b4 TINYINT(1) UNSIGNED')
+        eq_(colspec(bool_table.c.b5), 'b5 TINYINT')
 
         for col in bool_table.c:
             self.assert_(repr(col))
@@ -389,22 +392,23 @@ class TypesTest(TestBase, AssertsExecutionResults, AssertsCompiledSQL):
                 table.delete().execute().close()
 
 
-            roundtrip([None, None, None, None])
-            roundtrip([True, True, 1, 1])
-            roundtrip([False, False, 0, 0])
-            roundtrip([True, True, True, True], [True, True, 1, 1])
-            roundtrip([False, False, 0, 0], [False, False, 0, 0])
+            roundtrip([None, None, None, None, None])
+            roundtrip([True, True, 1, 1, 1])
+            roundtrip([False, False, 0, 0, 0])
+            roundtrip([True, True, True, True, True], [True, True, 1, 1, 1])
+            roundtrip([False, False, 0, 0, 0], [False, False, 0, 0, 0])
 
             meta2 = MetaData(testing.db)
             # replace with reflected
             table = Table('mysql_bool', meta2, autoload=True)
             eq_(colspec(table.c.b3), 'b3 BOOL')
+            eq_(colspec(table.c.b4), 'b4 BOOL')
 
-            roundtrip([None, None, None, None])
-            roundtrip([True, True, 1, 1], [True, True, True, 1])
-            roundtrip([False, False, 0, 0], [False, False, False, 0])
-            roundtrip([True, True, True, True], [True, True, True, 1])
-            roundtrip([False, False, 0, 0], [False, False, False, 0])
+            roundtrip([None, None, None, None, None])
+            roundtrip([True, True, 1, 1, 1], [True, True, True, True, 1])
+            roundtrip([False, False, 0, 0, 0], [False, False, False, False, 0])
+            roundtrip([True, True, True, True, True], [True, True, True, True, 1])
+            roundtrip([False, False, 0, 0, 0], [False, False, False, False, 0])
         finally:
             meta.drop_all()
 
@@ -734,14 +738,14 @@ class ReflectionTest(TestBase, AssertsExecutionResults):
 
     def test_default_reflection(self):
         """Test reflection of column defaults."""
-
+        from sqlalchemy.dialects.mysql import VARCHAR
+        
         def_table = Table('mysql_def', MetaData(testing.db),
-            Column('c1', String(10), DefaultClause('')),
+            Column('c1', VARCHAR(10, collation='utf8_unicode_ci'), DefaultClause(''), nullable=False),
             Column('c2', String(10), DefaultClause('0')),
             Column('c3', String(10), DefaultClause('abc')),
             Column('c4', TIMESTAMP, DefaultClause('2009-04-05 12:00:00')),
             Column('c5', TIMESTAMP),
-            
         )
 
         def_table.create()
@@ -771,7 +775,48 @@ class ReflectionTest(TestBase, AssertsExecutionResults):
         assert str(reflected2.c.c2.server_default.arg) == "'0'"
         assert str(reflected2.c.c3.server_default.arg) == "'abc'"
         assert str(reflected2.c.c4.server_default.arg) == "'2009-04-05 12:00:00'"
-            
+
+    def test_reflection_with_table_options(self):
+        comment = r"""Comment types type speedily ' " \ '' Fun!"""
+
+        def_table = Table('mysql_def', MetaData(testing.db),
+            Column('c1', Integer()),
+            mysql_engine='MEMORY',
+            mysql_comment=comment,
+            mysql_default_charset='utf8',
+            mysql_auto_increment='5',
+            mysql_avg_row_length='3',
+            mysql_password='secret',
+            mysql_connection='fish',
+        )
+
+        def_table.create()
+        try:
+            reflected = Table('mysql_def', MetaData(testing.db),
+                          autoload=True)
+        finally:
+            def_table.drop()
+
+        assert def_table.kwargs['mysql_engine'] == 'MEMORY'
+        assert def_table.kwargs['mysql_comment'] == comment
+        assert def_table.kwargs['mysql_default_charset'] == 'utf8'
+        assert def_table.kwargs['mysql_auto_increment'] == '5'
+        assert def_table.kwargs['mysql_avg_row_length'] == '3'
+        assert def_table.kwargs['mysql_password'] == 'secret'
+        assert def_table.kwargs['mysql_connection'] == 'fish'
+
+        assert reflected.kwargs['mysql_engine'] == 'MEMORY'
+        assert reflected.kwargs['mysql_comment'] == comment
+        assert reflected.kwargs['mysql_default charset'] == 'utf8'
+        assert reflected.kwargs['mysql_avg_row_length'] == '3'
+        assert reflected.kwargs['mysql_connection'] == 'fish'
+
+        # This field doesn't seem to be returned by mysql itself.
+        #assert reflected.kwargs['mysql_password'] == 'secret'
+
+        # This is explicitly ignored when reflecting schema.
+        #assert reflected.kwargs['mysql_auto_increment'] == '5'
+
     def test_reflection_on_include_columns(self):
         """Test reflection of include_columns to be sure they respect case."""
 
@@ -1119,6 +1164,38 @@ class SQLTest(TestBase, AssertsCompiledSQL):
             select([extract('milliseconds', t.c.col1)]),
             "SELECT EXTRACT(millisecond FROM t.col1) AS anon_1 FROM t")
 
+    def test_innodb_autoincrement(self):
+        t1 = Table('sometable', MetaData(),
+                Column('assigned_id', Integer(), primary_key=True, autoincrement=False),
+                Column('id', Integer(), primary_key=True, autoincrement=True),
+                mysql_engine='InnoDB'
+        )
+
+        self.assert_compile(
+            schema.CreateTable(t1),
+            "CREATE TABLE sometable ("
+            "assigned_id INTEGER NOT NULL, "
+            "id INTEGER NOT NULL AUTO_INCREMENT, "
+            "PRIMARY KEY (assigned_id, id), "
+            "KEY `idx_autoinc_id`(`id`)"
+            ")ENGINE=InnoDB"
+        )
+
+        t1 = Table('sometable', MetaData(),
+                Column('assigned_id', Integer(), primary_key=True, autoincrement=True),
+                Column('id', Integer(), primary_key=True, autoincrement=False),
+                mysql_engine='InnoDB'
+        )
+
+        self.assert_compile(
+            schema.CreateTable(t1),
+            "CREATE TABLE sometable ("
+            "assigned_id INTEGER NOT NULL AUTO_INCREMENT, "
+            "id INTEGER NOT NULL, "
+            "PRIMARY KEY (assigned_id, id)"
+            ")ENGINE=InnoDB"
+        )
+
 
 class RawReflectionTest(TestBase):
     def setup(self):
@@ -1184,7 +1261,7 @@ class MatchTest(TestBase, AssertsCompiledSQL):
              'title': 'Dive Into Python',
              'category_id': 1},
             {'id': 3,
-             'title': 'Programming Matz''s Ruby',
+             'title': "Programming Matz's Ruby",
              'category_id': 2},
             {'id': 4,
              'title': 'The Definitive Guide to Django',
@@ -1198,8 +1275,19 @@ class MatchTest(TestBase, AssertsCompiledSQL):
     def teardown_class(cls):
         metadata.drop_all()
 
+    @testing.fails_on('mysql+mysqlconnector', 'uses pyformat')
     def test_expression(self):
         format = testing.db.dialect.paramstyle == 'format' and '%s' or '?'
+        self.assert_compile(
+            matchtable.c.title.match('somstr'),
+            "MATCH (matchtable.title) AGAINST (%s IN BOOLEAN MODE)" % format)
+    
+    @testing.fails_on('mysql+mysqldb', 'uses format')
+    @testing.fails_on('mysql+oursql', 'uses format')
+    @testing.fails_on('mysql+pyodbc', 'uses format')
+    @testing.fails_on('mysql+zxjdbc', 'uses format')
+    def test_expression(self):
+        format = '%(title_1)s'
         self.assert_compile(
             matchtable.c.title.match('somstr'),
             "MATCH (matchtable.title) AGAINST (%s IN BOOLEAN MODE)" % format)
@@ -1214,7 +1302,7 @@ class MatchTest(TestBase, AssertsCompiledSQL):
 
     def test_simple_match_with_apostrophe(self):
         results = (matchtable.select().
-                   where(matchtable.c.title.match('"Matz''s"')).
+                   where(matchtable.c.title.match("Matz's")).
                    execute().
                    fetchall())
         eq_([3], [r.id for r in results])

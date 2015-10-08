@@ -26,12 +26,15 @@ from decimal import Decimal as _python_Decimal
 import codecs
 
 from sqlalchemy import exc, schema
-from sqlalchemy.sql import expression
+from sqlalchemy.sql import expression, operators
 import sys
 schema.types = expression.sqltypes =sys.modules['sqlalchemy.types']
 from sqlalchemy.util import pickle
 from sqlalchemy.sql.visitors import Visitable
 from sqlalchemy import util
+from sqlalchemy import processors
+import collections
+
 NoneType = type(None)
 if util.jython:
     import array
@@ -95,24 +98,32 @@ class AbstractType(Visitable):
         """
         return None
 
-    def adapt_operator(self, op):
-        """Given an operator from the sqlalchemy.sql.operators package,
-        translate it to a new operator based on the semantics of this type.
-
-        By default, returns the operator unchanged.
-
+    def _adapt_expression(self, op, othertype):
+        """evaluate the return type of <self> <op> <othertype>,
+        and apply any adaptations to the given operator.
+        
         """
-        return op
+        return op, self
         
     @util.memoized_property
     def _type_affinity(self):
         """Return a rudimental 'affinity' value expressing the general class of type."""
-        
-        for i, t in enumerate(self.__class__.__mro__):
+
+        typ = None
+        for t in self.__class__.__mro__:
             if t is TypeEngine or t is UserDefinedType:
-                return self.__class__.__mro__[i - 1]
+                return typ
+            elif issubclass(t, TypeEngine):
+                typ = t
         else:
             return self.__class__
+    
+    def _coerce_compared_value(self, op, value):
+        _coerced_type = type_map.get(type(value), NULLTYPE)
+        if _coerced_type is NULLTYPE or _coerced_type._type_affinity is self._type_affinity:
+            return self
+        else:
+            return _coerced_type
         
     def _compare_type_affinity(self, other):
         return self._type_affinity is other._type_affinity
@@ -206,20 +217,42 @@ class UserDefinedType(TypeEngine):
     """
     __visit_name__ = "user_defined"
 
+    def _adapt_expression(self, op, othertype):
+        """evaluate the return type of <self> <op> <othertype>,
+        and apply any adaptations to the given operator.
+        
+        """
+        return self.adapt_operator(op), self
+
+    def adapt_operator(self, op):
+        """A hook which allows the given operator to be adapted
+        to something new. 
+        
+        See also UserDefinedType._adapt_expression(), an as-yet-
+        semi-public method with greater capability in this regard.
+        
+        """
+        return op
+
 class TypeDecorator(AbstractType):
     """Allows the creation of types which add additional functionality
     to an existing type.
+    
+    This method is preferred to direct subclassing of SQLAlchemy's
+    built-in types as it ensures that all required functionality of 
+    the underlying type is kept in place.
 
     Typical usage::
 
       import sqlalchemy.types as types
 
       class MyType(types.TypeDecorator):
-          # Prefixes Unicode values with "PREFIX:" on the way in and
-          # strips it off on the way out.
+          '''Prefixes Unicode values with "PREFIX:" on the way in and
+          strips it off on the way out.
+          '''
 
           impl = types.Unicode
-
+          
           def process_bind_param(self, value, dialect):
               return "PREFIX:" + value
 
@@ -235,14 +268,49 @@ class TypeDecorator(AbstractType):
     given; in this case, the "impl" variable can reference
     ``TypeEngine`` as a placeholder.
 
-    The reason that type behavior is modified using class decoration
-    instead of subclassing is due to the way dialect specific types
-    are used.  Such as with the example above, when using the mysql
-    dialect, the actual type in use will be a
-    ``sqlalchemy.databases.mysql.MSString`` instance.
-    ``TypeDecorator`` handles the mechanics of passing the values
-    between user-defined ``process_`` methods and the current
-    dialect-specific type in use.
+    Types that receive a Python type that isn't similar to the 
+    ultimate type used may want to define the :meth:`TypeDecorator.coerce_compared_value`
+    method.  This is used to give the expression system a hint 
+    when coercing Python objects into bind parameters within expressions.  
+    Consider this expression::
+    
+        mytable.c.somecol + datetime.date(2009, 5, 15)
+        
+    Above, if "somecol" is an ``Integer`` variant, it makes sense that 
+    we're doing date arithmetic, where above is usually interpreted
+    by databases as adding a number of days to the given date. 
+    The expression system does the right thing by not attempting to
+    coerce the "date()" value into an integer-oriented bind parameter.
+    
+    However, in the case of ``TypeDecorator``, we are usually changing
+    an incoming Python type to something new - ``TypeDecorator`` by 
+    default will "coerce" the non-typed side to be the same type as itself.
+    Such as below, we define an "epoch" type that stores a date value as an integer::
+    
+        class MyEpochType(types.TypeDecorator):
+            impl = types.Integer
+            
+            epoch = datetime.date(1970, 1, 1)
+            
+            def process_bind_param(self, value, dialect):
+                return (value - self.epoch).days
+            
+            def process_result_value(self, value, dialect):
+                return self.epoch + timedelta(days=value)
+
+    Our expression of ``somecol + date`` with the above type will coerce the
+    "date" on the right side to also be treated as ``MyEpochType``.  
+    
+    This behavior can be overridden via the :meth:`~TypeDecorator.coerce_compared_value`
+    method, which returns a type that should be used for the value of the expression.
+    Below we set it such that an integer value will be treated as an ``Integer``,
+    and any other value is assumed to be a date and will be treated as a ``MyEpochType``::
+    
+        def coerce_compared_value(self, op, value):
+            if isinstance(value, int):
+                return Integer()
+            else:
+                return self
 
     """
 
@@ -345,7 +413,28 @@ class TypeDecorator(AbstractType):
             return process
         else:
             return self.impl.result_processor(dialect, coltype)
+    
+    def coerce_compared_value(self, op, value):
+        """Suggest a type for a 'coerced' Python value in an expression.
+        
+        By default, returns self.   This method is called by
+        the expression system when an object using this type is 
+        on the left or right side of an expression against a plain Python
+        object which does not yet have a SQLAlchemy type assigned::
+        
+            expr = table.c.somecolumn + 35
+            
+        Where above, if ``somecolumn`` uses this type, this method will
+        be called with the value ``operator.add``
+        and ``35``.  The return value is whatever SQLAlchemy type should
+        be used for ``35`` for this particular operation.
+        
+        """
+        return self
 
+    def _coerce_compared_value(self, op, value):
+        return self.coerce_compared_value(op, value)
+        
     def copy(self):
         instance = self.__class__.__new__(self.__class__)
         instance.__dict__.update(self.__dict__)
@@ -363,6 +452,11 @@ class TypeDecorator(AbstractType):
 
     def is_mutable(self):
         return self.impl.is_mutable()
+
+    def _adapt_expression(self, op, othertype):
+        return self.impl._adapt_expression(op, othertype)
+
+
 
 class MutableType(object):
     """A mixin that marks a Type as holding a mutable object.
@@ -429,18 +523,41 @@ class NullType(TypeEngine):
     """
     __visit_name__ = 'null'
 
+    def _adapt_expression(self, op, othertype):
+        if othertype is NullType or not operators.is_commutative(op):
+            return op, self
+        else:
+            return othertype._adapt_expression(op, self)
+
 NullTypeEngine = NullType
 
 class Concatenable(object):
     """A mixin that marks a type as supporting 'concatenation', typically strings."""
 
-    def adapt_operator(self, op):
-        """Converts an add operator to concat."""
-        from sqlalchemy.sql import operators
-        if op is operators.add:
-            return operators.concat_op
+    def _adapt_expression(self, op, othertype):
+        if op is operators.add and issubclass(othertype._type_affinity, (Concatenable, NullType)):
+            return operators.concat_op, self
         else:
-            return op
+            return op, self
+
+class _DateAffinity(object):
+    """Mixin date/time specific expression adaptations.
+    
+    Rules are implemented within Date,Time,Interval,DateTime, Numeric, Integer.
+    Based on http://www.postgresql.org/docs/current/static/functions-datetime.html.
+    
+    """
+    
+    @property
+    def _expression_adaptations(self):
+        raise NotImplementedError()
+
+    _blank_dict = util.frozendict()
+    def _adapt_expression(self, op, othertype):
+        othertype = othertype._type_affinity
+        return op, \
+                self._expression_adaptations.get(op, self._blank_dict).\
+                get(othertype, NULLTYPE)
 
 class String(Concatenable, TypeEngine):
     """The base for all string and character types.
@@ -457,7 +574,10 @@ class String(Concatenable, TypeEngine):
 
     __visit_name__ = 'string'
 
-    def __init__(self, length=None, convert_unicode=False, assert_unicode=None):
+    def __init__(self, length=None, convert_unicode=False, 
+                        assert_unicode=None, unicode_error=None,
+                        _warn_on_bytestring=False
+                        ):
         """
         Create a string-holding type.
 
@@ -468,86 +588,100 @@ class String(Concatenable, TypeEngine):
           the ``CREATE TABLE`` DDL is issued.  Whether the value is
           interpreted as bytes or characters is database specific.
 
-        :param convert_unicode: defaults to False.  If True, convert
-          ``unicode`` data sent to the database to a ``str``
-          bytestring, and convert bytestrings coming back from the
-          database into ``unicode``.   
+        :param convert_unicode: defaults to False.  If True, the 
+          type will do what is necessary in order to accept 
+          Python Unicode objects as bind parameters, and to return
+          Python Unicode objects in result rows.   This may
+          require SQLAlchemy to explicitly coerce incoming Python 
+          unicodes into an encoding, and from an encoding 
+          back to Unicode, or it may not require any interaction
+          from SQLAlchemy at all, depending on the DBAPI in use.
 
-          Bytestrings are encoded using the dialect's
+          When SQLAlchemy performs the encoding/decoding, 
+          the encoding used is configured via
           :attr:`~sqlalchemy.engine.base.Dialect.encoding`, which
           defaults to `utf-8`.
 
-          If False, may be overridden by
-          :attr:`sqlalchemy.engine.base.Dialect.convert_unicode`.
+          The "convert_unicode" behavior can also be turned on
+          for all String types by setting 
+          :attr:`sqlalchemy.engine.base.Dialect.convert_unicode`
+          on create_engine().
           
-          If the DBAPI in use has been detected to return unicode 
-          strings from a VARCHAR result column, the String object will
-          assume all subsequent results are already unicode objects, and no
-          type detection will be done to verify this.  The 
-          rationale here is that isinstance() calls are enormously
-          expensive at the level of column-fetching.  To
-          force the check to occur regardless, set 
-          convert_unicode='force'.
+          To instruct SQLAlchemy to perform Unicode encoding/decoding
+          even on a platform that already handles Unicode natively,
+          set convert_unicode='force'.  This will incur significant
+          performance overhead when fetching unicode result columns.
           
-          Similarly, if the dialect is known to accept bind parameters
-          as unicode objects, no translation from unicode to bytestring
-          is performed on binds.  Again, encoding to a bytestring can be 
-          forced for special circumstances by setting convert_unicode='force'.
+        :param assert_unicode: Deprecated.  A warning is raised in all cases when a non-Unicode
+          object is passed when SQLAlchemy would coerce into an encoding
+          (note: but **not** when the DBAPI handles unicode objects natively).
+          To suppress or raise this warning to an 
+          error, use the Python warnings filter documented at:
+          http://docs.python.org/library/warnings.html
 
-        :param assert_unicode:
-
-          If None (the default), no assertion will take place unless
-          overridden by :attr:`sqlalchemy.engine.base.Dialect.assert_unicode`.
-
-          If 'warn', will issue a runtime warning if a ``str``
-          instance is used as a bind value.
-
-          If true, will raise an :exc:`sqlalchemy.exc.InvalidRequestError`.
+        :param unicode_error: Optional, a method to use to handle Unicode
+          conversion errors. Behaves like the 'errors' keyword argument to
+          the standard library's string.decode() functions.   This flag
+          requires that `convert_unicode` is set to `"force"` - otherwise,
+          SQLAlchemy is not guaranteed to handle the task of unicode
+          conversion.   Note that this flag adds significant performance
+          overhead to row-fetching operations for backends that already
+          return unicode objects natively (which most DBAPIs do).  This
+          flag should only be used as an absolute last resort for reading
+          strings from a column with varied or corrupted encodings,
+          which only applies to databases that accept invalid encodings 
+          in the first place (i.e. MySQL.  *not* PG, Sqlite, etc.)
 
         """
+        if unicode_error is not None and convert_unicode != 'force':
+            raise exc.ArgumentError("convert_unicode must be 'force' "
+                                        "when unicode_error is set.")
+        
+        if assert_unicode:
+            util.warn_deprecated("assert_unicode is deprecated. "
+                                "SQLAlchemy emits a warning in all cases where it "
+                                "would otherwise like to encode a Python unicode object "
+                                "into a specific encoding but a plain bytestring is received. "
+                                "This does *not* apply to DBAPIs that coerce Unicode natively."
+                                )
         self.length = length
         self.convert_unicode = convert_unicode
-        self.assert_unicode = assert_unicode
+        self.unicode_error = unicode_error
+        self._warn_on_bytestring = _warn_on_bytestring
         
     def adapt(self, impltype):
         return impltype(
                     length=self.length,
                     convert_unicode=self.convert_unicode,
-                    assert_unicode=self.assert_unicode)
+                    unicode_error=self.unicode_error,
+                    _warn_on_bytestring=True,
+                    )
 
     def bind_processor(self, dialect):
         if self.convert_unicode or dialect.convert_unicode:
-            if self.assert_unicode is None:
-                assert_unicode = dialect.assert_unicode
-            else:
-                assert_unicode = self.assert_unicode
-
-            if dialect.supports_unicode_binds and assert_unicode:
-                def process(value):
-                    if not isinstance(value, (unicode, NoneType)):
-                        if assert_unicode == 'warn':
+            if dialect.supports_unicode_binds and self.convert_unicode != 'force':
+                if self._warn_on_bytestring:
+                    def process(value):
+                        # Py3K
+                        #if isinstance(value, bytes):
+                        # Py2K
+                        if isinstance(value, str):
+                        # end Py2K
                             util.warn("Unicode type received non-unicode bind "
                                       "param value %r" % value)
-                            return value
-                        else:
-                            raise exc.InvalidRequestError("Unicode type received non-unicode bind param value %r" % value)
-                    else:
                         return value
-            elif dialect.supports_unicode_binds and self.convert_unicode != 'force':
-                return None
+                    return process
+                else:
+                    return None
             else:
+                encoder = codecs.getencoder(dialect.encoding)
                 def process(value):
                     if isinstance(value, unicode):
-                        return value.encode(dialect.encoding)
-                    elif assert_unicode and not isinstance(value, (unicode, NoneType)):
-                        if assert_unicode == 'warn':
-                            util.warn("Unicode type received non-unicode bind "
-                                      "param value %r" % value)
-                            return value
-                        else:
-                            raise exc.InvalidRequestError("Unicode type received non-unicode bind param value %r" % value)
-                    else:
-                        return value
+                        return encoder(value, self.unicode_error)[0]
+                    elif value is not None:
+                        util.warn("Unicode type received non-unicode bind "
+                                  "param value %r" % value)
+                    return value
             return process
         else:
             return None
@@ -555,20 +689,28 @@ class String(Concatenable, TypeEngine):
     def result_processor(self, dialect, coltype):
         wants_unicode = self.convert_unicode or dialect.convert_unicode
         needs_convert = wants_unicode and \
-                        (not dialect.returns_unicode_strings or 
+                        (dialect.returns_unicode_strings is not True or 
                         self.convert_unicode == 'force')
-        
+       
         if needs_convert:
-            # note we *assume* that we do not have a unicode object
-            # here, instead of an expensive isinstance() check.
-            decoder = codecs.getdecoder(dialect.encoding)
-            def process(value):
-                if value is not None:
-                    # decoder returns a tuple: (value, len)
-                    return decoder(value)[0]
-                else:
-                    return value
-            return process
+            to_unicode = processors.to_unicode_processor_factory(
+                                    dialect.encoding, self.unicode_error)
+            
+            if dialect.returns_unicode_strings:
+                # we wouldn't be here unless convert_unicode='force'
+                # was specified, or the driver has erratic unicode-returning
+                # habits.  since we will be getting back unicode
+                # in most cases, we check for it (decode will fail).   
+                def process(value):
+                    if isinstance(value, unicode):
+                        return value
+                    else:
+                        return to_unicode(value)
+                return process
+            else:
+                # here, we assume that the object is not unicode,
+                # avoiding expensive isinstance() check.
+                return to_unicode
         else:
             return None
 
@@ -595,7 +737,7 @@ class Unicode(String):
     database back into Python ``unicode`` objects.
     
     It's roughly equivalent to using a ``String`` object with
-    ``convert_unicode=True`` and ``assert_unicode='warn'``, however
+    ``convert_unicode=True``, however
     the type has other significances in that it implies the usage 
     of a unicode-capable type being used on the backend, such as NVARCHAR.
     This may affect what type is emitted when issuing CREATE TABLE
@@ -621,7 +763,7 @@ class Unicode(String):
     """
 
     __visit_name__ = 'unicode'
-
+    
     def __init__(self, length=None, **kwargs):
         """
         Create a Unicode-converting String type.
@@ -632,10 +774,13 @@ class Unicode(String):
           *length* for use in DDL, and will raise an exception when
           the ``CREATE TABLE`` DDL is issued.  Whether the value is
           interpreted as bytes or characters is database specific.
-
+        
+        :param \**kwargs: passed through to the underlying ``String``
+          type.
+          
         """
         kwargs.setdefault('convert_unicode', True)
-        kwargs.setdefault('assert_unicode', 'warn')
+        kwargs.setdefault('_warn_on_bytestring', True)
         super(Unicode, self).__init__(length=length, **kwargs)
 
 class UnicodeText(Text):
@@ -664,18 +809,48 @@ class UnicodeText(Text):
 
         """
         kwargs.setdefault('convert_unicode', True)
-        kwargs.setdefault('assert_unicode', 'warn')
+        kwargs.setdefault('_warn_on_bytestring', True)
         super(UnicodeText, self).__init__(length=length, **kwargs)
 
 
-class Integer(TypeEngine):
+class Integer(_DateAffinity, TypeEngine):
     """A type for ``int`` integers."""
 
     __visit_name__ = 'integer'
 
     def get_dbapi_type(self, dbapi):
         return dbapi.NUMBER
-
+    
+    @util.memoized_property
+    def _expression_adaptations(self):
+        # TODO: need a dictionary object that will
+        # handle operators generically here, this is incomplete
+        return {
+            operators.add:{
+                Date:Date,
+                Integer:Integer,
+                Numeric:Numeric,
+            },
+            operators.mul:{
+                Interval:Interval,
+                Integer:Integer,
+                Numeric:Numeric,
+            },
+            # Py2K
+            operators.div:{
+                Integer:Integer,
+                Numeric:Numeric,
+            },
+            # end Py2K
+            operators.truediv:{
+                Integer:Integer,
+                Numeric:Numeric,
+            },
+            operators.sub:{
+                Integer:Integer,
+                Numeric:Numeric,
+            },
+        }
 
 class SmallInteger(Integer):
     """A type for smaller ``int`` integers.
@@ -697,7 +872,7 @@ class BigInteger(Integer):
 
     __visit_name__ = 'big_integer'
 
-class Numeric(TypeEngine):
+class Numeric(_DateAffinity, TypeEngine):
     """A type for fixed precision numbers.
 
     Typically generates DECIMAL or NUMERIC.  Returns
@@ -753,23 +928,35 @@ class Numeric(TypeEngine):
         return dbapi.NUMBER
 
     def bind_processor(self, dialect):
-        def process(value):
-            if value is not None:
-                return float(value)
-            else:
-                return value
-        return process
+        if dialect.supports_native_decimal:
+            return None
+        else:
+            return processors.to_float
 
     def result_processor(self, dialect, coltype):
         if self.asdecimal:
-            def process(value):
-                if value is not None:
-                    return _python_Decimal(str(value))
+            if dialect.supports_native_decimal:
+                # we're a "numeric", DBAPI will give us Decimal directly
+                return None
+            else:
+                # we're a "numeric", DBAPI returns floats, convert.
+                if self.scale is not None:
+                    return processors.to_decimal_processor_factory(_python_Decimal, self.scale)
                 else:
-                    return value
-            return process
+                    return processors.to_decimal_processor_factory(_python_Decimal)
         else:
-            return None
+            if dialect.supports_native_decimal:
+                return processors.to_float
+            else:
+                return None
+
+    @util.memoized_property
+    def _expression_adaptations(self):
+        return {
+            operators.mul:{
+                Interval:Interval
+            },
+        }
 
 
 class Float(Numeric):
@@ -798,8 +985,14 @@ class Float(Numeric):
     def adapt(self, impltype):
         return impltype(precision=self.precision, asdecimal=self.asdecimal)
 
+    def result_processor(self, dialect, coltype):
+        if self.asdecimal:
+            return processors.to_decimal_processor_factory(_python_Decimal)
+        else:
+            return None
 
-class DateTime(TypeEngine):
+
+class DateTime(_DateAffinity, TypeEngine):
     """A type for ``datetime.datetime()`` objects.
 
     Date and time types return objects from the Python ``datetime``
@@ -821,8 +1014,20 @@ class DateTime(TypeEngine):
     def get_dbapi_type(self, dbapi):
         return dbapi.DATETIME
 
+    @util.memoized_property
+    def _expression_adaptations(self):
+        return {
+            operators.add:{
+                Interval:DateTime,
+            },
+            operators.sub:{
+                Interval:DateTime,
+                DateTime:Interval,
+            },
+        }
+        
 
-class Date(TypeEngine):
+class Date(_DateAffinity,TypeEngine):
     """A type for ``datetime.date()`` objects."""
 
     __visit_name__ = 'date'
@@ -830,8 +1035,32 @@ class Date(TypeEngine):
     def get_dbapi_type(self, dbapi):
         return dbapi.DATETIME
 
+    @util.memoized_property
+    def _expression_adaptations(self):
+        return {
+            operators.add:{
+                Integer:Date,
+                Interval:DateTime,
+                Time:DateTime,
+            },
+            operators.sub:{
+                # date - integer = date
+                Integer:Date,
+                
+                # date - date = integer.
+                Date:Integer,
 
-class Time(TypeEngine):
+                Interval:DateTime,
+                
+                # date - datetime = interval,
+                # this one is not in the PG docs 
+                # but works
+                DateTime:Interval,
+            },
+        }
+
+
+class Time(_DateAffinity,TypeEngine):
     """A type for ``datetime.time()`` objects."""
 
     __visit_name__ = 'time'
@@ -844,6 +1073,20 @@ class Time(TypeEngine):
 
     def get_dbapi_type(self, dbapi):
         return dbapi.DATETIME
+
+    @util.memoized_property
+    def _expression_adaptations(self):
+        return {
+            operators.add:{
+                Date:DateTime,
+                Interval:Time
+            },
+            operators.sub:{
+                Time:Interval,
+                Interval:Time,
+            },
+        }
+
 
 class _Binary(TypeEngine):
     """Define base behavior for binary types."""
@@ -876,11 +1119,7 @@ class _Binary(TypeEngine):
                 else:
                     return None
         else:
-            def process(value):
-                if value is not None:
-                    return str(value)
-                else:
-                    return None
+            process = processors.to_str
         return process
     # end Py2K
     
@@ -939,22 +1178,36 @@ class SchemaType(object):
         self.schema = kw.pop('schema', None)
         self.metadata = kw.pop('metadata', None)
         if self.metadata:
-            self.metadata.append_ddl_listener('before-create',
-                                                self._on_metadata_create)
-            self.metadata.append_ddl_listener('after-drop',
-                                                self._on_metadata_drop)
+            self.metadata.append_ddl_listener(
+                                    'before-create',
+                                    util.portable_instancemethod(self._on_metadata_create)
+                                    )
+            self.metadata.append_ddl_listener(
+                                    'after-drop',
+                                    util.portable_instancemethod(self._on_metadata_drop)
+                                    )
             
     def _set_parent(self, column):
-        column._on_table_attach(self._set_table)
+        column._on_table_attach(util.portable_instancemethod(self._set_table))
         
     def _set_table(self, table, column):
-        table.append_ddl_listener('before-create', self._on_table_create)
-        table.append_ddl_listener('after-drop', self._on_table_drop)
+        table.append_ddl_listener(
+                            'before-create', 
+                            util.portable_instancemethod(self._on_table_create)
+                            )
+        table.append_ddl_listener(
+                            'after-drop', 
+                            util.portable_instancemethod(self._on_table_drop)
+                            )
         if self.metadata is None:
-            table.metadata.append_ddl_listener('before-create',
-                                                self._on_metadata_create)
-            table.metadata.append_ddl_listener('after-drop',
-                                                self._on_metadata_drop)
+            table.metadata.append_ddl_listener(
+                            'before-create',
+                            util.portable_instancemethod(self._on_metadata_create)
+                            )
+            table.metadata.append_ddl_listener(
+                            'after-drop',
+                            util.portable_instancemethod(self._on_metadata_drop)
+                            )
     
     @property
     def bind(self):
@@ -967,7 +1220,7 @@ class SchemaType(object):
         if bind is None:
             bind = _bind_or_error(self)
         t = self.dialect_impl(bind.dialect)
-        if t is not self:
+        if t is not self and isinstance(t, SchemaType):
             t.create(bind=bind, checkfirst=checkfirst)
 
     def drop(self, bind=None, checkfirst=False):
@@ -977,27 +1230,27 @@ class SchemaType(object):
         if bind is None:
             bind = _bind_or_error(self)
         t = self.dialect_impl(bind.dialect)
-        if t is not self:
+        if t is not self and isinstance(t, SchemaType):
             t.drop(bind=bind, checkfirst=checkfirst)
         
     def _on_table_create(self, event, target, bind, **kw):
         t = self.dialect_impl(bind.dialect)
-        if t is not self:
+        if t is not self and isinstance(t, SchemaType):
             t._on_table_create(event, target, bind, **kw)
 
     def _on_table_drop(self, event, target, bind, **kw):
         t = self.dialect_impl(bind.dialect)
-        if t is not self:
+        if t is not self and isinstance(t, SchemaType):
             t._on_table_drop(event, target, bind, **kw)
 
     def _on_metadata_create(self, event, target, bind, **kw):
         t = self.dialect_impl(bind.dialect)
-        if t is not self:
+        if t is not self and isinstance(t, SchemaType):
             t._on_metadata_create(event, target, bind, **kw)
 
     def _on_metadata_drop(self, event, target, bind, **kw):
         t = self.dialect_impl(bind.dialect)
-        if t is not self:
+        if t is not self and isinstance(t, SchemaType):
             t._on_metadata_drop(event, target, bind, **kw)
     
 class Enum(String, SchemaType):
@@ -1020,9 +1273,6 @@ class Enum(String, SchemaType):
 
         :param \*enums: string or unicode enumeration labels. If unicode labels
             are present, the `convert_unicode` flag is auto-enabled.
-
-        :param assert_unicode: Enable unicode asserts for bind parameter values.
-            This flag is equivalent to that of ``String``.
 
         :param convert_unicode: Enable unicode-aware bind parameter and result-set
             processing for this Enum's data. This is set automatically based on
@@ -1060,7 +1310,6 @@ class Enum(String, SchemaType):
         self.enums = enums
         self.native_enum = kw.pop('native_enum', True)
         convert_unicode= kw.pop('convert_unicode', None)
-        assert_unicode = kw.pop('assert_unicode', None)
         if convert_unicode is None:
             for e in enums:
                 if isinstance(e, unicode):
@@ -1076,34 +1325,36 @@ class Enum(String, SchemaType):
         String.__init__(self, 
                         length =length,
                         convert_unicode=convert_unicode, 
-                        assert_unicode=assert_unicode
                         )
         SchemaType.__init__(self, **kw)
+
+    def _should_create_constraint(self, compiler):
+        return not self.native_enum or \
+                    not compiler.dialect.supports_native_enum
     
     def _set_table(self, table, column):
         if self.native_enum:
             SchemaType._set_table(self, table, column)
             
-        def should_create_constraint(compiler):
-            return not self.native_enum or \
-                        not compiler.dialect.supports_native_enum
 
         e = schema.CheckConstraint(
                         column.in_(self.enums),
                         name=self.name,
-                        _create_rule=should_create_constraint
+                        _create_rule=util.portable_instancemethod(self._should_create_constraint)
                     )
         table.append_constraint(e)
         
     def adapt(self, impltype):
-        return impltype(name=self.name, 
+        if issubclass(impltype, Enum):
+            return impltype(name=self.name, 
                         quote=self.quote, 
                         schema=self.schema, 
                         metadata=self.metadata,
                         convert_unicode=self.convert_unicode,
-                        assert_unicode=self.assert_unicode,
                         *self.enums
                         )
+        else:
+            return super(Enum, self).adapt(impltype)
 
 class PickleType(MutableType, TypeDecorator):
     """Holds Python objects.
@@ -1215,18 +1466,18 @@ class Boolean(TypeEngine, SchemaType):
         """
         self.create_constraint = create_constraint
         self.name = name
+    
+    def _should_create_constraint(self, compiler):
+        return not compiler.dialect.supports_native_boolean
         
     def _set_table(self, table, column):
         if not self.create_constraint:
             return
             
-        def should_create_constraint(compiler):
-            return not compiler.dialect.supports_native_boolean
-
         e = schema.CheckConstraint(
                         column.in_([0, 1]),
                         name=self.name,
-                        _create_rule=should_create_constraint
+                        _create_rule=util.portable_instancemethod(self._should_create_constraint)
                     )
         table.append_constraint(e)
     
@@ -1234,13 +1485,9 @@ class Boolean(TypeEngine, SchemaType):
         if dialect.supports_native_boolean:
             return None
         else:
-            def process(value):
-                if value is None:
-                    return None
-                return value and True or False
-            return process
+            return processors.int_to_boolean
 
-class Interval(TypeDecorator):
+class Interval(_DateAffinity, TypeDecorator):
     """A type for ``datetime.timedelta()`` objects.
 
     The Interval type deals with ``datetime.timedelta`` objects.  In
@@ -1248,6 +1495,13 @@ class Interval(TypeDecorator):
     value is stored as a date which is relative to the "epoch"
     (Jan. 1, 1970).
 
+    Note that the ``Interval`` type does not currently provide 
+    date arithmetic operations on platforms which do not support 
+    interval types natively.   Such operations usually require
+    transformation of both sides of the expression (such as, conversion
+    of both sides into integer epoch values first) which currently
+    is a manual procedure (such as via :attr:`~sqlalchemy.sql.expression.func`).
+    
     """
 
     impl = DateTime
@@ -1259,24 +1513,24 @@ class Interval(TypeDecorator):
         """Construct an Interval object.
         
         :param native: when True, use the actual
-        INTERVAL type provided by the database, if
-        supported (currently Postgresql, Oracle).  
-        Otherwise, represent the interval data as 
-        an epoch value regardless.
+          INTERVAL type provided by the database, if
+          supported (currently Postgresql, Oracle).  
+          Otherwise, represent the interval data as 
+          an epoch value regardless.
         
         :param second_precision: For native interval types
-        which support a "fractional seconds precision" parameter,
-        i.e. Oracle and Postgresql
+          which support a "fractional seconds precision" parameter,
+          i.e. Oracle and Postgresql
         
         :param day_precision: for native interval types which 
-        support a "day precision" parameter, i.e. Oracle.
+          support a "day precision" parameter, i.e. Oracle.
         
         """
         super(Interval, self).__init__()
         self.native = native
         self.second_precision = second_precision
         self.day_precision = day_precision
-        
+
     def adapt(self, cls):
         if self.native:
             return cls._adapt_from_generic_interval(self)
@@ -1304,7 +1558,7 @@ class Interval(TypeDecorator):
         if impl_processor:
             def process(value):
                 value = impl_processor(value)
-                if value is None: 
+                if value is None:
                     return None
                 return value - epoch
         else:
@@ -1314,9 +1568,38 @@ class Interval(TypeDecorator):
                 return value - epoch
         return process
 
+    @util.memoized_property
+    def _expression_adaptations(self):
+        return {
+            operators.add:{
+                Date:DateTime,
+                Interval:Interval,
+                DateTime:DateTime,
+                Time:Time,
+            },
+            operators.sub:{
+                Interval:Interval
+            },
+            operators.mul:{
+                Numeric:Interval
+            },
+            operators.truediv: {
+                Numeric:Interval
+            },
+            # Py2K
+            operators.div: {
+                Numeric:Interval
+            }
+            # end Py2K
+        }
+
     @property
     def _type_affinity(self):
         return Interval
+
+    def _coerce_compared_value(self, op, value):
+        return self.impl._coerce_compared_value(op, value)
+
 
 class FLOAT(Float):
     """The SQL FLOAT type."""
@@ -1435,22 +1718,25 @@ class BOOLEAN(Boolean):
     __visit_name__ = 'BOOLEAN'
 
 NULLTYPE = NullType()
+BOOLEANTYPE = Boolean()
 
 # using VARCHAR/NCHAR so that we dont get the genericized "String"
 # type which usually resolves to TEXT/CLOB
 type_map = {
-    str: String,
+    str: String(),
+    # Py3K
+    #bytes : LargeBinary(),
     # Py2K
-    unicode : String,
+    unicode : Unicode(),
     # end Py2K
-    int : Integer,
-    float : Numeric,
-    bool: Boolean,
-    _python_Decimal : Numeric,
-    dt.date : Date,
-    dt.datetime : DateTime,
-    dt.time : Time,
-    dt.timedelta : Interval,
-    NoneType: NullType
+    int : Integer(),
+    float : Numeric(),
+    bool: BOOLEANTYPE,
+    _python_Decimal : Numeric(),
+    dt.date : Date(),
+    dt.datetime : DateTime(),
+    dt.time : Time(),
+    dt.timedelta : Interval(),
+    NoneType: NULLTYPE
 }
 

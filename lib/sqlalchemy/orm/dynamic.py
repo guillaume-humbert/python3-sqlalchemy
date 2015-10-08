@@ -12,7 +12,8 @@ basic add/delete mutation.
 """
 
 from sqlalchemy import log, util
-import sqlalchemy.exceptions as sa_exc
+from sqlalchemy import exc as sa_exc
+from sqlalchemy.orm import exc as sa_exc
 from sqlalchemy.sql import operators
 from sqlalchemy.orm import (
     attributes, object_session, util as mapperutil, strategies, object_mapper
@@ -21,7 +22,7 @@ from sqlalchemy.orm.query import Query
 from sqlalchemy.orm.util import _state_has_identity, has_identity
 from sqlalchemy.orm import attributes, collections
 
-class DynaLoader(strategies.AbstractRelationLoader):
+class DynaLoader(strategies.AbstractRelationshipLoader):
     def init_class_attribute(self, mapper):
         self.is_class_level = True
 
@@ -93,7 +94,11 @@ class DynamicAttributeImpl(attributes.AttributeImpl):
         if self.key not in state.committed_state:
             state.committed_state[self.key] = CollectionHistory(self, state)
 
-        state.modified_event(dict_, self, False, attributes.NEVER_SET, passive=attributes.PASSIVE_NO_INITIALIZE)
+        state.modified_event(dict_, 
+                                self, 
+                                False, 
+                                attributes.NEVER_SET, 
+                                passive=attributes.PASSIVE_NO_INITIALIZE)
 
         # this is a hack to allow the _base.ComparableEntity fixture
         # to work
@@ -234,7 +239,7 @@ class AppenderMixin(object):
         if sess is None:
             sess = object_session(instance)
             if sess is None:
-                raise sa_exc.UnboundExecutionError(
+                raise orm_exc.DetachedInstanceError(
                     "Parent instance %s is not bound to a Session, and no "
                     "contextual session is established; lazy load operation "
                     "of attribute '%s' cannot proceed" % (

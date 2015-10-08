@@ -7,7 +7,7 @@
         
         <title>
     associationproxy
- &mdash; SQLAlchemy 0.6beta1 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta1',
+          VERSION:     '0.6beta2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.ext" href="index.html" />
         <link rel="next" title="orderinglist" href="orderinglist.html" />
         <link rel="prev" title="declarative" href="declarative.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
+            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
         </div>
         <div class="clearboth"></div>
 
@@ -87,9 +87,9 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="">associationproxy</a><ul>
-<li><a class="reference external" href="#simplifying-relations">Simplifying Relations</a></li>
-<li><a class="reference external" href="#simplifying-association-object-relations">Simplifying Association Object Relations</a></li>
+<li><a class="reference external" href="#">associationproxy</a><ul>
+<li><a class="reference external" href="#simplifying-relationships">Simplifying Relationships</a></li>
+<li><a class="reference external" href="#simplifying-association-object-relationships">Simplifying Association Object Relationships</a></li>
 <li><a class="reference external" href="#building-complex-views">Building Complex Views</a></li>
 <li><a class="reference external" href="#api">API</a></li>
 </ul>
@@ -108,8 +108,8 @@
 relationship.  It can be used to cherry-pick fields from a collection of
 related objects or to greatly simplify access to associated objects in an
 association relationship.</p>
-<div class="section" id="simplifying-relations">
-<h2>Simplifying Relations<a class="headerlink" href="#simplifying-relations" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="simplifying-relationships">
+<h2>Simplifying Relationships<a class="headerlink" href="#simplifying-relationships" title="Permalink to this headline">¶</a></h2>
 <p>Consider this &#8220;association object&#8221; mapping:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">users_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
@@ -137,13 +137,13 @@ association relationship.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">keyword</span> <span class="o">=</span> <span class="n">keyword</span>
 
 <span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-    <span class="s">&#39;kw&#39;</span><span class="p">:</span> <span class="n">relation</span><span class="p">(</span><span class="n">Keyword</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="n">userkeywords_table</span><span class="p">)</span>
+    <span class="s">&#39;kw&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Keyword</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="n">userkeywords_table</span><span class="p">)</span>
     <span class="p">})</span>
 <span class="n">mapper</span><span class="p">(</span><span class="n">Keyword</span><span class="p">,</span> <span class="n">keywords_table</span><span class="p">)</span></pre></div>
 </div>
 <p>Above are three simple tables, modeling users, keywords and a many-to-many
 relationship between the two.  These <tt class="docutils literal"><span class="pre">Keyword</span></tt> objects are little more
-than a container for a name, and accessing them via the relation is
+than a container for a name, and accessing them via the relationship is
 awkward:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="s">&#39;jek&#39;</span><span class="p">)</span>
 <span class="n">user</span><span class="o">.</span><span class="n">kw</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Keyword</span><span class="p">(</span><span class="s">&#39;cheese inspector&#39;</span><span class="p">))</span>
@@ -154,16 +154,16 @@ awkward:</p>
 <span class="k">print</span> <span class="p">[</span><span class="n">keyword</span><span class="o">.</span><span class="n">keyword</span> <span class="k">for</span> <span class="n">keyword</span> <span class="ow">in</span> <span class="n">user</span><span class="o">.</span><span class="n">kw</span><span class="p">]</span>
 <span class="c"># [&#39;cheese inspector&#39;]</span></pre></div>
 </div>
-<p>With <tt class="docutils literal"><span class="pre">association_proxy</span></tt> you have a &#8220;view&#8221; of the relation that contains
+<p>With <tt class="docutils literal"><span class="pre">association_proxy</span></tt> you have a &#8220;view&#8221; of the relationship that contains
 just the <tt class="docutils literal"><span class="pre">.keyword</span></tt> of the related objects.  The proxy is a Python
-property, and unlike the mapper relation, is defined in your class:</p>
+property, and unlike the mapper relationship, is defined in your class:</p>
 <div class="highlight-python"><pre>from sqlalchemy.ext.associationproxy import association_proxy
 
 class User(object):
     def __init__(self, name):
         self.name = name
 
-    # proxy the 'keyword' attribute from the 'kw' relation
+    # proxy the 'keyword' attribute from the 'kw' relationship
     keywords = association_proxy('kw', 'keyword')
 
 # ...
@@ -182,16 +182,16 @@ values are added to the proxy, and modifying or removing an entry through
 the proxy also affects the underlying collection.</p>
 <blockquote>
 <ul class="simple">
-<li>The association proxy property is backed by a mapper-defined relation,
+<li>The association proxy property is backed by a mapper-defined relationship,
 either a collection or scalar.</li>
 <li>You can access and modify both the proxy and the backing
-relation. Changes in one are immediate in the other.</li>
+relationship. Changes in one are immediate in the other.</li>
 <li>The proxy acts like the type of the underlying collection.  A list gets a
 list-like proxy, a dict a dict-like proxy, and so on.</li>
-<li>Multiple proxies for the same relation are fine.</li>
-<li>Proxies are lazy, and won&#8217;t trigger a load of the backing relation until
+<li>Multiple proxies for the same relationship are fine.</li>
+<li>Proxies are lazy, and won&#8217;t trigger a load of the backing relationship until
 they are accessed.</li>
-<li>The relation is inspected to determine the type of the related objects.</li>
+<li>The relationship is inspected to determine the type of the related objects.</li>
 <li>To construct new instances, the type is called with the value being
 assigned, or key and value for dicts.</li>
 <li>A <tt class="docutils literal"><span class="pre">``creator``</span></tt> function can be used to create instances instead.</li>
@@ -200,21 +200,21 @@ assigned, or key and value for dicts.</li>
 <p>Above, the <tt class="docutils literal"><span class="pre">Keyword.__init__</span></tt> takes a single argument <tt class="docutils literal"><span class="pre">keyword</span></tt>, which
 maps conveniently to the value being set through the proxy.  A <tt class="docutils literal"><span class="pre">creator</span></tt>
 function could have been used instead if more flexibility was required.</p>
-<p>Because the proxies are backed by a regular relation collection, all of the
+<p>Because the proxies are backed by a regular relationship collection, all of the
 usual hooks and patterns for using collections are still in effect.  The
 most convenient behavior is the automatic setting of &#8220;parent&#8221;-type
 relationships on assignment.  In the example above, nothing special had to
 be done to associate the Keyword to the User.  Simply adding it to the
 collection is sufficient.</p>
 </div>
-<div class="section" id="simplifying-association-object-relations">
-<h2>Simplifying Association Object Relations<a class="headerlink" href="#simplifying-association-object-relations" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="simplifying-association-object-relationships">
+<h2>Simplifying Association Object Relationships<a class="headerlink" href="#simplifying-association-object-relationships" title="Permalink to this headline">¶</a></h2>
 <p>Association proxies are also useful for keeping <tt class="docutils literal"><span class="pre">association</span> <span class="pre">objects</span></tt> out
 the way during regular use.  For example, the <tt class="docutils literal"><span class="pre">userkeywords</span></tt> table
 might have a bunch of auditing columns that need to get updated when changes
 are made- columns that are updated but seldom, if ever, accessed in your
 application.  A proxy can provide a very natural access pattern for the
-relation.</p>
+relationship.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.associationproxy</span> <span class="kn">import</span> <span class="n">association_proxy</span>
 
 <span class="c"># users_table and keywords_table tables as above, then:</span>
@@ -254,8 +254,8 @@ relation.</p>
 <span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users_table</span><span class="p">)</span>
 <span class="n">mapper</span><span class="p">(</span><span class="n">Keyword</span><span class="p">,</span> <span class="n">keywords_table</span><span class="p">)</span>
 <span class="n">mapper</span><span class="p">(</span><span class="n">UserKeyword</span><span class="p">,</span> <span class="n">userkeywords_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-    <span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="n">relation</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&#39;user_keywords&#39;</span><span class="p">),</span>
-    <span class="s">&#39;keyword&#39;</span><span class="p">:</span> <span class="n">relation</span><span class="p">(</span><span class="n">Keyword</span><span class="p">),</span>
+    <span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&#39;user_keywords&#39;</span><span class="p">),</span>
+    <span class="s">&#39;keyword&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Keyword</span><span class="p">),</span>
 <span class="p">})</span>
 
 <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="s">&#39;log&#39;</span><span class="p">)</span>
@@ -304,7 +304,7 @@ relation.</p>
 <p>Above are three tables, modeling stocks, their brokers and the number of
 shares of a stock held by each broker.  This situation is quite different
 from the association example above.  <tt class="docutils literal"><span class="pre">shares</span></tt> is a <em>property of the
-relation</em>, an important one that we need to use all the time.</p>
+relationship</em>, an important one that we need to use all the time.</p>
 <p>For this example, it would be very convenient if <tt class="docutils literal"><span class="pre">Broker</span></tt> objects had a
 dictionary collection that mapped <tt class="docutils literal"><span class="pre">Stock</span></tt> instances to the shares held for
 each.  That&#8217;s easy:</p>
@@ -334,15 +334,15 @@ each.  That&#8217;s easy:</p>
 
 <span class="n">mapper</span><span class="p">(</span><span class="n">Stock</span><span class="p">,</span> <span class="n">stocks_table</span><span class="p">)</span>
 <span class="n">mapper</span><span class="p">(</span><span class="n">Broker</span><span class="p">,</span> <span class="n">brokers_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-    <span class="s">&#39;by_stock&#39;</span><span class="p">:</span> <span class="n">relation</span><span class="p">(</span><span class="n">Holding</span><span class="p">,</span>
+    <span class="s">&#39;by_stock&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Holding</span><span class="p">,</span>
         <span class="n">collection_class</span><span class="o">=</span><span class="n">attribute_mapped_collection</span><span class="p">(</span><span class="s">&#39;stock&#39;</span><span class="p">))</span>
 <span class="p">})</span>
 <span class="n">mapper</span><span class="p">(</span><span class="n">Holding</span><span class="p">,</span> <span class="n">holdings_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-    <span class="s">&#39;stock&#39;</span><span class="p">:</span> <span class="n">relation</span><span class="p">(</span><span class="n">Stock</span><span class="p">),</span>
-    <span class="s">&#39;broker&#39;</span><span class="p">:</span> <span class="n">relation</span><span class="p">(</span><span class="n">Broker</span><span class="p">)</span>
+    <span class="s">&#39;stock&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Stock</span><span class="p">),</span>
+    <span class="s">&#39;broker&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Broker</span><span class="p">)</span>
 <span class="p">})</span></pre></div>
 </div>
-<p>Above, we&#8217;ve set up the <tt class="docutils literal"><span class="pre">by_stock</span></tt> relation collection to act as a
+<p>Above, we&#8217;ve set up the <tt class="docutils literal"><span class="pre">by_stock</span></tt> relationship collection to act as a
 dictionary, using the <tt class="docutils literal"><span class="pre">.stock</span></tt> property of each Holding as a key.</p>
 <p>Populating and accessing that dictionary manually is slightly inconvenient
 because of the complexity of the Holdings association object:</p>
@@ -386,22 +386,22 @@ somewhat like this list comprehension:</p>
 <p>Unlike the list comprehension, the collection returned by the property is
 always in sync with <em>target_collection</em>, and mutations made to either
 collection will be reflected in both.</p>
-<p>Implements a Python property representing a relation as a collection of
+<p>Implements a Python property representing a relationship as a collection of
 simpler values.  The proxied property will mimic the collection type of
-the target (list, dict or set), or, in the case of a one to one relation,
+the target (list, dict or set), or, in the case of a one to one relationship,
 a simple scalar value.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>target_collection</em> &#8211; Name of the relation attribute we&#8217;ll proxy to,
-usually created with <a title="sqlalchemy.orm.relation" class="reference external" href="../orm/mapping.html#sqlalchemy.orm.relation"><tt class="xref docutils literal"><span class="pre">relation()</span></tt></a>.</li>
+<li><em>target_collection</em> &#8211; Name of the relationship attribute we&#8217;ll proxy to,
+usually created with <a title="sqlalchemy.orm.relationship" class="reference external" href="../orm/mapping.html#sqlalchemy.orm.relationship"><tt class="xref docutils literal"><span class="pre">relationship()</span></tt></a>.</li>
 <li><em>attr</em> &#8211; <p>Attribute on the associated instances we&#8217;ll proxy for.</p>
 <p>For example, given a target collection of [obj1, obj2], a list created
 by this proxy property would look like [getattr(obj1, <em>attr</em>),
 getattr(obj2, <em>attr</em>)]</p>
-<p>If the relation is one-to-one or otherwise uselist=False, then simply:
+<p>If the relationship is one-to-one or otherwise uselist=False, then simply:
 getattr(obj, <em>attr</em>)</p>
 </li>
 <li><em>creator</em> &#8211; <p>optional.</p>
@@ -412,13 +412,13 @@ the &#8216;value&#8217; for the new instance.  For dict types, two arguments are
 passed: key and value.</p>
 <p>If you want to construct instances differently, supply a <em>creator</em>
 function that takes arguments as above and returns instances.</p>
-<p>For scalar relations, creator() will be called if the target is None.
+<p>For scalar relationships, creator() will be called if the target is None.
 If the target is present, set operations are proxied to setattr() on the
 associated object.</p>
 <p>If you have an associated object with multiple attributes, you may set
 up multiple association proxies mapping to different attributes.  See
 the unit tests for examples, and for examples of how creator() functions
-can be used to construct the scalar relation on-demand in this
+can be used to construct the scalar relationship on-demand in this
 situation.</p>
 </li>
 <li><em>**kw</em> &#8211; Passes along any other keyword arguments to
@@ -432,8 +432,7 @@ situation.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.ext.associationproxy.AssociationProxy">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.ext.associationproxy.</tt><tt class="descname">AssociationProxy</tt><big>(</big><em>target_collection</em>, <em>attr</em>, <em>creator=None</em>, <em>getset_factory=None</em>, <em>proxy_factory=None</em>, <em>proxy_bulk_set=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.associationproxy.AssociationProxy" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.ext.associationproxy.</tt><tt class="descname">AssociationProxy</tt><big>(</big><em>target_collection</em>, <em>attr</em>, <em>creator=None</em>, <em>getset_factory=None</em>, <em>proxy_factory=None</em>, <em>proxy_bulk_set=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.associationproxy.AssociationProxy" title="Permalink to this definition">¶</a></dt>
 <dd><p>A descriptor that presents a read/write view of an object attribute.</p>
 <dl class="method">
 <dt id="sqlalchemy.ext.associationproxy.AssociationProxy.__init__">
@@ -442,7 +441,7 @@ class </em><tt class="descclassname">sqlalchemy.ext.associationproxy.</tt><tt cl
 <dl class="docutils">
 <dt>target_collection</dt>
 <dd>Name of the collection we&#8217;ll proxy to, usually created with
-&#8216;relation()&#8217; in a mapper setup.</dd>
+&#8216;relationship()&#8217; in a mapper setup.</dd>
 <dt>attr</dt>
 <dd>Attribute on the collected instances we&#8217;ll proxy for.  For example,
 given a target collection of [obj1, obj2], a list created by this
@@ -471,7 +470,7 @@ abstract type of the underlying collection and this proxy instance.</p>
 sniffing the target collection.  If your collection type can&#8217;t be
 determined by duck typing or you&#8217;d like to use a different
 collection implementation, you may supply a factory function to
-produce those collections.  Only applicable to non-scalar relations.</dd>
+produce those collections.  Only applicable to non-scalar relationships.</dd>
 <dt>proxy_bulk_set</dt>
 <dd>Optional, use with proxy_factory.  See the _set() method for
 details.</dd>
@@ -519,7 +518,7 @@ details.</dd>
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>
         

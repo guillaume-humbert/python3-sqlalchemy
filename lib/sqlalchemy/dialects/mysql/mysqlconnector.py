@@ -6,45 +6,62 @@
 
 import re
 
-from sqlalchemy.dialects.mysql.base import MySQLDialect, MySQLExecutionContext,\
-                                            MySQLCompiler, MySQLIdentifierPreparer
-                                            
+from sqlalchemy.dialects.mysql.base import (MySQLDialect,
+    MySQLExecutionContext, MySQLCompiler, MySQLIdentifierPreparer,
+    BIT)
+
 from sqlalchemy.engine import base as engine_base, default
 from sqlalchemy.sql import operators as sql_operators
 from sqlalchemy import exc, log, schema, sql, types as sqltypes, util
+from sqlalchemy import processors
 
-class MySQL_mysqlconnectorExecutionContext(MySQLExecutionContext):
-    
+class MySQLExecutionContext_mysqlconnector(MySQLExecutionContext):
+
     def get_lastrowid(self):
         return self.cursor.lastrowid
-    
-        
-class MySQL_mysqlconnectorCompiler(MySQLCompiler):
+
+
+class MySQLCompiler_mysqlconnector(MySQLCompiler):
     def visit_mod(self, binary, **kw):
         return self.process(binary.left) + " %% " + self.process(binary.right)
-    
+
     def post_process_text(self, text):
         return text.replace('%', '%%')
 
+class MySQLIdentifierPreparer_mysqlconnector(MySQLIdentifierPreparer):
 
-class MySQL_mysqlconnectorIdentifierPreparer(MySQLIdentifierPreparer):
-    
     def _escape_identifier(self, value):
         value = value.replace(self.escape_quote, self.escape_to_quote)
         return value.replace("%", "%%")
 
-class MySQL_mysqlconnector(MySQLDialect):
+class _myconnpyBIT(BIT):
+    def result_processor(self, dialect, coltype):
+        """MySQL-connector already converts mysql bits, so."""
+
+        return None
+
+class MySQLDialect_mysqlconnector(MySQLDialect):
     driver = 'mysqlconnector'
-    supports_unicode_statements = False
+    supports_unicode_statements = True
+    supports_unicode_binds = True
     supports_sane_rowcount = True
     supports_sane_multi_rowcount = True
 
+    supports_native_decimal = True
+
     default_paramstyle = 'format'
-    execution_ctx_cls = MySQL_mysqlconnectorExecutionContext
-    statement_compiler = MySQL_mysqlconnectorCompiler
-    
-    preparer = MySQL_mysqlconnectorIdentifierPreparer
-    
+    execution_ctx_cls = MySQLExecutionContext_mysqlconnector
+    statement_compiler = MySQLCompiler_mysqlconnector
+
+    preparer = MySQLIdentifierPreparer_mysqlconnector
+
+    colspecs = util.update_copy(
+        MySQLDialect.colspecs,
+        {
+            BIT: _myconnpyBIT,
+        }
+    )
+
     @classmethod
     def dbapi(cls):
         from mysql import connector
@@ -53,24 +70,54 @@ class MySQL_mysqlconnector(MySQLDialect):
     def create_connect_args(self, url):
         opts = url.translate_connect_args(username='user')
         opts.update(url.query)
+
+        util.coerce_kw_type(opts, 'buffered', bool)
+        util.coerce_kw_type(opts, 'raise_on_warnings', bool)
+        opts['buffered'] = True
+        opts['raise_on_warnings'] = True
+
+        # FOUND_ROWS must be set in ClientFlag to enable
+        # supports_sane_rowcount.
+        if self.dbapi is not None:
+            try:
+                from mysql.connector.constants import ClientFlag
+                client_flags = opts.get('client_flags', ClientFlag.get_default())
+                client_flags |= ClientFlag.FOUND_ROWS
+                opts['client_flags'] = client_flags
+            except:
+                pass
         return [[], opts]
 
     def _get_server_version_info(self, connection):
         dbapi_con = connection.connection
+
+        from mysql.connector.constants import ClientFlag
+        dbapi_con.set_client_flag(ClientFlag.FOUND_ROWS)
+
         version = dbapi_con.get_server_version()
         return tuple(version)
 
     def _detect_charset(self, connection):
-        """Sniff out the character set in use for connection results."""
-        
         return connection.connection.get_characterset_info()
 
     def _extract_error_code(self, exception):
-        m = re.compile(r"\(.*\)\s+(\d+)").search(str(exception))
-        c = m.group(1)
-        if c:
-            return int(c)
-        else:
+        try:
+            return exception.orig.errno
+        except AttributeError:
             return None
 
-dialect = MySQL_mysqlconnector
+    def is_disconnect(self, e):
+        errnos = (2006, 2013, 2014, 2045, 2055, 2048)
+        exceptions = (self.dbapi.OperationalError,self.dbapi.InterfaceError)
+        if isinstance(e, exceptions):
+            return e.errno in errnos
+        else:
+            return False
+
+    def _compat_fetchall(self, rp, charset=None):
+        return rp.fetchall()
+
+    def _compat_fetchone(self, rp, charset=None):
+        return rp.fetchone()
+
+dialect = MySQLDialect_mysqlconnector

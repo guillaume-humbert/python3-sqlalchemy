@@ -1,10 +1,58 @@
+"""setup.py
+
+Please see README for basic installation instructions.
+
+"""
+
+# If using distutils (not distribute/setuptools),
+# set this flag to True to compile C extensions.
+# Otherwise use --with-cextensions
+BUILD_CEXTENSIONS = False
+
 import os
 import sys
 import re
+
+extra = {}
+if sys.version_info >= (3, 0):
+    # monkeypatch our preprocessor
+    # onto the 2to3 tool.  
+    from sa2to3 import refactor_string
+    from lib2to3.refactor import RefactoringTool
+    RefactoringTool.refactor_string = refactor_string
+
+    extra.update(
+        use_2to3=True,
+    )
+
 try:
-    from setuptools import setup
+    from setuptools import setup, Extension, Feature
 except ImportError:
-    from distutils.core import setup
+    from distutils.core import setup, Extension
+    Feature = None
+
+if Feature:
+    extra.update(
+        features = {'cextensions' : Feature(
+            "optional C speed-enhancements",
+            standard = False,
+            ext_modules = [
+                Extension('sqlalchemy.cprocessors',
+                       sources=['lib/sqlalchemy/cextension/processors.c']),
+                Extension('sqlalchemy.cresultproxy',
+                       sources=['lib/sqlalchemy/cextension/resultproxy.c'])
+            ],
+        )}
+    )
+elif BUILD_CEXTENSIONS:
+    extra.update(
+        ext_modules = [
+                Extension('sqlalchemy.cprocessors',
+                      sources=['lib/sqlalchemy/cextension/processors.c']),
+                Extension('sqlalchemy.cresultproxy',
+                      sources=['lib/sqlalchemy/cextension/resultproxy.c'])
+            ]
+    )
 
 def find_packages(dir_):
     packages = []
@@ -13,7 +61,6 @@ def find_packages(dir_):
             lib, fragment = _dir.split(os.sep, 1)
             packages.append(fragment.replace(os.sep, '.'))
     return packages
-
 
 if sys.version_info < (2, 4):
     raise Exception("SQLAlchemy requires Python 2.4 or higher.")
@@ -31,7 +78,12 @@ setup(name = "SQLAlchemy",
       packages = find_packages('lib'),
       package_dir = {'':'lib'},
       license = "MIT License",
-      tests_require = ['nose >= 0.10'],
+
+      # TODO: this is nice, but Python 3 support ?
+      # any way to make it not install for build/install ?
+      #setup_requires=["setuptools_hg"],
+
+      tests_require = ['nose >= 0.11'],
       test_suite = "nose.collector",
       entry_points = {
           'nose.plugins.0.10': [
@@ -77,5 +129,6 @@ SVN version:
         "Programming Language :: Python :: 3",
         "Topic :: Database :: Front-Ends",
         "Operating System :: OS Independent",
-        ]
+        ],
+        **extra
       )

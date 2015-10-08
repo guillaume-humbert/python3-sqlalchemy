@@ -1,4 +1,8 @@
-from sqlalchemy import types as sqltypes
+"""
+The adodbapi dialect is not implemented for 0.6 at this time.
+
+"""
+from sqlalchemy import types as sqltypes, util
 from sqlalchemy.dialects.mssql.base import MSDateTime, MSDialect
 import sys
 
@@ -25,8 +29,12 @@ class MSDialect_adodbapi(MSDialect):
         import adodbapi as module
         return module
 
-    colspecs = MSDialect.colspecs.copy()
-    colspecs[sqltypes.DateTime] = MSDateTime_adodbapi
+    colspecs = util.update_copy(
+        MSDialect.colspecs,
+        {
+            sqltypes.DateTime:MSDateTime_adodbapi
+        }
+    )
 
     def create_connect_args(self, url):
         keys = url.query

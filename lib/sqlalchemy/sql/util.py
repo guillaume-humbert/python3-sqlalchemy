@@ -46,92 +46,6 @@ def find_join_source(clauses, join_to):
     else:
         return None, None
 
-_date_affinities = None
-def determine_date_affinity(expr):
-    """Given an expression, determine if it returns 'interval', 'date', or 'datetime'.
-    
-    the PG dialect uses this to generate the extract() function.
-    
-    It's less than ideal since it basically needs to duplicate PG's 
-    date arithmetic rules.   
-    
-    Rules are based on http://www.postgresql.org/docs/current/static/functions-datetime.html.
-    
-    Returns None if operators other than + or - are detected as well as types
-    outside of those above.
-    
-    """
-    
-    global _date_affinities
-    if _date_affinities is None:
-        Date, DateTime, Integer, \
-            Numeric, Interval, Time = \
-                                    sqltypes.Date, sqltypes.DateTime,\
-                                    sqltypes.Integer, sqltypes.Numeric,\
-                                    sqltypes.Interval, sqltypes.Time
-
-        _date_affinities = {
-            operators.add:{
-                (Date, Integer):Date,
-                (Date, Interval):DateTime,
-                (Date, Time):DateTime,
-                (Interval, Interval):Interval,
-                (DateTime, Interval):DateTime,
-                (Interval, Time):Time,
-            },
-            operators.sub:{
-                (Date, Integer):Date,
-                (Date, Interval):DateTime,
-                (Time, Time):Interval,
-                (Time, Interval):Time,
-                (DateTime, Interval):DateTime,
-                (Interval, Interval):Interval,
-                (DateTime, DateTime):Interval,
-            },
-            operators.mul:{
-                (Integer, Interval):Interval,
-                (Interval, Numeric):Interval,
-            },
-            operators.div: {
-                (Interval, Numeric):Interval
-            }
-        }
-    
-    if isinstance(expr, expression._BinaryExpression):
-        if expr.operator not in _date_affinities:
-            return None
-            
-        left_affin, right_affin = \
-            determine_date_affinity(expr.left), \
-            determine_date_affinity(expr.right)
-
-        if left_affin is None or right_affin is None:
-            return None
-        
-        if operators.is_commutative(expr.operator):
-            key = tuple(sorted([left_affin, right_affin], key=lambda cls:cls.__name__))
-        else:
-            key = (left_affin, right_affin)
-        
-        lookup = _date_affinities[expr.operator]
-        return lookup.get(key, None)
-
-    # work around the fact that expressions put the wrong type
-    # on generated bind params when its "datetime + timedelta"
-    # and similar
-    if isinstance(expr, expression._BindParamClause):
-        type_ = sqltypes.type_map.get(type(expr.value), sqltypes.NullType)()
-    else:
-        type_ = expr.type
-
-    affinities = set([sqltypes.Date, sqltypes.DateTime, 
-                    sqltypes.Interval, sqltypes.Time, sqltypes.Integer])
-        
-    if type_ is not None and type_._type_affinity in affinities:
-        return type_._type_affinity
-    else:
-        return None
-    
     
     
 def find_tables(clause, check_columns=False, 
@@ -217,49 +131,77 @@ def adapt_criterion_to_null(crit, nulls):
     return visitors.cloned_traverse(crit, {}, {'binary':visit_binary})
     
     
-def join_condition(a, b, ignore_nonexistent_tables=False):
-    """create a join condition between two tables.
+def join_condition(a, b, ignore_nonexistent_tables=False, a_subset=None):
+    """create a join condition between two tables or selectables.
     
-    ignore_nonexistent_tables=True allows a join condition to be
-    determined between two tables which may contain references to
-    other not-yet-defined tables.  In general the NoSuchTableError
-    raised is only required if the user is trying to join selectables
-    across multiple MetaData objects (which is an extremely rare use 
-    case).
+    e.g.::
+    
+        join_condition(tablea, tableb)
+        
+    would produce an expression along the lines of::
+    
+        tablea.c.id==tableb.c.tablea_id
+    
+    The join is determined based on the foreign key relationships
+    between the two selectables.   If there are multiple ways
+    to join, or no way to join, an error is raised.
+    
+    :param ignore_nonexistent_tables: This flag will cause the
+    function to silently skip over foreign key resolution errors
+    due to nonexistent tables - the assumption is that these
+    tables have not yet been defined within an initialization process
+    and are not significant to the operation.
+
+    :param a_subset: An optional expression that is a sub-component
+    of ``a``.  An attempt will be made to join to just this sub-component
+    first before looking at the full ``a`` construct, and if found
+    will be successful even if there are other ways to join to ``a``.
+    This allows the "right side" of a join to be passed thereby
+    providing a "natural join".
     
     """
     crit = []
     constraints = set()
-    for fk in b.foreign_keys:
-        try:
-            col = fk.get_referent(a)
-        except exc.NoReferencedTableError:
-            if ignore_nonexistent_tables:
-                continue
-            else:
-                raise
-                
-        if col is not None:
-            crit.append(col == fk.parent)
-            constraints.add(fk.constraint)
-    if a is not b:
-        for fk in a.foreign_keys:
+    
+    for left in (a_subset, a):
+        if left is None:
+            continue
+        for fk in b.foreign_keys:
             try:
-                col = fk.get_referent(b)
+                col = fk.get_referent(left)
             except exc.NoReferencedTableError:
                 if ignore_nonexistent_tables:
                     continue
                 else:
                     raise
-
+                
             if col is not None:
                 crit.append(col == fk.parent)
                 constraints.add(fk.constraint)
+        if left is not b:
+            for fk in left.foreign_keys:
+                try:
+                    col = fk.get_referent(b)
+                except exc.NoReferencedTableError:
+                    if ignore_nonexistent_tables:
+                        continue
+                    else:
+                        raise
 
+                if col is not None:
+                    crit.append(col == fk.parent)
+                    constraints.add(fk.constraint)
+        if crit:
+            break
+            
     if len(crit) == 0:
+        if isinstance(b, expression._FromGrouping):
+            hint = " Perhaps you meant to convert the right side to a subquery using alias()?"
+        else:
+            hint = ""
         raise exc.ArgumentError(
             "Can't find any foreign key relationships "
-            "between '%s' and '%s'" % (a.description, b.description))
+            "between '%s' and '%s'.%s" % (a.description, b.description, hint))
     elif len(constraints) > 1:
         raise exc.ArgumentError(
             "Can't determine join between '%s' and '%s'; "
@@ -362,7 +304,9 @@ def _deep_annotate(element, annotations, exclude=None):
     def clone(elem):
         # check if element is present in the exclude list.
         # take into account proxying relationships.
-        if exclude and elem.proxy_set.intersection(exclude):
+        if exclude and \
+                    hasattr(elem, 'proxy_set') and \
+                    elem.proxy_set.intersection(exclude):
             elem = elem._clone()
         elif annotations != elem._annotations:
             elem = elem._annotate(annotations.copy())

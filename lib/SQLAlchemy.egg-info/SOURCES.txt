@@ -1,3 +1,5 @@
+.hgignore
+.hgtags
 CHANGES
 CHANGES_PRE_05
 LICENSE
@@ -5,6 +7,7 @@ MANIFEST.in
 README
 README.py3k
 README.unittests
+distribute_setup.py
 ez_setup.py
 sa2to3.py
 setup.cfg
@@ -71,8 +74,11 @@ doc/_static/basic.css
 doc/_static/default.css
 doc/_static/docs.css
 doc/_static/doctools.js
+doc/_static/file.png
 doc/_static/init.js
 doc/_static/jquery.js
+doc/_static/minus.png
+doc/_static/plus.png
 doc/_static/pygments.css
 doc/_static/searchtools.js
 doc/build/Makefile
@@ -230,11 +236,14 @@ lib/sqlalchemy/exc.py
 lib/sqlalchemy/interfaces.py
 lib/sqlalchemy/log.py
 lib/sqlalchemy/pool.py
+lib/sqlalchemy/processors.py
 lib/sqlalchemy/queue.py
 lib/sqlalchemy/schema.py
 lib/sqlalchemy/topological.py
 lib/sqlalchemy/types.py
 lib/sqlalchemy/util.py
+lib/sqlalchemy/cextension/processors.c
+lib/sqlalchemy/cextension/resultproxy.c
 lib/sqlalchemy/connectors/__init__.py
 lib/sqlalchemy/connectors/mxodbc.py
 lib/sqlalchemy/connectors/pyodbc.py
@@ -258,6 +267,7 @@ lib/sqlalchemy/dialects/mssql/__init__.py
 lib/sqlalchemy/dialects/mssql/adodbapi.py
 lib/sqlalchemy/dialects/mssql/base.py
 lib/sqlalchemy/dialects/mssql/information_schema.py
+lib/sqlalchemy/dialects/mssql/mxodbc.py
 lib/sqlalchemy/dialects/mssql/pymssql.py
 lib/sqlalchemy/dialects/mssql/pyodbc.py
 lib/sqlalchemy/dialects/mssql/zxjdbc.py
@@ -285,7 +295,7 @@ lib/sqlalchemy/dialects/sybase/__init__.py
 lib/sqlalchemy/dialects/sybase/base.py
 lib/sqlalchemy/dialects/sybase/mxodbc.py
 lib/sqlalchemy/dialects/sybase/pyodbc.py
-lib/sqlalchemy/dialects/sybase/schema.py
+lib/sqlalchemy/dialects/sybase/pysybase.py
 lib/sqlalchemy/engine/__init__.py
 lib/sqlalchemy/engine/base.py
 lib/sqlalchemy/engine/ddl.py
@@ -425,6 +435,7 @@ test/orm/test_session.py
 test/orm/test_transaction.py
 test/orm/test_unitofwork.py
 test/orm/test_utils.py
+test/orm/test_versioning.py
 test/orm/inheritance/__init__.py
 test/orm/inheritance/test_abc_inheritance.py
 test/orm/inheritance/test_abc_polymorphic.py
@@ -454,12 +465,15 @@ test/perf/objupdatespeed.py
 test/perf/ormsession.py
 test/perf/poolload.py
 test/perf/sessions.py
+test/perf/stress_all.py
+test/perf/stresstest.py
 test/perf/threaded_compile.py
 test/perf/wsgi.py
 test/sql/__init__.py
 test/sql/_base.py
 test/sql/test_case_statement.py
 test/sql/test_columns.py
+test/sql/test_compiler.py
 test/sql/test_constraints.py
 test/sql/test_defaults.py
 test/sql/test_functions.py
@@ -469,7 +483,6 @@ test/sql/test_query.py
 test/sql/test_quote.py
 test/sql/test_returning.py
 test/sql/test_rowcount.py
-test/sql/test_select.py
 test/sql/test_selectable.py
 test/sql/test_types.py
 test/sql/test_unicode.py

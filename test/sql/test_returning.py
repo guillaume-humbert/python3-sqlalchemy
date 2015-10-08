@@ -49,7 +49,9 @@ class ReturningTest(TestBase, AssertsExecutionResults):
         row = result.first()
         assert row[table.c.persons] == row['persons'] == 5
         assert row[table.c.full] == row['full'] == True
-        assert row[table.c.goofy] == row['goofy'] == "FOOsomegoofyBAR"
+
+        eq_(row[table.c.goofy], row['goofy'])
+        eq_(row['goofy'], "FOOsomegoofyBAR")
     
     @testing.fails_on('firebird', "fb can't handle returning x AS y")
     @testing.exclude('firebird', '<', (2, 0), '2.0+ feature')
@@ -94,7 +96,8 @@ class ReturningTest(TestBase, AssertsExecutionResults):
         eq_(result.fetchall(), [(1,)])
 
         @testing.fails_on('postgresql', '')
-        @testing.fails_on('oracle', '')
+        @testing.fails_on('oracle+cx_oracle', '')
+        @testing.crashes('mssql+mxodbc', 'Raises an error')
         def test_executemany():
             # return value is documented as failing with psycopg2/executemany
             result2 = table.insert().returning(table).execute(
@@ -103,7 +106,7 @@ class ReturningTest(TestBase, AssertsExecutionResults):
             if testing.against('mssql+zxjdbc'):
                 # jtds apparently returns only the first row
                 eq_(result2.fetchall(), [(2, 2, False, None)])
-            elif testing.against('firebird', 'mssql'):
+            elif testing.against('firebird', 'mssql', 'oracle'):
                 # Multiple inserts only return the last row
                 eq_(result2.fetchall(), [(3, 3, True, None)])
             else:
@@ -112,8 +115,6 @@ class ReturningTest(TestBase, AssertsExecutionResults):
 
         test_executemany()
 
-        result3 = table.insert().returning(table.c.id).execute({'persons': 4, 'full': False})
-        eq_([dict(row) for row in result3], [{'id': 4}])
     
         
     @testing.exclude('firebird', '<', (2, 1), '2.1+ feature')

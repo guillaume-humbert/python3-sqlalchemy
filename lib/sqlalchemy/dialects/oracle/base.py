@@ -90,7 +90,7 @@ is available at http://asktom.oracle.com/tkyte/update_cascade/index.html .
 When using the SQLAlchemy ORM, the ORM has limited ability to manually issue
 cascading updates - specify ForeignKey objects using the 
 "deferrable=True, initially='deferred'" keyword arguments,
-and specify "passive_updates=False" on each relation().
+and specify "passive_updates=False" on each relationship().
 
 Oracle 8 Compatibility
 ----------------------
@@ -120,7 +120,15 @@ from sqlalchemy import types as sqltypes
 from sqlalchemy.types import VARCHAR, NVARCHAR, CHAR, DATE, DATETIME, \
                 BLOB, CLOB, TIMESTAMP, FLOAT
                 
-RESERVED_WORDS = set('''SHARE RAW DROP BETWEEN FROM DESC OPTION PRIOR LONG THEN DEFAULT ALTER IS INTO MINUS INTEGER NUMBER GRANT IDENTIFIED ALL TO ORDER ON FLOAT DATE HAVING CLUSTER NOWAIT RESOURCE ANY TABLE INDEX FOR UPDATE WHERE CHECK SMALLINT WITH DELETE BY ASC REVOKE LIKE SIZE RENAME NOCOMPRESS NULL GROUP VALUES AS IN VIEW EXCLUSIVE COMPRESS SYNONYM SELECT INSERT EXISTS NOT TRIGGER ELSE CREATE INTERSECT PCTFREE DISTINCT USER CONNECT SET MODE OF UNIQUE VARCHAR2 VARCHAR LOCK OR CHAR DECIMAL UNION PUBLIC AND START UID COMMENT'''.split()) 
+RESERVED_WORDS = set('SHARE RAW DROP BETWEEN FROM DESC OPTION PRIOR LONG THEN '
+                     'DEFAULT ALTER IS INTO MINUS INTEGER NUMBER GRANT IDENTIFIED '
+                     'ALL TO ORDER ON FLOAT DATE HAVING CLUSTER NOWAIT RESOURCE ANY '
+                     'TABLE INDEX FOR UPDATE WHERE CHECK SMALLINT WITH DELETE BY ASC '
+                     'REVOKE LIKE SIZE RENAME NOCOMPRESS NULL GROUP VALUES AS IN VIEW '
+                     'EXCLUSIVE COMPRESS SYNONYM SELECT INSERT EXISTS NOT TRIGGER '
+                     'ELSE CREATE INTERSECT PCTFREE DISTINCT USER CONNECT SET MODE '
+                     'OF UNIQUE VARCHAR2 VARCHAR LOCK OR CHAR DECIMAL UNION PUBLIC '
+                     'AND START UID COMMENT'.split()) 
 
 class RAW(sqltypes.LargeBinary):
     pass
@@ -211,13 +219,14 @@ ischema_names = {
     'NVARCHAR2' : NVARCHAR,
     'CHAR' : CHAR,
     'DATE' : DATE,
-    'DATETIME' : DATETIME,
     'NUMBER' : NUMBER,
     'BLOB' : BLOB,
     'BFILE' : BFILE,
     'CLOB' : CLOB,
     'NCLOB' : NCLOB,
     'TIMESTAMP' : TIMESTAMP,
+    'TIMESTAMP WITH TIME ZONE' : TIMESTAMP,
+    'INTERVAL DAY TO SECOND' : INTERVAL,
     'RAW' : RAW,
     'FLOAT' : FLOAT,
     'DOUBLE PRECISION' : DOUBLE_PRECISION,
@@ -249,7 +258,13 @@ class OracleTypeCompiler(compiler.GenericTypeCompiler):
                 "(%d)" % type_.second_precision or
                 "",
         )
-            
+
+    def visit_TIMESTAMP(self, type_):
+        if type_.timezone:
+            return "TIMESTAMP WITH TIME ZONE"
+        else:
+            return "TIMESTAMP"
+
     def visit_DOUBLE_PRECISION(self, type_):
         return self._generate_numeric(type_, "DOUBLE PRECISION")
         
@@ -299,7 +314,14 @@ class OracleCompiler(compiler.SQLCompiler):
     statements to work under non-ANSI configured Oracle databases, if
     the use_ansi flag is False.
     """
-
+    
+    compound_keywords = util.update_copy(
+        compiler.SQLCompiler.compound_keywords,
+        {   
+        expression.CompoundSelect.EXCEPT : 'MINUS'
+        }
+    )
+    
     def __init__(self, *args, **kwargs):
         super(OracleCompiler, self).__init__(*args, **kwargs)
         self.__wheres = {}
@@ -591,34 +613,31 @@ class OracleDialect(default.DefaultDialect):
     def normalize_name(self, name):
         if name is None:
             return None
-        elif (name.upper() == name and
-              not self.identifier_preparer._requires_quotes(name.lower().decode(self.encoding))):
-            return name.lower().decode(self.encoding)
+        # Py2K
+        if isinstance(name, str):
+            name = name.decode(self.encoding)
+        # end Py2K
+        if name.upper() == name and \
+              not self.identifier_preparer._requires_quotes(name.lower()):
+            return name.lower()
         else:
-            return name.decode(self.encoding)
+            return name
 
     def denormalize_name(self, name):
         if name is None:
             return None
         elif name.lower() == name and not self.identifier_preparer._requires_quotes(name.lower()):
-            return name.upper().encode(self.encoding)
+            name = name.upper()
+        # Py2K
+        if not self.supports_unicode_binds:
+            name = name.encode(self.encoding)
         else:
-            return name.encode(self.encoding)
+            name = unicode(name)
+        # end Py2K
+        return name
 
     def _get_default_schema_name(self, connection):
-        return self.normalize_name(connection.execute('SELECT USER FROM DUAL').scalar())
-
-    def table_names(self, connection, schema):
-        # note that table_names() isnt loading DBLINKed or synonym'ed tables
-        if schema is None:
-            schema = self.default_schema_name
-        s = sql.text(
-            "SELECT table_name FROM all_tables "
-            "WHERE nvl(tablespace_name, 'no tablespace') NOT IN ('SYSTEM', 'SYSAUX') "
-            "AND OWNER = :owner "
-            "AND IOT_NAME IS NULL")
-        cursor = connection.execute(s, owner=self.denormalize_name(schema))
-        return [self.normalize_name(row[0]) for row in cursor]
+        return self.normalize_name(connection.execute(u'SELECT USER FROM DUAL').scalar())
 
     def _resolve_synonym(self, connection, desired_owner=None, desired_synonym=None, desired_table=None):
         """search for a local synonym matching the given desired owner/name.
@@ -665,7 +684,11 @@ class OracleDialect(default.DefaultDialect):
                                  resolve_synonyms=False, dblink='', **kw):
 
         if resolve_synonyms:
-            actual_name, owner, dblink, synonym = self._resolve_synonym(connection, desired_owner=self.denormalize_name(schema), desired_synonym=self.denormalize_name(table_name))
+            actual_name, owner, dblink, synonym = self._resolve_synonym(
+                                                         connection, 
+                                                         desired_owner=self.denormalize_name(schema), 
+                                                         desired_synonym=self.denormalize_name(table_name)
+                                                   )
         else:
             actual_name, owner, dblink, synonym = None, None, None, None
         if not actual_name:
@@ -685,7 +708,18 @@ class OracleDialect(default.DefaultDialect):
     @reflection.cache
     def get_table_names(self, connection, schema=None, **kw):
         schema = self.denormalize_name(schema or self.default_schema_name)
-        return self.table_names(connection, schema)
+
+        # note that table_names() isnt loading DBLINKed or synonym'ed tables
+        if schema is None:
+            schema = self.default_schema_name
+        s = sql.text(
+            "SELECT table_name FROM all_tables "
+            "WHERE nvl(tablespace_name, 'no tablespace') NOT IN ('SYSTEM', 'SYSAUX') "
+            "AND OWNER = :owner "
+            "AND IOT_NAME IS NULL")
+        cursor = connection.execute(s, owner=schema)
+        return [self.normalize_name(row[0]) for row in cursor]
+
 
     @reflection.cache
     def get_view_names(self, connection, schema=None, **kw):
@@ -730,6 +764,8 @@ class OracleDialect(default.DefaultDialect):
                 coltype = NUMBER(precision, scale)
             elif coltype=='CHAR' or coltype=='VARCHAR2':
                 coltype = self.ischema_names.get(coltype)(length)
+            elif 'WITH TIME ZONE' in coltype: 
+                coltype = TIMESTAMP(timezone=True)
             else:
                 coltype = re.sub(r'\(\d+\)', '', coltype)
                 try:

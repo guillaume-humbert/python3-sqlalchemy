@@ -3,44 +3,33 @@
 Character Sets
 --------------
 
-oursql defaults to using ``utf8`` as the connection charset, but other 
-encodings may be used instead. Like the MySQL-Python driver, unicode support 
+oursql defaults to using ``utf8`` as the connection charset, but other
+encodings may be used instead. Like the MySQL-Python driver, unicode support
 can be completely disabled::
 
-  # oursql sets the connection charset to utf8 automatically; all strings come 
+  # oursql sets the connection charset to utf8 automatically; all strings come
   # back as utf8 str
   create_engine('mysql+oursql:///mydb?use_unicode=0')
 
-To not automatically use ``utf8`` and instead use whatever the connection 
+To not automatically use ``utf8`` and instead use whatever the connection
 defaults to, there is a separate parameter::
 
   # use the default connection charset; all strings come back as unicode
   create_engine('mysql+oursql:///mydb?default_charset=1')
-  
+
   # use latin1 as the connection charset; all strings come back as unicode
   create_engine('mysql+oursql:///mydb?charset=latin1')
 """
 
-import decimal
 import re
 
 from sqlalchemy.dialects.mysql.base import (BIT, MySQLDialect, MySQLExecutionContext,
-                                            MySQLCompiler, MySQLIdentifierPreparer, NUMERIC, _NumericType)
+                                            MySQLCompiler, MySQLIdentifierPreparer)
 from sqlalchemy.engine import base as engine_base, default
 from sqlalchemy.sql import operators as sql_operators
 from sqlalchemy import exc, log, schema, sql, types as sqltypes, util
+from sqlalchemy import processors
 
-
-class _oursqlNumeric(NUMERIC):
-    def result_processor(self, dialect, coltype):
-        if self.asdecimal:
-            return None
-        def process(value):
-            if value is not None:
-                return float(value)
-            else:
-                return value
-        return process
 
 
 class _oursqlBIT(BIT):
@@ -50,37 +39,42 @@ class _oursqlBIT(BIT):
         return None
 
 
-class MySQL_oursqlExecutionContext(MySQLExecutionContext):
-    
+class MySQLExecutionContext_oursql(MySQLExecutionContext):
+
     @property
     def plain_query(self):
         return self.execution_options.get('_oursql_plain_query', False)
-
-
-class MySQL_oursql(MySQLDialect):
+    
+class MySQLDialect_oursql(MySQLDialect):
     driver = 'oursql'
-    supports_unicode_statements = True
+# Py3K
+#    description_encoding = None
+# Py2K
     supports_unicode_binds = True
+    supports_unicode_statements = True
+# end Py2K
+    
+    supports_native_decimal = True
+    
     supports_sane_rowcount = True
     supports_sane_multi_rowcount = True
-    execution_ctx_cls = MySQL_oursqlExecutionContext
-    
+    execution_ctx_cls = MySQLExecutionContext_oursql
+
     colspecs = util.update_copy(
         MySQLDialect.colspecs,
         {
             sqltypes.Time: sqltypes.Time,
-            sqltypes.Numeric: _oursqlNumeric,
             BIT: _oursqlBIT,
         }
     )
-    
+
     @classmethod
     def dbapi(cls):
         return __import__('oursql')
 
     def do_execute(self, cursor, statement, parameters, context=None):
         """Provide an implementation of *cursor.execute(statement, parameters)*."""
-        
+
         if context and context.plain_query:
             cursor.execute(statement, plain_query=True)
         else:
@@ -90,10 +84,18 @@ class MySQL_oursql(MySQLDialect):
         connection.cursor().execute('BEGIN', plain_query=True)
 
     def _xa_query(self, connection, query, xid):
-        connection.execution_options(_oursql_plain_query=True).execute(query % connection.connection._escape_string(xid))
+# Py2K
+        arg = connection.connection._escape_string(xid)
+# end Py2K
+# Py3K
+#        charset = self._connection_charset
+#        arg = connection.connection._escape_string(xid.encode(charset)).decode(charset)
+        connection.execution_options(_oursql_plain_query=True).execute(query % arg)
 
-    # Because mysql is bad, these methods have to be reimplemented to use _PlainQuery. Basically, some queries
-    # refuse to return any data if they're run through the parameterized query API, or refuse to be parameterized
+    # Because mysql is bad, these methods have to be 
+    # reimplemented to use _PlainQuery. Basically, some queries
+    # refuse to return any data if they're run through 
+    # the parameterized query API, or refuse to be parameterized
     # in the first place.
     def do_begin_twophase(self, connection, xid):
         self._xa_query(connection, 'XA BEGIN "%s"', xid)
@@ -113,19 +115,72 @@ class MySQL_oursql(MySQLDialect):
         if not is_prepared:
             self.do_prepare_twophase(connection, xid)
         self._xa_query(connection, 'XA COMMIT "%s"', xid)
-
+    
+    # Q: why didn't we need all these "plain_query" overrides earlier ?
+    # am i on a newer/older version of OurSQL ?
     def has_table(self, connection, table_name, schema=None):
-        return MySQLDialect.has_table(self, connection.execution_options(_oursql_plain_query=True), table_name, schema)
+        return MySQLDialect.has_table(self, 
+                                        connection.connect().\
+                                            execution_options(_oursql_plain_query=True),
+                                        table_name, schema)
+    
+    def get_table_options(self, connection, table_name, schema=None, **kw):
+        return MySQLDialect.get_table_options(self,
+                                            connection.connect().\
+                                                execution_options(_oursql_plain_query=True),
+                                            table_name,
+                                            schema = schema,
+                                            **kw
+        )
 
+
+    def get_columns(self, connection, table_name, schema=None, **kw):
+        return MySQLDialect.get_columns(self,
+                                        connection.connect().\
+                                                    execution_options(_oursql_plain_query=True),
+                                        table_name,
+                                        schema=schema,
+                                        **kw
+        )
+        
+    def get_view_names(self, connection, schema=None, **kw):
+        return MySQLDialect.get_view_names(self,
+                                            connection.connect().\
+                                                    execution_options(_oursql_plain_query=True),
+                                            schema=schema,
+                                            **kw
+        )
+        
+    def get_table_names(self, connection, schema=None, **kw):
+        return MySQLDialect.get_table_names(self,
+                            connection.connect().\
+                                        execution_options(_oursql_plain_query=True),
+                            schema
+        )
+        
+    def get_schema_names(self, connection, **kw):
+        return MySQLDialect.get_schema_names(self,
+                                    connection.connect().\
+                                                execution_options(_oursql_plain_query=True),
+                                    **kw
+        )
+        
+    def initialize(self, connection):
+        return MySQLDialect.initialize(
+                            self, 
+                            connection.execution_options(_oursql_plain_query=True)
+                            )
+        
     def _show_create_table(self, connection, table, charset=None,
                            full_name=None):
-        return MySQLDialect._show_create_table(self, 
-            connection.contextual_connect(close_with_result=True).execution_options(_oursql_plain_query=True), 
-            table, charset, full_name)
+        return MySQLDialect._show_create_table(self,
+                                connection.contextual_connect(close_with_result=True).
+                                execution_options(_oursql_plain_query=True),
+                                table, charset, full_name)
 
     def is_disconnect(self, e):
-        if isinstance(e, self.dbapi.ProgrammingError):  # if underlying connection is closed, this is the error you get
-            return e.errno is None and e[1].endswith('closed')
+        if isinstance(e, self.dbapi.ProgrammingError):  
+            return e.errno is None and 'cursor' not in e.args[1] and e.args[1].endswith('closed')
         else:
             return e.errno in (2006, 2013, 2014, 2045, 2055)
 
@@ -143,6 +198,7 @@ class MySQL_oursql(MySQLDialect):
             opts['charset'] = None
         else:
             util.coerce_kw_type(opts, 'charset', str)
+        opts['use_unicode'] = opts.get('use_unicode', True)
         util.coerce_kw_type(opts, 'use_unicode', bool)
 
         # FOUND_ROWS must be set in CLIENT_FLAGS to enable
@@ -150,7 +206,7 @@ class MySQL_oursql(MySQLDialect):
         opts.setdefault('found_rows', True)
 
         return [[], opts]
-    
+
     def _get_server_version_info(self, connection):
         dbapi_con = connection.connection
         version = []
@@ -170,8 +226,9 @@ class MySQL_oursql(MySQLDialect):
 
     def _detect_charset(self, connection):
         """Sniff out the character set in use for connection results."""
-        return connection.connection.charset
     
+        return connection.connection.charset
+
     def _compat_fetchall(self, rp, charset=None):
         """oursql isn't super-broken like MySQLdb, yaaay."""
         return rp.fetchall()
@@ -180,5 +237,8 @@ class MySQL_oursql(MySQLDialect):
         """oursql isn't super-broken like MySQLdb, yaaay."""
         return rp.fetchone()
 
+    def _compat_first(self, rp, charset=None):
+        return rp.first()
 
-dialect = MySQL_oursql
+
+dialect = MySQLDialect_oursql

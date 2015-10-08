@@ -7,7 +7,7 @@
         
         <title>
     Connection Pooling
- &mdash; SQLAlchemy 0.6beta1 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta1',
+          VERSION:     '0.6beta2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="SQL Statements and Expressions" href="expressions.html" />
         <link rel="prev" title="Connections" href="connections.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
+            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
         </div>
         <div class="clearboth"></div>
 
@@ -87,7 +87,7 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="">Connection Pooling</a><ul>
+<li><a class="reference external" href="#">Connection Pooling</a><ul>
 <li><a class="reference external" href="#connection-pool-configuration">Connection Pool Configuration</a></li>
 <li><a class="reference external" href="#custom-pool-construction">Custom Pool Construction</a></li>
 <li><a class="reference external" href="#builtin-pool-implementations">Builtin Pool Implementations</a></li>
@@ -165,8 +165,7 @@ connection that automatically executes some initialization commands:</p>
 <h2>Builtin Pool Implementations<a class="headerlink" href="#builtin-pool-implementations" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sqlalchemy.pool.AssertionPool">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">AssertionPool</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.AssertionPool" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">AssertionPool</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.AssertionPool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.pool.Pool" class="reference internal" href="#sqlalchemy.pool.Pool"><tt class="xref docutils literal"><span class="pre">sqlalchemy.pool.Pool</span></tt></a></p>
 <p>A Pool that allows at most one checked out connection at any given time.</p>
 <p>This will raise an exception if more than one connection is checked out
@@ -181,8 +180,7 @@ than desired.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.pool.NullPool">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">NullPool</tt><big>(</big><em>creator</em>, <em>recycle=-1</em>, <em>echo=None</em>, <em>use_threadlocal=False</em>, <em>reset_on_return=True</em>, <em>listeners=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.NullPool" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">NullPool</tt><big>(</big><em>creator</em>, <em>recycle=-1</em>, <em>echo=None</em>, <em>use_threadlocal=False</em>, <em>logging_name=None</em>, <em>reset_on_return=True</em>, <em>listeners=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.NullPool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.pool.Pool" class="reference internal" href="#sqlalchemy.pool.Pool"><tt class="xref docutils literal"><span class="pre">sqlalchemy.pool.Pool</span></tt></a></p>
 <p>A Pool which does not pool connections.</p>
 <p>Instead it literally opens and closes the underlying DB-API connection
@@ -194,13 +192,12 @@ no connections are held persistently.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.pool.Pool">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">Pool</tt><big>(</big><em>creator</em>, <em>recycle=-1</em>, <em>echo=None</em>, <em>use_threadlocal=False</em>, <em>reset_on_return=True</em>, <em>listeners=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.Pool" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">Pool</tt><big>(</big><em>creator</em>, <em>recycle=-1</em>, <em>echo=None</em>, <em>use_threadlocal=False</em>, <em>logging_name=None</em>, <em>reset_on_return=True</em>, <em>listeners=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.Pool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.log.Identified</span></tt></p>
 <p>Abstract base class for connection pools.</p>
 <dl class="method">
 <dt id="sqlalchemy.pool.Pool.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>creator</em>, <em>recycle=-1</em>, <em>echo=None</em>, <em>use_threadlocal=False</em>, <em>reset_on_return=True</em>, <em>listeners=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.Pool.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>creator</em>, <em>recycle=-1</em>, <em>echo=None</em>, <em>use_threadlocal=False</em>, <em>logging_name=None</em>, <em>reset_on_return=True</em>, <em>listeners=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.Pool.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a Pool.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -214,6 +211,10 @@ parameters.</li>
 connection recycling, which means upon checkout, if this
 timeout is surpassed the connection will be closed and
 replaced with a newly opened connection. Defaults to -1.</li>
+<li><em>logging_name</em> &#8211; String identifier which will be used within
+the &#8220;name&#8221; field of logging records generated within the 
+&#8220;sqlalchemy.pool&#8221; logger. Defaults to a hexstring of the object&#8217;s 
+id.</li>
 <li><em>echo</em> &#8211; If True, connections being pulled and retrieved
 from the pool will be logged to the standard output, as well
 as pool sizing information.  Echoing can also be achieved by
@@ -311,13 +312,12 @@ recreate() method.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.pool.QueuePool">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">QueuePool</tt><big>(</big><em>creator</em>, <em>pool_size=5</em>, <em>max_overflow=10</em>, <em>timeout=30</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.QueuePool" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">QueuePool</tt><big>(</big><em>creator</em>, <em>pool_size=5</em>, <em>max_overflow=10</em>, <em>timeout=30</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.QueuePool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.pool.Pool" class="reference internal" href="#sqlalchemy.pool.Pool"><tt class="xref docutils literal"><span class="pre">sqlalchemy.pool.Pool</span></tt></a></p>
 <p>A Pool that imposes a limit on the number of open connections.</p>
 <dl class="method">
 <dt id="sqlalchemy.pool.QueuePool.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>creator</em>, <em>pool_size=5</em>, <em>max_overflow=10</em>, <em>timeout=30</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.QueuePool.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>creator</em>, <em>pool_size=5</em>, <em>max_overflow=10</em>, <em>timeout=30</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.QueuePool.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a QueuePool.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -383,8 +383,7 @@ pool.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.pool.SingletonThreadPool">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">SingletonThreadPool</tt><big>(</big><em>creator</em>, <em>pool_size=5</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.SingletonThreadPool" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">SingletonThreadPool</tt><big>(</big><em>creator</em>, <em>pool_size=5</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.SingletonThreadPool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.pool.Pool" class="reference internal" href="#sqlalchemy.pool.Pool"><tt class="xref docutils literal"><span class="pre">sqlalchemy.pool.Pool</span></tt></a></p>
 <p>A Pool that maintains one connection per thread.</p>
 <p>Maintains one connection per each thread, never moving a connection to a
@@ -404,7 +403,7 @@ at once.  Defaults to five.</td>
 </table>
 <dl class="method">
 <dt id="sqlalchemy.pool.SingletonThreadPool.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>creator</em>, <em>pool_size=5</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.SingletonThreadPool.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>creator</em>, <em>pool_size=5</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.SingletonThreadPool.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -416,47 +415,13 @@ at once.  Defaults to five.</td>
 
 <dl class="class">
 <dt id="sqlalchemy.pool.StaticPool">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">StaticPool</tt><big>(</big><em>creator</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.StaticPool" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">StaticPool</tt><big>(</big><em>creator</em>, <em>recycle=-1</em>, <em>echo=None</em>, <em>use_threadlocal=False</em>, <em>logging_name=None</em>, <em>reset_on_return=True</em>, <em>listeners=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.StaticPool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.pool.Pool" class="reference internal" href="#sqlalchemy.pool.Pool"><tt class="xref docutils literal"><span class="pre">sqlalchemy.pool.Pool</span></tt></a></p>
 <p>A Pool of exactly one connection, used for all requests.</p>
 <p>Reconnect-related functions such as <tt class="docutils literal"><span class="pre">recycle</span></tt> and connection
 invalidation (which is also used to support auto-reconnect) are not
 currently supported by this Pool implementation but may be implemented
 in a future release.</p>
-<dl class="method">
-<dt id="sqlalchemy.pool.StaticPool.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>creator</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.StaticPool.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct a StaticPool.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>creator</em> &#8211; a callable function that returns a DB-API
-connection object.  The function will be called with
-parameters.</li>
-<li><em>echo</em> &#8211; If True, connections being pulled and retrieved
-from the pool will be logged to the standard output, as well
-as pool sizing information.  Echoing can also be achieved by
-enabling logging for the &#8220;sqlalchemy.pool&#8221;
-namespace. Defaults to False.</li>
-<li><em>reset_on_return</em> &#8211; If true, reset the database state of
-connections returned to the pool.  This is typically a
-ROLLBACK to release locks and transaction resources.
-Disable at your own peril.  Defaults to True.</li>
-<li><em>listeners</em> &#8211; A list of
-<a title="sqlalchemy.interfaces.PoolListener" class="reference external" href="interfaces.html#sqlalchemy.interfaces.PoolListener"><tt class="xref docutils literal"><span class="pre">PoolListener</span></tt></a>-like objects or
-dictionaries of callables that receive events when DB-API
-connections are created, checked out and checked in to the
-pool.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 </dd></dl>
 
 </div>
@@ -501,7 +466,8 @@ pass it around between functions.  To disable this behavior, specify
 <dl class="function">
 <dt id="sqlalchemy.pool.manage">
 <tt class="descclassname">sqlalchemy.pool.</tt><tt class="descname">manage</tt><big>(</big><em>module</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.pool.manage" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a proxy for a DB-API module that automatically pools connections.</p>
+<dd><p>Return a proxy for a DB-API module that automatically 
+pools connections.</p>
 <p>Given a DB-API 2.0 module and pool management parameters, returns
 a proxy for the module that will automatically pool connections,
 creating new connection pools for each distinct set of connection
@@ -548,7 +514,7 @@ pooling.  Defaults to <a title="sqlalchemy.pool.QueuePool" class="reference inte
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>
         

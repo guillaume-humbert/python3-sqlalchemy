@@ -6,9 +6,9 @@ import sqlalchemy as sa
 from sqlalchemy.test import testing
 from sqlalchemy import MetaData, Integer, String, ForeignKey, ForeignKeyConstraint, asc, Index
 from sqlalchemy.test.schema import Table, Column
-from sqlalchemy.orm import relation, create_session, class_mapper, eagerload, compile_mappers, backref, clear_mappers, polymorphic_union, deferred
+from sqlalchemy.orm import relationship, create_session, class_mapper, eagerload, compile_mappers, backref, clear_mappers, polymorphic_union, deferred
 from sqlalchemy.test.testing import eq_
-
+from sqlalchemy.util import classproperty
 
 from test.orm._base import ComparableEntity, MappedTest
 
@@ -28,7 +28,7 @@ class DeclarativeTest(DeclarativeTestBase):
 
             id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
-            addresses = relation("Address", backref="user")
+            addresses = relationship("Address", backref="user")
 
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
@@ -113,7 +113,7 @@ class DeclarativeTest(DeclarativeTestBase):
             id = Column('id', Integer, primary_key=True)
             email = Column('email', String(50))
             user_id = Column('user_id', Integer, ForeignKey('users.id'))
-            user = relation("User", primaryjoin=user_id == User.id,
+            user = relationship("User", primaryjoin=user_id == User.id,
                             backref="addresses")
 
         assert mapperlib._new_mappers is True
@@ -128,7 +128,7 @@ class DeclarativeTest(DeclarativeTestBase):
             __tablename__ = 'users'
             id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column(String(50))
-            addresses = relation("Address", order_by="desc(Address.email)", 
+            addresses = relationship("Address", order_by="desc(Address.email)", 
                 primaryjoin="User.id==Address.user_id", foreign_keys="[Address.user_id]",
                 backref=backref('user', primaryjoin="User.id==Address.user_id", foreign_keys="[Address.user_id]")
                 )
@@ -153,7 +153,7 @@ class DeclarativeTest(DeclarativeTestBase):
         class Foo(Base, ComparableEntity):
             __tablename__ = 'foo'
             id = Column(Integer, primary_key=True)
-            rel = relation("User", primaryjoin="User.addresses==Foo.id")
+            rel = relationship("User", primaryjoin="User.addresses==Foo.id")
         assert_raises_message(exc.InvalidRequestError, "'addresses' is not an instance of ColumnProperty", compile_mappers)
 
     def test_string_dependency_resolution_no_magic(self):
@@ -162,7 +162,7 @@ class DeclarativeTest(DeclarativeTestBase):
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
             id = Column(Integer, primary_key=True)
-            addresses = relation("Address", 
+            addresses = relationship("Address", 
                 primaryjoin="User.id==Address.user_id.prop.columns[0]")
         
         class Address(Base, ComparableEntity):
@@ -180,7 +180,7 @@ class DeclarativeTest(DeclarativeTestBase):
             __tablename__ = 'users'
             id = Column(Integer, primary_key=True)
             name = Column(String(50))
-            addresses = relation("Address", 
+            addresses = relationship("Address", 
                 primaryjoin="User.id==Address.user_id", 
                 backref="user"
                 )
@@ -200,7 +200,7 @@ class DeclarativeTest(DeclarativeTestBase):
             id = Column(Integer, primary_key=True)
             name = Column(String(50))
             
-            props = relation("Prop", 
+            props = relationship("Prop", 
                         secondary="user_to_prop", 
                         primaryjoin="User.id==user_to_prop.c.user_id", 
                         secondaryjoin="user_to_prop.c.prop_id==Prop.id", 
@@ -219,7 +219,7 @@ class DeclarativeTest(DeclarativeTestBase):
         compile_mappers()
         assert class_mapper(User).get_property("props").secondary is user_to_prop
 
-    def test_uncompiled_attributes_in_relation(self):
+    def test_uncompiled_attributes_in_relationship(self):
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
             id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
@@ -230,13 +230,13 @@ class DeclarativeTest(DeclarativeTestBase):
             __tablename__ = 'users'
             id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column(String(50))
-            addresses = relation("Address", order_by=Address.email, 
+            addresses = relationship("Address", order_by=Address.email, 
                 foreign_keys=Address.user_id, 
                 remote_side=Address.user_id,
                 )
         
         # get the mapper for User.   User mapper will compile,
-        # "addresses" relation will call upon Address.user_id for
+        # "addresses" relationship will call upon Address.user_id for
         # its clause element.  Address.user_id is a _CompileOnAttr,
         # which then calls class_mapper(Address).  But !  We're already
         # "in compilation", but class_mapper(Address) needs to initialize
@@ -259,7 +259,7 @@ class DeclarativeTest(DeclarativeTestBase):
         class User(Base):
             __tablename__ = 'users'
             id = Column('id', Integer, primary_key=True)
-            addresses = relation("Address")
+            addresses = relationship("Address")
 
         class Address(Base):
             __tablename__ = 'addresses'
@@ -275,12 +275,13 @@ class DeclarativeTest(DeclarativeTestBase):
         class User(Base):
             __tablename__ = 'users'
             id = Column('id', Integer, primary_key=True)
-            addresses = relation("Addresss")
+            addresses = relationship("Addresss")
 
         # hasattr() on a compile-loaded attribute
         hasattr(User.addresses, 'property')
         # the exeption is preserved
-        assert_raises_message(sa.exc.InvalidRequestError, r"suppressed within a hasattr\(\)", compile_mappers)
+        assert_raises_message(sa.exc.InvalidRequestError, 
+                                r"suppressed within a hasattr\(\)", compile_mappers)
 
     def test_custom_base(self):
         class MyBase(object):
@@ -301,7 +302,7 @@ class DeclarativeTest(DeclarativeTestBase):
             __tablename__ = 'detail' 
             id = Column(Integer, primary_key=True, test_needs_autoincrement=True) 
             master_id = Column(None, ForeignKey(Master.id)) 
-            master = relation(Master) 
+            master = relationship(Master) 
 
         Base.metadata.create_all()
         
@@ -326,11 +327,11 @@ class DeclarativeTest(DeclarativeTestBase):
             __tablename__ = 'users'
             id = Column('id', Integer, primary_key=True)
             name = Column('name', String(50))
-            error = relation("Address")
+            error = relationship("Address")
             
         i = Index('my_index', User.name)
         
-        # compile fails due to the nonexistent Addresses relation
+        # compile fails due to the nonexistent Addresses relationship
         assert_raises(sa.exc.InvalidRequestError, compile_mappers)
         
         # index configured
@@ -347,7 +348,7 @@ class DeclarativeTest(DeclarativeTestBase):
 
             id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
         User.name = Column('name', String(50))
-        User.addresses = relation("Address", backref="user")
+        User.addresses = relationship("Address", backref="user")
 
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
@@ -394,7 +395,7 @@ class DeclarativeTest(DeclarativeTestBase):
 
             id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
-            addresses = relation("Address", order_by=Address.email)
+            addresses = relationship("Address", order_by=Address.email)
 
         Base.metadata.create_all()
         u1 = User(name='u1', addresses=[
@@ -423,7 +424,7 @@ class DeclarativeTest(DeclarativeTestBase):
 
             id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
-            addresses = relation("Address", order_by=(Address.email, Address.id))
+            addresses = relationship("Address", order_by=(Address.email, Address.id))
 
         Base.metadata.create_all()
         u1 = User(name='u1', addresses=[
@@ -443,7 +444,7 @@ class DeclarativeTest(DeclarativeTestBase):
 
             id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
-            addresses = relation("Address", backref="user")
+            addresses = relationship("Address", backref="user")
 
         class Address(ComparableEntity):
             __tablename__ = 'addresses'
@@ -553,7 +554,7 @@ class DeclarativeTest(DeclarativeTestBase):
 
             id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
-            addresses = relation("Address", backref="user")
+            addresses = relationship("Address", backref="user")
 
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
@@ -620,7 +621,7 @@ class DeclarativeTest(DeclarativeTestBase):
             adr_count = sa.orm.column_property(
                 sa.select([sa.func.count(Address.id)], Address.user_id == id).
                 as_scalar())
-            addresses = relation(Address)
+            addresses = relationship(Address)
 
         Base.metadata.create_all()
 
@@ -749,7 +750,7 @@ class DeclarativeTest(DeclarativeTestBase):
 
             id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
-            addresses = relation("Address", backref="user")
+            addresses = relationship("Address", backref="user")
 
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
@@ -780,7 +781,7 @@ class DeclarativeTest(DeclarativeTestBase):
             Address(email='two'),
         ])])
 
-    def test_relation_reference(self):
+    def test_relationship_reference(self):
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
 
@@ -793,7 +794,7 @@ class DeclarativeTest(DeclarativeTestBase):
 
             id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
-            addresses = relation("Address", backref="user",
+            addresses = relationship("Address", backref="user",
                                  primaryjoin=id == Address.user_id)
 
         User.address_count = sa.orm.column_property(
@@ -827,7 +828,7 @@ class DeclarativeTest(DeclarativeTestBase):
             __tablename__ = 'foo'
 
             id = sa.Column(sa.Integer, primary_key=True)
-            bars = sa.orm.relation(Bar)
+            bars = sa.orm.relationship(Bar)
         
         assert Bar.__mapper__.primary_key[0] is Bar.__table__.c.id
         assert Bar.__mapper__.primary_key[1] is Bar.__table__.c.ex
@@ -917,6 +918,21 @@ class DeclarativeTest(DeclarativeTestBase):
 
 
 class DeclarativeInheritanceTest(DeclarativeTestBase):
+    
+    def test_we_must_copy_mapper_args(self):
+        class Person(Base):
+            __tablename__ = 'people'
+            id = Column(Integer, primary_key=True)
+            discriminator = Column('type', String(50))
+            __mapper_args__ = {'polymorphic_on': discriminator,'polymorphic_identity':'person'}
+            
+        class Engineer(Person):
+            primary_language = Column(String(50))
+
+        assert 'inherits' not in Person.__mapper_args__
+        assert class_mapper(Engineer).polymorphic_on is None
+        
+        
     def test_custom_join_condition(self):
         class Foo(Base):
             __tablename__ = 'foo'
@@ -936,7 +952,7 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
             __tablename__ = 'companies'
             id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
-            employees = relation("Person")
+            employees = relationship("Person")
 
         class Person(Base, ComparableEntity):
             __tablename__ = 'people'
@@ -1137,7 +1153,7 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
             __tablename__ = 'companies'
             id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
-            employees = relation("Person")
+            employees = relationship("Person")
 
         class Person(Base, ComparableEntity):
             __tablename__ = 'people'
@@ -1193,7 +1209,7 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
             __tablename__ = 'companies'
             id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
-            employees = relation("Person")
+            employees = relationship("Person")
 
         class Person(Base, ComparableEntity):
             __tablename__ = 'people'
@@ -1263,7 +1279,7 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
             __tablename__ = 'companies'
             id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column('name', String(50))
-            employees = relation("Person")
+            employees = relationship("Person")
         
         class Person(Base, ComparableEntity):
             __tablename__ = 'people'
@@ -1361,7 +1377,7 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
         class Engineer(Person):
             __mapper_args__ = {'polymorphic_identity':'engineer'}
             primary_language_id = Column(Integer, ForeignKey('languages.id'))
-            primary_language = relation("Language")
+            primary_language = relationship("Language")
             
         class Language(Base, ComparableEntity):
             __tablename__ = 'languages'
@@ -1429,7 +1445,35 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
         assert not hasattr(Engineer, 'nerf_gun')
         assert not hasattr(Manager, 'nerf_gun')
         assert not hasattr(Manager, 'primary_language')
-            
+    
+    def test_single_detects_conflict(self):
+        class Person(Base):
+            __tablename__ = 'people'
+            id = Column(Integer, primary_key=True)
+            name = Column(String(50))
+            discriminator = Column('type', String(50))
+            __mapper_args__ = {'polymorphic_on':discriminator}
+
+        class Engineer(Person):
+            __mapper_args__ = {'polymorphic_identity':'engineer'}
+            primary_language = Column(String(50))
+        
+        # test sibling col conflict
+        def go():
+            class Manager(Person):
+                __mapper_args__ = {'polymorphic_identity':'manager'}
+                golf_swing = Column(String(50))
+                primary_language = Column(String(50))
+        assert_raises(sa.exc.ArgumentError, go)
+
+        # test parent col conflict
+        def go():
+            class Salesman(Person):
+                __mapper_args__ = {'polymorphic_identity':'manager'}
+                name = Column(String(50))
+        assert_raises(sa.exc.ArgumentError, go)
+
+        
     def test_single_no_special_cols(self):
         class Person(Base, ComparableEntity):
             __tablename__ = 'people'
@@ -1457,7 +1501,10 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
             class Engineer(Person):
                 __mapper_args__ = {'polymorphic_identity':'engineer'}
                 primary_language = Column('primary_language', String(50))
-                __table_args__ = ()
+                # this should be on the Person class, as this is single
+                # table inheritance, which is why we test that this
+                # throws an exception!
+                __table_args__ = {'mysql_engine':'InnoDB'}
         assert_raises_message(sa.exc.ArgumentError, "place __table_args__", go)
         
     def test_concrete(self):
@@ -1513,20 +1560,20 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
         
         class Person(Base, ComparableEntity):
             __tablename__ = 'people'
-            id = Column(Integer, primary_key=True)
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
             name = Column(String(50))
 
         class Engineer(Person):
             __tablename__ = 'engineers'
             __mapper_args__ = {'concrete':True}
-            id = Column(Integer, primary_key=True)
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
             primary_language = Column(String(50))
             name = Column(String(50))
 
         class Manager(Person):
             __tablename__ = 'manager'
             __mapper_args__ = {'concrete':True}
-            id = Column(Integer, primary_key=True)
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
             golf_swing = Column(String(50))
             name = Column(String(50))
 
@@ -1576,16 +1623,22 @@ def _produce_test(inline, stringbased):
                 user_id = Column(Integer, ForeignKey('users.id'))
                 if inline:
                     if stringbased:
-                        user = relation("User", primaryjoin="User.id==Address.user_id", backref="addresses")
+                        user = relationship("User", 
+                                                    primaryjoin="User.id==Address.user_id",
+                                                    backref="addresses")
                     else:
-                        user = relation(User, primaryjoin=User.id==user_id, backref="addresses")
+                        user = relationship(User, primaryjoin=User.id==user_id, backref="addresses")
             
             if not inline:
                 compile_mappers()
                 if stringbased:
-                    Address.user = relation("User", primaryjoin="User.id==Address.user_id", backref="addresses")
+                    Address.user = relationship("User", 
+                                            primaryjoin="User.id==Address.user_id",
+                                            backref="addresses")
                 else:
-                    Address.user = relation(User, primaryjoin=User.id==Address.user_id, backref="addresses")
+                    Address.user = relationship(User, 
+                                            primaryjoin=User.id==Address.user_id,
+                                            backref="addresses")
 
         @classmethod
         def insert_data(cls):
@@ -1609,18 +1662,22 @@ def _produce_test(inline, stringbased):
     
         def test_aliased_join(self):
             # this query will screw up if the aliasing 
-            # enabled in query.join() gets applied to the right half of the join condition inside the any().
-            # the join condition inside of any() comes from the "primaryjoin" of the relation,
+            # enabled in query.join() gets applied to the right half of the 
+            # join condition inside the any().
+            # the join condition inside of any() comes from the "primaryjoin" of the relationship,
             # and should not be annotated with _orm_adapt.  PropertyLoader.Comparator will annotate
             # the left side with _orm_adapt, though.
             sess = create_session()
             eq_(
                 sess.query(User).join(User.addresses, aliased=True).
-                    filter(Address.email=='ed@wood.com').filter(User.addresses.any(Address.email=='jack@bean.com')).all(),
+                    filter(Address.email=='ed@wood.com').
+                    filter(User.addresses.any(Address.email=='jack@bean.com')).all(),
                 []
             )
     
-    ExplicitJoinTest.__name__ = "ExplicitJoinTest%s%s" % (inline and 'Inline' or 'Separate', stringbased and 'String' or 'Literal')
+    ExplicitJoinTest.__name__ = "ExplicitJoinTest%s%s" % \
+                                    (inline and 'Inline' or 'Separate', 
+                                    stringbased and 'String' or 'Literal')
     return ExplicitJoinTest
 
 for inline in (True, False):
@@ -1673,7 +1730,7 @@ class DeclarativeReflectionTest(testing.TestBase):
             __autoload__ = True
             if testing.against('oracle', 'firebird'):
                 id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
-            addresses = relation("Address", backref="user")
+            addresses = relationship("Address", backref="user")
 
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
@@ -1709,7 +1766,7 @@ class DeclarativeReflectionTest(testing.TestBase):
             if testing.against('oracle', 'firebird'):
                 id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
             nom = Column('name', String(50), key='nom')
-            addresses = relation("Address", backref="user")
+            addresses = relationship("Address", backref="user")
 
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
@@ -1753,7 +1810,7 @@ class DeclarativeReflectionTest(testing.TestBase):
             __autoload__ = True
             if testing.against('oracle', 'firebird'):
                 id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
-            handles = relation("IMHandle", backref="user")
+            handles = relationship("IMHandle", backref="user")
 
         u1 = User(name='u1', handles=[
             IMHandle(network='blabber', handle='foo'),
@@ -1773,3 +1830,261 @@ class DeclarativeReflectionTest(testing.TestBase):
         eq_(a1, IMHandle(network='lol', handle='zomg'))
         eq_(a1.user, User(name='u1'))
 
+class DeclarativeMixinTest(DeclarativeTestBase):
+    
+    def test_simple(self):
+
+        class MyMixin(object):
+            id =  Column(Integer, primary_key=True, test_needs_autoincrement=True)
+
+            def foo(self):
+                return 'bar'+str(self.id)
+
+        class MyModel(Base,MyMixin):
+            __tablename__='test'
+            name = Column(String(100), nullable=False, index=True)
+
+        Base.metadata.create_all()
+        
+        session = create_session()
+        session.add(MyModel(name='testing'))
+        session.flush()
+        session.expunge_all()
+
+        obj = session.query(MyModel).one()
+        eq_(obj.id,1)
+        eq_(obj.name,'testing')
+        eq_(obj.foo(),'bar1')
+        
+    def test_hierarchical_bases(self):
+
+        class MyMixinParent:
+            id =  Column(Integer, primary_key=True, test_needs_autoincrement=True)
+
+            def foo(self):
+                return 'bar'+str(self.id)
+
+        class MyMixin(MyMixinParent):
+            baz = Column(String(100), nullable=False, index=True)
+
+        class MyModel(Base,MyMixin):
+            __tablename__='test'
+            name = Column(String(100), nullable=False, index=True)
+
+        Base.metadata.create_all()
+        
+        session = create_session()
+        session.add(MyModel(name='testing', baz='fu'))
+        session.flush()
+        session.expunge_all()
+
+        obj = session.query(MyModel).one()
+        eq_(obj.id,1)
+        eq_(obj.name,'testing')
+        eq_(obj.foo(),'bar1')
+        eq_(obj.baz,'fu')
+        
+    def test_table_name_inherited(self):
+        
+        class MyMixin:
+            @classproperty
+            def __tablename__(cls):
+                return cls.__name__.lower()
+            id =  Column(Integer, primary_key=True)
+
+        class MyModel(Base,MyMixin):
+            pass
+
+        eq_(MyModel.__table__.name,'mymodel')
+    
+    def test_table_name_not_inherited(self):
+        
+        class MyMixin:
+            @classproperty
+            def __tablename__(cls):
+                return cls.__name__.lower()
+            id =  Column(Integer, primary_key=True)
+
+        class MyModel(Base,MyMixin):
+            __tablename__ = 'overridden'
+
+        eq_(MyModel.__table__.name,'overridden')
+    
+    def test_table_name_inheritance_order(self):
+        
+        class MyMixin1:
+            @classproperty
+            def __tablename__(cls):
+                return cls.__name__.lower()+'1'
+
+        class MyMixin2:
+            @classproperty
+            def __tablename__(cls):
+                return cls.__name__.lower()+'2'
+            
+        class MyModel(Base,MyMixin1,MyMixin2):
+            id =  Column(Integer, primary_key=True)
+
+        eq_(MyModel.__table__.name,'mymodel1')
+    
+    def test_table_args_inherited(self):
+        
+        class MyMixin:
+            __table_args__ = {'mysql_engine':'InnoDB'}             
+
+        class MyModel(Base,MyMixin):
+            __tablename__='test'
+            id =  Column(Integer, primary_key=True)
+
+        eq_(MyModel.__table__.kwargs,{'mysql_engine': 'InnoDB'})
+    
+    def test_table_args_inherited_descriptor(self):
+        
+        class MyMixin:
+            @classproperty
+            def __table_args__(cls):
+                return {'info':cls.__name__} 
+
+        class MyModel(Base,MyMixin):
+            __tablename__='test'
+            id =  Column(Integer, primary_key=True)
+
+        eq_(MyModel.__table__.info,'MyModel')
+    
+    def test_table_args_inherited_single_table_inheritance(self):
+        
+        class MyMixin:
+            __table_args__ = {'mysql_engine':'InnoDB'}             
+
+        class General(Base,MyMixin):
+            __tablename__='test'
+            id =  Column(Integer, primary_key=True)
+            type_ = Column(String(50))
+            __mapper__args = {'polymorphic_on':type_}
+
+        class Specific(General):
+            __mapper_args__ = {'polymorphic_identity':'specific'}
+
+        eq_(General.__table__.kwargs,{'mysql_engine': 'InnoDB'})
+        eq_(Specific.__table__.kwargs,{'mysql_engine': 'InnoDB'})
+    
+    def test_table_args_overridden(self):
+        
+        class MyMixin:
+            __table_args__ = {'mysql_engine':'Foo'}             
+
+        class MyModel(Base,MyMixin):
+            __tablename__='test'
+            __table_args__ = {'mysql_engine':'InnoDB'}             
+            id =  Column(Integer, primary_key=True)
+
+        eq_(MyModel.__table__.kwargs,{'mysql_engine': 'InnoDB'})
+
+    def test_table_args_composite(self):
+
+        class MyMixin1:
+            __table_args__ = {'info':{'baz':'bob'}} 
+
+        class MyMixin2:
+            __table_args__ = {'info':{'foo':'bar'}}
+
+        class MyModel(Base,MyMixin1,MyMixin2):
+            __tablename__='test'
+
+            @classproperty
+            def __table_args__(self):
+                info = {}
+                args = dict(info=info)
+                info.update(MyMixin1.__table_args__['info'])
+                info.update(MyMixin2.__table_args__['info'])
+                return args
+                
+            id =  Column(Integer, primary_key=True)
+
+        eq_(MyModel.__table__.info,{
+                'foo': 'bar',
+                'baz': 'bob',
+                })
+    
+    def test_mapper_args_inherited(self):
+        
+        class MyMixin:
+            __mapper_args__=dict(always_refresh=True)
+
+        class MyModel(Base,MyMixin):
+            __tablename__='test'
+            id =  Column(Integer, primary_key=True)
+
+        eq_(MyModel.__mapper__.always_refresh,True)
+    
+    
+    def test_mapper_args_inherited_descriptor(self):
+        
+        class MyMixin:
+            @classproperty
+            def __mapper_args__(cls):
+                # tenuous, but illustrates the problem!
+                if cls.__name__=='MyModel':
+                    return dict(always_refresh=True)
+                else:
+                    return dict(always_refresh=False)
+
+        class MyModel(Base,MyMixin):
+            __tablename__='test'
+            id =  Column(Integer, primary_key=True)
+
+        eq_(MyModel.__mapper__.always_refresh,True)
+    
+    def test_mapper_args_polymorphic_on_inherited(self):
+
+        class MyMixin:
+            type_ = Column(String(50))
+            __mapper_args__=dict(polymorphic_on=type_)
+
+        class MyModel(Base,MyMixin):
+            __tablename__='test'
+            id =  Column(Integer, primary_key=True)
+
+        col = MyModel.__mapper__.polymorphic_on
+        eq_(col.name,'type_')
+        assert col.table is not None
+    
+    
+    def test_mapper_args_overridden(self):
+        
+        class MyMixin:
+            __mapper_args__=dict(always_refresh=True)
+
+        class MyModel(Base,MyMixin):
+            __tablename__='test'
+            __mapper_args__=dict(always_refresh=False)
+            id =  Column(Integer, primary_key=True)
+
+        eq_(MyModel.__mapper__.always_refresh,False)
+
+    def test_mapper_args_composite(self):
+
+        class MyMixin1:
+            type_ = Column(String(50))
+            __mapper_args__=dict(polymorphic_on=type_)
+
+        class MyMixin2:
+            __mapper_args__=dict(always_refresh=True)
+
+        class MyModel(Base,MyMixin1,MyMixin2):
+            __tablename__='test'
+
+            @classproperty
+            def __mapper_args__(self):
+                args = {}
+                args.update(MyMixin1.__mapper_args__)
+                args.update(MyMixin2.__mapper_args__)
+                return args
+            
+            id =  Column(Integer, primary_key=True)
+ 
+        col = MyModel.__mapper__.polymorphic_on
+        eq_(col.name,'type_')
+        assert col.table is not None
+        
+        eq_(MyModel.__mapper__.always_refresh,True)

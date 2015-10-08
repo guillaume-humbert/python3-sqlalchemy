@@ -420,7 +420,8 @@ class MapperProperty(object):
         pass
 
     def create_row_processor(self, selectcontext, path, mapper, row, adapter):
-        """Return a 2-tuple consiting of two row processing functions and an instance post-processing function.
+        """Return a 2-tuple consiting of two row processing functions and 
+           an instance post-processing function.
 
         Input arguments are the query.SelectionContext and the *first*
         applicable row of a result set obtained within
@@ -435,16 +436,13 @@ class MapperProperty(object):
 
         Callables are of the following form::
 
-            def new_execute(state, dict_, row, **flags):
+            def new_execute(state, dict_, row, isnew):
                 # process incoming instance state and given row.  the instance is
                 # "new" and was just created upon receipt of this row.
-                # flags is a dictionary containing at least the following
-                # attributes:
-                #   isnew - indicates if the instance was newly created as a
-                #           result of reading this row
-                #   instancekey - identity key of the instance
+                "isnew" indicates if the instance was newly created as a
+                result of reading this row
 
-            def existing_execute(state, dict_, row, **flags):
+            def existing_execute(state, dict_, row):
                 # process incoming instance state and given row.  the instance is
                 # "existing" and was created based on a previous row.
 
@@ -636,9 +634,10 @@ class StrategizedProperty(MapperProperty):
     """A MapperProperty which uses selectable strategies to affect
     loading behavior.
 
-    There is a single default strategy selected by default.  Alternate
+    There is a single strategy selected by default.  Alternate
     strategies can be selected at Query time through the usage of
     ``StrategizedOption`` objects via the Query.options() method.
+    
     """
 
     def __get_context_strategy(self, context, path):
@@ -663,10 +662,12 @@ class StrategizedProperty(MapperProperty):
         return strategy
 
     def setup(self, context, entity, path, adapter, **kwargs):
-        self.__get_context_strategy(context, path + (self.key,)).setup_query(context, entity, path, adapter, **kwargs)
+        self.__get_context_strategy(context, path + (self.key,)).\
+                    setup_query(context, entity, path, adapter, **kwargs)
 
     def create_row_processor(self, context, path, mapper, row, adapter):
-        return self.__get_context_strategy(context, path + (self.key,)).create_row_processor(context, path, mapper, row, adapter)
+        return self.__get_context_strategy(context, path + (self.key,)).\
+                    create_row_processor(context, path, mapper, row, adapter)
 
     def do_init(self):
         self.__all_strategies = {}
@@ -837,7 +838,8 @@ class PropertyOption(MapperOption):
                     mappers.append(prop.parent)
                     key = prop.key
                 else:
-                    raise sa_exc.ArgumentError("mapper option expects string key or list of attributes")
+                    raise sa_exc.ArgumentError("mapper option expects string key "
+                                                "or list of attributes")
 
                 if current_path and key == current_path[1]:
                     current_path = current_path[2:]

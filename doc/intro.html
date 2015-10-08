@@ -7,15 +7,15 @@
         
         <title>
     Overview / Installation
- &mdash; SQLAlchemy 0.6beta1 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta2 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-          URL_ROOT:    '',
-          VERSION:     '0.6beta1',
+          URL_ROOT:    '#',
+          VERSION:     '0.6beta2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="index.html" />
         <link rel="next" title="Object Relational Tutorial" href="ormtutorial.html" />
         <link rel="prev" title="Table of Contents" href="index.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
+            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
         </div>
         <div class="clearboth"></div>
 
@@ -84,10 +84,11 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="">Overview / Installation</a><ul>
+<li><a class="reference external" href="#">Overview / Installation</a><ul>
 <li><a class="reference external" href="#overview">Overview</a></li>
 <li><a class="reference external" href="#tutorials">Tutorials</a></li>
 <li><a class="reference external" href="#main-documentation">Main Documentation</a></li>
+<li><a class="reference external" href="#code-examples">Code Examples</a></li>
 <li><a class="reference external" href="#api-reference">API Reference</a></li>
 <li><a class="reference external" href="#installing-sqlalchemy">Installing SQLAlchemy</a></li>
 <li><a class="reference external" href="#installing-a-database-api">Installing a Database API</a></li>
@@ -124,15 +125,19 @@
 <li><a class="reference external" href="mappers.html"><em>Mapper Configuration</em></a> - A comprehensive walkthrough of major ORM patterns and techniques.</li>
 <li><a class="reference external" href="session.html"><em>Using the Session</em></a> - A detailed description of SQLAlchemy&#8217;s Session object</li>
 <li><a class="reference external" href="dbengine.html"><em>Database Engines</em></a> - Describes SQLAlchemy&#8217;s database-connection facilities, including connection documentation and working with connections and transactions.</li>
-<li><a class="reference external" href="metadata.html"><em>Database Meta Data</em></a> - All about schema management using <tt class="docutils literal"><span class="pre">MetaData</span></tt> and <tt class="docutils literal"><span class="pre">Table</span></tt> objects; reading database schemas into your application, creating and dropping tables, constraints, defaults, sequences, indexes.</li>
+<li><a class="reference external" href="metadata.html"><em>Database Meta Data</em></a> - All about schema management using <a title="sqlalchemy.schema.MetaData" class="reference external" href="reference/sqlalchemy/schema.html#sqlalchemy.schema.MetaData"><tt class="xref docutils literal"><span class="pre">MetaData</span></tt></a> and <a title="sqlalchemy.schema.Table" class="reference external" href="reference/sqlalchemy/schema.html#sqlalchemy.schema.Table"><tt class="xref docutils literal"><span class="pre">Table</span></tt></a> objects; reading database schemas into your application, creating and dropping tables, constraints, defaults, sequences, indexes.</li>
 <li><a class="reference external" href="reference/sqlalchemy/pooling.html"><em>Connection Pooling</em></a> - Further detail about SQLAlchemy&#8217;s connection pool library.</li>
 <li><a class="reference external" href="reference/sqlalchemy/types.html#types"><em>Column and Data Types</em></a> - Datatypes included with SQLAlchemy, their functions, as well as how to create your own types.</li>
 <li><a class="reference external" href="reference/ext/index.html#plugins"><em>sqlalchemy.ext</em></a> - Included addons for SQLAlchemy</li>
 </ul>
 </div>
+<div class="section" id="code-examples">
+<h2>Code Examples<a class="headerlink" href="#code-examples" title="Permalink to this headline">¶</a></h2>
+<p>Working code examples are included in the SQLAlchemy distribution, and there are also usage recipes on the SQLAlchemy wiki.   A description of all the included example applications is at <a class="reference external" href="examples.html"><em>Examples</em></a>.</p>
+</div>
 <div class="section" id="api-reference">
 <h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
-<p>An organized section of all SQLAlchemy APIs is at <a class="reference external" href="reference/index.html"><em>API Reference</em></a>.</p>
+<p>An organized section of all SQLAlchemy APIs is at <a class="reference external" href="reference/index.html#api-reference-toplevel"><em>API Reference</em></a>.</p>
 </div>
 <div class="section" id="installing-sqlalchemy">
 <h2>Installing SQLAlchemy<a class="headerlink" href="#installing-sqlalchemy" title="Permalink to this headline">¶</a></h2>
@@ -141,7 +146,7 @@
 </div>
 <p>This command will download the latest version of SQLAlchemy from the <a class="reference external" href="http://pypi.python.org/pypi/SQLAlchemy">Python Cheese Shop</a> and install it to your system.</p>
 <ul class="simple">
-<li><a class="reference external" href="http://peak.telecommunity.com/DevCenter/setuptools">setuptools</a></li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/setuptools/">setuptools</a></li>
 <li><a class="reference external" href="http://peak.telecommunity.com/DevCenter/EasyInstall#installation-instructions">install setuptools</a></li>
 <li><a class="reference external" href="http://pypi.python.org/pypi/SQLAlchemy">pypi</a></li>
 </ul>
@@ -183,7 +188,7 @@
 
                 <div class="doc_copyright">
                     &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>
         

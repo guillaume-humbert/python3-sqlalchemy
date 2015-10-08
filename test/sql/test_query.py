@@ -78,6 +78,13 @@ class QueryTest(TestBase):
             detects rows that had defaults and post-fetches.
             """
 
+            # verify implicit_returning is working
+            if engine.dialect.implicit_returning:
+                ins = table.insert()
+                comp = ins.compile(engine, column_keys=list(values))
+                if not set(values).issuperset(c.key for c in table.primary_key):
+                    assert comp.returning
+            
             result = engine.execute(table.insert(), **values)
             ret = values.copy()
             
@@ -85,13 +92,17 @@ class QueryTest(TestBase):
                 ret[col.key] = id
 
             if result.lastrow_has_defaults():
-                criterion = and_(*[col==id for col, id in zip(table.primary_key, result.inserted_primary_key)])
+                criterion = and_(*[col==id for col, id in 
+                                    zip(table.primary_key, result.inserted_primary_key)])
                 row = engine.execute(table.select(criterion)).first()
                 for c in table.c:
                     ret[c.key] = row[c]
             return ret
 
         if testing.against('firebird', 'postgresql', 'oracle', 'mssql'):
+            assert testing.db.dialect.implicit_returning
+            
+        if testing.db.dialect.implicit_returning:
             test_engines = [
                 engines.testing_engine(options={'implicit_returning':False}),
                 engines.testing_engine(options={'implicit_returning':True}),
@@ -218,13 +229,14 @@ class QueryTest(TestBase):
         for row in select([sel + 1, sel + 3], bind=users.bind).execute():
             assert row['anon_1'] == 8
             assert row['anon_2'] == 10
-    
+
     @testing.fails_on('firebird', "kinterbasdb doesn't send full type information")
     def test_order_by_label(self):
         """test that a label within an ORDER BY works on each backend.
         
-        simple labels in ORDER BYs now render as the actual labelname 
-        which not every database supports.
+        This test should be modified to support [ticket:1068] when that ticket
+        is implemented.  For now, you need to put the actual string in the
+        ORDER BY.
         
         """
         users.insert().execute(
@@ -235,26 +247,31 @@ class QueryTest(TestBase):
         
         concat = ("test: " + users.c.user_name).label('thedata')
         eq_(
-            select([concat]).order_by(concat).execute().fetchall(),
+            select([concat]).order_by("thedata").execute().fetchall(),
             [("test: ed",), ("test: fred",), ("test: jack",)]
         )
         
         eq_(
-            select([concat]).order_by(concat).execute().fetchall(),
+            select([concat]).order_by("thedata").execute().fetchall(),
             [("test: ed",), ("test: fred",), ("test: jack",)]
         )
 
         concat = ("test: " + users.c.user_name).label('thedata')
         eq_(
-            select([concat]).order_by(desc(concat)).execute().fetchall(),
+            select([concat]).order_by(desc('thedata')).execute().fetchall(),
             [("test: jack",), ("test: fred",), ("test: ed",)]
         )
 
-        concat = ("test: " + users.c.user_name).label('thedata')
-        eq_(
-            select([concat]).order_by(concat + "x").execute().fetchall(),
-            [("test: ed",), ("test: fred",), ("test: jack",)]
-        )
+        @testing.fails_on('postgresql', 'only simple labels allowed')
+        @testing.fails_on('sybase', 'only simple labels allowed')
+        @testing.fails_on('mssql', 'only simple labels allowed')
+        def go():
+            concat = ("test: " + users.c.user_name).label('thedata')
+            eq_(
+                select([concat]).order_by(literal_column('thedata') + "x").execute().fetchall(),
+                [("test: ed",), ("test: fred",), ("test: jack",)]
+            )
+        go()
         
         
     def test_row_comparison(self):
@@ -536,7 +553,18 @@ class QueryTest(TestBase):
                         use_labels=labels,
                         order_by=[users.c.user_id.desc()]),
                  [(3,), (2,), (1,)])
+    
+    @testing.fails_on("+pyodbc", "pyodbc row doesn't seem to accept slices")
+    def test_column_slices(self):
+        users.insert().execute(user_id=1, user_name='john')
+        users.insert().execute(user_id=2, user_name='jack')
+        addresses.insert().execute(address_id=1, user_id=2, address='foo@bar.com')
 
+        r = text("select * from query_addresses", bind=testing.db).execute().first()
+        self.assert_(r[0:1] == (1,))
+        self.assert_(r[1:] == (2, 'foo@bar.com'))
+        self.assert_(r[:-1] == (1, 2))
+        
     def test_column_accessor(self):
         users.insert().execute(user_id=1, user_name='john')
         users.insert().execute(user_id=2, user_name='jack')
@@ -550,15 +578,11 @@ class QueryTest(TestBase):
         self.assert_(r.user_id == r['user_id'] == r[users.c.user_id] == 2)
         self.assert_(r.user_name == r['user_name'] == r[users.c.user_name] == 'jack')
         
-        # test slices
-        r = text("select * from query_addresses", bind=testing.db).execute().first()
-        self.assert_(r[0:1] == (1,))
-        self.assert_(r[1:] == (2, 'foo@bar.com'))
-        self.assert_(r[:-1] == (1, 2))
-        
-        # test a little sqlite weirdness - with the UNION, cols come back as "query_users.user_id" in cursor.description
+        # test a little sqlite weirdness - with the UNION, 
+        # cols come back as "query_users.user_id" in cursor.description
         r = text("select query_users.user_id, query_users.user_name from query_users "
-            "UNION select query_users.user_id, query_users.user_name from query_users", bind=testing.db).execute().first()
+            "UNION select query_users.user_id, query_users.user_name from query_users",
+            bind=testing.db).execute().first()
         self.assert_(r['user_id']) == 1
         self.assert_(r['user_name']) == "john"
 
@@ -645,7 +669,9 @@ class QueryTest(TestBase):
 
     def test_keys(self):
         users.insert().execute(user_id=1, user_name='foo')
-        r = users.select().execute().first()
+        r = users.select().execute()
+        eq_([x.lower() for x in r.keys()], ['user_id', 'user_name'])
+        r = r.first()
         eq_([x.lower() for x in r.keys()], ['user_id', 'user_name'])
 
     def test_items(self):
@@ -699,21 +725,21 @@ class QueryTest(TestBase):
                          Column('shadow_name', VARCHAR(20)),
                          Column('parent', VARCHAR(20)),
                          Column('row', VARCHAR(40)),
-                         Column('__parent', VARCHAR(20)),
-                         Column('__row', VARCHAR(20)),
+                         Column('_parent', VARCHAR(20)),
+                         Column('_row', VARCHAR(20)),
         )
         shadowed.create(checkfirst=True)
         try:
-            shadowed.insert().execute(shadow_id=1, shadow_name='The Shadow', parent='The Light', row='Without light there is no shadow', __parent='Hidden parent', __row='Hidden row')
+            shadowed.insert().execute(shadow_id=1, shadow_name='The Shadow', parent='The Light', row='Without light there is no shadow', _parent='Hidden parent', _row='Hidden row')
             r = shadowed.select(shadowed.c.shadow_id==1).execute().first()
             self.assert_(r.shadow_id == r['shadow_id'] == r[shadowed.c.shadow_id] == 1)
             self.assert_(r.shadow_name == r['shadow_name'] == r[shadowed.c.shadow_name] == 'The Shadow')
             self.assert_(r.parent == r['parent'] == r[shadowed.c.parent] == 'The Light')
             self.assert_(r.row == r['row'] == r[shadowed.c.row] == 'Without light there is no shadow')
-            self.assert_(r['__parent'] == 'Hidden parent')
-            self.assert_(r['__row'] == 'Hidden row')
+            self.assert_(r['_parent'] == 'Hidden parent')
+            self.assert_(r['_row'] == 'Hidden row')
             try:
-                print r.__parent, r.__row
+                print r._parent, r._row
                 self.fail('Should not allow access to private attributes')
             except AttributeError:
                 pass # expected
@@ -748,8 +774,19 @@ class QueryTest(TestBase):
         assert len(r) == 0
 
     @testing.emits_warning('.*empty sequence.*')
-    @testing.fails_on('firebird', "kinterbasdb doesn't send full type information")
+    @testing.fails_on('firebird', "uses sql-92 rules")
+    @testing.fails_on('sybase', "uses sql-92 rules")
+    @testing.fails_on('mssql+mxodbc', "uses sql-92 rules")
+    @testing.fails_if(lambda: 
+                         testing.against('mssql+pyodbc') and not testing.db.dialect.freetds,
+                         "uses sql-92 rules")
     def test_bind_in(self):
+        """test calling IN against a bind parameter.
+        
+        this isn't allowed on several platforms since we
+        generate ? = ?.
+        
+        """
         users.insert().execute(user_id = 7, user_name = 'jack')
         users.insert().execute(user_id = 8, user_name = 'fred')
         users.insert().execute(user_id = 9, user_name = None)
@@ -761,14 +798,28 @@ class QueryTest(TestBase):
         assert len(r) == 3
         r = s.execute(search_key=None).fetchall()
         assert len(r) == 0
-
+    
     @testing.emits_warning('.*empty sequence.*')
-    @testing.fails_on('firebird', 'FIXME: unknown')
-    @testing.fails_on('maxdb', 'FIXME: unknown')
-    @testing.fails_on('oracle', 'FIXME: unknown')
-    @testing.fails_on('mssql', 'FIXME: unknown')
+    def test_literal_in(self):
+        """similar to test_bind_in but use a bind with a value."""
+
+        users.insert().execute(user_id = 7, user_name = 'jack')
+        users.insert().execute(user_id = 8, user_name = 'fred')
+        users.insert().execute(user_id = 9, user_name = None)
+
+        s = users.select(not_(literal("john").in_([])))
+        r = s.execute().fetchall()
+        assert len(r) == 3
+        
+        
+    @testing.emits_warning('.*empty sequence.*')
+    @testing.requires.boolean_col_expressions
     def test_in_filtering_advanced(self):
-        """test the behavior of the in_() function when comparing against an empty collection."""
+        """test the behavior of the in_() function when 
+        comparing against an empty collection, specifically
+        that a proper boolean value is generated.
+        
+        """
 
         users.insert().execute(user_id = 7, user_name = 'jack')
         users.insert().execute(user_id = 8, user_name = 'fred')
@@ -921,6 +972,7 @@ class LimitTest(TestBase):
         r = users.select(limit=3, order_by=[users.c.user_id]).execute().fetchall()
         self.assert_(r == [(1, 'john'), (2, 'jack'), (3, 'ed')], repr(r))
 
+    @testing.requires.offset
     @testing.fails_on('maxdb', 'FIXME: unknown')
     def test_select_limit_offset(self):
         """Test the interaction between limit and offset"""
@@ -937,6 +989,7 @@ class LimitTest(TestBase):
         self.assert_(len(r) == 3, repr(r))
         self.assert_(r[0] != r[1] and r[1] != r[2], repr(r))
 
+    @testing.requires.offset
     @testing.fails_on('mssql', 'FIXME: unknown')
     def test_select_distinct_offset(self):
         """Test the interaction between distinct and offset"""
@@ -945,6 +998,7 @@ class LimitTest(TestBase):
         self.assert_(len(r) == 4, repr(r))
         self.assert_(r[0] != r[1] and r[1] != r[2] and r[2] != [3], repr(r))
 
+    @testing.requires.offset
     def test_select_distinct_limit_offset(self):
         """Test the interaction between limit and limit/offset"""
 
@@ -1095,9 +1149,7 @@ class CompoundTest(TestBase):
         found2 = self._fetchall_sorted(e.alias('foo').select().execute())
         eq_(found2, wanted)
 
-    @testing.crashes('firebird', 'Does not support intersect')
-    @testing.crashes('sybase', 'FIXME: unknown, verify not fails_on')
-    @testing.fails_on('mysql', 'FIXME: unknown')
+    @testing.requires.intersect
     def test_intersect(self):
         i = intersect(
             select([t2.c.col3, t2.c.col4]),
@@ -1112,10 +1164,7 @@ class CompoundTest(TestBase):
         found2 = self._fetchall_sorted(i.alias('bar').select().execute())
         eq_(found2, wanted)
 
-    @testing.crashes('firebird', 'Does not support except')
-    @testing.crashes('oracle', 'FIXME: unknown, verify not fails_on')
-    @testing.crashes('sybase', 'FIXME: unknown, verify not fails_on')
-    @testing.fails_on('mysql', 'FIXME: unknown')
+    @testing.requires.except_
     @testing.fails_on('sqlite', "Can't handle this style of nesting")
     def test_except_style1(self):
         e = except_(union(
@@ -1130,10 +1179,7 @@ class CompoundTest(TestBase):
         found = self._fetchall_sorted(e.alias().select().execute())
         eq_(found, wanted)
 
-    @testing.crashes('firebird', 'Does not support except')
-    @testing.crashes('oracle', 'FIXME: unknown, verify not fails_on')
-    @testing.crashes('sybase', 'FIXME: unknown, verify not fails_on')
-    @testing.fails_on('mysql', 'FIXME: unknown')
+    @testing.requires.except_
     def test_except_style2(self):
         # same as style1, but add alias().select() to the except_().
         # sqlite can handle it now.
@@ -1153,11 +1199,8 @@ class CompoundTest(TestBase):
         found2 = self._fetchall_sorted(e.alias().select().execute())
         eq_(found2, wanted)
 
-    @testing.crashes('firebird', 'Does not support except')
-    @testing.crashes('oracle', 'FIXME: unknown, verify not fails_on')
-    @testing.crashes('sybase', 'FIXME: unknown, verify not fails_on')
-    @testing.fails_on('mysql', 'FIXME: unknown')
     @testing.fails_on('sqlite', "Can't handle this style of nesting")
+    @testing.requires.except_
     def test_except_style3(self):
         # aaa, bbb, ccc - (aaa, bbb, ccc - (ccc)) = ccc
         e = except_(
@@ -1171,10 +1214,7 @@ class CompoundTest(TestBase):
         eq_(e.alias('foo').select().execute().fetchall(),
                           [('ccc',)])
 
-    @testing.crashes('firebird', 'Does not support except')
-    @testing.crashes('oracle', 'FIXME: unknown, verify not fails_on')
-    @testing.crashes('sybase', 'FIXME: unknown, verify not fails_on')
-    @testing.fails_on('mysql', 'FIXME: unknown')
+    @testing.requires.except_
     def test_except_style4(self):
         # aaa, bbb, ccc - (aaa, bbb, ccc - (ccc)) = ccc
         e = except_(
@@ -1191,8 +1231,7 @@ class CompoundTest(TestBase):
             [('ccc',)]
         )
 
-    @testing.crashes('firebird', 'Does not support intersect')
-    @testing.fails_on('mysql', 'FIXME: unknown')
+    @testing.requires.intersect
     @testing.fails_on('sqlite', "sqlite can't handle leading parenthesis")
     def test_intersect_unions(self):
         u = intersect(
@@ -1210,8 +1249,7 @@ class CompoundTest(TestBase):
 
         eq_(found, wanted)
 
-    @testing.crashes('firebird', 'Does not support intersect')
-    @testing.fails_on('mysql', 'FIXME: unknown')
+    @testing.requires.intersect
     def test_intersect_unions_2(self):
         u = intersect(
             union(
@@ -1228,9 +1266,8 @@ class CompoundTest(TestBase):
 
         eq_(found, wanted)
     
-    @testing.crashes('firebird', 'Does not support intersect')
-    @testing.fails_on('mysql', 'FIXME: unknown')
-    def test_intersect(self):
+    @testing.requires.intersect
+    def test_intersect_unions_3(self):
         u = intersect(
             select([t2.c.col3, t2.c.col4]),
             union(
@@ -1244,8 +1281,7 @@ class CompoundTest(TestBase):
 
         eq_(found, wanted)
 
-    @testing.crashes('firebird', 'Does not support intersect')
-    @testing.fails_on('mysql', 'FIXME: unknown')
+    @testing.requires.intersect
     def test_composite_alias(self):
         ua = intersect(
             select([t2.c.col3, t2.c.col4]),
@@ -1539,7 +1575,7 @@ class OperatorTest(TestBase):
         global metadata, flds
         metadata = MetaData(testing.db)
         flds = Table('flds', metadata,
-            Column('idcol', Integer, Sequence('t1pkseq'), primary_key=True),
+            Column('idcol', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('intcol', Integer),
             Column('strcol', String(50)),
             )
@@ -1553,8 +1589,9 @@ class OperatorTest(TestBase):
     @classmethod
     def teardown_class(cls):
         metadata.drop_all()
+    
 
-    @testing.fails_on('maxdb', 'FIXME: unknown')
+    # TODO: seems like more tests warranted for this setup.
     def test_modulo(self):
         eq_(
             select([flds.c.intcol % 3],

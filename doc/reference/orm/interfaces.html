@@ -7,7 +7,7 @@
         
         <title>
     Interfaces
- &mdash; SQLAlchemy 0.6beta1 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta1',
+          VERSION:     '0.6beta2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Utilities" href="utilities.html" />
         <link rel="prev" title="Sessions" href="sessions.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
+            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
         </div>
         <div class="clearboth"></div>
 
@@ -100,8 +100,7 @@
 well as other user-subclassable extension objects.</p>
 <dl class="class">
 <dt id="sqlalchemy.orm.interfaces.AttributeExtension">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">AttributeExtension</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.AttributeExtension" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">AttributeExtension</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.AttributeExtension" title="Permalink to this definition">¶</a></dt>
 <dd><p>An event handler for individual attribute change events.</p>
 <p>AttributeExtension is assembled within the descriptors associated
 with a mapped class.</p>
@@ -138,8 +137,7 @@ set.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.orm.interfaces.InstrumentationManager">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">InstrumentationManager</tt><big>(</big><em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">InstrumentationManager</tt><big>(</big><em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.InstrumentationManager" title="Permalink to this definition">¶</a></dt>
 <dd><p>User-defined class instrumentation extension.</p>
 <p>The API for this class should be considered as semi-stable,
 and may change slightly with new releases.</p>
@@ -232,8 +230,7 @@ and may change slightly with new releases.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.orm.interfaces.MapperExtension">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">MapperExtension</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">MapperExtension</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension" title="Permalink to this definition">¶</a></dt>
 <dd><p>Base implementation for customizing <tt class="docutils literal"><span class="pre">Mapper</span></tt> behavior.</p>
 <p>New extension classes subclass <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> and are specified
 using the <tt class="docutils literal"><span class="pre">extension</span></tt> mapper() argument, which is a single
@@ -471,8 +468,7 @@ is not translated.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.orm.interfaces.PropComparator">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">PropComparator</tt><big>(</big><em>prop</em>, <em>mapper</em>, <em>adapter=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.PropComparator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">PropComparator</tt><big>(</big><em>prop</em>, <em>mapper</em>, <em>adapter=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.PropComparator" title="Permalink to this definition">¶</a></dt>
 <dd><p>defines comparison operations for MapperProperty objects.</p>
 <p>PropComparator instances should also define an accessor &#8216;property&#8217;
 which returns the MapperProperty associated with this
@@ -504,8 +500,7 @@ will be compared via equality to the corresponding values.</dd>
 
 <dl class="staticmethod">
 <dt id="sqlalchemy.orm.interfaces.PropComparator.any_op">
-<em class="property">
-static </em><tt class="descname">any_op</tt><big>(</big><em>a</em>, <em>b</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.PropComparator.any_op" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><tt class="descname">any_op</tt><big>(</big><em>a</em>, <em>b</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.PropComparator.any_op" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -524,8 +519,7 @@ will be compared via equality to the corresponding values.</dd>
 
 <dl class="staticmethod">
 <dt id="sqlalchemy.orm.interfaces.PropComparator.has_op">
-<em class="property">
-static </em><tt class="descname">has_op</tt><big>(</big><em>a</em>, <em>b</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.PropComparator.has_op" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><tt class="descname">has_op</tt><big>(</big><em>a</em>, <em>b</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.PropComparator.has_op" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -546,16 +540,14 @@ this specific subclass.</dd>
 
 <dl class="staticmethod">
 <dt id="sqlalchemy.orm.interfaces.PropComparator.of_type_op">
-<em class="property">
-static </em><tt class="descname">of_type_op</tt><big>(</big><em>a</em>, <em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.PropComparator.of_type_op" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><tt class="descname">of_type_op</tt><big>(</big><em>a</em>, <em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.PropComparator.of_type_op" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.orm.interfaces.SessionExtension">
-<em class="property">
-class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">SessionExtension</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.SessionExtension" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.interfaces.</tt><tt class="descname">SessionExtension</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.SessionExtension" title="Permalink to this definition">¶</a></dt>
 <dd><p>An extension hook object for Sessions.  Subclasses may be installed into a Session
 (or sessionmaker) using the <tt class="docutils literal"><span class="pre">extension</span></tt> keyword argument.</p>
 <dl class="method">
@@ -660,7 +652,7 @@ method.</p>
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>
         

@@ -51,7 +51,32 @@ class TestTypes(TestBase, AssertsExecutionResults):
         
         rp = sldt.result_processor(None, None)
         eq_(rp(bp(dt)), dt)
+    
+    def test_native_datetime(self):
+        dbapi = testing.db.dialect.dbapi
         
+        connect_args={'detect_types': dbapi.PARSE_DECLTYPES|dbapi.PARSE_COLNAMES}
+        engine = engines.testing_engine(options={'connect_args':connect_args, 'native_datetime':True})
+        
+        t = Table('datetest', MetaData(),
+                    Column('id', Integer, primary_key=True),
+                    Column('d1', Date),
+                    Column('d2', TIMESTAMP)
+        )
+        t.create(engine)
+        try:
+            engine.execute(t.insert(), {'d1':datetime.date(2010, 5, 10), 'd2':datetime.datetime(2010, 5, 10, 12, 15, 25)})
+            row = engine.execute(t.select()).first()
+            eq_(row, (1, datetime.date(2010, 5, 10), datetime.datetime(2010, 5, 10, 12, 15, 25)))
+            
+            r = engine.execute(func.current_date()).scalar()
+            assert isinstance(r, basestring)
+            
+        finally:
+            t.drop(engine)
+            engine.dispose()
+        
+
     def test_no_convert_unicode(self):
         """test no utf-8 encoding occurs"""
         
@@ -61,10 +86,10 @@ class TestTypes(TestBase, AssertsExecutionResults):
                 CHAR(convert_unicode=True),
                 Unicode(),
                 UnicodeText(),
-                String(assert_unicode=True, convert_unicode=True),
-                CHAR(assert_unicode=True, convert_unicode=True),
-                Unicode(assert_unicode=True),
-                UnicodeText(assert_unicode=True)
+                String(convert_unicode=True),
+                CHAR(convert_unicode=True),
+                Unicode(),
+                UnicodeText()
             ):
 
             bindproc = t.dialect_impl(dialect).bind_processor(dialect)
@@ -235,7 +260,7 @@ class DialectTest(TestBase, AssertsExecutionResults):
         try:
             cx.execute('ATTACH DATABASE ":memory:" AS  test_schema')
             dialect = cx.dialect
-            assert dialect.table_names(cx, 'test_schema') == []
+            assert dialect.get_table_names(cx, 'test_schema') == []
 
             meta = MetaData(cx)
             Table('created', meta, Column('id', Integer),
@@ -244,7 +269,7 @@ class DialectTest(TestBase, AssertsExecutionResults):
                                schema='test_schema')
             meta.create_all(cx)
 
-            eq_(dialect.table_names(cx, 'test_schema'),
+            eq_(dialect.get_table_names(cx, 'test_schema'),
                               ['created'])
             assert len(alt_master.c) > 0
 
@@ -268,7 +293,7 @@ class DialectTest(TestBase, AssertsExecutionResults):
             # note that sqlite_master is cleared, above
             meta.drop_all()
 
-            assert dialect.table_names(cx, 'test_schema') == []
+            assert dialect.get_table_names(cx, 'test_schema') == []
         finally:
             cx.execute('DETACH DATABASE test_schema')
 
@@ -278,7 +303,7 @@ class DialectTest(TestBase, AssertsExecutionResults):
         try:
             cx.execute('CREATE TEMPORARY TABLE tempy (id INT)')
 
-            assert 'tempy' in cx.dialect.table_names(cx, None)
+            assert 'tempy' in cx.dialect.get_table_names(cx, None)
 
             meta = MetaData(cx)
             tempy = Table('tempy', meta, autoload=True)
@@ -491,7 +516,7 @@ class MatchTest(TestBase, AssertsCompiledSQL):
         matchtable.insert().execute([
             {'id': 1, 'title': 'Agile Web Development with Rails', 'category_id': 2},
             {'id': 2, 'title': 'Dive Into Python', 'category_id': 1},
-            {'id': 3, 'title': 'Programming Matz''s Ruby', 'category_id': 2},
+            {'id': 3, 'title': "Programming Matz's Ruby", 'category_id': 2},
             {'id': 4, 'title': 'The Definitive Guide to Django', 'category_id': 1},
             {'id': 5, 'title': 'Python in a Nutshell', 'category_id': 1}
         ])

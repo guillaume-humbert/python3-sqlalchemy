@@ -36,10 +36,10 @@ class ZooMarkTest(TestBase):
         creator = testing.db.pool._creator
         recorder = lambda: dbapi_session.recorder(creator())
         engine = engines.testing_engine(options={'creator':recorder})
-        engine.dialect._unwrap_connection = engines.unwrap_connection
         metadata = MetaData(engine)
         session = sessionmaker()()
-
+        engine.connect()
+        
     def test_baseline_1_create_tables(self):
         zoo = Table('Zoo', metadata,
                     Column('ID', Integer, Sequence('zoo_id_seq'),
@@ -283,10 +283,10 @@ class ZooMarkTest(TestBase):
 
         player = lambda: dbapi_session.player()
         engine = create_engine('postgresql:///', creator=player)
-        engine.dialect._unwrap_connection = engines.unwrap_connection
         metadata = MetaData(engine)
         session = sessionmaker()()
-
+        engine.connect()
+        
     @profiling.function_call_count(4898)
     def test_profile_1_create_tables(self):
         self.test_baseline_1_create_tables()
@@ -299,15 +299,17 @@ class ZooMarkTest(TestBase):
     def test_profile_2_insert(self):
         self.test_baseline_2_insert()
 
-    @profiling.function_call_count(6783)
+    # this number...
+    @profiling.function_call_count(6783, {'2.6':7194})
     def test_profile_3_properties(self):
         self.test_baseline_3_properties()
 
-    @profiling.function_call_count(22510)
+    # and this number go down slightly when using the C extensions
+    @profiling.function_call_count(22510, {'2.6':24055})
     def test_profile_4_expressions(self):
         self.test_baseline_4_expressions()
 
-    @profiling.function_call_count(1240)
+    @profiling.function_call_count(1313)
     def test_profile_5_aggregates(self):
         self.test_baseline_5_aggregates()
 

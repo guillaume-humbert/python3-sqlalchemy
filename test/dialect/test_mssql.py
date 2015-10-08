@@ -1,15 +1,15 @@
 # -*- encoding: utf-8
 from sqlalchemy.test.testing import eq_
-import datetime, os, re
+import datetime, os, re, warnings
 from sqlalchemy import *
 from sqlalchemy import types, exc, schema
 from sqlalchemy.orm import *
 from sqlalchemy.sql import table, column
 from sqlalchemy.databases import mssql
-from sqlalchemy.dialects.mssql import pyodbc
+from sqlalchemy.dialects.mssql import pyodbc, mxodbc
 from sqlalchemy.engine import url
 from sqlalchemy.test import *
-from sqlalchemy.test.testing import eq_
+from sqlalchemy.test.testing import eq_, emits_warning_on
 
 
 class CompileTest(TestBase, AssertsCompiledSQL):
@@ -22,7 +22,35 @@ class CompileTest(TestBase, AssertsCompiledSQL):
     def test_update(self):
         t = table('sometable', column('somecolumn'))
         self.assert_compile(t.update(t.c.somecolumn==7), "UPDATE sometable SET somecolumn=:somecolumn WHERE sometable.somecolumn = :somecolumn_1", dict(somecolumn=10))
-
+    
+    # TODO: should this be for *all* MS-SQL dialects ?
+    def test_mxodbc_binds(self):
+        """mxodbc uses MS-SQL native binds, which aren't allowed in various places."""
+        
+        mxodbc_dialect = mxodbc.dialect()
+        t = table('sometable', column('foo'))
+        
+        for expr, compile in [
+            (
+                select([literal("x"), literal("y")]), 
+                "SELECT 'x', 'y'",
+            ),
+            (
+                select([t]).where(t.c.foo.in_(['x', 'y', 'z'])),
+                "SELECT sometable.foo FROM sometable WHERE sometable.foo IN ('x', 'y', 'z')",
+            ),
+            (
+                func.foobar("x", "y", 4, 5),
+                "foobar('x', 'y', 4, 5)",
+            ),
+            (
+                select([t]).where(func.len('xyz') > func.len(t.c.foo)),
+                "SELECT sometable.foo FROM sometable WHERE len('xyz') > len(sometable.foo)",
+            )
+        ]:
+            self.assert_compile(expr, compile, dialect=mxodbc_dialect)
+        
+        
     def test_in_with_subqueries(self):
         """Test that when using subqueries in a binary expression
         the == and != are changed to IN and NOT IN respectively.
@@ -127,15 +155,24 @@ class CompileTest(TestBase, AssertsCompiledSQL):
             column('col4'))
 
         (s1, s2) = (
-                    select([t1.c.col3.label('col3'), t1.c.col4.label('col4')], t1.c.col2.in_(["t1col2r1", "t1col2r2"])),
-            select([t2.c.col3.label('col3'), t2.c.col4.label('col4')], t2.c.col2.in_(["t2col2r2", "t2col2r3"]))
+                    select([t1.c.col3.label('col3'), t1.c.col4.label('col4')],
+                            t1.c.col2.in_(["t1col2r1", "t1col2r2"])),
+            select([t2.c.col3.label('col3'), t2.c.col4.label('col4')], 
+                            t2.c.col2.in_(["t2col2r2", "t2col2r3"]))
         )
         u = union(s1, s2, order_by=['col3', 'col4'])
-        self.assert_compile(u, "SELECT t1.col3 AS col3, t1.col4 AS col4 FROM t1 WHERE t1.col2 IN (:col2_1, :col2_2) "\
-        "UNION SELECT t2.col3 AS col3, t2.col4 AS col4 FROM t2 WHERE t2.col2 IN (:col2_3, :col2_4) ORDER BY col3, col4")
+        self.assert_compile(u, 
+                "SELECT t1.col3 AS col3, t1.col4 AS col4 FROM t1 WHERE t1.col2 IN "
+                "(:col2_1, :col2_2) "\
+                "UNION SELECT t2.col3 AS col3, t2.col4 AS col4 FROM t2 WHERE t2.col2 "
+                "IN (:col2_3, :col2_4) ORDER BY col3, col4")
 
-        self.assert_compile(u.alias('bar').select(), "SELECT bar.col3, bar.col4 FROM (SELECT t1.col3 AS col3, t1.col4 AS col4 FROM t1 WHERE "\
-        "t1.col2 IN (:col2_1, :col2_2) UNION SELECT t2.col3 AS col3, t2.col4 AS col4 FROM t2 WHERE t2.col2 IN (:col2_3, :col2_4)) AS bar")
+        self.assert_compile(u.alias('bar').select(), 
+                                "SELECT bar.col3, bar.col4 FROM (SELECT t1.col3 AS col3, "
+                                "t1.col4 AS col4 FROM t1 WHERE "\
+                                "t1.col2 IN (:col2_1, :col2_2) UNION SELECT t2.col3 AS col3, "
+                                "t2.col4 AS col4 FROM t2 WHERE t2.col2 IN (:col2_3, :col2_4)) "
+                                "AS bar")
 
     def test_function(self):
         self.assert_compile(func.foo(1, 2), "foo(:foo_1, :foo_2)")
@@ -214,7 +251,7 @@ class CompileTest(TestBase, AssertsCompiledSQL):
 
 class IdentityInsertTest(TestBase, AssertsCompiledSQL):
     __only_on__ = 'mssql'
-    __dialect__ = mssql.MSSQLDialect()
+    __dialect__ = mssql.MSDialect()
 
     @classmethod
     def setup_class(cls):
@@ -285,9 +322,9 @@ class ReflectionTest(TestBase, ComparesTables):
                    ForeignKey('engine_users.user_id')),
             Column('test6', types.DateTime, nullable=False),
             Column('test7', types.Text),
-            Column('test8', types.Binary),
+            Column('test8', types.LargeBinary),
             Column('test_passivedefault2', types.Integer, server_default='5'),
-            Column('test9', types.Binary(100)),
+            Column('test9', types.BINARY(100)),
             Column('test_numeric', types.Numeric()),
             test_needs_fk=True,
         )
@@ -322,7 +359,8 @@ class ReflectionTest(TestBase, ComparesTables):
         meta2 = MetaData(testing.db)
         try:
             table2 = Table('identity_test', meta2, autoload=True)
-            sequence = isinstance(table2.c['col1'].default, schema.Sequence) and table2.c['col1'].default
+            sequence = isinstance(table2.c['col1'].default, schema.Sequence) \
+                                    and table2.c['col1'].default
             assert sequence.start == 2
             assert sequence.increment == 3
         finally:
@@ -355,11 +393,46 @@ class QueryTest(TestBase):
     __only_on__ = 'mssql'
 
     def test_fetchid_trigger(self):
+        """
+        Verify identity return value on inserting to a trigger table.
+        
+        MSSQL's OUTPUT INSERTED clause does not work for the
+        case of a table having an identity (autoincrement)
+        primary key column, and which also has a trigger configured
+        to fire upon each insert and subsequently perform an
+        insert into a different table. 
+        
+        SQLALchemy's MSSQL dialect by default will attempt to
+        use an OUTPUT_INSERTED clause, which in this case will
+        raise the following error:
+        
+        ProgrammingError: (ProgrammingError) ('42000', 334, 
+        "[Microsoft][SQL Server Native Client 10.0][SQL Server]The 
+        target table 't1' of the DML statement cannot have any enabled
+        triggers if the statement contains an OUTPUT clause without
+        INTO clause.", 7748) 'INSERT INTO t1 (descr) OUTPUT inserted.id
+        VALUES (?)' ('hello',)
+        
+        This test verifies a workaround, which is to rely on the
+        older SCOPE_IDENTITY() call, which still works for this scenario.
+        To enable the workaround, the Table must be instantiated
+        with the init parameter 'implicit_returning = False'.
+        """
+
+        #todo: this same test needs to be tried in a multithreaded context
+        #      with multiple threads inserting to the same table.
+        #todo: check whether this error also occurs with clients other
+        #      than the SQL Server Native Client. Maybe an assert_raises
+        #      test should be written.
         meta = MetaData(testing.db)
         t1 = Table('t1', meta,
                 Column('id', Integer, Sequence('fred', 100, 1), primary_key=True),
                 Column('descr', String(200)),
-                implicit_returning = False
+                # the following flag will prevent the MSSQLCompiler.returning_clause
+                # from getting called, though the ExecutionContext will still have
+                # a _select_lastrowid, so the SELECT SCOPE_IDENTITY() will hopefully
+                # be called instead.
+                implicit_returning = False 
                 )
         t2 = Table('t2', meta,
                 Column('id', Integer, Sequence('fred', 200, 1), primary_key=True),
@@ -555,7 +628,7 @@ class MatchTest(TestBase, AssertsCompiledSQL):
         matchtable.insert().execute([
             {'id': 1, 'title': 'Agile Web Development with Rails', 'category_id': 2},
             {'id': 2, 'title': 'Dive Into Python', 'category_id': 1},
-            {'id': 3, 'title': 'Programming Matz''s Ruby', 'category_id': 2},
+            {'id': 3, 'title': "Programming Matz's Ruby", 'category_id': 2},
             {'id': 4, 'title': 'The Definitive Guide to Django', 'category_id': 1},
             {'id': 5, 'title': 'Python in a Nutshell', 'category_id': 1}
         ])
@@ -576,7 +649,7 @@ class MatchTest(TestBase, AssertsCompiledSQL):
         eq_([2, 5], [r.id for r in results])
 
     def test_simple_match_with_apostrophe(self):
-        results = matchtable.select().where(matchtable.c.title.match('"Matz''s"')).execute().fetchall()
+        results = matchtable.select().where(matchtable.c.title.match("Matz's")).execute().fetchall()
         eq_([3], [r.id for r in results])
 
     def test_simple_prefix_match(self):
@@ -690,7 +763,8 @@ class TypesTest(TestBase, AssertsExecutionResults, ComparesTables):
 
     def teardown(self):
         metadata.drop_all()
-
+    
+    @testing.fails_on_everything_except('mssql+pyodbc', 'this is some pyodbc-specific feature')
     def test_decimal_notation(self):
         import decimal
         numeric_table = Table('numeric_table', metadata,
@@ -704,7 +778,8 @@ class TypesTest(TestBase, AssertsExecutionResults, ComparesTables):
                       '0.0000000000000000002', '0.2', '-0.0000000000000000002', '-2E-2',
                       '156666.458923543', '-156666.458923543', '1', '-1', '-1234', '1234',
                       '2E-12', '4E8', '3E-6', '3E-7', '4.1', '1E-1', '1E-2', '1E-3',
-                      '1E-4', '1E-5', '1E-6', '1E-7', '1E-1', '1E-8', '0.2732E2', '-0.2432E2', '4.35656E2',
+                      '1E-4', '1E-5', '1E-6', '1E-7', '1E-1', '1E-8', '0.2732E2', 
+                      '-0.2432E2', '4.35656E2',
                       '-02452E-2', '45125E-2',
                       '1234.58965E-2', '1.521E+15', '-1E-25', '1E-25', '1254E-25', '-1203E-25',
                       '0', '-0.00', '-0', '4585E12', '000000000000000000012', '000000000000.32E12',
@@ -714,7 +789,7 @@ class TypesTest(TestBase, AssertsExecutionResults, ComparesTables):
             numeric_table.insert().execute(numericcol=value)
 
         for value in select([numeric_table.c.numericcol]).execute():
-            assert value[0] in test_items, "%s not in test_items" % value[0]
+            assert value[0] in test_items, "%r not in test_items" % value[0]
 
     def test_float(self):
         float_table = Table('float_table', metadata,
@@ -770,6 +845,8 @@ class TypesTest(TestBase, AssertsExecutionResults, ComparesTables):
             raise
         money_table.drop()
 
+    # todo this should suppress warnings, but it does not
+    @emits_warning_on('mssql+mxodbc', r'.*does not have any indexes.*')
     def test_dates(self):
         "Exercise type specification for date types."
 
@@ -831,9 +908,7 @@ class TypesTest(TestBase, AssertsExecutionResults, ComparesTables):
             testing.eq_(gen.get_column_specification(col),
                            "%s %s" % (col.name, columns[index][3]))
             self.assert_(repr(col))
-
         dates_table.create(checkfirst=True)
-
         reflected_dates = Table('test_mssql_dates', MetaData(testing.db), autoload=True)
         for col in reflected_dates.c:
             self.assert_types_base(col, dates_table.c[col.key])
@@ -864,6 +939,7 @@ class TypesTest(TestBase, AssertsExecutionResults, ComparesTables):
 
         eq_(select([t.c.adate, t.c.atime, t.c.adatetime], t.c.adate==d1).execute().fetchall(), [(d1, t1, d2)])
 
+    @emits_warning_on('mssql+mxodbc', r'.*does not have any indexes.*')
     def test_binary(self):
         "Exercise type specification for binary types."
 
@@ -871,10 +947,12 @@ class TypesTest(TestBase, AssertsExecutionResults, ComparesTables):
             # column type, args, kwargs, expected ddl
             (mssql.MSBinary, [], {},
              'BINARY'),
-            (types.Binary, [10], {},
+            (mssql.MSBinary, [10], {},
              'BINARY(10)'),
 
-            (mssql.MSBinary, [10], {},
+            (types.BINARY, [], {},
+             'BINARY'),
+            (types.BINARY, [10], {},
              'BINARY(10)'),
 
             (mssql.MSVarBinary, [], {},
@@ -882,14 +960,20 @@ class TypesTest(TestBase, AssertsExecutionResults, ComparesTables):
             (mssql.MSVarBinary, [10], {},
              'VARBINARY(10)'),
 
+            (types.VARBINARY, [], {},
+             'VARBINARY'),
+            (types.VARBINARY, [10], {},
+             'VARBINARY(10)'),
+
             (mssql.MSImage, [], {},
              'IMAGE'),
 
-            (types.Binary, [], {},
+            (mssql.IMAGE, [], {},
              'IMAGE'),
-            (types.Binary, [10], {},
-             'BINARY(10)')
-            ]
+
+            (types.LargeBinary, [], {},
+             'IMAGE'),
+        ]
 
         table_args = ['test_mssql_binary', metadata]
         for index, spec in enumerate(columns):
@@ -907,7 +991,6 @@ class TypesTest(TestBase, AssertsExecutionResults, ComparesTables):
             self.assert_(repr(col))
 
         metadata.create_all()
-
         reflected_binary = Table('test_mssql_binary', MetaData(testing.db), autoload=True)
         for col in reflected_binary.c:
             c1 =testing.db.dialect.type_descriptor(col.type).__class__
@@ -947,11 +1030,11 @@ class TypesTest(TestBase, AssertsExecutionResults, ComparesTables):
 
         columns = [
             # column type, args, kwargs, expected ddl
-            (mssql.MSNumeric, [], {},
+            (types.NUMERIC, [], {},
              'NUMERIC'),
-            (mssql.MSNumeric, [None], {},
+            (types.NUMERIC, [None], {},
              'NUMERIC'),
-            (mssql.MSNumeric, [12, 4], {},
+            (types.NUMERIC, [12, 4], {},
              'NUMERIC(12, 4)'),
 
             (types.Float, [], {},
@@ -1063,16 +1146,16 @@ class TypesTest(TestBase, AssertsExecutionResults, ComparesTables):
         testing.eq_(gen.get_column_specification(t.c.t), "t %s" % expected)
         self.assert_(repr(t.c.t))
         t.create(checkfirst=True)
-        
+
     def test_autoincrement(self):
         Table('ai_1', metadata,
                Column('int_y', Integer, primary_key=True),
                Column('int_n', Integer, DefaultClause('0'),
-                      primary_key=True))
+                      primary_key=True, autoincrement=False))
         Table('ai_2', metadata,
                Column('int_y', Integer, primary_key=True),
                Column('int_n', Integer, DefaultClause('0'),
-                      primary_key=True))
+                      primary_key=True, autoincrement=False))
         Table('ai_3', metadata,
                Column('int_n', Integer, DefaultClause('0'),
                       primary_key=True, autoincrement=False),
@@ -1109,17 +1192,25 @@ class TypesTest(TestBase, AssertsExecutionResults, ComparesTables):
 
         for name in table_names:
             tbl = Table(name, mr, autoload=True)
+            tbl = metadata.tables[name]
             for c in tbl.c:
                 if c.name.startswith('int_y'):
-                    assert c.autoincrement
+                    assert c.autoincrement, name
+                    assert tbl._autoincrement_column is c, name
                 elif c.name.startswith('int_n'):
-                    assert not c.autoincrement
+                    assert not c.autoincrement, name
+                    assert tbl._autoincrement_column is not c, name
             
-            for counter, engine in enumerate([
-                engines.testing_engine(options={'implicit_returning':False}),
-                engines.testing_engine(options={'implicit_returning':True}),
-                ]
-            ):
+            # mxodbc can't handle scope_identity() with DEFAULT VALUES
+            if testing.db.driver == 'mxodbc':
+                eng = [engines.testing_engine(options={'implicit_returning':True})]
+            else:
+                eng = [
+                    engines.testing_engine(options={'implicit_returning':False}),
+                    engines.testing_engine(options={'implicit_returning':True}),
+                    ]
+                    
+            for counter, engine in enumerate(eng):
                 engine.execute(tbl.insert())
                 if 'int_y' in tbl.c:
                     assert engine.scalar(select([tbl.c.int_y])) == counter + 1
@@ -1154,7 +1245,7 @@ class BinaryTest(TestBase, AssertsExecutionResults):
         Column('primary_id', Integer, Sequence('binary_id_seq', optional=True), primary_key=True),
         Column('data', mssql.MSVarBinary(8000)),
         Column('data_image', mssql.MSImage),
-        Column('data_slice', Binary(100)),
+        Column('data_slice', types.BINARY(100)),
         Column('misc', String(30)),
         # construct PickleType with non-native pickle module, since cPickle uses relative module
         # loading and confuses this test's parent package 'sql' with the 'sqlalchemy.sql' package relative
@@ -1191,7 +1282,7 @@ class BinaryTest(TestBase, AssertsExecutionResults):
             binary_table.select(order_by=binary_table.c.primary_id),
             text("select * from binary_table order by binary_table.primary_id",
                  typemap=dict(data=mssql.MSVarBinary(8000), data_image=mssql.MSImage,
-                              data_slice=Binary(100), pickled=PickleType, mypickle=MyPickleType),
+                              data_slice=types.BINARY(100), pickled=PickleType, mypickle=MyPickleType),
                  bind=testing.db)
         ):
             l = stmt.execute().fetchall()
