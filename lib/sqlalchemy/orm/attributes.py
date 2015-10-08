@@ -500,10 +500,9 @@ class MutableScalarAttributeImpl(ScalarAttributeImpl):
             self, state, v)
 
     def check_mutable_modified(self, state, dict_):
-        added, \
-        unchanged, \
-        deleted = self.get_history(state, dict_, passive=PASSIVE_NO_INITIALIZE)
-        return bool(added or deleted)
+        v = dict_.get(self.key, NO_VALUE)
+        a, u, d = History.from_attribute(self, state, v)
+        return bool(a or d)
 
     def get(self, state, dict_, passive=PASSIVE_OFF):
         if self.key not in state.mutable_dict:
@@ -1257,6 +1256,12 @@ class History(tuple):
     def __nonzero__(self):
         return self != HISTORY_BLANK
     
+    def empty(self):
+        return not bool(
+                        (self.added or self.deleted)
+                        or self.unchanged and self.unchanged != [None]
+                    ) 
+        
     def sum(self):
         return (self.added or []) +\
                 (self.unchanged or []) +\
@@ -1285,7 +1290,7 @@ class History(tuple):
              and instance_state(c) or None
              for c in self.deleted],
             )
-    
+        
     @classmethod
     def from_attribute(cls, attribute, state, current):
         original = state.committed_state.get(attribute.key, NEVER_SET)
@@ -1366,12 +1371,12 @@ def unregister_class(class_):
     instrumentation_registry.unregister(class_)
 
 def register_attribute(class_, key, **kw):
-
     proxy_property = kw.pop('proxy_property', None)
     
     comparator = kw.pop('comparator', None)
     parententity = kw.pop('parententity', None)
-    register_descriptor(class_, key, proxy_property, comparator, parententity)
+    doc = kw.pop('doc', None)
+    register_descriptor(class_, key, proxy_property, comparator, parententity, doc=doc)
     if not proxy_property:
         register_attribute_impl(class_, key, **kw)
     
@@ -1405,7 +1410,8 @@ def register_attribute_impl(class_, key,
     
     manager.post_configure_attribute(key)
     
-def register_descriptor(class_, key, proxy_property=None, comparator=None, parententity=None, property_=None):
+def register_descriptor(class_, key, proxy_property=None, comparator=None, 
+                                parententity=None, property_=None, doc=None):
     manager = manager_of_class(class_)
 
     if proxy_property:
@@ -1413,7 +1419,9 @@ def register_descriptor(class_, key, proxy_property=None, comparator=None, paren
         descriptor = proxy_type(key, proxy_property, comparator, parententity)
     else:
         descriptor = InstrumentedAttribute(key, comparator=comparator, parententity=parententity)
-
+    
+    descriptor.__doc__ = doc
+        
     manager.instrument_attribute(key, descriptor)
 
 def unregister_attribute(class_, key):

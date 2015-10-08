@@ -41,7 +41,7 @@ class SelfReferentialTest(_base.MappedTest):
                 self.data = data
 
     @testing.resolve_artifact_names
-    def testsingle(self):
+    def test_single(self):
         mapper(C1, t1, properties = {
             'c1s':relationship(C1, cascade="all"),
             'parent':relationship(C1,
@@ -59,17 +59,12 @@ class SelfReferentialTest(_base.MappedTest):
         sess.flush()
 
     @testing.resolve_artifact_names
-    def testmanytooneonly(self):
+    def test_many_to_one_only(self):
         """
 
         test that the circular dependency sort can assemble a many-to-one
         dependency processor when only the object on the "many" side is
-        actually in the list of modified objects.  this requires that the
-        circular sort add the other side of the relationship into the
-        UOWTransaction so that the dependency operation can be tacked onto it.
-
-        This also affects inheritance relationships since they rely upon
-        circular sort as well.
+        actually in the list of modified objects.  
 
         """
         mapper(C1, t1, properties={
@@ -91,7 +86,7 @@ class SelfReferentialTest(_base.MappedTest):
         assert c2.parent_c1==c1.c1
 
     @testing.resolve_artifact_names
-    def testcycle(self):
+    def test_cycle(self):
         mapper(C1, t1, properties = {
             'c1s' : relationship(C1, cascade="all"),
             'c2s' : relationship(mapper(C2, t2), cascade="all, delete-orphan")})
@@ -158,7 +153,7 @@ class SelfReferentialNoPKTest(_base.MappedTest):
                 backref=backref('parent', remote_side=[item.c.uuid]))})
 
     @testing.resolve_artifact_names
-    def testbasic(self):
+    def test_basic(self):
         t1 = TT()
         t1.children.append(TT())
         t1.children.append(TT())
@@ -171,7 +166,7 @@ class SelfReferentialNoPKTest(_base.MappedTest):
         eq_(t.children[0].parent_uuid, t1.uuid)
 
     @testing.resolve_artifact_names
-    def testlazyclause(self):
+    def test_lazy_clause(self):
         s = create_session()
         t1 = TT()
         t2 = TT()
@@ -224,7 +219,7 @@ class InheritTestOne(_base.MappedTest):
                             primaryjoin=child2.c.child1_id == child1.c.id)))
 
     @testing.resolve_artifact_names
-    def testmanytooneonly(self):
+    def test_many_to_one_only(self):
         """test similar to SelfReferentialTest.testmanytooneonly"""
 
         session = create_session()
@@ -361,7 +356,6 @@ class BiDirectionalManyToOneTest(_base.MappedTest):
         sess.add(o3)
         sess.flush()
 
-
     @testing.resolve_artifact_names
     def test_reflush_2(self):
         """A variant on test_reflush()"""
@@ -416,7 +410,7 @@ class BiDirectionalOneToManyTest(_base.MappedTest):
             pass
 
     @testing.resolve_artifact_names
-    def testcycle(self):
+    def test_cycle(self):
         mapper(C2, t2, properties={
             'c1s': relationship(C1,
                             primaryjoin=t2.c.c1 == t1.c.c2,
@@ -441,7 +435,8 @@ class BiDirectionalOneToManyTest(_base.MappedTest):
 
 
 class BiDirectionalOneToManyTest2(_base.MappedTest):
-    """Two mappers with a one-to-many relationship to each other, with a second one-to-many on one of the mappers"""
+    """Two mappers with a one-to-many relationship to each other, 
+    with a second one-to-many on one of the mappers"""
 
     run_define_tables = 'each'
 
@@ -489,7 +484,7 @@ class BiDirectionalOneToManyTest2(_base.MappedTest):
             'data': relationship(mapper(C1Data, t1_data))})
 
     @testing.resolve_artifact_names
-    def testcycle(self):
+    def test_cycle(self):
         a = C1()
         b = C2()
         c = C1()
@@ -544,7 +539,7 @@ class OneToManyManyToOneTest(_base.MappedTest):
             pass
 
     @testing.resolve_artifact_names
-    def testcycle(self):
+    def test_cycle(self):
         """
         This test has a peculiar aspect in that it doesnt create as many
         dependent relationships as the other tests, and revealed a small
@@ -568,7 +563,7 @@ class OneToManyManyToOneTest(_base.MappedTest):
         sess.flush()
 
     @testing.resolve_artifact_names
-    def testpostupdate_m2o(self):
+    def test_post_update_m2o(self):
         """A cycle between two rows, with a post_update on the many-to-one"""
         mapper(Ball, ball)
         mapper(Person, person, properties=dict(
@@ -620,7 +615,7 @@ class OneToManyManyToOneTest(_base.MappedTest):
         )
 
     @testing.resolve_artifact_names
-    def testpostupdate_o2m(self):
+    def test_post_update_o2m(self):
         """A cycle between two rows, with a post_update on the one-to-many"""
 
         mapper(Ball, ball)
@@ -743,7 +738,7 @@ class SelfReferentialPostUpdateTest(_base.MappedTest):
                 self.path = path
 
     @testing.resolve_artifact_names
-    def testbasic(self):
+    def test_basic(self):
         """Post_update only fires off when needed.
 
         This test case used to produce many superfluous update statements,
@@ -812,6 +807,7 @@ class SelfReferentialPostUpdateTest(_base.MappedTest):
         self.assert_sql_execution(
             testing.db, 
             session.flush,
+            AllOf(
             CompiledSQL("UPDATE node SET prev_sibling_id=:prev_sibling_id "
              "WHERE node.id = :node_id",
              lambda ctx:{'prev_sibling_id':about.id, 'node_id':stories.id}),
@@ -823,11 +819,48 @@ class SelfReferentialPostUpdateTest(_base.MappedTest):
             CompiledSQL("UPDATE node SET next_sibling_id=:next_sibling_id "
              "WHERE node.id = :node_id",
              lambda ctx:{'next_sibling_id':None, 'node_id':cats.id}),
+            ),
              
             CompiledSQL("DELETE FROM node WHERE node.id = :id",
              lambda ctx:[{'id':cats.id}])
         )
 
+        session.delete(root)
+        self.assert_sql_execution(
+            testing.db, 
+            session.flush,
+            AllOf(
+                CompiledSQL("UPDATE node SET next_sibling_id=:next_sibling_id "
+                            "WHERE node.id = :node_id", 
+                            lambda ctx:{'next_sibling_id':None, 'node_id':about.id}),
+                CompiledSQL("UPDATE node SET next_sibling_id=:next_sibling_id "
+                            "WHERE node.id = :node_id",
+                            lambda ctx:{'node_id':stories.id, 'next_sibling_id':None})
+            ),
+            AllOf(
+                CompiledSQL("DELETE FROM node WHERE node.id = :id",
+                    lambda ctx:{'id':about.id}
+                ),
+                CompiledSQL("DELETE FROM node WHERE node.id = :id",
+                    lambda ctx:{'id':stories.id}
+                ),
+                CompiledSQL("DELETE FROM node WHERE node.id = :id",
+                    lambda ctx:{'id':bruce.id}
+                ),
+            ),
+            CompiledSQL("DELETE FROM node WHERE node.id = :id",
+                lambda ctx:{'id':root.id}
+            ),
+        )
+        about = Node('about')
+        cats = Node('cats')
+        about.next_sibling = cats
+        cats.prev_sibling = about
+        session.add(about)
+        session.flush()
+        session.delete(about)
+        cats.prev_sibling = None
+        session.flush()
 
 class SelfReferentialPostUpdateTest2(_base.MappedTest):
 
@@ -844,7 +877,7 @@ class SelfReferentialPostUpdateTest2(_base.MappedTest):
             pass
 
     @testing.resolve_artifact_names
-    def testbasic(self):
+    def test_basic(self):
         """
         Test that post_update remembers to be involved in update operations as
         well, since it replaces the normal dependency processing completely

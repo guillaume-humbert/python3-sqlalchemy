@@ -7,7 +7,7 @@
         
         <title>
     Column and Data Types
- &mdash; SQLAlchemy 0.6beta3 Documentation</title>
+ &mdash; SQLAlchemy 0.6.0 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta3',
+          VERSION:     '0.6.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -25,8 +25,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-        <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta3 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.0 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="Interfaces" href="interfaces.html" />
         <link rel="prev" title="Database Schema" href="schema.html" />
@@ -39,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta3 Documentation</h1>
+        <h1>SQLAlchemy 0.6.0 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta3</span> Last Updated: 03/28/2010 13:18:34
+            Version: <span class="versionnum">0.6.0</span> Last Updated: 04/18/2010 19:16:18
         </div>
         <div class="clearboth"></div>
 
@@ -258,7 +257,8 @@ conversion as needed.</p>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><em>precision</em> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>.</li>
 <li><em>asdecimal</em> &#8211; the same flag as that of <a title="sqlalchemy.types.Numeric" class="reference internal" href="#sqlalchemy.types.Numeric"><tt class="xref docutils literal"><span class="pre">Numeric</span></tt></a>, but
-defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>.</li>
+defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>.   Note that setting this flag to <tt class="xref docutils literal"><span class="pre">True</span></tt>
+results in floating point conversion.</li>
 </ul>
 </td>
 </tr>
@@ -405,11 +405,13 @@ conversion overhead.</p>
 <dt id="sqlalchemy.types.PickleType">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">PickleType</tt><big>(</big><em>protocol=2</em>, <em>pickler=None</em>, <em>mutable=True</em>, <em>comparator=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.PickleType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.MutableType" class="reference internal" href="#sqlalchemy.types.MutableType"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.MutableType</span></tt></a>, <a title="sqlalchemy.types.TypeDecorator" class="reference internal" href="#sqlalchemy.types.TypeDecorator"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeDecorator</span></tt></a></p>
-<p>Holds Python objects.</p>
+<p>Holds Python objects, which are serialized using pickle.</p>
 <p>PickleType builds upon the Binary type to apply Python&#8217;s
 <tt class="docutils literal"><span class="pre">pickle.dumps()</span></tt> to incoming objects, and <tt class="docutils literal"><span class="pre">pickle.loads()</span></tt> on
 the way out, allowing any pickleable Python object to be stored as
 a serialized binary field.</p>
+<p><strong>Note:</strong> be sure to read the notes for <a title="sqlalchemy.types.MutableType" class="reference internal" href="#sqlalchemy.types.MutableType"><tt class="xref docutils literal"><span class="pre">MutableType</span></tt></a> regarding
+ORM performance implications.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.PickleType.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>protocol=2</em>, <em>pickler=None</em>, <em>mutable=True</em>, <em>comparator=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.PickleType.__init__" title="Permalink to this definition">¶</a></dt>
@@ -1307,9 +1309,63 @@ return True in custom types that hold mutable values such as
 <dt id="sqlalchemy.types.MutableType">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">MutableType</tt><a class="headerlink" href="#sqlalchemy.types.MutableType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">object</span></tt></p>
-<p>A mixin that marks a Type as holding a mutable object.</p>
-<p><a title="sqlalchemy.types.MutableType.copy_value" class="reference internal" href="#sqlalchemy.types.MutableType.copy_value"><tt class="xref docutils literal"><span class="pre">copy_value()</span></tt></a> and <a title="sqlalchemy.types.MutableType.compare_values" class="reference internal" href="#sqlalchemy.types.MutableType.compare_values"><tt class="xref docutils literal"><span class="pre">compare_values()</span></tt></a> should be customized
-as needed to match the needs of the object.</p>
+<p>A mixin that marks a <a title="sqlalchemy.types.TypeEngine" class="reference internal" href="#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">TypeEngine</span></tt></a> as representing
+a mutable Python object type.</p>
+<p>&#8220;mutable&#8221; means that changes can occur in place to a value 
+of this type.   Examples includes Python lists, dictionaries,
+and sets, as well as user-defined objects.  The primary
+need for identification of &#8220;mutable&#8221; types is by the ORM, 
+which applies special rules to such values in order to guarantee 
+that changes are detected.  These rules may have a significant 
+performance impact, described below.</p>
+<p>A <a title="sqlalchemy.types.MutableType" class="reference internal" href="#sqlalchemy.types.MutableType"><tt class="xref docutils literal"><span class="pre">MutableType</span></tt></a> usually allows a flag called
+<tt class="docutils literal"><span class="pre">mutable=True</span></tt> to enable/disable the &#8220;mutability&#8221; flag,
+represented on this class by <a title="sqlalchemy.types.MutableType.is_mutable" class="reference internal" href="#sqlalchemy.types.MutableType.is_mutable"><tt class="xref docutils literal"><span class="pre">is_mutable()</span></tt></a>.  Examples 
+include <a title="sqlalchemy.types.PickleType" class="reference internal" href="#sqlalchemy.types.PickleType"><tt class="xref docutils literal"><span class="pre">PickleType</span></tt></a> and 
+<a title="sqlalchemy.dialects.postgresql.base.ARRAY" class="reference external" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.base.ARRAY"><tt class="xref docutils literal"><span class="pre">ARRAY</span></tt></a>.  Setting
+this flag to <tt class="xref docutils literal"><span class="pre">False</span></tt> effectively disables any mutability-
+specific behavior by the ORM.</p>
+<p><a title="sqlalchemy.types.MutableType.copy_value" class="reference internal" href="#sqlalchemy.types.MutableType.copy_value"><tt class="xref docutils literal"><span class="pre">copy_value()</span></tt></a> and <a title="sqlalchemy.types.MutableType.compare_values" class="reference internal" href="#sqlalchemy.types.MutableType.compare_values"><tt class="xref docutils literal"><span class="pre">compare_values()</span></tt></a> represent a copy
+and compare function for values of this type - implementing
+subclasses should override these appropriately.</p>
+<p>The usage of mutable types has significant performance
+implications when using the ORM. In order to detect changes, the
+ORM must create a copy of the value when it is first
+accessed, so that changes to the current value can be compared
+against the &#8220;clean&#8221; database-loaded value. Additionally, when the
+ORM checks to see if any data requires flushing, it must scan
+through all instances in the session which are known to have
+&#8220;mutable&#8221; attributes and compare the current value of each
+one to its &#8220;clean&#8221;
+value. So for example, if the Session contains 6000 objects (a
+fairly large amount) and autoflush is enabled, every individual
+execution of <tt class="xref docutils literal"><span class="pre">Query</span></tt> will require a full scan of that subset of
+the 6000 objects that have mutable attributes, possibly resulting
+in tens of thousands of additional method calls for every query.</p>
+<p>Note that for small numbers (&lt; 100 in the Session at a time)
+of objects with &#8220;mutable&#8221; values, the performance degradation is 
+negligible.  In most cases it&#8217;s likely that the convenience allowed 
+by &#8220;mutable&#8221; change detection outweighs the performance penalty.</p>
+<p>It is perfectly fine to represent &#8220;mutable&#8221; data types with the
+&#8220;mutable&#8221; flag set to False, which eliminates any performance
+issues. It means that the ORM will only reliably detect changes
+for values of this type if a newly modified value is of a different 
+identity (i.e., <tt class="docutils literal"><span class="pre">id(value)</span></tt>) than what was present before - 
+i.e., instead of operations like these:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">myobject</span><span class="o">.</span><span class="n">somedict</span><span class="p">[</span><span class="s">&#39;foo&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;bar&#39;</span>
+<span class="n">myobject</span><span class="o">.</span><span class="n">someset</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;bar&#39;</span><span class="p">)</span>
+<span class="n">myobject</span><span class="o">.</span><span class="n">somelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;bar&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>You&#8217;d instead say:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">myobject</span><span class="o">.</span><span class="n">somevalue</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;foo&#39;</span><span class="p">:</span><span class="s">&#39;bar&#39;</span><span class="p">}</span>
+<span class="n">myobject</span><span class="o">.</span><span class="n">someset</span> <span class="o">=</span> <span class="n">myobject</span><span class="o">.</span><span class="n">someset</span><span class="o">.</span><span class="n">union</span><span class="p">([</span><span class="s">&#39;bar&#39;</span><span class="p">])</span>
+<span class="n">myobject</span><span class="o">.</span><span class="n">somelist</span> <span class="o">=</span> <span class="n">myobject</span><span class="o">.</span><span class="n">somelist</span> <span class="o">+</span> <span class="p">[</span><span class="s">&#39;bar&#39;</span><span class="p">]</span></pre></div>
+</div>
+<p>A future release of SQLAlchemy will include instrumented
+collection support for mutable types, such that at least usage of
+plain Python datastructures will be able to emit events for
+in-place changes, removing the need for pessimistic scanning for
+changes.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.types.MutableType.__init__">
 <tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.types.MutableType.__init__" title="Permalink to this definition">¶</a></dt>
@@ -1376,7 +1432,7 @@ encountered during a <tt class="xref docutils literal"><span class="pre">create(
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>

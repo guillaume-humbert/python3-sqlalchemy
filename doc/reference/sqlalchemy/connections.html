@@ -7,7 +7,7 @@
         
         <title>
     Connections
- &mdash; SQLAlchemy 0.6beta3 Documentation</title>
+ &mdash; SQLAlchemy 0.6.0 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta3',
+          VERSION:     '0.6.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -25,8 +25,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-        <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta3 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.0 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="Connection Pooling" href="pooling.html" />
         <link rel="prev" title="sqlalchemy" href="index.html" />
@@ -39,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta3 Documentation</h1>
+        <h1>SQLAlchemy 0.6.0 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta3</span> Last Updated: 03/28/2010 13:18:34
+            Version: <span class="versionnum">0.6.0</span> Last Updated: 04/18/2010 19:16:18
         </div>
         <div class="clearboth"></div>
 
@@ -338,7 +337,7 @@ function.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Engine.create">
 <tt class="descname">create</tt><big>(</big><em>entity</em>, <em>connection=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine.create" title="Permalink to this definition">¶</a></dt>
-<dd>Create a table or index within this engine&#8217;s database connection given a schema.Table object.</dd></dl>
+<dd>Create a table or index within this engine&#8217;s database connection given a schema object.</dd></dl>
 
 <dl class="attribute">
 <dt id="sqlalchemy.engine.base.Engine.driver">
@@ -348,7 +347,7 @@ function.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Engine.drop">
 <tt class="descname">drop</tt><big>(</big><em>entity</em>, <em>connection=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Engine.drop" title="Permalink to this definition">¶</a></dt>
-<dd>Drop a table or index within this engine&#8217;s database connection given a schema.Table object.</dd></dl>
+<dd>Drop a table or index within this engine&#8217;s database connection given a schema object.</dd></dl>
 
 <dl class="attribute">
 <dt id="sqlalchemy.engine.base.Engine.echo">
@@ -1123,6 +1122,20 @@ information as a list of dictionaries with these keys:</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="sqlalchemy.engine.base.Dialect.get_pk_constraint">
+<tt class="descname">get_pk_constraint</tt><big>(</big><em>table_name</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.get_pk_constraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return information about the primary key constraint on <cite>table_name</cite>.</p>
+<p>Given a string <cite>table_name</cite>, and an optional string <cite>schema</cite>, return
+primary key information as a dictionary with these keys:</p>
+<dl class="docutils">
+<dt>constrained_columns</dt>
+<dd>a list of column names that make up the primary key</dd>
+<dt>name</dt>
+<dd>optional name of the primary key constraint.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.get_primary_keys">
 <tt class="descname">get_primary_keys</tt><big>(</big><em>connection</em>, <em>table_name</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.get_primary_keys" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return information about primary keys in <cite>table_name</cite>.</p>
@@ -1279,6 +1292,12 @@ autocommit on/off, etc.</dd></dl>
 <dt id="sqlalchemy.engine.default.DefaultDialect.execute_sequence_format">
 <tt class="descname">execute_sequence_format</tt><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.execute_sequence_format" title="Permalink to this definition">¶</a></dt>
 <dd>alias of <tt class="xref docutils literal"><span class="pre">tuple</span></tt></dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.engine.default.DefaultDialect.get_pk_constraint">
+<tt class="descname">get_pk_constraint</tt><big>(</big><em>conn</em>, <em>table_name</em>, <em>schema=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.get_pk_constraint" title="Permalink to this definition">¶</a></dt>
+<dd>Compatiblity method, adapts the result of get_primary_keys()
+for those dialects which don&#8217;t implement get_pk_constraint().</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.on_connect">
@@ -1493,7 +1512,7 @@ initialized after this statement is complete.</p>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>

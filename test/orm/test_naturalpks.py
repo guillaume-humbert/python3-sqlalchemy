@@ -7,7 +7,7 @@ import sqlalchemy as sa
 from sqlalchemy.test import testing
 from sqlalchemy import Integer, String, ForeignKey, Unicode
 from sqlalchemy.test.schema import Table, Column
-from sqlalchemy.orm import mapper, relationship, create_session
+from sqlalchemy.orm import mapper, relationship, create_session, backref
 from sqlalchemy.test.testing import eq_
 from test.orm import _base
 
@@ -282,7 +282,6 @@ class NaturalPKTest(_base.MappedTest):
         def go():
             sess.flush()
         if passive_updates:
-            sess.expire(u1, ['addresses'])
             self.assert_sql_count(testing.db, go, 1)
         else:
             self.assert_sql_count(testing.db, go, 3)
@@ -297,7 +296,6 @@ class NaturalPKTest(_base.MappedTest):
             sess.flush()
         # check that the passive_updates is on on the other side
         if passive_updates:
-            sess.expire(u1, ['addresses'])
             self.assert_sql_count(testing.db, go, 1)
         else:
             self.assert_sql_count(testing.db, go, 3)
@@ -422,8 +420,9 @@ class ReversePKsTest(_base.MappedTest):
         assert session.query(User).get([1, EDITABLE]) is a_editable
 
     
-class SelfRefTest(_base.MappedTest):
-    __unsupported_on__ = ('mssql',) # mssql doesn't allow ON UPDATE on self-referential keys
+class SelfReferentialTest(_base.MappedTest):
+    __unsupported_on__ = ('mssql','mysql') # mssql, mysql don't allow 
+                                           # ON UPDATE on self-referential keys
 
     @classmethod
     def define_tables(cls, metadata):
@@ -435,7 +434,9 @@ class SelfRefTest(_base.MappedTest):
         Table('nodes', metadata,
               Column('name', String(50), primary_key=True),
               Column('parent', String(50),
-                     ForeignKey('nodes.name', **fk_args)))
+                     ForeignKey('nodes.name', **fk_args)),
+                test_needs_fk=True
+                     )
 
     @classmethod
     def setup_classes(cls):
@@ -443,7 +444,7 @@ class SelfRefTest(_base.MappedTest):
             pass
 
     @testing.resolve_artifact_names
-    def test_onetomany(self):
+    def test_one_to_many(self):
         mapper(Node, nodes, properties={
             'children': relationship(Node,
                                  backref=sa.orm.backref('parentnode',
@@ -466,6 +467,40 @@ class SelfRefTest(_base.MappedTest):
             [n.parent
              for n in sess.query(Node).filter(
                  Node.name.in_(['n11', 'n12', 'n13']))])
+
+    @testing.fails_on('sqlite', 'sqlite doesnt support ON UPDATE CASCADE')
+    @testing.fails_on('oracle', 'oracle doesnt support ON UPDATE CASCADE')
+    def test_many_to_one_passive(self):
+        self._test_many_to_one(True)
+
+    def test_many_to_one_nonpassive(self):
+        self._test_many_to_one(False)
+
+    @testing.resolve_artifact_names
+    def _test_many_to_one(self, passive):
+        mapper(Node, nodes, properties={
+            'parentnode':relationship(Node, 
+                            remote_side=nodes.c.name, 
+                            passive_updates=passive)
+            }
+        )
+
+        sess = create_session()
+        n1 = Node(name='n1')
+        n11 = Node(name='n11', parentnode=n1)
+        n12 = Node(name='n12', parentnode=n1)
+        n13 = Node(name='n13', parentnode=n1)
+        sess.add_all([n1, n11, n12, n13])
+        sess.flush()
+
+        n1.name = 'new n1'
+        sess.flush()
+        if passive:
+            sess.expire_all()
+        eq_(['new n1', 'new n1', 'new n1'],
+             [n.parent
+              for n in sess.query(Node).filter(
+                  Node.name.in_(['n11', 'n12', 'n13']))])
 
 
 class NonPKCascadeTest(_base.MappedTest):

@@ -11,7 +11,8 @@ from testing import \
      exclude, \
      emits_warning_on,\
      skip_if,\
-     fails_on
+     fails_on,\
+     fails_on_everything_except
 
 import testing
 import sys
@@ -149,6 +150,18 @@ def sequences(fn):
         no_support('sybase', 'no SEQUENCE support'),
         )
 
+def update_nowait(fn):
+    """Target database must support SELECT...FOR UPDATE NOWAIT"""
+    return _chain_decorators_on(
+        fn,
+        no_support('access', 'no FOR UPDATE NOWAIT support'),
+        no_support('firebird', 'no FOR UPDATE NOWAIT support'),
+        no_support('mssql', 'no FOR UPDATE NOWAIT support'),
+        no_support('mysql', 'no FOR UPDATE NOWAIT support'),
+        no_support('sqlite', 'no FOR UPDATE NOWAIT support'),
+        no_support('sybase', 'no FOR UPDATE NOWAIT support'),
+    )
+    
 def subqueries(fn):
     """Target database must support subqueries."""
     return _chain_decorators_on(
@@ -232,6 +245,13 @@ def sane_rowcount(fn):
     return _chain_decorators_on(
         fn,
         skip_if(lambda: not testing.db.dialect.supports_sane_rowcount)
+    )
+
+def reflects_pk_names(fn):
+    """Target driver reflects the name of primary key constraints."""
+    return _chain_decorators_on(
+        fn,
+        fails_on_everything_except('postgresql')
     )
     
 def python2(fn):

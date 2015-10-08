@@ -7,7 +7,7 @@
         
         <title>
     PostgreSQL
- &mdash; SQLAlchemy 0.6beta3 Documentation</title>
+ &mdash; SQLAlchemy 0.6.0 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta3',
+          VERSION:     '0.6.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -25,8 +25,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-        <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta3 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.0 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.dialects" href="index.html" />
         <link rel="next" title="SQLite" href="sqlite.html" />
         <link rel="prev" title="Oracle" href="oracle.html" />
@@ -39,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta3 Documentation</h1>
+        <h1>SQLAlchemy 0.6.0 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta3</span> Last Updated: 03/28/2010 13:18:34
+            Version: <span class="versionnum">0.6.0</span> Last Updated: 04/18/2010 19:16:18
         </div>
         <div class="clearboth"></div>
 
@@ -181,6 +180,11 @@ option to the Index constructor:</p>
 <dt id="sqlalchemy.dialects.postgresql.base.ARRAY">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">ARRAY</tt><big>(</big><em>item_type</em>, <em>mutable=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.ARRAY" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.MutableType" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.MutableType"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.MutableType</span></tt></a>, <a title="sqlalchemy.types.Concatenable" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Concatenable"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Concatenable</span></tt></a>, <a title="sqlalchemy.types.TypeEngine" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<p>Postgresql ARRAY type.</p>
+<p>Represents values as Python lists.</p>
+<p><strong>Note:</strong> be sure to read the notes for 
+<a title="sqlalchemy.types.MutableType" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.MutableType"><tt class="xref docutils literal"><span class="pre">MutableType</span></tt></a> regarding ORM 
+performance implications.</p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.base.ARRAY.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>item_type</em>, <em>mutable=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.ARRAY.__init__" title="Permalink to this definition">¶</a></dt>
@@ -274,7 +278,8 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><em>precision</em> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>.</li>
 <li><em>asdecimal</em> &#8211; the same flag as that of <tt class="xref docutils literal"><span class="pre">Numeric</span></tt>, but
-defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>.</li>
+defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>.   Note that setting this flag to <tt class="xref docutils literal"><span class="pre">True</span></tt>
+results in floating point conversion.</li>
 </ul>
 </td>
 </tr>
@@ -384,7 +389,8 @@ name should be quoted.</li>
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><em>precision</em> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>.</li>
 <li><em>asdecimal</em> &#8211; the same flag as that of <tt class="xref docutils literal"><span class="pre">Numeric</span></tt>, but
-defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>.</li>
+defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>.   Note that setting this flag to <tt class="xref docutils literal"><span class="pre">True</span></tt>
+results in floating point conversion.</li>
 </ul>
 </td>
 </tr>
@@ -501,7 +507,7 @@ the &#8220;encoding&#8221; parameter on create_engine(), usually &#8220;utf-8&#8
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>

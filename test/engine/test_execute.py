@@ -1,9 +1,8 @@
-from sqlalchemy.test.testing import eq_
+from sqlalchemy.test.testing import eq_, assert_raises
 import re
 from sqlalchemy.interfaces import ConnectionProxy
 from sqlalchemy import MetaData, Integer, String, INT, VARCHAR, func, bindparam, select
-from sqlalchemy.test.schema import Table
-from sqlalchemy.test.schema import Column
+from sqlalchemy.test.schema import Table, Column
 import sqlalchemy as tsa
 from sqlalchemy.test import TestBase, testing, engines
 import logging
@@ -32,7 +31,9 @@ class ExecuteTest(TestBase):
     def teardown_class(cls):
         metadata.drop_all()
 
-    @testing.fails_on_everything_except('firebird', 'maxdb', 'sqlite', '+pyodbc', '+mxodbc', '+zxjdbc', 'mysql+oursql')
+    @testing.fails_on_everything_except('firebird', 'maxdb', 
+                                        'sqlite', '+pyodbc', 
+                                        '+mxodbc', '+zxjdbc', 'mysql+oursql')
     def test_raw_qmark(self):
         for conn in (testing.db, testing.db.connect()):
             conn.execute("insert into users (user_id, user_name) values (?, ?)", (1,"jack"))
@@ -70,7 +71,8 @@ class ExecuteTest(TestBase):
     # pyformat is supported for mysql, but skipping because a few driver
     # versions have a bug that bombs out on this test. (1.2.2b3, 1.2.2c1, 1.2.2)
     @testing.skip_if(lambda: testing.against('mysql+mysqldb'), 'db-api flaky')
-    @testing.fails_on_everything_except('postgresql+psycopg2', 'postgresql+pypostgresql', 'mysql+mysqlconnector')
+    @testing.fails_on_everything_except('postgresql+psycopg2', 
+                                    'postgresql+pypostgresql', 'mysql+mysqlconnector')
     def test_raw_python(self):
         for conn in (testing.db, testing.db.connect()):
             conn.execute("insert into users (user_id, user_name) values (%(id)s, %(name)s)",
@@ -111,6 +113,37 @@ class ExecuteTest(TestBase):
             (1, None)
         ])
 
+class CompiledCacheTest(TestBase):
+    @classmethod
+    def setup_class(cls):
+        global users, metadata
+        metadata = MetaData(testing.db)
+        users = Table('users', metadata,
+            Column('user_id', INT, primary_key=True, test_needs_autoincrement=True),
+            Column('user_name', VARCHAR(20)),
+        )
+        metadata.create_all()
+
+    @engines.close_first
+    def teardown(self):
+        testing.db.connect().execute(users.delete())
+        
+    @classmethod
+    def teardown_class(cls):
+        metadata.drop_all()
+    
+    def test_cache(self):
+        conn = testing.db.connect()
+        cache = {}
+        cached_conn = conn.execution_options(compiled_cache=cache)
+        
+        ins = users.insert()
+        cached_conn.execute(ins, {'user_name':'u1'})
+        cached_conn.execute(ins, {'user_name':'u2'})
+        cached_conn.execute(ins, {'user_name':'u3'})
+        assert len(cache) == 1
+        eq_(conn.execute("select count(1) from users").scalar(), 3)
+    
 class LogTest(TestBase):
     def _test_logger(self, eng, eng_name, pool_name):
         buf = logging.handlers.BufferingHandler(100)
@@ -147,7 +180,67 @@ class LogTest(TestBase):
             "0x...%s" % hex(id(eng.pool))[-4:],
         )
         
-    
+class ResultProxyTest(TestBase):
+    def test_nontuple_row(self):
+        """ensure the C version of BaseRowProxy handles 
+        duck-type-dependent rows."""
+        
+        from sqlalchemy.engine import RowProxy
+
+        class MyList(object):
+            def __init__(self, l):
+                self.l = l
+
+            def __len__(self):
+                return len(self.l)
+
+            def __getitem__(self, i):
+                return list.__getitem__(self.l, i)
+
+        proxy = RowProxy(object(), MyList(['value']), [None], {'key': (None, 0), 0: (None, 0)})
+        eq_(list(proxy), ['value'])
+        eq_(proxy[0], 'value')
+        eq_(proxy['key'], 'value')
+
+    @testing.provide_metadata
+    def test_no_rowcount_on_selects_inserts(self):
+        """assert that rowcount is only called on deletes and updates.
+
+        This because cursor.rowcount can be expensive on some dialects
+        such as Firebird.
+
+        """
+
+        engine = engines.testing_engine()
+        metadata.bind = engine
+        
+        t = Table('t1', metadata,
+            Column('data', String(10))
+        )
+        metadata.create_all()
+
+        class BreakRowcountMixin(object):
+            @property
+            def rowcount(self):
+                assert False
+        
+        execution_ctx_cls = engine.dialect.execution_ctx_cls
+        engine.dialect.execution_ctx_cls = type("FakeCtx", 
+                                            (BreakRowcountMixin, 
+                                            execution_ctx_cls), 
+                                            {})
+
+        try:
+            r = t.insert().execute({'data':'d1'}, {'data':'d2'}, {'data': 'd3'})
+            eq_(
+                t.select().execute().fetchall(),
+                [('d1', ), ('d2',), ('d3', )]
+            )
+            assert_raises(AssertionError, t.update().execute, {'data':'d4'})
+            assert_raises(AssertionError, t.delete().execute)
+        finally:
+            engine.dialect.execution_ctx_cls = execution_ctx_cls
+        
 class ProxyConnectionTest(TestBase):
 
     @testing.fails_on('firebird', 'Data type unknown')
@@ -238,8 +331,26 @@ class ProxyConnectionTest(TestBase):
                 
             assert_stmts(compiled, stmts)
             assert_stmts(cursor, cursor_stmts)
-   
-    @testing.fails_on('mysql+oursql', 'oursql dialect has some extra steps here') 
+    
+    def test_options(self):
+        track = []
+        class TrackProxy(ConnectionProxy):
+            def __getattribute__(self, key):
+                fn = object.__getattribute__(self, key)
+                def go(*arg, **kw):
+                    track.append(fn.__name__)
+                    return fn(*arg, **kw)
+                return go
+        engine = engines.testing_engine(options={'proxy':TrackProxy()})
+        conn = engine.connect()
+        c2 = conn.execution_options(foo='bar')
+        eq_(c2._execution_options, {'foo':'bar'})
+        c2.execute(select([1]))
+        c3 = c2.execution_options(bar='bat')
+        eq_(c3._execution_options, {'foo':'bar', 'bar':'bat'})
+        eq_(track, ['execute', 'cursor_execute'])
+        
+        
     def test_transactional(self):
         track = []
         class TrackProxy(ConnectionProxy):

@@ -883,7 +883,7 @@ class Session(object):
             state.commit_all(dict_, self.identity_map)
 
     def refresh(self, instance, attribute_names=None, lockmode=None):
-        """Refresh the attributes on the given instance.
+        """Expire and refresh the attributes on the given instance.
 
         A query will be issued to the database and all attributes will be
         refreshed with their current database value.
@@ -907,7 +907,9 @@ class Session(object):
             state = attributes.instance_state(instance)
         except exc.NO_STATE:
             raise exc.UnmappedInstanceError(instance)
-        self._validate_persistent(state)
+
+        self._expire_state(state, attribute_names)
+
         if self.query(_object_mapper(instance))._get(
                 state.key, refresh_state=state,
                 lockmode=lockmode,
@@ -939,18 +941,31 @@ class Session(object):
             state = attributes.instance_state(instance)
         except exc.NO_STATE:
             raise exc.UnmappedInstanceError(instance)
+        self._expire_state(state, attribute_names)
+        
+    def _expire_state(self, state, attribute_names):
         self._validate_persistent(state)
         if attribute_names:
             _expire_state(state, state.dict, 
-                                attribute_names=attribute_names, instance_dict=self.identity_map)
+                                attribute_names=attribute_names, 
+                                instance_dict=self.identity_map)
         else:
             # pre-fetch the full cascade since the expire is going to
             # remove associations
             cascaded = list(_cascade_state_iterator('refresh-expire', state))
-            _expire_state(state, state.dict, None, instance_dict=self.identity_map)
+            self._conditional_expire(state)
             for (state, m, o) in cascaded:
-                _expire_state(state, state.dict, None, instance_dict=self.identity_map)
-
+                self._conditional_expire(state)
+        
+    def _conditional_expire(self, state):
+        """Expire a state if persistent, else expunge if pending"""
+        
+        if state.key:
+            _expire_state(state, state.dict, None, instance_dict=self.identity_map)
+        elif state in self._new:
+            self._new.pop(state)
+            state.detach()
+        
     def prune(self):
         """Remove unreferenced instances cached in the identity map.
 
@@ -1322,7 +1337,8 @@ class Session(object):
         if objects:
             util.warn_deprecated(
                 "The 'objects' argument to session.flush() is deprecated; "
-                "Please do not add objects to the session which should not yet be persisted.")
+                "Please do not add objects to the session which should not "
+                "yet be persisted.")
         
         if self._flushing:
             raise sa_exc.InvalidRequestError("Session is already flushing")
@@ -1385,7 +1401,10 @@ class Session(object):
                     ["any parent '%s' instance "
                      "via that classes' '%s' attribute" %
                      (cls.__name__, key)
-                     for (key, cls) in chain(*(m.delete_orphans for m in _state_mapper(state).iterate_to_root()))])
+                     for (key, cls) in chain(*(
+                         m.delete_orphans for m in _state_mapper(state).iterate_to_root()
+                        ))
+                    ])
                 raise exc.FlushError(
                     "Instance %s is an unsaved, pending instance and is an "
                     "orphan (is not attached to %s)" % (
@@ -1401,7 +1420,7 @@ class Session(object):
         for state in proc:
             flush_context.register_object(state, isdelete=True)
 
-        if len(flush_context.tasks) == 0:
+        if not flush_context.has_work:
             return
 
         flush_context.transaction = transaction = self.begin(

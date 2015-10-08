@@ -69,8 +69,8 @@ BaseRowProxy_init(BaseRowProxy *self, PyObject *args, PyObject *kwds)
     Py_INCREF(parent);
     self->parent = parent;
 
-    if (!PyTuple_CheckExact(row)) {
-        PyErr_SetString(PyExc_TypeError, "row must be a tuple");
+    if (!PySequence_Check(row)) {
+        PyErr_SetString(PyExc_TypeError, "row must be a sequence");
         return -1;
     }
     Py_INCREF(row);
@@ -148,13 +148,15 @@ BaseRowProxy_processvalues(PyObject *values, PyObject *processors, int astuple)
 {
     Py_ssize_t num_values, num_processors;
     PyObject **valueptr, **funcptr, **resultptr;
-    PyObject *func, *result, *processed_value;
+    PyObject *func, *result, *processed_value, *values_fastseq;
 
-    num_values = Py_SIZE(values);
-    num_processors = Py_SIZE(processors);
+    num_values = PySequence_Length(values);
+    num_processors = PyList_Size(processors);
     if (num_values != num_processors) {
-        PyErr_SetString(PyExc_RuntimeError,
-            "number of values in row differ from number of column processors");
+        PyErr_Format(PyExc_RuntimeError,
+            "number of values in row (%d) differ from number of column "
+            "processors (%d)",
+            num_values, num_processors);
         return NULL;
     }
 
@@ -166,9 +168,11 @@ BaseRowProxy_processvalues(PyObject *values, PyObject *processors, int astuple)
     if (result == NULL)
         return NULL;
 
-    /* we don't need to use PySequence_Fast as long as values, processors and
-     * result are simple tuple or lists. */
-    valueptr = PySequence_Fast_ITEMS(values);
+    values_fastseq = PySequence_Fast(values, "row must be a sequence");
+    if (values_fastseq == NULL)
+        return NULL;
+
+    valueptr = PySequence_Fast_ITEMS(values_fastseq);
     funcptr = PySequence_Fast_ITEMS(processors);
     resultptr = PySequence_Fast_ITEMS(result);
     while (--num_values >= 0) {
@@ -177,6 +181,7 @@ BaseRowProxy_processvalues(PyObject *values, PyObject *processors, int astuple)
             processed_value = PyObject_CallFunctionObjArgs(func, *valueptr,
                                                            NULL);
             if (processed_value == NULL) {
+                Py_DECREF(values_fastseq);
                 Py_DECREF(result);
                 return NULL;
             }
@@ -189,6 +194,7 @@ BaseRowProxy_processvalues(PyObject *values, PyObject *processors, int astuple)
         funcptr++;
         resultptr++;
     }
+    Py_DECREF(values_fastseq);
     return result;
 }
 
@@ -199,19 +205,12 @@ BaseRowProxy_values(BaseRowProxy *self)
                                                       self->processors, 0);
 }
 
-static PyTupleObject *
-BaseRowProxy_tuplevalues(BaseRowProxy *self)
-{
-    return (PyTupleObject *)BaseRowProxy_processvalues(self->row,
-                                                       self->processors, 1);
-}
-
 static PyObject *
 BaseRowProxy_iter(BaseRowProxy *self)
 {
     PyObject *values, *result;
 
-    values = (PyObject *)BaseRowProxy_tuplevalues(self);
+    values = BaseRowProxy_processvalues(self->row, self->processors, 1);
     if (values == NULL)
         return NULL;
 
@@ -226,7 +225,7 @@ BaseRowProxy_iter(BaseRowProxy *self)
 static Py_ssize_t
 BaseRowProxy_length(BaseRowProxy *self)
 {
-    return Py_SIZE(self->row);
+    return PySequence_Length(self->row);
 }
 
 static PyObject *
@@ -234,7 +233,7 @@ BaseRowProxy_subscript(BaseRowProxy *self, PyObject *key)
 {
     PyObject *processors, *values;
     PyObject *processor, *value;
-    PyObject *record, *result, *indexobject;
+    PyObject *row, *record, *result, *indexobject;
     PyObject *exc_module, *exception;
     char *cstr_key;
     long index;
@@ -304,7 +303,11 @@ BaseRowProxy_subscript(BaseRowProxy *self, PyObject *key)
     if (processor == NULL)
         return NULL;
 
-    value = PyTuple_GetItem(self->row, index);
+    row = self->row;
+    if (PyTuple_CheckExact(row))
+        value = PyTuple_GetItem(row, index);
+    else
+        value = PySequence_GetItem(row, index);
     if (value == NULL)
         return NULL;
 
@@ -393,9 +396,9 @@ BaseRowProxy_setrow(BaseRowProxy *self, PyObject *value, void *closure)
         return -1;
     }
 
-    if (!PyTuple_CheckExact(value)) {
+    if (!PySequence_Check(value)) {
         PyErr_SetString(PyExc_TypeError,
-                        "The 'row' attribute value must be a tuple");
+                        "The 'row' attribute value must be a sequence");
         return -1;
     }
 

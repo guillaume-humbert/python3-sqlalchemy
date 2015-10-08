@@ -80,6 +80,10 @@ from sqlalchemy.types import INTEGER, BIGINT, SMALLINT, VARCHAR, \
         CHAR, TEXT, FLOAT, NUMERIC, \
         DATE, BOOLEAN
 
+_DECIMAL_TYPES = (1700, 1231)
+_FLOAT_TYPES = (700, 701, 1021, 1022)
+
+
 class REAL(sqltypes.Float):
     __visit_name__ = "REAL"
 
@@ -138,6 +142,15 @@ class UUID(sqltypes.TypeEngine):
 PGUuid = UUID
 
 class ARRAY(sqltypes.MutableType, sqltypes.Concatenable, sqltypes.TypeEngine):
+    """Postgresql ARRAY type.
+    
+    Represents values as Python lists.
+    
+    **Note:** be sure to read the notes for 
+    :class:`~sqlalchemy.types.MutableType` regarding ORM 
+    performance implications.
+    
+    """
     __visit_name__ = 'ARRAY'
     
     def __init__(self, item_type, mutable=True):
@@ -814,7 +827,8 @@ class PGDialect(default.DefaultDialect):
         result = connection.execute(
             sql.text(u"SELECT relname FROM pg_class c "
                 "WHERE relkind = 'r' "
-                "AND '%s' = (select nspname from pg_namespace n where n.oid = c.relnamespace) " %
+                "AND '%s' = (select nspname from pg_namespace n "
+                "where n.oid = c.relnamespace) " %
                 current_schema,
                 typemap = {'relname':sqltypes.Unicode}
             )
@@ -832,7 +846,8 @@ class PGDialect(default.DefaultDialect):
         SELECT relname
         FROM pg_class c
         WHERE relkind = 'v'
-          AND '%(schema)s' = (select nspname from pg_namespace n where n.oid = c.relnamespace)
+          AND '%(schema)s' = (select nspname from pg_namespace n 
+          where n.oid = c.relnamespace)
         """ % dict(schema=current_schema)
         # Py3K
         #view_names = [row[0] for row in connection.execute(s)]
@@ -870,7 +885,8 @@ class PGDialect(default.DefaultDialect):
         SQL_COLS = """
             SELECT a.attname,
               pg_catalog.format_type(a.atttypid, a.atttypmod),
-              (SELECT substring(d.adsrc for 128) FROM pg_catalog.pg_attrdef d
+              (SELECT substring(pg_catalog.pg_get_expr(d.adbin, d.adrelid) for 128) 
+                FROM pg_catalog.pg_attrdef d
                WHERE d.adrelid = a.attrelid AND d.adnum = a.attnum AND a.atthasdef)
               AS DEFAULT,
               a.attnotnull, a.attnum, a.attrelid as table_oid
@@ -997,6 +1013,27 @@ class PGDialect(default.DefaultDialect):
         c = connection.execute(t, table_oid=table_oid)
         primary_keys = [r[0] for r in c.fetchall()]
         return primary_keys
+
+    @reflection.cache
+    def get_pk_constraint(self, connection, table_name, schema=None, **kw):
+        cols = self.get_primary_keys(connection, table_name, schema=schema, **kw)
+        
+        table_oid = self.get_table_oid(connection, table_name, schema,
+                                       info_cache=kw.get('info_cache'))
+
+        PK_CONS_SQL = """
+        SELECT conname
+           FROM  pg_catalog.pg_constraint r
+           WHERE r.conrelid = :table_oid AND r.contype = 'p'
+           ORDER BY 1
+        """
+        t = sql.text(PK_CONS_SQL, typemap={'conname':sqltypes.Unicode})
+        c = connection.execute(t, table_oid=table_oid)
+        name = c.scalar()
+        return {
+            'constrained_columns':cols,
+            'name':name
+        }
 
     @reflection.cache
     def get_foreign_keys(self, connection, table_name, schema=None, **kw):

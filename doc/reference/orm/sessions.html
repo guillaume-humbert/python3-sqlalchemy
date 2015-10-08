@@ -7,7 +7,7 @@
         
         <title>
     Sessions
- &mdash; SQLAlchemy 0.6beta3 Documentation</title>
+ &mdash; SQLAlchemy 0.6.0 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta3',
+          VERSION:     '0.6.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -25,8 +25,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-        <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta3 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.0 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Interfaces" href="interfaces.html" />
         <link rel="prev" title="Querying" href="query.html" />
@@ -39,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta3 Documentation</h1>
+        <h1>SQLAlchemy 0.6.0 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta3</span> Last Updated: 03/28/2010 13:18:34
+            Version: <span class="versionnum">0.6.0</span> Last Updated: 04/18/2010 19:16:18
         </div>
         <div class="clearboth"></div>
 
@@ -691,7 +690,7 @@ Returns the number of objects pruned.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.session.Session.refresh">
 <tt class="descname">refresh</tt><big>(</big><em>instance</em>, <em>attribute_names=None</em>, <em>lockmode=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.refresh" title="Permalink to this definition">¶</a></dt>
-<dd><p>Refresh the attributes on the given instance.</p>
+<dd><p>Expire and refresh the attributes on the given instance.</p>
 <p>A query will be issued to the database and all attributes will be
 refreshed with their current database value.</p>
 <p>Lazy-loaded relational attributes will remain lazily loaded, so that
@@ -810,7 +809,7 @@ a class.</p>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>

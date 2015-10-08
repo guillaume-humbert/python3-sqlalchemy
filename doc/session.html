@@ -7,7 +7,7 @@
         
         <title>
     Using the Session
- &mdash; SQLAlchemy 0.6beta3 Documentation</title>
+ &mdash; SQLAlchemy 0.6.0 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '#',
-          VERSION:     '0.6beta3',
+          VERSION:     '0.6.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -25,8 +25,7 @@
     <script type="text/javascript" src="_static/init.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-        <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta3 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.0 Documentation" href="index.html" />
         <link rel="next" title="Database Engines" href="dbengine.html" />
         <link rel="prev" title="Mapper Configuration" href="mappers.html" />
     
@@ -38,7 +37,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta3 Documentation</h1>
+        <h1>SQLAlchemy 0.6.0 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +49,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta3</span> Last Updated: 03/28/2010 13:18:34
+            Version: <span class="versionnum">0.6.0</span> Last Updated: 04/18/2010 19:16:18
         </div>
         <div class="clearboth"></div>
 
@@ -417,7 +416,7 @@
 </div>
 <div class="section" id="refreshing-expiring">
 <h3>Refreshing / Expiring<a class="headerlink" href="#refreshing-expiring" title="Permalink to this headline">¶</a></h3>
-<p>To assist with the Session&#8217;s &#8220;sticky&#8221; behavior of instances which are present, individual objects can have all of their attributes immediately re-loaded from the database, or marked as &#8220;expired&#8221; which will cause a re-load to occur upon the next access of any of the object&#8217;s mapped attributes.  This includes all relationships, so lazy-loaders will be re-initialized, eager relationships will be repopulated.  Any changes marked on the object are discarded:</p>
+<p>To assist with the Session&#8217;s &#8220;sticky&#8221; behavior of instances which are present, individual objects can have all of their attributes immediately re-loaded from the database, or marked as &#8220;expired&#8221; which will cause a re-load to occur upon the next access of any of the object&#8217;s mapped attributes.  Any changes marked on the object are discarded:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># immediately re-load attributes on obj1, obj2</span>
 <span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">obj1</span><span class="p">)</span>
 <span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">obj2</span><span class="p">)</span>
@@ -427,7 +426,8 @@
 <span class="n">session</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="n">obj1</span><span class="p">)</span>
 <span class="n">session</span><span class="o">.</span><span class="n">expire</span><span class="p">(</span><span class="n">obj2</span><span class="p">)</span></pre></div>
 </div>
-<p><a title="sqlalchemy.orm.session.Session.refresh" class="reference external" href="reference/orm/sessions.html#sqlalchemy.orm.session.Session.refresh"><tt class="xref docutils literal"><span class="pre">refresh()</span></tt></a> and <a title="sqlalchemy.orm.session.Session.expire" class="reference external" href="reference/orm/sessions.html#sqlalchemy.orm.session.Session.expire"><tt class="xref docutils literal"><span class="pre">expire()</span></tt></a> also support being passed a list of individual attribute names in which to be refreshed.  These names can reference any attribute, column-based or relationship based:</p>
+<p>When an expired object reloads, all non-deferred column-based attributes are loaded in one query.  Current behavior for expired relationship-based attributes is that they load individually upon access - this behavior may be enhanced in a future release.   When a refresh is invoked on an object, the ultimate operation is equivalent to a <tt class="xref docutils literal"><span class="pre">Query.get()</span></tt>, so any relationships configured with eager loading should also load within the scope of the refresh operation.</p>
+<p><a title="sqlalchemy.orm.session.Session.refresh" class="reference external" href="reference/orm/sessions.html#sqlalchemy.orm.session.Session.refresh"><tt class="xref docutils literal"><span class="pre">refresh()</span></tt></a> and <a title="sqlalchemy.orm.session.Session.expire" class="reference external" href="reference/orm/sessions.html#sqlalchemy.orm.session.Session.expire"><tt class="xref docutils literal"><span class="pre">expire()</span></tt></a> also support being passed a list of individual attribute names in which to be refreshed.  These names can refer to any attribute, column-based or relationship based:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># immediately re-load the attributes &#39;hello&#39;, &#39;world&#39; on obj1, obj2</span>
 <span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">obj1</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;hello&#39;</span><span class="p">,</span> <span class="s">&#39;world&#39;</span><span class="p">])</span>
 <span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">obj2</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;hello&#39;</span><span class="p">,</span> <span class="s">&#39;world&#39;</span><span class="p">])</span>
@@ -764,7 +764,7 @@ web response   &lt;-</pre>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
                 </div>
             </div>

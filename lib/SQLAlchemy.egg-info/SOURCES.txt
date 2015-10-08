@@ -13,7 +13,6 @@ sa2to3.py
 setup.cfg
 setup.py
 sqla_nose.py
-doc/copyright.html
 doc/dbengine.html
 doc/examples.html
 doc/genindex.html
@@ -27,7 +26,6 @@ doc/searchindex.js
 doc/session.html
 doc/sqlexpression.html
 doc/_images/sqla_arch_small.jpg
-doc/_sources/copyright.txt
 doc/_sources/dbengine.txt
 doc/_sources/examples.txt
 doc/_sources/index.txt
@@ -71,6 +69,7 @@ doc/_sources/reference/sqlalchemy/interfaces.txt
 doc/_sources/reference/sqlalchemy/pooling.txt
 doc/_sources/reference/sqlalchemy/schema.txt
 doc/_sources/reference/sqlalchemy/types.txt
+doc/_sources/reference/sqlalchemy/util.txt
 doc/_static/basic.css
 doc/_static/default.css
 doc/_static/docs.css
@@ -133,6 +132,7 @@ doc/build/reference/sqlalchemy/interfaces.rst
 doc/build/reference/sqlalchemy/pooling.rst
 doc/build/reference/sqlalchemy/schema.rst
 doc/build/reference/sqlalchemy/types.rst
+doc/build/reference/sqlalchemy/util.rst
 doc/build/static/docs.css
 doc/build/static/init.js
 doc/build/templates/genindex.mako
@@ -176,6 +176,7 @@ doc/reference/sqlalchemy/interfaces.html
 doc/reference/sqlalchemy/pooling.html
 doc/reference/sqlalchemy/schema.html
 doc/reference/sqlalchemy/types.html
+doc/reference/sqlalchemy/util.html
 examples/__init__.py
 examples/adjacency_list/__init__.py
 examples/adjacency_list/adjacency_list.py
@@ -334,7 +335,6 @@ lib/sqlalchemy/orm/state.py
 lib/sqlalchemy/orm/strategies.py
 lib/sqlalchemy/orm/sync.py
 lib/sqlalchemy/orm/unitofwork.py
-lib/sqlalchemy/orm/uowdumper.py
 lib/sqlalchemy/orm/util.py
 lib/sqlalchemy/sql/__init__.py
 lib/sqlalchemy/sql/compiler.py
@@ -441,6 +441,7 @@ test/orm/test_session.py
 test/orm/test_subquery_relations.py
 test/orm/test_transaction.py
 test/orm/test_unitofwork.py
+test/orm/test_unitofworkv2.py
 test/orm/test_utils.py
 test/orm/test_versioning.py
 test/orm/inheritance/__init__.py
@@ -459,6 +460,7 @@ test/orm/inheritance/test_selects.py
 test/orm/inheritance/test_single.py
 test/perf/cascade_speed.py
 test/perf/insertspeed.py
+test/perf/large_flush.py
 test/perf/masscreate.py
 test/perf/masscreate2.py
 test/perf/masseagerload.py

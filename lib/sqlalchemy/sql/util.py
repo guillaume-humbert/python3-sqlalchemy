@@ -15,11 +15,14 @@ def sort_tables(tables):
         parent_table = fkey.column.table
         if parent_table in tables:
             child_table = fkey.parent.table
-            tuples.append( ( parent_table, child_table ) )
+            if parent_table is not child_table:
+                tuples.append((parent_table, child_table))
 
     for table in tables:
-        visitors.traverse(table, {'schema_visitor':True}, {'foreign_key':visit_foreign_key})    
-    return topological.sort(tuples, tables)
+        visitors.traverse(table, 
+                            {'schema_visitor':True}, 
+                            {'foreign_key':visit_foreign_key})
+    return list(topological.sort(tuples, tables))
 
 def find_join_source(clauses, join_to):
     """Given a list of FROM clauses and a selectable, 
@@ -46,8 +49,6 @@ def find_join_source(clauses, join_to):
     else:
         return None, None
 
-    
-    
 def find_tables(clause, check_columns=False, 
                 include_aliases=False, include_joins=False, 
                 include_selects=False, include_crud=False):
