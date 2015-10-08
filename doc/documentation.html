@@ -26,7 +26,7 @@
 <a href="documentation.html">One Page</a>
 </div>
 
-<div class="">Version: 0.3.2   Last Updated: 12/10/06 12:24:21</div>
+<div class="">Version: 0.3.3   Last Updated: 12/15/06 01:53:03</div>
 </div>
 
 
@@ -1189,6 +1189,14 @@
         
         
     <li><A href="#advdatamapping_properties_deferred">Deferred Column Loading</a></li>
+
+    <ul class="small_toc_list">
+    </ul>
+
+
+        
+        
+    <li><A href="#advdatamapping_properties_working">Working with Large Collections</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -8858,6 +8866,91 @@
 
 
 
+<A name="advdatamapping_properties_working"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+
+<h3>Working with Large Collections</h3>
+
+    <div class="sectiontext">
+    
+
+<p>SQLAlchemy relations are generally simplistic; the lazy loader loads in the full list of child objects when accessed, and the eager load builds a query that loads the full list of child objects.  Additionally, when you are deleting a parent object, SQLAlchemy insures that it has loaded the full list of child objects so that it can mark them as deleted as well (or to update their parent foreign key to NULL).  It does not issue an en-masse "delete from table where parent_id=?" type of statement in such a scenario.  This is because the child objects themselves may also have further dependencies, and additionally may also exist in the current session in which case SA needs to know their identity so that their state can be properly updated.
+</p>
+<p>So there are several techniques that can be used individually or combined together to address these issues, in the context of a large collection where you normally would not want to load the full list of relationships:
+</p>
+<ul>
+ <li><p>Use <code>lazy=None</code> to disable child object loading (i.e. noload)
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_name">relation</span><span class="python_enclosure">{</span>
+    <span class="python_literal">'children'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">MyObj</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">None</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
+
+ </li>
+
+ <li><p>To load child objects, just use a query:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_keyword">class </span><span class="python_name">Organization</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">name</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">name </span><span class="python_operator">= </span><span class="python_name">name</span><span class="python_operator">
+    </span><span class="python_keyword">def </span><span class="python_name">find_members</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">criterion</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_literal">"""locate a subset of the members associated with this Organization"""</span><span class="python_operator">
+        </span><span class="python_keyword">return </span><span class="python_name">object_session</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Member</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">member_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">.</span><span class="python_name">like</span><span class="python_enclosure">(</span><span class="python_name">criterion</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">org_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">org_id</span><span class="python_operator">==</span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">org_id</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">from_obj</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">org_table</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">member_table</span><span class="python_enclosure">)])</span><span class="python_operator"></span></pre></div>
+
+ </li>
+
+ <li><p>Use <code>passive_updates=True</code> to disable child object loading on a DELETE operation (noload also accomplishes this)
+</p>
+
+ </li>
+
+ <li><p>Use "ON DELETE (CASCADE|SET NULL)" on your database to automatically cascade deletes to child objects (this is the best way to do it)
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_name">mytable </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'sometable'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'parent_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">ForeignKeyConstraint</span><span class="python_enclosure">([</span><span class="python_literal">'parent_id'</span><span class="python_enclosure">]</span><span class="python_operator">,</span><span class="python_enclosure">[</span><span class="python_literal">'parenttable.id'</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">ondelete</span><span class="python_operator">=</span><span class="python_literal">"CASCADE"</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+ </li>
+
+ <li><p>Alternatively, you can create a simple <code>MapperExtension</code> that will issue a DELETE for child objects:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_keyword">class </span><span class="python_name">DeleteMemberExt</span><span class="python_enclosure">(</span><span class="python_name">MapperExtension</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">def </span><span class="python_name">before_delete</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">connection</span><span class="python_operator">, </span><span class="python_name">instance</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">member_table</span><span class="python_operator">.</span><span class="python_name">delete</span><span class="python_enclosure">(</span><span class="python_name">member_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">org_id</span><span class="python_operator">==</span><span class="python_name">instance</span><span class="python_operator">.</span><span class="python_name">org_id</span><span class="python_enclosure">))</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Organization</span><span class="python_operator">, </span><span class="python_name">org_table</span><span class="python_operator">, </span><span class="python_name">extension</span><span class="python_operator">=</span><span class="python_name">DeleteMemberExt</span><span class="python_enclosure">()</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
+    <span class="python_literal">'members' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Member</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">None</span><span class="python_operator">, </span><span class="python_name">passive_deletes</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_operator">, </span><span class="python_name">cascade</span><span class="python_operator">=</span><span class="python_literal">"all, delete-orphan"</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
+
+ </li>
+</ul>
+<p>The latest distribution includes an example <code>examples/collection/large_collection.py</code> which illustrates most of these techniques.    <br></br>
+</p>
+
+
+    </div>
+
+    <a href="#advdatamapping" class="toclink">back to section top</a>
+</div>
+
+
+
+
 <A name="advdatamapping_properties_relationoptions"></a>
 
 <div class="subsection" style="margin-left:30px;">
@@ -16394,6 +16487,17 @@ packages and tying operations to class properties and constructors.</p>
         <div class="docstring">
         <p>
     given an object, returns the primary Mapper associated with the object instance
+</p>
+        </div>
+        </div>
+
+    
+            <div class="darkcell">
+        <A name=""></a>
+        <b>def object_session(<i>obj</i>)</b>
+        <div class="docstring">
+        <p>
+    return the Session to which the given object is bound, or None if none.
 </p>
         </div>
         </div>

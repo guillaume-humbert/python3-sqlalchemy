@@ -13,6 +13,7 @@ class TransactionTest(testbase.PersistTest):
         users = Table('query_users', metadata,
             Column('user_id', INT, primary_key = True),
             Column('user_name', VARCHAR(20)),
+            mysql_engine='InnoDB'
         )
         users.create(testbase.db)
     
@@ -37,7 +38,6 @@ class TransactionTest(testbase.PersistTest):
         assert len(result.fetchall()) == 3
         transaction.commit()
         
-    @testbase.unsupported('mysql')
     def testrollback(self):
         """test a basic rollback"""
         connection = testbase.db.connect()
@@ -51,7 +51,24 @@ class TransactionTest(testbase.PersistTest):
         assert len(result.fetchall()) == 0
         connection.close()
 
-    @testbase.unsupported('mysql')
+    def testraise(self):
+        connection = testbase.db.connect()
+        
+        transaction = connection.begin()
+        try:
+            connection.execute(users.insert(), user_id=1, user_name='user1')
+            connection.execute(users.insert(), user_id=2, user_name='user2')
+            connection.execute(users.insert(), user_id=1, user_name='user3')
+            transaction.commit()
+            assert False
+        except Exception , e:
+            print "Exception: ", e
+            transaction.rollback()
+        
+        result = connection.execute("select * from query_users")
+        assert len(result.fetchall()) == 0
+        connection.close()
+        
     def testnestedrollback(self):
         connection = testbase.db.connect()
         
@@ -81,7 +98,6 @@ class TransactionTest(testbase.PersistTest):
                 connection.close()
             
 
-    @testbase.unsupported('mysql')
     def testnesting(self):
         connection = testbase.db.connect()
         transaction = connection.begin()
@@ -133,6 +149,7 @@ class TLTransactionTest(testbase.PersistTest):
         users = Table('query_users', metadata,
             Column('user_id', INT, primary_key = True),
             Column('user_name', VARCHAR(20)),
+            mysql_engine='InnoDB'
         )
         users.create(tlengine)
     def tearDown(self):
@@ -141,7 +158,6 @@ class TLTransactionTest(testbase.PersistTest):
         users.drop(tlengine)
         tlengine.dispose()
         
-    @testbase.unsupported('mysql')
     def testrollback(self):
         """test a basic rollback"""
         tlengine.begin()
@@ -157,7 +173,6 @@ class TLTransactionTest(testbase.PersistTest):
         finally:
             external_connection.close()
 
-    @testbase.unsupported('mysql')
     def testcommit(self):
         """test a basic commit"""
         tlengine.begin()
@@ -189,7 +204,6 @@ class TLTransactionTest(testbase.PersistTest):
         assert len(result.fetchall()) == 3
         transaction.commit()
 
-    @testbase.unsupported('mysql')
     def testrollback_off_conn(self):
         # test that a TLTransaction opened off a TLConnection allows that
         # TLConnection to be aware of the transactional context
@@ -207,7 +221,6 @@ class TLTransactionTest(testbase.PersistTest):
         finally:
             external_connection.close()
 
-    @testbase.unsupported('mysql')
     def testmorerollback_off_conn(self):
         # test that an existing TLConnection automatically takes place in a TLTransaction
         # opened on a second TLConnection
@@ -226,7 +239,6 @@ class TLTransactionTest(testbase.PersistTest):
         finally:
             external_connection.close()
 
-    @testbase.unsupported('mysql')
     def testcommit_off_conn(self):
         conn = tlengine.contextual_connect()
         trans = conn.begin()
@@ -242,7 +254,7 @@ class TLTransactionTest(testbase.PersistTest):
         finally:
             external_connection.close()
         
-    @testbase.unsupported('mysql', 'sqlite')
+    @testbase.unsupported('sqlite')
     def testnesting(self):
         """tests nesting of tranacstions"""
         external_connection = tlengine.connect()
@@ -261,7 +273,6 @@ class TLTransactionTest(testbase.PersistTest):
         finally:
             external_connection.close()
 
-    @testbase.unsupported('mysql')
     def testmixednesting(self):
         """tests nesting of transactions off the TLEngine directly inside of 
         tranasctions off the connection from the TLEngine"""
@@ -290,7 +301,6 @@ class TLTransactionTest(testbase.PersistTest):
         finally:
             external_connection.close()
 
-    @testbase.unsupported('mysql')
     def testmoremixednesting(self):
         """tests nesting of transactions off the connection from the TLEngine
         inside of tranasctions off thbe TLEngine directly."""
