@@ -10,7 +10,7 @@
     
                 Association Proxy
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../../index.html" />
         <link rel="up" title="ORM Extensions" href="index.html" />
         <link rel="next" title="Declarative" href="declarative.html" />
         <link rel="prev" title="ORM Extensions" href="index.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
                 » <a href="index.html" title="ORM Extensions">ORM Extensions</a>
         » 
@@ -647,11 +648,11 @@ a one to one relationship, a simple scalar value.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>target_collection</strong> &#8211; Name of the attribute we&#8217;ll proxy to.
+<li><span class="target" id="sqlalchemy.ext.associationproxy.association_proxy.params.target_collection"></span><strong>target_collection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.association_proxy.params.target_collection">¶</a> &#8211; Name of the attribute we&#8217;ll proxy to.
 This attribute is typically mapped by
 <a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> to link to a target collection, but
 can also be a many-to-one or non-scalar relationship.</li>
-<li><strong>attr</strong> &#8211; <p>Attribute on the associated instance or instances we&#8217;ll
+<li><span class="target" id="sqlalchemy.ext.associationproxy.association_proxy.params.attr"></span><strong>attr</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.association_proxy.params.attr">¶</a> &#8211; <p>Attribute on the associated instance or instances we&#8217;ll
 proxy for.</p>
 <p>For example, given a target collection of [obj1, obj2], a list created
 by this proxy property would look like [getattr(obj1, <em>attr</em>),
@@ -659,7 +660,7 @@ getattr(obj2, <em>attr</em>)]</p>
 <p>If the relationship is one-to-one or otherwise uselist=False, then
 simply: getattr(obj, <em>attr</em>)</p>
 </li>
-<li><strong>creator</strong> &#8211; <p>optional.</p>
+<li><span class="target" id="sqlalchemy.ext.associationproxy.association_proxy.params.creator"></span><strong>creator</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.association_proxy.params.creator">¶</a> &#8211; <p>optional.</p>
 <p>When new items are added to this proxied collection, new instances of
 the class collected by the target collection will be created.  For list
 and set collections, the target class constructor will be called with
@@ -676,7 +677,7 @@ the unit tests for examples, and for examples of how creator() functions
 can be used to construct the scalar relationship on-demand in this
 situation.</p>
 </li>
-<li><strong>**kw</strong> &#8211; Passes along any other keyword arguments to
+<li><span class="target" id="sqlalchemy.ext.associationproxy.association_proxy.params.**kw"></span><strong>**kw</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.association_proxy.params.**kw">¶</a> &#8211; Passes along any other keyword arguments to
 <a class="reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy" title="sqlalchemy.ext.associationproxy.AssociationProxy"><tt class="xref py py-class docutils literal"><span class="pre">AssociationProxy</span></tt></a>.</li>
 </ul>
 </td>
@@ -688,7 +689,7 @@ situation.</p>
 <dl class="class">
 <dt id="sqlalchemy.ext.associationproxy.AssociationProxy">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.ext.associationproxy.</tt><tt class="descname">AssociationProxy</tt><big>(</big><em>target_collection</em>, <em>attr</em>, <em>creator=None</em>, <em>getset_factory=None</em>, <em>proxy_factory=None</em>, <em>proxy_bulk_set=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.associationproxy.AssociationProxy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="../internals.html#sqlalchemy.orm.interfaces._InspectionAttr" title="sqlalchemy.orm.interfaces._InspectionAttr"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.orm.interfaces._InspectionAttr</span></tt></a></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.orm.base._InspectionAttr</span></tt></p>
 <p>A descriptor that presents a read/write view of an object attribute.</p>
 <dl class="method">
 <dt id="sqlalchemy.ext.associationproxy.AssociationProxy.__init__">
@@ -702,13 +703,13 @@ and/or subclassed directly.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>target_collection</strong> &#8211; Name of the collection we&#8217;ll proxy to,
+<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.target_collection"></span><strong>target_collection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.target_collection">¶</a> &#8211; Name of the collection we&#8217;ll proxy to,
 usually created with <a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.</li>
-<li><strong>attr</strong> &#8211; Attribute on the collected instances we&#8217;ll proxy
+<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.attr"></span><strong>attr</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.attr">¶</a> &#8211; Attribute on the collected instances we&#8217;ll proxy
 for.  For example, given a target collection of [obj1, obj2], a
 list created by this proxy property would look like
 [getattr(obj1, attr), getattr(obj2, attr)]</li>
-<li><strong>creator</strong> &#8211; <p>Optional. When new items are added to this proxied
+<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.creator"></span><strong>creator</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.creator">¶</a> &#8211; <p>Optional. When new items are added to this proxied
 collection, new instances of the class collected by the target
 collection will be created.  For list and set collections, the
 target class constructor will be called with the &#8216;value&#8217; for the
@@ -717,7 +718,7 @@ key and value.</p>
 <p>If you want to construct instances differently, supply a &#8216;creator&#8217;
 function that takes arguments as above and returns instances.</p>
 </li>
-<li><strong>getset_factory</strong> &#8211; <p>Optional.  Proxied attribute access is
+<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.getset_factory"></span><strong>getset_factory</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.getset_factory">¶</a> &#8211; <p>Optional.  Proxied attribute access is
 automatically handled by routines that get and set values based on
 the <cite>attr</cite> argument for this proxy.</p>
 <p>If you would like to customize this behavior, you may supply a
@@ -725,13 +726,13 @@ the <cite>attr</cite> argument for this proxy.</p>
 <cite>setter</cite> functions.  The factory is called with two arguments, the
 abstract type of the underlying collection and this proxy instance.</p>
 </li>
-<li><strong>proxy_factory</strong> &#8211; Optional.  The type of collection to emulate is
+<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.proxy_factory"></span><strong>proxy_factory</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.proxy_factory">¶</a> &#8211; Optional.  The type of collection to emulate is
 determined by sniffing the target collection.  If your collection
 type can&#8217;t be determined by duck typing or you&#8217;d like to use a
 different collection implementation, you may supply a factory
 function to produce those collections.  Only applicable to
 non-scalar relationships.</li>
-<li><strong>proxy_bulk_set</strong> &#8211; Optional, use with proxy_factory.  See
+<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.proxy_bulk_set"></span><strong>proxy_bulk_set</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.proxy_bulk_set">¶</a> &#8211; Optional, use with proxy_factory.  See
 the _set() method for details.</li>
 </ul>
 </td>
@@ -779,7 +780,7 @@ operators of the underlying proxied attributes.</p>
 
 <dl class="attribute">
 <dt id="sqlalchemy.ext.associationproxy.AssociationProxy.extension_type">
-<tt class="descname">extension_type</tt><em class="property"> = &lt;symbol 'ASSOCIATION_PROXY&gt;</em><a class="headerlink" href="#sqlalchemy.ext.associationproxy.AssociationProxy.extension_type" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">extension_type</tt><em class="property"> = symbol('ASSOCIATION_PROXY')</em><a class="headerlink" href="#sqlalchemy.ext.associationproxy.AssociationProxy.extension_type" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -842,7 +843,7 @@ in the generation of new instances of this class.</p>
 
 <dl class="data">
 <dt id="sqlalchemy.ext.associationproxy.ASSOCIATION_PROXY">
-<tt class="descclassname">sqlalchemy.ext.associationproxy.</tt><tt class="descname">ASSOCIATION_PROXY</tt><em class="property"> = &lt;symbol 'ASSOCIATION_PROXY&gt;</em><a class="headerlink" href="#sqlalchemy.ext.associationproxy.ASSOCIATION_PROXY" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.associationproxy.</tt><tt class="descname">ASSOCIATION_PROXY</tt><em class="property"> = symbol('ASSOCIATION_PROXY')</em><a class="headerlink" href="#sqlalchemy.ext.associationproxy.ASSOCIATION_PROXY" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -859,7 +860,7 @@ in the generation of new instances of this class.</p>
         <a href="declarative.html" title="next chapter">Declarative</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

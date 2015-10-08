@@ -230,11 +230,11 @@ class SelectableTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiled
 
     def test_clone_append_column(self):
         sel = select([literal_column('1').label('a')])
-        eq_(sel.c.keys(), ['a'])
+        eq_(list(sel.c.keys()), ['a'])
         cloned = visitors.ReplacingCloningVisitor().traverse(sel)
         cloned.append_column(literal_column('2').label('b'))
         cloned.append_column(func.foo())
-        eq_(cloned.c.keys(), ['a', 'b', 'foo()'])
+        eq_(list(cloned.c.keys()), ['a', 'b', 'foo()'])
 
     def test_append_column_after_replace_selectable(self):
         basesel = select([literal_column('1').label('a')])
@@ -418,10 +418,10 @@ class SelectableTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiled
 
     def test_join(self):
         a = join(table1, table2)
-        print str(a.select(use_labels=True))
+        print(str(a.select(use_labels=True)))
         b = table2.alias('b')
         j = join(a, b)
-        print str(j)
+        print(str(j))
         criterion = a.c.table1_col1 == b.c.col2
         self.assert_(criterion.compare(j.onclause))
 
@@ -844,12 +844,87 @@ class AnonLabelTest(fixtures.TestBase):
         c1 = literal_column('x')
         eq_(str(select([c1.label('y')])), "SELECT x AS y")
 
-class JoinConditionTest(fixtures.TestBase, AssertsExecutionResults):
+class JoinAliasingTest(fixtures.TestBase, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
+    def test_flat_ok_on_non_join(self):
+        a = table('a', column('a'))
+        s = a.select()
+        self.assert_compile(
+            s.alias(flat=True).select(),
+            "SELECT anon_1.a FROM (SELECT a.a AS a FROM a) AS anon_1"
+        )
+
+    def test_join_alias(self):
+        a = table('a', column('a'))
+        b = table('b', column('b'))
+        self.assert_compile(
+            a.join(b, a.c.a == b.c.b).alias(),
+            "SELECT a.a AS a_a, b.b AS b_b FROM a JOIN b ON a.a = b.b"
+        )
+
+    def test_join_standalone_alias(self):
+        a = table('a', column('a'))
+        b = table('b', column('b'))
+        self.assert_compile(
+            alias(a.join(b, a.c.a == b.c.b)),
+            "SELECT a.a AS a_a, b.b AS b_b FROM a JOIN b ON a.a = b.b"
+        )
+
+    def test_join_alias_flat(self):
+        a = table('a', column('a'))
+        b = table('b', column('b'))
+        self.assert_compile(
+            a.join(b, a.c.a == b.c.b).alias(flat=True),
+            "a AS a_1 JOIN b AS b_1 ON a_1.a = b_1.b"
+        )
+
+    def test_join_standalone_alias_flat(self):
+        a = table('a', column('a'))
+        b = table('b', column('b'))
+        self.assert_compile(
+            alias(a.join(b, a.c.a == b.c.b), flat=True),
+            "a AS a_1 JOIN b AS b_1 ON a_1.a = b_1.b"
+        )
+
+    def test_composed_join_alias_flat(self):
+        a = table('a', column('a'))
+        b = table('b', column('b'))
+        c = table('c', column('c'))
+        d = table('d', column('d'))
+
+        j1 = a.join(b, a.c.a == b.c.b)
+        j2 = c.join(d, c.c.c == d.c.d)
+        self.assert_compile(
+            j1.join(j2, b.c.b == c.c.c).alias(flat=True),
+            "a AS a_1 JOIN b AS b_1 ON a_1.a = b_1.b JOIN "
+            "(c AS c_1 JOIN d AS d_1 ON c_1.c = d_1.d) ON b_1.b = c_1.c"
+        )
+
+    def test_composed_join_alias(self):
+        a = table('a', column('a'))
+        b = table('b', column('b'))
+        c = table('c', column('c'))
+        d = table('d', column('d'))
+
+        j1 = a.join(b, a.c.a == b.c.b)
+        j2 = c.join(d, c.c.c == d.c.d)
+        self.assert_compile(
+            select([j1.join(j2, b.c.b == c.c.c).alias()]),
+            "SELECT anon_1.a_a, anon_1.b_b, anon_1.c_c, anon_1.d_d "
+            "FROM (SELECT a.a AS a_a, b.b AS b_b, c.c AS c_c, d.d AS d_d "
+            "FROM a JOIN b ON a.a = b.b "
+            "JOIN (c JOIN d ON c.c = d.d) ON b.b = c.c) AS anon_1"
+        )
+
+class JoinConditionTest(fixtures.TestBase, AssertsCompiledSQL):
+    __dialect__ = 'default'
 
     def test_join_condition(self):
         m = MetaData()
         t1 = Table('t1', m, Column('id', Integer))
-        t2 = Table('t2', m, Column('id', Integer),
+        t2 = Table('t2', m,
+                    Column('id', Integer),
                     Column('t1id', ForeignKey('t1.id')))
         t3 = Table('t3', m,
                     Column('id', Integer),
@@ -861,6 +936,7 @@ class JoinConditionTest(fixtures.TestBase, AssertsExecutionResults):
                     Column('t1id1', ForeignKey('t1.id')),
                     Column('t1id2', ForeignKey('t1.id')),
             )
+
         t1t2 = t1.join(t2)
         t2t3 = t2.join(t3)
 
@@ -909,20 +985,22 @@ class JoinConditionTest(fixtures.TestBase, AssertsExecutionResults):
                 left.join(right).onclause
             )
 
+        # these are right-nested joins
+        j = t1t2.join(t2t3)
+        assert j.onclause.compare(t2.c.id == t3.c.t2id)
+        self.assert_compile(j,
+                "t1 JOIN t2 ON t1.id = t2.t1id JOIN "
+                "(t2 JOIN t3 ON t2.id = t3.t2id) ON t2.id = t3.t2id")
 
+        st2t3 = t2t3.select(use_labels=True)
+        j = t1t2.join(st2t3)
+        assert j.onclause.compare(t2.c.id == st2t3.c.t3_t2id)
+        self.assert_compile(j,
+                "t1 JOIN t2 ON t1.id = t2.t1id JOIN "
+                "(SELECT t2.id AS t2_id, t2.t1id AS t2_t1id, "
+                "t3.id AS t3_id, t3.t1id AS t3_t1id, t3.t2id AS t3_t2id "
+                "FROM t2 JOIN t3 ON t2.id = t3.t2id) ON t2.id = t3_t2id")
 
-        # TODO: this raises due to right side being "grouped", and no
-        # longer has FKs.  Did we want to make FromGrouping friendlier
-        # ?
-
-        assert_raises_message(exc.ArgumentError,
-                              "Perhaps you meant to convert the right "
-                              "side to a subquery using alias\(\)\?",
-                              t1t2.join, t2t3)
-        assert_raises_message(exc.ArgumentError,
-                              "Perhaps you meant to convert the right "
-                              "side to a subquery using alias\(\)\?",
-                              t1t2.join, t2t3.select(use_labels=True))
 
 
     def test_join_cond_no_such_unrelated_table(self):
@@ -975,14 +1053,16 @@ class JoinConditionTest(fixtures.TestBase, AssertsExecutionResults):
         t2 = Table('t2', m, Column('id', Integer))
         assert_raises_message(
             exc.NoReferencedColumnError,
-            "Could not create ForeignKey 't2.q' on table 't1': "
+            "Could not initialize target column for "
+            "ForeignKey 't2.q' on table 't1': "
                 "table 't2' has no column named 'q'",
             sql_util.join_condition, t1, t2
         )
 
         assert_raises_message(
             exc.NoReferencedColumnError,
-            "Could not create ForeignKey 't2.q' on table 't1': "
+            "Could not initialize target column for "
+            "ForeignKey 't2.q' on table 't1': "
                 "table 't2' has no column named 'q'",
             sql_util.join_condition, t2, t1
         )
@@ -1026,7 +1106,7 @@ class PrimaryKeyTest(fixtures.TestBase, AssertsExecutionResults):
                   primary_key=True), Column('x', Integer))
         d = Table('d', meta, Column('id', Integer, ForeignKey('c.id'),
                   primary_key=True), Column('x', Integer))
-        print list(a.join(b, a.c.x == b.c.id).primary_key)
+        print(list(a.join(b, a.c.x == b.c.id).primary_key))
         assert list(a.join(b, a.c.x == b.c.id).primary_key) == [a.c.id]
         assert list(b.join(c, b.c.x == c.c.id).primary_key) == [b.c.id]
         assert list(a.join(b).join(c, c.c.id == b.c.x).primary_key) \
@@ -1701,7 +1781,7 @@ class WithLabelsTest(fixtures.TestBase):
     def test_names_overlap_label(self):
         sel = self._names_overlap().apply_labels()
         eq_(
-            sel.c.keys(),
+            list(sel.c.keys()),
             ['t1_x', 't2_x']
         )
         self._assert_result_keys(sel, ['t1_x', 't2_x'])
@@ -1715,7 +1795,7 @@ class WithLabelsTest(fixtures.TestBase):
     def test_names_overlap_keys_dont_nolabel(self):
         sel = self._names_overlap_keys_dont()
         eq_(
-            sel.c.keys(),
+            list(sel.c.keys()),
             ['a', 'b']
         )
         self._assert_result_keys(sel, ['x'])
@@ -1723,7 +1803,7 @@ class WithLabelsTest(fixtures.TestBase):
     def test_names_overlap_keys_dont_label(self):
         sel = self._names_overlap_keys_dont().apply_labels()
         eq_(
-            sel.c.keys(),
+            list(sel.c.keys()),
             ['t1_a', 't2_b']
         )
         self._assert_result_keys(sel, ['t1_x', 't2_x'])
@@ -1737,7 +1817,7 @@ class WithLabelsTest(fixtures.TestBase):
     def test_labels_overlap_nolabel(self):
         sel = self._labels_overlap()
         eq_(
-            sel.c.keys(),
+            list(sel.c.keys()),
             ['x_id', 'id']
         )
         self._assert_result_keys(sel, ['x_id', 'id'])
@@ -1746,7 +1826,7 @@ class WithLabelsTest(fixtures.TestBase):
         sel = self._labels_overlap().apply_labels()
         t2 = sel.froms[1]
         eq_(
-            sel.c.keys(),
+            list(sel.c.keys()),
             ['t_x_id', t2.c.id.anon_label]
         )
         self._assert_result_keys(sel, ['t_x_id', 'id_1'])
@@ -1760,12 +1840,12 @@ class WithLabelsTest(fixtures.TestBase):
 
     def test_labels_overlap_keylabels_dont_nolabel(self):
         sel = self._labels_overlap_keylabels_dont()
-        eq_(sel.c.keys(), ['a', 'b'])
+        eq_(list(sel.c.keys()), ['a', 'b'])
         self._assert_result_keys(sel, ['x_id', 'id'])
 
     def test_labels_overlap_keylabels_dont_label(self):
         sel = self._labels_overlap_keylabels_dont().apply_labels()
-        eq_(sel.c.keys(), ['t_a', 't_x_b'])
+        eq_(list(sel.c.keys()), ['t_a', 't_x_b'])
         self._assert_result_keys(sel, ['t_x_id', 'id_1'])
 
     def _keylabels_overlap_labels_dont(self):
@@ -1776,13 +1856,13 @@ class WithLabelsTest(fixtures.TestBase):
 
     def test_keylabels_overlap_labels_dont_nolabel(self):
         sel = self._keylabels_overlap_labels_dont()
-        eq_(sel.c.keys(), ['x_id', 'id'])
+        eq_(list(sel.c.keys()), ['x_id', 'id'])
         self._assert_result_keys(sel, ['a', 'b'])
 
     def test_keylabels_overlap_labels_dont_label(self):
         sel = self._keylabels_overlap_labels_dont().apply_labels()
         t2 = sel.froms[1]
-        eq_(sel.c.keys(), ['t_x_id', t2.c.id.anon_label])
+        eq_(list(sel.c.keys()), ['t_x_id', t2.c.id.anon_label])
         self._assert_result_keys(sel, ['t_a', 't_x_b'])
         self._assert_subq_result_keys(sel, ['t_a', 't_x_b'])
 
@@ -1794,14 +1874,14 @@ class WithLabelsTest(fixtures.TestBase):
 
     def test_keylabels_overlap_labels_overlap_nolabel(self):
         sel = self._keylabels_overlap_labels_overlap()
-        eq_(sel.c.keys(), ['x_a', 'a'])
+        eq_(list(sel.c.keys()), ['x_a', 'a'])
         self._assert_result_keys(sel, ['x_id', 'id'])
         self._assert_subq_result_keys(sel, ['x_id', 'id'])
 
     def test_keylabels_overlap_labels_overlap_label(self):
         sel = self._keylabels_overlap_labels_overlap().apply_labels()
         t2 = sel.froms[1]
-        eq_(sel.c.keys(), ['t_x_a', t2.c.a.anon_label])
+        eq_(list(sel.c.keys()), ['t_x_a', t2.c.a.anon_label])
         self._assert_result_keys(sel, ['t_x_id', 'id_1'])
         self._assert_subq_result_keys(sel, ['t_x_id', 'id_1'])
 
@@ -1819,7 +1899,68 @@ class WithLabelsTest(fixtures.TestBase):
     def test_keys_overlap_names_dont_label(self):
         sel = self._keys_overlap_names_dont().apply_labels()
         eq_(
-            sel.c.keys(),
+            list(sel.c.keys()),
             ['t1_x', 't2_x']
         )
         self._assert_result_keys(sel, ['t1_a', 't2_b'])
+
+class ForUpdateTest(fixtures.TestBase, AssertsCompiledSQL):
+    __dialect__ = "default"
+
+    def _assert_legacy(self, leg, read=False, nowait=False):
+        t = table('t', column('c'))
+        s1 = select([t], for_update=leg)
+
+        if leg is False:
+            assert s1._for_update_arg is None
+            assert s1.for_update is None
+        else:
+            eq_(
+                s1._for_update_arg.read, read
+            )
+            eq_(
+                s1._for_update_arg.nowait, nowait
+            )
+            eq_(s1.for_update, leg)
+
+    def test_false_legacy(self):
+        self._assert_legacy(False)
+
+    def test_plain_true_legacy(self):
+        self._assert_legacy(True)
+
+    def test_read_legacy(self):
+        self._assert_legacy("read", read=True)
+
+    def test_nowait_legacy(self):
+        self._assert_legacy("nowait", nowait=True)
+
+    def test_read_nowait_legacy(self):
+        self._assert_legacy("read_nowait", read=True, nowait=True)
+
+    def test_legacy_setter(self):
+        t = table('t', column('c'))
+        s = select([t])
+        s.for_update = 'nowait'
+        eq_(s._for_update_arg.nowait, True)
+
+    def test_basic_clone(self):
+        t = table('t', column('c'))
+        s = select([t]).with_for_update(read=True, of=t.c.c)
+        s2 = visitors.ReplacingCloningVisitor().traverse(s)
+        assert s2._for_update_arg is not s._for_update_arg
+        eq_(s2._for_update_arg.read, True)
+        eq_(s2._for_update_arg.of, [t.c.c])
+        self.assert_compile(s2,
+            "SELECT t.c FROM t FOR SHARE OF t",
+            dialect="postgresql")
+
+    def test_adapt(self):
+        t = table('t', column('c'))
+        s = select([t]).with_for_update(read=True, of=t.c.c)
+        a = t.alias()
+        s2 = sql_util.ClauseAdapter(a).traverse(s)
+        eq_(s2._for_update_arg.of, [a.c.c])
+        self.assert_compile(s2,
+            "SELECT t_1.c FROM t AS t_1 FOR SHARE OF t_1",
+            dialect="postgresql")

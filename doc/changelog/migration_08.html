@@ -10,7 +10,7 @@
     
                 What&#8217;s New in SQLAlchemy 0.8?
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,10 +47,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
         <link rel="up" title="Changes and Migration" href="index.html" />
-        <link rel="next" title="0.8 Changelog" href="changelog_08.html" />
-        <link rel="prev" title="Changes and Migration" href="index.html" />
+        <link rel="next" title="What&#8217;s New in SQLAlchemy 0.7?" href="migration_07.html" />
+        <link rel="prev" title="0.1 Changelog" href="changelog_01.html" />
     <!-- end layout.mako headers -->
 
 
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -96,10 +97,10 @@
     <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
-            <a href="index.html" title="previous chapter">Changes and Migration</a>
+            <a href="changelog_01.html" title="previous chapter">0.1 Changelog</a>
             </li>
             <li>Next:
-            <a href="changelog_08.html" title="next chapter">0.8 Changelog</a>
+            <a href="migration_07.html" title="next chapter">What&#8217;s New in SQLAlchemy 0.7?</a>
             </li>
 
         <li>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
         » 
                 What&#8217;s New in SQLAlchemy 0.8?
@@ -195,11 +196,11 @@
 
     <h4>Previous Topic</h4>
     <p>
-    <a href="index.html" title="previous chapter">Changes and Migration</a>
+    <a href="changelog_01.html" title="previous chapter">0.1 Changelog</a>
     </p>
     <h4>Next Topic</h4>
     <p>
-    <a href="changelog_08.html" title="next chapter">0.8 Changelog</a>
+    <a href="migration_07.html" title="next chapter">What&#8217;s New in SQLAlchemy 0.7?</a>
     </p>
 
 
@@ -693,7 +694,7 @@ accepted as a FROM clause within the core:</p>
 <span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">User</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span></pre></div>
 </div>
 <p>Above, the mapped <tt class="docutils literal"><span class="pre">User</span></tt> class will expand into
-<a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> to which <tt class="xref py py-class docutils literal"><span class="pre">User</span></tt> is mapped.</p>
+the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> to which <tt class="docutils literal"><span class="pre">User</span></tt> is mapped.</p>
 <p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2245">#2245</a></p>
 </div>
 <div class="section" id="query-update-supports-update-from">
@@ -759,7 +760,7 @@ this change is needed as illustrated in the Beaker example:</p>
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="../orm/examples.html#module-dogpile_caching" title="dogpile_caching"><tt class="xref py py-mod docutils literal"><span class="pre">dogpile_caching</span></tt></a></p>
+<p class="last"><tt class="xref py py-mod docutils literal"><span class="pre">dogpile_caching</span></tt></p>
 </div>
 <p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2589">#2589</a></p>
 </div>
@@ -1518,12 +1519,12 @@ taking it out entirely to eliminate any of that confusion.</p>
 
 <div id="docs-bottom-navigation" class="docs-navigation-links">
         Previous:
-        <a href="index.html" title="previous chapter">Changes and Migration</a>
+        <a href="changelog_01.html" title="previous chapter">0.1 Changelog</a>
         Next:
-        <a href="changelog_08.html" title="next chapter">0.8 Changelog</a>
+        <a href="migration_07.html" title="next chapter">What&#8217;s New in SQLAlchemy 0.7?</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

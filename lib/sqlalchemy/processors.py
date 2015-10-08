@@ -1,5 +1,5 @@
 # sqlalchemy/processors.py
-# Copyright (C) 2010-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2010-2014 the SQLAlchemy authors and contributors <see AUTHORS file>
 # Copyright (C) 2010 Gaetan de Menten gdementen@gmail.com
 #
 # This module is part of SQLAlchemy and is released under
@@ -38,10 +38,10 @@ def str_to_datetime_processor_factory(regexp, type_):
                                 "'%s'" % (type_.__name__, value))
             if has_named_groups:
                 groups = m.groupdict(0)
-                return type_(**dict(zip(groups.iterkeys(),
-                                        map(int, groups.itervalues()))))
+                return type_(**dict(list(zip(iter(groups.keys()),
+                                        list(map(int, iter(groups.values())))))))
             else:
-                return type_(*map(int, m.groups(0)))
+                return type_(*list(map(int, m.groups(0))))
     return process
 
 
@@ -66,7 +66,7 @@ def py_fallback():
                 return decoder(value, errors)[0]
         return process
 
-    def to_decimal_processor_factory(target_class, scale=10):
+    def to_decimal_processor_factory(target_class, scale):
         fstring = "%%.%df" % scale
 
         def process(value):
@@ -119,7 +119,7 @@ try:
         else:
             return UnicodeResultProcessor(encoding).process
 
-    def to_decimal_processor_factory(target_class, scale=10):
+    def to_decimal_processor_factory(target_class, scale):
         # Note that the scale argument is not taken into account for integer
         # values in the C implementation while it is in the Python one.
         # For example, the Python implementation might return

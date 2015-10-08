@@ -284,6 +284,16 @@ class CollectionsTest(fixtures.ORMTest):
             del control[:]
             assert_eq()
 
+        if hasattr(direct, 'clear'):
+            for i in range(1, 4):
+                e = creator()
+                direct.append(e)
+                control.append(e)
+
+            direct.clear()
+            control.clear()
+            assert_eq()
+
         if hasattr(direct, 'extend'):
             values = [creator(), creator(), creator()]
 
@@ -504,9 +514,9 @@ class CollectionsTest(fixtures.ORMTest):
         control = set()
 
         def assert_eq():
-            self.assert_(set(direct) == canary.data)
-            self.assert_(set(adapter) == canary.data)
-            self.assert_(direct == control)
+            eq_(set(direct), canary.data)
+            eq_(set(adapter), canary.data)
+            eq_(direct, control)
 
         def addall(*values):
             for item in values:
@@ -524,10 +534,6 @@ class CollectionsTest(fixtures.ORMTest):
         addall(e)
         addall(e)
 
-        if hasattr(direct, 'pop'):
-            direct.pop()
-            control.pop()
-            assert_eq()
 
         if hasattr(direct, 'remove'):
             e = creator()
@@ -598,11 +604,19 @@ class CollectionsTest(fixtures.ORMTest):
             except TypeError:
                 assert True
 
-        if hasattr(direct, 'clear'):
-            addall(creator(), creator())
-            direct.clear()
-            control.clear()
-            assert_eq()
+        addall(creator(), creator())
+        direct.clear()
+        control.clear()
+        assert_eq()
+
+        # note: the clear test previously needs
+        # to have executed in order for this to
+        # pass in all cases; else there's the possibility
+        # of non-deterministic behavior.
+        addall(creator())
+        direct.pop()
+        control.pop()
+        assert_eq()
 
         if hasattr(direct, 'difference_update'):
             zap()
@@ -744,6 +758,7 @@ class CollectionsTest(fixtures.ORMTest):
             except TypeError:
                 assert True
 
+
     def _test_set_bulk(self, typecallable, creator=None):
         if creator is None:
             creator = self.entity_maker
@@ -814,6 +829,8 @@ class CollectionsTest(fixtures.ORMTest):
                 self.data.remove(item)
             def discard(self, item):
                 self.data.discard(item)
+            def clear(self):
+                self.data.clear()
             def pop(self):
                 return self.data.pop()
             def update(self, other):
@@ -846,6 +863,8 @@ class CollectionsTest(fixtures.ORMTest):
                 self.data.update(other)
             def __iter__(self):
                 return iter(self.data)
+            def clear(self):
+                self.data.clear()
             __hash__ = object.__hash__
             def __eq__(self, other):
                 return self.data == other
@@ -972,11 +991,10 @@ class CollectionsTest(fixtures.ORMTest):
             control.update(d)
             assert_eq()
 
-            if sys.version_info >= (2, 4):
-                kw = dict([(ee.a, ee) for ee in [e, creator()]])
-                direct.update(**kw)
-                control.update(**kw)
-                assert_eq()
+            kw = dict([(ee.a, ee) for ee in [e, creator()]])
+            direct.update(**kw)
+            control.update(**kw)
+            assert_eq()
 
     def _test_dict_bulk(self, typecallable, creator=None):
         if creator is None:
@@ -1111,7 +1129,7 @@ class CollectionsTest(fixtures.ORMTest):
 
             @collection.converter
             def _convert(self, dictlike):
-                for key, value in dictlike.iteritems():
+                for key, value in dictlike.items():
                     yield value + 5
 
         class Foo(object):
@@ -1150,12 +1168,12 @@ class CollectionsTest(fixtures.ORMTest):
             def __delitem__(self, key):
                 del self.data[key]
             def values(self):
-                return self.data.values()
+                return list(self.data.values())
             def __contains__(self, key):
                 return key in self.data
             @collection.iterator
             def itervalues(self):
-                return self.data.itervalues()
+                return iter(self.data.values())
             __hash__ = object.__hash__
             def __eq__(self, other):
                 return self.data == other
@@ -1163,7 +1181,7 @@ class CollectionsTest(fixtures.ORMTest):
                 return 'DictLike(%s)' % repr(self.data)
 
         self._test_adapter(DictLike, self.dictable_entity,
-                           to_set=lambda c: set(c.itervalues()))
+                           to_set=lambda c: set(c.values()))
         self._test_dict(DictLike)
         self._test_dict_bulk(DictLike)
         self.assert_(getattr(DictLike, '_sa_instrumented') == id(DictLike))
@@ -1190,12 +1208,12 @@ class CollectionsTest(fixtures.ORMTest):
             def __delitem__(self, key):
                 del self.data[key]
             def values(self):
-                return self.data.values()
+                return list(self.data.values())
             def __contains__(self, key):
                 return key in self.data
             @collection.iterator
             def itervalues(self):
-                return self.data.itervalues()
+                return iter(self.data.values())
             __hash__ = object.__hash__
             def __eq__(self, other):
                 return self.data == other
@@ -1203,7 +1221,7 @@ class CollectionsTest(fixtures.ORMTest):
                 return 'DictIsh(%s)' % repr(self.data)
 
         self._test_adapter(DictIsh, self.dictable_entity,
-                           to_set=lambda c: set(c.itervalues()))
+                           to_set=lambda c: set(c.values()))
         self._test_dict(DictIsh)
         self._test_dict_bulk(DictIsh)
         self.assert_(getattr(DictIsh, '_sa_instrumented') == id(DictIsh))
@@ -1864,7 +1882,7 @@ class CustomCollectionsTest(fixtures.MappedTest):
         f = sess.query(Foo).get(f.col1)
         assert len(list(f.bars)) == 2
 
-        existing = set([id(b) for b in f.bars.values()])
+        existing = set([id(b) for b in list(f.bars.values())])
 
         col = collections.collection_adapter(f.bars)
         col.append_with_event(Bar('b'))
@@ -1874,7 +1892,7 @@ class CustomCollectionsTest(fixtures.MappedTest):
         f = sess.query(Foo).get(f.col1)
         assert len(list(f.bars)) == 2
 
-        replaced = set([id(b) for b in f.bars.values()])
+        replaced = set([id(b) for b in list(f.bars.values())])
         self.assert_(existing != replaced)
 
     def test_list(self):

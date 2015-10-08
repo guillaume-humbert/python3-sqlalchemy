@@ -14,6 +14,7 @@ from sqlalchemy.testing import eq_, startswith_, AssertsCompiledSQL, is_
 from sqlalchemy.testing import fixtures
 from test.orm import _fixtures
 from sqlalchemy import exc
+from sqlalchemy import inspect
 
 class _RelationshipErrors(object):
     def _assert_raises_no_relevant_fks(self, fn, expr, relname,
@@ -426,13 +427,13 @@ class CompositeSelfRefFKTest(fixtures.MappedTest):
         c1 = Company('c1')
         c2 = Company('c2')
 
-        e1 = Employee(u'emp1', c1, 1)
-        e2 = Employee(u'emp2', c1, 2, e1)
-        e3 = Employee(u'emp3', c1, 3, e1)
-        e4 = Employee(u'emp4', c1, 4, e3)
-        e5 = Employee(u'emp5', c2, 1)
-        e6 = Employee(u'emp6', c2, 2, e5)
-        e7 = Employee(u'emp7', c2, 3, e5)
+        e1 = Employee('emp1', c1, 1)
+        e2 = Employee('emp2', c1, 2, e1)
+        e3 = Employee('emp3', c1, 3, e1)
+        e4 = Employee('emp4', c1, 4, e3)
+        e5 = Employee('emp5', c2, 1)
+        e6 = Employee('emp6', c2, 2, e5)
+        e7 = Employee('emp7', c2, 3, e5)
 
         sess.add_all((c1, c2))
         sess.commit()
@@ -466,6 +467,8 @@ class CompositeSelfRefFKTest(fixtures.MappedTest):
                     order_by(Employee.name)],
             ['emp6', 'emp7']
         )
+
+
 
 class CompositeJoinPartialFK(fixtures.MappedTest, AssertsCompiledSQL):
     __dialect__ = 'default'
@@ -642,7 +645,7 @@ class FKsAsPksTest(fixtures.MappedTest):
         try:
             sess.flush()
             assert False
-        except AssertionError, e:
+        except AssertionError as e:
             startswith_(str(e),
                         "Dependency rule tried to blank-out "
                         "primary key column 'tableB.id' on instance ")
@@ -667,7 +670,7 @@ class FKsAsPksTest(fixtures.MappedTest):
         try:
             sess.flush()
             assert False
-        except AssertionError, e:
+        except AssertionError as e:
             startswith_(str(e),
                         "Dependency rule tried to blank-out "
                         "primary key column 'tableB.id' on instance ")
@@ -1106,9 +1109,9 @@ class AmbiguousJoinInterpretedAsSelfRef(fixtures.MappedTest):
         eq_(
             sess.query(Subscriber).order_by(Subscriber.type).all(),
             [
-                Subscriber(id=1, type=u'A'),
-                Subscriber(id=2, type=u'B'),
-                Subscriber(id=2, type=u'C')
+                Subscriber(id=1, type='A'),
+                Subscriber(id=2, type='B'),
+                Subscriber(id=2, type='C')
             ]
         )
 
@@ -1365,7 +1368,7 @@ class TypeMatchTest(fixtures.MappedTest):
         try:
             sess.add(a1)
             assert False
-        except AssertionError, err:
+        except AssertionError as err:
             eq_(str(err),
                 "Attribute 'bs' on class '%s' doesn't handle "
                 "objects of type '%s'" % (A, C))
@@ -1514,6 +1517,117 @@ class TypedAssociationTable(fixtures.MappedTest):
 
         assert t3.count().scalar() == 1
 
+class ViewOnlyHistoryTest(fixtures.MappedTest):
+    @classmethod
+    def define_tables(cls, metadata):
+        Table("t1", metadata,
+            Column('id', Integer, primary_key=True,
+                                    test_needs_autoincrement=True),
+            Column('data', String(40)))
+        Table("t2", metadata,
+            Column('id', Integer, primary_key=True,
+                                    test_needs_autoincrement=True),
+            Column('data', String(40)),
+            Column('t1id', Integer, ForeignKey('t1.id')))
+
+    def _assert_fk(self, a1, b1, is_set):
+        s = Session(testing.db)
+        s.add_all([a1, b1])
+        s.flush()
+
+        if is_set:
+            eq_(b1.t1id, a1.id)
+        else:
+            eq_(b1.t1id, None)
+
+        return s
+
+    def test_o2m_viewonly_oneside(self):
+        class A(fixtures.ComparableEntity):
+            pass
+        class B(fixtures.ComparableEntity):
+            pass
+
+        mapper(A, self.tables.t1, properties={
+            "bs": relationship(B, viewonly=True,
+                            backref=backref("a", viewonly=False))
+        })
+        mapper(B, self.tables.t2)
+
+        a1 = A()
+        b1 = B()
+        a1.bs.append(b1)
+        assert b1.a is a1
+        assert not inspect(a1).attrs.bs.history.has_changes()
+        assert inspect(b1).attrs.a.history.has_changes()
+
+        sess = self._assert_fk(a1, b1, True)
+
+        a1.bs.remove(b1)
+        assert a1 not in sess.dirty
+        assert b1 in sess.dirty
+
+    def test_m2o_viewonly_oneside(self):
+        class A(fixtures.ComparableEntity):
+            pass
+        class B(fixtures.ComparableEntity):
+            pass
+
+        mapper(A, self.tables.t1, properties={
+            "bs": relationship(B, viewonly=False,
+                            backref=backref("a", viewonly=True))
+        })
+        mapper(B, self.tables.t2)
+
+        a1 = A()
+        b1 = B()
+        b1.a = a1
+        assert b1 in a1.bs
+        assert inspect(a1).attrs.bs.history.has_changes()
+        assert not inspect(b1).attrs.a.history.has_changes()
+
+        sess = self._assert_fk(a1, b1, True)
+
+        a1.bs.remove(b1)
+        assert a1 in sess.dirty
+        assert b1 not in sess.dirty
+
+    def test_o2m_viewonly_only(self):
+        class A(fixtures.ComparableEntity):
+            pass
+        class B(fixtures.ComparableEntity):
+            pass
+
+        mapper(A, self.tables.t1, properties={
+            "bs": relationship(B, viewonly=True)
+        })
+        mapper(B, self.tables.t2)
+
+        a1 = A()
+        b1 = B()
+        a1.bs.append(b1)
+        assert not inspect(a1).attrs.bs.history.has_changes()
+
+        self._assert_fk(a1, b1, False)
+
+    def test_m2o_viewonly_only(self):
+        class A(fixtures.ComparableEntity):
+            pass
+        class B(fixtures.ComparableEntity):
+            pass
+
+        mapper(A, self.tables.t1)
+        mapper(B, self.tables.t2, properties={
+            'a': relationship(A, viewonly=True)
+            })
+
+        a1 = A()
+        b1 = B()
+        b1.a = a1
+        assert not inspect(b1).attrs.a.history.has_changes()
+
+        self._assert_fk(a1, b1, False)
+
 class ViewOnlyM2MBackrefTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
@@ -1548,6 +1662,8 @@ class ViewOnlyM2MBackrefTest(fixtures.MappedTest):
         sess = create_session()
         a1 = A()
         b1 = B(as_=[a1])
+
+        assert not inspect(b1).attrs.as_.history.has_changes()
 
         sess.add(a1)
         sess.flush()
@@ -2230,7 +2346,7 @@ class InvalidRemoteSideTest(fixtures.MappedTest):
 
         assert_raises_message(sa.exc.ArgumentError,
             "T1.t1s and back-reference T1.parent are "
-            "both of the same direction <symbol 'ONETOMANY>.  Did you "
+            r"both of the same direction symbol\('ONETOMANY'\).  Did you "
             "mean to set remote_side on the many-to-one side ?",
             configure_mappers)
 
@@ -2245,7 +2361,7 @@ class InvalidRemoteSideTest(fixtures.MappedTest):
 
         assert_raises_message(sa.exc.ArgumentError,
             "T1.t1s and back-reference T1.parent are "
-            "both of the same direction <symbol 'MANYTOONE>.  Did you "
+            r"both of the same direction symbol\('MANYTOONE'\).  Did you "
             "mean to set remote_side on the many-to-one side ?",
             configure_mappers)
 
@@ -2259,7 +2375,7 @@ class InvalidRemoteSideTest(fixtures.MappedTest):
 
         # can't be sure of ordering here
         assert_raises_message(sa.exc.ArgumentError,
-            "both of the same direction <symbol 'ONETOMANY>.  Did you "
+            r"both of the same direction symbol\('ONETOMANY'\).  Did you "
             "mean to set remote_side on the many-to-one side ?",
             configure_mappers)
 
@@ -2275,7 +2391,7 @@ class InvalidRemoteSideTest(fixtures.MappedTest):
 
         # can't be sure of ordering here
         assert_raises_message(sa.exc.ArgumentError,
-            "both of the same direction <symbol 'MANYTOONE>.  Did you "
+            r"both of the same direction symbol\('MANYTOONE'\).  Did you "
             "mean to set remote_side on the many-to-one side ?",
             configure_mappers)
 

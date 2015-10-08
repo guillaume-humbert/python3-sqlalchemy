@@ -1,4 +1,8 @@
-"""A basic example of using the association object pattern.
+"""basic_association.py
+
+illustrate a many-to-many relationship between an
+"Order" and a collection of "Item" objects, associating a purchase price
+with each via an association object called "OrderItem"
 
 The association object pattern is a form of many-to-many which
 associates additional data with each association between parent/child.
@@ -83,12 +87,12 @@ if __name__ == '__main__':
 
     # query the order, print items
     order = session.query(Order).filter_by(customer_name='john smith').one()
-    print [(order_item.item.description, order_item.price)
-           for order_item in order.order_items]
+    print([(order_item.item.description, order_item.price)
+           for order_item in order.order_items])
 
     # print customers who bought 'MySQL Crowbar' on sale
     q = session.query(Order).join('order_items', 'item')
     q = q.filter(and_(Item.description == 'MySQL Crowbar',
                       Item.price > OrderItem.price))
 
-    print [order.customer_name for order in q]
+    print([order.customer_name for order in q])

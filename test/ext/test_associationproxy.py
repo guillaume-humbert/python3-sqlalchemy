@@ -287,7 +287,7 @@ class CustomDictTest(DictTest):
         ch = Child('a', 'regular')
         p1._children.append(ch)
 
-        self.assert_(ch in p1._children.values())
+        self.assert_(ch in list(p1._children.values()))
         self.assert_(len(p1._children) == 1)
 
         self.assert_(p1.children)
@@ -299,7 +299,7 @@ class CustomDictTest(DictTest):
 
         p1.children['b'] = 'proxied'
 
-        self.assert_('proxied' in p1.children.values())
+        self.assert_('proxied' in list(p1.children.values()))
         self.assert_('b' in p1.children)
         self.assert_('proxied' not in p1._children)
         self.assert_(len(p1.children) == 2)
@@ -524,9 +524,9 @@ class SetTest(_CollectionOperations):
                     try:
                         self.assert_(p.children == control)
                     except:
-                        print 'Test %s.%s(%s):' % (set(base), op, other)
-                        print 'want', repr(control)
-                        print 'got', repr(p.children)
+                        print('Test %s.%s(%s):' % (set(base), op, other))
+                        print('want', repr(control))
+                        print('got', repr(p.children))
                         raise
 
                     p = self.roundtrip(p)
@@ -534,9 +534,9 @@ class SetTest(_CollectionOperations):
                     try:
                         self.assert_(p.children == control)
                     except:
-                        print 'Test %s.%s(%s):' % (base, op, other)
-                        print 'want', repr(control)
-                        print 'got', repr(p.children)
+                        print('Test %s.%s(%s):' % (base, op, other))
+                        print('want', repr(control))
+                        print('got', repr(p.children))
                         raise
 
         # in-place mutations
@@ -551,15 +551,15 @@ class SetTest(_CollectionOperations):
                     p.children = base[:]
                     control = set(base[:])
 
-                    exec "p.children %s other" % op
-                    exec "control %s other" % op
+                    exec("p.children %s other" % op)
+                    exec("control %s other" % op)
 
                     try:
                         self.assert_(p.children == control)
                     except:
-                        print 'Test %s %s %s:' % (set(base), op, other)
-                        print 'want', repr(control)
-                        print 'got', repr(p.children)
+                        print('Test %s %s %s:' % (set(base), op, other))
+                        print('want', repr(control))
+                        print('got', repr(p.children))
                         raise
 
                     p = self.roundtrip(p)
@@ -567,9 +567,9 @@ class SetTest(_CollectionOperations):
                     try:
                         self.assert_(p.children == control)
                     except:
-                        print 'Test %s %s %s:' % (base, op, other)
-                        print 'want', repr(control)
-                        print 'got', repr(p.children)
+                        print('Test %s %s %s:' % (base, op, other))
+                        print('want', repr(control))
+                        print('got', repr(p.children))
                         raise
 
 
@@ -666,8 +666,9 @@ class ProxyFactoryTest(ListTest):
 
 
 class ScalarTest(fixtures.TestBase):
+    @testing.provide_metadata
     def test_scalar_proxy(self):
-        metadata = MetaData(testing.db)
+        metadata = self.metadata
 
         parents_table = Table('Parent', metadata,
                               Column('id', Integer, primary_key=True,
@@ -715,11 +716,8 @@ class ScalarTest(fixtures.TestBase):
 
         p = Parent('p')
 
-        # No child
-        assert_raises(
-            AttributeError,
-            getattr, p, "foo"
-        )
+        eq_(p.child, None)
+        eq_(p.foo, None)
 
         p.child = Child(foo='a', bar='b', baz='c')
 
@@ -740,11 +738,7 @@ class ScalarTest(fixtures.TestBase):
 
         p.child = None
 
-        # No child again
-        assert_raises(
-            AttributeError,
-            getattr, p, "foo"
-        )
+        eq_(p.foo, None)
 
         # Bogus creator for this scalar type
         assert_raises(
@@ -779,6 +773,48 @@ class ScalarTest(fixtures.TestBase):
         # Ensure an immediate __set__ works.
         p2 = Parent('p2')
         p2.bar = 'quux'
+
+    @testing.provide_metadata
+    def test_empty_scalars(self):
+        metadata = self.metadata
+
+        a = Table('a', metadata,
+                Column('id', Integer, primary_key=True),
+                Column('name', String(50))
+            )
+        a2b = Table('a2b', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('id_a', Integer, ForeignKey('a.id')),
+            Column('id_b', Integer, ForeignKey('b.id')),
+            Column('name', String(50))
+        )
+        b = Table('b', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('name', String(50))
+        )
+        class A(object):
+            a2b_name = association_proxy("a2b_single", "name")
+            b_single = association_proxy("a2b_single", "b")
+
+        class A2B(object):
+            pass
+
+        class B(object):
+            pass
+
+        mapper(A, a, properties=dict(
+            a2b_single=relationship(A2B, uselist=False)
+        ))
+
+        mapper(A2B, a2b, properties=dict(
+            b=relationship(B)
+        ))
+        mapper(B, b)
+
+        a1 = A()
+        assert a1.a2b_name is None
+        assert a1.b_single is None
+
 
 
 class LazyLoadTest(fixtures.TestBase):
@@ -1036,6 +1072,7 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
         Table('singular', metadata,
             Column('id', Integer,
               primary_key=True, test_needs_autoincrement=True),
+            Column('value', String(50))
         )
 
     @classmethod
@@ -1052,6 +1089,10 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
             # m2o -> o2m
             # nonuselist -> uselist
             singular_keywords = association_proxy('singular', 'keywords')
+
+            # m2o -> scalar
+            # nonuselist
+            singular_value = association_proxy('singular', 'value')
 
         class Keyword(cls.Comparable):
             def __init__(self, keyword):
@@ -1110,17 +1151,26 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
             'fox', 'jumped', 'over',
             'the', 'lazy',
             )
-        for ii in range(4):
+        for ii in range(16):
             user = User('user%d' % ii)
-            user.singular = Singular()
+
+            if ii % 2 == 0:
+                user.singular = Singular(value=("singular%d" % ii)
+                                        if ii % 4 == 0 else None)
             session.add(user)
-            for jj in words[ii:ii + 3]:
+            for jj in words[(ii % len(words)):((ii + 3) % len(words))]:
                 k = Keyword(jj)
                 user.keywords.append(k)
-                user.singular.keywords.append(k)
+                if ii % 3 == None:
+                    user.singular.keywords.append(k)
+
         orphan = Keyword('orphan')
         orphan.user_keyword = UserKeyword(keyword=orphan, user=None)
         session.add(orphan)
+
+        keyword_with_nothing = Keyword('kwnothing')
+        session.add(keyword_with_nothing)
+
         session.commit()
         cls.u = user
         cls.kw = user.keywords[0]
@@ -1184,12 +1234,10 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
                                 self.classes.Keyword)
 
         self._equivalent(self.session.query(Keyword).
-                filter(Keyword.user.has(User.name
-                         == 'user2')),
+                filter(Keyword.user.has(User.name == 'user2')),
                          self.session.query(Keyword).
                             filter(Keyword.user_keyword.has(
-                                UserKeyword.user.has(User.name
-                         == 'user2'))))
+                                UserKeyword.user.has(User.name == 'user2'))))
 
     def test_filter_any_criterion_nul_ul(self):
         User, Keyword, Singular = (self.classes.User,
@@ -1197,9 +1245,10 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
                                 self.classes.Singular)
 
         self._equivalent(
-            self.session.query(User).\
-                        filter(User.singular_keywords.any(Keyword.keyword == 'jumped')),
-            self.session.query(User).\
+            self.session.query(User).
+                        filter(User.singular_keywords.any(
+                            Keyword.keyword == 'jumped')),
+            self.session.query(User).
                         filter(
                             User.singular.has(
                                 Singular.keywords.any(Keyword.keyword == 'jumped')
@@ -1240,10 +1289,12 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
     def test_filter_ne_nul_nul(self):
         Keyword = self.classes.Keyword
 
-        self._equivalent(self.session.query(Keyword).filter(Keyword.user
-                         != self.u),
+        self._equivalent(self.session.query(Keyword).filter(Keyword.user != self.u),
                          self.session.query(Keyword).
-                         filter(not_(Keyword.user_keyword.has(user=self.u))))
+                            filter(
+                                    Keyword.user_keyword.has(Keyword.user != self.u)
+                            )
+                        )
 
     def test_filter_eq_null_nul_nul(self):
         UserKeyword, Keyword = self.classes.UserKeyword, self.classes.Keyword
@@ -1251,7 +1302,121 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
         self._equivalent(
                 self.session.query(Keyword).filter(Keyword.user == None),
                 self.session.query(Keyword).
-                   filter(Keyword.user_keyword.has(UserKeyword.user == None)))
+                            filter(
+                                or_(
+                                    Keyword.user_keyword.has(UserKeyword.user == None),
+                                    Keyword.user_keyword == None
+                                )
+
+                            )
+                        )
+
+    def test_filter_ne_null_nul_nul(self):
+        UserKeyword, Keyword = self.classes.UserKeyword, self.classes.Keyword
+
+        self._equivalent(
+                self.session.query(Keyword).filter(Keyword.user != None),
+                self.session.query(Keyword).
+                            filter(
+                                Keyword.user_keyword.has(UserKeyword.user != None),
+                            )
+                        )
+
+    def test_filter_eq_None_nul(self):
+        User = self.classes.User
+        Singular = self.classes.Singular
+
+        self._equivalent(
+            self.session.query(User).filter(User.singular_value == None),
+            self.session.query(User).filter(
+                    or_(
+                        User.singular.has(Singular.value == None),
+                        User.singular == None
+                    )
+                )
+        )
+
+    def test_filter_ne_value_nul(self):
+        User = self.classes.User
+        Singular = self.classes.Singular
+
+        self._equivalent(
+            self.session.query(User).filter(User.singular_value != "singular4"),
+            self.session.query(User).filter(
+                        User.singular.has(Singular.value != "singular4"),
+                )
+        )
+
+    def test_filter_eq_value_nul(self):
+        User = self.classes.User
+        Singular = self.classes.Singular
+
+        self._equivalent(
+            self.session.query(User).filter(User.singular_value == "singular4"),
+            self.session.query(User).filter(
+                        User.singular.has(Singular.value == "singular4"),
+                )
+        )
+
+    def test_filter_ne_None_nul(self):
+        User = self.classes.User
+        Singular = self.classes.Singular
+
+        self._equivalent(
+            self.session.query(User).filter(User.singular_value != None),
+            self.session.query(User).filter(
+                        User.singular.has(Singular.value != None),
+                )
+        )
+
+    def test_has_nul(self):
+        # a special case where we provide an empty has() on a
+        # non-object-targeted association proxy.
+        User = self.classes.User
+        self.classes.Singular
+
+        self._equivalent(
+            self.session.query(User).filter(User.singular_value.has()),
+            self.session.query(User).filter(
+                        User.singular.has(),
+                )
+        )
+
+    def test_nothas_nul(self):
+        # a special case where we provide an empty has() on a
+        # non-object-targeted association proxy.
+        User = self.classes.User
+        self.classes.Singular
+
+        self._equivalent(
+            self.session.query(User).filter(~User.singular_value.has()),
+            self.session.query(User).filter(
+                        ~User.singular.has(),
+                )
+        )
+
+    def test_has_criterion_nul(self):
+        # but we don't allow that with any criterion...
+        User = self.classes.User
+        self.classes.Singular
+
+        assert_raises_message(
+            exc.ArgumentError,
+            "Non-empty has\(\) not allowed",
+            User.singular_value.has,
+            User.singular_value == "singular4"
+        )
+
+    def test_has_kwargs_nul(self):
+        # ... or kwargs
+        User = self.classes.User
+        self.classes.Singular
+
+        assert_raises_message(
+            exc.ArgumentError,
+            "Non-empty has\(\) not allowed",
+            User.singular_value.has, singular_value="singular4"
+        )
 
     def test_filter_scalar_contains_fails_nul_nul(self):
         Keyword = self.classes.Keyword

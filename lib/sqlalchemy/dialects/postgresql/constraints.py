@@ -1,4 +1,4 @@
-# Copyright (C) 2013 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2013-2014 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -47,10 +47,10 @@ class ExcludeConstraint(ColumnCollectionConstraint):
         """
         ColumnCollectionConstraint.__init__(
             self,
+            *[col for col, op in elements],
             name=kw.get('name'),
             deferrable=kw.get('deferrable'),
-            initially=kw.get('initially'),
-            *[col for col, op in elements]
+            initially=kw.get('initially')
             )
         self.operators = {}
         for col_or_string, op in elements:
@@ -64,10 +64,10 @@ class ExcludeConstraint(ColumnCollectionConstraint):
     def copy(self, **kw):
         elements = [(col, self.operators[col])
                     for col in self.columns.keys()]
-        c = self.__class__(name=self.name,
+        c = self.__class__(*elements,
+                            name=self.name,
                             deferrable=self.deferrable,
-                            initially=self.initially,
-                            *elements)
+                            initially=self.initially)
         c.dispatch._update(self.dispatch)
         return c
 

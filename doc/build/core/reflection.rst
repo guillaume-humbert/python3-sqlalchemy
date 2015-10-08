@@ -112,6 +112,8 @@ object's dictionary of tables::
     for table in reversed(meta.sorted_tables):
         someengine.execute(table.delete())
 
+.. _metadata_reflection_inspector:
+
 Fine Grained Reflection with Inspector
 --------------------------------------
 

@@ -153,9 +153,6 @@ class MutableWithScalarPickleTest(_MutableDictTestBase, fixtures.MappedTest):
         self._test_non_mutable()
 
 class MutableWithScalarJSONTest(_MutableDictTestBase, fixtures.MappedTest):
-    # json introduced in 2.6
-    __skip_if__ = lambda: sys.version_info < (2, 6),
-
     @classmethod
     def define_tables(cls, metadata):
         import json
@@ -245,9 +242,6 @@ class MutableAssociationScalarPickleTest(_MutableDictTestBase, fixtures.MappedTe
         )
 
 class MutableAssociationScalarJSONTest(_MutableDictTestBase, fixtures.MappedTest):
-    # json introduced in 2.6
-    __skip_if__ = lambda: sys.version_info < (2, 6),
-
     @classmethod
     def define_tables(cls, metadata):
         import json
@@ -420,6 +414,32 @@ class MutableCompositesTest(_CompositeTestBase, fixtures.MappedTest):
         sess.commit()
 
         eq_(f1.data.x, 5)
+
+class MutableCompositeCallableTest(_CompositeTestBase, fixtures.MappedTest):
+
+    @classmethod
+    def setup_mappers(cls):
+        foo = cls.tables.foo
+
+        Point = cls._type_fixture()
+
+        # in this case, this is not actually a MutableComposite.
+        # so we don't expect it to track changes
+        mapper(Foo, foo, properties={
+            'data': composite(lambda x, y: Point(x, y), foo.c.x, foo.c.y)
+        })
+
+    def test_basic(self):
+        sess = Session()
+        f1 = Foo(data=Point(3, 4))
+        sess.add(f1)
+        sess.flush()
+        f1.data.x = 5
+        sess.commit()
+
+        # we didn't get the change.
+        eq_(f1.data.x, 3)
+
 
 class MutableCompositeCustomCoerceTest(_CompositeTestBase, fixtures.MappedTest):
     @classmethod

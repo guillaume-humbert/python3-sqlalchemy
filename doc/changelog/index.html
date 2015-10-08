@@ -10,7 +10,7 @@
     
                 Changes and Migration
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,8 +47,8 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
-        <link rel="next" title="What&#8217;s New in SQLAlchemy 0.8?" href="migration_08.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
+        <link rel="next" title="What&#8217;s New in SQLAlchemy 0.9?" href="migration_09.html" />
         <link rel="prev" title="Sybase" href="../dialects/sybase.html" />
     <!-- end layout.mako headers -->
 
@@ -72,7 +73,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -84,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -98,7 +99,7 @@
             <a href="../dialects/sybase.html" title="previous chapter">Sybase</a>
             </li>
             <li>Next:
-            <a href="migration_08.html" title="next chapter">What&#8217;s New in SQLAlchemy 0.8?</a>
+            <a href="migration_09.html" title="next chapter">What&#8217;s New in SQLAlchemy 0.9?</a>
             </li>
 
         <li>
@@ -110,7 +111,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
         » 
                 Changes and Migration
             
@@ -150,7 +151,7 @@
     </p>
     <h4>Next Topic</h4>
     <p>
-    <a href="migration_08.html" title="next chapter">What&#8217;s New in SQLAlchemy 0.8?</a>
+    <a href="migration_09.html" title="next chapter">What&#8217;s New in SQLAlchemy 0.9?</a>
     </p>
 
 
@@ -175,7 +176,7 @@ within the main documentation.</p>
 <h2>Current Migration Guide<a class="headerlink" href="#current-migration-guide" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="migration_08.html">What&#8217;s New in SQLAlchemy 0.8?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="migration_09.html">What&#8217;s New in SQLAlchemy 0.9?</a></li>
 </ul>
 </div>
 </div>
@@ -183,7 +184,14 @@ within the main documentation.</p>
 <h2>Change logs<a class="headerlink" href="#change-logs" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog_09.html">0.9 Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog_09.html#change-0.9.1">0.9.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog_09.html#change-0.9.0">0.9.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog_09.html#change-0.9.0b1">0.9.0b1</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="changelog_08.html">0.8 Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog_08.html#change-0.8.5">0.8.5</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog_08.html#change-0.8.4">0.8.4</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog_08.html#change-0.8.3">0.8.3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog_08.html#change-0.8.2">0.8.2</a></li>
@@ -314,6 +322,7 @@ within the main documentation.</p>
 <h2>Older Migration Guides<a class="headerlink" href="#older-migration-guides" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="migration_08.html">What&#8217;s New in SQLAlchemy 0.8?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="migration_07.html">What&#8217;s New in SQLAlchemy 0.7?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="migration_06.html">What&#8217;s New in SQLAlchemy 0.6?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="migration_05.html">What&#8217;s new in SQLAlchemy 0.5?</a></li>
@@ -331,10 +340,10 @@ within the main documentation.</p>
         Previous:
         <a href="../dialects/sybase.html" title="previous chapter">Sybase</a>
         Next:
-        <a href="migration_08.html" title="next chapter">What&#8217;s New in SQLAlchemy 0.8?</a>
+        <a href="migration_09.html" title="next chapter">What&#8217;s New in SQLAlchemy 0.9?</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

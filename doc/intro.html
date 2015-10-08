@@ -10,7 +10,7 @@
     
                 Overview
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    './',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="index.html" />
         <link rel="next" title="SQLAlchemy ORM" href="orm/index.html" />
         <link rel="prev" title="Table of Contents" href="contents.html" />
     <!-- end layout.mako headers -->
@@ -72,7 +73,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -84,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -110,7 +111,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="index.html">SQLAlchemy 0.9 Documentation</a>
         » 
                 Overview
             
@@ -144,7 +145,7 @@
 <li><a class="reference internal" href="#checking-the-installed-sqlalchemy-version">Checking the Installed SQLAlchemy Version</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#to-0-8-migration">0.7 to 0.8 Migration</a></li>
+<li><a class="reference internal" href="#to-0-9-migration">0.8 to 0.9 Migration</a></li>
 </ul>
 </li>
 </ul>
@@ -217,7 +218,7 @@ database and DBAPI backends is provided.</p>
 <h2>Code Examples<a class="headerlink" href="#code-examples" title="Permalink to this headline">¶</a></h2>
 <p>Working code examples, mostly regarding the ORM, are included in the
 SQLAlchemy distribution. A description of all the included example
-applications is at <a class="reference internal" href="orm/examples.html"><em>Examples</em></a>.</p>
+applications is at <a class="reference internal" href="orm/examples.html"><em>ORM Examples</em></a>.</p>
 <p>There is also a wide variety of examples involving both core SQLAlchemy
 constructs as well as the ORM on the wiki.  See
 <a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/UsageRecipes">Theatrum Chemicum</a>.</p>
@@ -228,13 +229,12 @@ constructs as well as the ORM on the wiki.  See
 <h3>Supported Platforms<a class="headerlink" href="#supported-platforms" title="Permalink to this headline">¶</a></h3>
 <p>SQLAlchemy has been tested against the following platforms:</p>
 <ul class="simple">
-<li>cPython since version 2.5, through the 2.xx series</li>
+<li>cPython since version 2.6, through the 2.xx series</li>
 <li>cPython version 3, throughout all 3.xx series</li>
-<li><a class="reference external" href="http://www.jython.org/">Jython</a> 2.5 or greater</li>
-<li><a class="reference external" href="http://pypy.org/">Pypy</a> 1.5 or greater</li>
+<li><a class="reference external" href="http://pypy.org/">Pypy</a> 2.1 or greater</li>
 </ul>
 <div class="versionchanged">
-<p><span>Changed in version 0.8: </span>Python 2.5 is now the minimum Python version supported.</p>
+<p><span>Changed in version 0.9: </span>Python 2.6 is now the minimum Python version supported.</p>
 </div>
 </div>
 <div class="section" id="supported-installation-methods">
@@ -245,13 +245,9 @@ constructs as well as the ORM on the wiki.  See
 <li><strong>Plain Python Distutils</strong> - SQLAlchemy can be installed with a clean
 Python install using the services provided via <a class="reference external" href="http://docs.python.org/distutils/">Python Distutils</a>,
 using the <tt class="docutils literal"><span class="pre">setup.py</span></tt> script. The C extensions as well as Python 3 builds are supported.</li>
-<li><strong>Standard Setuptools</strong> - When using <a class="reference external" href="http://pypi.python.org/pypi/setuptools/">setuptools</a>,
+<li><strong>Setuptools or Distribute</strong> - When using <a class="reference external" href="http://pypi.python.org/pypi/setuptools/">setuptools</a>,
 SQLAlchemy can be installed via <tt class="docutils literal"><span class="pre">setup.py</span></tt> or <tt class="docutils literal"><span class="pre">easy_install</span></tt>, and the C
-extensions are supported.  setuptools is not supported on Python 3 at the time
-of this writing.</li>
-<li><strong>Distribute</strong> - With <a class="reference external" href="http://pypi.python.org/pypi/distribute/">distribute</a>,
-SQLAlchemy can be installed via <tt class="docutils literal"><span class="pre">setup.py</span></tt> or <tt class="docutils literal"><span class="pre">easy_install</span></tt>, and the C
-extensions as well as Python 3 builds are supported.</li>
+extensions are supported.</li>
 <li><strong>pip</strong> - <a class="reference external" href="http://pypi.python.org/pypi/pip/">pip</a> is an installer that
 rides on top of <tt class="docutils literal"><span class="pre">setuptools</span></tt> or <tt class="docutils literal"><span class="pre">distribute</span></tt>, replacing the usage
 of <tt class="docutils literal"><span class="pre">easy_install</span></tt>.  It is often preferred for its simpler mode of usage.</li>
@@ -268,6 +264,11 @@ downloaded from Pypi and installed in one step:</p>
 </div>
 <p>This command will download the latest version of SQLAlchemy from the <a class="reference external" href="http://pypi.python.org/pypi/SQLAlchemy">Python
 Cheese Shop</a> and install it to your system.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Beta releases of SQLAlchemy may not be present on Pypi, and may instead
+require a direct download first.</p>
+</div>
 </div>
 <div class="section" id="installing-using-setup-py">
 <h3>Installing using setup.py<a class="headerlink" href="#installing-using-setup-py" title="Permalink to this headline">¶</a></h3>
@@ -278,8 +279,11 @@ Cheese Shop</a> and install it to your system.</p>
 <div class="section" id="installing-the-c-extensions">
 <h3>Installing the C Extensions<a class="headerlink" href="#installing-the-c-extensions" title="Permalink to this headline">¶</a></h3>
 <p>SQLAlchemy includes C extensions which provide an extra speed boost for
-dealing with result sets. Currently, the extensions are only supported on the
-2.xx series of cPython, not Python 3 or Pypy.</p>
+dealing with result sets.   The extensions are supported on both the 2.xx
+and 3.xx series of cPython.</p>
+<div class="versionchanged">
+<p><span>Changed in version 0.9.0: </span>The C extensions now compile on Python 3 as well as Python 2.</p>
+</div>
 <p>setup.py will automatically build the extensions if an appropriate platform is
 detected. If the build of the C extensions fails, due to missing compiler or
 other issue, the setup process will output a warning message, and re-run the
@@ -301,11 +305,12 @@ cannot be built, however.</p>
 </div>
 <div class="section" id="installing-on-python-3">
 <h3>Installing on Python 3<a class="headerlink" href="#installing-on-python-3" title="Permalink to this headline">¶</a></h3>
-<p>SQLAlchemy ships as Python 2 code. For Python 3 usage, the <tt class="docutils literal"><span class="pre">setup.py</span></tt> script
-will invoke the Python <tt class="docutils literal"><span class="pre">2to3</span></tt> tool on the build, plugging in an extra
-&#8220;preprocessor&#8221; as well. The 2to3 step works with Python distutils
-(part of the standard Python install) and Distribute - it will <strong>not</strong>
-work with a non-Distribute setuptools installation.</p>
+<p>SQLAlchemy runs directly on Python 2 or Python 3, and can be installed in
+either environment without any adjustments or code conversion.</p>
+<div class="versionchanged">
+<p><span>Changed in version 0.9.0: </span>Python 3 is now supported in place with no 2to3 step
+required.</p>
+</div>
 </div>
 <div class="section" id="installing-a-database-api">
 <h3>Installing a Database API<a class="headerlink" href="#installing-a-database-api" title="Permalink to this headline">¶</a></h3>
@@ -316,18 +321,18 @@ the available DBAPIs for each database, including external links.</p>
 </div>
 <div class="section" id="checking-the-installed-sqlalchemy-version">
 <h3>Checking the Installed SQLAlchemy Version<a class="headerlink" href="#checking-the-installed-sqlalchemy-version" title="Permalink to this headline">¶</a></h3>
-<p>This documentation covers SQLAlchemy version 0.8. If you&#8217;re working on a
+<p>This documentation covers SQLAlchemy version 0.9. If you&#8217;re working on a
 system that already has SQLAlchemy installed, check the version from your
 Python prompt like this:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">sqlalchemy</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">__version__</span> 
-<span class="mf">0.8</span><span class="o">.</span><span class="mi">0</span></pre></div>
+<span class="mf">0.9</span><span class="o">.</span><span class="mi">0</span></pre></div>
 </div>
 </div>
 </div>
-<div class="section" id="to-0-8-migration">
-<span id="migration"></span><h2>0.7 to 0.8 Migration<a class="headerlink" href="#to-0-8-migration" title="Permalink to this headline">¶</a></h2>
-<p>Notes on what&#8217;s changed from 0.7 to 0.8 is available here at <a class="reference internal" href="changelog/migration_08.html"><em>What&#8217;s New in SQLAlchemy 0.8?</em></a>.</p>
+<div class="section" id="to-0-9-migration">
+<span id="migration"></span><h2>0.8 to 0.9 Migration<a class="headerlink" href="#to-0-9-migration" title="Permalink to this headline">¶</a></h2>
+<p>Notes on what&#8217;s changed from 0.8 to 0.9 is available here at <a class="reference internal" href="changelog/migration_09.html"><em>What&#8217;s New in SQLAlchemy 0.9?</em></a>.</p>
 </div>
 </div>
 
@@ -342,7 +347,7 @@ Python prompt like this:</p>
         <a href="orm/index.html" title="next chapter">SQLAlchemy ORM</a>
 
     <div id="docs-copyright">
-        &copy; <a href="copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

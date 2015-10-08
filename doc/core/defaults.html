@@ -10,7 +10,7 @@
     
                 Column Insert/Update Defaults
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
         <link rel="up" title="Schema Definition Language" href="schema.html" />
         <link rel="next" title="Defining Constraints and Indexes" href="constraints.html" />
         <link rel="prev" title="Reflecting Database Objects" href="reflection.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
                 » <a href="schema.html" title="Schema Definition Language">Schema Definition Language</a>
         » 
@@ -506,7 +507,7 @@ can be passed positionally as well.</p>
 <dl class="class">
 <dt id="sqlalchemy.schema.FetchedValue">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">FetchedValue</tt><big>(</big><em>for_update=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.FetchedValue" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema._NotAColumnExpr</span></tt>, <a class="reference internal" href="events.html#sqlalchemy.events.SchemaEventTarget" title="sqlalchemy.events.SchemaEventTarget"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.events.SchemaEventTarget</span></tt></a></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema._NotAColumnExpr</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.SchemaEventTarget</span></tt></p>
 <p>A marker for a transparent database-side default.</p>
 <p>Use <a class="reference internal" href="#sqlalchemy.schema.FetchedValue" title="sqlalchemy.schema.FetchedValue"><tt class="xref py py-class docutils literal"><span class="pre">FetchedValue</span></tt></a> when the database is configured
 to provide some automatic default for a column.</p>
@@ -566,30 +567,32 @@ the <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqla
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> &#8211; The name of the sequence.</li>
-<li><strong>start</strong> &#8211; the starting index of the sequence.  This value is
+<li><span class="target" id="sqlalchemy.schema.Sequence.__init__.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Sequence.__init__.params.name">¶</a> &#8211; The name of the sequence.</li>
+<li><span class="target" id="sqlalchemy.schema.Sequence.__init__.params.start"></span><strong>start</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Sequence.__init__.params.start">¶</a> &#8211; the starting index of the sequence.  This value is
 used when the CREATE SEQUENCE command is emitted to the database
 as the value of the &#8220;START WITH&#8221; clause.   If <tt class="docutils literal"><span class="pre">None</span></tt>, the
 clause is omitted, which on most platforms indicates a starting
 value of 1.</li>
-<li><strong>increment</strong> &#8211; the increment value of the sequence.  This
+<li><span class="target" id="sqlalchemy.schema.Sequence.__init__.params.increment"></span><strong>increment</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Sequence.__init__.params.increment">¶</a> &#8211; the increment value of the sequence.  This
 value is used when the CREATE SEQUENCE command is emitted to
 the database as the value of the &#8220;INCREMENT BY&#8221; clause.  If <tt class="docutils literal"><span class="pre">None</span></tt>,
 the clause is omitted, which on most platforms indicates an
 increment of 1.</li>
-<li><strong>schema</strong> &#8211; Optional schema name for the sequence, if located
+<li><span class="target" id="sqlalchemy.schema.Sequence.__init__.params.schema"></span><strong>schema</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Sequence.__init__.params.schema">¶</a> &#8211; Optional schema name for the sequence, if located
 in a schema other than the default.</li>
-<li><strong>optional</strong> &#8211; boolean value, when <tt class="docutils literal"><span class="pre">True</span></tt>, indicates that this
+<li><span class="target" id="sqlalchemy.schema.Sequence.__init__.params.optional"></span><strong>optional</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Sequence.__init__.params.optional">¶</a> &#8211; boolean value, when <tt class="docutils literal"><span class="pre">True</span></tt>, indicates that this
 <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a> object only needs to be explicitly generated
 on backends that don&#8217;t provide another way to generate primary
 key identifiers.  Currently, it essentially means, &#8220;don&#8217;t create
 this sequence on the Postgresql backend, where the SERIAL keyword
 creates a sequence for us automatically&#8221;.</li>
-<li><strong>quote</strong> &#8211; boolean value, when <tt class="docutils literal"><span class="pre">True</span></tt> or <tt class="docutils literal"><span class="pre">False</span></tt>, explicitly
+<li><span class="target" id="sqlalchemy.schema.Sequence.__init__.params.quote"></span><strong>quote</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Sequence.__init__.params.quote">¶</a> &#8211; boolean value, when <tt class="docutils literal"><span class="pre">True</span></tt> or <tt class="docutils literal"><span class="pre">False</span></tt>, explicitly
 forces quoting of the schema name on or off.  When left at its
 default of <tt class="docutils literal"><span class="pre">None</span></tt>, normal quoting rules based on casing and reserved
 words take place.</li>
-<li><strong>metadata</strong> &#8211; <p>optional <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object which will be
+<li><span class="target" id="sqlalchemy.schema.Sequence.__init__.params.quote_schema"></span><strong>quote_schema</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Sequence.__init__.params.quote_schema">¶</a> &#8211; set the quoting preferences for the <tt class="docutils literal"><span class="pre">schema</span></tt>
+name.</li>
+<li><span class="target" id="sqlalchemy.schema.Sequence.__init__.params.metadata"></span><strong>metadata</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Sequence.__init__.params.metadata">¶</a> &#8211; <p>optional <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object which will be
 associated with this <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a>.  A <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a>
 that is associated with a <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> gains access to the
 <tt class="docutils literal"><span class="pre">bind</span></tt> of that <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>, meaning the
@@ -609,7 +612,7 @@ be subject to automatic CREATE SEQUENCE/DROP SEQUENCE corresponding
 to when the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object itself is created or dropped,
 rather than that of the <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object overall.</p>
 </li>
-<li><strong>for_update</strong> &#8211; Indicates this <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a>, when associated
+<li><span class="target" id="sqlalchemy.schema.Sequence.__init__.params.for_update"></span><strong>for_update</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Sequence.__init__.params.for_update">¶</a> &#8211; Indicates this <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a>, when associated
 with a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, should be invoked for UPDATE statements
 on that column&#8217;s table, rather than for INSERT statements, when
 no value is otherwise present for that column in the statement.</li>
@@ -656,7 +659,7 @@ for this <a class="reference internal" href="#sqlalchemy.schema.Sequence" title=
         <a href="constraints.html" title="next chapter">Defining Constraints and Indexes</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

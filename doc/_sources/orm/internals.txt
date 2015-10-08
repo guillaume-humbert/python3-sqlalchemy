@@ -27,6 +27,10 @@ sections, are listed here.
     :members:
 
 
+.. autoclass:: sqlalchemy.orm.attributes.Event
+    :members:
+
+
 .. autoclass:: sqlalchemy.orm.interfaces._InspectionAttr
     :members:
 
@@ -40,11 +44,17 @@ sections, are listed here.
 
     :undoc-members:
 
+.. autodata:: sqlalchemy.orm.interfaces.MANYTOONE
+
+.. autodata:: sqlalchemy.orm.interfaces.MANYTOMANY
+
 .. autoclass:: sqlalchemy.orm.interfaces.MapperProperty
     :members:
 
-
 .. autodata:: sqlalchemy.orm.interfaces.NOT_EXTENSION
+
+
+.. autodata:: sqlalchemy.orm.interfaces.ONETOMANY
 
 .. autoclass:: sqlalchemy.orm.interfaces.PropComparator
     :members:
@@ -67,5 +77,8 @@ sections, are listed here.
 
 .. autoclass:: sqlalchemy.orm.attributes.QueryableAttribute
     :members:
-
     :inherited-members:
+
+.. autoclass:: sqlalchemy.orm.session.UOWTransaction
+    :members:
+

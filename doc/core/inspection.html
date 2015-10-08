@@ -10,7 +10,7 @@
     
                 Runtime Inspection API
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Expression Serializer Extension" href="serializer.html" />
         <link rel="prev" title="Custom SQL Constructs and Compilation Extension" href="compiler.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Runtime Inspection API
@@ -191,18 +192,18 @@ as of version 0.8.</p>
 <dd><p>Produce an inspection object for the given target.</p>
 <p>The returned value in some cases may be the
 same object as the one given, such as if a
-<tt class="xref py py-class docutils literal"><span class="pre">orm.Mapper</span></tt> object is passed.   In other
+<a class="reference internal" href="../orm/mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> object is passed.   In other
 cases, it will be an instance of the registered
 inspection type for the given object, such as
-if a <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">engine.Engine</span></tt></a> is passed, an
-<tt class="xref py py-class docutils literal"><span class="pre">engine.Inspector</span></tt> object is returned.</p>
+if an <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">engine.Engine</span></tt></a> is passed, an
+<a class="reference internal" href="reflection.html#sqlalchemy.engine.reflection.Inspector" title="sqlalchemy.engine.reflection.Inspector"><tt class="xref py py-class docutils literal"><span class="pre">Inspector</span></tt></a> object is returned.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>subject</strong> &#8211; the subject to be inspected.</li>
-<li><strong>raiseerr</strong> &#8211; When <tt class="docutils literal"><span class="pre">True</span></tt>, if the given subject
+<li><span class="target" id="sqlalchemy.inspection.inspect.params.subject"></span><strong>subject</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.inspection.inspect.params.subject">¶</a> &#8211; the subject to be inspected.</li>
+<li><span class="target" id="sqlalchemy.inspection.inspect.params.raiseerr"></span><strong>raiseerr</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.inspection.inspect.params.raiseerr">¶</a> &#8211; When <tt class="docutils literal"><span class="pre">True</span></tt>, if the given subject
 does not
 correspond to a known SQLAlchemy inspected type,
 <a class="reference internal" href="exceptions.html#sqlalchemy.exc.NoInspectionAvailable" title="sqlalchemy.exc.NoInspectionAvailable"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.exc.NoInspectionAvailable</span></tt></a>
@@ -254,7 +255,7 @@ attribute.</li>
         <a href="serializer.html" title="next chapter">Expression Serializer Extension</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

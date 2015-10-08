@@ -10,7 +10,7 @@
     
                 Collection Configuration and Techniques
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Mapping Class Inheritance Hierarchies" href="inheritance.html" />
         <link rel="prev" title="Relationship Configuration" href="relationships.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Collection Configuration and Techniques
@@ -996,10 +997,10 @@ remove events fired upon them.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>values</strong> &#8211; An iterable of collection member instances</li>
-<li><strong>existing_adapter</strong> &#8211; A <a class="reference internal" href="#sqlalchemy.orm.collections.CollectionAdapter" title="sqlalchemy.orm.collections.CollectionAdapter"><tt class="xref py py-class docutils literal"><span class="pre">CollectionAdapter</span></tt></a> of
+<li><span class="target" id="sqlalchemy.orm.collections.bulk_replace.params.values"></span><strong>values</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.collections.bulk_replace.params.values">¶</a> &#8211; An iterable of collection member instances</li>
+<li><span class="target" id="sqlalchemy.orm.collections.bulk_replace.params.existing_adapter"></span><strong>existing_adapter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.collections.bulk_replace.params.existing_adapter">¶</a> &#8211; A <a class="reference internal" href="#sqlalchemy.orm.collections.CollectionAdapter" title="sqlalchemy.orm.collections.CollectionAdapter"><tt class="xref py py-class docutils literal"><span class="pre">CollectionAdapter</span></tt></a> of
 instances to be replaced</li>
-<li><strong>new_adapter</strong> &#8211; An empty <a class="reference internal" href="#sqlalchemy.orm.collections.CollectionAdapter" title="sqlalchemy.orm.collections.CollectionAdapter"><tt class="xref py py-class docutils literal"><span class="pre">CollectionAdapter</span></tt></a>
+<li><span class="target" id="sqlalchemy.orm.collections.bulk_replace.params.new_adapter"></span><strong>new_adapter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.collections.bulk_replace.params.new_adapter">¶</a> &#8211; An empty <a class="reference internal" href="#sqlalchemy.orm.collections.CollectionAdapter" title="sqlalchemy.orm.collections.CollectionAdapter"><tt class="xref py py-class docutils literal"><span class="pre">CollectionAdapter</span></tt></a>
 to load with <tt class="docutils literal"><span class="pre">values</span></tt></li>
 </ul>
 </td>
@@ -1031,7 +1032,7 @@ arguments:</p>
 
 <dl class="function">
 <dt id="sqlalchemy.orm.collections.collection_adapter">
-<tt class="descclassname">sqlalchemy.orm.collections.</tt><tt class="descname">collection_adapter</tt><big>(</big><em>collection</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.collections.collection_adapter" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.orm.collections.</tt><tt class="descname">collection_adapter</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.collections.collection_adapter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fetch the <a class="reference internal" href="#sqlalchemy.orm.collections.CollectionAdapter" title="sqlalchemy.orm.collections.CollectionAdapter"><tt class="xref py py-class docutils literal"><span class="pre">CollectionAdapter</span></tt></a> for a collection.</p>
 </dd></dl>
 
@@ -1044,8 +1045,6 @@ to the underlying Python collection, and emits add/remove events for
 entities entering or leaving the collection.</p>
 <p>The ORM uses <a class="reference internal" href="#sqlalchemy.orm.collections.CollectionAdapter" title="sqlalchemy.orm.collections.CollectionAdapter"><tt class="xref py py-class docutils literal"><span class="pre">CollectionAdapter</span></tt></a> exclusively for interaction with
 entity collections.</p>
-<p>The usage of getattr()/setattr() is currently to allow injection
-of custom methods, such as to unwrap Zope security proxies.</p>
 </dd></dl>
 
 <dl class="class">
@@ -1094,7 +1093,7 @@ into the run-time behavior of collection_class=InstrumentedList.</p>
         <a href="inheritance.html" title="next chapter">Mapping Class Inheritance Hierarchies</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

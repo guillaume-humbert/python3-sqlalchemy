@@ -10,7 +10,7 @@
     
                 Ordering List
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../../index.html" />
         <link rel="up" title="ORM Extensions" href="index.html" />
         <link rel="next" title="Horizontal Sharding" href="horizontal_shard.html" />
         <link rel="prev" title="Mutation Tracking" href="mutable.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
                 » <a href="index.html" title="ORM Extensions">ORM Extensions</a>
         » 
@@ -286,9 +287,9 @@ relationship&#8217;s <tt class="docutils literal"><span class="pre">collection_c
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>attr</strong> &#8211; Name of the mapped attribute to use for storage and retrieval of
+<li><span class="target" id="sqlalchemy.ext.orderinglist.ordering_list.params.attr"></span><strong>attr</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.orderinglist.ordering_list.params.attr">¶</a> &#8211; Name of the mapped attribute to use for storage and retrieval of
 ordering information</li>
-<li><strong>count_from</strong> &#8211; Set up an integer-based ordering, starting at <tt class="docutils literal"><span class="pre">count_from</span></tt>.  For
+<li><span class="target" id="sqlalchemy.ext.orderinglist.ordering_list.params.count_from"></span><strong>count_from</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.orderinglist.ordering_list.params.count_from">¶</a> &#8211; Set up an integer-based ordering, starting at <tt class="docutils literal"><span class="pre">count_from</span></tt>.  For
 example, <tt class="docutils literal"><span class="pre">ordering_list('pos',</span> <span class="pre">count_from=1)</span></tt> would create a 1-based
 list in SQL, storing the value in the &#8216;pos&#8217; column.  Ignored if
 <tt class="docutils literal"><span class="pre">ordering_func</span></tt> is supplied.</li>
@@ -340,9 +341,9 @@ so be <strong>sure</strong> to put an <tt class="docutils literal"><span class="
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ordering_attr</strong> &#8211; Name of the attribute that stores the object&#8217;s order in the
+<li><span class="target" id="sqlalchemy.ext.orderinglist.OrderingList.__init__.params.ordering_attr"></span><strong>ordering_attr</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.orderinglist.OrderingList.__init__.params.ordering_attr">¶</a> &#8211; Name of the attribute that stores the object&#8217;s order in the
 relationship.</li>
-<li><strong>ordering_func</strong> &#8211; <p>Optional.  A function that maps the position in
+<li><span class="target" id="sqlalchemy.ext.orderinglist.OrderingList.__init__.params.ordering_func"></span><strong>ordering_func</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.orderinglist.OrderingList.__init__.params.ordering_func">¶</a> &#8211; <p>Optional.  A function that maps the position in
 the Python list to a value to store in the
 <tt class="docutils literal"><span class="pre">ordering_attr</span></tt>.  Values returned are usually (but need not be!)
 integers.</p>
@@ -354,7 +355,7 @@ Two basic pre-built numbering functions are provided in this module:
 like stepped numbering, alphabetical and Fibonacci numbering, see
 the unit tests.</p>
 </li>
-<li><strong>reorder_on_append</strong> &#8211; <p>Default False.  When appending an object with an existing (non-None)
+<li><span class="target" id="sqlalchemy.ext.orderinglist.OrderingList.__init__.params.reorder_on_append"></span><strong>reorder_on_append</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.orderinglist.OrderingList.__init__.params.reorder_on_append">¶</a> &#8211; <p>Default False.  When appending an object with an existing (non-None)
 ordering value, that value will be left untouched unless
 <tt class="docutils literal"><span class="pre">reorder_on_append</span></tt> is true.  This is an optimization to avoid a
 variety of dangerous unexpected database writes.</p>
@@ -428,7 +429,7 @@ ordering information set.</p>
         <a href="horizontal_shard.html" title="next chapter">Horizontal Sharding</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

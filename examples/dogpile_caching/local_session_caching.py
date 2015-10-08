@@ -1,5 +1,10 @@
 """local_session_caching.py
 
+Grok everything so far ?   This example
+creates a new dogpile.cache backend that will persist data in a dictionary
+which is local to the current session.   remove() the session
+and the cache is gone.
+
 Create a new Dogpile cache backend that will store
 cached data local to the current Session.
 
@@ -53,8 +58,8 @@ register_backend("sqlalchemy.session", __name__, "ScopedSessionBackend")
 
 
 if __name__ == '__main__':
-    from environment import Session, regions
-    from caching_query import FromCache
+    from .environment import Session, regions
+    from .caching_query import FromCache
     from dogpile.cache import make_region
 
     # set up a region based on the ScopedSessionBackend,
@@ -67,7 +72,7 @@ if __name__ == '__main__':
         }
     )
 
-    from model import Person
+    from .model import Person
 
     # query to load Person by name, with criterion
     # of "person 10"

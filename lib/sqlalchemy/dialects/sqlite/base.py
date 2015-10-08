@@ -1,5 +1,5 @@
 # sqlite/base.py
-# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -160,6 +160,13 @@ class _DateTimeMixin(object):
             kw["regexp"] = self._reg
         return util.constructor_copy(self, cls, **kw)
 
+    def literal_processor(self, dialect):
+        bp = self.bind_processor(dialect)
+        def process(value):
+            return "'%s'" % bp(value)
+        return process
+
+
 class DATETIME(_DateTimeMixin, sqltypes.DateTime):
     """Represent a Python datetime object in SQLite using a string.
 
@@ -210,6 +217,7 @@ class DATETIME(_DateTimeMixin, sqltypes.DateTime):
                 "%(year)04d-%(month)02d-%(day)02d "
                 "%(hour)02d:%(minute)02d:%(second)02d"
             )
+
 
     def bind_processor(self, dialect):
         datetime_datetime = datetime.datetime
@@ -516,7 +524,7 @@ class SQLiteDDLCompiler(compiler.DDLCompiler):
 
     def visit_foreign_key_constraint(self, constraint):
 
-        local_table = constraint._elements.values()[0].parent.table
+        local_table = list(constraint._elements.values())[0].parent.table
         remote_table = list(constraint._elements.values())[0].column.table
 
         if local_table.schema != remote_table.schema:
@@ -600,6 +608,7 @@ class SQLiteDialect(default.DefaultDialect):
     supports_empty_insert = False
     supports_cast = True
     supports_multivalues_insert = True
+    supports_right_nested_joins = False
 
     default_paramstyle = 'qmark'
     execution_ctx_cls = SQLiteExecutionContext
@@ -820,7 +829,7 @@ class SQLiteDialect(default.DefaultDialect):
             coltype = sqltypes.NullType()
 
         if default is not None:
-            default = unicode(default)
+            default = util.text_type(default)
 
         return {
             'name': name,
@@ -940,7 +949,8 @@ class SQLiteDialect(default.DefaultDialect):
 
         UNIQUE_PATTERN = 'CONSTRAINT (\w+) UNIQUE \(([^\)]+)\)'
         return [
-            {'name': name, 'column_names': [c.strip() for c in cols.split(',')]}
+            {'name': name,
+             'column_names': [col.strip(' "') for col in cols.split(',')]}
             for name, cols in re.findall(UNIQUE_PATTERN, table_data)
         ]
 

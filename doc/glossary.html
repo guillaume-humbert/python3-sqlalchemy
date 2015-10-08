@@ -10,7 +10,7 @@
     
                 Glossary
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    './',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="index.html" />
     <!-- end layout.mako headers -->
 
 
@@ -70,7 +71,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -82,7 +83,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -102,7 +103,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="index.html">SQLAlchemy 0.9 Documentation</a>
         » 
                 Glossary
             
@@ -142,12 +143,6 @@
         
 <div class="section" id="glossary">
 <span id="id1"></span><h1>Glossary<a class="headerlink" href="#glossary" title="Permalink to this headline">¶</a></h1>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The Glossary is a brand new addition to the documentation.  While
-sparse at the moment we hope to fill it up with plenty of new
-terms soon!</p>
-</div>
 <dl class="glossary docutils">
 <dt id="term-acid"><span id="term-acid-model"></span>ACID<br />ACID model</dt>
 <dd><p class="first">An acronym for &#8220;Atomicity, Consistency, Isolation,
@@ -183,6 +178,77 @@ of a relationship where the column in some cases needs to be expressed
 in terms of one particular table alias or another, based on its position
 within the join expression.</p>
 </dd>
+<dt id="term-association-relationship">association relationship</dt>
+<dd><p class="first">A two-tiered <a class="reference internal" href="#term-relationship"><em class="xref std std-term">relationship</em></a> which links two tables
+together using an association table in the middle.  The
+association relationship differs from a <a class="reference internal" href="#term-many-to-many"><em class="xref std std-term">many to many</em></a>
+relationship in that the many-to-many table is mapped
+by a full class, rather than invisibly handled by the
+<a class="reference internal" href="orm/relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">sqlalchemy.orm.relationship()</span></tt></a> construct as in the case
+with many-to-many, so that additional attributes are
+explicitly available.</p>
+<p>For example, if we wanted to associate employees with
+projects, also storing the specific role for that employee
+with the project, the relational schema might look like:</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">employee</span> <span class="p">(</span>
+    <span class="n">id</span> <span class="nb">INTEGER</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+    <span class="n">name</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">project</span> <span class="p">(</span>
+    <span class="n">id</span> <span class="nb">INTEGER</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+    <span class="n">name</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">employee_project</span> <span class="p">(</span>
+    <span class="n">employee_id</span> <span class="nb">INTEGER</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+    <span class="n">project_id</span> <span class="nb">INTEGER</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+    <span class="n">role_name</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">30</span><span class="p">),</span>
+    <span class="k">FOREIGN</span> <span class="k">KEY</span> <span class="n">employee_id</span> <span class="k">REFERENCES</span> <span class="n">employee</span><span class="p">(</span><span class="n">id</span><span class="p">),</span>
+    <span class="k">FOREIGN</span> <span class="k">KEY</span> <span class="n">project_id</span> <span class="k">REFERENCES</span> <span class="n">project</span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="p">)</span></pre></div>
+</div>
+<p>A SQLAlchemy declarative mapping for the above might look like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;employee&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+
+
+<span class="k">class</span> <span class="nc">Project</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;project&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+
+
+<span class="k">class</span> <span class="nc">EmployeeProject</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;employee_project&#39;</span>
+
+    <span class="n">employee_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;employee.id&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">project_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;project.id&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">role_name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+
+    <span class="n">project</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Project&quot;</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&quot;project_employees&quot;</span><span class="p">)</span>
+    <span class="n">employee</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Employee&quot;</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&quot;employee_projects&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>Employees can be added to a project given a role name:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">proj</span> <span class="o">=</span> <span class="n">Project</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;Client A&quot;</span><span class="p">)</span>
+
+<span class="n">emp1</span> <span class="o">=</span> <span class="n">Employee</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;emp1&quot;</span><span class="p">)</span>
+<span class="n">emp2</span> <span class="o">=</span> <span class="n">Employee</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;emp2&quot;</span><span class="p">)</span>
+
+<span class="n">proj</span><span class="o">.</span><span class="n">project_employees</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+    <span class="n">EmployeeProject</span><span class="p">(</span><span class="n">employee</span><span class="o">=</span><span class="n">emp1</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="s">&quot;tech lead&quot;</span><span class="p">),</span>
+    <span class="n">EmployeeProject</span><span class="p">(</span><span class="n">employee</span><span class="o">=</span><span class="n">emp2</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="s">&quot;account executive&quot;</span><span class="p">)</span>
+<span class="p">])</span></pre></div>
+</div>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#term-many-to-many"><em class="xref std std-term">many to many</em></a></p>
+</div>
+</dd>
 <dt id="term-atomicity">atomicity</dt>
 <dd><p class="first">Atomicity is one of the components of the <a class="reference internal" href="#term-acid"><em class="xref std std-term">ACID</em></a> model,
 and requires that each transaction is &#8220;all or nothing&#8221;:
@@ -195,6 +261,66 @@ including power failures, errors, and crashes.
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="#term-acid"><em class="xref std std-term">ACID</em></a></p>
 <p class="last"><a class="reference external" href="http://en.wikipedia.org/wiki/Atomicity_(database_systems">http://en.wikipedia.org/wiki/Atomicity_(database_systems</a>)</p>
+</div>
+</dd>
+<dt id="term-backref"><span id="term-bidirectional-relationship"></span>backref<br />bidirectional relationship</dt>
+<dd><p class="first">An extension to the <a class="reference internal" href="#term-relationship"><em class="xref std std-term">relationship</em></a> system whereby two
+distinct <a class="reference internal" href="orm/relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> objects can be
+mutually associated with each other, such that they coordinate
+in memory as changes occur to either side.   The most common
+way these two relationships are constructed is by using
+the <a class="reference internal" href="orm/relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> function explicitly
+for one side and specifying the <tt class="docutils literal"><span class="pre">backref</span></tt> keyword to it so that
+the other <a class="reference internal" href="orm/relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> is created
+automatically.  We can illustrate this against the example we&#8217;ve
+used in <a class="reference internal" href="#term-one-to-many"><em class="xref std std-term">one to many</em></a> as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Department</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;department&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+    <span class="n">employees</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Employee&quot;</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&quot;department&quot;</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;employee&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+    <span class="n">dep_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;department.id&#39;</span><span class="p">))</span></pre></div>
+</div>
+<p>A backref can be applied to any relationship, including one to many,
+many to one, and <a class="reference internal" href="#term-many-to-many"><em class="xref std std-term">many to many</em></a>.</p>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#term-relationship"><em class="xref std std-term">relationship</em></a></p>
+<p><a class="reference internal" href="#term-one-to-many"><em class="xref std std-term">one to many</em></a></p>
+<p><a class="reference internal" href="#term-many-to-one"><em class="xref std std-term">many to one</em></a></p>
+<p class="last"><a class="reference internal" href="#term-many-to-many"><em class="xref std std-term">many to many</em></a></p>
+</div>
+</dd>
+<dt id="term-candidate-key">candidate key</dt>
+<dd><p class="first">A <em class="xref std std-term">relational algebra</em> term referring to an attribute or set
+of attributes that form a uniquely identifying key for a
+row.  A row may have more than one candidate key, each of which
+is suitable for use as the primary key of that row.
+The primary key of a table is always a candidate key.</p>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#term-primary-key"><em class="xref std std-term">primary key</em></a></p>
+<p class="last"><a class="reference external" href="http://en.wikipedia.org/wiki/Candidate_key">http://en.wikipedia.org/wiki/Candidate_key</a></p>
+</div>
+</dd>
+<dt id="term-check-constraint">check constraint</dt>
+<dd><p class="first">A check constraint is a
+condition that defines valid data when adding or updating an
+entry in a table of a relational database. A check constraint
+is applied to each row in the table.</p>
+<p>(via Wikipedia)</p>
+<p>A check constraint can be added to a table in standard
+SQL using <em class="xref std std-term">DDL</em> like the following:</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">distributors</span> <span class="k">ADD</span> <span class="k">CONSTRAINT</span> <span class="n">zipchk</span> <span class="k">CHECK</span> <span class="p">(</span><span class="k">char_length</span><span class="p">(</span><span class="n">zipcode</span><span class="p">)</span> <span class="o">=</span> <span class="mi">5</span><span class="p">);</span></pre></div>
+</div>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference external" href="http://en.wikipedia.org/wiki/Check_constraint">http://en.wikipedia.org/wiki/Check_constraint</a></p>
 </div>
 </dd>
 <dt id="term-columns-clause">columns clause</dt>
@@ -214,7 +340,7 @@ list of individual expressions.</p>
 and ensures that any transaction will
 bring the database from one valid state to another. Any data
 written to the database must be valid according to all defined
-rules, including but not limited to <em class="xref std std-term">constraints</em>, cascades,
+rules, including but not limited to <a class="reference internal" href="#term-constraints"><em class="xref std std-term">constraints</em></a>, cascades,
 triggers, and any combination thereof.
 (via Wikipedia)</p>
 <div class="last admonition seealso">
@@ -223,6 +349,11 @@ triggers, and any combination thereof.
 <p class="last"><a class="reference external" href="http://en.wikipedia.org/wiki/Consistency_(database_systems">http://en.wikipedia.org/wiki/Consistency_(database_systems</a>)</p>
 </div>
 </dd>
+<dt id="term-constraint"><span id="term-constraints"></span><span id="term-constrained"></span>constraint<br />constraints<br />constrained</dt>
+<dd>Rules established within a relational database that ensure
+the validity and consistency of data.   Common forms
+of constraint include <a class="reference internal" href="#term-primary-key-constraint"><em class="xref std std-term">primary key constraint</em></a>,
+<a class="reference internal" href="#term-foreign-key-constraint"><em class="xref std std-term">foreign key constraint</em></a>, and <a class="reference internal" href="#term-check-constraint"><em class="xref std std-term">check constraint</em></a>.</dd>
 <dt id="term-correlates"><span id="term-correlated-subquery"></span><span id="term-correlated-subqueries"></span>correlates<br />correlated subquery<br />correlated subqueries</dt>
 <dd><p class="first">A <a class="reference internal" href="#term-subquery"><em class="xref std std-term">subquery</em></a> is correlated if it depends on data in the
 enclosing <tt class="docutils literal"><span class="pre">SELECT</span></tt>.</p>
@@ -321,6 +452,22 @@ from the database:</p>
 <span class="go">&quot;some data&quot;</span></pre></div>
 </div>
 </dd>
+<dt id="term-detached">detached</dt>
+<dd><p class="first">This describes one of the four major object states which
+an object can have within a <a class="reference internal" href="#term-session"><em class="xref std std-term">session</em></a>; a detached object
+is an object that has a database identity (i.e. a primary key)
+but is not associated with any session.  An object that
+was previously <a class="reference internal" href="#term-persistent"><em class="xref std std-term">persistent</em></a> and was removed from its
+session either because it was expunged, or the owning
+session was closed, moves into the detached state.
+The detached state is generally used when objects are being
+moved between sessions or when being moved to/from an external
+object cache.</p>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="orm/session.html#session-object-states"><em>Quickie Intro to Object States</em></a></p>
+</div>
+</dd>
 <dt id="term-discriminator">discriminator</dt>
 <dd><p class="first">A result-set column which is used during <a class="reference internal" href="#term-polymorphic"><em class="xref std std-term">polymorphic</em></a> loading
 to determine what kind of mapped class should be applied to a particular
@@ -329,6 +476,14 @@ of a hierarchy mapping using inheritance mapping.</p>
 <div class="last admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="orm/inheritance.html"><em>Mapping Class Inheritance Hierarchies</em></a></p>
+</div>
+</dd>
+<dt id="term-domain-model">domain model</dt>
+<dd><p class="first">A domain model in problem solving and software engineering is a conceptual model of all the topics related to a specific problem. It describes the various entities, their attributes, roles, and relationships, plus the constraints that govern the problem domain.</p>
+<p>(via Wikipedia)</p>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference external" href="http://en.wikipedia.org/wiki/Domain_model">Domain Model (wikipedia)</a></p>
 </div>
 </dd>
 <dt id="term-durability">durability</dt>
@@ -344,6 +499,21 @@ thereafter).
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="#term-acid"><em class="xref std std-term">ACID</em></a></p>
 <p class="last"><a class="reference external" href="http://en.wikipedia.org/wiki/Durability_(database_systems">http://en.wikipedia.org/wiki/Durability_(database_systems</a>)</p>
+</div>
+</dd>
+<dt id="term-foreign-key-constraint">foreign key constraint</dt>
+<dd><p class="first">A referential constraint between two tables.  A foreign key is a field or set of fields in a
+relational table that matches a <a class="reference internal" href="#term-candidate-key"><em class="xref std std-term">candidate key</em></a> of another table.
+The foreign key can be used to cross-reference tables.
+(via Wikipedia)</p>
+<p>A foreign key constraint can be added to a table in standard
+SQL using <em class="xref std std-term">DDL</em> like the following:</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">employee</span> <span class="k">ADD</span> <span class="k">CONSTRAINT</span> <span class="n">dep_id_fk</span>
+<span class="k">FOREIGN</span> <span class="k">KEY</span> <span class="p">(</span><span class="n">employee</span><span class="p">)</span> <span class="k">REFERENCES</span> <span class="n">department</span> <span class="p">(</span><span class="n">dep_id</span><span class="p">)</span></pre></div>
+</div>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference external" href="http://en.wikipedia.org/wiki/Foreign_key_constraint">http://en.wikipedia.org/wiki/Foreign_key_constraint</a></p>
 </div>
 </dd>
 <dt id="term-from-clause">FROM clause</dt>
@@ -407,7 +577,7 @@ should remain independent of the other.
 <p class="last"><a class="reference external" href="http://en.wikipedia.org/wiki/Isolation_(database_systems">http://en.wikipedia.org/wiki/Isolation_(database_systems</a>)</p>
 </div>
 </dd>
-<dt id="term-lazy-load"><span id="term-lazy-loads"></span>lazy load<br />lazy loads</dt>
+<dt id="term-lazy-load"><span id="term-lazy-loads"></span><span id="term-lazy-loading"></span>lazy load<br />lazy loads<br />lazy loading</dt>
 <dd><p class="first">In object relational mapping, a &#8220;lazy load&#8221; refers to an
 attribute that does not contain its database-side value
 for some period of time, typically when the object is
@@ -423,6 +593,119 @@ immediately.</p>
 <p><a class="reference external" href="http://martinfowler.com/eaaCatalog/lazyLoad.html">Lazy Load (on Martin Fowler)</a></p>
 <p><a class="reference internal" href="#term-n-plus-one-problem"><em class="xref std std-term">N plus one problem</em></a></p>
 <p class="last"><a class="reference internal" href="orm/loading.html"><em>Relationship Loading Techniques</em></a></p>
+</div>
+</dd>
+<dt id="term-many-to-many">many to many</dt>
+<dd><p class="first">A style of <a class="reference internal" href="orm/relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">sqlalchemy.orm.relationship()</span></tt></a> which links two tables together
+via an intermediary table in the middle.   Using this configuration,
+any number of rows on the left side may refer to any number of
+rows on the right, and vice versa.</p>
+<p>A schema where employees can be associated with projects:</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">employee</span> <span class="p">(</span>
+    <span class="n">id</span> <span class="nb">INTEGER</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+    <span class="n">name</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">project</span> <span class="p">(</span>
+    <span class="n">id</span> <span class="nb">INTEGER</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+    <span class="n">name</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">employee_project</span> <span class="p">(</span>
+    <span class="n">employee_id</span> <span class="nb">INTEGER</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+    <span class="n">project_id</span> <span class="nb">INTEGER</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+    <span class="k">FOREIGN</span> <span class="k">KEY</span> <span class="n">employee_id</span> <span class="k">REFERENCES</span> <span class="n">employee</span><span class="p">(</span><span class="n">id</span><span class="p">),</span>
+    <span class="k">FOREIGN</span> <span class="k">KEY</span> <span class="n">project_id</span> <span class="k">REFERENCES</span> <span class="n">project</span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="p">)</span></pre></div>
+</div>
+<p>Above, the <tt class="docutils literal"><span class="pre">employee_project</span></tt> table is the many-to-many table,
+which naturally forms a composite primary key consisting
+of the primary key from each related table.</p>
+<p>In SQLAlchemy, the <a class="reference internal" href="orm/relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">sqlalchemy.orm.relationship()</span></tt></a> function
+can represent this style of relationship in a mostly
+transparent fashion, where the many-to-many table is
+specified using plain table metadata:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;employee&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+
+    <span class="n">projects</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span>
+        <span class="s">&quot;Project&quot;</span><span class="p">,</span>
+        <span class="n">secondary</span><span class="o">=</span><span class="n">Table</span><span class="p">(</span><span class="s">&#39;employee_project&#39;</span><span class="p">,</span> <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span>
+                    <span class="n">Column</span><span class="p">(</span><span class="s">&quot;employee_id&quot;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;employee.id&#39;</span><span class="p">),</span>
+                                <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+                    <span class="n">Column</span><span class="p">(</span><span class="s">&quot;project_id&quot;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;project.id&#39;</span><span class="p">),</span>
+                                <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="p">),</span>
+        <span class="n">backref</span><span class="o">=</span><span class="s">&quot;employees&quot;</span>
+        <span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Project</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;project&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span></pre></div>
+</div>
+<p>Above, the <tt class="docutils literal"><span class="pre">Employee.projects</span></tt> and back-referencing <tt class="docutils literal"><span class="pre">Project.employees</span></tt>
+collections are defined:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">proj</span> <span class="o">=</span> <span class="n">Project</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;Client A&quot;</span><span class="p">)</span>
+
+<span class="n">emp1</span> <span class="o">=</span> <span class="n">Employee</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;emp1&quot;</span><span class="p">)</span>
+<span class="n">emp2</span> <span class="o">=</span> <span class="n">Employee</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;emp2&quot;</span><span class="p">)</span>
+
+<span class="n">proj</span><span class="o">.</span><span class="n">employees</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">emp1</span><span class="p">,</span> <span class="n">emp2</span><span class="p">])</span></pre></div>
+</div>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#term-association-relationship"><em class="xref std std-term">association relationship</em></a></p>
+<p><a class="reference internal" href="#term-relationship"><em class="xref std std-term">relationship</em></a></p>
+<p><a class="reference internal" href="#term-one-to-many"><em class="xref std std-term">one to many</em></a></p>
+<p class="last"><a class="reference internal" href="#term-many-to-one"><em class="xref std std-term">many to one</em></a></p>
+</div>
+</dd>
+<dt id="term-many-to-one">many to one</dt>
+<dd><p class="first">A style of <a class="reference internal" href="orm/relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> which links
+a foreign key in the parent mapper&#8217;s table to the primary
+key of a related table.   Each parent object can
+then refer to exactly zero or one related object.</p>
+<p>The related objects in turn will have an implicit or
+explicit <a class="reference internal" href="#term-one-to-many"><em class="xref std std-term">one to many</em></a> relationship to any number
+of parent objects that refer to them.</p>
+<p>An example many to one schema (which, note, is identical
+to the <a class="reference internal" href="#term-one-to-many"><em class="xref std std-term">one to many</em></a> schema):</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">department</span> <span class="p">(</span>
+    <span class="n">id</span> <span class="nb">INTEGER</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+    <span class="n">name</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">employee</span> <span class="p">(</span>
+    <span class="n">id</span> <span class="nb">INTEGER</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+    <span class="n">name</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">30</span><span class="p">),</span>
+    <span class="n">dep_id</span> <span class="nb">INTEGER</span> <span class="k">REFERENCES</span> <span class="n">department</span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="p">)</span></pre></div>
+</div>
+<p>The relationship from <tt class="docutils literal"><span class="pre">employee</span></tt> to <tt class="docutils literal"><span class="pre">department</span></tt> is
+many to one, since many employee records can be associated with a
+single department.  A SQLAlchemy mapping might look like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Department</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;department&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+
+<span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;employee&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+    <span class="n">dep_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;department.id&#39;</span><span class="p">))</span>
+    <span class="n">department</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Department&quot;</span><span class="p">)</span></pre></div>
+</div>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#term-relationship"><em class="xref std std-term">relationship</em></a></p>
+<p><a class="reference internal" href="#term-one-to-many"><em class="xref std std-term">one to many</em></a></p>
+<p class="last"><a class="reference internal" href="#term-backref"><em class="xref std std-term">backref</em></a></p>
 </div>
 </dd>
 <dt id="term-mapping"><span id="term-mapped"></span>mapping<br />mapped</dt>
@@ -477,6 +760,76 @@ N parent objects, there will be N + 1 SELECT statements emitted.</p>
 <p class="last"><a class="reference internal" href="orm/loading.html"><em>Relationship Loading Techniques</em></a></p>
 </div>
 </dd>
+<dt id="term-one-to-many">one to many</dt>
+<dd><p class="first">A style of <a class="reference internal" href="orm/relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> which links
+the primary key of the parent mapper&#8217;s table to the foreign
+key of a related table.   Each unique parent object can
+then refer to zero or more unique related objects.</p>
+<p>The related objects in turn will have an implicit or
+explicit <a class="reference internal" href="#term-many-to-one"><em class="xref std std-term">many to one</em></a> relationship to their parent
+object.</p>
+<p>An example one to many schema (which, note, is identical
+to the <a class="reference internal" href="#term-many-to-one"><em class="xref std std-term">many to one</em></a> schema):</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">department</span> <span class="p">(</span>
+    <span class="n">id</span> <span class="nb">INTEGER</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+    <span class="n">name</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">employee</span> <span class="p">(</span>
+    <span class="n">id</span> <span class="nb">INTEGER</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+    <span class="n">name</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">30</span><span class="p">),</span>
+    <span class="n">dep_id</span> <span class="nb">INTEGER</span> <span class="k">REFERENCES</span> <span class="n">department</span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="p">)</span></pre></div>
+</div>
+<p>The relationship from <tt class="docutils literal"><span class="pre">department</span></tt> to <tt class="docutils literal"><span class="pre">employee</span></tt> is
+one to many, since many employee records can be associated with a
+single department.  A SQLAlchemy mapping might look like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Department</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;department&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+    <span class="n">employees</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Employee&quot;</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;employee&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+    <span class="n">dep_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;department.id&#39;</span><span class="p">))</span></pre></div>
+</div>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#term-relationship"><em class="xref std std-term">relationship</em></a></p>
+<p><a class="reference internal" href="#term-many-to-one"><em class="xref std std-term">many to one</em></a></p>
+<p class="last"><a class="reference internal" href="#term-backref"><em class="xref std std-term">backref</em></a></p>
+</div>
+</dd>
+<dt id="term-pending">pending</dt>
+<dd><p class="first">This describes one of the four major object states which
+an object can have within a <a class="reference internal" href="#term-session"><em class="xref std std-term">session</em></a>; a pending object
+is a new object that doesn&#8217;t have any database identity,
+but has been recently associated with a session.   When
+the session emits a flush and the row is inserted, the
+object moves to the <a class="reference internal" href="#term-persistent"><em class="xref std std-term">persistent</em></a> state.</p>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="orm/session.html#session-object-states"><em>Quickie Intro to Object States</em></a></p>
+</div>
+</dd>
+<dt id="term-persistent">persistent</dt>
+<dd><p class="first">This describes one of the four major object states which
+an object can have within a <a class="reference internal" href="#term-session"><em class="xref std std-term">session</em></a>; a persistent object
+is an object that has a database identity (i.e. a primary key)
+and is currently associated with a session.   Any object
+that was previously <a class="reference internal" href="#term-pending"><em class="xref std std-term">pending</em></a> and has now been inserted
+is in the persistent state, as is any object that&#8217;s
+been loaded by the session from the database.   When a
+persistent object is removed from a session, it is known
+as <a class="reference internal" href="#term-detached"><em class="xref std std-term">detached</em></a>.</p>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="orm/session.html#session-object-states"><em>Quickie Intro to Object States</em></a></p>
+</div>
+</dd>
 <dt id="term-polymorphic"><span id="term-polymorphically"></span>polymorphic<br />polymorphically</dt>
 <dd><p class="first">Refers to a function that handles several types at once.  In SQLAlchemy,
 the term is usually applied to the concept of an ORM mapped class
@@ -487,6 +840,46 @@ value of a particular column in the result known as the <a class="reference inte
 combination of three different schemes are used to map a hierarchy
 of classes; &#8220;joined&#8221;, &#8220;single&#8221;, and &#8220;concrete&#8221;.   The section
 <a class="reference internal" href="orm/inheritance.html"><em>Mapping Class Inheritance Hierarchies</em></a> describes inheritance mapping fully.</p>
+</dd>
+<dt id="term-primary-key"><span id="term-primary-key-constraint"></span>primary key<br />primary key constraint</dt>
+<dd><p class="first">A <a class="reference internal" href="#term-constraint"><em class="xref std std-term">constraint</em></a> that uniquely defines the characteristics
+of each <em class="xref std std-term">row</em>. The primary key has to consist of
+characteristics that cannot be duplicated by any other row.
+The primary key may consist of a single attribute or
+multiple attributes in combination.
+(via Wikipedia)</p>
+<p>The primary key of a table is typically, though not always,
+defined within the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> <em class="xref std std-term">DDL</em>:</p>
+<div class="highlight-sql"><div class="highlight"><pre><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">employee</span> <span class="p">(</span>
+     <span class="n">emp_id</span> <span class="nb">INTEGER</span><span class="p">,</span>
+     <span class="n">emp_name</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">30</span><span class="p">),</span>
+     <span class="n">dep_id</span> <span class="nb">INTEGER</span><span class="p">,</span>
+     <span class="k">PRIMARY</span> <span class="k">KEY</span> <span class="p">(</span><span class="n">emp_id</span><span class="p">)</span>
+<span class="p">)</span></pre></div>
+</div>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference external" href="http://en.wikipedia.org/wiki/Primary_Key">http://en.wikipedia.org/wiki/Primary_Key</a></p>
+</div>
+</dd>
+<dt id="term-relationship"><span id="term-relationships"></span>relationship<br />relationships</dt>
+<dd><p class="first">A connecting unit between two mapped classes, corresponding
+to some relationship between the two tables in the database.</p>
+<p>The relationship is defined using the SQLAlchemy function
+<a class="reference internal" href="orm/relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.   Once created, SQLAlchemy
+inspects the arguments and underlying mappings involved
+in order to classify the relationship as one of three types:
+<a class="reference internal" href="#term-one-to-many"><em class="xref std std-term">one to many</em></a>, <a class="reference internal" href="#term-many-to-one"><em class="xref std std-term">many to one</em></a>, or <a class="reference internal" href="#term-many-to-many"><em class="xref std std-term">many to many</em></a>.
+With this classification, the relationship construct
+handles the task of persisting the appropriate linkages
+in the database in response to in-memory object associations,
+as well as the job of loading object references and collections
+into memory based on the current linkages in the
+database.</p>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="orm/relationships.html"><em>Relationship Configuration</em></a></p>
+</div>
 </dd>
 <dt id="term-release"><span id="term-releases"></span><span id="term-released"></span>release<br />releases<br />released</dt>
 <dd><p class="first">In the context of SQLAlchemy, the term &#8220;released&#8221;
@@ -604,6 +997,33 @@ of the rows which it selects from are given via the enclosing statement.</p>
 </li>
 </ol>
 </dd>
+<dt id="term-transient">transient</dt>
+<dd><p class="first">This describes one of the four major object states which
+an object can have within a <a class="reference internal" href="#term-session"><em class="xref std std-term">session</em></a>; a transient object
+is a new object that doesn&#8217;t have any database identity
+and has not been associated with a session yet.  When the
+object is added to the session, it moves to the
+<a class="reference internal" href="#term-pending"><em class="xref std std-term">pending</em></a> state.</p>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="orm/session.html#session-object-states"><em>Quickie Intro to Object States</em></a></p>
+</div>
+</dd>
+<dt id="term-unique-constraint"><span id="term-unique-key-index"></span>unique constraint<br />unique key index</dt>
+<dd><p class="first">A unique key index can uniquely identify each row of data
+values in a database table. A unique key index comprises a
+single column or a set of columns in a single database table.
+No two distinct rows or data records in a database table can
+have the same data value (or combination of data values) in
+those unique key index columns if NULL values are not used.
+Depending on its design, a database table may have many unique
+key indexes but at most one primary key index.</p>
+<p>(via Wikipedia)</p>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference external" href="http://en.wikipedia.org/wiki/Unique_key#Defining_unique_keys">http://en.wikipedia.org/wiki/Unique_key#Defining_unique_keys</a></p>
+</div>
+</dd>
 <dt id="term-unit-of-work">unit of work</dt>
 <dd><p class="first">This pattern is where the system transparently keeps
 track of changes to objects and periodically flushes all those
@@ -637,7 +1057,7 @@ comprises the WHERE clause of the <tt class="docutils literal"><span class="pre"
 <div id="docs-bottom-navigation" class="docs-navigation-links">
 
     <div id="docs-copyright">
-        &copy; <a href="copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

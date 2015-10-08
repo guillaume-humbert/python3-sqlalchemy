@@ -1,4 +1,4 @@
-from __future__ import with_statement
+
 
 import sqlalchemy as sa
 from sqlalchemy import exc as sa_exc
@@ -147,6 +147,7 @@ class ComponentReflectionTest(fixtures.TablesTest):
             table_names = insp.get_view_names(schema)
             table_names.sort()
             answer = ['email_addresses_v', 'users_v']
+            eq_(sorted(table_names), answer)
         else:
             table_names = insp.get_table_names(schema,
                                                order_by=order_by)
@@ -179,6 +180,12 @@ class ComponentReflectionTest(fixtures.TablesTest):
     @testing.requires.schemas
     def test_get_view_names_with_schema(self):
         self._test_get_table_names('test_schema', table_type='view')
+
+    @testing.requires.table_reflection
+    @testing.requires.view_reflection
+    def test_get_tables_and_views(self):
+        self._test_get_table_names()
+        self._test_get_table_names(table_type='view')
 
     def _test_get_columns(self, schema=None, table_type='table'):
         meta = MetaData(testing.db)
@@ -375,9 +382,10 @@ class ComponentReflectionTest(fixtures.TablesTest):
     def _test_get_unique_constraints(self, schema=None):
         uniques = sorted(
             [
+                {'name': 'unique_a', 'column_names': ['a']},
                 {'name': 'unique_a_b_c', 'column_names': ['a', 'b', 'c']},
-                {'name': 'unique_a_c', 'column_names': ['a', 'c']},
-                {'name': 'unique_b_c', 'column_names': ['b', 'c']},
+                {'name': 'unique_c_a_b', 'column_names': ['c', 'a', 'b']},
+                {'name': 'unique_asc_key', 'column_names': ['asc', 'key']},
             ],
             key=operator.itemgetter('name')
         )
@@ -387,11 +395,14 @@ class ComponentReflectionTest(fixtures.TablesTest):
             Column('a', sa.String(20)),
             Column('b', sa.String(30)),
             Column('c', sa.Integer),
+            # reserved identifiers
+            Column('asc', sa.String(30)),
+            Column('key', sa.String(30)),
             schema=schema
         )
         for uc in uniques:
             table.append_constraint(
-                sa.UniqueConstraint(name=uc['name'], *uc['column_names'])
+                sa.UniqueConstraint(*uc['column_names'], name=uc['name'])
             )
         orig_meta.create_all()
 
@@ -401,7 +412,8 @@ class ComponentReflectionTest(fixtures.TablesTest):
             key=operator.itemgetter('name')
         )
 
-        eq_(uniques, reflected)
+        for orig, refl in zip(uniques, reflected):
+            eq_(orig, refl)
 
 
     @testing.provide_metadata
@@ -434,7 +446,7 @@ class ComponentReflectionTest(fixtures.TablesTest):
                     self.tables.email_addresses, self.tables.dingalings
         insp = inspect(meta.bind)
         oid = insp.get_table_oid(table_name, schema)
-        self.assert_(isinstance(oid, (int, long)))
+        self.assert_(isinstance(oid, int))
 
     def test_get_table_oid(self):
         self._test_get_table_oid('users')

@@ -1,3 +1,5 @@
+#!coding: utf-8
+
 """SQLite-specific tests."""
 
 from sqlalchemy.testing import eq_, assert_raises, \
@@ -8,7 +10,8 @@ from sqlalchemy import Table, String, select, Text, CHAR, bindparam, Column,\
     Boolean, func, NUMERIC, DateTime, extract, ForeignKey, text, Numeric,\
     DefaultClause, and_, DECIMAL, TypeDecorator, create_engine, Float, \
     INTEGER, UniqueConstraint, DATETIME, DATE, TIME, BOOLEAN, BIGINT
-from sqlalchemy import exc, sql, schema, pool, types as sqltypes
+from sqlalchemy.util import u, ue
+from sqlalchemy import exc, sql, schema, pool, types as sqltypes, util
 from sqlalchemy.dialects.sqlite import base as sqlite, \
     pysqlite as pysqlite_dialect
 from sqlalchemy.engine.url import make_url
@@ -88,7 +91,7 @@ class TestTypes(fixtures.TestBase, AssertsExecutionResults):
             eq_(row, (1, datetime.date(2010, 5, 10),
             datetime.datetime( 2010, 5, 10, 12, 15, 25, )))
             r = engine.execute(func.current_date()).scalar()
-            assert isinstance(r, basestring)
+            assert isinstance(r, util.string_types)
         finally:
             t.drop(engine)
             engine.dispose()
@@ -154,8 +157,8 @@ class TestTypes(fixtures.TestBase, AssertsExecutionResults):
             UnicodeText(),
             ):
             bindproc = t.dialect_impl(dialect).bind_processor(dialect)
-            assert not bindproc or isinstance(bindproc(u'some string'),
-                    unicode)
+            assert not bindproc or \
+                isinstance(bindproc(util.u('some string')), util.text_type)
 
     @testing.provide_metadata
     def test_type_reflection(self):
@@ -536,6 +539,20 @@ class DialectTest(fixtures.TestBase, AssertsExecutionResults):
                     'constrained_columns': ['tid']
                 }])
 
+    @testing.provide_metadata
+    def test_description_encoding(self):
+        # amazingly, pysqlite seems to still deliver cursor.description
+        # as encoded bytes in py2k
+
+        t = Table('x', self.metadata,
+                Column(u('méil'), Integer, primary_key=True),
+                Column(ue('\u6e2c\u8a66'), Integer),
+            )
+        self.metadata.create_all(testing.db)
+
+        result = testing.db.execute(t.select())
+        assert u('méil') in result.keys()
+        assert ue('\u6e2c\u8a66') in result.keys()
 
     def test_attached_as_schema(self):
         cx = testing.db.connect()
@@ -617,7 +634,7 @@ class DialectTest(fixtures.TestBase, AssertsExecutionResults):
             eq_(inspector.get_indexes('foo'), [])
             eq_(inspector.get_indexes('foo',
                 include_auto_indexes=True), [{'unique': 1, 'name'
-                : u'sqlite_autoindex_foo_1', 'column_names': [u'bar']}])
+                : 'sqlite_autoindex_foo_1', 'column_names': ['bar']}])
         finally:
             meta.drop_all()
 

@@ -1,7 +1,8 @@
 """caching_query.py
 
-Represent persistence structures which allow the usage of
-dogpile.cache caching with SQLAlchemy.
+Represent functions and classes
+which allow the usage of Dogpile caching with SQLAlchemy.
+Introduces a query option called FromCache.
 
 The three new concepts introduced here are:
 
@@ -143,8 +144,8 @@ def _key_from_query(query, qualifier=None):
     # here we return the key as a long string.  our "key mangler"
     # set up with the region will boil it down to an md5.
     return " ".join(
-                    [unicode(compiled)] +
-                    [unicode(params[k]) for k in sorted(params)])
+                    [str(compiled)] +
+                    [str(params[k]) for k in sorted(params)])
 
 class FromCache(MapperOption):
     """Specifies that a Query should load results from a cache."""

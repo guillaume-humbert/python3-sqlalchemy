@@ -1,5 +1,5 @@
 # postgresql/hstore.py
-# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -97,14 +97,14 @@ def _serialize_hstore(val):
     def esc(s, position):
         if position == 'value' and s is None:
             return 'NULL'
-        elif isinstance(s, basestring):
+        elif isinstance(s, util.string_types):
             return '"%s"' % s.replace("\\", "\\\\").replace('"', r'\"')
         else:
             raise ValueError("%r in %s position is not a string." %
                              (s, position))
 
     return ', '.join('%s=>%s' % (esc(k, 'key'), esc(v, 'value'))
-                     for k, v in val.iteritems())
+                     for k, v in val.items())
 
 
 class HSTORE(sqltypes.Concatenable, sqltypes.TypeEngine):

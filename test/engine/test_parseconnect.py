@@ -1,14 +1,12 @@
-from sqlalchemy.testing import assert_raises, assert_raises_message, eq_
-import ConfigParser
-import StringIO
+from sqlalchemy.testing import assert_raises, eq_, assert_raises_message
+from sqlalchemy.util.compat import configparser, StringIO
 import sqlalchemy.engine.url as url
 from sqlalchemy import create_engine, engine_from_config, exc, pool
-from sqlalchemy.engine.util import _coerce_config
 from sqlalchemy.engine.default import DefaultDialect
 import sqlalchemy as tsa
 from sqlalchemy.testing import fixtures
 from sqlalchemy import testing
-from sqlalchemy.testing.mock import Mock
+from sqlalchemy.testing.mock import Mock, MagicMock, patch
 
 
 class ParseConnectTest(fixtures.TestBase):
@@ -50,6 +48,28 @@ class ParseConnectTest(fixtures.TestBase):
                     'E:/work/src/LEM/db/hello.db', None), u.database
             eq_(str(u), text)
 
+    def test_rfc1738_password(self):
+        u = url.make_url("dbtype://user:pass word + other%3Awords@host/dbname")
+        eq_(u.password, "pass word + other:words")
+        eq_(str(u), "dbtype://user:pass word + other%3Awords@host/dbname")
+
+        u = url.make_url('dbtype://username:apples%2Foranges@hostspec/database')
+        eq_(u.password, "apples/oranges")
+        eq_(str(u), 'dbtype://username:apples%2Foranges@hostspec/database')
+
+        u = url.make_url('dbtype://username:apples%40oranges%40%40@hostspec/database')
+        eq_(u.password, "apples@oranges@@")
+        eq_(str(u), 'dbtype://username:apples%40oranges%40%40@hostspec/database')
+
+        u = url.make_url('dbtype://username%40:@hostspec/database')
+        eq_(u.password, '')
+        eq_(u.username, "username@")
+        eq_(str(u), 'dbtype://username%40:@hostspec/database')
+
+        u = url.make_url('dbtype://username:pass%2Fword@hostspec/database')
+        eq_(u.password, 'pass/word')
+        eq_(str(u), 'dbtype://username:pass%2Fword@hostspec/database')
+
 class DialectImportTest(fixtures.TestBase):
     def test_import_base_dialects(self):
 
@@ -89,50 +109,6 @@ class CreateEngineTest(fixtures.TestBase):
                           module=dbapi, _initialize=False)
         c = e.connect()
 
-    def test_coerce_config(self):
-        raw = r"""
-[prefixed]
-sqlalchemy.url=postgresql://scott:tiger@somehost/test?fooz=somevalue
-sqlalchemy.convert_unicode=0
-sqlalchemy.echo=false
-sqlalchemy.echo_pool=1
-sqlalchemy.max_overflow=2
-sqlalchemy.pool_recycle=50
-sqlalchemy.pool_size=2
-sqlalchemy.pool_threadlocal=1
-sqlalchemy.pool_timeout=10
-[plain]
-url=postgresql://scott:tiger@somehost/test?fooz=somevalue
-convert_unicode=0
-echo=0
-echo_pool=1
-max_overflow=2
-pool_recycle=50
-pool_size=2
-pool_threadlocal=1
-pool_timeout=10
-"""
-        ini = ConfigParser.ConfigParser()
-        ini.readfp(StringIO.StringIO(raw))
-
-        expected = {
-            'url': 'postgresql://scott:tiger@somehost/test?fooz=somevalue',
-            'convert_unicode': 0,
-            'echo': False,
-            'echo_pool': True,
-            'max_overflow': 2,
-            'pool_recycle': 50,
-            'pool_size': 2,
-            'pool_threadlocal': True,
-            'pool_timeout': 10,
-            }
-
-        prefixed = dict(ini.items('prefixed'))
-        self.assert_(_coerce_config(prefixed, 'sqlalchemy.')
-                     == expected)
-
-        plain = dict(ini.items('plain'))
-        self.assert_(_coerce_config(plain, '') == expected)
 
     def test_engine_from_config(self):
         dbapi = mock_dbapi
@@ -149,19 +125,35 @@ pool_timeout=10
                             'z=somevalue')
         assert e.echo is True
 
-        for param, values in [
-            ('convert_unicode', ('true', 'false', 'force')),
-            ('echo', ('true', 'false', 'debug')),
-            ('echo_pool', ('true', 'false', 'debug')),
-            ('use_native_unicode', ('true', 'false')),
-        ]:
-            for value in values:
-                config = {
-                        'sqlalchemy.url': 'postgresql://scott:tiger@somehost/test',
-                        'sqlalchemy.%s' % param : value
-                }
-                cfg = _coerce_config(config, 'sqlalchemy.')
-                assert cfg[param] == {'true':True, 'false':False}.get(value, value)
+
+    def test_engine_from_config_custom(self):
+        from sqlalchemy import util
+        from sqlalchemy.dialects import registry
+        tokens = __name__.split(".")
+
+        class MyDialect(MockDialect):
+            engine_config_types = {
+                "foobar": int,
+                "bathoho": util.bool_or_str('force')
+            }
+
+            def __init__(self, foobar=None, bathoho=None, **kw):
+                self.foobar = foobar
+                self.bathoho = bathoho
+
+        global dialect
+        dialect = MyDialect
+        registry.register("mockdialect.barb",
+                    ".".join(tokens[0:-1]), tokens[-1])
+
+        config = {
+            "sqlalchemy.url": "mockdialect+barb://",
+            "sqlalchemy.foobar": "5",
+            "sqlalchemy.bathoho": "false"
+        }
+        e = engine_from_config(config, _initialize=False)
+        eq_(e.dialect.foobar, 5)
+        eq_(e.dialect.bathoho, False)
 
 
     def test_custom(self):
@@ -245,7 +237,7 @@ pool_timeout=10
         try:
             create_engine('sqlite://', module=dbapi).connect()
             assert False
-        except tsa.exc.DBAPIError, de:
+        except tsa.exc.DBAPIError as de:
             assert not de.connection_invalidated
 
 
@@ -293,7 +285,7 @@ pool_timeout=10
         try:
             create_engine('sqlite://', module=dbapi).connect()
             assert False
-        except tsa.exc.DBAPIError, de:
+        except tsa.exc.DBAPIError as de:
             assert de.connection_invalidated
 
     def test_urlattr(self):
@@ -396,7 +388,7 @@ def MockDBAPI(**assert_kwargs):
             )
         return connection
 
-    return Mock(
+    return MagicMock(
                 sqlite_version_info=(99, 9, 9,),
                 version_info=(99, 9, 9,),
                 sqlite_version='99.9.9',

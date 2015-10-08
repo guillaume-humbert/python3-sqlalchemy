@@ -10,7 +10,7 @@
     
                 SQLite
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="Sybase" href="sybase.html" />
         <link rel="prev" title="PostgreSQL" href="postgresql.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="index.html" title="Dialects">Dialects</a>
         » 
                 SQLite
@@ -331,9 +332,9 @@ they originate from <a class="reference internal" href="../core/types.html#modul
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>storage_format</strong> &#8211; format string which will be applied to the
+<li><span class="target" id="sqlalchemy.dialects.sqlite.DATETIME.params.storage_format"></span><strong>storage_format</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.DATETIME.params.storage_format">¶</a> &#8211; format string which will be applied to the
 dict with keys year, month, day, hour, minute, second, and microsecond.</li>
-<li><strong>regexp</strong> &#8211; regular expression which will be applied to
+<li><span class="target" id="sqlalchemy.dialects.sqlite.DATETIME.params.regexp"></span><strong>regexp</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.DATETIME.params.regexp">¶</a> &#8211; regular expression which will be applied to
 incoming result rows. If the regexp contains named groups, the
 resulting match dict is applied to the Python datetime() constructor
 as keyword arguments. Otherwise, if positional groups are used, the
@@ -372,9 +373,9 @@ the datetime() constructor is called with positional arguments via
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>storage_format</strong> &#8211; format string which will be applied to the
+<li><span class="target" id="sqlalchemy.dialects.sqlite.DATE.params.storage_format"></span><strong>storage_format</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.DATE.params.storage_format">¶</a> &#8211; format string which will be applied to the
 dict with keys year, month, and day.</li>
-<li><strong>regexp</strong> &#8211; regular expression which will be applied to
+<li><span class="target" id="sqlalchemy.dialects.sqlite.DATE.params.regexp"></span><strong>regexp</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.DATE.params.regexp">¶</a> &#8211; regular expression which will be applied to
 incoming result rows. If the regexp contains named groups, the
 resulting match dict is applied to the Python date() constructor
 as keyword arguments. Otherwise, if positional groups are used, the
@@ -413,9 +414,9 @@ the date() constructor is called with positional arguments via
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>storage_format</strong> &#8211; format string which will be applied to the
+<li><span class="target" id="sqlalchemy.dialects.sqlite.TIME.params.storage_format"></span><strong>storage_format</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.TIME.params.storage_format">¶</a> &#8211; format string which will be applied to the
 dict with keys hour, minute, second, and microsecond.</li>
-<li><strong>regexp</strong> &#8211; regular expression which will be applied to
+<li><span class="target" id="sqlalchemy.dialects.sqlite.TIME.params.regexp"></span><strong>regexp</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.sqlite.TIME.params.regexp">¶</a> &#8211; regular expression which will be applied to
 incoming result rows. If the regexp contains named groups, the
 resulting match dict is applied to the Python time() constructor
 as keyword arguments. Otherwise, if positional groups are used, the
@@ -575,8 +576,8 @@ version of SQLite.</p>
 <p>Due to the way SQLite deals with temporary tables, if you wish to use a
 temporary table in a file-based SQLite database across multiple checkouts
 from the connection pool, such as when using an ORM <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> where
-the temporary table should continue to remain after <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">commit()</span></tt></a> or
-<a class="reference internal" href="../core/events.html#sqlalchemy.events.ConnectionEvents.rollback" title="sqlalchemy.events.ConnectionEvents.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">rollback()</span></tt></a> is called, a pool which maintains a single connection must
+the temporary table should continue to remain after <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-meth docutils literal"><span class="pre">Session.commit()</span></tt></a> or
+<a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session.rollback" title="sqlalchemy.orm.session.Session.rollback"><tt class="xref py py-meth docutils literal"><span class="pre">Session.rollback()</span></tt></a> is called, a pool which maintains a single connection must
 be used.   Use <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.SingletonThreadPool" title="sqlalchemy.pool.SingletonThreadPool"><tt class="xref py py-class docutils literal"><span class="pre">SingletonThreadPool</span></tt></a> if the scope is only needed
 within the current thread, or <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.StaticPool" title="sqlalchemy.pool.StaticPool"><tt class="xref py py-class docutils literal"><span class="pre">StaticPool</span></tt></a> is scope is needed within
 multiple threads for this case:</p>
@@ -642,7 +643,7 @@ a <a class="reference internal" href="../core/events.html#sqlalchemy.events.Conn
         <a href="sybase.html" title="next chapter">Sybase</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

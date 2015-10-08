@@ -10,7 +10,7 @@
     
                 0.6 Changelog
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
         <link rel="up" title="Changes and Migration" href="index.html" />
         <link rel="next" title="0.5 Changelog" href="changelog_05.html" />
         <link rel="prev" title="0.7 Changelog" href="changelog_07.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
         » 
                 0.6 Changelog
@@ -155,7 +156,6 @@
 </li>
 <li><a class="reference internal" href="#change-0.6.7">0.6.7</a><ul>
 <li><a class="reference internal" href="#change-0.6.7-orm">orm</a></li>
-<li><a class="reference internal" href="#change-0.6.7-orm-declarative">orm declarative</a></li>
 <li><a class="reference internal" href="#change-0.6.7-engine">engine</a></li>
 <li><a class="reference internal" href="#change-0.6.7-sql">sql</a></li>
 <li><a class="reference internal" href="#change-0.6.7-postgresql">postgresql</a></li>
@@ -169,7 +169,6 @@
 </li>
 <li><a class="reference internal" href="#change-0.6.6">0.6.6</a><ul>
 <li><a class="reference internal" href="#change-0.6.6-orm">orm</a></li>
-<li><a class="reference internal" href="#change-0.6.6-orm-declarative">orm declarative</a></li>
 <li><a class="reference internal" href="#change-0.6.6-engine">engine</a></li>
 <li><a class="reference internal" href="#change-0.6.6-sql">sql</a></li>
 <li><a class="reference internal" href="#change-0.6.6-postgresql">postgresql</a></li>
@@ -183,7 +182,6 @@
 </li>
 <li><a class="reference internal" href="#change-0.6.5">0.6.5</a><ul>
 <li><a class="reference internal" href="#change-0.6.5-orm">orm</a></li>
-<li><a class="reference internal" href="#change-0.6.5-orm-declarative">orm declarative</a></li>
 <li><a class="reference internal" href="#change-0.6.5-engine">engine</a></li>
 <li><a class="reference internal" href="#change-0.6.5-sql">sql</a></li>
 <li><a class="reference internal" href="#change-0.6.5-postgresql">postgresql</a></li>
@@ -195,7 +193,6 @@
 </li>
 <li><a class="reference internal" href="#change-0.6.4">0.6.4</a><ul>
 <li><a class="reference internal" href="#change-0.6.4-orm">orm</a></li>
-<li><a class="reference internal" href="#change-0.6.4-orm-declarative">orm declarative</a></li>
 <li><a class="reference internal" href="#change-0.6.4-engine">engine</a></li>
 <li><a class="reference internal" href="#change-0.6.4-sql">sql</a></li>
 <li><a class="reference internal" href="#change-0.6.4-postgresql">postgresql</a></li>
@@ -213,7 +210,6 @@
 </li>
 <li><a class="reference internal" href="#change-0.6.2">0.6.2</a><ul>
 <li><a class="reference internal" href="#change-0.6.2-orm">orm</a></li>
-<li><a class="reference internal" href="#change-0.6.2-orm-declarative">orm declarative</a></li>
 <li><a class="reference internal" href="#change-0.6.2-sql">sql</a></li>
 <li><a class="reference internal" href="#change-0.6.2-postgresql">postgresql</a></li>
 <li><a class="reference internal" href="#change-0.6.2-mysql">mysql</a></li>
@@ -244,7 +240,6 @@
 </li>
 <li><a class="reference internal" href="#change-0.6beta3">0.6beta3</a><ul>
 <li><a class="reference internal" href="#change-0.6beta3-orm">orm</a></li>
-<li><a class="reference internal" href="#change-0.6beta3-orm-declarative">orm declarative</a></li>
 <li><a class="reference internal" href="#change-0.6beta3-sql">sql</a></li>
 <li><a class="reference internal" href="#change-0.6beta3-postgresql">postgresql</a></li>
 <li><a class="reference internal" href="#change-0.6beta3-mysql">mysql</a></li>
@@ -254,7 +249,6 @@
 </li>
 <li><a class="reference internal" href="#change-0.6beta2">0.6beta2</a><ul>
 <li><a class="reference internal" href="#change-0.6beta2-orm">orm</a></li>
-<li><a class="reference internal" href="#change-0.6beta2-orm-declarative">orm declarative</a></li>
 <li><a class="reference internal" href="#change-0.6beta2-sql">sql</a></li>
 <li><a class="reference internal" href="#change-0.6beta2-mysql">mysql</a></li>
 <li><a class="reference internal" href="#change-0.6beta2-sqlite">sqlite</a></li>
@@ -702,29 +696,10 @@ were used..<a class="changeset-link reference internal" href="#change-060dd78afd
 </li>
 </ul>
 </div>
-<div class="section" id="change-0.6.7-orm-declarative">
-<h3>orm declarative<a class="headerlink" href="#change-0.6.7-orm-declarative" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p id="change-0.6.7-10"><span class="target" id="change-d38e96868aa208c878f6a399209baa56"><strong>[declarative] [orm] </strong></span>Added an explicit check for the case that the name
-&#8216;metadata&#8217; is used for a column attribute on a
-declarative class.<a class="changeset-link reference internal" href="#change-d38e96868aa208c878f6a399209baa56">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2050">#2050</a></p>
-</p>
-</li>
-<li><p id="change-0.6.7-11"><span class="target" id="change-04df06651398c4cc53b0100d0d7392f7"><strong>[declarative] [orm] </strong></span>Fix error message referencing old &#64;classproperty
-name to reference &#64;declared_attr<a class="changeset-link reference internal" href="#change-04df06651398c4cc53b0100d0d7392f7">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2061">#2061</a></p>
-</p>
-</li>
-<li><p id="change-0.6.7-12"><span class="target" id="change-5a35bc6fcdaed2657acdf3a146f57944"><strong>[declarative] [orm] </strong></span>Arguments in __mapper_args__ that aren&#8217;t &#8220;hashable&#8221;
-aren&#8217;t mistaken for always-hashable, possibly-column
-arguments.<a class="changeset-link reference internal" href="#change-5a35bc6fcdaed2657acdf3a146f57944">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2091">#2091</a></p>
-</p>
-</li>
-</ul>
-</div>
 <div class="section" id="change-0.6.7-engine">
 <h3>engine<a class="headerlink" href="#change-0.6.7-engine" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.7-13"><span class="target" id="change-47dcc1090d3314545b6a9690f9d74116"><strong>[engine] </strong></span>Fixed bug in QueuePool, SingletonThreadPool whereby
+<li><p id="change-0.6.7-10"><span class="target" id="change-47dcc1090d3314545b6a9690f9d74116"><strong>[engine] </strong></span>Fixed bug in QueuePool, SingletonThreadPool whereby
 connections that were discarded via overflow or periodic
 cleanup() were not explicitly closed, leaving garbage
 collection to the task instead.   This generally only
@@ -738,25 +713,25 @@ this.<a class="changeset-link reference internal" href="#change-47dcc1090d331454
 <div class="section" id="change-0.6.7-sql">
 <h3>sql<a class="headerlink" href="#change-0.6.7-sql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.7-14"><span class="target" id="change-a275b5bc06266dc2cdf5221ac4efa4ae"><strong>[sql] </strong></span>Column.copy(), as used in table.tometadata(), copies the
+<li><p id="change-0.6.7-11"><span class="target" id="change-a275b5bc06266dc2cdf5221ac4efa4ae"><strong>[sql] </strong></span>Column.copy(), as used in table.tometadata(), copies the
 &#8216;doc&#8217; attribute.<a class="changeset-link reference internal" href="#change-a275b5bc06266dc2cdf5221ac4efa4ae">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2028">#2028</a></p>
 </p>
 </li>
-<li><p id="change-0.6.7-15"><span class="target" id="change-ad5304b19826c1a70051cdf7b77c35bc"><strong>[sql] </strong></span>Added some defs to the resultproxy.c extension so that
+<li><p id="change-0.6.7-12"><span class="target" id="change-ad5304b19826c1a70051cdf7b77c35bc"><strong>[sql] </strong></span>Added some defs to the resultproxy.c extension so that
 the extension compiles and runs on Python 2.4.<a class="changeset-link reference internal" href="#change-ad5304b19826c1a70051cdf7b77c35bc">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2023">#2023</a></p>
 </p>
 </li>
-<li><p id="change-0.6.7-16"><span class="target" id="change-5a0bb2e6701ec13c1651c09ef85839e5"><strong>[sql] </strong></span>The compiler extension now supports overriding the default
+<li><p id="change-0.6.7-13"><span class="target" id="change-5a0bb2e6701ec13c1651c09ef85839e5"><strong>[sql] </strong></span>The compiler extension now supports overriding the default
 compilation of expression._BindParamClause including that
 the auto-generated binds within the VALUES/SET clause
 of an insert()/update() statement will also use the new
 compilation rules.<a class="changeset-link reference internal" href="#change-5a0bb2e6701ec13c1651c09ef85839e5">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2042">#2042</a></p>
 </p>
 </li>
-<li><p id="change-0.6.7-17"><span class="target" id="change-cd2a42bedeaff3d6db0e9583c7366c01"><strong>[sql] </strong></span>Added accessors to ResultProxy &#8220;returns_rows&#8221;, &#8220;is_insert&#8221;<a class="changeset-link reference internal" href="#change-cd2a42bedeaff3d6db0e9583c7366c01">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2089">#2089</a></p>
+<li><p id="change-0.6.7-14"><span class="target" id="change-cd2a42bedeaff3d6db0e9583c7366c01"><strong>[sql] </strong></span>Added accessors to ResultProxy &#8220;returns_rows&#8221;, &#8220;is_insert&#8221;<a class="changeset-link reference internal" href="#change-cd2a42bedeaff3d6db0e9583c7366c01">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2089">#2089</a></p>
 </p>
 </li>
-<li><p id="change-0.6.7-18"><span class="target" id="change-2f014c320217753b2e7338e74b17e074"><strong>[sql] </strong></span>The limit/offset keywords to select() as well
+<li><p id="change-0.6.7-15"><span class="target" id="change-2f014c320217753b2e7338e74b17e074"><strong>[sql] </strong></span>The limit/offset keywords to select() as well
 as the value passed to select.limit()/offset()
 will be coerced to integer.<a class="changeset-link reference internal" href="#change-2f014c320217753b2e7338e74b17e074">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2116">#2116</a></p>
 </p>
@@ -766,21 +741,21 @@ will be coerced to integer.<a class="changeset-link reference internal" href="#c
 <div class="section" id="change-0.6.7-postgresql">
 <h3>postgresql<a class="headerlink" href="#change-0.6.7-postgresql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.7-19"><span class="target" id="change-ab73a9ae528ee69666fab4ec822db451"><strong>[postgresql] </strong></span>When explicit sequence execution derives the name
+<li><p id="change-0.6.7-16"><span class="target" id="change-ab73a9ae528ee69666fab4ec822db451"><strong>[postgresql] </strong></span>When explicit sequence execution derives the name
 of the auto-generated sequence of a SERIAL column,
 which currently only occurs if implicit_returning=False,
 now accommodates if the table + column name is greater
 than 63 characters using the same logic Postgresql uses.<a class="changeset-link reference internal" href="#change-ab73a9ae528ee69666fab4ec822db451">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1083">#1083</a></p>
 </p>
 </li>
-<li><p id="change-0.6.7-20"><span class="target" id="change-0d9b1d5d5cbdcb0ca647c9b409c42200"><strong>[postgresql] </strong></span>Added an additional libpq message to the list of &#8220;disconnect&#8221;
+<li><p id="change-0.6.7-17"><span class="target" id="change-0d9b1d5d5cbdcb0ca647c9b409c42200"><strong>[postgresql] </strong></span>Added an additional libpq message to the list of &#8220;disconnect&#8221;
 exceptions, &#8220;could not receive data from server&#8221;<a class="changeset-link reference internal" href="#change-0d9b1d5d5cbdcb0ca647c9b409c42200">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2044">#2044</a></p>
 </p>
 </li>
-<li><p id="change-0.6.7-21"><span class="target" id="change-934e48213c937d20f95930337f7e57e9"><strong>[postgresql] </strong></span>Added RESERVED_WORDS for postgresql dialect.<a class="changeset-link reference internal" href="#change-934e48213c937d20f95930337f7e57e9">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2092">#2092</a></p>
+<li><p id="change-0.6.7-18"><span class="target" id="change-934e48213c937d20f95930337f7e57e9"><strong>[postgresql] </strong></span>Added RESERVED_WORDS for postgresql dialect.<a class="changeset-link reference internal" href="#change-934e48213c937d20f95930337f7e57e9">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2092">#2092</a></p>
 </p>
 </li>
-<li><p id="change-0.6.7-22"><span class="target" id="change-9afcfc7fa95e4d1c05cc91e90f14074b"><strong>[postgresql] </strong></span>Fixed the BIT type to allow a &#8220;length&#8221; parameter, &#8220;varying&#8221;
+<li><p id="change-0.6.7-19"><span class="target" id="change-9afcfc7fa95e4d1c05cc91e90f14074b"><strong>[postgresql] </strong></span>Fixed the BIT type to allow a &#8220;length&#8221; parameter, &#8220;varying&#8221;
 parameter.  Reflection also fixed.<a class="changeset-link reference internal" href="#change-9afcfc7fa95e4d1c05cc91e90f14074b">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2073">#2073</a></p>
 </p>
 </li>
@@ -789,7 +764,7 @@ parameter.  Reflection also fixed.<a class="changeset-link reference internal" h
 <div class="section" id="change-0.6.7-mysql">
 <h3>mysql<a class="headerlink" href="#change-0.6.7-mysql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.7-23"><span class="target" id="change-694da80c3029deb8ea396e5708b75604"><strong>[mysql] </strong></span>oursql dialect accepts the same &#8220;ssl&#8221; arguments in
+<li><p id="change-0.6.7-20"><span class="target" id="change-694da80c3029deb8ea396e5708b75604"><strong>[mysql] </strong></span>oursql dialect accepts the same &#8220;ssl&#8221; arguments in
 create_engine() as that of MySQLdb.<a class="changeset-link reference internal" href="#change-694da80c3029deb8ea396e5708b75604">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2047">#2047</a></p>
 </p>
 </li>
@@ -798,7 +773,7 @@ create_engine() as that of MySQLdb.<a class="changeset-link reference internal" 
 <div class="section" id="change-0.6.7-sqlite">
 <h3>sqlite<a class="headerlink" href="#change-0.6.7-sqlite" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.7-24"><span class="target" id="change-ed6a6e71dbdafae0b4f6e0831116d94f"><strong>[sqlite] </strong></span>Fixed bug where reflection of foreign key
+<li><p id="change-0.6.7-21"><span class="target" id="change-ed6a6e71dbdafae0b4f6e0831116d94f"><strong>[sqlite] </strong></span>Fixed bug where reflection of foreign key
 created as &#8220;REFERENCES &lt;tablename&gt;&#8221; without
 col name would fail.<a class="changeset-link reference internal" href="#change-ed6a6e71dbdafae0b4f6e0831116d94f">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2115">#2115</a></p>
 </p>
@@ -808,7 +783,7 @@ col name would fail.<a class="changeset-link reference internal" href="#change-e
 <div class="section" id="change-0.6.7-mssql">
 <h3>mssql<a class="headerlink" href="#change-0.6.7-mssql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.7-25"><span class="target" id="change-abb1e8cdc1c90914b2196c74eeb32842"><strong>[mssql] </strong></span>Rewrote the query used to get the definition of a view,
+<li><p id="change-0.6.7-22"><span class="target" id="change-abb1e8cdc1c90914b2196c74eeb32842"><strong>[mssql] </strong></span>Rewrote the query used to get the definition of a view,
 typically when using the Inspector interface, to
 use sys.sql_modules instead of the information schema,
 thereby allowing views definitions longer than 4000
@@ -820,7 +795,7 @@ characters to be fully returned.<a class="changeset-link reference internal" hre
 <div class="section" id="change-0.6.7-oracle">
 <h3>oracle<a class="headerlink" href="#change-0.6.7-oracle" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.7-26"><span class="target" id="change-52cfc9b390aeab5dad8108be21fb6c91"><strong>[oracle] </strong></span>Using column names that would require quotes
+<li><p id="change-0.6.7-23"><span class="target" id="change-52cfc9b390aeab5dad8108be21fb6c91"><strong>[oracle] </strong></span>Using column names that would require quotes
 for the column itself or for a name-generated
 bind parameter, such as names with special
 characters, underscores, non-ascii characters,
@@ -828,7 +803,7 @@ now properly translate bind parameter keys when
 talking to cx_oracle.<a class="changeset-link reference internal" href="#change-52cfc9b390aeab5dad8108be21fb6c91">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2100">#2100</a></p>
 </p>
 </li>
-<li><p id="change-0.6.7-27"><span class="target" id="change-a0b34ccb9b1535f2c510607844e32242"><strong>[oracle] </strong></span>Oracle dialect adds use_binds_for_limits=False
+<li><p id="change-0.6.7-24"><span class="target" id="change-a0b34ccb9b1535f2c510607844e32242"><strong>[oracle] </strong></span>Oracle dialect adds use_binds_for_limits=False
 create_engine() flag, will render the LIMIT/OFFSET
 values inline instead of as binds, reported to
 modify the execution plan used by Oracle.<a class="changeset-link reference internal" href="#change-a0b34ccb9b1535f2c510607844e32242">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2116">#2116</a></p>
@@ -839,7 +814,7 @@ modify the execution plan used by Oracle.<a class="changeset-link reference inte
 <div class="section" id="change-0.6.7-firebird">
 <h3>firebird<a class="headerlink" href="#change-0.6.7-firebird" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.7-28"><span class="target" id="change-c7435c028a162f66ad2348bf1b312568"><strong>[firebird] </strong></span>The &#8220;implicit_returning&#8221; flag on create_engine() is
+<li><p id="change-0.6.7-25"><span class="target" id="change-c7435c028a162f66ad2348bf1b312568"><strong>[firebird] </strong></span>The &#8220;implicit_returning&#8221; flag on create_engine() is
 honored if set to False.<a class="changeset-link reference internal" href="#change-c7435c028a162f66ad2348bf1b312568">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2083">#2083</a></p>
 </p>
 </li>
@@ -848,12 +823,26 @@ honored if set to False.<a class="changeset-link reference internal" href="#chan
 <div class="section" id="change-0.6.7-misc">
 <h3>misc<a class="headerlink" href="#change-0.6.7-misc" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.7-29"><span class="target" id="change-a13940d4af6ee75c1a62ada363719185"><strong>[informix] </strong></span>Added RESERVED_WORDS informix dialect.<a class="changeset-link reference internal" href="#change-a13940d4af6ee75c1a62ada363719185">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2092">#2092</a></p>
+<li><p id="change-0.6.7-26"><span class="target" id="change-a13940d4af6ee75c1a62ada363719185"><strong>[informix] </strong></span>Added RESERVED_WORDS informix dialect.<a class="changeset-link reference internal" href="#change-a13940d4af6ee75c1a62ada363719185">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2092">#2092</a></p>
 </p>
 </li>
-<li><p id="change-0.6.7-30"><span class="target" id="change-1f8f8c315ffd15103961e7340c643cf5"><strong>[ext] </strong></span>The horizontal_shard ShardedSession class accepts the common
+<li><p id="change-0.6.7-27"><span class="target" id="change-1f8f8c315ffd15103961e7340c643cf5"><strong>[ext] </strong></span>The horizontal_shard ShardedSession class accepts the common
 Session argument &#8220;query_cls&#8221; as a constructor argument,
 to enable further subclassing of ShardedQuery.<a class="changeset-link reference internal" href="#change-1f8f8c315ffd15103961e7340c643cf5">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2090">#2090</a></p>
+</p>
+</li>
+<li><p id="change-0.6.7-28"><span class="target" id="change-d38e96868aa208c878f6a399209baa56"><strong>[declarative] </strong></span>Added an explicit check for the case that the name
+&#8216;metadata&#8217; is used for a column attribute on a
+declarative class.<a class="changeset-link reference internal" href="#change-d38e96868aa208c878f6a399209baa56">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2050">#2050</a></p>
+</p>
+</li>
+<li><p id="change-0.6.7-29"><span class="target" id="change-04df06651398c4cc53b0100d0d7392f7"><strong>[declarative] </strong></span>Fix error message referencing old &#64;classproperty
+name to reference &#64;declared_attr<a class="changeset-link reference internal" href="#change-04df06651398c4cc53b0100d0d7392f7">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2061">#2061</a></p>
+</p>
+</li>
+<li><p id="change-0.6.7-30"><span class="target" id="change-5a35bc6fcdaed2657acdf3a146f57944"><strong>[declarative] </strong></span>Arguments in __mapper_args__ that aren&#8217;t &#8220;hashable&#8221;
+aren&#8217;t mistaken for always-hashable, possibly-column
+arguments.<a class="changeset-link reference internal" href="#change-5a35bc6fcdaed2657acdf3a146f57944">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2091">#2091</a></p>
 </p>
 </li>
 <li><p id="change-0.6.7-31"><span class="target" id="change-4d5a071f11cdecd01c76f3e46df9a46b"><strong>[documentation] </strong></span>Documented SQLite DATE/TIME/DATETIME types.<a class="changeset-link reference internal" href="#change-4d5a071f11cdecd01c76f3e46df9a46b">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2029">#2029</a></p>
@@ -963,40 +952,31 @@ suggestion for the generic &#8220;direction&#8221; error.<a class="changeset-lin
 </li>
 </ul>
 </div>
-<div class="section" id="change-0.6.6-orm-declarative">
-<h3>orm declarative<a class="headerlink" href="#change-0.6.6-orm-declarative" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p id="change-0.6.6-15"><span class="target" id="change-1c894bdd6f1952bc473239bc08a14b89"><strong>[declarative] [orm] </strong></span>An error is raised if __table_args__ is not in tuple
-or dict format, and is not None.<a class="changeset-link reference internal" href="#change-1c894bdd6f1952bc473239bc08a14b89">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1972">#1972</a></p>
-</p>
-</li>
-</ul>
-</div>
 <div class="section" id="change-0.6.6-engine">
 <h3>engine<a class="headerlink" href="#change-0.6.6-engine" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.6-16"><span class="target" id="change-e344fa51f77920bcead6517070be003a"><strong>[engine] </strong></span>The &#8220;unicode warning&#8221; against non-unicode bind data
+<li><p id="change-0.6.6-15"><span class="target" id="change-e344fa51f77920bcead6517070be003a"><strong>[engine] </strong></span>The &#8220;unicode warning&#8221; against non-unicode bind data
 is now raised only when the
 Unicode type is used explictly; not when
 convert_unicode=True is used on the engine
 or String type.<a class="changeset-link reference internal" href="#change-e344fa51f77920bcead6517070be003a">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.6-17"><span class="target" id="change-060786b76864313d10ab31bd71a4aeb8"><strong>[engine] </strong></span>Fixed memory leak in C version of Decimal result
+<li><p id="change-0.6.6-16"><span class="target" id="change-060786b76864313d10ab31bd71a4aeb8"><strong>[engine] </strong></span>Fixed memory leak in C version of Decimal result
 processor.<a class="changeset-link reference internal" href="#change-060786b76864313d10ab31bd71a4aeb8">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1978">#1978</a></p>
 </p>
 </li>
-<li><p id="change-0.6.6-18"><span class="target" id="change-a782cc312fd2acd3583135d10d33de6d"><strong>[engine] </strong></span>Implemented sequence check capability for the C
+<li><p id="change-0.6.6-17"><span class="target" id="change-a782cc312fd2acd3583135d10d33de6d"><strong>[engine] </strong></span>Implemented sequence check capability for the C
 version of RowProxy, as well as 2.7 style
 &#8220;collections.Sequence&#8221; registration for RowProxy.<a class="changeset-link reference internal" href="#change-a782cc312fd2acd3583135d10d33de6d">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1871">#1871</a></p>
 </p>
 </li>
-<li><p id="change-0.6.6-19"><span class="target" id="change-4d3bfa440284b95d35ecfb86606c4b1d"><strong>[engine] </strong></span>Threadlocal engine methods rollback(), commit(),
+<li><p id="change-0.6.6-18"><span class="target" id="change-4d3bfa440284b95d35ecfb86606c4b1d"><strong>[engine] </strong></span>Threadlocal engine methods rollback(), commit(),
 prepare() won&#8217;t raise if no transaction is in progress;
 this was a regression introduced in 0.6.<a class="changeset-link reference internal" href="#change-4d3bfa440284b95d35ecfb86606c4b1d">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1998">#1998</a></p>
 </p>
 </li>
-<li><p id="change-0.6.6-20"><span class="target" id="change-bfd7df5b5e155908748f2e41fef4e6cb"><strong>[engine] </strong></span>Threadlocal engine returns itself upon begin(),
+<li><p id="change-0.6.6-19"><span class="target" id="change-bfd7df5b5e155908748f2e41fef4e6cb"><strong>[engine] </strong></span>Threadlocal engine returns itself upon begin(),
 begin_nested(); engine then implements contextmanager
 methods to allow the &#8220;with&#8221; statement.<a class="changeset-link reference internal" href="#change-bfd7df5b5e155908748f2e41fef4e6cb">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2004">#2004</a></p>
 </p>
@@ -1006,24 +986,24 @@ methods to allow the &#8220;with&#8221; statement.<a class="changeset-link refer
 <div class="section" id="change-0.6.6-sql">
 <h3>sql<a class="headerlink" href="#change-0.6.6-sql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.6-21"><span class="target" id="change-8501b4f05d5a273f29d09e5fda4682b4"><strong>[sql] </strong></span>Fixed operator precedence rules for multiple
+<li><p id="change-0.6.6-20"><span class="target" id="change-8501b4f05d5a273f29d09e5fda4682b4"><strong>[sql] </strong></span>Fixed operator precedence rules for multiple
 chains of a single non-associative operator.
 I.e. &#8220;x - (y - z)&#8221; will compile as &#8220;x - (y - z)&#8221;
 and not &#8220;x - y - z&#8221;.  Also works with labels,
 i.e. &#8220;x - (y - z).label(&#8216;foo&#8217;)&#8221;<a class="changeset-link reference internal" href="#change-8501b4f05d5a273f29d09e5fda4682b4">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1984">#1984</a></p>
 </p>
 </li>
-<li><p id="change-0.6.6-22"><span class="target" id="change-9329ac8a67c101712cc52dcd1ef51dfe"><strong>[sql] </strong></span>The &#8216;info&#8217; attribute of Column is copied during
+<li><p id="change-0.6.6-21"><span class="target" id="change-9329ac8a67c101712cc52dcd1ef51dfe"><strong>[sql] </strong></span>The &#8216;info&#8217; attribute of Column is copied during
 Column.copy(), i.e. as occurs when using columns
 in declarative mixins.<a class="changeset-link reference internal" href="#change-9329ac8a67c101712cc52dcd1ef51dfe">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1967">#1967</a></p>
 </p>
 </li>
-<li><p id="change-0.6.6-23"><span class="target" id="change-313ab80f4ccba634879714775e2d1937"><strong>[sql] </strong></span>Added a bind processor for booleans which coerces
+<li><p id="change-0.6.6-22"><span class="target" id="change-313ab80f4ccba634879714775e2d1937"><strong>[sql] </strong></span>Added a bind processor for booleans which coerces
 to int, for DBAPIs such as pymssql that naively call
 str() on values.<a class="changeset-link reference internal" href="#change-313ab80f4ccba634879714775e2d1937">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.6-24"><span class="target" id="change-c6bca81c575803cd5d89152c9793de63"><strong>[sql] </strong></span>CheckConstraint will copy its &#8216;initially&#8217;, &#8216;deferrable&#8217;,
+<li><p id="change-0.6.6-23"><span class="target" id="change-c6bca81c575803cd5d89152c9793de63"><strong>[sql] </strong></span>CheckConstraint will copy its &#8216;initially&#8217;, &#8216;deferrable&#8217;,
 and &#8216;_create_rule&#8217; attributes within a copy()/tometadata()<a class="changeset-link reference internal" href="#change-c6bca81c575803cd5d89152c9793de63">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2000">#2000</a></p>
 </p>
 </li>
@@ -1032,22 +1012,22 @@ and &#8216;_create_rule&#8217; attributes within a copy()/tometadata()<a class="
 <div class="section" id="change-0.6.6-postgresql">
 <h3>postgresql<a class="headerlink" href="#change-0.6.6-postgresql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.6-25"><span class="target" id="change-6dfbe255f49659e489e09c208c1d7bee"><strong>[postgresql] </strong></span>Single element tuple expressions inside an IN clause
+<li><p id="change-0.6.6-24"><span class="target" id="change-6dfbe255f49659e489e09c208c1d7bee"><strong>[postgresql] </strong></span>Single element tuple expressions inside an IN clause
 parenthesize correctly, also from<a class="changeset-link reference internal" href="#change-6dfbe255f49659e489e09c208c1d7bee">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1984">#1984</a></p>
 </p>
 </li>
-<li><p id="change-0.6.6-26"><span class="target" id="change-55c1f840b71087d0e09bb8bc2afa14e4"><strong>[postgresql] </strong></span>Ensured every numeric, float, int code, scalar + array,
+<li><p id="change-0.6.6-25"><span class="target" id="change-55c1f840b71087d0e09bb8bc2afa14e4"><strong>[postgresql] </strong></span>Ensured every numeric, float, int code, scalar + array,
 are recognized by psycopg2 and pg8000&#8217;s &#8220;numeric&#8221;
 base type.<a class="changeset-link reference internal" href="#change-55c1f840b71087d0e09bb8bc2afa14e4">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1955">#1955</a></p>
 </p>
 </li>
-<li><p id="change-0.6.6-27"><span class="target" id="change-0e07e9da5e3d2dc702aaf8213f255dc2"><strong>[postgresql] </strong></span>Added as_uuid=True flag to the UUID type, will receive
+<li><p id="change-0.6.6-26"><span class="target" id="change-0e07e9da5e3d2dc702aaf8213f255dc2"><strong>[postgresql] </strong></span>Added as_uuid=True flag to the UUID type, will receive
 and return values as Python UUID() objects rather than
 strings.  Currently, the UUID type is only known to
 work with psycopg2.<a class="changeset-link reference internal" href="#change-0e07e9da5e3d2dc702aaf8213f255dc2">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1956">#1956</a></p>
 </p>
 </li>
-<li><p id="change-0.6.6-28"><span class="target" id="change-6f1e93205663537c4ef282d5cfc3edef"><strong>[postgresql] </strong></span>Fixed bug whereby KeyError would occur with non-ENUM
+<li><p id="change-0.6.6-27"><span class="target" id="change-6f1e93205663537c4ef282d5cfc3edef"><strong>[postgresql] </strong></span>Fixed bug whereby KeyError would occur with non-ENUM
 supported PG versions after a pool dispose+recreate
 would occur.<a class="changeset-link reference internal" href="#change-6f1e93205663537c4ef282d5cfc3edef">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1989">#1989</a></p>
 </p>
@@ -1057,7 +1037,7 @@ would occur.<a class="changeset-link reference internal" href="#change-6f1e93205
 <div class="section" id="change-0.6.6-mysql">
 <h3>mysql<a class="headerlink" href="#change-0.6.6-mysql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.6-29"><span class="target" id="change-15404de376dfeacb313c1bcb2ee66a33"><strong>[mysql] </strong></span>Fixed error handling for Jython + zxjdbc, such that
+<li><p id="change-0.6.6-28"><span class="target" id="change-15404de376dfeacb313c1bcb2ee66a33"><strong>[mysql] </strong></span>Fixed error handling for Jython + zxjdbc, such that
 has_table() property works again.  Regression from
 0.6.3 (we don&#8217;t have a Jython buildbot, sorry)<a class="changeset-link reference internal" href="#change-15404de376dfeacb313c1bcb2ee66a33">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1960">#1960</a></p>
 </p>
@@ -1067,13 +1047,13 @@ has_table() property works again.  Regression from
 <div class="section" id="change-0.6.6-sqlite">
 <h3>sqlite<a class="headerlink" href="#change-0.6.6-sqlite" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.6-30"><span class="target" id="change-6d83957f57c2e3d7f41b95967ddb322c"><strong>[sqlite] </strong></span>The REFERENCES clause in a CREATE TABLE that includes
+<li><p id="change-0.6.6-29"><span class="target" id="change-6d83957f57c2e3d7f41b95967ddb322c"><strong>[sqlite] </strong></span>The REFERENCES clause in a CREATE TABLE that includes
 a remote schema to another table with the same schema
 name now renders the remote name without
 the schema clause, as required by SQLite.<a class="changeset-link reference internal" href="#change-6d83957f57c2e3d7f41b95967ddb322c">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1851">#1851</a></p>
 </p>
 </li>
-<li><p id="change-0.6.6-31"><span class="target" id="change-c7c69439e2cc0ec7af6b3dffa8a3a86f"><strong>[sqlite] </strong></span>On the same theme, the REFERENCES clause in a CREATE TABLE
+<li><p id="change-0.6.6-30"><span class="target" id="change-c7c69439e2cc0ec7af6b3dffa8a3a86f"><strong>[sqlite] </strong></span>On the same theme, the REFERENCES clause in a CREATE TABLE
 that includes a remote schema to a <em>different</em> schema
 than that of the parent table doesn&#8217;t render at all,
 as cross-schema references do not appear to be supported.<a class="changeset-link reference internal" href="#change-c7c69439e2cc0ec7af6b3dffa8a3a86f">(link)</a><p></p>
@@ -1084,7 +1064,7 @@ as cross-schema references do not appear to be supported.<a class="changeset-lin
 <div class="section" id="change-0.6.6-mssql">
 <h3>mssql<a class="headerlink" href="#change-0.6.6-mssql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.6-32"><span class="target" id="change-445f4c11a73f0a2d7a02c8297f45a174"><strong>[mssql] </strong></span>The rewrite of index reflection in was
+<li><p id="change-0.6.6-31"><span class="target" id="change-445f4c11a73f0a2d7a02c8297f45a174"><strong>[mssql] </strong></span>The rewrite of index reflection in was
 unfortunately not tested correctly, and returned incorrect
 results.   This regression is now fixed.<a class="changeset-link reference internal" href="#change-445f4c11a73f0a2d7a02c8297f45a174">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1770">#1770</a></p>
 </p>
@@ -1094,7 +1074,7 @@ results.   This regression is now fixed.<a class="changeset-link reference inter
 <div class="section" id="change-0.6.6-oracle">
 <h3>oracle<a class="headerlink" href="#change-0.6.6-oracle" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.6-33"><span class="target" id="change-2ccadf16ce306a495b45d7e349e3a56d"><strong>[oracle] </strong></span>The cx_oracle &#8220;decimal detection&#8221; logic, which takes place
+<li><p id="change-0.6.6-32"><span class="target" id="change-2ccadf16ce306a495b45d7e349e3a56d"><strong>[oracle] </strong></span>The cx_oracle &#8220;decimal detection&#8221; logic, which takes place
 for result set columns with ambiguous numeric characteristics,
 now uses the decimal point character determined by the locale/
 NLS_LANG setting, using an on-first-connect detection of
@@ -1107,7 +1087,7 @@ when using a non-period-decimal-point NLS_LANG setting..<a class="changeset-link
 <div class="section" id="change-0.6.6-firebird">
 <h3>firebird<a class="headerlink" href="#change-0.6.6-firebird" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.6-34"><span class="target" id="change-cefc7fd8608289b2871c372d3f415aa1"><strong>[firebird] </strong></span>Firebird numeric type now checks for Decimal explicitly,
+<li><p id="change-0.6.6-33"><span class="target" id="change-cefc7fd8608289b2871c372d3f415aa1"><strong>[firebird] </strong></span>Firebird numeric type now checks for Decimal explicitly,
 lets float() pass right through, thereby allowing
 special values such as float(&#8216;inf&#8217;).<a class="changeset-link reference internal" href="#change-cefc7fd8608289b2871c372d3f415aa1">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2012">#2012</a></p>
 </p>
@@ -1117,6 +1097,10 @@ special values such as float(&#8216;inf&#8217;).<a class="changeset-link referen
 <div class="section" id="change-0.6.6-misc">
 <h3>misc<a class="headerlink" href="#change-0.6.6-misc" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
+<li><p id="change-0.6.6-34"><span class="target" id="change-1c894bdd6f1952bc473239bc08a14b89"><strong>[declarative] </strong></span>An error is raised if __table_args__ is not in tuple
+or dict format, and is not None.<a class="changeset-link reference internal" href="#change-1c894bdd6f1952bc473239bc08a14b89">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1972">#1972</a></p>
+</p>
+</li>
 <li><p id="change-0.6.6-35"><span class="target" id="change-589cc5d2ae80b9d8ba7435234c630b85"><strong>[sqlsoup] </strong></span>Added &#8220;map_to()&#8221; method to SqlSoup, which is a &#8220;master&#8221;
 method which accepts explicit arguments for each aspect of
 the selectable and mapping, including a base class per
@@ -1295,38 +1279,10 @@ cut down method calls by about 9% in some circumstances.<a class="changeset-link
 </li>
 </ul>
 </div>
-<div class="section" id="change-0.6.5-orm-declarative">
-<h3>orm declarative<a class="headerlink" href="#change-0.6.5-orm-declarative" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p id="change-0.6.5-20"><span class="target" id="change-b19f9aa816f9e63c03fa209095e76f51"><strong>[declarative] [orm] </strong></span>&#64;classproperty (soon/now &#64;declared_attr) takes effect for
-__mapper_args__, __table_args__, __tablename__ on
-a base class that is not a mixin, as well as mixins.<a class="changeset-link reference internal" href="#change-b19f9aa816f9e63c03fa209095e76f51">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1922">#1922</a></p>
-</p>
-</li>
-<li><p id="change-0.6.5-21"><span class="target" id="change-b9792dc15f6375711ec84bb73ae74272"><strong>[declarative] [orm] </strong></span>&#64;classproperty &#8216;s official name/location for usage
-with declarative is sqlalchemy.ext.declarative.declared_attr.
-Same thing, but moving there since it is more of a
-&#8220;marker&#8221; that&#8217;s specific to declararative,
-not just an attribute technique.<a class="changeset-link reference internal" href="#change-b9792dc15f6375711ec84bb73ae74272">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1915">#1915</a></p>
-</p>
-</li>
-<li><p id="change-0.6.5-22"><span class="target" id="change-172b80261166fbfb39ffe45d8499afe2"><strong>[declarative] [orm] </strong></span>Fixed bug whereby columns on a mixin wouldn&#8217;t propagate
-correctly to a single-table, or joined-table,
-inheritance scheme where the attribute name is
-different than that of the column.,.<a class="changeset-link reference internal" href="#change-172b80261166fbfb39ffe45d8499afe2">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1931">#1931</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1930">#1930</a></p>
-</p>
-</li>
-<li><p id="change-0.6.5-23"><span class="target" id="change-b0075b372f99003ca5b69e678f306150"><strong>[declarative] [orm] </strong></span>A mixin can now specify a column that overrides
-a column of the same name associated with a superclass.
-Thanks to Oystein Haaland.<a class="changeset-link reference internal" href="#change-b0075b372f99003ca5b69e678f306150">(link)</a><p></p>
-</p>
-</li>
-</ul>
-</div>
 <div class="section" id="change-0.6.5-engine">
 <h3>engine<a class="headerlink" href="#change-0.6.5-engine" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.5-24"><span class="target" id="change-1059318af334dfde665aff47590e8542"><strong>[engine] </strong></span>Fixed a regression in 0.6.4 whereby the change that
+<li><p id="change-0.6.5-20"><span class="target" id="change-1059318af334dfde665aff47590e8542"><strong>[engine] </strong></span>Fixed a regression in 0.6.4 whereby the change that
 allowed cursor errors to be raised consistently broke
 the result.lastrowid accessor.   Test coverage has
 been added for result.lastrowid.   Note that lastrowid
@@ -1334,17 +1290,17 @@ is only supported by Pysqlite and some MySQL drivers,
 so isn&#8217;t super-useful in the general case.<a class="changeset-link reference internal" href="#change-1059318af334dfde665aff47590e8542">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.5-25"><span class="target" id="change-ebd200888550cee6694d854883573fa6"><strong>[engine] </strong></span>the logging message emitted by the engine when
+<li><p id="change-0.6.5-21"><span class="target" id="change-ebd200888550cee6694d854883573fa6"><strong>[engine] </strong></span>the logging message emitted by the engine when
 a connection is first used is now &#8220;BEGIN (implicit)&#8221;
 to emphasize that DBAPI has no explicit begin().<a class="changeset-link reference internal" href="#change-ebd200888550cee6694d854883573fa6">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.5-26"><span class="target" id="change-583d616a6e6d2ed7c2874a91f7e8b83a"><strong>[engine] </strong></span>added &#8220;views=True&#8221; option to metadata.reflect(),
+<li><p id="change-0.6.5-22"><span class="target" id="change-583d616a6e6d2ed7c2874a91f7e8b83a"><strong>[engine] </strong></span>added &#8220;views=True&#8221; option to metadata.reflect(),
 will add the list of available views to those
 being reflected.<a class="changeset-link reference internal" href="#change-583d616a6e6d2ed7c2874a91f7e8b83a">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1936">#1936</a></p>
 </p>
 </li>
-<li><p id="change-0.6.5-27"><span class="target" id="change-50d5bffb777603ddce658a6a67b8e205"><strong>[engine] </strong></span>engine_from_config() now accepts &#8216;debug&#8217; for
+<li><p id="change-0.6.5-23"><span class="target" id="change-50d5bffb777603ddce658a6a67b8e205"><strong>[engine] </strong></span>engine_from_config() now accepts &#8216;debug&#8217; for
 &#8216;echo&#8217;, &#8216;echo_pool&#8217;, &#8216;force&#8217; for &#8216;convert_unicode&#8217;,
 boolean values for &#8216;use_native_unicode&#8217;.<a class="changeset-link reference internal" href="#change-50d5bffb777603ddce658a6a67b8e205">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1899">#1899</a></p>
 </p>
@@ -1354,16 +1310,16 @@ boolean values for &#8216;use_native_unicode&#8217;.<a class="changeset-link ref
 <div class="section" id="change-0.6.5-sql">
 <h3>sql<a class="headerlink" href="#change-0.6.5-sql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.5-28"><span class="target" id="change-38a4e7cd800b41adf3d50801a7f7cb1b"><strong>[sql] </strong></span>Fixed bug in TypeDecorator whereby the dialect-specific
+<li><p id="change-0.6.5-24"><span class="target" id="change-38a4e7cd800b41adf3d50801a7f7cb1b"><strong>[sql] </strong></span>Fixed bug in TypeDecorator whereby the dialect-specific
 type was getting pulled in to generate the DDL for a
 given type, which didn&#8217;t always return the correct result.<a class="changeset-link reference internal" href="#change-38a4e7cd800b41adf3d50801a7f7cb1b">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.5-29"><span class="target" id="change-1f4462b0b5fe565c42d2a26adc200c72"><strong>[sql] </strong></span>TypeDecorator can now have a fully constructed type
+<li><p id="change-0.6.5-25"><span class="target" id="change-1f4462b0b5fe565c42d2a26adc200c72"><strong>[sql] </strong></span>TypeDecorator can now have a fully constructed type
 specified as its &#8220;impl&#8221;, in addition to a type class.<a class="changeset-link reference internal" href="#change-1f4462b0b5fe565c42d2a26adc200c72">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.5-30"><span class="target" id="change-9dc92f16ad4db3c34c0aa4eae14c851f"><strong>[sql] </strong></span>TypeDecorator will now place itself as the resulting
+<li><p id="change-0.6.5-26"><span class="target" id="change-9dc92f16ad4db3c34c0aa4eae14c851f"><strong>[sql] </strong></span>TypeDecorator will now place itself as the resulting
 type for a binary expression where the type coercion
 rules would normally return its impl type - previously,
 a copy of the impl type would be returned which would
@@ -1372,30 +1328,30 @@ impl, this was probably an unintentional way of achieving
 the desired effect.<a class="changeset-link reference internal" href="#change-9dc92f16ad4db3c34c0aa4eae14c851f">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.5-31"><span class="target" id="change-2b8e904daae0d182fbf0aaa6bca9d64b"><strong>[sql] </strong></span>TypeDecorator.load_dialect_impl() returns &#8220;self.impl&#8221; by
+<li><p id="change-0.6.5-27"><span class="target" id="change-2b8e904daae0d182fbf0aaa6bca9d64b"><strong>[sql] </strong></span>TypeDecorator.load_dialect_impl() returns &#8220;self.impl&#8221; by
 default, i.e. not the dialect implementation type of
 &#8220;self.impl&#8221;.   This to support compilation correctly.
 Behavior can be user-overridden in exactly the same way
 as before to the same effect.<a class="changeset-link reference internal" href="#change-2b8e904daae0d182fbf0aaa6bca9d64b">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.5-32"><span class="target" id="change-29fd8b04b0c6aef95c9455c804c96892"><strong>[sql] </strong></span>Added type_coerce(expr, type_) expression element.
+<li><p id="change-0.6.5-28"><span class="target" id="change-29fd8b04b0c6aef95c9455c804c96892"><strong>[sql] </strong></span>Added type_coerce(expr, type_) expression element.
 Treats the given expression as the given type when evaluating
 expressions and processing result rows, but does not
 affect the generation of SQL, other than an anonymous
 label.<a class="changeset-link reference internal" href="#change-29fd8b04b0c6aef95c9455c804c96892">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.5-33"><span class="target" id="change-6c855e196152b57c304b333e9770fa07"><strong>[sql] </strong></span>Table.tometadata() now copies Index objects associated
+<li><p id="change-0.6.5-29"><span class="target" id="change-6c855e196152b57c304b333e9770fa07"><strong>[sql] </strong></span>Table.tometadata() now copies Index objects associated
 with the Table as well.<a class="changeset-link reference internal" href="#change-6c855e196152b57c304b333e9770fa07">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.5-34"><span class="target" id="change-81cb47d5917f4a66ca50b654ececaf77"><strong>[sql] </strong></span>Table.tometadata() issues a warning if the given Table
+<li><p id="change-0.6.5-30"><span class="target" id="change-81cb47d5917f4a66ca50b654ececaf77"><strong>[sql] </strong></span>Table.tometadata() issues a warning if the given Table
 is already present in the target MetaData - the existing
 Table object is returned.<a class="changeset-link reference internal" href="#change-81cb47d5917f4a66ca50b654ececaf77">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.5-35"><span class="target" id="change-6c2eaa8e6ce7b6c71555f1222eccbb27"><strong>[sql] </strong></span>An informative error message is raised if a Column
+<li><p id="change-0.6.5-31"><span class="target" id="change-6c2eaa8e6ce7b6c71555f1222eccbb27"><strong>[sql] </strong></span>An informative error message is raised if a Column
 which has not yet been assigned a name, i.e. as in
 declarative, is used in a context where it is
 exported to the columns collection of an enclosing
@@ -1404,11 +1360,11 @@ that column is compiled before its name is
 assigned.<a class="changeset-link reference internal" href="#change-6c2eaa8e6ce7b6c71555f1222eccbb27">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.5-36"><span class="target" id="change-69ad40851eefcd610d8d70ebd3511697"><strong>[sql] </strong></span>as_scalar(), label() can be called on a selectable
+<li><p id="change-0.6.5-32"><span class="target" id="change-69ad40851eefcd610d8d70ebd3511697"><strong>[sql] </strong></span>as_scalar(), label() can be called on a selectable
 which contains a Column that is not yet named.<a class="changeset-link reference internal" href="#change-69ad40851eefcd610d8d70ebd3511697">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1862">#1862</a></p>
 </p>
 </li>
-<li><p id="change-0.6.5-37"><span class="target" id="change-fcb44a57a6160aab1d8c4e8427c9b044"><strong>[sql] </strong></span>Fixed recursion overflow which could occur when operating
+<li><p id="change-0.6.5-33"><span class="target" id="change-fcb44a57a6160aab1d8c4e8427c9b044"><strong>[sql] </strong></span>Fixed recursion overflow which could occur when operating
 with two expressions both of type &#8220;NullType&#8221;, but
 not the singleton NULLTYPE instance.<a class="changeset-link reference internal" href="#change-fcb44a57a6160aab1d8c4e8427c9b044">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1907">#1907</a></p>
 </p>
@@ -1418,11 +1374,11 @@ not the singleton NULLTYPE instance.<a class="changeset-link reference internal"
 <div class="section" id="change-0.6.5-postgresql">
 <h3>postgresql<a class="headerlink" href="#change-0.6.5-postgresql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.5-38"><span class="target" id="change-4d094ee39f2d2bfb4cbd1e9cd2912640"><strong>[postgresql] </strong></span>Added &#8220;as_tuple&#8221; flag to ARRAY type, returns results
+<li><p id="change-0.6.5-34"><span class="target" id="change-4d094ee39f2d2bfb4cbd1e9cd2912640"><strong>[postgresql] </strong></span>Added &#8220;as_tuple&#8221; flag to ARRAY type, returns results
 as tuples instead of lists to allow hashing.<a class="changeset-link reference internal" href="#change-4d094ee39f2d2bfb4cbd1e9cd2912640">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.5-39"><span class="target" id="change-5b9e6f2e203f6ec007fcf90d5d5d9e90"><strong>[postgresql] </strong></span>Fixed bug which prevented &#8220;domain&#8221; built from a
+<li><p id="change-0.6.5-35"><span class="target" id="change-5b9e6f2e203f6ec007fcf90d5d5d9e90"><strong>[postgresql] </strong></span>Fixed bug which prevented &#8220;domain&#8221; built from a
 custom type such as &#8220;enum&#8221; from being reflected.<a class="changeset-link reference internal" href="#change-5b9e6f2e203f6ec007fcf90d5d5d9e90">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1933">#1933</a></p>
 </p>
 </li>
@@ -1431,7 +1387,7 @@ custom type such as &#8220;enum&#8221; from being reflected.<a class="changeset-
 <div class="section" id="change-0.6.5-mysql">
 <h3>mysql<a class="headerlink" href="#change-0.6.5-mysql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.5-40"><span class="target" id="change-e8d0855d359fcbb93416e1b0988fdb8e"><strong>[mysql] </strong></span>Fixed bug involving reflection of CURRENT_TIMESTAMP
+<li><p id="change-0.6.5-36"><span class="target" id="change-e8d0855d359fcbb93416e1b0988fdb8e"><strong>[mysql] </strong></span>Fixed bug involving reflection of CURRENT_TIMESTAMP
 default used with ON UPDATE clause, thanks to
 Taavi Burns<a class="changeset-link reference internal" href="#change-e8d0855d359fcbb93416e1b0988fdb8e">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1940">#1940</a></p>
 </p>
@@ -1441,22 +1397,22 @@ Taavi Burns<a class="changeset-link reference internal" href="#change-e8d0855d35
 <div class="section" id="change-0.6.5-mssql">
 <h3>mssql<a class="headerlink" href="#change-0.6.5-mssql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.5-41"><span class="target" id="change-f16e997950ea6bca39c0a059887dfbfd"><strong>[mssql] </strong></span>Fixed reflection bug which did not properly handle
+<li><p id="change-0.6.5-37"><span class="target" id="change-f16e997950ea6bca39c0a059887dfbfd"><strong>[mssql] </strong></span>Fixed reflection bug which did not properly handle
 reflection of unknown types.<a class="changeset-link reference internal" href="#change-f16e997950ea6bca39c0a059887dfbfd">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1946">#1946</a></p>
 </p>
 </li>
-<li><p id="change-0.6.5-42"><span class="target" id="change-022e82021b20bc2c059207eb8b7234af"><strong>[mssql] </strong></span>Fixed bug where aliasing of tables with &#8220;schema&#8221; would
+<li><p id="change-0.6.5-38"><span class="target" id="change-022e82021b20bc2c059207eb8b7234af"><strong>[mssql] </strong></span>Fixed bug where aliasing of tables with &#8220;schema&#8221; would
 fail to compile properly.<a class="changeset-link reference internal" href="#change-022e82021b20bc2c059207eb8b7234af">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1943">#1943</a></p>
 </p>
 </li>
-<li><p id="change-0.6.5-43"><span class="target" id="change-9f19687a241d918bf9dd03d0cc3ff3ed"><strong>[mssql] </strong></span>Rewrote the reflection of indexes to use sys.
+<li><p id="change-0.6.5-39"><span class="target" id="change-9f19687a241d918bf9dd03d0cc3ff3ed"><strong>[mssql] </strong></span>Rewrote the reflection of indexes to use sys.
 catalogs, so that column names of any configuration
 (spaces, embedded commas, etc.) can be reflected.
 Note that reflection of indexes requires SQL
 Server 2005 or greater.<a class="changeset-link reference internal" href="#change-9f19687a241d918bf9dd03d0cc3ff3ed">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1770">#1770</a></p>
 </p>
 </li>
-<li><p id="change-0.6.5-44"><span class="target" id="change-ffe886676fb15f105e1a8cc37dfb6f9d"><strong>[mssql] </strong></span>mssql+pymssql dialect now honors the &#8220;port&#8221; portion
+<li><p id="change-0.6.5-40"><span class="target" id="change-ffe886676fb15f105e1a8cc37dfb6f9d"><strong>[mssql] </strong></span>mssql+pymssql dialect now honors the &#8220;port&#8221; portion
 of the URL instead of discarding it.<a class="changeset-link reference internal" href="#change-ffe886676fb15f105e1a8cc37dfb6f9d">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1952">#1952</a></p>
 </p>
 </li>
@@ -1465,7 +1421,7 @@ of the URL instead of discarding it.<a class="changeset-link reference internal"
 <div class="section" id="change-0.6.5-oracle">
 <h3>oracle<a class="headerlink" href="#change-0.6.5-oracle" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.5-45"><span class="target" id="change-b1ce6e2ee29e5229dafefbb51f14def2"><strong>[oracle] </strong></span>The implicit_retunring argument to create_engine()
+<li><p id="change-0.6.5-41"><span class="target" id="change-b1ce6e2ee29e5229dafefbb51f14def2"><strong>[oracle] </strong></span>The implicit_retunring argument to create_engine()
 is now honored regardless of detected version of
 Oracle.  Previously, the flag would be forced
 to False if server version info was &lt; 10.<a class="changeset-link reference internal" href="#change-b1ce6e2ee29e5229dafefbb51f14def2">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1878">#1878</a></p>
@@ -1476,6 +1432,29 @@ to False if server version info was &lt; 10.<a class="changeset-link reference i
 <div class="section" id="change-0.6.5-misc">
 <h3>misc<a class="headerlink" href="#change-0.6.5-misc" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
+<li><p id="change-0.6.5-42"><span class="target" id="change-b19f9aa816f9e63c03fa209095e76f51"><strong>[declarative] </strong></span>&#64;classproperty (soon/now &#64;declared_attr) takes effect for
+__mapper_args__, __table_args__, __tablename__ on
+a base class that is not a mixin, as well as mixins.<a class="changeset-link reference internal" href="#change-b19f9aa816f9e63c03fa209095e76f51">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1922">#1922</a></p>
+</p>
+</li>
+<li><p id="change-0.6.5-43"><span class="target" id="change-b9792dc15f6375711ec84bb73ae74272"><strong>[declarative] </strong></span>&#64;classproperty &#8216;s official name/location for usage
+with declarative is sqlalchemy.ext.declarative.declared_attr.
+Same thing, but moving there since it is more of a
+&#8220;marker&#8221; that&#8217;s specific to declararative,
+not just an attribute technique.<a class="changeset-link reference internal" href="#change-b9792dc15f6375711ec84bb73ae74272">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1915">#1915</a></p>
+</p>
+</li>
+<li><p id="change-0.6.5-44"><span class="target" id="change-172b80261166fbfb39ffe45d8499afe2"><strong>[declarative] </strong></span>Fixed bug whereby columns on a mixin wouldn&#8217;t propagate
+correctly to a single-table, or joined-table,
+inheritance scheme where the attribute name is
+different than that of the column.,.<a class="changeset-link reference internal" href="#change-172b80261166fbfb39ffe45d8499afe2">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1931">#1931</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1930">#1930</a></p>
+</p>
+</li>
+<li><p id="change-0.6.5-45"><span class="target" id="change-b0075b372f99003ca5b69e678f306150"><strong>[declarative] </strong></span>A mixin can now specify a column that overrides
+a column of the same name associated with a superclass.
+Thanks to Oystein Haaland.<a class="changeset-link reference internal" href="#change-b0075b372f99003ca5b69e678f306150">(link)</a><p></p>
+</p>
+</li>
 <li><p id="change-0.6.5-46"><span class="target" id="change-8af323a4cf559c67e71f9b667f9548f5"><strong>[informix] </strong></span><em>Major</em> cleanup / modernization of the Informix
 dialect for 0.6, courtesy Florian Apolloner.<a class="changeset-link reference internal" href="#change-8af323a4cf559c67e71f9b667f9548f5">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1906">#1906</a></p>
 </p>
@@ -1700,29 +1679,10 @@ NULL.<a class="changeset-link reference internal" href="#change-8d5f4593adc4160b
 </li>
 </ul>
 </div>
-<div class="section" id="change-0.6.4-orm-declarative">
-<h3>orm declarative<a class="headerlink" href="#change-0.6.4-orm-declarative" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p id="change-0.6.4-23"><span class="target" id="change-d4f2d73f8008d60634e100a68c13d398"><strong>[declarative] [orm] </strong></span>if &#64;classproperty is used with a regular class-bound
-mapper property attribute, it will be called to get the
-actual attribute value during initialization. Currently,
-there&#8217;s no advantage to using &#64;classproperty on a column
-or relationship attribute of a declarative class that
-isn&#8217;t a mixin - evaluation is at the same time as if
-&#64;classproperty weren&#8217;t used. But here we at least allow
-it to function as expected.<a class="changeset-link reference internal" href="#change-d4f2d73f8008d60634e100a68c13d398">(link)</a><p></p>
-</p>
-</li>
-<li><p id="change-0.6.4-24"><span class="target" id="change-868509e7b789f5e8a014c772349e3eb7"><strong>[declarative] [orm] </strong></span>Fixed bug where &#8220;Can&#8217;t add additional column&#8221; message
-would display the wrong name.<a class="changeset-link reference internal" href="#change-868509e7b789f5e8a014c772349e3eb7">(link)</a><p></p>
-</p>
-</li>
-</ul>
-</div>
 <div class="section" id="change-0.6.4-engine">
 <h3>engine<a class="headerlink" href="#change-0.6.4-engine" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.4-25"><span class="target" id="change-589479e3126e16088d4e863148a31849"><strong>[engine] </strong></span>Calling fetchone() or similar on a result that
+<li><p id="change-0.6.4-23"><span class="target" id="change-589479e3126e16088d4e863148a31849"><strong>[engine] </strong></span>Calling fetchone() or similar on a result that
 has already been exhausted, has been closed,
 or is not a result-returning result now
 raises ResourceClosedError, a subclass of
@@ -1733,20 +1693,20 @@ would return None leading to downstream breakages
 (i.e. MySQL-python).<a class="changeset-link reference internal" href="#change-589479e3126e16088d4e863148a31849">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.4-26"><span class="target" id="change-0c3f6fab852e973ab1d2ba1c54362a92"><strong>[engine] </strong></span>Fixed bug in Connection whereby if a &#8220;disconnect&#8221;
+<li><p id="change-0.6.4-24"><span class="target" id="change-0c3f6fab852e973ab1d2ba1c54362a92"><strong>[engine] </strong></span>Fixed bug in Connection whereby if a &#8220;disconnect&#8221;
 event occurred in the &#8220;initialize&#8221; phase of the
 first connection pool connect, an AttributeError
 would be raised when the Connection would attempt
 to invalidate the DBAPI connection.<a class="changeset-link reference internal" href="#change-0c3f6fab852e973ab1d2ba1c54362a92">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1894">#1894</a></p>
 </p>
 </li>
-<li><p id="change-0.6.4-27"><span class="target" id="change-ab05177ef559d382cd656f5e04d11148"><strong>[engine] </strong></span>Connection, ResultProxy, as well as Session use
+<li><p id="change-0.6.4-25"><span class="target" id="change-ab05177ef559d382cd656f5e04d11148"><strong>[engine] </strong></span>Connection, ResultProxy, as well as Session use
 ResourceClosedError for all &#8220;this
 connection/transaction/result is closed&#8221; types of
 errors.<a class="changeset-link reference internal" href="#change-ab05177ef559d382cd656f5e04d11148">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.4-28"><span class="target" id="change-d4066423ccfa075735e1ebf61f2cbc24"><strong>[engine] </strong></span>Connection.invalidate() can be called more than
+<li><p id="change-0.6.4-26"><span class="target" id="change-d4066423ccfa075735e1ebf61f2cbc24"><strong>[engine] </strong></span>Connection.invalidate() can be called more than
 once and subsequent calls do nothing.<a class="changeset-link reference internal" href="#change-d4066423ccfa075735e1ebf61f2cbc24">(link)</a><p></p>
 </p>
 </li>
@@ -1755,14 +1715,14 @@ once and subsequent calls do nothing.<a class="changeset-link reference internal
 <div class="section" id="change-0.6.4-sql">
 <h3>sql<a class="headerlink" href="#change-0.6.4-sql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.4-29"><span class="target" id="change-480b20f80312b137c4a7324b0d657a63"><strong>[sql] </strong></span>Calling execute() on an alias() construct is pending
+<li><p id="change-0.6.4-27"><span class="target" id="change-480b20f80312b137c4a7324b0d657a63"><strong>[sql] </strong></span>Calling execute() on an alias() construct is pending
 deprecation for 0.7, as it is not itself an
 &#8220;executable&#8221; construct. It currently &#8220;proxies&#8221; its
 inner element and is conditionally &#8220;executable&#8221; but
 this is not the kind of ambiguity we like these days.<a class="changeset-link reference internal" href="#change-480b20f80312b137c4a7324b0d657a63">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.4-30"><span class="target" id="change-eb5f51e1a650e79182bb020de761924f"><strong>[sql] </strong></span>The execute() and scalar() methods of ClauseElement
+<li><p id="change-0.6.4-28"><span class="target" id="change-eb5f51e1a650e79182bb020de761924f"><strong>[sql] </strong></span>The execute() and scalar() methods of ClauseElement
 are now moved appropriately to the Executable
 subclass. ClauseElement.execute()/ scalar() are still
 present and are pending deprecation in 0.7, but note
@@ -1771,13 +1731,13 @@ not an Executable (unless you were an alias(), see
 previous note).<a class="changeset-link reference internal" href="#change-eb5f51e1a650e79182bb020de761924f">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.4-31"><span class="target" id="change-95e0aca2331a7b95d533d515094ccb13"><strong>[sql] </strong></span>Added basic math expression coercion for
+<li><p id="change-0.6.4-29"><span class="target" id="change-95e0aca2331a7b95d533d515094ccb13"><strong>[sql] </strong></span>Added basic math expression coercion for
 Numeric-&gt;Integer,
 so that resulting type is Numeric regardless
 of the direction of the expression.<a class="changeset-link reference internal" href="#change-95e0aca2331a7b95d533d515094ccb13">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.4-32"><span class="target" id="change-a584b4c246f0f778263d5dc8e66808ad"><strong>[sql] </strong></span>Changed the scheme used to generate truncated
+<li><p id="change-0.6.4-30"><span class="target" id="change-a584b4c246f0f778263d5dc8e66808ad"><strong>[sql] </strong></span>Changed the scheme used to generate truncated
 &#8220;auto&#8221; index names when using the &#8220;index=True&#8221;
 flag on Column.   The truncation only takes
 place with the auto-generated name, not one
@@ -1789,7 +1749,7 @@ indexes on columns with similar names still
 have unique names.<a class="changeset-link reference internal" href="#change-a584b4c246f0f778263d5dc8e66808ad">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1855">#1855</a></p>
 </p>
 </li>
-<li><p id="change-0.6.4-33"><span class="target" id="change-cdd20195fab17091c475b43262749a74"><strong>[sql] </strong></span>The generated index name also is based on
+<li><p id="change-0.6.4-31"><span class="target" id="change-cdd20195fab17091c475b43262749a74"><strong>[sql] </strong></span>The generated index name also is based on
 a &#8220;max index name length&#8221; attribute which is
 separate from the &#8220;max identifier length&#8221; -
 this to appease MySQL who has a max length
@@ -1797,7 +1757,7 @@ of 64 for index names, separate from their
 overall max length of 255.<a class="changeset-link reference internal" href="#change-cdd20195fab17091c475b43262749a74">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1412">#1412</a></p>
 </p>
 </li>
-<li><p id="change-0.6.4-34"><span class="target" id="change-e0733f3fbe5188168ab9fc6dd0040998"><strong>[sql] </strong></span>the text() construct, if placed in a column
+<li><p id="change-0.6.4-32"><span class="target" id="change-e0733f3fbe5188168ab9fc6dd0040998"><strong>[sql] </strong></span>the text() construct, if placed in a column
 oriented situation, will at least return NULLTYPE
 for its type instead of None, allowing it to
 be used a little more freely for ad-hoc column
@@ -1805,18 +1765,18 @@ expressions than before.   literal_column()
 is still the better choice, however.<a class="changeset-link reference internal" href="#change-e0733f3fbe5188168ab9fc6dd0040998">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.4-35"><span class="target" id="change-be54ec2b3e2eb3de741a48665fe37d51"><strong>[sql] </strong></span>Added full description of parent table/column,
+<li><p id="change-0.6.4-33"><span class="target" id="change-be54ec2b3e2eb3de741a48665fe37d51"><strong>[sql] </strong></span>Added full description of parent table/column,
 target table/column in error message raised when
 ForeignKey can&#8217;t resolve target.<a class="changeset-link reference internal" href="#change-be54ec2b3e2eb3de741a48665fe37d51">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.4-36"><span class="target" id="change-95d89e7a08c42c04836f4ec67f236a9f"><strong>[sql] </strong></span>Fixed bug whereby replacing composite foreign key
+<li><p id="change-0.6.4-34"><span class="target" id="change-95d89e7a08c42c04836f4ec67f236a9f"><strong>[sql] </strong></span>Fixed bug whereby replacing composite foreign key
 columns in a reflected table would cause an attempt
 to remove the reflected constraint from the table
 a second time, raising a KeyError.<a class="changeset-link reference internal" href="#change-95d89e7a08c42c04836f4ec67f236a9f">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1865">#1865</a></p>
 </p>
 </li>
-<li><p id="change-0.6.4-37"><span class="target" id="change-0a8949e6824cfb04db55beb3e85e4aed"><strong>[sql] </strong></span>the _Label construct, i.e. the one that is produced
+<li><p id="change-0.6.4-35"><span class="target" id="change-0a8949e6824cfb04db55beb3e85e4aed"><strong>[sql] </strong></span>the _Label construct, i.e. the one that is produced
 whenever you say somecol.label(), now counts itself
 in its &#8220;proxy_set&#8221; unioned with that of it&#8217;s
 contained column&#8217;s proxy set, instead of
@@ -1826,7 +1786,7 @@ operations which depend on the identity of the
 _Labels themselves to return the correct result<a class="changeset-link reference internal" href="#change-0a8949e6824cfb04db55beb3e85e4aed">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.4-38"><span class="target" id="change-babee0cfb69d9dbe635ee89deaa616d3"><strong>[sql] </strong></span>fixes ORM bug.<a class="changeset-link reference internal" href="#change-babee0cfb69d9dbe635ee89deaa616d3">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1852">#1852</a></p>
+<li><p id="change-0.6.4-36"><span class="target" id="change-babee0cfb69d9dbe635ee89deaa616d3"><strong>[sql] </strong></span>fixes ORM bug.<a class="changeset-link reference internal" href="#change-babee0cfb69d9dbe635ee89deaa616d3">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1852">#1852</a></p>
 </p>
 </li>
 </ul>
@@ -1834,7 +1794,7 @@ _Labels themselves to return the correct result<a class="changeset-link referenc
 <div class="section" id="change-0.6.4-postgresql">
 <h3>postgresql<a class="headerlink" href="#change-0.6.4-postgresql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.4-39"><span class="target" id="change-f20cfbd769e0d3362affb83971075073"><strong>[postgresql] </strong></span>Fixed the psycopg2 dialect to use its
+<li><p id="change-0.6.4-37"><span class="target" id="change-f20cfbd769e0d3362affb83971075073"><strong>[postgresql] </strong></span>Fixed the psycopg2 dialect to use its
 set_isolation_level() method instead of relying
 upon the base &#8220;SET SESSION ISOLATION&#8221; command,
 as psycopg2 resets the isolation level on each new
@@ -1846,7 +1806,7 @@ transaction otherwise.<a class="changeset-link reference internal" href="#change
 <div class="section" id="change-0.6.4-mssql">
 <h3>mssql<a class="headerlink" href="#change-0.6.4-mssql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.4-40"><span class="target" id="change-653ce1cee9e040e6cd9de66cc99d034d"><strong>[mssql] </strong></span>Fixed &#8220;default schema&#8221; query to work with
+<li><p id="change-0.6.4-38"><span class="target" id="change-653ce1cee9e040e6cd9de66cc99d034d"><strong>[mssql] </strong></span>Fixed &#8220;default schema&#8221; query to work with
 pymssql backend.<a class="changeset-link reference internal" href="#change-653ce1cee9e040e6cd9de66cc99d034d">(link)</a><p></p>
 </p>
 </li>
@@ -1855,11 +1815,11 @@ pymssql backend.<a class="changeset-link reference internal" href="#change-653ce
 <div class="section" id="change-0.6.4-oracle">
 <h3>oracle<a class="headerlink" href="#change-0.6.4-oracle" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.4-41"><span class="target" id="change-c4096e037bacbf97eddd92b0034f98ca"><strong>[oracle] </strong></span>Added ROWID type to the Oracle dialect, for those
+<li><p id="change-0.6.4-39"><span class="target" id="change-c4096e037bacbf97eddd92b0034f98ca"><strong>[oracle] </strong></span>Added ROWID type to the Oracle dialect, for those
 cases where an explicit CAST might be needed.<a class="changeset-link reference internal" href="#change-c4096e037bacbf97eddd92b0034f98ca">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1879">#1879</a></p>
 </p>
 </li>
-<li><p id="change-0.6.4-42"><span class="target" id="change-0c48f10bbe06c8a4b97b10e3f86708d7"><strong>[oracle] </strong></span>Oracle reflection of indexes has been tuned so
+<li><p id="change-0.6.4-40"><span class="target" id="change-0c48f10bbe06c8a4b97b10e3f86708d7"><strong>[oracle] </strong></span>Oracle reflection of indexes has been tuned so
 that indexes which include some or all primary
 key columns, but not the same set of columns
 as that of the primary key, are reflected.
@@ -1872,7 +1832,7 @@ would be skipped.  Thanks to Kent Bower
 for the patch.<a class="changeset-link reference internal" href="#change-0c48f10bbe06c8a4b97b10e3f86708d7">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1867">#1867</a></p>
 </p>
 </li>
-<li><p id="change-0.6.4-43"><span class="target" id="change-ee4487a1aebbf952cb6ceaac4cb47cc8"><strong>[oracle] </strong></span>Oracle now reflects the names of primary key
+<li><p id="change-0.6.4-41"><span class="target" id="change-ee4487a1aebbf952cb6ceaac4cb47cc8"><strong>[oracle] </strong></span>Oracle now reflects the names of primary key
 constraints - also thanks to Kent Bower.<a class="changeset-link reference internal" href="#change-ee4487a1aebbf952cb6ceaac4cb47cc8">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1868">#1868</a></p>
 </p>
 </li>
@@ -1881,7 +1841,7 @@ constraints - also thanks to Kent Bower.<a class="changeset-link reference inter
 <div class="section" id="change-0.6.4-firebird">
 <h3>firebird<a class="headerlink" href="#change-0.6.4-firebird" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.4-44"><span class="target" id="change-92ab44e94581b35f750bf10f4e470570"><strong>[firebird] </strong></span>Fixed bug whereby a column default would fail to
+<li><p id="change-0.6.4-42"><span class="target" id="change-92ab44e94581b35f750bf10f4e470570"><strong>[firebird] </strong></span>Fixed bug whereby a column default would fail to
 reflect if the &#8220;default&#8221; keyword were lower case.<a class="changeset-link reference internal" href="#change-92ab44e94581b35f750bf10f4e470570">(link)</a><p></p>
 </p>
 </li>
@@ -1890,6 +1850,20 @@ reflect if the &#8220;default&#8221; keyword were lower case.<a class="changeset
 <div class="section" id="change-0.6.4-misc">
 <h3>misc<a class="headerlink" href="#change-0.6.4-misc" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
+<li><p id="change-0.6.4-43"><span class="target" id="change-d4f2d73f8008d60634e100a68c13d398"><strong>[declarative] </strong></span>if &#64;classproperty is used with a regular class-bound
+mapper property attribute, it will be called to get the
+actual attribute value during initialization. Currently,
+there&#8217;s no advantage to using &#64;classproperty on a column
+or relationship attribute of a declarative class that
+isn&#8217;t a mixin - evaluation is at the same time as if
+&#64;classproperty weren&#8217;t used. But here we at least allow
+it to function as expected.<a class="changeset-link reference internal" href="#change-d4f2d73f8008d60634e100a68c13d398">(link)</a><p></p>
+</p>
+</li>
+<li><p id="change-0.6.4-44"><span class="target" id="change-868509e7b789f5e8a014c772349e3eb7"><strong>[declarative] </strong></span>Fixed bug where &#8220;Can&#8217;t add additional column&#8221; message
+would display the wrong name.<a class="changeset-link reference internal" href="#change-868509e7b789f5e8a014c772349e3eb7">(link)</a><p></p>
+</p>
+</li>
 <li><p id="change-0.6.4-45"><span class="target" id="change-431a87a1564f158a2d2ac1b341792ad1"><strong>[informix] </strong></span>Applied patches from to get
 basic Informix functionality up again.  We
 rely upon end-user testing to ensure that
@@ -2085,31 +2059,10 @@ to undefined, None/empty on access.<a class="changeset-link reference internal" 
 </li>
 </ul>
 </div>
-<div class="section" id="change-0.6.2-orm-declarative">
-<h3>orm declarative<a class="headerlink" href="#change-0.6.2-orm-declarative" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p id="change-0.6.2-10"><span class="target" id="change-586d7016a7038e911f333b3d048f0c80"><strong>[declarative] [orm] </strong></span>Added support for &#64;classproperty to provide
-any kind of schema/mapping construct from a
-declarative mixin, including columns with foreign
-keys, relationships, column_property, deferred.
-This solves all such issues on declarative mixins.
-An error is raised if any MapperProperty subclass
-is specified on a mixin without using &#64;classproperty.<a class="changeset-link reference internal" href="#change-586d7016a7038e911f333b3d048f0c80">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1805">#1805</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1796">#1796</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1751">#1751</a></p>
-</p>
-</li>
-<li><p id="change-0.6.2-11"><span class="target" id="change-f1e04d8a9d224260a51570d93bc2bf4b"><strong>[declarative] [orm] </strong></span>a mixin class can now define a column that matches
-one which is present on a __table__ defined on a
-subclass.  It cannot, however, define one that is
-not present in the __table__, and the error message
-here now works.<a class="changeset-link reference internal" href="#change-f1e04d8a9d224260a51570d93bc2bf4b">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1821">#1821</a></p>
-</p>
-</li>
-</ul>
-</div>
 <div class="section" id="change-0.6.2-sql">
 <h3>sql<a class="headerlink" href="#change-0.6.2-sql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.2-12"><span class="target" id="change-92eb958a7927c4e9caecec020272c06f"><strong>[sql] </strong></span>The warning emitted by the Unicode and String types
+<li><p id="change-0.6.2-10"><span class="target" id="change-92eb958a7927c4e9caecec020272c06f"><strong>[sql] </strong></span>The warning emitted by the Unicode and String types
 with convert_unicode=True no longer embeds the actual
 value passed.   This so that the Python warning
 registry does not continue to grow in size, the warning
@@ -2117,34 +2070,34 @@ is emitted once as per the warning filter settings,
 and large string values don&#8217;t pollute the output.<a class="changeset-link reference internal" href="#change-92eb958a7927c4e9caecec020272c06f">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1822">#1822</a></p>
 </p>
 </li>
-<li><p id="change-0.6.2-13"><span class="target" id="change-7ac2b12e9e86167b88a0806d4cbbe9fb"><strong>[sql] </strong></span>Fixed bug that would prevent overridden clause
+<li><p id="change-0.6.2-11"><span class="target" id="change-7ac2b12e9e86167b88a0806d4cbbe9fb"><strong>[sql] </strong></span>Fixed bug that would prevent overridden clause
 compilation from working for &#8220;annotated&#8221; expression
 elements, which are often generated by the ORM.<a class="changeset-link reference internal" href="#change-7ac2b12e9e86167b88a0806d4cbbe9fb">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.2-14"><span class="target" id="change-5e141a144264b09de7321f5569bcd21d"><strong>[sql] </strong></span>The argument to &#8220;ESCAPE&#8221; of a LIKE operator or similar
+<li><p id="change-0.6.2-12"><span class="target" id="change-5e141a144264b09de7321f5569bcd21d"><strong>[sql] </strong></span>The argument to &#8220;ESCAPE&#8221; of a LIKE operator or similar
 is passed through render_literal_value(), which may
 implement escaping of backslashes.<a class="changeset-link reference internal" href="#change-5e141a144264b09de7321f5569bcd21d">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1400">#1400</a></p>
 </p>
 </li>
-<li><p id="change-0.6.2-15"><span class="target" id="change-854fbd022574e164314a3322bae40806"><strong>[sql] </strong></span>Fixed bug in Enum type which blew away native_enum
+<li><p id="change-0.6.2-13"><span class="target" id="change-854fbd022574e164314a3322bae40806"><strong>[sql] </strong></span>Fixed bug in Enum type which blew away native_enum
 flag when used with TypeDecorators or other adaption
 scenarios.<a class="changeset-link reference internal" href="#change-854fbd022574e164314a3322bae40806">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.2-16"><span class="target" id="change-da5d7dd83b9b8e3fa3dfc3c698adee89"><strong>[sql] </strong></span>Inspector hits bind.connect() when invoked to ensure
+<li><p id="change-0.6.2-14"><span class="target" id="change-da5d7dd83b9b8e3fa3dfc3c698adee89"><strong>[sql] </strong></span>Inspector hits bind.connect() when invoked to ensure
 initialize has been called.  the internal name &#8221;.conn&#8221;
 is changed to &#8221;.bind&#8221;, since that&#8217;s what it is.<a class="changeset-link reference internal" href="#change-da5d7dd83b9b8e3fa3dfc3c698adee89">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.2-17"><span class="target" id="change-7031856f1234d33d0ce85911ecb27356"><strong>[sql] </strong></span>Modified the internals of &#8220;column annotation&#8221; such that
+<li><p id="change-0.6.2-15"><span class="target" id="change-7031856f1234d33d0ce85911ecb27356"><strong>[sql] </strong></span>Modified the internals of &#8220;column annotation&#8221; such that
 a custom Column subclass can safely override
 _constructor to return Column, for the purposes of
 making &#8220;configurational&#8221; column classes that aren&#8217;t
 involved in proxying, etc.<a class="changeset-link reference internal" href="#change-7031856f1234d33d0ce85911ecb27356">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.2-18"><span class="target" id="change-10d73e5cbbe7209624f8a76e237438c6"><strong>[sql] </strong></span>Column.copy() takes along the &#8220;unique&#8221; attribute
+<li><p id="change-0.6.2-16"><span class="target" id="change-10d73e5cbbe7209624f8a76e237438c6"><strong>[sql] </strong></span>Column.copy() takes along the &#8220;unique&#8221; attribute
 among others, fixes regarding declarative
 mixins<a class="changeset-link reference internal" href="#change-10d73e5cbbe7209624f8a76e237438c6">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1829">#1829</a></p>
 </p>
@@ -2154,14 +2107,14 @@ mixins<a class="changeset-link reference internal" href="#change-10d73e5cbbe7209
 <div class="section" id="change-0.6.2-postgresql">
 <h3>postgresql<a class="headerlink" href="#change-0.6.2-postgresql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.2-19"><span class="target" id="change-a99b1c9cecc1e928c742b45ef8f90cc3"><strong>[postgresql] </strong></span>render_literal_value() is overridden which escapes
+<li><p id="change-0.6.2-17"><span class="target" id="change-a99b1c9cecc1e928c742b45ef8f90cc3"><strong>[postgresql] </strong></span>render_literal_value() is overridden which escapes
 backslashes, currently applies to the ESCAPE clause
 of LIKE and similar expressions.
 Ultimately this will have to detect the value of
 &#8220;standard_conforming_strings&#8221; for full behavior.<a class="changeset-link reference internal" href="#change-a99b1c9cecc1e928c742b45ef8f90cc3">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1400">#1400</a></p>
 </p>
 </li>
-<li><p id="change-0.6.2-20"><span class="target" id="change-48af7b36fa4c3f12a67261b2f80d7865"><strong>[postgresql] </strong></span>Won&#8217;t generate &#8220;CREATE TYPE&#8221; / &#8220;DROP TYPE&#8221; if
+<li><p id="change-0.6.2-18"><span class="target" id="change-48af7b36fa4c3f12a67261b2f80d7865"><strong>[postgresql] </strong></span>Won&#8217;t generate &#8220;CREATE TYPE&#8221; / &#8220;DROP TYPE&#8221; if
 using types.Enum on a PG version prior to 8.3 -
 the supports_native_enum flag is fully
 honored.<a class="changeset-link reference internal" href="#change-48af7b36fa4c3f12a67261b2f80d7865">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1836">#1836</a></p>
@@ -2172,16 +2125,16 @@ honored.<a class="changeset-link reference internal" href="#change-48af7b36fa4c3
 <div class="section" id="change-0.6.2-mysql">
 <h3>mysql<a class="headerlink" href="#change-0.6.2-mysql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.2-21"><span class="target" id="change-91f3d4d5f1ca37036afc83b8e87c588c"><strong>[mysql] </strong></span>MySQL dialect doesn&#8217;t emit CAST() for MySQL version
+<li><p id="change-0.6.2-19"><span class="target" id="change-91f3d4d5f1ca37036afc83b8e87c588c"><strong>[mysql] </strong></span>MySQL dialect doesn&#8217;t emit CAST() for MySQL version
 detected &lt; 4.0.2.  This allows the unicode
 check on connect to proceed.<a class="changeset-link reference internal" href="#change-91f3d4d5f1ca37036afc83b8e87c588c">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1826">#1826</a></p>
 </p>
 </li>
-<li><p id="change-0.6.2-22"><span class="target" id="change-5984734c58273d70156013fa76eb8074"><strong>[mysql] </strong></span>MySQL dialect now detects NO_BACKSLASH_ESCAPES sql
+<li><p id="change-0.6.2-20"><span class="target" id="change-5984734c58273d70156013fa76eb8074"><strong>[mysql] </strong></span>MySQL dialect now detects NO_BACKSLASH_ESCAPES sql
 mode, in addition to ANSI_QUOTES.<a class="changeset-link reference internal" href="#change-5984734c58273d70156013fa76eb8074">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.2-23"><span class="target" id="change-a99b1c9cecc1e928c742b45ef8f90cc3"><strong>[mysql] </strong></span>render_literal_value() is overridden which escapes
+<li><p id="change-0.6.2-21"><span class="target" id="change-a99b1c9cecc1e928c742b45ef8f90cc3"><strong>[mysql] </strong></span>render_literal_value() is overridden which escapes
 backslashes, currently applies to the ESCAPE clause
 of LIKE and similar expressions.   This behavior
 is derived from detecting the value of
@@ -2193,7 +2146,7 @@ NO_BACKSLASH_ESCAPES.<a class="changeset-link reference internal" href="#change-
 <div class="section" id="change-0.6.2-mssql">
 <h3>mssql<a class="headerlink" href="#change-0.6.2-mssql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.2-24"><span class="target" id="change-0e401708966cccc9a7cc010adc04da9a"><strong>[mssql] </strong></span>If server_version_info is outside the usual
+<li><p id="change-0.6.2-22"><span class="target" id="change-0e401708966cccc9a7cc010adc04da9a"><strong>[mssql] </strong></span>If server_version_info is outside the usual
 range of (8, ), (9, ), (10, ), a warning is emitted
 which suggests checking that the FreeTDS version
 configuration is using 7.0 or 8.0, not 4.2.<a class="changeset-link reference internal" href="#change-0e401708966cccc9a7cc010adc04da9a">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1825">#1825</a></p>
@@ -2204,12 +2157,12 @@ configuration is using 7.0 or 8.0, not 4.2.<a class="changeset-link reference in
 <div class="section" id="change-0.6.2-oracle">
 <h3>oracle<a class="headerlink" href="#change-0.6.2-oracle" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.2-25"><span class="target" id="change-8d37a789557837ae28f36a0368b2b8a3"><strong>[oracle] </strong></span>Fixed ora-8 compatibility flags such that they
+<li><p id="change-0.6.2-23"><span class="target" id="change-8d37a789557837ae28f36a0368b2b8a3"><strong>[oracle] </strong></span>Fixed ora-8 compatibility flags such that they
 don&#8217;t cache a stale value from before the first
 database connection actually occurs.<a class="changeset-link reference internal" href="#change-8d37a789557837ae28f36a0368b2b8a3">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1819">#1819</a></p>
 </p>
 </li>
-<li><p id="change-0.6.2-26"><span class="target" id="change-7cd2a1495d29a7ea446ff63e34a7e290"><strong>[oracle] </strong></span>Oracle&#8217;s &#8220;native decimal&#8221; metadata begins to return
+<li><p id="change-0.6.2-24"><span class="target" id="change-7cd2a1495d29a7ea446ff63e34a7e290"><strong>[oracle] </strong></span>Oracle&#8217;s &#8220;native decimal&#8221; metadata begins to return
 ambiguous typing information about numerics
 when columns are embedded in subqueries as well
 as when ROWNUM is consulted with subqueries, as we
@@ -2227,11 +2180,11 @@ Decimal.<a class="changeset-link reference internal" href="#change-7cd2a1495d29a
 <div class="section" id="change-0.6.2-firebird">
 <h3>firebird<a class="headerlink" href="#change-0.6.2-firebird" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6.2-27"><span class="target" id="change-8020c6a07179eb3773cff83bf7e318ac"><strong>[firebird] </strong></span>Fixed incorrect signature in do_execute(), error
+<li><p id="change-0.6.2-25"><span class="target" id="change-8020c6a07179eb3773cff83bf7e318ac"><strong>[firebird] </strong></span>Fixed incorrect signature in do_execute(), error
 introduced in 0.6.1.<a class="changeset-link reference internal" href="#change-8020c6a07179eb3773cff83bf7e318ac">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1823">#1823</a></p>
 </p>
 </li>
-<li><p id="change-0.6.2-28"><span class="target" id="change-911be84370c3f1ad4939567277f70d73"><strong>[firebird] </strong></span>Firebird dialect adds CHAR, VARCHAR types which
+<li><p id="change-0.6.2-26"><span class="target" id="change-911be84370c3f1ad4939567277f70d73"><strong>[firebird] </strong></span>Firebird dialect adds CHAR, VARCHAR types which
 accept a &#8220;charset&#8221; flag, to support Firebird
 &#8220;CHARACTER SET&#8221; clause.<a class="changeset-link reference internal" href="#change-911be84370c3f1ad4939567277f70d73">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1813">#1813</a></p>
 </p>
@@ -2241,6 +2194,22 @@ accept a &#8220;charset&#8221; flag, to support Firebird
 <div class="section" id="change-0.6.2-misc">
 <h3>misc<a class="headerlink" href="#change-0.6.2-misc" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
+<li><p id="change-0.6.2-27"><span class="target" id="change-586d7016a7038e911f333b3d048f0c80"><strong>[declarative] </strong></span>Added support for &#64;classproperty to provide
+any kind of schema/mapping construct from a
+declarative mixin, including columns with foreign
+keys, relationships, column_property, deferred.
+This solves all such issues on declarative mixins.
+An error is raised if any MapperProperty subclass
+is specified on a mixin without using &#64;classproperty.<a class="changeset-link reference internal" href="#change-586d7016a7038e911f333b3d048f0c80">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1805">#1805</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1796">#1796</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1751">#1751</a></p>
+</p>
+</li>
+<li><p id="change-0.6.2-28"><span class="target" id="change-f1e04d8a9d224260a51570d93bc2bf4b"><strong>[declarative] </strong></span>a mixin class can now define a column that matches
+one which is present on a __table__ defined on a
+subclass.  It cannot, however, define one that is
+not present in the __table__, and the error message
+here now works.<a class="changeset-link reference internal" href="#change-f1e04d8a9d224260a51570d93bc2bf4b">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1821">#1821</a></p>
+</p>
+</li>
 <li><p id="change-0.6.2-29"><span class="target" id="change-af1b71d292a858ea4df75271507ce565"><strong>[extension] [compiler] </strong></span>The &#8216;default&#8217; compiler is automatically copied over
 when overriding the compilation of a built in
 clause construct, so no KeyError is raised if the
@@ -2756,35 +2725,16 @@ in that regard.<a class="changeset-link reference internal" href="#change-33de22
 </li>
 </ul>
 </div>
-<div class="section" id="change-0.6beta3-orm-declarative">
-<h3>orm declarative<a class="headerlink" href="#change-0.6beta3-orm-declarative" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p id="change-0.6beta3-10"><span class="target" id="change-830637c55ffba2f2e096ea3c18f4f4a7"><strong>[declarative] [orm] </strong></span>Using a mixin won&#8217;t break if the mixin implements an
-unpredictable __getattribute__(), i.e. Zope interfaces.<a class="changeset-link reference internal" href="#change-830637c55ffba2f2e096ea3c18f4f4a7">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1746">#1746</a></p>
-</p>
-</li>
-<li><p id="change-0.6beta3-11"><span class="target" id="change-bd6f8eba3f3862d4d8d1011707f7b4cf"><strong>[declarative] [orm] </strong></span>Using &#64;classdecorator and similar on mixins to define
-__tablename__, __table_args__, etc. now works if
-the method references attributes on the ultimate
-subclass.<a class="changeset-link reference internal" href="#change-bd6f8eba3f3862d4d8d1011707f7b4cf">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1749">#1749</a></p>
-</p>
-</li>
-<li><p id="change-0.6beta3-12"><span class="target" id="change-1330f1fe92881e1fd934e9d4505add81"><strong>[declarative] [orm] </strong></span>relationships and columns with foreign keys aren&#8217;t
-allowed on declarative mixins, sorry.<a class="changeset-link reference internal" href="#change-1330f1fe92881e1fd934e9d4505add81">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1751">#1751</a></p>
-</p>
-</li>
-</ul>
-</div>
 <div class="section" id="change-0.6beta3-sql">
 <h3>sql<a class="headerlink" href="#change-0.6beta3-sql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6beta3-13"><span class="target" id="change-8921f11442b55f634ffd5da10a321a10"><strong>[sql] </strong></span>Added with_hint() method to select() construct.  Specify
+<li><p id="change-0.6beta3-10"><span class="target" id="change-8921f11442b55f634ffd5da10a321a10"><strong>[sql] </strong></span>Added with_hint() method to select() construct.  Specify
 a table/alias, hint text, and optional dialect name, and
 &#8220;hints&#8221; will be rendered in the appropriate place in the
 statement.  Works for Oracle, Sybase, MySQL.<a class="changeset-link reference internal" href="#change-8921f11442b55f634ffd5da10a321a10">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/921">#921</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta3-14"><span class="target" id="change-dbf96f0ccd57bb7e5c8878762570f98e"><strong>[sql] </strong></span>Fixed bug introduced in 0.6beta2 where column labels would
+<li><p id="change-0.6beta3-11"><span class="target" id="change-dbf96f0ccd57bb7e5c8878762570f98e"><strong>[sql] </strong></span>Fixed bug introduced in 0.6beta2 where column labels would
 render inside of column expressions already assigned a label.<a class="changeset-link reference internal" href="#change-dbf96f0ccd57bb7e5c8878762570f98e">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1747">#1747</a></p>
 </p>
 </li>
@@ -2793,11 +2743,11 @@ render inside of column expressions already assigned a label.<a class="changeset
 <div class="section" id="change-0.6beta3-postgresql">
 <h3>postgresql<a class="headerlink" href="#change-0.6beta3-postgresql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6beta3-15"><span class="target" id="change-51b8f6239dcbf5719eeda7f33fb074ad"><strong>[postgresql] </strong></span>The psycopg2 dialect will log NOTICE messages via the
+<li><p id="change-0.6beta3-12"><span class="target" id="change-51b8f6239dcbf5719eeda7f33fb074ad"><strong>[postgresql] </strong></span>The psycopg2 dialect will log NOTICE messages via the
 &#8220;sqlalchemy.dialects.postgresql&#8221; logger name.<a class="changeset-link reference internal" href="#change-51b8f6239dcbf5719eeda7f33fb074ad">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/877">#877</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta3-16"><span class="target" id="change-cc407f1f9b807702cef6cfefc88505ae"><strong>[postgresql] </strong></span>the TIME and TIMESTAMP types are now availble from the
+<li><p id="change-0.6beta3-13"><span class="target" id="change-cc407f1f9b807702cef6cfefc88505ae"><strong>[postgresql] </strong></span>the TIME and TIMESTAMP types are now availble from the
 postgresql dialect directly, which add the PG-specific
 argument &#8216;precision&#8217; to both.   &#8216;precision&#8217; and
 &#8216;timezone&#8217; are correctly reflected for both TIME and
@@ -2809,7 +2759,7 @@ TIMEZONE types.<a class="changeset-link reference internal" href="#change-cc407f
 <div class="section" id="change-0.6beta3-mysql">
 <h3>mysql<a class="headerlink" href="#change-0.6beta3-mysql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6beta3-17"><span class="target" id="change-683fd67a66959dc8c853731f14b2cc81"><strong>[mysql] </strong></span>No longer guessing that TINYINT(1) should be BOOLEAN
+<li><p id="change-0.6beta3-14"><span class="target" id="change-683fd67a66959dc8c853731f14b2cc81"><strong>[mysql] </strong></span>No longer guessing that TINYINT(1) should be BOOLEAN
 when reflecting - TINYINT(1) is returned.  Use Boolean/
 BOOLEAN in table definition to get boolean conversion
 behavior.<a class="changeset-link reference internal" href="#change-683fd67a66959dc8c853731f14b2cc81">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1752">#1752</a></p>
@@ -2820,7 +2770,7 @@ behavior.<a class="changeset-link reference internal" href="#change-683fd67a6695
 <div class="section" id="change-0.6beta3-oracle">
 <h3>oracle<a class="headerlink" href="#change-0.6beta3-oracle" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6beta3-18"><span class="target" id="change-5c94b49a397096685020b6e1e5702ec7"><strong>[oracle] </strong></span>The Oracle dialect will issue VARCHAR type definitions
+<li><p id="change-0.6beta3-15"><span class="target" id="change-5c94b49a397096685020b6e1e5702ec7"><strong>[oracle] </strong></span>The Oracle dialect will issue VARCHAR type definitions
 using character counts, i.e. VARCHAR2(50 CHAR), so that
 the column is sized in terms of characters and not bytes.
 Column reflection of character types will also use
@@ -2835,6 +2785,20 @@ version 8, the old behaviors are used.<a class="changeset-link reference interna
 <div class="section" id="change-0.6beta3-misc">
 <h3>misc<a class="headerlink" href="#change-0.6beta3-misc" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
+<li><p id="change-0.6beta3-16"><span class="target" id="change-830637c55ffba2f2e096ea3c18f4f4a7"><strong>[declarative] </strong></span>Using a mixin won&#8217;t break if the mixin implements an
+unpredictable __getattribute__(), i.e. Zope interfaces.<a class="changeset-link reference internal" href="#change-830637c55ffba2f2e096ea3c18f4f4a7">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1746">#1746</a></p>
+</p>
+</li>
+<li><p id="change-0.6beta3-17"><span class="target" id="change-bd6f8eba3f3862d4d8d1011707f7b4cf"><strong>[declarative] </strong></span>Using &#64;classdecorator and similar on mixins to define
+__tablename__, __table_args__, etc. now works if
+the method references attributes on the ultimate
+subclass.<a class="changeset-link reference internal" href="#change-bd6f8eba3f3862d4d8d1011707f7b4cf">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1749">#1749</a></p>
+</p>
+</li>
+<li><p id="change-0.6beta3-18"><span class="target" id="change-1330f1fe92881e1fd934e9d4505add81"><strong>[declarative] </strong></span>relationships and columns with foreign keys aren&#8217;t
+allowed on declarative mixins, sorry.<a class="changeset-link reference internal" href="#change-1330f1fe92881e1fd934e9d4505add81">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1751">#1751</a></p>
+</p>
+</li>
 <li><p id="change-0.6beta3-19"><span class="target" id="change-caaf4140d3b5e7c3c34a1234538341e4"><strong>[ext] </strong></span>The sqlalchemy.orm.shard module now becomes an extension,
 sqlalchemy.ext.horizontal_shard.   The old import
 works with a deprecation warning.<a class="changeset-link reference internal" href="#change-caaf4140d3b5e7c3c34a1234538341e4">(link)</a><p></p>
@@ -3006,44 +2970,10 @@ version_id_col was in use.<a class="changeset-link reference internal" href="#ch
 </li>
 </ul>
 </div>
-<div class="section" id="change-0.6beta2-orm-declarative">
-<h3>orm declarative<a class="headerlink" href="#change-0.6beta2-orm-declarative" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p id="change-0.6beta2-26"><span class="target" id="change-17e6d2319b8bfe217416295a2d06d196"><strong>[declarative] [orm] </strong></span>DeclarativeMeta exclusively uses cls.__dict__ (not dict_)
-as the source of class information; _as_declarative exclusively
-uses the  dict_ passed to it as the source of class information
-(which when using DeclarativeMeta is cls.__dict__).  This should
-in theory make it easier for custom metaclasses to modify
-the state passed into _as_declarative.<a class="changeset-link reference internal" href="#change-17e6d2319b8bfe217416295a2d06d196">(link)</a><p></p>
-</p>
-</li>
-<li><p id="change-0.6beta2-27"><span class="target" id="change-a6fb16c5b4efc1b1336ae57e0611eb05"><strong>[declarative] [orm] </strong></span>declarative now accepts mixin classes directly, as a means
-to provide common functional and column-based elements on
-all subclasses, as well as a means to propagate a fixed
-set of __table_args__ or __mapper_args__ to subclasses.
-For custom combinations of __table_args__/__mapper_args__ from
-an inherited mixin to local, descriptors can now be used.
-New details are all up in the Declarative documentation.
-Thanks to Chris Withers for putting up with my strife
-on this.<a class="changeset-link reference internal" href="#change-a6fb16c5b4efc1b1336ae57e0611eb05">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1707">#1707</a></p>
-</p>
-</li>
-<li><p id="change-0.6beta2-28"><span class="target" id="change-712b74c929fe77fb05e228b508010508"><strong>[declarative] [orm] </strong></span>the __mapper_args__ dict is copied when propagating to a subclass,
-and is taken straight off the class __dict__ to avoid any
-propagation from the parent.  mapper inheritance already
-propagates the things you want from the parent mapper.<a class="changeset-link reference internal" href="#change-712b74c929fe77fb05e228b508010508">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1393">#1393</a></p>
-</p>
-</li>
-<li><p id="change-0.6beta2-29"><span class="target" id="change-cdbe265dab1874af885c1b8130cb2eee"><strong>[declarative] [orm] </strong></span>An exception is raised when a single-table subclass specifies
-a column that is already present on the base class.<a class="changeset-link reference internal" href="#change-cdbe265dab1874af885c1b8130cb2eee">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1732">#1732</a></p>
-</p>
-</li>
-</ul>
-</div>
 <div class="section" id="change-0.6beta2-sql">
 <h3>sql<a class="headerlink" href="#change-0.6beta2-sql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6beta2-30"><span class="target" id="change-b53712fca734ff4d0164b00e61f53cf1"><strong>[sql] </strong></span>join() will now simulate a NATURAL JOIN by default.  Meaning,
+<li><p id="change-0.6beta2-26"><span class="target" id="change-b53712fca734ff4d0164b00e61f53cf1"><strong>[sql] </strong></span>join() will now simulate a NATURAL JOIN by default.  Meaning,
 if the left side is a join, it will attempt to join the right
 side to the rightmost side of the left first, and not raise
 any exceptions about ambiguous join conditions if successful
@@ -3051,17 +2981,17 @@ even if there are further join targets across the rest of
 the left.<a class="changeset-link reference internal" href="#change-b53712fca734ff4d0164b00e61f53cf1">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1714">#1714</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-31"><span class="target" id="change-e6678947026dc69d573ba7f06fa6dcc0"><strong>[sql] </strong></span>The most common result processors conversion function were
+<li><p id="change-0.6beta2-27"><span class="target" id="change-e6678947026dc69d573ba7f06fa6dcc0"><strong>[sql] </strong></span>The most common result processors conversion function were
 moved to the new &#8220;processors&#8221; module.  Dialect authors are
 encouraged to use those functions whenever they correspond
 to their needs instead of implementing custom ones.<a class="changeset-link reference internal" href="#change-e6678947026dc69d573ba7f06fa6dcc0">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-32"><span class="target" id="change-787fd3a6677f8ba4f979ea8f6fb383fd"><strong>[sql] </strong></span>SchemaType and subclasses Boolean, Enum are now serializable,
+<li><p id="change-0.6beta2-28"><span class="target" id="change-787fd3a6677f8ba4f979ea8f6fb383fd"><strong>[sql] </strong></span>SchemaType and subclasses Boolean, Enum are now serializable,
 including their ddl listener and other event callables.<a class="changeset-link reference internal" href="#change-787fd3a6677f8ba4f979ea8f6fb383fd">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1694">#1694</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1698">#1698</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-33"><span class="target" id="change-b8980f5d17caec1e2e5b563b1e15b8b2"><strong>[sql] </strong></span>Some platforms will now interpret certain literal values
+<li><p id="change-0.6beta2-29"><span class="target" id="change-b8980f5d17caec1e2e5b563b1e15b8b2"><strong>[sql] </strong></span>Some platforms will now interpret certain literal values
 as non-bind parameters, rendered literally into the SQL
 statement.   This to support strict SQL-92 rules that are
 enforced by some platforms including MS-SQL and Sybase.
@@ -3079,7 +3009,7 @@ accepted, such as within argument lists of functions
 (which don&#8217;t work on MS-SQL when native SQL binding is used).<a class="changeset-link reference internal" href="#change-b8980f5d17caec1e2e5b563b1e15b8b2">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-34"><span class="target" id="change-4add0a3ae9513d98fa991274564b4e51"><strong>[sql] </strong></span>Added &#8220;unicode_errors&#8221; parameter to String, Unicode, etc.
+<li><p id="change-0.6beta2-30"><span class="target" id="change-4add0a3ae9513d98fa991274564b4e51"><strong>[sql] </strong></span>Added &#8220;unicode_errors&#8221; parameter to String, Unicode, etc.
 Behaves like the &#8216;errors&#8217; keyword argument to
 the standard library&#8217;s string.decode() functions.   This flag
 requires that <cite>convert_unicode</cite> is set to <cite>&#8220;force&#8221;</cite> - otherwise,
@@ -3093,25 +3023,25 @@ which only applies to databases that accept invalid encodings
 in the first place (i.e. MySQL. <em>not</em> PG, Sqlite, etc.)<a class="changeset-link reference internal" href="#change-4add0a3ae9513d98fa991274564b4e51">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-35"><span class="target" id="change-fd8105345e50a3b6986674cfa2db831c"><strong>[sql] </strong></span>Added math negation operator support, -x.<a class="changeset-link reference internal" href="#change-fd8105345e50a3b6986674cfa2db831c">(link)</a><p></p>
+<li><p id="change-0.6beta2-31"><span class="target" id="change-fd8105345e50a3b6986674cfa2db831c"><strong>[sql] </strong></span>Added math negation operator support, -x.<a class="changeset-link reference internal" href="#change-fd8105345e50a3b6986674cfa2db831c">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-36"><span class="target" id="change-375720ffaaf3679f497e76385994a25c"><strong>[sql] </strong></span>FunctionElement subclasses are now directly executable the
+<li><p id="change-0.6beta2-32"><span class="target" id="change-375720ffaaf3679f497e76385994a25c"><strong>[sql] </strong></span>FunctionElement subclasses are now directly executable the
 same way any func.foo() construct is, with automatic
 SELECT being applied when passed to execute().<a class="changeset-link reference internal" href="#change-375720ffaaf3679f497e76385994a25c">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-37"><span class="target" id="change-a8e7f19cf6b70ec1d6540a17f847c531"><strong>[sql] </strong></span>The &#8220;type&#8221; and &#8220;bind&#8221; keyword arguments of a func.foo()
+<li><p id="change-0.6beta2-33"><span class="target" id="change-a8e7f19cf6b70ec1d6540a17f847c531"><strong>[sql] </strong></span>The &#8220;type&#8221; and &#8220;bind&#8221; keyword arguments of a func.foo()
 construct are now local to &#8220;func.&#8221; constructs and are
 not part of the FunctionElement base class, allowing
 a &#8220;type&#8221; to be handled in a custom constructor or
 class-level variable.<a class="changeset-link reference internal" href="#change-a8e7f19cf6b70ec1d6540a17f847c531">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-38"><span class="target" id="change-4e51f442ae41f22cc4bff3527f97bf33"><strong>[sql] </strong></span>Restored the keys() method to ResultProxy.<a class="changeset-link reference internal" href="#change-4e51f442ae41f22cc4bff3527f97bf33">(link)</a><p></p>
+<li><p id="change-0.6beta2-34"><span class="target" id="change-4e51f442ae41f22cc4bff3527f97bf33"><strong>[sql] </strong></span>Restored the keys() method to ResultProxy.<a class="changeset-link reference internal" href="#change-4e51f442ae41f22cc4bff3527f97bf33">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-39"><span class="target" id="change-543013779b4c9e5cad66c4531f5053e0"><strong>[sql] </strong></span>The type/expression system now does a more complete job
+<li><p id="change-0.6beta2-35"><span class="target" id="change-543013779b4c9e5cad66c4531f5053e0"><strong>[sql] </strong></span>The type/expression system now does a more complete job
 of determining the return type from an expression
 as well as the adaptation of the Python operator into
 a SQL operator, based on the full left/right/operator
@@ -3133,7 +3063,7 @@ side unconditionally, which can be changed by implementing
 the coerce_compared_value() method. Also part of.<a class="changeset-link reference internal" href="#change-543013779b4c9e5cad66c4531f5053e0">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1647">#1647</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1683">#1683</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-40"><span class="target" id="change-4b04f7b3b18249863369ddef13e98ada"><strong>[sql] </strong></span>Made sqlalchemy.sql.expressions.Executable part of public
+<li><p id="change-0.6beta2-36"><span class="target" id="change-4b04f7b3b18249863369ddef13e98ada"><strong>[sql] </strong></span>Made sqlalchemy.sql.expressions.Executable part of public
 API, used for any expression construct that can be sent to
 execute().  FunctionElement now inherits Executable so that
 it gains execution_options(), which are also propagated
@@ -3144,7 +3074,7 @@ decorator - these may also become &#8220;public&#8221; for the benefit
 of the compiler extension at some point.<a class="changeset-link reference internal" href="#change-4b04f7b3b18249863369ddef13e98ada">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-41"><span class="target" id="change-e18872438ff47328adbe402a50ef19b8"><strong>[sql] </strong></span>A change to the solution for - an end-user
+<li><p id="change-0.6beta2-37"><span class="target" id="change-e18872438ff47328adbe402a50ef19b8"><strong>[sql] </strong></span>A change to the solution for - an end-user
 defined bind parameter name that directly conflicts with
 a column-named bind generated directly from the SET or
 VALUES clause of an update/insert generates a compile error.
@@ -3152,18 +3082,18 @@ This reduces call counts and eliminates some cases where
 undesirable name conflicts could still occur.<a class="changeset-link reference internal" href="#change-e18872438ff47328adbe402a50ef19b8">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1579">#1579</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-42"><span class="target" id="change-25e52b132f46c6da5df9e4d2d1b3629e"><strong>[sql] </strong></span>Column() requires a type if it has no foreign keys (this is
+<li><p id="change-0.6beta2-38"><span class="target" id="change-25e52b132f46c6da5df9e4d2d1b3629e"><strong>[sql] </strong></span>Column() requires a type if it has no foreign keys (this is
 not new).  An error is now raised if a Column() has no type
 and no foreign keys.<a class="changeset-link reference internal" href="#change-25e52b132f46c6da5df9e4d2d1b3629e">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1705">#1705</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-43"><span class="target" id="change-1bd09db2f45aebf370068907a549222d"><strong>[sql] </strong></span>the &#8220;scale&#8221; argument of the Numeric() type is honored when
+<li><p id="change-0.6beta2-39"><span class="target" id="change-1bd09db2f45aebf370068907a549222d"><strong>[sql] </strong></span>the &#8220;scale&#8221; argument of the Numeric() type is honored when
 coercing a returned floating point value into a string
 on its way to Decimal - this allows accuracy to function
 on SQLite, MySQL.<a class="changeset-link reference internal" href="#change-1bd09db2f45aebf370068907a549222d">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1717">#1717</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-44"><span class="target" id="change-d1540ed7293cf73f522c47764b34b8db"><strong>[sql] </strong></span>the copy() method of Column now copies over uninitialized
+<li><p id="change-0.6beta2-40"><span class="target" id="change-d1540ed7293cf73f522c47764b34b8db"><strong>[sql] </strong></span>the copy() method of Column now copies over uninitialized
 &#8220;on table attach&#8221; events.  Helps with the new declarative
 &#8220;mixin&#8221; capability.<a class="changeset-link reference internal" href="#change-d1540ed7293cf73f522c47764b34b8db">(link)</a><p></p>
 </p>
@@ -3173,27 +3103,27 @@ on SQLite, MySQL.<a class="changeset-link reference internal" href="#change-1bd0
 <div class="section" id="change-0.6beta2-mysql">
 <h3>mysql<a class="headerlink" href="#change-0.6beta2-mysql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6beta2-45"><span class="target" id="change-a35014255c51338d324794124dabec73"><strong>[mysql] </strong></span>Fixed reflection bug whereby when COLLATE was present,
+<li><p id="change-0.6beta2-41"><span class="target" id="change-a35014255c51338d324794124dabec73"><strong>[mysql] </strong></span>Fixed reflection bug whereby when COLLATE was present,
 nullable flag and server defaults would not be reflected.<a class="changeset-link reference internal" href="#change-a35014255c51338d324794124dabec73">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1655">#1655</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-46"><span class="target" id="change-0a377528b158add95b51614355824b86"><strong>[mysql] </strong></span>Fixed reflection of TINYINT(1) &#8220;boolean&#8221; columns defined with
+<li><p id="change-0.6beta2-42"><span class="target" id="change-0a377528b158add95b51614355824b86"><strong>[mysql] </strong></span>Fixed reflection of TINYINT(1) &#8220;boolean&#8221; columns defined with
 integer flags like UNSIGNED.<a class="changeset-link reference internal" href="#change-0a377528b158add95b51614355824b86">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-47"><span class="target" id="change-c4476c66267aa9d53e5d3104352f2460"><strong>[mysql] </strong></span>Further fixes for the mysql-connector dialect.<a class="changeset-link reference internal" href="#change-c4476c66267aa9d53e5d3104352f2460">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1668">#1668</a></p>
+<li><p id="change-0.6beta2-43"><span class="target" id="change-c4476c66267aa9d53e5d3104352f2460"><strong>[mysql] </strong></span>Further fixes for the mysql-connector dialect.<a class="changeset-link reference internal" href="#change-c4476c66267aa9d53e5d3104352f2460">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1668">#1668</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-48"><span class="target" id="change-e5eef98bf3b744b814f45de869fa2400"><strong>[mysql] </strong></span>Composite PK table on InnoDB where the &#8220;autoincrement&#8221; column
+<li><p id="change-0.6beta2-44"><span class="target" id="change-e5eef98bf3b744b814f45de869fa2400"><strong>[mysql] </strong></span>Composite PK table on InnoDB where the &#8220;autoincrement&#8221; column
 isn&#8217;t first will emit an explicit &#8220;KEY&#8221; phrase within
 CREATE TABLE thereby avoiding errors.<a class="changeset-link reference internal" href="#change-e5eef98bf3b744b814f45de869fa2400">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1496">#1496</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-49"><span class="target" id="change-eabba2ee40f19b4f83f4b62f38ac3b3e"><strong>[mysql] </strong></span>Added reflection/create table support for a wide range
+<li><p id="change-0.6beta2-45"><span class="target" id="change-eabba2ee40f19b4f83f4b62f38ac3b3e"><strong>[mysql] </strong></span>Added reflection/create table support for a wide range
 of MySQL keywords.<a class="changeset-link reference internal" href="#change-eabba2ee40f19b4f83f4b62f38ac3b3e">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1634">#1634</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-50"><span class="target" id="change-a4024dfc8c4693eea7c02add1a5b72f4"><strong>[mysql] </strong></span>Fixed import error which could occur reflecting tables on
+<li><p id="change-0.6beta2-46"><span class="target" id="change-a4024dfc8c4693eea7c02add1a5b72f4"><strong>[mysql] </strong></span>Fixed import error which could occur reflecting tables on
 a Windows host<a class="changeset-link reference internal" href="#change-a4024dfc8c4693eea7c02add1a5b72f4">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1580">#1580</a></p>
 </p>
 </li>
@@ -3202,7 +3132,7 @@ a Windows host<a class="changeset-link reference internal" href="#change-a4024df
 <div class="section" id="change-0.6beta2-sqlite">
 <h3>sqlite<a class="headerlink" href="#change-0.6beta2-sqlite" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6beta2-51"><span class="target" id="change-686860a49e344194295bd7ddef459b1a"><strong>[sqlite] </strong></span>Added &#8220;native_datetime=True&#8221; flag to create_engine().
+<li><p id="change-0.6beta2-47"><span class="target" id="change-686860a49e344194295bd7ddef459b1a"><strong>[sqlite] </strong></span>Added &#8220;native_datetime=True&#8221; flag to create_engine().
 This will cause the DATE and TIMESTAMP types to skip
 all bind parameter and result row processing, under
 the assumption that PARSE_DECLTYPES has been enabled
@@ -3216,18 +3146,18 @@ will be returned as a string.<a class="changeset-link reference internal" href="
 <div class="section" id="change-0.6beta2-mssql">
 <h3>mssql<a class="headerlink" href="#change-0.6beta2-mssql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6beta2-52"><span class="target" id="change-c43171d5ad2afdb8be0210f4345e7c3b"><strong>[mssql] </strong></span>Re-established support for the pymssql dialect.<a class="changeset-link reference internal" href="#change-c43171d5ad2afdb8be0210f4345e7c3b">(link)</a><p></p>
+<li><p id="change-0.6beta2-48"><span class="target" id="change-c43171d5ad2afdb8be0210f4345e7c3b"><strong>[mssql] </strong></span>Re-established support for the pymssql dialect.<a class="changeset-link reference internal" href="#change-c43171d5ad2afdb8be0210f4345e7c3b">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-53"><span class="target" id="change-afec227c9a875855720b6369b4193326"><strong>[mssql] </strong></span>Various fixes for implicit returning, reflection,
+<li><p id="change-0.6beta2-49"><span class="target" id="change-afec227c9a875855720b6369b4193326"><strong>[mssql] </strong></span>Various fixes for implicit returning, reflection,
 etc. - the MS-SQL dialects aren&#8217;t quite complete
 in 0.6 yet (but are close)<a class="changeset-link reference internal" href="#change-afec227c9a875855720b6369b4193326">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-54"><span class="target" id="change-0541548f6903480b3a322de8c54929ce"><strong>[mssql] </strong></span>Added basic support for mxODBC.<a class="changeset-link reference internal" href="#change-0541548f6903480b3a322de8c54929ce">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1710">#1710</a></p>
+<li><p id="change-0.6beta2-50"><span class="target" id="change-0541548f6903480b3a322de8c54929ce"><strong>[mssql] </strong></span>Added basic support for mxODBC.<a class="changeset-link reference internal" href="#change-0541548f6903480b3a322de8c54929ce">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1710">#1710</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-55"><span class="target" id="change-dba80448eeea205b1bbaec327ac1de55"><strong>[mssql] </strong></span>Removed the text_as_varchar option.<a class="changeset-link reference internal" href="#change-dba80448eeea205b1bbaec327ac1de55">(link)</a><p></p>
+<li><p id="change-0.6beta2-51"><span class="target" id="change-dba80448eeea205b1bbaec327ac1de55"><strong>[mssql] </strong></span>Removed the text_as_varchar option.<a class="changeset-link reference internal" href="#change-dba80448eeea205b1bbaec327ac1de55">(link)</a><p></p>
 </p>
 </li>
 </ul>
@@ -3235,12 +3165,12 @@ in 0.6 yet (but are close)<a class="changeset-link reference internal" href="#ch
 <div class="section" id="change-0.6beta2-oracle">
 <h3>oracle<a class="headerlink" href="#change-0.6beta2-oracle" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6beta2-56"><span class="target" id="change-f2a132a1d5c7974e390d588eac834b3b"><strong>[oracle] </strong></span>&#8220;out&#8221; parameters require a type that is supported by
+<li><p id="change-0.6beta2-52"><span class="target" id="change-f2a132a1d5c7974e390d588eac834b3b"><strong>[oracle] </strong></span>&#8220;out&#8221; parameters require a type that is supported by
 cx_oracle.  An error will be raised if no cx_oracle
 type can be found.<a class="changeset-link reference internal" href="#change-f2a132a1d5c7974e390d588eac834b3b">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-57"><span class="target" id="change-ab6e812d286cec34322fb6829527927b"><strong>[oracle] </strong></span>Oracle &#8216;DATE&#8217; now does not perform any result processing,
+<li><p id="change-0.6beta2-53"><span class="target" id="change-ab6e812d286cec34322fb6829527927b"><strong>[oracle] </strong></span>Oracle &#8216;DATE&#8217; now does not perform any result processing,
 as the DATE type in Oracle stores full date+time objects,
 that&#8217;s what you&#8217;ll get.  Note that the generic types.Date
 type <em>will</em> still call value.date() on incoming values,
@@ -3248,7 +3178,7 @@ however.  When reflecting a table, the reflected type
 will be &#8216;DATE&#8217;.<a class="changeset-link reference internal" href="#change-ab6e812d286cec34322fb6829527927b">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-58"><span class="target" id="change-62c558744df2f44f9cb4bf1ff987ce86"><strong>[oracle] </strong></span>Added preliminary support for Oracle&#8217;s WITH_UNICODE
+<li><p id="change-0.6beta2-54"><span class="target" id="change-62c558744df2f44f9cb4bf1ff987ce86"><strong>[oracle] </strong></span>Added preliminary support for Oracle&#8217;s WITH_UNICODE
 mode.  At the very least this establishes initial
 support for cx_Oracle with Python 3.  When WITH_UNICODE
 mode is used in Python 2.xx, a large and scary warning
@@ -3256,15 +3186,15 @@ is emitted asking that the user seriously consider
 the usage of this difficult mode of operation.<a class="changeset-link reference internal" href="#change-62c558744df2f44f9cb4bf1ff987ce86">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1670">#1670</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-59"><span class="target" id="change-774d1f88602325ba20cca6ce5c10734b"><strong>[oracle] </strong></span>The except_() method now renders as MINUS on Oracle,
+<li><p id="change-0.6beta2-55"><span class="target" id="change-774d1f88602325ba20cca6ce5c10734b"><strong>[oracle] </strong></span>The except_() method now renders as MINUS on Oracle,
 which is more or less equivalent on that platform.<a class="changeset-link reference internal" href="#change-774d1f88602325ba20cca6ce5c10734b">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1712">#1712</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-60"><span class="target" id="change-0e995c38104f4a4175d2a741f88b12bc"><strong>[oracle] </strong></span>Added support for rendering and reflecting
+<li><p id="change-0.6beta2-56"><span class="target" id="change-0e995c38104f4a4175d2a741f88b12bc"><strong>[oracle] </strong></span>Added support for rendering and reflecting
 TIMESTAMP WITH TIME ZONE, i.e. TIMESTAMP(timezone=True).<a class="changeset-link reference internal" href="#change-0e995c38104f4a4175d2a741f88b12bc">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/651">#651</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-61"><span class="target" id="change-21af7340803f01c63bb39084313092b9"><strong>[oracle] </strong></span>Oracle INTERVAL type can now be reflected.<a class="changeset-link reference internal" href="#change-21af7340803f01c63bb39084313092b9">(link)</a><p></p>
+<li><p id="change-0.6beta2-57"><span class="target" id="change-21af7340803f01c63bb39084313092b9"><strong>[oracle] </strong></span>Oracle INTERVAL type can now be reflected.<a class="changeset-link reference internal" href="#change-21af7340803f01c63bb39084313092b9">(link)</a><p></p>
 </p>
 </li>
 </ul>
@@ -3272,13 +3202,13 @@ TIMESTAMP WITH TIME ZONE, i.e. TIMESTAMP(timezone=True).<a class="changeset-link
 <div class="section" id="change-0.6beta2-misc">
 <h3>misc<a class="headerlink" href="#change-0.6beta2-misc" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.6beta2-62"><span class="target" id="change-30f2fc874b9df7b7d141eef33c5d2468"><strong>[py3k] </strong></span>Improved the installation/test setup regarding Python 3,
+<li><p id="change-0.6beta2-58"><span class="target" id="change-30f2fc874b9df7b7d141eef33c5d2468"><strong>[py3k] </strong></span>Improved the installation/test setup regarding Python 3,
 now that Distribute runs on Py3k.   distribute_setup.py
 is now included.  See README.py3k for Python 3 installation/
 testing instructions.<a class="changeset-link reference internal" href="#change-30f2fc874b9df7b7d141eef33c5d2468">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-63"><span class="target" id="change-cdd5ac4118fc526b3b6e424254f9f575"><strong>[engines] </strong></span>Added an optional C extension to speed up the sql layer by
+<li><p id="change-0.6beta2-59"><span class="target" id="change-cdd5ac4118fc526b3b6e424254f9f575"><strong>[engines] </strong></span>Added an optional C extension to speed up the sql layer by
 reimplementing RowProxy and the most common result processors.
 The actual speedups will depend heavily on your DBAPI and
 the mix of datatypes used in your tables, and can vary from
@@ -3288,13 +3218,13 @@ Note that it is <em>not</em> built/installed by default.
 See README for installation instructions.<a class="changeset-link reference internal" href="#change-cdd5ac4118fc526b3b6e424254f9f575">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-64"><span class="target" id="change-582f4dfd426b3da60af448476c0d9049"><strong>[engines] </strong></span>the execution sequence pulls all rowcount/last inserted ID
+<li><p id="change-0.6beta2-60"><span class="target" id="change-582f4dfd426b3da60af448476c0d9049"><strong>[engines] </strong></span>the execution sequence pulls all rowcount/last inserted ID
 info from the cursor before commit() is called on the
 DBAPI connection in an &#8220;autocommit&#8221; scenario.  This helps
 mxodbc with rowcount and is probably a good idea overall.<a class="changeset-link reference internal" href="#change-582f4dfd426b3da60af448476c0d9049">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-65"><span class="target" id="change-8339a8f6f9f054e9871057ff44eb310b"><strong>[engines] </strong></span>Opened up logging a bit such that isEnabledFor() is called
+<li><p id="change-0.6beta2-61"><span class="target" id="change-8339a8f6f9f054e9871057ff44eb310b"><strong>[engines] </strong></span>Opened up logging a bit such that isEnabledFor() is called
 more often, so that changes to the log level for engine/pool
 will be reflected on next connect.   This adds a small
 amount of method call overhead.  It&#8217;s negligible and will make
@@ -3302,38 +3232,38 @@ life a lot easier for all those situations when logging
 just happens to be configured after create_engine() is called.<a class="changeset-link reference internal" href="#change-8339a8f6f9f054e9871057ff44eb310b">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1719">#1719</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-66"><span class="target" id="change-44b744d4299fe9fd0c15e0b51548c21c"><strong>[engines] </strong></span>The assert_unicode flag is deprecated.  SQLAlchemy will raise
+<li><p id="change-0.6beta2-62"><span class="target" id="change-44b744d4299fe9fd0c15e0b51548c21c"><strong>[engines] </strong></span>The assert_unicode flag is deprecated.  SQLAlchemy will raise
 a warning in all cases where it is asked to encode a non-unicode
 Python string, as well as when a Unicode or UnicodeType type
 is explicitly passed a bytestring.  The String type will do nothing
 for DBAPIs that already accept Python unicode objects.<a class="changeset-link reference internal" href="#change-44b744d4299fe9fd0c15e0b51548c21c">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-67"><span class="target" id="change-e486cdddb6da9fcd5b78a7e384f517e3"><strong>[engines] </strong></span>Bind parameters are sent as a tuple instead of a list. Some
+<li><p id="change-0.6beta2-63"><span class="target" id="change-e486cdddb6da9fcd5b78a7e384f517e3"><strong>[engines] </strong></span>Bind parameters are sent as a tuple instead of a list. Some
 backend drivers will not accept bind parameters as a list.<a class="changeset-link reference internal" href="#change-e486cdddb6da9fcd5b78a7e384f517e3">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-68"><span class="target" id="change-31babb385ad99c9c8dfef800a188b08f"><strong>[engines] </strong></span>threadlocal engine wasn&#8217;t properly closing the connection
+<li><p id="change-0.6beta2-64"><span class="target" id="change-31babb385ad99c9c8dfef800a188b08f"><strong>[engines] </strong></span>threadlocal engine wasn&#8217;t properly closing the connection
 upon close() - fixed that.<a class="changeset-link reference internal" href="#change-31babb385ad99c9c8dfef800a188b08f">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-69"><span class="target" id="change-6a84cce20a490a05b2ae3aa704d0b11f"><strong>[engines] </strong></span>Transaction object doesn&#8217;t rollback or commit if it isn&#8217;t
+<li><p id="change-0.6beta2-65"><span class="target" id="change-6a84cce20a490a05b2ae3aa704d0b11f"><strong>[engines] </strong></span>Transaction object doesn&#8217;t rollback or commit if it isn&#8217;t
 &#8220;active&#8221;, allows more accurate nesting of begin/rollback/commit.<a class="changeset-link reference internal" href="#change-6a84cce20a490a05b2ae3aa704d0b11f">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-70"><span class="target" id="change-2e55f14274c2191236e3104fac4e24de"><strong>[engines] </strong></span>Python unicode objects as binds result in the Unicode type,
+<li><p id="change-0.6beta2-66"><span class="target" id="change-2e55f14274c2191236e3104fac4e24de"><strong>[engines] </strong></span>Python unicode objects as binds result in the Unicode type,
 not string, thus eliminating a certain class of unicode errors
 on drivers that don&#8217;t support unicode binds.<a class="changeset-link reference internal" href="#change-2e55f14274c2191236e3104fac4e24de">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-71"><span class="target" id="change-2a0cef92888b2be98785ecc9a097653c"><strong>[engines] </strong></span>Added &#8220;logging_name&#8221; argument to create_engine(), Pool() constructor
+<li><p id="change-0.6beta2-67"><span class="target" id="change-2a0cef92888b2be98785ecc9a097653c"><strong>[engines] </strong></span>Added &#8220;logging_name&#8221; argument to create_engine(), Pool() constructor
 as well as &#8220;pool_logging_name&#8221; argument to create_engine() which
 filters down to that of Pool.   Issues the given string name
 within the &#8220;name&#8221; field of logging messages instead of the default
 hex identifier string.<a class="changeset-link reference internal" href="#change-2a0cef92888b2be98785ecc9a097653c">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1555">#1555</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-72"><span class="target" id="change-81eacba0128286c062f03c539e3fb32a"><strong>[engines] </strong></span>The visit_pool() method of Dialect is removed, and replaced with
+<li><p id="change-0.6beta2-68"><span class="target" id="change-81eacba0128286c062f03c539e3fb32a"><strong>[engines] </strong></span>The visit_pool() method of Dialect is removed, and replaced with
 on_connect().  This method returns a callable which receives
 the raw DBAPI connection after each one is created.   The callable
 is assembled into a first_connect/connect pool listener by the
@@ -3341,14 +3271,43 @@ connection strategy if non-None.   Provides a simpler interface
 for dialects.<a class="changeset-link reference internal" href="#change-81eacba0128286c062f03c539e3fb32a">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-73"><span class="target" id="change-6fb3ebb61d325e02bee2444d540be282"><strong>[engines] </strong></span>StaticPool now initializes, disposes and recreates without
+<li><p id="change-0.6beta2-69"><span class="target" id="change-6fb3ebb61d325e02bee2444d540be282"><strong>[engines] </strong></span>StaticPool now initializes, disposes and recreates without
 opening a new connection - the connection is only opened when
 first requested. dispose() also works on AssertionPool now.<a class="changeset-link reference internal" href="#change-6fb3ebb61d325e02bee2444d540be282">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1728">#1728</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta2-74"><span class="target" id="change-19e2f337ca9a7555b3e2cd9f34026221"><strong>[ticket: 1673] [metadata] </strong></span>Added the ability to strip schema information when using
+<li><p id="change-0.6beta2-70"><span class="target" id="change-19e2f337ca9a7555b3e2cd9f34026221"><strong>[ticket: 1673] [metadata] </strong></span>Added the ability to strip schema information when using
 &#8220;tometadata&#8221; by passing &#8220;schema=None&#8221; as an argument. If schema
 is not specified then the table&#8217;s schema is retained.<a class="changeset-link reference internal" href="#change-19e2f337ca9a7555b3e2cd9f34026221">(link)</a><p></p>
+</p>
+</li>
+<li><p id="change-0.6beta2-71"><span class="target" id="change-17e6d2319b8bfe217416295a2d06d196"><strong>[declarative] </strong></span>DeclarativeMeta exclusively uses cls.__dict__ (not dict_)
+as the source of class information; _as_declarative exclusively
+uses the  dict_ passed to it as the source of class information
+(which when using DeclarativeMeta is cls.__dict__).  This should
+in theory make it easier for custom metaclasses to modify
+the state passed into _as_declarative.<a class="changeset-link reference internal" href="#change-17e6d2319b8bfe217416295a2d06d196">(link)</a><p></p>
+</p>
+</li>
+<li><p id="change-0.6beta2-72"><span class="target" id="change-a6fb16c5b4efc1b1336ae57e0611eb05"><strong>[declarative] </strong></span>declarative now accepts mixin classes directly, as a means
+to provide common functional and column-based elements on
+all subclasses, as well as a means to propagate a fixed
+set of __table_args__ or __mapper_args__ to subclasses.
+For custom combinations of __table_args__/__mapper_args__ from
+an inherited mixin to local, descriptors can now be used.
+New details are all up in the Declarative documentation.
+Thanks to Chris Withers for putting up with my strife
+on this.<a class="changeset-link reference internal" href="#change-a6fb16c5b4efc1b1336ae57e0611eb05">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1707">#1707</a></p>
+</p>
+</li>
+<li><p id="change-0.6beta2-73"><span class="target" id="change-712b74c929fe77fb05e228b508010508"><strong>[declarative] </strong></span>the __mapper_args__ dict is copied when propagating to a subclass,
+and is taken straight off the class __dict__ to avoid any
+propagation from the parent.  mapper inheritance already
+propagates the things you want from the parent mapper.<a class="changeset-link reference internal" href="#change-712b74c929fe77fb05e228b508010508">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1393">#1393</a></p>
+</p>
+</li>
+<li><p id="change-0.6beta2-74"><span class="target" id="change-cdbe265dab1874af885c1b8130cb2eee"><strong>[declarative] </strong></span>An exception is raised when a single-table subclass specifies
+a column that is already present on the base class.<a class="changeset-link reference internal" href="#change-cdbe265dab1874af885c1b8130cb2eee">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1732">#1732</a></p>
 </p>
 </li>
 <li><p id="change-0.6beta2-75"><span class="target" id="change-59b20e0d794888b5924ddb106a96ce97"><strong>[sybase] </strong></span>Implemented a preliminary working dialect for Sybase,
@@ -4577,7 +4536,7 @@ serializability and subclassing of the built in collections.<a class="changeset-
         <a href="changelog_05.html" title="next chapter">0.5 Changelog</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

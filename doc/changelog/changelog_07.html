@@ -10,7 +10,7 @@
     
                 0.7 Changelog
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
         <link rel="up" title="Changes and Migration" href="index.html" />
         <link rel="next" title="0.6 Changelog" href="changelog_06.html" />
         <link rel="prev" title="0.8 Changelog" href="changelog_08.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
         » 
                 0.7 Changelog
@@ -271,7 +272,6 @@
 <li><a class="reference internal" href="#change-0.7.0b3">0.7.0b3</a><ul>
 <li><a class="reference internal" href="#change-0.7.0b3-general">general</a></li>
 <li><a class="reference internal" href="#change-0.7.0b3-orm">orm</a></li>
-<li><a class="reference internal" href="#change-0.7.0b3-orm-declarative">orm declarative</a></li>
 <li><a class="reference internal" href="#change-0.7.0b3-engine">engine</a></li>
 <li><a class="reference internal" href="#change-0.7.0b3-sql">sql</a></li>
 <li><a class="reference internal" href="#change-0.7.0b3-postgresql">postgresql</a></li>
@@ -282,7 +282,6 @@
 </li>
 <li><a class="reference internal" href="#change-0.7.0b2">0.7.0b2</a><ul>
 <li><a class="reference internal" href="#change-0.7.0b2-orm">orm</a></li>
-<li><a class="reference internal" href="#change-0.7.0b2-orm-declarative">orm declarative</a></li>
 <li><a class="reference internal" href="#change-0.7.0b2-sql">sql</a></li>
 <li><a class="reference internal" href="#change-0.7.0b2-postgresql">postgresql</a></li>
 <li><a class="reference internal" href="#change-0.7.0b2-misc">misc</a></li>
@@ -291,7 +290,6 @@
 <li><a class="reference internal" href="#change-0.7.0b1">0.7.0b1</a><ul>
 <li><a class="reference internal" href="#change-0.7.0b1-general">general</a></li>
 <li><a class="reference internal" href="#change-0.7.0b1-orm">orm</a></li>
-<li><a class="reference internal" href="#change-0.7.0b1-orm-declarative">orm declarative</a></li>
 <li><a class="reference internal" href="#change-0.7.0b1-sql">sql</a></li>
 <li><a class="reference internal" href="#change-0.7.0b1-postgresql">postgresql</a></li>
 <li><a class="reference internal" href="#change-0.7.0b1-mysql">mysql</a></li>
@@ -429,7 +427,7 @@ Hanno Schlichting.<a class="changeset-link reference internal" href="#change-e33
 <h3>misc<a class="headerlink" href="#change-0.7.11-misc" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p id="change-0.7.11-11"><span class="target" id="change-2f7a576e7a8d284e37a6743b00f108d6"><strong>[bug] [tests] </strong></span>Fixed an import of &#8220;logging&#8221; in test_execute which was not
-working on some linux platforms.<a class="changeset-link reference internal" href="#change-2f7a576e7a8d284e37a6743b00f108d6">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2669">#2669</a>, <a class="reference external" href="https://bitbucket.org/sqlalchemy/sqlalchemy/pull-request/41">pull request 41</a></p>
+working on some linux platforms.<a class="changeset-link reference internal" href="#change-2f7a576e7a8d284e37a6743b00f108d6">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2669">#2669</a>, <a class="reference external" href="https://bitbucket.org/zzzeek/sqlalchemy/pull-request/41">pull request 41</a></p>
 </p>
 </li>
 </ul>
@@ -3535,23 +3533,13 @@ to this.<a class="changeset-link reference internal" href="#change-691e4dcace509
 </li>
 </ul>
 </div>
-<div class="section" id="change-0.7.0b3-orm-declarative">
-<h3>orm declarative<a class="headerlink" href="#change-0.7.0b3-orm-declarative" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p id="change-0.7.0b3-6"><span class="target" id="change-f2aa1ca45ecfe557dbce711ee18b7414"><strong>[declarative] [orm] </strong></span>Arguments in __mapper_args__ that aren&#8217;t &#8220;hashable&#8221;
-aren&#8217;t mistaken for always-hashable, possibly-column
-arguments.  (also in 0.6.7)<a class="changeset-link reference internal" href="#change-f2aa1ca45ecfe557dbce711ee18b7414">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2091">#2091</a></p>
-</p>
-</li>
-</ul>
-</div>
 <div class="section" id="change-0.7.0b3-engine">
 <h3>engine<a class="headerlink" href="#change-0.7.0b3-engine" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.7.0b3-7"><span class="target" id="change-4687c720a53db425d7516c3325af024b"><strong>[engine] </strong></span>Fixed AssertionPool regression bug.<a class="changeset-link reference internal" href="#change-4687c720a53db425d7516c3325af024b">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2097">#2097</a></p>
+<li><p id="change-0.7.0b3-6"><span class="target" id="change-4687c720a53db425d7516c3325af024b"><strong>[engine] </strong></span>Fixed AssertionPool regression bug.<a class="changeset-link reference internal" href="#change-4687c720a53db425d7516c3325af024b">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2097">#2097</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b3-8"><span class="target" id="change-dabd057d91cbbc1025be172472b16366"><strong>[engine] </strong></span>Changed exception raised to ArgumentError when an
+<li><p id="change-0.7.0b3-7"><span class="target" id="change-dabd057d91cbbc1025be172472b16366"><strong>[engine] </strong></span>Changed exception raised to ArgumentError when an
 invalid dialect is specified.<a class="changeset-link reference internal" href="#change-dabd057d91cbbc1025be172472b16366">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2060">#2060</a></p>
 </p>
 </li>
@@ -3560,14 +3548,14 @@ invalid dialect is specified.<a class="changeset-link reference internal" href="
 <div class="section" id="change-0.7.0b3-sql">
 <h3>sql<a class="headerlink" href="#change-0.7.0b3-sql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.7.0b3-9"><span class="target" id="change-887e7334d6776bfb4ec1c01f6fb67d4d"><strong>[sql] </strong></span>Added a fully descriptive error message for the
+<li><p id="change-0.7.0b3-8"><span class="target" id="change-887e7334d6776bfb4ec1c01f6fb67d4d"><strong>[sql] </strong></span>Added a fully descriptive error message for the
 case where Column is subclassed and _make_proxy()
 fails to make a copy due to TypeError on the
 constructor.   The method _constructor should
 be implemented in this case.<a class="changeset-link reference internal" href="#change-887e7334d6776bfb4ec1c01f6fb67d4d">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.7.0b3-10"><span class="target" id="change-8a8960a5ec68a2f3af6208fc1b25f4ec"><strong>[sql] </strong></span>Added new event &#8220;column_reflect&#8221; for Table objects.
+<li><p id="change-0.7.0b3-9"><span class="target" id="change-8a8960a5ec68a2f3af6208fc1b25f4ec"><strong>[sql] </strong></span>Added new event &#8220;column_reflect&#8221; for Table objects.
 Receives the info dictionary about a Column before
 the object is generated within reflection, and allows
 modification to the dictionary for control over
@@ -3575,7 +3563,7 @@ most aspects of the resulting Column including
 key, name, type, info dictionary.<a class="changeset-link reference internal" href="#change-8a8960a5ec68a2f3af6208fc1b25f4ec">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2095">#2095</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b3-11"><span class="target" id="change-506927bdc1d6192b785d5111a36c591a"><strong>[sql] </strong></span>To help with the &#8220;column_reflect&#8221; event being used
+<li><p id="change-0.7.0b3-10"><span class="target" id="change-506927bdc1d6192b785d5111a36c591a"><strong>[sql] </strong></span>To help with the &#8220;column_reflect&#8221; event being used
 with specific Table objects instead of all instances
 of Table, listeners can be added to a Table object
 inline with its construction using a new argument
@@ -3584,14 +3572,14 @@ inline with its construction using a new argument
 before the reflection process begins.<a class="changeset-link reference internal" href="#change-506927bdc1d6192b785d5111a36c591a">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.7.0b3-12"><span class="target" id="change-fc859aa865a01a4d305dee5ee7edc1ce"><strong>[sql] </strong></span>Added new generic function &#8220;next_value()&#8221;, accepts
+<li><p id="change-0.7.0b3-11"><span class="target" id="change-fc859aa865a01a4d305dee5ee7edc1ce"><strong>[sql] </strong></span>Added new generic function &#8220;next_value()&#8221;, accepts
 a Sequence object as its argument and renders the
 appropriate &#8220;next value&#8221; generation string on the
 target platform, if supported.  Also provides
 &#8221;.next_value()&#8221; method on Sequence itself.<a class="changeset-link reference internal" href="#change-fc859aa865a01a4d305dee5ee7edc1ce">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2085">#2085</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b3-13"><span class="target" id="change-c53fe13321aabe9b1255beeab83db25c"><strong>[sql] </strong></span>func.next_value() or other SQL expression can
+<li><p id="change-0.7.0b3-12"><span class="target" id="change-c53fe13321aabe9b1255beeab83db25c"><strong>[sql] </strong></span>func.next_value() or other SQL expression can
 be embedded directly into an insert() construct,
 and if implicit or explicit &#8220;returning&#8221; is used
 in conjunction with a primary key column,
@@ -3599,7 +3587,7 @@ the newly generated value will be present in
 result.inserted_primary_key.<a class="changeset-link reference internal" href="#change-c53fe13321aabe9b1255beeab83db25c">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2084">#2084</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b3-14"><span class="target" id="change-5dcae35a30548ea7a895134981194320"><strong>[sql] </strong></span>Added accessors to ResultProxy &#8220;returns_rows&#8221;,
+<li><p id="change-0.7.0b3-13"><span class="target" id="change-5dcae35a30548ea7a895134981194320"><strong>[sql] </strong></span>Added accessors to ResultProxy &#8220;returns_rows&#8221;,
 &#8220;is_insert&#8221; (also in 0.6.7)<a class="changeset-link reference internal" href="#change-5dcae35a30548ea7a895134981194320">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2089">#2089</a></p>
 </p>
 </li>
@@ -3608,11 +3596,11 @@ result.inserted_primary_key.<a class="changeset-link reference internal" href="#
 <div class="section" id="change-0.7.0b3-postgresql">
 <h3>postgresql<a class="headerlink" href="#change-0.7.0b3-postgresql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.7.0b3-15"><span class="target" id="change-68e0e1286435ce3f342c12f928e020cb"><strong>[postgresql] </strong></span>Added RESERVED_WORDS for postgresql dialect.
+<li><p id="change-0.7.0b3-14"><span class="target" id="change-68e0e1286435ce3f342c12f928e020cb"><strong>[postgresql] </strong></span>Added RESERVED_WORDS for postgresql dialect.
 (also in 0.6.7)<a class="changeset-link reference internal" href="#change-68e0e1286435ce3f342c12f928e020cb">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2092">#2092</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b3-16"><span class="target" id="change-d2a17779006167796e2a05814a64b40d"><strong>[postgresql] </strong></span>Fixed the BIT type to allow a &#8220;length&#8221; parameter, &#8220;varying&#8221;
+<li><p id="change-0.7.0b3-15"><span class="target" id="change-d2a17779006167796e2a05814a64b40d"><strong>[postgresql] </strong></span>Fixed the BIT type to allow a &#8220;length&#8221; parameter, &#8220;varying&#8221;
 parameter.  Reflection also fixed.
 (also in 0.6.7)<a class="changeset-link reference internal" href="#change-d2a17779006167796e2a05814a64b40d">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2073">#2073</a></p>
 </p>
@@ -3622,7 +3610,7 @@ parameter.  Reflection also fixed.
 <div class="section" id="change-0.7.0b3-mssql">
 <h3>mssql<a class="headerlink" href="#change-0.7.0b3-mssql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.7.0b3-17"><span class="target" id="change-1310d3a0d8b578fd7875434f5ccac9b5"><strong>[mssql] </strong></span>Rewrote the query used to get the definition of a view,
+<li><p id="change-0.7.0b3-16"><span class="target" id="change-1310d3a0d8b578fd7875434f5ccac9b5"><strong>[mssql] </strong></span>Rewrote the query used to get the definition of a view,
 typically when using the Inspector interface, to
 use sys.sql_modules instead of the information schema,
 thereby allowing views definitions longer than 4000
@@ -3635,7 +3623,7 @@ characters to be fully returned.
 <div class="section" id="change-0.7.0b3-firebird">
 <h3>firebird<a class="headerlink" href="#change-0.7.0b3-firebird" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.7.0b3-18"><span class="target" id="change-71fef9ae2d4a3fee911550e2dd3956b5"><strong>[firebird] </strong></span>The &#8220;implicit_returning&#8221; flag on create_engine() is
+<li><p id="change-0.7.0b3-17"><span class="target" id="change-71fef9ae2d4a3fee911550e2dd3956b5"><strong>[firebird] </strong></span>The &#8220;implicit_returning&#8221; flag on create_engine() is
 honored if set to False.  (also in 0.6.7)<a class="changeset-link reference internal" href="#change-71fef9ae2d4a3fee911550e2dd3956b5">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2083">#2083</a></p>
 </p>
 </li>
@@ -3644,6 +3632,11 @@ honored if set to False.  (also in 0.6.7)<a class="changeset-link reference inte
 <div class="section" id="change-0.7.0b3-misc">
 <h3>misc<a class="headerlink" href="#change-0.7.0b3-misc" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
+<li><p id="change-0.7.0b3-18"><span class="target" id="change-f2aa1ca45ecfe557dbce711ee18b7414"><strong>[declarative] </strong></span>Arguments in __mapper_args__ that aren&#8217;t &#8220;hashable&#8221;
+aren&#8217;t mistaken for always-hashable, possibly-column
+arguments.  (also in 0.6.7)<a class="changeset-link reference internal" href="#change-f2aa1ca45ecfe557dbce711ee18b7414">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2091">#2091</a></p>
+</p>
+</li>
 <li><p id="change-0.7.0b3-19"><span class="target" id="change-048e59b99152e03dc94aece7d4a58bc5"><strong>[informix] </strong></span>Added RESERVED_WORDS informix dialect.
 (also in 0.6.7)<a class="changeset-link reference internal" href="#change-048e59b99152e03dc94aece7d4a58bc5">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2092">#2092</a></p>
 </p>
@@ -3684,31 +3677,10 @@ not overridden.<a class="changeset-link reference internal" href="#change-5f74d0
 </li>
 </ul>
 </div>
-<div class="section" id="change-0.7.0b2-orm-declarative">
-<h3>orm declarative<a class="headerlink" href="#change-0.7.0b2-orm-declarative" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p id="change-0.7.0b2-2"><span class="target" id="change-c38fe2e3d383ffe42f0caca46aa19754"><strong>[declarative] [orm] </strong></span>Fixed regression whereby composite() with
-Column objects placed inline would fail
-to initialize.  The Column objects can now
-be inline with the composite() or external
-and pulled in via name or object ref.<a class="changeset-link reference internal" href="#change-c38fe2e3d383ffe42f0caca46aa19754">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2058">#2058</a></p>
-</p>
-</li>
-<li><p id="change-0.7.0b2-3"><span class="target" id="change-868f6a352dcb3c48154087013ea5446d"><strong>[declarative] [orm] </strong></span>Fix error message referencing old &#64;classproperty
-name to reference &#64;declared_attr
-(also in 0.6.7)<a class="changeset-link reference internal" href="#change-868f6a352dcb3c48154087013ea5446d">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2061">#2061</a></p>
-</p>
-</li>
-<li><p id="change-0.7.0b2-4"><span class="target" id="change-74177071c6a10f9bfc0211cbd13fd13b"><strong>[declarative] [orm] </strong></span>the dictionary at the end of the __table_args__
-tuple is now optional.<a class="changeset-link reference internal" href="#change-74177071c6a10f9bfc0211cbd13fd13b">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1468">#1468</a></p>
-</p>
-</li>
-</ul>
-</div>
 <div class="section" id="change-0.7.0b2-sql">
 <h3>sql<a class="headerlink" href="#change-0.7.0b2-sql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.7.0b2-5"><span class="target" id="change-dc2cf4dea9f417e9de9e08875f99a6e2"><strong>[sql] </strong></span>Renamed the EngineEvents event class to
+<li><p id="change-0.7.0b2-2"><span class="target" id="change-dc2cf4dea9f417e9de9e08875f99a6e2"><strong>[sql] </strong></span>Renamed the EngineEvents event class to
 ConnectionEvents.  As these classes are never
 accessed directly by end-user code, this strictly
 is a documentation change for end users.  Also
@@ -3716,14 +3688,14 @@ simplified how events get linked to engines
 and connections internally.<a class="changeset-link reference internal" href="#change-dc2cf4dea9f417e9de9e08875f99a6e2">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2059">#2059</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b2-6"><span class="target" id="change-7299f4b7dbf53dbcd7da7f65a3155088"><strong>[sql] </strong></span>The Sequence() construct, when passed a MetaData()
+<li><p id="change-0.7.0b2-3"><span class="target" id="change-7299f4b7dbf53dbcd7da7f65a3155088"><strong>[sql] </strong></span>The Sequence() construct, when passed a MetaData()
 object via its &#8216;metadata&#8217; argument, will be
 included in CREATE/DROP statements within
 metadata.create_all() and metadata.drop_all(),
 including &#8220;checkfirst&#8221; logic.<a class="changeset-link reference internal" href="#change-7299f4b7dbf53dbcd7da7f65a3155088">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2055">#2055</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b2-7"><span class="target" id="change-226a1b45c1480947ae9cd710a9ea6b17"><strong>[sql] </strong></span>The Column.references() method now returns True
+<li><p id="change-0.7.0b2-4"><span class="target" id="change-226a1b45c1480947ae9cd710a9ea6b17"><strong>[sql] </strong></span>The Column.references() method now returns True
 if it has a foreign key referencing the
 given column exactly, not just it&#8217;s parent
 table.<a class="changeset-link reference internal" href="#change-226a1b45c1480947ae9cd710a9ea6b17">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2064">#2064</a></p>
@@ -3734,7 +3706,7 @@ table.<a class="changeset-link reference internal" href="#change-226a1b45c148094
 <div class="section" id="change-0.7.0b2-postgresql">
 <h3>postgresql<a class="headerlink" href="#change-0.7.0b2-postgresql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.7.0b2-8"><span class="target" id="change-4b228a39709839285af0e98dcc00a2e5"><strong>[postgresql] </strong></span>Fixed regression from 0.6 where SMALLINT and
+<li><p id="change-0.7.0b2-5"><span class="target" id="change-4b228a39709839285af0e98dcc00a2e5"><strong>[postgresql] </strong></span>Fixed regression from 0.6 where SMALLINT and
 BIGINT types would both generate SERIAL
 on an integer PK column, instead of
 SMALLINT and BIGSERIAL<a class="changeset-link reference internal" href="#change-4b228a39709839285af0e98dcc00a2e5">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2065">#2065</a></p>
@@ -3745,6 +3717,22 @@ SMALLINT and BIGSERIAL<a class="changeset-link reference internal" href="#change
 <div class="section" id="change-0.7.0b2-misc">
 <h3>misc<a class="headerlink" href="#change-0.7.0b2-misc" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
+<li><p id="change-0.7.0b2-6"><span class="target" id="change-c38fe2e3d383ffe42f0caca46aa19754"><strong>[declarative] </strong></span>Fixed regression whereby composite() with
+Column objects placed inline would fail
+to initialize.  The Column objects can now
+be inline with the composite() or external
+and pulled in via name or object ref.<a class="changeset-link reference internal" href="#change-c38fe2e3d383ffe42f0caca46aa19754">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2058">#2058</a></p>
+</p>
+</li>
+<li><p id="change-0.7.0b2-7"><span class="target" id="change-868f6a352dcb3c48154087013ea5446d"><strong>[declarative] </strong></span>Fix error message referencing old &#64;classproperty
+name to reference &#64;declared_attr
+(also in 0.6.7)<a class="changeset-link reference internal" href="#change-868f6a352dcb3c48154087013ea5446d">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2061">#2061</a></p>
+</p>
+</li>
+<li><p id="change-0.7.0b2-8"><span class="target" id="change-74177071c6a10f9bfc0211cbd13fd13b"><strong>[declarative] </strong></span>the dictionary at the end of the __table_args__
+tuple is now optional.<a class="changeset-link reference internal" href="#change-74177071c6a10f9bfc0211cbd13fd13b">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1468">#1468</a></p>
+</p>
+</li>
 <li><p id="change-0.7.0b2-9"><span class="target" id="change-fbab34328d4fe6cc71b895aa96f6e969"><strong>[ext] </strong></span>Association proxy now has correct behavior for
 any(), has(), and contains() when proxying
 a many-to-one scalar attribute to a one-to-many
@@ -3954,90 +3942,80 @@ in the session.  This will be an exception in 0.7. (also in 0.6.7)<a class="chan
 </li>
 </ul>
 </div>
-<div class="section" id="change-0.7.0b1-orm-declarative">
-<h3>orm declarative<a class="headerlink" href="#change-0.7.0b1-orm-declarative" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p id="change-0.7.0b1-37"><span class="target" id="change-f4bd4cade780402e38c5ce23e28051cb"><strong>[declarative] [orm] </strong></span>Added an explicit check for the case that the name
-&#8216;metadata&#8217; is used for a column attribute on a
-declarative class. (also in 0.6.7)<a class="changeset-link reference internal" href="#change-f4bd4cade780402e38c5ce23e28051cb">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2050">#2050</a></p>
-</p>
-</li>
-</ul>
-</div>
 <div class="section" id="change-0.7.0b1-sql">
 <h3>sql<a class="headerlink" href="#change-0.7.0b1-sql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.7.0b1-38"><span class="target" id="change-4eb7f2aa59933bfc4c2322c448c1238f"><strong>[sql] </strong></span>Added over() function, method to FunctionElement
+<li><p id="change-0.7.0b1-37"><span class="target" id="change-4eb7f2aa59933bfc4c2322c448c1238f"><strong>[sql] </strong></span>Added over() function, method to FunctionElement
 classes, produces the _Over() construct which
 in turn generates &#8220;window functions&#8221;, i.e.
 &#8220;&lt;window function&gt; OVER (PARTITION BY &lt;partition by&gt;,
 ORDER BY &lt;order by&gt;)&#8221;.<a class="changeset-link reference internal" href="#change-4eb7f2aa59933bfc4c2322c448c1238f">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1844">#1844</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-39"><span class="target" id="change-008af6797c834ccbbd51f2ae2c7fba1b"><strong>[sql] </strong></span>LIMIT/OFFSET clauses now use bind parameters<a class="changeset-link reference internal" href="#change-008af6797c834ccbbd51f2ae2c7fba1b">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/805">#805</a></p>
+<li><p id="change-0.7.0b1-38"><span class="target" id="change-008af6797c834ccbbd51f2ae2c7fba1b"><strong>[sql] </strong></span>LIMIT/OFFSET clauses now use bind parameters<a class="changeset-link reference internal" href="#change-008af6797c834ccbbd51f2ae2c7fba1b">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/805">#805</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-40"><span class="target" id="change-77f1c98a5680d59107e84241644a0c9e"><strong>[sql] </strong></span>select.distinct() now accepts column expressions
+<li><p id="change-0.7.0b1-39"><span class="target" id="change-77f1c98a5680d59107e84241644a0c9e"><strong>[sql] </strong></span>select.distinct() now accepts column expressions
 as *args, interpreted by the Postgresql dialect
 as DISTINCT ON (&lt;expr&gt;).  Note this was already
 available via passing a list to the <cite>distinct</cite>
 keyword argument to select().<a class="changeset-link reference internal" href="#change-77f1c98a5680d59107e84241644a0c9e">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1069">#1069</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-41"><span class="target" id="change-a0fb484c1222b50996aa723baba384f1"><strong>[sql] </strong></span>select.prefix_with() accepts multiple expressions
+<li><p id="change-0.7.0b1-40"><span class="target" id="change-a0fb484c1222b50996aa723baba384f1"><strong>[sql] </strong></span>select.prefix_with() accepts multiple expressions
 (i.e. *expr), &#8216;prefix&#8217; keyword argument to select()
 accepts a list or tuple.<a class="changeset-link reference internal" href="#change-a0fb484c1222b50996aa723baba384f1">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-42"><span class="target" id="change-df9bfaf8018c8b1539a0b4c8a07550c8"><strong>[sql] </strong></span>Passing a string to the <cite>distinct</cite> keyword argument
+<li><p id="change-0.7.0b1-41"><span class="target" id="change-df9bfaf8018c8b1539a0b4c8a07550c8"><strong>[sql] </strong></span>Passing a string to the <cite>distinct</cite> keyword argument
 of <cite>select()</cite> for the purpose of emitting special
 MySQL keywords (DISTINCTROW etc.) is deprecated -
 use <cite>prefix_with()</cite> for this.<a class="changeset-link reference internal" href="#change-df9bfaf8018c8b1539a0b4c8a07550c8">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-43"><span class="target" id="change-9112c97367c753c162923d518d541ed0"><strong>[sql] </strong></span>TypeDecorator works with primary key columns<a class="changeset-link reference internal" href="#change-9112c97367c753c162923d518d541ed0">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2006">#2006</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2005">#2005</a></p>
+<li><p id="change-0.7.0b1-42"><span class="target" id="change-9112c97367c753c162923d518d541ed0"><strong>[sql] </strong></span>TypeDecorator works with primary key columns<a class="changeset-link reference internal" href="#change-9112c97367c753c162923d518d541ed0">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2006">#2006</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2005">#2005</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-44"><span class="target" id="change-fc71ca433aef5e4ec0d6b0d752fd6b2e"><strong>[sql] </strong></span>DDL() constructs now escape percent signs<a class="changeset-link reference internal" href="#change-fc71ca433aef5e4ec0d6b0d752fd6b2e">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1897">#1897</a></p>
+<li><p id="change-0.7.0b1-43"><span class="target" id="change-fc71ca433aef5e4ec0d6b0d752fd6b2e"><strong>[sql] </strong></span>DDL() constructs now escape percent signs<a class="changeset-link reference internal" href="#change-fc71ca433aef5e4ec0d6b0d752fd6b2e">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1897">#1897</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-45"><span class="target" id="change-f3cb599e9c46745a4bf2b2b7201214bf"><strong>[sql] </strong></span>Table.c / MetaData.tables refined a bit, don&#8217;t allow direct
+<li><p id="change-0.7.0b1-44"><span class="target" id="change-f3cb599e9c46745a4bf2b2b7201214bf"><strong>[sql] </strong></span>Table.c / MetaData.tables refined a bit, don&#8217;t allow direct
 mutation<a class="changeset-link reference internal" href="#change-f3cb599e9c46745a4bf2b2b7201214bf">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1917">#1917</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1893">#1893</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-46"><span class="target" id="change-9b51a25af44112e886144cd60fa90f62"><strong>[sql] </strong></span>Callables passed to <cite>bindparam()</cite> don&#8217;t get evaluated<a class="changeset-link reference internal" href="#change-9b51a25af44112e886144cd60fa90f62">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1950">#1950</a></p>
+<li><p id="change-0.7.0b1-45"><span class="target" id="change-9b51a25af44112e886144cd60fa90f62"><strong>[sql] </strong></span>Callables passed to <cite>bindparam()</cite> don&#8217;t get evaluated<a class="changeset-link reference internal" href="#change-9b51a25af44112e886144cd60fa90f62">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1950">#1950</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-47"><span class="target" id="change-d22c8592021bf7d745621ed05d7429f1"><strong>[sql] </strong></span>types.type_map is now private, types._type_map<a class="changeset-link reference internal" href="#change-d22c8592021bf7d745621ed05d7429f1">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1870">#1870</a></p>
+<li><p id="change-0.7.0b1-46"><span class="target" id="change-d22c8592021bf7d745621ed05d7429f1"><strong>[sql] </strong></span>types.type_map is now private, types._type_map<a class="changeset-link reference internal" href="#change-d22c8592021bf7d745621ed05d7429f1">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1870">#1870</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-48"><span class="target" id="change-1c2d3bb55bfa7910f19563447af291d6"><strong>[sql] </strong></span>Non-public Pool methods underscored<a class="changeset-link reference internal" href="#change-1c2d3bb55bfa7910f19563447af291d6">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1982">#1982</a></p>
+<li><p id="change-0.7.0b1-47"><span class="target" id="change-1c2d3bb55bfa7910f19563447af291d6"><strong>[sql] </strong></span>Non-public Pool methods underscored<a class="changeset-link reference internal" href="#change-1c2d3bb55bfa7910f19563447af291d6">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1982">#1982</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-49"><span class="target" id="change-192c99cfcb4e50b3886277fbd4c9a212"><strong>[sql] </strong></span>Added NULLS FIRST and NULLS LAST support. It&#8217;s implemented
+<li><p id="change-0.7.0b1-48"><span class="target" id="change-192c99cfcb4e50b3886277fbd4c9a212"><strong>[sql] </strong></span>Added NULLS FIRST and NULLS LAST support. It&#8217;s implemented
 as an extension to the asc() and desc() operators, called
 nullsfirst() and nullslast().<a class="changeset-link reference internal" href="#change-192c99cfcb4e50b3886277fbd4c9a212">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/723">#723</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-50"><span class="target" id="change-8a34b5293403955387df1c3e2d0a0a41"><strong>[sql] </strong></span>The Index() construct can be created inline with a Table
+<li><p id="change-0.7.0b1-49"><span class="target" id="change-8a34b5293403955387df1c3e2d0a0a41"><strong>[sql] </strong></span>The Index() construct can be created inline with a Table
 definition, using strings as column names, as an alternative
 to the creation of the index outside of the Table.<a class="changeset-link reference internal" href="#change-8a34b5293403955387df1c3e2d0a0a41">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-51"><span class="target" id="change-62c7aacfaee859d90d792e30c31ac9bc"><strong>[sql] </strong></span>execution_options() on Connection accepts
+<li><p id="change-0.7.0b1-50"><span class="target" id="change-62c7aacfaee859d90d792e30c31ac9bc"><strong>[sql] </strong></span>execution_options() on Connection accepts
 &#8220;isolation_level&#8221; argument, sets transaction isolation
 level for that connection only until returned to the
 connection pool, for thsoe backends which support it
 (SQLite, Postgresql)<a class="changeset-link reference internal" href="#change-62c7aacfaee859d90d792e30c31ac9bc">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2001">#2001</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-52"><span class="target" id="change-f93d9cab78c0153cf9fb0a71c0ea0259"><strong>[sql] </strong></span>A TypeDecorator of Integer can be used with a primary key
+<li><p id="change-0.7.0b1-51"><span class="target" id="change-f93d9cab78c0153cf9fb0a71c0ea0259"><strong>[sql] </strong></span>A TypeDecorator of Integer can be used with a primary key
 column, and the &#8220;autoincrement&#8221; feature of various dialects
 as well as the &#8220;sqlite_autoincrement&#8221; flag will honor
 the underlying database type as being Integer-based.<a class="changeset-link reference internal" href="#change-f93d9cab78c0153cf9fb0a71c0ea0259">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2005">#2005</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-53"><span class="target" id="change-4913415ba5d037bab37eccc00e534daa"><strong>[sql] </strong></span>Established consistency when server_default is present
+<li><p id="change-0.7.0b1-52"><span class="target" id="change-4913415ba5d037bab37eccc00e534daa"><strong>[sql] </strong></span>Established consistency when server_default is present
 on an Integer PK column.  SQLA doesn&#8217;t pre-fetch these,
 nor do they come back in cursor.lastrowid (DBAPI).
 Ensured all backends consistently return None
@@ -4048,21 +4026,21 @@ except in the case of a PG SERIAL col where we detected a
 sequence default.<a class="changeset-link reference internal" href="#change-4913415ba5d037bab37eccc00e534daa">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2020">#2020</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2021">#2021</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-54"><span class="target" id="change-523eaa86a6fb8bbbe523f6ff4320e065"><strong>[sql] </strong></span>Result-row processors are applied to pre-executed SQL
+<li><p id="change-0.7.0b1-53"><span class="target" id="change-523eaa86a6fb8bbbe523f6ff4320e065"><strong>[sql] </strong></span>Result-row processors are applied to pre-executed SQL
 defaults, as well as cursor.lastrowid, when determining
 the contents of result.inserted_primary_key.<a class="changeset-link reference internal" href="#change-523eaa86a6fb8bbbe523f6ff4320e065">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2006">#2006</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-55"><span class="target" id="change-64b01c67299868c1e98b5a3c2f0c472a"><strong>[sql] </strong></span>Bind parameters present in the &#8220;columns clause&#8221; of a select
+<li><p id="change-0.7.0b1-54"><span class="target" id="change-64b01c67299868c1e98b5a3c2f0c472a"><strong>[sql] </strong></span>Bind parameters present in the &#8220;columns clause&#8221; of a select
 are now auto-labeled like other &#8220;anonymous&#8221; clauses,
 which among other things allows their &#8220;type&#8221; to be meaningful
 when the row is fetched, as in result row processors.<a class="changeset-link reference internal" href="#change-64b01c67299868c1e98b5a3c2f0c472a">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-56"><span class="target" id="change-ecc90be10a16dfffd1ad51bf80e0de25"><strong>[sql] </strong></span>TypeDecorator is present in the &#8220;sqlalchemy&#8221; import space.<a class="changeset-link reference internal" href="#change-ecc90be10a16dfffd1ad51bf80e0de25">(link)</a><p></p>
+<li><p id="change-0.7.0b1-55"><span class="target" id="change-ecc90be10a16dfffd1ad51bf80e0de25"><strong>[sql] </strong></span>TypeDecorator is present in the &#8220;sqlalchemy&#8221; import space.<a class="changeset-link reference internal" href="#change-ecc90be10a16dfffd1ad51bf80e0de25">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-57"><span class="target" id="change-fb26558eb829e86d5464e9c8f060232b"><strong>[sql] </strong></span>Non-DBAPI errors which occur in the scope of an <cite>execute()</cite>
+<li><p id="change-0.7.0b1-56"><span class="target" id="change-fb26558eb829e86d5464e9c8f060232b"><strong>[sql] </strong></span>Non-DBAPI errors which occur in the scope of an <cite>execute()</cite>
 call are now wrapped in sqlalchemy.exc.StatementError,
 and the text of the SQL statement and repr() of params
 is included.  This makes it easier to identify statement
@@ -4070,7 +4048,7 @@ executions which fail before the DBAPI becomes
 involved.<a class="changeset-link reference internal" href="#change-fb26558eb829e86d5464e9c8f060232b">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2015">#2015</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-58"><span class="target" id="change-a66b20fca49c0f8524e0f9b13450df30"><strong>[sql] </strong></span>The concept of associating a &#8221;.bind&#8221; directly with a
+<li><p id="change-0.7.0b1-57"><span class="target" id="change-a66b20fca49c0f8524e0f9b13450df30"><strong>[sql] </strong></span>The concept of associating a &#8221;.bind&#8221; directly with a
 ClauseElement has been explicitly moved to Executable,
 i.e. the mixin that describes ClauseElements which represent
 engine-executable constructs.  This change is an improvement
@@ -4078,25 +4056,25 @@ to internal organization and is unlikely to affect any
 real-world usage.<a class="changeset-link reference internal" href="#change-a66b20fca49c0f8524e0f9b13450df30">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2048">#2048</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-59"><span class="target" id="change-a466de1bb8545241b6aa4e22314db722"><strong>[sql] </strong></span>Column.copy(), as used in table.tometadata(), copies the
+<li><p id="change-0.7.0b1-58"><span class="target" id="change-a466de1bb8545241b6aa4e22314db722"><strong>[sql] </strong></span>Column.copy(), as used in table.tometadata(), copies the
 &#8216;doc&#8217; attribute.  (also in 0.6.7)<a class="changeset-link reference internal" href="#change-a466de1bb8545241b6aa4e22314db722">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2028">#2028</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-60"><span class="target" id="change-e01bc44c0b8683e725b54e07f17b3db8"><strong>[sql] </strong></span>Added some defs to the resultproxy.c extension so that
+<li><p id="change-0.7.0b1-59"><span class="target" id="change-e01bc44c0b8683e725b54e07f17b3db8"><strong>[sql] </strong></span>Added some defs to the resultproxy.c extension so that
 the extension compiles and runs on Python 2.4. (also in 0.6.7)<a class="changeset-link reference internal" href="#change-e01bc44c0b8683e725b54e07f17b3db8">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2023">#2023</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-61"><span class="target" id="change-eb2cc6cfb9f8870e2eec8d687b2b5f2c"><strong>[sql] </strong></span>The compiler extension now supports overriding the default
+<li><p id="change-0.7.0b1-60"><span class="target" id="change-eb2cc6cfb9f8870e2eec8d687b2b5f2c"><strong>[sql] </strong></span>The compiler extension now supports overriding the default
 compilation of expression._BindParamClause including that
 the auto-generated binds within the VALUES/SET clause
 of an insert()/update() statement will also use the new
 compilation rules. (also in 0.6.7)<a class="changeset-link reference internal" href="#change-eb2cc6cfb9f8870e2eec8d687b2b5f2c">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2042">#2042</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-62"><span class="target" id="change-4664bca0e88c4aa7baf8649d823fa11e"><strong>[sql] </strong></span>SQLite dialect now uses <cite>NullPool</cite> for file-based databases<a class="changeset-link reference internal" href="#change-4664bca0e88c4aa7baf8649d823fa11e">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1921">#1921</a></p>
+<li><p id="change-0.7.0b1-61"><span class="target" id="change-4664bca0e88c4aa7baf8649d823fa11e"><strong>[sql] </strong></span>SQLite dialect now uses <cite>NullPool</cite> for file-based databases<a class="changeset-link reference internal" href="#change-4664bca0e88c4aa7baf8649d823fa11e">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1921">#1921</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-63"><span class="target" id="change-4afa9ef114e44f1d7f2ee4ab49ea60b0"><strong>[sql] </strong></span>The path given as the location of a sqlite database is now
+<li><p id="change-0.7.0b1-62"><span class="target" id="change-4afa9ef114e44f1d7f2ee4ab49ea60b0"><strong>[sql] </strong></span>The path given as the location of a sqlite database is now
 normalized via os.path.abspath(), so that directory changes
 within the process don&#8217;t affect the ultimate location
 of a relative file path.<a class="changeset-link reference internal" href="#change-4afa9ef114e44f1d7f2ee4ab49ea60b0">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2036">#2036</a></p>
@@ -4107,14 +4085,14 @@ of a relative file path.<a class="changeset-link reference internal" href="#chan
 <div class="section" id="change-0.7.0b1-postgresql">
 <h3>postgresql<a class="headerlink" href="#change-0.7.0b1-postgresql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.7.0b1-64"><span class="target" id="change-b5ada6099a9b9ba39ca6d8b0c0827b92"><strong>[postgresql] </strong></span>When explicit sequence execution derives the name
+<li><p id="change-0.7.0b1-63"><span class="target" id="change-b5ada6099a9b9ba39ca6d8b0c0827b92"><strong>[postgresql] </strong></span>When explicit sequence execution derives the name
 of the auto-generated sequence of a SERIAL column,
 which currently only occurs if implicit_returning=False,
 now accommodates if the table + column name is greater
 than 63 characters using the same logic Postgresql uses. (also in 0.6.7)<a class="changeset-link reference internal" href="#change-b5ada6099a9b9ba39ca6d8b0c0827b92">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1083">#1083</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-65"><span class="target" id="change-05134b7490c95da9c06e6ec525e05543"><strong>[postgresql] </strong></span>Added an additional libpq message to the list of &#8220;disconnect&#8221;
+<li><p id="change-0.7.0b1-64"><span class="target" id="change-05134b7490c95da9c06e6ec525e05543"><strong>[postgresql] </strong></span>Added an additional libpq message to the list of &#8220;disconnect&#8221;
 exceptions, &#8220;could not receive data from server&#8221; (also in 0.6.7)<a class="changeset-link reference internal" href="#change-05134b7490c95da9c06e6ec525e05543">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2044">#2044</a></p>
 </p>
 </li>
@@ -4123,11 +4101,11 @@ exceptions, &#8220;could not receive data from server&#8221; (also in 0.6.7)<a c
 <div class="section" id="change-0.7.0b1-mysql">
 <h3>mysql<a class="headerlink" href="#change-0.7.0b1-mysql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.7.0b1-66"><span class="target" id="change-7d80eda9ae55c5d7135bf452c7420586"><strong>[mysql] </strong></span>New DBAPI support for pymysql, a pure Python port
+<li><p id="change-0.7.0b1-65"><span class="target" id="change-7d80eda9ae55c5d7135bf452c7420586"><strong>[mysql] </strong></span>New DBAPI support for pymysql, a pure Python port
 of MySQL-python.<a class="changeset-link reference internal" href="#change-7d80eda9ae55c5d7135bf452c7420586">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1991">#1991</a></p>
 </p>
 </li>
-<li><p id="change-0.7.0b1-67"><span class="target" id="change-b7f58cb72e13cc5af0d1da04d82b64d3"><strong>[mysql] </strong></span>oursql dialect accepts the same &#8220;ssl&#8221; arguments in
+<li><p id="change-0.7.0b1-66"><span class="target" id="change-b7f58cb72e13cc5af0d1da04d82b64d3"><strong>[mysql] </strong></span>oursql dialect accepts the same &#8220;ssl&#8221; arguments in
 create_engine() as that of MySQLdb.
 (also in 0.6.7)<a class="changeset-link reference internal" href="#change-b7f58cb72e13cc5af0d1da04d82b64d3">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2047">#2047</a></p>
 </p>
@@ -4137,7 +4115,7 @@ create_engine() as that of MySQLdb.
 <div class="section" id="change-0.7.0b1-mssql">
 <h3>mssql<a class="headerlink" href="#change-0.7.0b1-mssql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.7.0b1-68"><span class="target" id="change-63bd4273775d5a53a36af9dd8ee5b79b"><strong>[mssql] </strong></span>the String/Unicode types, and their counterparts VARCHAR/
+<li><p id="change-0.7.0b1-67"><span class="target" id="change-63bd4273775d5a53a36af9dd8ee5b79b"><strong>[mssql] </strong></span>the String/Unicode types, and their counterparts VARCHAR/
 NVARCHAR, emit &#8220;max&#8221; as the length when no length is
 specified, so that the default length, normally &#8216;1&#8217;
 as per SQL server documentation, is instead
@@ -4152,7 +4130,7 @@ when no length is specified.</p>
 <div class="section" id="change-0.7.0b1-firebird">
 <h3>firebird<a class="headerlink" href="#change-0.7.0b1-firebird" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.7.0b1-69"><span class="target" id="change-432e2525c02e26b7c7853622f71b1123"><strong>[firebird] </strong></span>Some adjustments so that Interbase is supported as well.
+<li><p id="change-0.7.0b1-68"><span class="target" id="change-432e2525c02e26b7c7853622f71b1123"><strong>[firebird] </strong></span>Some adjustments so that Interbase is supported as well.
 FB/Interbase version idents are parsed into a structure
 such as (8, 1, 1, &#8216;interbase&#8217;) or (2, 1, 588, &#8216;firebird&#8217;)
 so they can be distinguished.<a class="changeset-link reference internal" href="#change-432e2525c02e26b7c7853622f71b1123">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1885">#1885</a></p>
@@ -4163,9 +4141,14 @@ so they can be distinguished.<a class="changeset-link reference internal" href="
 <div class="section" id="change-0.7.0b1-misc">
 <h3>misc<a class="headerlink" href="#change-0.7.0b1-misc" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.7.0b1-70"><span class="target" id="change-d347d88fe254c05459e964fb7a9d3005"></span>Detailed descriptions of each change below are
+<li><p id="change-0.7.0b1-69"><span class="target" id="change-d347d88fe254c05459e964fb7a9d3005"></span>Detailed descriptions of each change below are
 described at:
 <a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/07Migration">http://www.sqlalchemy.org/trac/wiki/07Migration</a><a class="changeset-link reference internal" href="#change-d347d88fe254c05459e964fb7a9d3005">(link)</a><p></p>
+</p>
+</li>
+<li><p id="change-0.7.0b1-70"><span class="target" id="change-f4bd4cade780402e38c5ce23e28051cb"><strong>[declarative] </strong></span>Added an explicit check for the case that the name
+&#8216;metadata&#8217; is used for a column attribute on a
+declarative class. (also in 0.6.7)<a class="changeset-link reference internal" href="#change-f4bd4cade780402e38c5ce23e28051cb">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2050">#2050</a></p>
 </p>
 </li>
 </ul>
@@ -4184,7 +4167,7 @@ described at:
         <a href="changelog_06.html" title="next chapter">0.6 Changelog</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

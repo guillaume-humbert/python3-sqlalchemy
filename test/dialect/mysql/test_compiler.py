@@ -6,6 +6,7 @@ from sqlalchemy import sql, exc, schema, types as sqltypes
 from sqlalchemy.dialects.mysql import base as mysql
 from sqlalchemy.testing import fixtures, AssertsCompiledSQL
 from sqlalchemy import testing
+from sqlalchemy.sql import table, column
 
 class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
 
@@ -104,52 +105,18 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             "CREATE INDEX bar ON foo (x > 5)"
         )
 
-    def test_deferrable_emits_warning(self):
+    def test_deferrable_initially_kw_not_ignored(self):
         m = MetaData()
         t1 = Table('t1', m, Column('id', Integer, primary_key=True))
         t2 = Table('t2', m, Column('id', Integer,
-                        ForeignKey('t1.id', deferrable=True),
+                        ForeignKey('t1.id', deferrable=True, initially="XYZ"),
                             primary_key=True))
 
-        assert_raises_message(
-            exc.SAWarning,
-            "The 'deferrable' keyword will no longer be ignored by the MySQL "
-            "backend in 0.9 - please adjust so that this keyword is not used in "
-            "conjunction with MySQL.",
-            schema.CreateTable(t2).compile, dialect=mysql.dialect()
-        )
-
-        @testing.emits_warning("The 'deferrable' keyword")
-        def go():
-            self.assert_compile(
+        self.assert_compile(
             schema.CreateTable(t2),
             "CREATE TABLE t2 (id INTEGER NOT NULL, "
-            "PRIMARY KEY (id), FOREIGN KEY(id) REFERENCES t1 (id))")
-        go()
-
-    def test_initially_emits_warning(self):
-        m = MetaData()
-        t1 = Table('t1', m, Column('id', Integer, primary_key=True))
-        t2 = Table('t2', m, Column('id', Integer,
-                        ForeignKey('t1.id', initially="XYZ"),
-                            primary_key=True))
-
-        assert_raises_message(
-            exc.SAWarning,
-            "The 'initially' keyword will no longer be ignored by the MySQL "
-            "backend in 0.9 - please adjust so that this keyword is not used "
-            "in conjunction with MySQL.",
-            schema.CreateTable(t2).compile, dialect=mysql.dialect()
+            "PRIMARY KEY (id), FOREIGN KEY(id) REFERENCES t1 (id) DEFERRABLE INITIALLY XYZ)"
         )
-
-        @testing.emits_warning("The 'initially' keyword ")
-        def go():
-            self.assert_compile(
-            schema.CreateTable(t2),
-            "CREATE TABLE t2 (id INTEGER NOT NULL, "
-            "PRIMARY KEY (id), FOREIGN KEY(id) REFERENCES t1 (id))")
-        go()
-
 
     def test_match_kw_raises(self):
         m = MetaData()
@@ -159,11 +126,25 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                             primary_key=True))
 
         assert_raises_message(
-            exc.SAWarning,
+            exc.CompileError,
             "MySQL ignores the 'MATCH' keyword while at the same time causes "
             "ON UPDATE/ON DELETE clauses to be ignored.",
             schema.CreateTable(t2).compile, dialect=mysql.dialect()
         )
+
+    def test_for_update(self):
+        table1 = table('mytable',
+                    column('myid'), column('name'), column('description'))
+
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).with_for_update(),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = %s FOR UPDATE")
+
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).with_for_update(read=True),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = %s LOCK IN SHARE MODE")
 
 class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
     """Tests MySQL-dialect specific compilation."""

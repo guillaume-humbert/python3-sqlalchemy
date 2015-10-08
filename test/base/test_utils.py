@@ -4,7 +4,7 @@ from sqlalchemy import util, sql, exc, testing
 from sqlalchemy.testing import assert_raises, assert_raises_message, fixtures
 from sqlalchemy.testing import eq_, is_, ne_, fails_if
 from sqlalchemy.testing.util import picklers, gc_collect
-from sqlalchemy.util import classproperty, WeakSequence
+from sqlalchemy.util import classproperty, WeakSequence, get_callable_argspec
 
 
 class KeyedTupleTest():
@@ -16,7 +16,7 @@ class KeyedTupleTest():
         eq_(len(keyed_tuple), 0)
 
         eq_(keyed_tuple.__dict__, {'_labels': []})
-        eq_(keyed_tuple.keys(), [])
+        eq_(list(keyed_tuple.keys()), [])
         eq_(keyed_tuple._fields, ())
         eq_(keyed_tuple._asdict(), {})
 
@@ -27,7 +27,7 @@ class KeyedTupleTest():
         eq_(len(keyed_tuple), 2)
 
         eq_(keyed_tuple.__dict__, {'_labels': []})
-        eq_(keyed_tuple.keys(), [])
+        eq_(list(keyed_tuple.keys()), [])
         eq_(keyed_tuple._fields, ())
         eq_(keyed_tuple._asdict(), {})
 
@@ -37,7 +37,7 @@ class KeyedTupleTest():
     def test_basic_creation(self):
         keyed_tuple = util.KeyedTuple([1, 2], ['a', 'b'])
         eq_(str(keyed_tuple), '(1, 2)')
-        eq_(keyed_tuple.keys(), ['a', 'b'])
+        eq_(list(keyed_tuple.keys()), ['a', 'b'])
         eq_(keyed_tuple._fields, ('a', 'b'))
         eq_(keyed_tuple._asdict(), {'a': 1, 'b': 2})
 
@@ -66,7 +66,7 @@ class KeyedTupleTest():
         # TODO: consider not allowing None labels
         expected = {'a': 1, None: 2, 'b': 3, '_labels': ['a', None, 'b']}
         eq_(keyed_tuple.__dict__, expected)
-        eq_(keyed_tuple.keys(), ['a', 'b'])
+        eq_(list(keyed_tuple.keys()), ['a', 'b'])
         eq_(keyed_tuple._fields, ('a', 'b'))
         eq_(keyed_tuple._asdict(), {'a': 1, 'b': 3})
 
@@ -86,7 +86,7 @@ class KeyedTupleTest():
         # TODO: consider not allowing duplicate labels
         expected = {'a': 1, 'b': 3, '_labels': ['a', 'b', 'b']}
         eq_(keyed_tuple.__dict__, expected)
-        eq_(keyed_tuple.keys(), ['a', 'b', 'b'])
+        eq_(list(keyed_tuple.keys()), ['a', 'b', 'b'])
         eq_(keyed_tuple._fields, ('a', 'b', 'b'))
         eq_(keyed_tuple._asdict(), {'a': 1, 'b': 3})
 
@@ -155,12 +155,12 @@ class OrderedDictTest(fixtures.TestBase):
         o['snack'] = 'attack'
         o['c'] = 3
 
-        eq_(o.keys(), ['a', 'b', 'snack', 'c'])
-        eq_(o.values(), [1, 2, 'attack', 3])
+        eq_(list(o.keys()), ['a', 'b', 'snack', 'c'])
+        eq_(list(o.values()), [1, 2, 'attack', 3])
 
         o.pop('snack')
-        eq_(o.keys(), ['a', 'b', 'c'])
-        eq_(o.values(), [1, 2, 3])
+        eq_(list(o.keys()), ['a', 'b', 'c'])
+        eq_(list(o.values()), [1, 2, 3])
 
         try:
             o.pop('eep')
@@ -176,40 +176,40 @@ class OrderedDictTest(fixtures.TestBase):
         except TypeError:
             pass
 
-        eq_(o.keys(), ['a', 'b', 'c'])
-        eq_(o.values(), [1, 2, 3])
+        eq_(list(o.keys()), ['a', 'b', 'c'])
+        eq_(list(o.values()), [1, 2, 3])
 
         o2 = util.OrderedDict(d=4)
         o2['e'] = 5
 
-        eq_(o2.keys(), ['d', 'e'])
-        eq_(o2.values(), [4, 5])
+        eq_(list(o2.keys()), ['d', 'e'])
+        eq_(list(o2.values()), [4, 5])
 
         o.update(o2)
-        eq_(o.keys(), ['a', 'b', 'c', 'd', 'e'])
-        eq_(o.values(), [1, 2, 3, 4, 5])
+        eq_(list(o.keys()), ['a', 'b', 'c', 'd', 'e'])
+        eq_(list(o.values()), [1, 2, 3, 4, 5])
 
         o.setdefault('c', 'zzz')
         o.setdefault('f', 6)
-        eq_(o.keys(), ['a', 'b', 'c', 'd', 'e', 'f'])
-        eq_(o.values(), [1, 2, 3, 4, 5, 6])
+        eq_(list(o.keys()), ['a', 'b', 'c', 'd', 'e', 'f'])
+        eq_(list(o.values()), [1, 2, 3, 4, 5, 6])
 
     def test_odict_constructor(self):
         o = util.OrderedDict([('name', 'jbe'), ('fullname', 'jonathan'
                              ), ('password', '')])
-        eq_(o.keys(), ['name', 'fullname', 'password'])
+        eq_(list(o.keys()), ['name', 'fullname', 'password'])
 
     def test_odict_copy(self):
         o = util.OrderedDict()
         o["zzz"] = 1
         o["aaa"] = 2
-        eq_(o.keys(), ['zzz', 'aaa'])
+        eq_(list(o.keys()), ['zzz', 'aaa'])
 
         o2 = o.copy()
-        eq_(o2.keys(), o.keys())
+        eq_(list(o2.keys()), list(o.keys()))
 
         o3 = copy.copy(o)
-        eq_(o3.keys(), o.keys())
+        eq_(list(o3.keys()), list(o.keys()))
 
 
 class OrderedSetTest(fixtures.TestBase):
@@ -228,7 +228,7 @@ class FrozenDictTest(fixtures.TestBase):
     def test_serialize(self):
         d = util.immutabledict({1: 2, 3: 4})
         for loads, dumps in picklers():
-            print loads(dumps(d))
+            print(loads(dumps(d)))
 
 
 class MemoizedAttrTest(fixtures.TestBase):
@@ -282,7 +282,7 @@ class ColumnCollectionTest(fixtures.TestBase):
         try:
             cc['col1'] in cc
             assert False
-        except exc.ArgumentError, e:
+        except exc.ArgumentError as e:
             eq_(str(e), "__contains__ requires a string argument")
 
     def test_compare(self):
@@ -444,14 +444,14 @@ class IdentitySetTest(fixtures.TestBase):
         for type_ in (object, ImmutableSubclass):
             data = [type_(), type_()]
             ids = util.IdentitySet()
-            for i in range(2) + range(2):
+            for i in list(range(2)) + list(range(2)):
                 ids.add(data[i])
             self.assert_eq(ids, data)
 
         for type_ in (EqOverride, HashOverride, HashEqOverride):
             data = [type_(1), type_(1), type_(2)]
             ids = util.IdentitySet()
-            for i in range(3) + range(3):
+            for i in list(range(3)) + list(range(3)):
                 ids.add(data[i])
             self.assert_eq(ids, data)
 
@@ -873,13 +873,12 @@ class IdentitySetTest(fixtures.TestBase):
         return super_, sub_, twin1, twin2, unique1, unique2
 
     def _assert_unorderable_types(self, callable_):
-        # Py3K
-        #assert_raises_message(
-        #    TypeError, 'unorderable types', callable_)
-        # Py2K
-        assert_raises_message(
-            TypeError, 'cannot compare sets using cmp()', callable_)
-        # end Py2K
+        if util.py3k:
+            assert_raises_message(
+                TypeError, 'unorderable types', callable_)
+        else:
+            assert_raises_message(
+                TypeError, 'cannot compare sets using cmp()', callable_)
 
     def test_basic_sanity(self):
         IdentitySet = util.IdentitySet
@@ -999,23 +998,21 @@ class DictlikeIteritemsTest(fixtures.TestBase):
         d = subdict(a=1, b=2, c=3)
         self._ok(d)
 
-    # Py2K
-    def test_UserDict(self):
-        import UserDict
-        d = UserDict.UserDict(a=1, b=2, c=3)
-        self._ok(d)
-    # end Py2K
+    if util.py2k:
+        def test_UserDict(self):
+            import UserDict
+            d = UserDict.UserDict(a=1, b=2, c=3)
+            self._ok(d)
 
     def test_object(self):
         self._notok(object())
 
-    # Py2K
-    def test_duck_1(self):
-        class duck1(object):
-            def iteritems(duck):
-                return iter(self.baseline)
-        self._ok(duck1())
-    # end Py2K
+    if util.py2k:
+        def test_duck_1(self):
+            class duck1(object):
+                def iteritems(duck):
+                    return iter(self.baseline)
+            self._ok(duck1())
 
     def test_duck_2(self):
         class duck2(object):
@@ -1023,16 +1020,15 @@ class DictlikeIteritemsTest(fixtures.TestBase):
                 return list(self.baseline)
         self._ok(duck2())
 
-    # Py2K
-    def test_duck_3(self):
-        class duck3(object):
-            def iterkeys(duck):
-                return iter(['a', 'b', 'c'])
+    if util.py2k:
+        def test_duck_3(self):
+            class duck3(object):
+                def iterkeys(duck):
+                    return iter(['a', 'b', 'c'])
 
-            def __getitem__(duck, key):
-                return dict(a=1, b=2, c=3).get(key)
-        self._ok(duck3())
-    # end Py2K
+                def __getitem__(duck, key):
+                    return dict(a=1, b=2, c=3).get(key)
+            self._ok(duck3())
 
     def test_duck_4(self):
         class duck4(object):
@@ -1059,10 +1055,6 @@ class DictlikeIteritemsTest(fixtures.TestBase):
 class DuckTypeCollectionTest(fixtures.TestBase):
 
     def test_sets(self):
-        # Py2K
-        import sets
-        # end Py2K
-
         class SetLike(object):
             def add(self):
                 pass
@@ -1071,20 +1063,13 @@ class DuckTypeCollectionTest(fixtures.TestBase):
             __emulates__ = set
 
         for type_ in (set,
-                      # Py2K
-                      sets.Set,
-                      # end Py2K
                       SetLike,
                       ForcedSet):
             eq_(util.duck_type_collection(type_), set)
             instance = type_()
             eq_(util.duck_type_collection(instance), set)
 
-        for type_ in (frozenset,
-                      # Py2K
-                      sets.ImmutableSet
-                      # end Py2K
-                      ):
+        for type_ in (frozenset, ):
             is_(util.duck_type_collection(type_), None)
             instance = type_()
             is_(util.duck_type_collection(instance), None)
@@ -1199,6 +1184,33 @@ class ArgInspectionTest(fixtures.TestBase):
         test(f3)
         test(f4)
 
+    def test_callable_argspec_fn(self):
+        def foo(x, y, **kw):
+            pass
+        eq_(
+            get_callable_argspec(foo),
+            (['x', 'y'], None, 'kw', None)
+        )
+
+    def test_callable_argspec_method(self):
+        class Foo(object):
+            def foo(self, x, y, **kw):
+                pass
+        eq_(
+            get_callable_argspec(Foo.foo),
+            (['self', 'x', 'y'], None, 'kw', None)
+        )
+
+    def test_callable_argspec_partial(self):
+        from functools import partial
+        def foo(x, y, z, **kw):
+            pass
+        bar = partial(foo, 5)
+
+        assert_raises(
+            ValueError,
+            get_callable_argspec, bar
+        )
 
 class SymbolTest(fixtures.TestBase):
 
@@ -1225,7 +1237,7 @@ class SymbolTest(fixtures.TestBase):
         sym3 = util.pickle.loads(s)
 
         for protocol in 0, 1, 2:
-            print protocol
+            print(protocol)
             serial = util.pickle.dumps(sym1)
             rt = util.pickle.loads(serial)
             assert rt is sym1
@@ -1434,6 +1446,55 @@ class GenericReprTest(fixtures.TestBase):
             "Foo(b=5, d=7)"
         )
 
+    def test_multi_kw(self):
+        class Foo(object):
+            def __init__(self, a, b, c=3, d=4):
+                self.a = a
+                self.b = b
+                self.c = c
+                self.d = d
+        class Bar(Foo):
+            def __init__(self, e, f, g=5, **kw):
+                self.e = e
+                self.f = f
+                self.g = g
+                super(Bar, self).__init__(**kw)
+
+        eq_(
+            util.generic_repr(
+                Bar('e', 'f', g=7, a=6, b=5, d=9),
+                to_inspect=[Bar, Foo]
+            ),
+            "Bar('e', 'f', g=7, a=6, b=5, d=9)"
+        )
+
+        eq_(
+            util.generic_repr(
+                Bar('e', 'f', a=6, b=5),
+                to_inspect=[Bar, Foo]
+            ),
+            "Bar('e', 'f', a=6, b=5)"
+        )
+
+    def test_multi_kw_repeated(self):
+        class Foo(object):
+            def __init__(self, a=1, b=2):
+                self.a = a
+                self.b = b
+        class Bar(Foo):
+            def __init__(self, b=3, c=4, **kw):
+                self.c = c
+                super(Bar, self).__init__(b=b, **kw)
+
+        eq_(
+            util.generic_repr(
+                Bar(a='a', b='b', c='c'),
+                to_inspect=[Bar, Foo]
+            ),
+            "Bar(b='b', c='c', a='a')"
+        )
+
+
     def test_discard_vargs(self):
         class Foo(object):
             def __init__(self, a, b, *args):
@@ -1600,21 +1661,20 @@ class TestClassHierarchy(fixtures.TestBase):
         eq_(set(util.class_hierarchy(A)), set((A, B, C, object)))
         eq_(set(util.class_hierarchy(B)), set((A, B, C, object)))
 
-    # Py2K
-    def test_oldstyle_mixin(self):
-        class A(object):
-            pass
+    if util.py2k:
+        def test_oldstyle_mixin(self):
+            class A(object):
+                pass
 
-        class Mixin:
-            pass
+            class Mixin:
+                pass
 
-        class B(A, Mixin):
-            pass
+            class B(A, Mixin):
+                pass
 
-        eq_(set(util.class_hierarchy(B)), set((A, B, object)))
-        eq_(set(util.class_hierarchy(Mixin)), set())
-        eq_(set(util.class_hierarchy(A)), set((A, B, object)))
-    # end Py2K
+            eq_(set(util.class_hierarchy(B)), set((A, B, object)))
+            eq_(set(util.class_hierarchy(Mixin)), set())
+            eq_(set(util.class_hierarchy(A)), set((A, B, object)))
 
 
 class TestClassProperty(fixtures.TestBase):
@@ -1632,3 +1692,5 @@ class TestClassProperty(fixtures.TestBase):
                 return d
 
         eq_(B.something, {'foo': 1, 'bazz': 2})
+
+

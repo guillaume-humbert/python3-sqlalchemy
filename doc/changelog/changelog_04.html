@@ -10,7 +10,7 @@
     
                 0.4 Changelog
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
         <link rel="up" title="Changes and Migration" href="index.html" />
         <link rel="next" title="0.3 Changelog" href="changelog_03.html" />
         <link rel="prev" title="0.5 Changelog" href="changelog_05.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
         » 
                 0.4 Changelog
@@ -155,7 +156,6 @@
 </li>
 <li><a class="reference internal" href="#change-0.4.6">0.4.6</a><ul>
 <li><a class="reference internal" href="#change-0.4.6-orm">orm</a></li>
-<li><a class="reference internal" href="#change-0.4.6-orm-declarative">orm declarative</a></li>
 <li><a class="reference internal" href="#change-0.4.6-sql">sql</a></li>
 <li><a class="reference internal" href="#change-0.4.6-mssql">mssql</a></li>
 <li><a class="reference internal" href="#change-0.4.6-firebird">firebird</a></li>
@@ -164,7 +164,6 @@
 </li>
 <li><a class="reference internal" href="#change-0.4.5">0.4.5</a><ul>
 <li><a class="reference internal" href="#change-0.4.5-orm">orm</a></li>
-<li><a class="reference internal" href="#change-0.4.5-orm-declarative">orm declarative</a></li>
 <li><a class="reference internal" href="#change-0.4.5-sql">sql</a></li>
 <li><a class="reference internal" href="#change-0.4.5-mysql">mysql</a></li>
 <li><a class="reference internal" href="#change-0.4.5-mssql">mssql</a></li>
@@ -552,39 +551,23 @@ a dynamic_loader.<a class="changeset-link reference internal" href="#change-b151
 </li>
 </ul>
 </div>
-<div class="section" id="change-0.4.6-orm-declarative">
-<h3>orm declarative<a class="headerlink" href="#change-0.4.6-orm-declarative" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p id="change-0.4.6-14"><span class="target" id="change-6e72bcfc5ea35d0926f998977a8d8f6b"><strong>[orm] [extension] [declarative] </strong></span>Joined table inheritance mappers use a slightly relaxed
-function to create the &#8220;inherit condition&#8221; to the parent
-table, so that other foreign keys to not-yet-declared
-Table objects don&#8217;t trigger an error.<a class="changeset-link reference internal" href="#change-6e72bcfc5ea35d0926f998977a8d8f6b">(link)</a><p></p>
-</p>
-</li>
-<li><p id="change-0.4.6-15"><span class="target" id="change-7cf86b76b69093e8eaf193d8766bd8ce"><strong>[orm] [extension] [declarative] </strong></span>fixed reentrant mapper compile hang when
-a declared attribute is used within ForeignKey,
-ie. ForeignKey(MyOtherClass.someattribute)<a class="changeset-link reference internal" href="#change-7cf86b76b69093e8eaf193d8766bd8ce">(link)</a><p></p>
-</p>
-</li>
-</ul>
-</div>
 <div class="section" id="change-0.4.6-sql">
 <h3>sql<a class="headerlink" href="#change-0.4.6-sql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.4.6-16"><span class="target" id="change-c0a253c2a3ac8a52b71f9074c836045e"><strong>[sql] </strong></span>Added COLLATE support via the .collate(&lt;collation&gt;)
+<li><p id="change-0.4.6-14"><span class="target" id="change-c0a253c2a3ac8a52b71f9074c836045e"><strong>[sql] </strong></span>Added COLLATE support via the .collate(&lt;collation&gt;)
 expression operator and collate(&lt;expr&gt;, &lt;collation&gt;) sql
 function.<a class="changeset-link reference internal" href="#change-c0a253c2a3ac8a52b71f9074c836045e">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.6-17"><span class="target" id="change-3425affd500ef60da0ceda4319ff76ac"><strong>[sql] </strong></span>Fixed bug with union() when applied to non-Table connected
+<li><p id="change-0.4.6-15"><span class="target" id="change-3425affd500ef60da0ceda4319ff76ac"><strong>[sql] </strong></span>Fixed bug with union() when applied to non-Table connected
 select statements<a class="changeset-link reference internal" href="#change-3425affd500ef60da0ceda4319ff76ac">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.6-18"><span class="target" id="change-c946f492d8c12da19c9976c66867241a"><strong>[sql] </strong></span>improved behavior of text() expressions when used as
+<li><p id="change-0.4.6-16"><span class="target" id="change-c946f492d8c12da19c9976c66867241a"><strong>[sql] </strong></span>improved behavior of text() expressions when used as
 FROM clauses, such as select().select_from(text(&#8220;sometext&#8221;))<a class="changeset-link reference internal" href="#change-c946f492d8c12da19c9976c66867241a">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1014">#1014</a></p>
 </p>
 </li>
-<li><p id="change-0.4.6-19"><span class="target" id="change-79b0f66b8b318392d68b1e09fb21dbad"><strong>[sql] </strong></span>Column.copy() respects the value of &#8220;autoincrement&#8221;,
+<li><p id="change-0.4.6-17"><span class="target" id="change-79b0f66b8b318392d68b1e09fb21dbad"><strong>[sql] </strong></span>Column.copy() respects the value of &#8220;autoincrement&#8221;,
 fixes usage with Migrate<a class="changeset-link reference internal" href="#change-79b0f66b8b318392d68b1e09fb21dbad">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1021">#1021</a></p>
 </p>
 </li>
@@ -593,14 +576,14 @@ fixes usage with Migrate<a class="changeset-link reference internal" href="#chan
 <div class="section" id="change-0.4.6-mssql">
 <h3>mssql<a class="headerlink" href="#change-0.4.6-mssql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.4.6-20"><span class="target" id="change-4bf92261ee5df21cc151f29b57009c2d"><strong>[mssql] </strong></span>Added &#8220;odbc_autotranslate&#8221; parameter to engine / dburi
+<li><p id="change-0.4.6-18"><span class="target" id="change-4bf92261ee5df21cc151f29b57009c2d"><strong>[mssql] </strong></span>Added &#8220;odbc_autotranslate&#8221; parameter to engine / dburi
 parameters. Any given string will be passed through to the
 ODBC connection string as:<blockquote>
 <div>&#8220;AutoTranslate=%s&#8221; % odbc_autotranslate</div></blockquote>
 <a class="changeset-link reference internal" href="#change-4bf92261ee5df21cc151f29b57009c2d">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1005">#1005</a></p>
 </p>
 </li>
-<li><p id="change-0.4.6-21"><span class="target" id="change-c27df151a64a19d159ffaed249f8c5ec"><strong>[mssql] </strong></span>Added &#8220;odbc_options&#8221; parameter to engine / dburi
+<li><p id="change-0.4.6-19"><span class="target" id="change-c27df151a64a19d159ffaed249f8c5ec"><strong>[mssql] </strong></span>Added &#8220;odbc_options&#8221; parameter to engine / dburi
 parameters. The given string is simply appended to the
 SQLAlchemy-generated odbc connection string.<p>This should obviate the need of adding a myriad of ODBC
 options in the future.</p>
@@ -612,7 +595,7 @@ options in the future.</p>
 <div class="section" id="change-0.4.6-firebird">
 <h3>firebird<a class="headerlink" href="#change-0.4.6-firebird" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.4.6-22"><span class="target" id="change-3135f866ba259ae39feef5c8fd6e9dc8"><strong>[firebird] </strong></span>Handle the &#8220;SUBSTRING(:string FROM :start FOR :length)&#8221;
+<li><p id="change-0.4.6-20"><span class="target" id="change-3135f866ba259ae39feef5c8fd6e9dc8"><strong>[firebird] </strong></span>Handle the &#8220;SUBSTRING(:string FROM :start FOR :length)&#8221;
 builtin.<a class="changeset-link reference internal" href="#change-3135f866ba259ae39feef5c8fd6e9dc8">(link)</a><p></p>
 </p>
 </li>
@@ -621,6 +604,17 @@ builtin.<a class="changeset-link reference internal" href="#change-3135f866ba259
 <div class="section" id="change-0.4.6-misc">
 <h3>misc<a class="headerlink" href="#change-0.4.6-misc" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
+<li><p id="change-0.4.6-21"><span class="target" id="change-6e72bcfc5ea35d0926f998977a8d8f6b"><strong>[declarative] [extension] </strong></span>Joined table inheritance mappers use a slightly relaxed
+function to create the &#8220;inherit condition&#8221; to the parent
+table, so that other foreign keys to not-yet-declared
+Table objects don&#8217;t trigger an error.<a class="changeset-link reference internal" href="#change-6e72bcfc5ea35d0926f998977a8d8f6b">(link)</a><p></p>
+</p>
+</li>
+<li><p id="change-0.4.6-22"><span class="target" id="change-7cf86b76b69093e8eaf193d8766bd8ce"><strong>[declarative] [extension] </strong></span>fixed reentrant mapper compile hang when
+a declared attribute is used within ForeignKey,
+ie. ForeignKey(MyOtherClass.someattribute)<a class="changeset-link reference internal" href="#change-7cf86b76b69093e8eaf193d8766bd8ce">(link)</a><p></p>
+</p>
+</li>
 <li><p id="change-0.4.6-23"><span class="target" id="change-bd1c9b334fbda8764b59adae68a98d7d"><strong>[engines] </strong></span>Pool listeners can now be provided as a dictionary of
 callables or a (possibly partial) duck-type of
 PoolListener, your choice.<a class="changeset-link reference internal" href="#change-bd1c9b334fbda8764b59adae68a98d7d">(link)</a><p></p>
@@ -827,96 +821,48 @@ iterative to support deep object graphs.<a class="changeset-link reference inter
 </li>
 </ul>
 </div>
-<div class="section" id="change-0.4.5-orm-declarative">
-<h3>orm declarative<a class="headerlink" href="#change-0.4.5-orm-declarative" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p id="change-0.4.5-20"><span class="target" id="change-f5fc92b64655f9897a0758861123e3dc"><strong>[orm] [extension] [declarative] </strong></span>The &#8220;synonym&#8221; function is now directly usable with
-&#8220;declarative&#8221;.  Pass in the decorated property using the
-&#8220;descriptor&#8221; keyword argument, e.g.: somekey =
-synonym(&#8216;_somekey&#8217;, descriptor=property(g, s))<a class="changeset-link reference internal" href="#change-f5fc92b64655f9897a0758861123e3dc">(link)</a><p></p>
-</p>
-</li>
-<li><p id="change-0.4.5-21"><span class="target" id="change-1c8b78acb5469017fa9165603b123205"><strong>[orm] [extension] [declarative] </strong></span>The &#8220;deferred&#8221; function is usable with &#8220;declarative&#8221;.
-Simplest usage is to declare deferred and Column together,
-e.g.: data = deferred(Column(Text))<a class="changeset-link reference internal" href="#change-1c8b78acb5469017fa9165603b123205">(link)</a><p></p>
-</p>
-</li>
-<li><p id="change-0.4.5-22"><span class="target" id="change-92af8493880c77b027ad568e9fea4a4e"><strong>[orm] [extension] [declarative] </strong></span>Declarative also gained &#64;synonym_for(...) and
-&#64;comparable_using(...), front-ends for synonym and
-comparable_property.<a class="changeset-link reference internal" href="#change-92af8493880c77b027ad568e9fea4a4e">(link)</a><p></p>
-</p>
-</li>
-<li><p id="change-0.4.5-23"><span class="target" id="change-2e0484c6c3c3b159d5dce42185fd83af"><strong>[orm] [extension] [declarative] </strong></span>Improvements to mapper compilation when using declarative;
-already-compiled mappers will still trigger compiles of
-other uncompiled mappers when used<a class="changeset-link reference internal" href="#change-2e0484c6c3c3b159d5dce42185fd83af">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/995">#995</a></p>
-</p>
-</li>
-<li><p id="change-0.4.5-24"><span class="target" id="change-ab9ef5d41c92c8b3e3cf08569f4910fe"><strong>[orm] [extension] [declarative] </strong></span>Declarative will complete setup for Columns lacking names,
-allows a more DRY syntax.<blockquote>
-<div><dl class="docutils">
-<dt>class Foo(Base):</dt>
-<dd>__tablename__ = &#8216;foos&#8217;
-id = Column(Integer, primary_key=True)</dd>
-</dl>
-</div></blockquote>
-<a class="changeset-link reference internal" href="#change-ab9ef5d41c92c8b3e3cf08569f4910fe">(link)</a><p></p>
-</p>
-</li>
-<li><p id="change-0.4.5-25"><span class="target" id="change-47dc505eeee78f8e4a2036cd9ec269e8"><strong>[orm] [extension] [declarative] </strong></span>inheritance in declarative can be disabled when sending
-&#8220;inherits=None&#8221; to __mapper_args__.<a class="changeset-link reference internal" href="#change-47dc505eeee78f8e4a2036cd9ec269e8">(link)</a><p></p>
-</p>
-</li>
-<li><p id="change-0.4.5-26"><span class="target" id="change-d23aa381b803d1871f4a8e5090558669"><strong>[orm] [extension] [declarative] </strong></span>declarative_base() takes optional kwarg &#8220;mapper&#8221;, which
-is any callable/class/method that produces a mapper,
-such as declarative_base(mapper=scopedsession.mapper).
-This property can also be set on individual declarative
-classes using the &#8220;__mapper_cls__&#8221; property.<a class="changeset-link reference internal" href="#change-d23aa381b803d1871f4a8e5090558669">(link)</a><p></p>
-</p>
-</li>
-</ul>
-</div>
 <div class="section" id="change-0.4.5-sql">
 <h3>sql<a class="headerlink" href="#change-0.4.5-sql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.4.5-27"><span class="target" id="change-86518949b9a04cceb5d9eef390e32768"><strong>[sql] </strong></span>schema-qualified tables now will place the schemaname
+<li><p id="change-0.4.5-20"><span class="target" id="change-86518949b9a04cceb5d9eef390e32768"><strong>[sql] </strong></span>schema-qualified tables now will place the schemaname
 ahead of the tablename in all column expressions as well
 as when generating column labels.  This prevents cross-
 schema name collisions in all cases<a class="changeset-link reference internal" href="#change-86518949b9a04cceb5d9eef390e32768">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/999">#999</a></p>
 </p>
 </li>
-<li><p id="change-0.4.5-28"><span class="target" id="change-3bb024dda072d0b61145352051204bfc"><strong>[sql] </strong></span>can now allow selects which correlate all FROM clauses
+<li><p id="change-0.4.5-21"><span class="target" id="change-3bb024dda072d0b61145352051204bfc"><strong>[sql] </strong></span>can now allow selects which correlate all FROM clauses
 and have no FROM themselves.  These are typically
 used in a scalar context, i.e. SELECT x, (SELECT x WHERE y)
 FROM table.  Requires explicit correlate() call.<a class="changeset-link reference internal" href="#change-3bb024dda072d0b61145352051204bfc">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.5-29"><span class="target" id="change-b98de44bd2b73a6b57d74988b3c71e30"><strong>[sql] </strong></span>&#8216;name&#8217; is no longer a required constructor argument for
+<li><p id="change-0.4.5-22"><span class="target" id="change-b98de44bd2b73a6b57d74988b3c71e30"><strong>[sql] </strong></span>&#8216;name&#8217; is no longer a required constructor argument for
 Column().  It (and .key) may now be deferred until the
 column is added to a Table.<a class="changeset-link reference internal" href="#change-b98de44bd2b73a6b57d74988b3c71e30">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.5-30"><span class="target" id="change-d248403840e6a2e0c66b497f9dfd1f44"><strong>[sql] </strong></span>like(), ilike(), contains(), startswith(), endswith() take
+<li><p id="change-0.4.5-23"><span class="target" id="change-d248403840e6a2e0c66b497f9dfd1f44"><strong>[sql] </strong></span>like(), ilike(), contains(), startswith(), endswith() take
 an optional keyword argument &#8220;escape=&lt;somestring&gt;&#8221;, which
 is set as the escape character using the syntax &#8220;x LIKE y
 ESCAPE &#8216;&lt;somestring&gt;&#8217;&#8221;.<a class="changeset-link reference internal" href="#change-d248403840e6a2e0c66b497f9dfd1f44">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/791">#791</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/993">#993</a></p>
 </p>
 </li>
-<li><p id="change-0.4.5-31"><span class="target" id="change-7f02bb91d56e815b7b631be7c7323f79"><strong>[sql] </strong></span>random() is now a generic sql function and will compile to
+<li><p id="change-0.4.5-24"><span class="target" id="change-7f02bb91d56e815b7b631be7c7323f79"><strong>[sql] </strong></span>random() is now a generic sql function and will compile to
 the database&#8217;s random implementation, if any.<a class="changeset-link reference internal" href="#change-7f02bb91d56e815b7b631be7c7323f79">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.5-32"><span class="target" id="change-a08969f0ce6ab98d21abf6e35cebaa1d"><strong>[sql] </strong></span>update().values() and insert().values() take keyword
+<li><p id="change-0.4.5-25"><span class="target" id="change-a08969f0ce6ab98d21abf6e35cebaa1d"><strong>[sql] </strong></span>update().values() and insert().values() take keyword
 arguments.<a class="changeset-link reference internal" href="#change-a08969f0ce6ab98d21abf6e35cebaa1d">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.5-33"><span class="target" id="change-085c87879e1a4fb0d6206454a950a1ce"><strong>[sql] </strong></span>Fixed an issue in select() regarding its generation of
+<li><p id="change-0.4.5-26"><span class="target" id="change-085c87879e1a4fb0d6206454a950a1ce"><strong>[sql] </strong></span>Fixed an issue in select() regarding its generation of
 FROM clauses, in rare circumstances two clauses could be
 produced when one was intended to cancel out the other.
 Some ORM queries with lots of eager loads might have seen
 this symptom.<a class="changeset-link reference internal" href="#change-085c87879e1a4fb0d6206454a950a1ce">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.5-34"><span class="target" id="change-fb0089247521d91d7d7bb262cb411a64"><strong>[sql] </strong></span>The case() function now also takes a dictionary as its
+<li><p id="change-0.4.5-27"><span class="target" id="change-fb0089247521d91d7d7bb262cb411a64"><strong>[sql] </strong></span>The case() function now also takes a dictionary as its
 whens parameter.  It also interprets the &#8220;THEN&#8221;
 expressions as values by default, meaning case([(x==y,
 &#8220;foo&#8221;)]) will interpret &#8220;foo&#8221; as a bound value, not a SQL
@@ -932,7 +878,7 @@ literal().<a class="changeset-link reference internal" href="#change-fb008924752
 <div class="section" id="change-0.4.5-mysql">
 <h3>mysql<a class="headerlink" href="#change-0.4.5-mysql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.4.5-35"><span class="target" id="change-c22f3fdf2cdf167542da47643dfc68ab"><strong>[mysql] </strong></span>The connection.info keys the dialect uses to cache server
+<li><p id="change-0.4.5-28"><span class="target" id="change-c22f3fdf2cdf167542da47643dfc68ab"><strong>[mysql] </strong></span>The connection.info keys the dialect uses to cache server
 settings have changed and are now namespaced.<a class="changeset-link reference internal" href="#change-c22f3fdf2cdf167542da47643dfc68ab">(link)</a><p></p>
 </p>
 </li>
@@ -941,27 +887,27 @@ settings have changed and are now namespaced.<a class="changeset-link reference 
 <div class="section" id="change-0.4.5-mssql">
 <h3>mssql<a class="headerlink" href="#change-0.4.5-mssql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.4.5-36"><span class="target" id="change-c08d60f2100e58e57023f2ea19c2c241"><strong>[mssql] </strong></span>Reflected tables will now automatically load other tables
+<li><p id="change-0.4.5-29"><span class="target" id="change-c08d60f2100e58e57023f2ea19c2c241"><strong>[mssql] </strong></span>Reflected tables will now automatically load other tables
 which are referenced by Foreign keys in the auto-loaded
 table,.<a class="changeset-link reference internal" href="#change-c08d60f2100e58e57023f2ea19c2c241">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/979">#979</a></p>
 </p>
 </li>
-<li><p id="change-0.4.5-37"><span class="target" id="change-bd1313c4dc35f7c1f3a1380578f9c1e5"><strong>[mssql] </strong></span>Added executemany check to skip identity fetch,.<a class="changeset-link reference internal" href="#change-bd1313c4dc35f7c1f3a1380578f9c1e5">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/916">#916</a></p>
+<li><p id="change-0.4.5-30"><span class="target" id="change-bd1313c4dc35f7c1f3a1380578f9c1e5"><strong>[mssql] </strong></span>Added executemany check to skip identity fetch,.<a class="changeset-link reference internal" href="#change-bd1313c4dc35f7c1f3a1380578f9c1e5">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/916">#916</a></p>
 </p>
 </li>
-<li><p id="change-0.4.5-38"><span class="target" id="change-80eac4c5f370dd297d4e3cafbad27a96"><strong>[mssql] </strong></span>Added stubs for small date type.<a class="changeset-link reference internal" href="#change-80eac4c5f370dd297d4e3cafbad27a96">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/884">#884</a></p>
+<li><p id="change-0.4.5-31"><span class="target" id="change-80eac4c5f370dd297d4e3cafbad27a96"><strong>[mssql] </strong></span>Added stubs for small date type.<a class="changeset-link reference internal" href="#change-80eac4c5f370dd297d4e3cafbad27a96">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/884">#884</a></p>
 </p>
 </li>
-<li><p id="change-0.4.5-39"><span class="target" id="change-171f3ad2f4dba5fde36680baa1dc3875"><strong>[mssql] </strong></span>Added a new &#8216;driver&#8217; keyword parameter for the pyodbc dialect.
+<li><p id="change-0.4.5-32"><span class="target" id="change-171f3ad2f4dba5fde36680baa1dc3875"><strong>[mssql] </strong></span>Added a new &#8216;driver&#8217; keyword parameter for the pyodbc dialect.
 Will substitute into the ODBC connection string if given,
 defaults to &#8216;SQL Server&#8217;.<a class="changeset-link reference internal" href="#change-171f3ad2f4dba5fde36680baa1dc3875">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.5-40"><span class="target" id="change-81777f583ac945b32caaf0ee3aee5e0f"><strong>[mssql] </strong></span>Added a new &#8216;max_identifier_length&#8217; keyword parameter for
+<li><p id="change-0.4.5-33"><span class="target" id="change-81777f583ac945b32caaf0ee3aee5e0f"><strong>[mssql] </strong></span>Added a new &#8216;max_identifier_length&#8217; keyword parameter for
 the pyodbc dialect.<a class="changeset-link reference internal" href="#change-81777f583ac945b32caaf0ee3aee5e0f">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.5-41"><span class="target" id="change-4a7ee1c669796dd4516a38bfb42b52ff"><strong>[mssql] </strong></span>Improvements to pyodbc + Unix. If you couldn&#8217;t get that
+<li><p id="change-0.4.5-34"><span class="target" id="change-4a7ee1c669796dd4516a38bfb42b52ff"><strong>[mssql] </strong></span>Improvements to pyodbc + Unix. If you couldn&#8217;t get that
 combination to work before, please try again.<a class="changeset-link reference internal" href="#change-4a7ee1c669796dd4516a38bfb42b52ff">(link)</a><p></p>
 </p>
 </li>
@@ -970,14 +916,14 @@ combination to work before, please try again.<a class="changeset-link reference 
 <div class="section" id="change-0.4.5-oracle">
 <h3>oracle<a class="headerlink" href="#change-0.4.5-oracle" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.4.5-42"><span class="target" id="change-34b821a274800e05021e8fb2396ee13c"><strong>[oracle] </strong></span>The &#8220;owner&#8221; keyword on Table is now deprecated, and is
+<li><p id="change-0.4.5-35"><span class="target" id="change-34b821a274800e05021e8fb2396ee13c"><strong>[oracle] </strong></span>The &#8220;owner&#8221; keyword on Table is now deprecated, and is
 exactly synonymous with the &#8220;schema&#8221; keyword.  Tables can
 now be reflected with alternate &#8220;owner&#8221; attributes,
 explicitly stated on the Table object or not using
 &#8220;schema&#8221;.<a class="changeset-link reference internal" href="#change-34b821a274800e05021e8fb2396ee13c">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.5-43"><span class="target" id="change-fa31cab3a0232df3b107e07f3910f759"><strong>[oracle] </strong></span>All of the &#8220;magic&#8221; searching for synonyms, DBLINKs etc.
+<li><p id="change-0.4.5-36"><span class="target" id="change-fa31cab3a0232df3b107e07f3910f759"><strong>[oracle] </strong></span>All of the &#8220;magic&#8221; searching for synonyms, DBLINKs etc.
 during table reflection are disabled by default unless you
 specify &#8220;oracle_resolve_synonyms=True&#8221; on the Table
 object.  Resolving synonyms necessarily leads to some
@@ -989,14 +935,14 @@ it when reflecting related tables.  This is stickier
 behavior than before which is why it&#8217;s off by default.<a class="changeset-link reference internal" href="#change-fa31cab3a0232df3b107e07f3910f759">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.5-44"><span class="target" id="change-34b821a274800e05021e8fb2396ee13c"><strong>[oracle] </strong></span>The &#8220;owner&#8221; keyword on Table is now deprecated, and is
+<li><p id="change-0.4.5-37"><span class="target" id="change-34b821a274800e05021e8fb2396ee13c"><strong>[oracle] </strong></span>The &#8220;owner&#8221; keyword on Table is now deprecated, and is
 exactly synonymous with the &#8220;schema&#8221; keyword.  Tables can
 now be reflected with alternate &#8220;owner&#8221; attributes,
 explicitly stated on the Table object or not using
 &#8220;schema&#8221;.<a class="changeset-link reference internal" href="#change-34b821a274800e05021e8fb2396ee13c">(link)</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.5-45"><span class="target" id="change-fa31cab3a0232df3b107e07f3910f759"><strong>[oracle] </strong></span>All of the &#8220;magic&#8221; searching for synonyms, DBLINKs etc.
+<li><p id="change-0.4.5-38"><span class="target" id="change-fa31cab3a0232df3b107e07f3910f759"><strong>[oracle] </strong></span>All of the &#8220;magic&#8221; searching for synonyms, DBLINKs etc.
 during table reflection are disabled by default unless you
 specify &#8220;oracle_resolve_synonyms=True&#8221; on the Table
 object.  Resolving synonyms necessarily leads to some
@@ -1013,6 +959,49 @@ behavior than before which is why it&#8217;s off by default.<a class="changeset-
 <div class="section" id="change-0.4.5-misc">
 <h3>misc<a class="headerlink" href="#change-0.4.5-misc" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
+<li><p id="change-0.4.5-39"><span class="target" id="change-f5fc92b64655f9897a0758861123e3dc"><strong>[declarative] [extension] </strong></span>The &#8220;synonym&#8221; function is now directly usable with
+&#8220;declarative&#8221;.  Pass in the decorated property using the
+&#8220;descriptor&#8221; keyword argument, e.g.: somekey =
+synonym(&#8216;_somekey&#8217;, descriptor=property(g, s))<a class="changeset-link reference internal" href="#change-f5fc92b64655f9897a0758861123e3dc">(link)</a><p></p>
+</p>
+</li>
+<li><p id="change-0.4.5-40"><span class="target" id="change-1c8b78acb5469017fa9165603b123205"><strong>[declarative] [extension] </strong></span>The &#8220;deferred&#8221; function is usable with &#8220;declarative&#8221;.
+Simplest usage is to declare deferred and Column together,
+e.g.: data = deferred(Column(Text))<a class="changeset-link reference internal" href="#change-1c8b78acb5469017fa9165603b123205">(link)</a><p></p>
+</p>
+</li>
+<li><p id="change-0.4.5-41"><span class="target" id="change-92af8493880c77b027ad568e9fea4a4e"><strong>[declarative] [extension] </strong></span>Declarative also gained &#64;synonym_for(...) and
+&#64;comparable_using(...), front-ends for synonym and
+comparable_property.<a class="changeset-link reference internal" href="#change-92af8493880c77b027ad568e9fea4a4e">(link)</a><p></p>
+</p>
+</li>
+<li><p id="change-0.4.5-42"><span class="target" id="change-2e0484c6c3c3b159d5dce42185fd83af"><strong>[declarative] [extension] </strong></span>Improvements to mapper compilation when using declarative;
+already-compiled mappers will still trigger compiles of
+other uncompiled mappers when used<a class="changeset-link reference internal" href="#change-2e0484c6c3c3b159d5dce42185fd83af">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/995">#995</a></p>
+</p>
+</li>
+<li><p id="change-0.4.5-43"><span class="target" id="change-ab9ef5d41c92c8b3e3cf08569f4910fe"><strong>[declarative] [extension] </strong></span>Declarative will complete setup for Columns lacking names,
+allows a more DRY syntax.<blockquote>
+<div><dl class="docutils">
+<dt>class Foo(Base):</dt>
+<dd>__tablename__ = &#8216;foos&#8217;
+id = Column(Integer, primary_key=True)</dd>
+</dl>
+</div></blockquote>
+<a class="changeset-link reference internal" href="#change-ab9ef5d41c92c8b3e3cf08569f4910fe">(link)</a><p></p>
+</p>
+</li>
+<li><p id="change-0.4.5-44"><span class="target" id="change-47dc505eeee78f8e4a2036cd9ec269e8"><strong>[declarative] [extension] </strong></span>inheritance in declarative can be disabled when sending
+&#8220;inherits=None&#8221; to __mapper_args__.<a class="changeset-link reference internal" href="#change-47dc505eeee78f8e4a2036cd9ec269e8">(link)</a><p></p>
+</p>
+</li>
+<li><p id="change-0.4.5-45"><span class="target" id="change-d23aa381b803d1871f4a8e5090558669"><strong>[declarative] [extension] </strong></span>declarative_base() takes optional kwarg &#8220;mapper&#8221;, which
+is any callable/class/method that produces a mapper,
+such as declarative_base(mapper=scopedsession.mapper).
+This property can also be set on individual declarative
+classes using the &#8220;__mapper_cls__&#8221; property.<a class="changeset-link reference internal" href="#change-d23aa381b803d1871f4a8e5090558669">(link)</a><p></p>
+</p>
+</li>
 <li><p id="change-0.4.5-46"><span class="target" id="change-b6f64ab87a83752e5c837be7a29259da"><strong>[postgres] </strong></span>Got PG server side cursors back into shape, added fixed
 unit tests as part of the default test suite.  Added
 better uniqueness to the cursor ID<a class="changeset-link reference internal" href="#change-b6f64ab87a83752e5c837be7a29259da">(link)</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1001">#1001</a></p>
@@ -3250,7 +3239,7 @@ isn&#8217;t present anymore, need to use join().<a class="changeset-link referen
         <a href="changelog_03.html" title="next chapter">0.3 Changelog</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

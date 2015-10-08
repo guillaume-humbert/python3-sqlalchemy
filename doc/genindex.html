@@ -10,7 +10,7 @@
     
     Index
  &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    './',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="index.html" />
     <!-- end layout.mako headers -->
 
 
@@ -70,7 +71,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -82,7 +83,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -101,7 +102,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="index.html">SQLAlchemy 0.9 Documentation</a>
         » 
     Index
 
@@ -211,15 +212,13 @@
 
 
 <dt>
-        <a href="orm/internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.__eq__">__eq__() (sqlalchemy.orm.properties.RelationshipProperty.Comparator method)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.__eq__">__eq__() (sqlalchemy.orm.attributes.QueryableAttribute method)</a>
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.__eq__">(sqlalchemy.orm.properties.RelationshipProperty.Comparator method)</a>
+      </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Column.__eq__">(sqlalchemy.schema.Column method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.__eq__">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.__eq__">(sqlalchemy.sql.expression.ColumnClause method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.__eq__">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -279,10 +278,36 @@
 
 
 <dt>
-        <a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.__init__">__init__ (sqlalchemy.sql.expression.ColumnElement attribute)</a>
+        <a href="dialects/mssql.html#sqlalchemy.dialects.mssql.BIT.__init__">__init__ (sqlalchemy.dialects.mssql.BIT attribute)</a>
 </dt>
 
     <dd><dl>
+      <dt><a href="dialects/mssql.html#sqlalchemy.dialects.mssql.MONEY.__init__">(sqlalchemy.dialects.mssql.MONEY attribute)</a>
+      </dt>
+      <dt><a href="dialects/mssql.html#sqlalchemy.dialects.mssql.SMALLMONEY.__init__">(sqlalchemy.dialects.mssql.SMALLMONEY attribute)</a>
+      </dt>
+      <dt><a href="dialects/mssql.html#sqlalchemy.dialects.mssql.SQL_VARIANT.__init__">(sqlalchemy.dialects.mssql.SQL_VARIANT attribute)</a>
+      </dt>
+      <dt><a href="dialects/mssql.html#sqlalchemy.dialects.mssql.TINYINT.__init__">(sqlalchemy.dialects.mssql.TINYINT attribute)</a>
+      </dt>
+      <dt><a href="dialects/mssql.html#sqlalchemy.dialects.mssql.UNIQUEIDENTIFIER.__init__">(sqlalchemy.dialects.mssql.UNIQUEIDENTIFIER attribute)</a>
+      </dt>
+      <dt><a href="dialects/mysql.html#sqlalchemy.dialects.mysql.DATE.__init__">(sqlalchemy.dialects.mysql.DATE attribute)</a>
+      </dt>
+      <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.CIDR.__init__">(sqlalchemy.dialects.postgresql.CIDR attribute)</a>
+      </dt>
+      <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.INET.__init__">(sqlalchemy.dialects.postgresql.INET attribute)</a>
+      </dt>
+      <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.MACADDR.__init__">(sqlalchemy.dialects.postgresql.MACADDR attribute)</a>
+      </dt>
+      <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.TSVECTOR.__init__">(sqlalchemy.dialects.postgresql.TSVECTOR attribute)</a>
+      </dt>
+      <dt><a href="orm/extensions/mutable.html#sqlalchemy.ext.mutable.Mutable.__init__">(sqlalchemy.ext.mutable.Mutable attribute)</a>
+      </dt>
+      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.__init__">(sqlalchemy.sql.expression.ColumnElement attribute)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.UpdateBase.__init__">(sqlalchemy.sql.expression.UpdateBase attribute)</a>
+      </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.__init__">(sqlalchemy.sql.operators.ColumnOperators attribute)</a>
       </dt>
       <dt><a href="core/types.html#sqlalchemy.types.Concatenable.__init__">(sqlalchemy.types.Concatenable attribute)</a>
@@ -319,13 +344,9 @@
       </dt>
       <dt><a href="dialects/drizzle.html#sqlalchemy.dialects.drizzle.VARCHAR.__init__">(sqlalchemy.dialects.drizzle.VARCHAR method)</a>
       </dt>
-      <dt><a href="dialects/mssql.html#sqlalchemy.dialects.mssql.BIT.__init__">(sqlalchemy.dialects.mssql.BIT method)</a>
-      </dt>
       <dt><a href="dialects/mssql.html#sqlalchemy.dialects.mssql.CHAR.__init__">(sqlalchemy.dialects.mssql.CHAR method)</a>
       </dt>
       <dt><a href="dialects/mssql.html#sqlalchemy.dialects.mssql.IMAGE.__init__">(sqlalchemy.dialects.mssql.IMAGE method)</a>
-      </dt>
-      <dt><a href="dialects/mssql.html#sqlalchemy.dialects.mssql.MONEY.__init__">(sqlalchemy.dialects.mssql.MONEY method)</a>
       </dt>
       <dt><a href="dialects/mssql.html#sqlalchemy.dialects.mssql.NCHAR.__init__">(sqlalchemy.dialects.mssql.NCHAR method)</a>
       </dt>
@@ -335,15 +356,7 @@
       </dt>
       <dt><a href="dialects/mssql.html#sqlalchemy.dialects.mssql.SMALLDATETIME.__init__">(sqlalchemy.dialects.mssql.SMALLDATETIME method)</a>
       </dt>
-      <dt><a href="dialects/mssql.html#sqlalchemy.dialects.mssql.SMALLMONEY.__init__">(sqlalchemy.dialects.mssql.SMALLMONEY method)</a>
-      </dt>
-      <dt><a href="dialects/mssql.html#sqlalchemy.dialects.mssql.SQL_VARIANT.__init__">(sqlalchemy.dialects.mssql.SQL_VARIANT method)</a>
-      </dt>
       <dt><a href="dialects/mssql.html#sqlalchemy.dialects.mssql.TEXT.__init__">(sqlalchemy.dialects.mssql.TEXT method)</a>
-      </dt>
-      <dt><a href="dialects/mssql.html#sqlalchemy.dialects.mssql.TINYINT.__init__">(sqlalchemy.dialects.mssql.TINYINT method)</a>
-      </dt>
-      <dt><a href="dialects/mssql.html#sqlalchemy.dialects.mssql.UNIQUEIDENTIFIER.__init__">(sqlalchemy.dialects.mssql.UNIQUEIDENTIFIER method)</a>
       </dt>
       <dt><a href="dialects/mssql.html#sqlalchemy.dialects.mssql.VARCHAR.__init__">(sqlalchemy.dialects.mssql.VARCHAR method)</a>
       </dt>
@@ -356,8 +369,6 @@
       <dt><a href="dialects/mysql.html#sqlalchemy.dialects.mysql.BOOLEAN.__init__">(sqlalchemy.dialects.mysql.BOOLEAN method)</a>
       </dt>
       <dt><a href="dialects/mysql.html#sqlalchemy.dialects.mysql.CHAR.__init__">(sqlalchemy.dialects.mysql.CHAR method)</a>
-      </dt>
-      <dt><a href="dialects/mysql.html#sqlalchemy.dialects.mysql.DATE.__init__">(sqlalchemy.dialects.mysql.DATE method)</a>
       </dt>
       <dt><a href="dialects/mysql.html#sqlalchemy.dialects.mysql.DATETIME.__init__">(sqlalchemy.dialects.mysql.DATETIME method)</a>
       </dt>
@@ -413,17 +424,11 @@
       </dt>
       <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.BYTEA.__init__">(sqlalchemy.dialects.postgresql.BYTEA method)</a>
       </dt>
-      <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.CIDR.__init__">(sqlalchemy.dialects.postgresql.CIDR method)</a>
-      </dt>
       <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__">(sqlalchemy.dialects.postgresql.DOUBLE_PRECISION method)</a>
       </dt>
       <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ENUM.__init__">(sqlalchemy.dialects.postgresql.ENUM method)</a>
       </dt>
       <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__">(sqlalchemy.dialects.postgresql.ExcludeConstraint method)</a>
-      </dt>
-      <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.INET.__init__">(sqlalchemy.dialects.postgresql.INET method)</a>
-      </dt>
-      <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.MACADDR.__init__">(sqlalchemy.dialects.postgresql.MACADDR method)</a>
       </dt>
       <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.REAL.__init__">(sqlalchemy.dialects.postgresql.REAL method)</a>
       </dt>
@@ -447,11 +452,19 @@
       </dt>
       <dt><a href="orm/collections.html#sqlalchemy.orm.collections.MappedCollection.__init__">(sqlalchemy.orm.collections.MappedCollection method)</a>
       </dt>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.descriptor_props.CompositeProperty.__init__">(sqlalchemy.orm.descriptor_props.CompositeProperty method)</a>
+      </dt>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.descriptor_props.SynonymProperty.__init__">(sqlalchemy.orm.descriptor_props.SynonymProperty method)</a>
+      </dt>
       <dt><a href="orm/mapper_config.html#sqlalchemy.orm.mapper.Mapper.__init__">(sqlalchemy.orm.mapper.Mapper method)</a>
       </dt>
       <dt><a href="orm/internals.html#sqlalchemy.orm.properties.ColumnProperty.__init__">(sqlalchemy.orm.properties.ColumnProperty method)</a>
       </dt>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.properties.RelationshipProperty.__init__">(sqlalchemy.orm.properties.RelationshipProperty method)</a>
+      </dt>
       <dt><a href="orm/internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.__init__">(sqlalchemy.orm.properties.RelationshipProperty.Comparator method)</a>
+      </dt>
+      <dt><a href="orm/query.html#sqlalchemy.orm.query.Bundle.__init__">(sqlalchemy.orm.query.Bundle method)</a>
       </dt>
       <dt><a href="orm/session.html#sqlalchemy.orm.scoping.scoped_session.__init__">(sqlalchemy.orm.scoping.scoped_session method)</a>
       </dt>
@@ -497,9 +510,35 @@
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.__init__">(sqlalchemy.sql.expression.BindParameter method)</a>
       </dt>
+      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.Case.__init__">(sqlalchemy.sql.expression.Case method)</a>
+      </dt>
+      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.Cast.__init__">(sqlalchemy.sql.expression.Cast method)</a>
+      </dt>
+      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.__init__">(sqlalchemy.sql.expression.ColumnClause method)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.Delete.__init__">(sqlalchemy.sql.expression.Delete method)</a>
+      </dt>
+      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.Extract.__init__">(sqlalchemy.sql.expression.Extract method)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.Insert.__init__">(sqlalchemy.sql.expression.Insert method)</a>
+      </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Join.__init__">(sqlalchemy.sql.expression.Join method)</a>
       </dt>
+      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.Label.__init__">(sqlalchemy.sql.expression.Label method)</a>
+      </dt>
+      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.Over.__init__">(sqlalchemy.sql.expression.Over method)</a>
+      </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.__init__">(sqlalchemy.sql.expression.Select method)</a>
+      </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.TableClause.__init__">(sqlalchemy.sql.expression.TableClause method)</a>
+      </dt>
+      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.Tuple.__init__">(sqlalchemy.sql.expression.Tuple method)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.Update.__init__">(sqlalchemy.sql.expression.Update method)</a>
+      </dt>
+      <dt><a href="core/functions.html#sqlalchemy.sql.functions.Function.__init__">(sqlalchemy.sql.functions.Function method)</a>
+      </dt>
+      <dt><a href="core/functions.html#sqlalchemy.sql.functions.FunctionElement.__init__">(sqlalchemy.sql.functions.FunctionElement method)</a>
       </dt>
       <dt><a href="core/types.html#sqlalchemy.types.Boolean.__init__">(sqlalchemy.types.Boolean method)</a>
       </dt>
@@ -520,8 +559,6 @@
       <dt><a href="core/types.html#sqlalchemy.types.String.__init__">(sqlalchemy.types.String method)</a>
       </dt>
       <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.__init__">(sqlalchemy.types.TypeDecorator method)</a>
-      </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.TypeEngine.__init__">(sqlalchemy.types.TypeEngine method)</a>
       </dt>
       <dt><a href="core/types.html#sqlalchemy.types.Unicode.__init__">(sqlalchemy.types.Unicode method)</a>
       </dt>
@@ -549,13 +586,11 @@
 
 
 <dt>
-        <a href="core/metadata.html#sqlalchemy.schema.Column.__le__">__le__() (sqlalchemy.schema.Column method)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.__le__">__le__() (sqlalchemy.orm.attributes.QueryableAttribute method)</a>
 </dt>
 
     <dd><dl>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.__le__">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.__le__">(sqlalchemy.sql.expression.ColumnClause method)</a>
+      <dt><a href="core/metadata.html#sqlalchemy.schema.Column.__le__">(sqlalchemy.schema.Column method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.__le__">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -575,13 +610,11 @@
 
 
 <dt>
-        <a href="core/metadata.html#sqlalchemy.schema.Column.__lt__">__lt__() (sqlalchemy.schema.Column method)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.__lt__">__lt__() (sqlalchemy.orm.attributes.QueryableAttribute method)</a>
 </dt>
 
     <dd><dl>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.__lt__">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.__lt__">(sqlalchemy.sql.expression.ColumnClause method)</a>
+      <dt><a href="core/metadata.html#sqlalchemy.schema.Column.__lt__">(sqlalchemy.schema.Column method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.__lt__">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -613,13 +646,11 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.__ne__">(sqlalchemy.orm.attributes.QueryableAttribute method)</a>
+      </dt>
       <dt><a href="orm/internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.__ne__">(sqlalchemy.orm.properties.RelationshipProperty.Comparator method)</a>
       </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Column.__ne__">(sqlalchemy.schema.Column method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.__ne__">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.__ne__">(sqlalchemy.sql.expression.ColumnClause method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.__ne__">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -823,9 +854,21 @@
 
 
 <dt>
-        <a href="orm/extensions/mutable.html#sqlalchemy.ext.mutable.MutableBase._parents">_parents (sqlalchemy.ext.mutable.MutableBase attribute)</a>
+        <a href="orm/extensions/mutable.html#sqlalchemy.ext.mutable.Mutable._listen_on_attribute">_listen_on_attribute() (sqlalchemy.ext.mutable.Mutable class method)</a>
 </dt>
 
+
+  
+
+
+<dt>
+        <a href="orm/extensions/mutable.html#sqlalchemy.ext.mutable.Mutable._parents">_parents (sqlalchemy.ext.mutable.Mutable attribute)</a>
+</dt>
+
+    <dd><dl>
+      <dt><a href="orm/extensions/mutable.html#sqlalchemy.ext.mutable.MutableBase._parents">(sqlalchemy.ext.mutable.MutableBase attribute)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -838,14 +881,6 @@
 
 <dt>
         <a href="orm/extensions/declarative.html#sqlalchemy.ext.declarative.AbstractConcreteBase">AbstractConcreteBase (class in sqlalchemy.ext.declarative)</a>
-</dt>
-
-
-  
-
-
-<dt>
-        <a href="core/types.html#sqlalchemy.types.AbstractType">AbstractType (class in sqlalchemy.types)</a>
 </dt>
 
 
@@ -891,11 +926,19 @@
 
 
 <dt>
-        <a href="orm/internals.html#sqlalchemy.orm.interfaces.PropComparator.adapted">adapted() (sqlalchemy.orm.interfaces.PropComparator method)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.interfaces.PropComparator.adapt_to_entity">adapt_to_entity() (sqlalchemy.orm.interfaces.PropComparator method)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.adapter">adapter (sqlalchemy.orm.attributes.QueryableAttribute attribute)</a>
 </dt>
 
     <dd><dl>
-      <dt><a href="orm/internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.adapted">(sqlalchemy.orm.properties.RelationshipProperty.Comparator method)</a>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.interfaces.PropComparator.adapter">(sqlalchemy.orm.interfaces.PropComparator attribute)</a>
       </dt>
     </dl></dd>
 
@@ -980,14 +1023,6 @@
 
 <dt>
         <a href="orm/collections.html#sqlalchemy.orm.collections.collection.adds">adds() (sqlalchemy.orm.collections.collection static method)</a>
-</dt>
-
-
-  
-
-
-<dt>
-        <a href="orm/examples.html#module-adjacency_list">adjacency_list (module)</a>
 </dt>
 
 
@@ -1235,6 +1270,8 @@
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.FromClause.alias">(sqlalchemy.sql.expression.FromClause method)</a>
       </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.alias">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
+      </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Join.alias">(sqlalchemy.sql.expression.Join method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.alias">(sqlalchemy.sql.expression.Select method)</a>
@@ -1327,10 +1364,6 @@
 </dt>
 
     <dd><dl>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.anon_label">(sqlalchemy.sql.expression.BindParameter attribute)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.anon_label">(sqlalchemy.sql.expression.ColumnClause attribute)</a>
-      </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.anon_label">(sqlalchemy.sql.expression.ColumnElement attribute)</a>
       </dt>
     </dl></dd>
@@ -1370,6 +1403,8 @@
 
     <dd><dl>
       <dt><a href="orm/extensions/associationproxy.html#sqlalchemy.ext.associationproxy.AssociationProxy.any">(sqlalchemy.ext.associationproxy.AssociationProxy method)</a>
+      </dt>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.any">(sqlalchemy.orm.attributes.QueryableAttribute method)</a>
       </dt>
       <dt><a href="orm/internals.html#sqlalchemy.orm.interfaces.PropComparator.any">(sqlalchemy.orm.interfaces.PropComparator method)</a>
       </dt>
@@ -1455,9 +1490,9 @@
 </dt>
 
     <dd><dl>
-      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.append_group_by">(sqlalchemy.sql.expression.Select method)</a>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.append_group_by">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
       </dt>
-      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.SelectBase.append_group_by">(sqlalchemy.sql.expression.SelectBase method)</a>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.append_group_by">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
     </dl></dd>
 
@@ -1477,9 +1512,9 @@
 </dt>
 
     <dd><dl>
-      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.append_order_by">(sqlalchemy.sql.expression.Select method)</a>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.append_order_by">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
       </dt>
-      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.SelectBase.append_order_by">(sqlalchemy.sql.expression.SelectBase method)</a>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.append_order_by">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
     </dl></dd>
 
@@ -1527,9 +1562,9 @@
 </dt>
 
     <dd><dl>
-      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.apply_labels">(sqlalchemy.sql.expression.Select method)</a>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.apply_labels">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
       </dt>
-      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.SelectBase.apply_labels">(sqlalchemy.sql.expression.SelectBase method)</a>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.apply_labels">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
     </dl></dd>
 
@@ -1599,6 +1634,8 @@
     <dd><dl>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.as_scalar">(sqlalchemy.sql.expression.CompoundSelect method)</a>
       </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.as_scalar">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
+      </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.as_scalar">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.SelectBase.as_scalar">(sqlalchemy.sql.expression.SelectBase method)</a>
@@ -1613,11 +1650,9 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.asc">(sqlalchemy.orm.attributes.QueryableAttribute method)</a>
+      </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Column.asc">(sqlalchemy.schema.Column method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.asc">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.asc">(sqlalchemy.sql.expression.ColumnClause method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.asc">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -1653,7 +1688,7 @@
 
 
 <dt>
-        <a href="orm/examples.html#module-association">association (module)</a>
+        <a href="glossary.html#term-association-relationship">association relationship</a>
 </dt>
 
 
@@ -1678,6 +1713,14 @@
 
 <dt>
         <a href="orm/extensions/associationproxy.html#sqlalchemy.ext.associationproxy.AssociationProxy">AssociationProxy (class in sqlalchemy.ext.associationproxy)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.JSONElement.astext">astext (sqlalchemy.dialects.postgresql.JSONElement attribute)</a>
 </dt>
 
 
@@ -1757,6 +1800,8 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.autocommit">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
+      </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.autocommit">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.SelectBase.autocommit">(sqlalchemy.sql.expression.SelectBase method)</a>
@@ -1773,12 +1818,36 @@
 
   
 
+
+<dt>
+        <a href="orm/extensions/automap.html#sqlalchemy.ext.automap.automap_base">automap_base() (in module sqlalchemy.ext.automap)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/extensions/automap.html#sqlalchemy.ext.automap.AutomapBase">AutomapBase (class in sqlalchemy.ext.automap)</a>
+</dt>
+
+
+  
+
 <dt></dt></dl>
 </td></tr></table>
 <h2 id="B">B</h2>
 <table width="100%" class="indextable genindextable"><tr><td width="33%" valign="top">
 <dl>
     
+
+<dt>
+        <a href="glossary.html#term-backref">backref</a>
+</dt>
+
+
+  
+
 
 <dt>
         <a href="orm/relationships.html#sqlalchemy.orm.backref">backref() (in module sqlalchemy.orm)</a>
@@ -1965,11 +2034,9 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.between">(sqlalchemy.orm.attributes.QueryableAttribute method)</a>
+      </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Column.between">(sqlalchemy.schema.Column method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.between">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.between">(sqlalchemy.sql.expression.ColumnClause method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.between">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -1982,6 +2049,14 @@
 
 <dt>
         <a href="dialects/oracle.html#sqlalchemy.dialects.oracle.BFILE">BFILE (class in sqlalchemy.dialects.oracle)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="glossary.html#term-bidirectional-relationship">bidirectional relationship</a>
 </dt>
 
 
@@ -2053,6 +2128,8 @@
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Executable.bind">(sqlalchemy.sql.expression.Executable attribute)</a>
       </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.bind">(sqlalchemy.sql.expression.GenerativeSelect attribute)</a>
+      </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Insert.bind">(sqlalchemy.sql.expression.Insert attribute)</a>
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Update.bind">(sqlalchemy.sql.expression.Update attribute)</a>
@@ -2123,6 +2200,14 @@
 
 
 <dt>
+        <a href="core/sqlelement.html#sqlalchemy.sql.expression.TextClause.bindparams">bindparams() (sqlalchemy.sql.expression.TextClause method)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="dialects/mssql.html#sqlalchemy.dialects.mssql.BIT">BIT (class in sqlalchemy.dialects.mssql)</a>
 </dt>
 
@@ -2181,6 +2266,14 @@
 
 
 <dt>
+        <a href="orm/query.html#sqlalchemy.orm.query.Bundle">Bundle (class in sqlalchemy.orm.query)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.BYTEA">BYTEA (class in sqlalchemy.dialects.postgresql)</a>
 </dt>
 
@@ -2199,6 +2292,8 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/query.html#sqlalchemy.orm.query.Bundle.c">(sqlalchemy.orm.query.Bundle attribute)</a>
+      </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Table.c">(sqlalchemy.schema.Table attribute)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Alias.c">(sqlalchemy.sql.expression.Alias attribute)</a>
@@ -2208,6 +2303,8 @@
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.c">(sqlalchemy.sql.expression.CompoundSelect attribute)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.FromClause.c">(sqlalchemy.sql.expression.FromClause attribute)</a>
+      </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.c">(sqlalchemy.sql.expression.GenerativeSelect attribute)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Join.c">(sqlalchemy.sql.expression.Join attribute)</a>
       </dt>
@@ -2222,6 +2319,14 @@
 
 <dt>
         <a href="core/ddl.html#sqlalchemy.schema.DDLElement.callable_">callable_ (sqlalchemy.schema.DDLElement attribute)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="glossary.html#term-candidate-key">candidate key</a>
 </dt>
 
 
@@ -2280,6 +2385,10 @@
         <a href="core/sqlelement.html#sqlalchemy.sql.expression.cast">cast() (in module sqlalchemy.sql.expression)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.JSONElement.cast">(sqlalchemy.dialects.postgresql.JSONElement method)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -2288,6 +2397,10 @@
         <a href="orm/extensions/mutable.html#sqlalchemy.ext.mutable.Mutable.changed">changed() (sqlalchemy.ext.mutable.Mutable method)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="orm/extensions/mutable.html#sqlalchemy.ext.mutable.MutableComposite.changed">(sqlalchemy.ext.mutable.MutableComposite method)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -2310,6 +2423,14 @@
 
 <dt>
         <a href="core/functions.html#sqlalchemy.sql.functions.char_length">char_length (class in sqlalchemy.sql.functions)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="glossary.html#term-check-constraint">check constraint</a>
 </dt>
 
 
@@ -2413,7 +2534,23 @@
 
 
 <dt>
+        <a href="orm/extensions/automap.html#sqlalchemy.ext.automap.AutomapBase.classes">classes (sqlalchemy.ext.automap.AutomapBase attribute)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="orm/internals.html#sqlalchemy.orm.instrumentation.ClassManager">ClassManager (class in sqlalchemy.orm.instrumentation)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/extensions/automap.html#sqlalchemy.ext.automap.classname_for_table">classname_for_table() (in module sqlalchemy.ext.automap)</a>
 </dt>
 
 
@@ -2430,6 +2567,14 @@
 
 <dt>
         <a href="core/sqlelement.html#sqlalchemy.sql.expression.ClauseList">ClauseList (class in sqlalchemy.sql.expression)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/functions.html#sqlalchemy.sql.functions.FunctionElement.clauses">clauses (sqlalchemy.sql.functions.FunctionElement attribute)</a>
 </dt>
 
 
@@ -2519,9 +2664,15 @@
 
 
 <dt>
-        <a href="orm/extensions/mutable.html#sqlalchemy.ext.mutable.MutableBase.coerce">coerce() (sqlalchemy.ext.mutable.MutableBase class method)</a>
+        <a href="orm/extensions/mutable.html#sqlalchemy.ext.mutable.Mutable.coerce">coerce() (sqlalchemy.ext.mutable.Mutable class method)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="orm/extensions/mutable.html#sqlalchemy.ext.mutable.MutableBase.coerce">(sqlalchemy.ext.mutable.MutableBase class method)</a>
+      </dt>
+      <dt><a href="orm/extensions/mutable.html#sqlalchemy.ext.mutable.MutableDict.coerce">(sqlalchemy.ext.mutable.MutableDict class method)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -2563,11 +2714,9 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.collate">(sqlalchemy.orm.attributes.QueryableAttribute method)</a>
+      </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Column.collate">(sqlalchemy.schema.Column method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.collate">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.collate">(sqlalchemy.sql.expression.ColumnClause method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.collate">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -2708,14 +2857,6 @@
 
 
 <dt>
-        <a href="orm/internals.html#sqlalchemy.orm.properties.ColumnProperty.ColumnComparator">ColumnComparator (sqlalchemy.orm.properties.ColumnProperty attribute)</a>
-</dt>
-
-
-  
-
-
-<dt>
         <a href="core/defaults.html#sqlalchemy.schema.ColumnDefault">ColumnDefault (class in sqlalchemy.schema)</a>
 </dt>
 
@@ -2760,6 +2901,8 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/query.html#sqlalchemy.orm.query.Bundle.columns">(sqlalchemy.orm.query.Bundle attribute)</a>
+      </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Table.columns">(sqlalchemy.schema.Table attribute)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Alias.columns">(sqlalchemy.sql.expression.Alias attribute)</a>
@@ -2770,11 +2913,15 @@
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.FromClause.columns">(sqlalchemy.sql.expression.FromClause attribute)</a>
       </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.columns">(sqlalchemy.sql.expression.GenerativeSelect attribute)</a>
+      </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Join.columns">(sqlalchemy.sql.expression.Join attribute)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.columns">(sqlalchemy.sql.expression.Select attribute)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.TableClause.columns">(sqlalchemy.sql.expression.TableClause attribute)</a>
+      </dt>
+      <dt><a href="core/functions.html#sqlalchemy.sql.functions.FunctionElement.columns">(sqlalchemy.sql.functions.FunctionElement attribute)</a>
       </dt>
     </dl></dd>
 
@@ -2783,6 +2930,14 @@
 
 <dt>
         <a href="glossary.html#term-columns-clause">columns clause</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/sqlelement.html#sqlalchemy.sql.expression.TextClause.columns">columns() (sqlalchemy.sql.expression.TextClause method)</a>
 </dt>
 
 
@@ -2890,13 +3045,13 @@
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ClauseList.compare">(sqlalchemy.sql.expression.ClauseList method)</a>
       </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.compare">(sqlalchemy.sql.expression.ColumnClause method)</a>
-      </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.compare">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.compare">(sqlalchemy.sql.expression.CompoundSelect method)</a>
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Delete.compare">(sqlalchemy.sql.expression.Delete method)</a>
+      </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.compare">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Insert.compare">(sqlalchemy.sql.expression.Insert method)</a>
       </dt>
@@ -2909,6 +3064,8 @@
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.UnaryExpression.compare">(sqlalchemy.sql.expression.UnaryExpression method)</a>
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Update.compare">(sqlalchemy.sql.expression.Update method)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.UpdateBase.compare">(sqlalchemy.sql.expression.UpdateBase method)</a>
       </dt>
     </dl></dd>
 
@@ -2932,8 +3089,6 @@
 </dt>
 
     <dd><dl>
-      <dt><a href="orm/mapper_config.html#sqlalchemy.orm.mapper.Mapper.compile">(sqlalchemy.orm.mapper.Mapper method)</a>
-      </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Column.compile">(sqlalchemy.schema.Column method)</a>
       </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Table.compile">(sqlalchemy.schema.Table method)</a>
@@ -2942,19 +3097,17 @@
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Alias.compile">(sqlalchemy.sql.expression.Alias method)</a>
       </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.compile">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CTE.compile">(sqlalchemy.sql.expression.CTE method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ClauseElement.compile">(sqlalchemy.sql.expression.ClauseElement method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.compile">(sqlalchemy.sql.expression.ColumnClause method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.compile">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.compile">(sqlalchemy.sql.expression.CompoundSelect method)</a>
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Delete.compile">(sqlalchemy.sql.expression.Delete method)</a>
+      </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.compile">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Insert.compile">(sqlalchemy.sql.expression.Insert method)</a>
       </dt>
@@ -2965,6 +3118,8 @@
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.TableClause.compile">(sqlalchemy.sql.expression.TableClause method)</a>
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Update.compile">(sqlalchemy.sql.expression.Update method)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.UpdateBase.compile">(sqlalchemy.sql.expression.UpdateBase method)</a>
       </dt>
       <dt><a href="core/types.html#sqlalchemy.types.TypeDecorator.compile">(sqlalchemy.types.TypeDecorator method)</a>
       </dt>
@@ -2979,14 +3134,6 @@
 
 <dt>
         <a href="core/internals.html#sqlalchemy.engine.interfaces.Compiled">Compiled (class in sqlalchemy.engine.interfaces)</a>
-</dt>
-
-
-  
-
-
-<dt>
-        <a href="orm/mapper_config.html#sqlalchemy.orm.mapper.Mapper.compiled">compiled (sqlalchemy.orm.mapper.Mapper attribute)</a>
 </dt>
 
 
@@ -3058,13 +3205,11 @@
 
 
 <dt>
-        <a href="core/metadata.html#sqlalchemy.schema.Column.concat">concat() (sqlalchemy.schema.Column method)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.concat">concat() (sqlalchemy.orm.attributes.QueryableAttribute method)</a>
 </dt>
 
     <dd><dl>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.concat">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.concat">(sqlalchemy.sql.expression.ColumnClause method)</a>
+      <dt><a href="core/metadata.html#sqlalchemy.schema.Column.concat">(sqlalchemy.schema.Column method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.concat">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -3216,7 +3361,31 @@
 
 
 <dt>
+        <a href="glossary.html#term-constrained">constrained</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="glossary.html#term-constraint">constraint</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="core/constraints.html#sqlalchemy.schema.Constraint">Constraint (class in sqlalchemy.schema)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="glossary.html#term-constraints">constraints</a>
 </dt>
 
 
@@ -3250,23 +3419,23 @@
 
 
 <dt>
-        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ARRAY.Comparator.contains">contains() (sqlalchemy.dialects.postgresql.ARRAY.Comparator method)</a>
+        <a href="core/event.html#sqlalchemy.event.contains">contains() (in module sqlalchemy.event)</a>
 </dt>
 
     <dd><dl>
+      <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ARRAY.Comparator.contains">(sqlalchemy.dialects.postgresql.ARRAY.Comparator method)</a>
+      </dt>
       <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.HSTORE.comparator_factory.contains">(sqlalchemy.dialects.postgresql.HSTORE.comparator_factory method)</a>
       </dt>
       <dt><a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory.contains">(sqlalchemy.dialects.postgresql.ranges.RangeOperators.comparator_factory method)</a>
       </dt>
       <dt><a href="orm/extensions/associationproxy.html#sqlalchemy.ext.associationproxy.AssociationProxy.contains">(sqlalchemy.ext.associationproxy.AssociationProxy method)</a>
       </dt>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.contains">(sqlalchemy.orm.attributes.QueryableAttribute method)</a>
+      </dt>
       <dt><a href="orm/internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.contains">(sqlalchemy.orm.properties.RelationshipProperty.Comparator method)</a>
       </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Column.contains">(sqlalchemy.schema.Column method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.contains">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.contains">(sqlalchemy.sql.expression.ColumnClause method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.contains">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -3289,6 +3458,10 @@
         <a href="orm/loading.html#sqlalchemy.orm.contains_eager">contains_eager() (in module sqlalchemy.orm)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="orm/query.html#sqlalchemy.orm.strategy_options.Load.contains_eager">(sqlalchemy.orm.strategy_options.Load method)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -3388,6 +3561,8 @@
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.FromClause.correspond_on_equivalents">(sqlalchemy.sql.expression.FromClause method)</a>
       </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.correspond_on_equivalents">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
+      </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Join.correspond_on_equivalents">(sqlalchemy.sql.expression.Join method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.correspond_on_equivalents">(sqlalchemy.sql.expression.Select method)</a>
@@ -3411,6 +3586,8 @@
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.corresponding_column">(sqlalchemy.sql.expression.CompoundSelect method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.FromClause.corresponding_column">(sqlalchemy.sql.expression.FromClause method)</a>
+      </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.corresponding_column">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Join.corresponding_column">(sqlalchemy.sql.expression.Join method)</a>
       </dt>
@@ -3445,6 +3622,8 @@
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.count">(sqlalchemy.sql.expression.CompoundSelect method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.FromClause.count">(sqlalchemy.sql.expression.FromClause method)</a>
+      </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.count">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Join.count">(sqlalchemy.sql.expression.Join method)</a>
       </dt>
@@ -3551,6 +3730,10 @@
         <a href="orm/internals.html#sqlalchemy.orm.interfaces.MapperProperty.create_row_processor">create_row_processor() (sqlalchemy.orm.interfaces.MapperProperty method)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="orm/query.html#sqlalchemy.orm.query.Bundle.create_row_processor">(sqlalchemy.orm.query.Bundle method)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -3622,6 +3805,8 @@
     <dd><dl>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.cte">(sqlalchemy.sql.expression.CompoundSelect method)</a>
       </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.cte">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
+      </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.cte">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.SelectBase.cte">(sqlalchemy.sql.expression.SelectBase method)</a>
@@ -3665,14 +3850,6 @@
 
 <dt>
         <a href="core/interfaces.html#sqlalchemy.interfaces.ConnectionProxy.cursor_execute">cursor_execute() (sqlalchemy.interfaces.ConnectionProxy method)</a>
-</dt>
-
-
-  
-
-
-<dt>
-        <a href="orm/examples.html#module-custom_attributes">custom_attributes (module)</a>
 </dt>
 
 
@@ -3932,9 +4109,25 @@
 
 
 <dt>
+        <a href="orm/loading.html#sqlalchemy.orm.defaultload">defaultload() (in module sqlalchemy.orm)</a>
+</dt>
+
+    <dd><dl>
+      <dt><a href="orm/query.html#sqlalchemy.orm.strategy_options.Load.defaultload">(sqlalchemy.orm.strategy_options.Load method)</a>
+      </dt>
+    </dl></dd>
+
+  
+
+
+<dt>
         <a href="orm/mapper_config.html#sqlalchemy.orm.defer">defer() (in module sqlalchemy.orm)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="orm/query.html#sqlalchemy.orm.strategy_options.Load.defer">(sqlalchemy.orm.strategy_options.Load method)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -4048,11 +4241,9 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.desc">(sqlalchemy.orm.attributes.QueryableAttribute method)</a>
+      </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Column.desc">(sqlalchemy.schema.Column method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.desc">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.desc">(sqlalchemy.sql.expression.ColumnClause method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.desc">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -4073,6 +4264,8 @@
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.description">(sqlalchemy.sql.expression.CompoundSelect attribute)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.FromClause.description">(sqlalchemy.sql.expression.FromClause attribute)</a>
+      </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.description">(sqlalchemy.sql.expression.GenerativeSelect attribute)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.description">(sqlalchemy.sql.expression.Select attribute)</a>
       </dt>
@@ -4114,11 +4307,17 @@
 
 
 <dt>
-        <a href="orm/internals.html#sqlalchemy.orm.state.InstanceState.detached">detached (sqlalchemy.orm.state.InstanceState attribute)</a>
+        <a href="glossary.html#term-detached">detached</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.state.InstanceState.detached">(sqlalchemy.orm.state.InstanceState attribute)</a>
+      </dt>
+    </dl></dd>
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -4143,8 +4342,6 @@
 
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -4226,13 +4423,11 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.distinct">(sqlalchemy.orm.attributes.QueryableAttribute method)</a>
+      </dt>
       <dt><a href="orm/query.html#sqlalchemy.orm.query.Query.distinct">(sqlalchemy.orm.query.Query method)</a>
       </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Column.distinct">(sqlalchemy.schema.Column method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.distinct">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.distinct">(sqlalchemy.sql.expression.ColumnClause method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.distinct">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -4398,7 +4593,7 @@
 
 
 <dt>
-        <a href="orm/examples.html#module-dogpile_caching">dogpile_caching (module)</a>
+        <a href="glossary.html#term-domain-model">domain model</a>
 </dt>
 
 
@@ -4532,14 +4727,6 @@
 
 
 <dt>
-        <a href="orm/examples.html#module-dynamic_dict">dynamic_dict (module)</a>
-</dt>
-
-
-  
-
-
-<dt>
         <a href="orm/relationships.html#sqlalchemy.orm.dynamic_loader">dynamic_loader() (in module sqlalchemy.orm)</a>
 </dt>
 
@@ -4571,14 +4758,6 @@
 
 <dt>
         <a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.effective_value">effective_value (sqlalchemy.sql.expression.BindParameter attribute)</a>
-</dt>
-
-
-  
-
-
-<dt>
-        <a href="orm/examples.html#module-elementtree">elementtree (module)</a>
 </dt>
 
 
@@ -4618,13 +4797,11 @@
 
 
 <dt>
-        <a href="core/metadata.html#sqlalchemy.schema.Column.endswith">endswith() (sqlalchemy.schema.Column method)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.endswith">endswith() (sqlalchemy.orm.attributes.QueryableAttribute method)</a>
 </dt>
 
     <dd><dl>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.endswith">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.endswith">(sqlalchemy.sql.expression.ColumnClause method)</a>
+      <dt><a href="core/metadata.html#sqlalchemy.schema.Column.endswith">(sqlalchemy.schema.Column method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.endswith">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -4637,6 +4814,14 @@
 
 <dt>
         <a href="core/connections.html#sqlalchemy.engine.Engine">Engine (class in sqlalchemy.engine)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/events.html#sqlalchemy.events.ConnectionEvents.engine_connect">engine_connect() (sqlalchemy.events.ConnectionEvents method)</a>
 </dt>
 
 
@@ -4683,6 +4868,158 @@
 
 <dt>
         <a href="core/internals.html#sqlalchemy.sql.compiler.SQLCompiler.escape_literal_column">escape_literal_column() (sqlalchemy.sql.compiler.SQLCompiler method)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.Event">Event (class in sqlalchemy.orm.attributes)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/events.html#sqlalchemy.event.base.Events">Events (class in sqlalchemy.event.base)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/examples.html#module-examples.adjacency_list">examples.adjacency_list (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/examples.html#module-examples.association">examples.association (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/examples.html#module-examples.custom_attributes">examples.custom_attributes (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/examples.html#module-examples.dogpile_caching">examples.dogpile_caching (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/examples.html#module-examples.dynamic_dict">examples.dynamic_dict (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/examples.html#module-examples.elementtree">examples.elementtree (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/examples.html#module-examples.generic_associations">examples.generic_associations (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/examples.html#module-examples.graphs">examples.graphs (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/examples.html#module-examples.inheritance">examples.inheritance (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/examples.html#module-examples.join_conditions">examples.join_conditions (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/examples.html#module-examples.large_collection">examples.large_collection (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/examples.html#module-examples.nested_sets">examples.nested_sets (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/examples.html#module-examples.postgis">examples.postgis (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/examples.html#module-examples.sharding">examples.sharding (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/examples.html#module-examples.versioned_history">examples.versioned_history (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/examples.html#module-examples.versioned_rows">examples.versioned_rows (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/examples.html#module-examples.vertical">examples.vertical (module)</a>
 </dt>
 
 
@@ -4758,11 +5095,17 @@
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Executable.execute">(sqlalchemy.sql.expression.Executable method)</a>
       </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.execute">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
+      </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Insert.execute">(sqlalchemy.sql.expression.Insert method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.execute">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Update.execute">(sqlalchemy.sql.expression.Update method)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.UpdateBase.execute">(sqlalchemy.sql.expression.UpdateBase method)</a>
+      </dt>
+      <dt><a href="core/functions.html#sqlalchemy.sql.functions.FunctionElement.execute">(sqlalchemy.sql.functions.FunctionElement method)</a>
       </dt>
     </dl></dd>
 
@@ -4810,11 +5153,15 @@
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Executable.execution_options">(sqlalchemy.sql.expression.Executable method)</a>
       </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.execution_options">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
+      </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Insert.execution_options">(sqlalchemy.sql.expression.Insert method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.execution_options">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Update.execution_options">(sqlalchemy.sql.expression.Update method)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.UpdateBase.execution_options">(sqlalchemy.sql.expression.UpdateBase method)</a>
       </dt>
     </dl></dd>
 
@@ -4878,10 +5225,6 @@
     <dd><dl>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Column.expression">(sqlalchemy.schema.Column attribute)</a>
       </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.expression">(sqlalchemy.sql.expression.BindParameter attribute)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.expression">(sqlalchemy.sql.expression.ColumnClause attribute)</a>
-      </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.expression">(sqlalchemy.sql.expression.ColumnElement attribute)</a>
       </dt>
     </dl></dd>
@@ -4930,6 +5273,8 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.extension_type">(sqlalchemy.orm.attributes.QueryableAttribute attribute)</a>
+      </dt>
       <dt><a href="orm/internals.html#sqlalchemy.orm.interfaces._InspectionAttr.extension_type">(sqlalchemy.orm.interfaces._InspectionAttr attribute)</a>
       </dt>
     </dl></dd>
@@ -4968,7 +5313,7 @@
 
 
 <dt>
-        <a href="core/sqlelement.html#sqlalchemy.sql.expression.False_">False_ (class in sqlalchemy.sql.expression)</a>
+        <a href="core/sqlelement.html#sqlalchemy.sql.elements.False_">False_ (class in sqlalchemy.sql.elements)</a>
 </dt>
 
 
@@ -5017,6 +5362,22 @@
 
 <dt>
         <a href="orm/query.html#sqlalchemy.orm.query.Query.filter_by">filter_by() (sqlalchemy.orm.query.Query method)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/internals.html#sqlalchemy.orm.session.UOWTransaction.filter_states_for_dep">filter_states_for_dep() (sqlalchemy.orm.session.UOWTransaction method)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/internals.html#sqlalchemy.orm.session.UOWTransaction.finalize_flush_changes">finalize_flush_changes() (sqlalchemy.orm.session.UOWTransaction method)</a>
 </dt>
 
 
@@ -5102,6 +5463,28 @@
 
 
 <dt>
+        <a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.for_update">for_update (sqlalchemy.sql.expression.CompoundSelect attribute)</a>
+</dt>
+
+    <dd><dl>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.for_update">(sqlalchemy.sql.expression.GenerativeSelect attribute)</a>
+      </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.for_update">(sqlalchemy.sql.expression.Select attribute)</a>
+      </dt>
+    </dl></dd>
+
+  
+
+
+<dt>
+        <a href="glossary.html#term-foreign-key-constraint">foreign key constraint</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="orm/relationships.html#sqlalchemy.orm.foreign">foreign() (in module sqlalchemy.orm)</a>
 </dt>
 
@@ -5125,6 +5508,8 @@
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.foreign_keys">(sqlalchemy.sql.expression.CompoundSelect attribute)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.FromClause.foreign_keys">(sqlalchemy.sql.expression.FromClause attribute)</a>
+      </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.foreign_keys">(sqlalchemy.sql.expression.GenerativeSelect attribute)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Join.foreign_keys">(sqlalchemy.sql.expression.Join attribute)</a>
       </dt>
@@ -5247,6 +5632,26 @@
         <a href="core/sqlelement.html#sqlalchemy.sql.expression.func">func (in module sqlalchemy.sql.expression)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="core/functions.html#sqlalchemy.sql.functions.func">(in module sqlalchemy.sql.functions)</a>
+      </dt>
+    </dl></dd>
+
+  
+
+
+<dt>
+        <a href="core/functions.html#sqlalchemy.sql.functions.Function">Function (class in sqlalchemy.sql.functions)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/functions.html#sqlalchemy.sql.functions.FunctionElement">FunctionElement (class in sqlalchemy.sql.functions)</a>
+</dt>
+
 
   
 
@@ -5258,6 +5663,14 @@
     
 
 <dt>
+        <a href="orm/extensions/automap.html#sqlalchemy.ext.automap.generate_relationship">generate_relationship() (in module sqlalchemy.ext.automap)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="glossary.html#term-generative">generative</a>
 </dt>
 
@@ -5266,7 +5679,7 @@
 
 
 <dt>
-        <a href="orm/examples.html#module-generic_associations">generic_associations (module)</a>
+        <a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect">GenerativeSelect (class in sqlalchemy.sql.expression)</a>
 </dt>
 
 
@@ -5298,6 +5711,14 @@
 
 
 <dt>
+        <a href="orm/internals.html#sqlalchemy.orm.session.UOWTransaction.get_attribute_history">get_attribute_history() (sqlalchemy.orm.session.UOWTransaction method)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="orm/session.html#sqlalchemy.orm.session.Session.get_bind">get_bind() (sqlalchemy.orm.session.Session method)</a>
 </dt>
 
@@ -5314,15 +5735,17 @@
       </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Table.get_children">(sqlalchemy.schema.Table method)</a>
       </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.get_children">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ClauseElement.get_children">(sqlalchemy.sql.expression.ClauseElement method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.get_children">(sqlalchemy.sql.expression.ColumnClause method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.get_children">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.get_children">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
+      </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.get_children">(sqlalchemy.sql.expression.Select method)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.UpdateBase.get_children">(sqlalchemy.sql.expression.UpdateBase method)</a>
+      </dt>
+      <dt><a href="core/functions.html#sqlalchemy.sql.functions.FunctionElement.get_children">(sqlalchemy.sql.functions.FunctionElement method)</a>
       </dt>
     </dl></dd>
 
@@ -5421,6 +5844,8 @@
     </dl></dd>
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -5429,8 +5854,6 @@
 
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -5582,23 +6005,15 @@
 
 
 <dt>
-        <a href="orm/examples.html#module-graphs">graphs (module)</a>
-</dt>
-
-
-  
-
-
-<dt>
         <a href="orm/query.html#sqlalchemy.orm.query.Query.group_by">group_by() (sqlalchemy.orm.query.Query method)</a>
 </dt>
 
     <dd><dl>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.group_by">(sqlalchemy.sql.expression.CompoundSelect method)</a>
       </dt>
-      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.group_by">(sqlalchemy.sql.expression.Select method)</a>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.group_by">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
       </dt>
-      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.SelectBase.group_by">(sqlalchemy.sql.expression.SelectBase method)</a>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.group_by">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
     </dl></dd>
 
@@ -5624,6 +6039,8 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.has">(sqlalchemy.orm.attributes.QueryableAttribute method)</a>
+      </dt>
       <dt><a href="orm/internals.html#sqlalchemy.orm.interfaces.PropComparator.has">(sqlalchemy.orm.interfaces.PropComparator method)</a>
       </dt>
       <dt><a href="orm/internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.has">(sqlalchemy.orm.properties.RelationshipProperty.Comparator method)</a>
@@ -5705,8 +6122,6 @@
     </dl></dd>
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -5714,15 +6129,27 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="core/connections.html#sqlalchemy.engine.Engine.has_table">(sqlalchemy.engine.Engine method)</a>
+      </dt>
       <dt><a href="core/internals.html#sqlalchemy.engine.interfaces.Dialect.has_table">(sqlalchemy.engine.interfaces.Dialect method)</a>
       </dt>
     </dl></dd>
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
         <a href="core/types.html#sqlalchemy.types.TypeEngine.hashable">hashable (sqlalchemy.types.TypeEngine attribute)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/selectable.html#sqlalchemy.sql.expression.HasPrefixes">HasPrefixes (class in sqlalchemy.sql.expression)</a>
 </dt>
 
 
@@ -5958,13 +6385,11 @@
 
 
 <dt>
-        <a href="core/metadata.html#sqlalchemy.schema.Column.ilike">ilike() (sqlalchemy.schema.Column method)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.ilike">ilike() (sqlalchemy.orm.attributes.QueryableAttribute method)</a>
 </dt>
 
     <dd><dl>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.ilike">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.ilike">(sqlalchemy.sql.expression.ColumnClause method)</a>
+      <dt><a href="core/metadata.html#sqlalchemy.schema.Column.ilike">(sqlalchemy.schema.Column method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.ilike">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -5987,15 +6412,21 @@
         <a href="orm/loading.html#sqlalchemy.orm.immediateload">immediateload() (in module sqlalchemy.orm)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="orm/query.html#sqlalchemy.orm.strategy_options.Load.immediateload">(sqlalchemy.orm.strategy_options.Load method)</a>
+      </dt>
+    </dl></dd>
 
   
 
 
 <dt>
-        <a href="core/types.html#sqlalchemy.types.Interval.impl">impl (sqlalchemy.types.Interval attribute)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.Event.impl">impl (sqlalchemy.orm.attributes.Event attribute)</a>
 </dt>
 
     <dd><dl>
+      <dt><a href="core/types.html#sqlalchemy.types.Interval.impl">(sqlalchemy.types.Interval attribute)</a>
+      </dt>
       <dt><a href="core/types.html#sqlalchemy.types.PickleType.impl">(sqlalchemy.types.PickleType attribute)</a>
       </dt>
     </dl></dd>
@@ -6016,15 +6447,13 @@
 
 
 <dt>
-        <a href="orm/internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.in_">in_() (sqlalchemy.orm.properties.RelationshipProperty.Comparator method)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.in_">in_() (sqlalchemy.orm.attributes.QueryableAttribute method)</a>
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.in_">(sqlalchemy.orm.properties.RelationshipProperty.Comparator method)</a>
+      </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Column.in_">(sqlalchemy.schema.Column method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.in_">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.in_">(sqlalchemy.sql.expression.ColumnClause method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.in_">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -6068,6 +6497,8 @@
       </dt>
       <dt><a href="orm/internals.html#sqlalchemy.orm.interfaces.MapperProperty.info">(sqlalchemy.orm.interfaces.MapperProperty attribute)</a>
       </dt>
+      <dt><a href="orm/session.html#sqlalchemy.orm.session.Session.info">(sqlalchemy.orm.session.Session attribute)</a>
+      </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Column.info">(sqlalchemy.schema.Column attribute)</a>
       </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.SchemaItem.info">(sqlalchemy.schema.SchemaItem attribute)</a>
@@ -6075,14 +6506,6 @@
       <dt><a href="core/metadata.html#sqlalchemy.schema.Table.info">(sqlalchemy.schema.Table attribute)</a>
       </dt>
     </dl></dd>
-
-  
-
-
-<dt>
-        <a href="orm/examples.html#module-inheritance">inheritance (module)</a>
-</dt>
-
 
   
 
@@ -6257,8 +6680,6 @@
 
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -6267,6 +6688,8 @@
 
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -6331,6 +6754,14 @@
 
 <dt>
         <a href="orm/events.html#sqlalchemy.orm.events.InstrumentationEvents">InstrumentationEvents (class in sqlalchemy.orm.events)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/extensions/instrumentation.html#sqlalchemy.orm.instrumentation.InstrumentationFactory">InstrumentationFactory (class in sqlalchemy.orm.instrumentation)</a>
 </dt>
 
 
@@ -6416,6 +6847,8 @@
     <dd><dl>
       <dt><a href="dialects/mysql.html#sqlalchemy.dialects.mysql.INTEGER">(class in sqlalchemy.dialects.mysql)</a>
       </dt>
+      <dt><a href="core/types.html#sqlalchemy.types.INTEGER">(class in sqlalchemy.types)</a>
+      </dt>
     </dl></dd>
 
   
@@ -6423,14 +6856,6 @@
 
 <dt>
         <a href="core/types.html#sqlalchemy.types.Integer">Integer (class in sqlalchemy.types)</a>
-</dt>
-
-
-  
-
-
-<dt>
-        <a href="core/types.html#sqlalchemy.types.INTEGER">INTEGER (class in sqlalchemy.types)</a>
 </dt>
 
 
@@ -6542,13 +6967,11 @@
 
 
 <dt>
-        <a href="core/metadata.html#sqlalchemy.schema.Column.is_">is_() (sqlalchemy.schema.Column method)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.is_">is_() (sqlalchemy.orm.attributes.QueryableAttribute method)</a>
 </dt>
 
     <dd><dl>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.is_">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.is_">(sqlalchemy.sql.expression.ColumnClause method)</a>
+      <dt><a href="core/metadata.html#sqlalchemy.schema.Column.is_">(sqlalchemy.schema.Column method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.is_">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -6616,11 +7039,21 @@
 
 
 <dt>
+        <a href="orm/internals.html#sqlalchemy.orm.session.UOWTransaction.is_deleted">is_deleted() (sqlalchemy.orm.session.UOWTransaction method)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="core/metadata.html#sqlalchemy.schema.Table.is_derived_from">is_derived_from() (sqlalchemy.schema.Table method)</a>
 </dt>
 
     <dd><dl>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.FromClause.is_derived_from">(sqlalchemy.sql.expression.FromClause method)</a>
+      </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.is_derived_from">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.TableClause.is_derived_from">(sqlalchemy.sql.expression.TableClause method)</a>
       </dt>
@@ -6738,13 +7171,11 @@
 
 
 <dt>
-        <a href="core/metadata.html#sqlalchemy.schema.Column.isnot">isnot() (sqlalchemy.schema.Column method)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.isnot">isnot() (sqlalchemy.orm.attributes.QueryableAttribute method)</a>
 </dt>
 
     <dd><dl>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.isnot">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.isnot">(sqlalchemy.sql.expression.ColumnClause method)</a>
+      <dt><a href="core/metadata.html#sqlalchemy.schema.Column.isnot">(sqlalchemy.schema.Column method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.isnot">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -6836,6 +7267,8 @@
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.FromClause.join">(sqlalchemy.sql.expression.FromClause method)</a>
       </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.join">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
+      </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Join.join">(sqlalchemy.sql.expression.Join method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.join">(sqlalchemy.sql.expression.Select method)</a>
@@ -6853,12 +7286,40 @@
         <a href="orm/loading.html#sqlalchemy.orm.joinedload">joinedload() (in module sqlalchemy.orm)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="orm/query.html#sqlalchemy.orm.strategy_options.Load.joinedload">(sqlalchemy.orm.strategy_options.Load method)</a>
+      </dt>
+    </dl></dd>
 
   
 
 
 <dt>
         <a href="orm/loading.html#sqlalchemy.orm.joinedload_all">joinedload_all() (in module sqlalchemy.orm)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.JSON">JSON (class in sqlalchemy.dialects.postgresql)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.JSON.comparator_factory">JSON.comparator_factory (class in sqlalchemy.dialects.postgresql)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.JSONElement">JSONElement (class in sqlalchemy.dialects.postgresql)</a>
 </dt>
 
 
@@ -6924,31 +7385,23 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/query.html#sqlalchemy.orm.query.Bundle.label">(sqlalchemy.orm.query.Bundle method)</a>
+      </dt>
       <dt><a href="orm/query.html#sqlalchemy.orm.query.Query.label">(sqlalchemy.orm.query.Query method)</a>
       </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Column.label">(sqlalchemy.schema.Column method)</a>
       </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.label">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.label">(sqlalchemy.sql.expression.ColumnClause method)</a>
-      </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.label">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.label">(sqlalchemy.sql.expression.CompoundSelect method)</a>
+      </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.label">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.label">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.SelectBase.label">(sqlalchemy.sql.expression.SelectBase method)</a>
       </dt>
     </dl></dd>
-
-  
-
-
-<dt>
-        <a href="orm/examples.html#module-large_collection">large_collection (module)</a>
-</dt>
-
 
   
 
@@ -7006,6 +7459,14 @@
 
 
 <dt>
+        <a href="glossary.html#term-lazy-loading">lazy loading</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="glossary.html#term-lazy-loads">lazy loads</a>
 </dt>
 
@@ -7017,18 +7478,20 @@
         <a href="orm/loading.html#sqlalchemy.orm.lazyload">lazyload() (in module sqlalchemy.orm)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="orm/query.html#sqlalchemy.orm.strategy_options.Load.lazyload">(sqlalchemy.orm.strategy_options.Load method)</a>
+      </dt>
+    </dl></dd>
 
   
 
 
 <dt>
-        <a href="core/metadata.html#sqlalchemy.schema.Column.like">like() (sqlalchemy.schema.Column method)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.like">like() (sqlalchemy.orm.attributes.QueryableAttribute method)</a>
 </dt>
 
     <dd><dl>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.like">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.like">(sqlalchemy.sql.expression.ColumnClause method)</a>
+      <dt><a href="core/metadata.html#sqlalchemy.schema.Column.like">(sqlalchemy.schema.Column method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.like">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -7037,8 +7500,6 @@
     </dl></dd>
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -7048,13 +7509,15 @@
     <dd><dl>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.limit">(sqlalchemy.sql.expression.CompoundSelect method)</a>
       </dt>
-      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.limit">(sqlalchemy.sql.expression.Select method)</a>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.limit">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
       </dt>
-      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.SelectBase.limit">(sqlalchemy.sql.expression.SelectBase method)</a>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.limit">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
     </dl></dd>
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -7106,6 +7569,26 @@
 
 
 <dt>
+        <a href="core/types.html#sqlalchemy.types.TypeDecorator.literal_processor">literal_processor() (sqlalchemy.types.TypeDecorator method)</a>
+</dt>
+
+    <dd><dl>
+      <dt><a href="core/types.html#sqlalchemy.types.TypeEngine.literal_processor">(sqlalchemy.types.TypeEngine method)</a>
+      </dt>
+    </dl></dd>
+
+  
+
+
+<dt>
+        <a href="orm/query.html#sqlalchemy.orm.strategy_options.Load">Load (class in sqlalchemy.orm.strategy_options)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="orm/events.html#sqlalchemy.orm.events.InstanceEvents.load">load() (sqlalchemy.orm.events.InstanceEvents method)</a>
 </dt>
 
@@ -7117,6 +7600,26 @@
         <a href="core/types.html#sqlalchemy.types.TypeDecorator.load_dialect_impl">load_dialect_impl() (sqlalchemy.types.TypeDecorator method)</a>
 </dt>
 
+
+  
+
+
+<dt>
+        <a href="orm/internals.html#sqlalchemy.orm.state.AttributeState.load_history">load_history() (sqlalchemy.orm.state.AttributeState method)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/mapper_config.html#sqlalchemy.orm.load_only">load_only() (in module sqlalchemy.orm)</a>
+</dt>
+
+    <dd><dl>
+      <dt><a href="orm/query.html#sqlalchemy.orm.strategy_options.Load.load_only">(sqlalchemy.orm.strategy_options.Load method)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -7254,6 +7757,38 @@
 
 
 <dt>
+        <a href="glossary.html#term-many-to-many">many to many</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="glossary.html#term-many-to-one">many to one</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/internals.html#sqlalchemy.orm.interfaces.MANYTOMANY">MANYTOMANY (in module sqlalchemy.orm.interfaces)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/internals.html#sqlalchemy.orm.interfaces.MANYTOONE">MANYTOONE (in module sqlalchemy.orm.interfaces)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="glossary.html#term-mapped">mapped</a>
 </dt>
 
@@ -7339,6 +7874,8 @@
 
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -7358,13 +7895,11 @@
 
 
 <dt>
-        <a href="core/metadata.html#sqlalchemy.schema.Column.match">match() (sqlalchemy.schema.Column method)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.match">match() (sqlalchemy.orm.attributes.QueryableAttribute method)</a>
 </dt>
 
     <dd><dl>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.match">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.match">(sqlalchemy.sql.expression.ColumnClause method)</a>
+      <dt><a href="core/metadata.html#sqlalchemy.schema.Column.match">(sqlalchemy.schema.Column method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.match">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -7373,8 +7908,6 @@
     </dl></dd>
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -7578,6 +8111,22 @@
 
 
 <dt>
+        <a href="orm/extensions/automap.html#sqlalchemy.ext.automap.name_for_collection_relationship">name_for_collection_relationship() (in module sqlalchemy.ext.automap)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/extensions/automap.html#sqlalchemy.ext.automap.name_for_scalar_relationship">name_for_scalar_relationship() (in module sqlalchemy.ext.automap)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="core/metadata.html#sqlalchemy.schema.Table.named_with_column">named_with_column (sqlalchemy.schema.Table attribute)</a>
 </dt>
 
@@ -7601,14 +8150,6 @@
 
 <dt>
         <a href="dialects/oracle.html#sqlalchemy.dialects.oracle.NCLOB">NCLOB (class in sqlalchemy.dialects.oracle)</a>
-</dt>
-
-
-  
-
-
-<dt>
-        <a href="orm/examples.html#module-nested_sets">nested_sets (module)</a>
 </dt>
 
 
@@ -7683,6 +8224,10 @@
         <a href="orm/loading.html#sqlalchemy.orm.noload">noload() (in module sqlalchemy.orm)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="orm/query.html#sqlalchemy.orm.strategy_options.Load.noload">(sqlalchemy.orm.strategy_options.Load method)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -7741,6 +8286,8 @@
 
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -7761,8 +8308,6 @@
 
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -7806,13 +8351,11 @@
 
 
 <dt>
-        <a href="core/metadata.html#sqlalchemy.schema.Column.notilike">notilike() (sqlalchemy.schema.Column method)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.notilike">notilike() (sqlalchemy.orm.attributes.QueryableAttribute method)</a>
 </dt>
 
     <dd><dl>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.notilike">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.notilike">(sqlalchemy.sql.expression.ColumnClause method)</a>
+      <dt><a href="core/metadata.html#sqlalchemy.schema.Column.notilike">(sqlalchemy.schema.Column method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.notilike">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -7824,13 +8367,11 @@
 
 
 <dt>
-        <a href="core/metadata.html#sqlalchemy.schema.Column.notin_">notin_() (sqlalchemy.schema.Column method)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.notin_">notin_() (sqlalchemy.orm.attributes.QueryableAttribute method)</a>
 </dt>
 
     <dd><dl>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.notin_">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.notin_">(sqlalchemy.sql.expression.ColumnClause method)</a>
+      <dt><a href="core/metadata.html#sqlalchemy.schema.Column.notin_">(sqlalchemy.schema.Column method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.notin_">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -7842,13 +8383,11 @@
 
 
 <dt>
-        <a href="core/metadata.html#sqlalchemy.schema.Column.notlike">notlike() (sqlalchemy.schema.Column method)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.notlike">notlike() (sqlalchemy.orm.attributes.QueryableAttribute method)</a>
 </dt>
 
     <dd><dl>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.notlike">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.notlike">(sqlalchemy.sql.expression.ColumnClause method)</a>
+      <dt><a href="core/metadata.html#sqlalchemy.schema.Column.notlike">(sqlalchemy.schema.Column method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.notlike">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -7884,7 +8423,7 @@
 
 
 <dt>
-        <a href="core/sqlelement.html#sqlalchemy.sql.expression.Null">Null (class in sqlalchemy.sql.expression)</a>
+        <a href="core/sqlelement.html#sqlalchemy.sql.elements.Null">Null (class in sqlalchemy.sql.elements)</a>
 </dt>
 
 
@@ -7912,11 +8451,9 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.nullsfirst">(sqlalchemy.orm.attributes.QueryableAttribute method)</a>
+      </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Column.nullsfirst">(sqlalchemy.schema.Column method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.nullsfirst">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.nullsfirst">(sqlalchemy.sql.expression.ColumnClause method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.nullsfirst">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -7932,11 +8469,9 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.nullslast">(sqlalchemy.orm.attributes.QueryableAttribute method)</a>
+      </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Column.nullslast">(sqlalchemy.schema.Column method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.nullslast">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.nullslast">(sqlalchemy.sql.expression.ColumnClause method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.nullslast">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -8092,9 +8627,9 @@
     <dd><dl>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.offset">(sqlalchemy.sql.expression.CompoundSelect method)</a>
       </dt>
-      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.offset">(sqlalchemy.sql.expression.Select method)</a>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.offset">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
       </dt>
-      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.SelectBase.offset">(sqlalchemy.sql.expression.SelectBase method)</a>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.offset">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
     </dl></dd>
 
@@ -8118,7 +8653,23 @@
 
 
 <dt>
+        <a href="glossary.html#term-one-to-many">one to many</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="orm/query.html#sqlalchemy.orm.query.Query.one">one() (sqlalchemy.orm.query.Query method)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/internals.html#sqlalchemy.orm.interfaces.ONETOMANY">ONETOMANY (in module sqlalchemy.orm.interfaces)</a>
 </dt>
 
 
@@ -8134,13 +8685,19 @@
 
 
 <dt>
-        <a href="core/metadata.html#sqlalchemy.schema.Column.op">op() (sqlalchemy.schema.Column method)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.Event.op">op (sqlalchemy.orm.attributes.Event attribute)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.op">op() (sqlalchemy.orm.attributes.QueryableAttribute method)</a>
 </dt>
 
     <dd><dl>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.op">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.op">(sqlalchemy.sql.expression.ColumnClause method)</a>
+      <dt><a href="core/metadata.html#sqlalchemy.schema.Column.op">(sqlalchemy.schema.Column method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.op">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -8210,9 +8767,9 @@
     <dd><dl>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.order_by">(sqlalchemy.sql.expression.CompoundSelect method)</a>
       </dt>
-      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.order_by">(sqlalchemy.sql.expression.Select method)</a>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.order_by">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
       </dt>
-      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.SelectBase.order_by">(sqlalchemy.sql.expression.SelectBase method)</a>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.order_by">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
     </dl></dd>
 
@@ -8270,6 +8827,8 @@
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.FromClause.outerjoin">(sqlalchemy.sql.expression.FromClause method)</a>
       </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.outerjoin">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
+      </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Join.outerjoin">(sqlalchemy.sql.expression.Join method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.outerjoin">(sqlalchemy.sql.expression.Select method)</a>
@@ -8301,6 +8860,10 @@
         <a href="core/sqlelement.html#sqlalchemy.sql.expression.over">over() (in module sqlalchemy.sql.expression)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="core/functions.html#sqlalchemy.sql.functions.FunctionElement.over">(sqlalchemy.sql.functions.FunctionElement method)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -8326,6 +8889,14 @@
 <table width="100%" class="indextable genindextable"><tr><td width="33%" valign="top">
 <dl>
     
+
+<dt>
+        <a href="core/functions.html#sqlalchemy.sql.functions.FunctionElement.packagenames">packagenames (sqlalchemy.sql.functions.FunctionElement attribute)</a>
+</dt>
+
+
+  
+
 
 <dt>
         <a href="core/internals.html#sqlalchemy.engine.interfaces.Compiled.params">params (sqlalchemy.engine.interfaces.Compiled attribute)</a>
@@ -8354,8 +8925,6 @@
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Alias.params">(sqlalchemy.sql.expression.Alias method)</a>
       </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.params">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CTE.params">(sqlalchemy.sql.expression.CTE method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ClauseElement.params">(sqlalchemy.sql.expression.ClauseElement method)</a>
@@ -8365,6 +8934,8 @@
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.params">(sqlalchemy.sql.expression.CompoundSelect method)</a>
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Delete.params">(sqlalchemy.sql.expression.Delete method)</a>
+      </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.params">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Insert.params">(sqlalchemy.sql.expression.Insert method)</a>
       </dt>
@@ -8398,17 +8969,25 @@
 
 
 <dt>
-        <a href="orm/internals.html#sqlalchemy.orm.state.InstanceState.pending">pending (sqlalchemy.orm.state.InstanceState attribute)</a>
+        <a href="glossary.html#term-pending">pending</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.state.InstanceState.pending">(sqlalchemy.orm.state.InstanceState attribute)</a>
+      </dt>
+    </dl></dd>
 
   
 
 
 <dt>
-        <a href="orm/internals.html#sqlalchemy.orm.state.InstanceState.persistent">persistent (sqlalchemy.orm.state.InstanceState attribute)</a>
+        <a href="glossary.html#term-persistent">persistent</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.state.InstanceState.persistent">(sqlalchemy.orm.state.InstanceState attribute)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -8563,8 +9142,6 @@
 
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -8581,14 +9158,8 @@
 
 
   
-
-
-<dt>
-        <a href="orm/examples.html#module-postgis">postgis (module)</a>
-</dt>
-
-
-  
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -8614,11 +9185,15 @@
     <dd><dl>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Delete.prefix_with">(sqlalchemy.sql.expression.Delete method)</a>
       </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.HasPrefixes.prefix_with">(sqlalchemy.sql.expression.HasPrefixes method)</a>
+      </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Insert.prefix_with">(sqlalchemy.sql.expression.Insert method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.prefix_with">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Update.prefix_with">(sqlalchemy.sql.expression.Update method)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.UpdateBase.prefix_with">(sqlalchemy.sql.expression.UpdateBase method)</a>
       </dt>
     </dl></dd>
 
@@ -8630,6 +9205,10 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/extensions/automap.html#sqlalchemy.ext.automap.AutomapBase.prepare">(sqlalchemy.ext.automap.AutomapBase class method)</a>
+      </dt>
+      <dt><a href="orm/extensions/declarative.html#sqlalchemy.ext.declarative.DeferredReflection.prepare">(sqlalchemy.ext.declarative.DeferredReflection class method)</a>
+      </dt>
       <dt><a href="orm/session.html#sqlalchemy.orm.session.Session.prepare">(sqlalchemy.orm.session.Session method)</a>
       </dt>
     </dl></dd>
@@ -8666,6 +9245,22 @@
 
 
 <dt>
+        <a href="glossary.html#term-primary-key">primary key</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="glossary.html#term-primary-key-constraint">primary key constraint</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="orm/mapper_config.html#sqlalchemy.orm.mapper.Mapper.primary_key">primary_key (sqlalchemy.orm.mapper.Mapper attribute)</a>
 </dt>
 
@@ -8683,6 +9278,8 @@
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.primary_key">(sqlalchemy.sql.expression.CompoundSelect attribute)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.FromClause.primary_key">(sqlalchemy.sql.expression.FromClause attribute)</a>
+      </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.primary_key">(sqlalchemy.sql.expression.GenerativeSelect attribute)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Join.primary_key">(sqlalchemy.sql.expression.Join attribute)</a>
       </dt>
@@ -8721,6 +9318,14 @@
 
 <dt>
         <a href="core/types.html#sqlalchemy.types.TypeDecorator.process_bind_param">process_bind_param() (sqlalchemy.types.TypeDecorator method)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/types.html#sqlalchemy.types.TypeDecorator.process_literal_param">process_literal_param() (sqlalchemy.types.TypeDecorator method)</a>
 </dt>
 
 
@@ -8855,8 +9460,6 @@
 
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -8864,11 +9467,21 @@
 </dt>
 
     <dd><dl>
+      <dt><a href="core/metadata.html#sqlalchemy.schema.SchemaItem.quote">(sqlalchemy.schema.SchemaItem attribute)</a>
+      </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Table.quote">(sqlalchemy.schema.Table attribute)</a>
       </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.quote">(sqlalchemy.sql.expression.ColumnElement attribute)</a>
-      </dt>
     </dl></dd>
+
+  
+     
+        </dl></td><td width="33%" valign="top"><dl>
+
+
+<dt>
+        <a href="core/internals.html#sqlalchemy.sql.compiler.IdentifierPreparer.quote">quote() (sqlalchemy.sql.compiler.IdentifierPreparer method)</a>
+</dt>
+
 
   
 
@@ -8882,7 +9495,23 @@
 
 
 <dt>
+        <a href="core/metadata.html#sqlalchemy.schema.Table.quote_schema">quote_schema (sqlalchemy.schema.Table attribute)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="core/internals.html#sqlalchemy.sql.compiler.IdentifierPreparer.quote_schema">quote_schema() (sqlalchemy.sql.compiler.IdentifierPreparer method)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/sqlelement.html#sqlalchemy.sql.elements.quoted_name">quoted_name (class in sqlalchemy.sql.elements)</a>
 </dt>
 
 
@@ -9046,6 +9675,14 @@
 
 
 <dt>
+        <a href="glossary.html#term-relationship">relationship</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="orm/relationships.html#sqlalchemy.orm.relationship">relationship() (in module sqlalchemy.orm)</a>
 </dt>
 
@@ -9070,9 +9707,13 @@
 
 
 <dt>
-        <a href="orm/mapper_config.html#sqlalchemy.orm.mapper.Mapper.relationships">relationships (sqlalchemy.orm.mapper.Mapper attribute)</a>
+        <a href="glossary.html#term-relationships">relationships</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="orm/mapper_config.html#sqlalchemy.orm.mapper.Mapper.relationships">(sqlalchemy.orm.mapper.Mapper attribute)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -9130,10 +9771,12 @@
 
 
 <dt>
-        <a href="orm/extensions/orderinglist.html#sqlalchemy.ext.orderinglist.OrderingList.remove">remove() (sqlalchemy.ext.orderinglist.OrderingList method)</a>
+        <a href="core/event.html#sqlalchemy.event.remove">remove() (in module sqlalchemy.event)</a>
 </dt>
 
     <dd><dl>
+      <dt><a href="orm/extensions/orderinglist.html#sqlalchemy.ext.orderinglist.OrderingList.remove">(sqlalchemy.ext.orderinglist.OrderingList method)</a>
+      </dt>
       <dt><a href="orm/collections.html#sqlalchemy.orm.collections.MappedCollection.remove">(sqlalchemy.orm.collections.MappedCollection method)</a>
       </dt>
       <dt><a href="orm/events.html#sqlalchemy.orm.events.AttributeEvents.remove">(sqlalchemy.orm.events.AttributeEvents method)</a>
@@ -9151,6 +9794,14 @@
 
 <dt>
         <a href="orm/extensions/instrumentation.html#sqlalchemy.ext.instrumentation.InstrumentationManager.remove_state">remove_state() (sqlalchemy.ext.instrumentation.InstrumentationManager method)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/internals.html#sqlalchemy.orm.session.UOWTransaction.remove_state_actions">remove_state_actions() (sqlalchemy.orm.session.UOWTransaction method)</a>
 </dt>
 
 
@@ -9195,8 +9846,6 @@
 
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -9205,6 +9854,8 @@
 
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -9227,6 +9878,8 @@
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.replace_selectable">(sqlalchemy.sql.expression.CompoundSelect method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.FromClause.replace_selectable">(sqlalchemy.sql.expression.FromClause method)</a>
+      </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.replace_selectable">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Join.replace_selectable">(sqlalchemy.sql.expression.Join method)</a>
       </dt>
@@ -9309,6 +9962,28 @@
 
 <dt>
         <a href="orm/events.html#sqlalchemy.orm.events.InstanceEvents.resurrect">resurrect() (sqlalchemy.orm.events.InstanceEvents method)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/dml.html#sqlalchemy.sql.expression.Insert.return_defaults">return_defaults() (sqlalchemy.sql.expression.Insert method)</a>
+</dt>
+
+    <dd><dl>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.Update.return_defaults">(sqlalchemy.sql.expression.Update method)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.ValuesBase.return_defaults">(sqlalchemy.sql.expression.ValuesBase method)</a>
+      </dt>
+    </dl></dd>
+
+  
+
+
+<dt>
+        <a href="core/connections.html#sqlalchemy.engine.ResultProxy.returned_defaults">returned_defaults (sqlalchemy.engine.ResultProxy attribute)</a>
 </dt>
 
 
@@ -9528,11 +10203,17 @@
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Executable.scalar">(sqlalchemy.sql.expression.Executable method)</a>
       </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.scalar">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
+      </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Insert.scalar">(sqlalchemy.sql.expression.Insert method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.scalar">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Update.scalar">(sqlalchemy.sql.expression.Update method)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.UpdateBase.scalar">(sqlalchemy.sql.expression.UpdateBase method)</a>
+      </dt>
+      <dt><a href="core/functions.html#sqlalchemy.sql.functions.FunctionElement.scalar">(sqlalchemy.sql.functions.FunctionElement method)</a>
       </dt>
     </dl></dd>
 
@@ -9551,6 +10232,10 @@
         <a href="core/metadata.html#sqlalchemy.schema.Table.schema">schema (sqlalchemy.schema.Table attribute)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.FromClause.schema">(sqlalchemy.sql.expression.FromClause attribute)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -9618,11 +10303,15 @@
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.FromClause.select">(sqlalchemy.sql.expression.FromClause method)</a>
       </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.select">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
+      </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Join.select">(sqlalchemy.sql.expression.Join method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.select">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.TableClause.select">(sqlalchemy.sql.expression.TableClause method)</a>
+      </dt>
+      <dt><a href="core/functions.html#sqlalchemy.sql.functions.FunctionElement.select">(sqlalchemy.sql.functions.FunctionElement method)</a>
       </dt>
     </dl></dd>
 
@@ -9696,17 +10385,15 @@
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Alias.self_group">(sqlalchemy.sql.expression.Alias method)</a>
       </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.self_group">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CTE.self_group">(sqlalchemy.sql.expression.CTE method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ClauseElement.self_group">(sqlalchemy.sql.expression.ClauseElement method)</a>
       </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.self_group">(sqlalchemy.sql.expression.ColumnClause method)</a>
-      </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.self_group">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Delete.self_group">(sqlalchemy.sql.expression.Delete method)</a>
+      </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.self_group">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Insert.self_group">(sqlalchemy.sql.expression.Insert method)</a>
       </dt>
@@ -9715,6 +10402,8 @@
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.TableClause.self_group">(sqlalchemy.sql.expression.TableClause method)</a>
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Update.self_group">(sqlalchemy.sql.expression.Update method)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.UpdateBase.self_group">(sqlalchemy.sql.expression.UpdateBase method)</a>
       </dt>
     </dl></dd>
 
@@ -9854,6 +10543,22 @@
 
 
 <dt>
+        <a href="core/events.html#sqlalchemy.events.ConnectionEvents.set_connection_execution_options">set_connection_execution_options() (sqlalchemy.events.ConnectionEvents method)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/events.html#sqlalchemy.events.ConnectionEvents.set_engine_execution_options">set_engine_execution_options() (sqlalchemy.events.ConnectionEvents method)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="core/internals.html#sqlalchemy.engine.default.DefaultExecutionContext.set_input_sizes">set_input_sizes() (sqlalchemy.engine.default.DefaultExecutionContext method)</a>
 </dt>
 
@@ -9922,22 +10627,10 @@
 
 
 <dt>
-        <a href="orm/examples.html#module-sharding">sharding (module)</a>
-</dt>
-
-
-  
-
-
-<dt>
         <a href="core/metadata.html#sqlalchemy.schema.Column.shares_lineage">shares_lineage() (sqlalchemy.schema.Column method)</a>
 </dt>
 
     <dd><dl>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.shares_lineage">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.shares_lineage">(sqlalchemy.sql.expression.ColumnClause method)</a>
-      </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.shares_lineage">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
     </dl></dd>
@@ -9955,6 +10648,14 @@
 
 <dt>
         <a href="orm/mapper_config.html#sqlalchemy.orm.mapper.Mapper.single">single (sqlalchemy.orm.mapper.Mapper attribute)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/query.html#sqlalchemy.orm.query.Bundle.single_entity">single_entity (sqlalchemy.orm.query.Bundle attribute)</a>
 </dt>
 
 
@@ -9987,6 +10688,8 @@
 
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -10007,8 +10710,6 @@
 
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -10077,22 +10778,6 @@
 
 <dt>
         <a href="dialects/firebird.html#module-sqlalchemy.dialects.firebird.kinterbasdb">sqlalchemy.dialects.firebird.kinterbasdb (module)</a>
-</dt>
-
-
-  
-
-
-<dt>
-        <a href="dialects/informix.html#module-sqlalchemy.dialects.informix.base">sqlalchemy.dialects.informix.base (module)</a>
-</dt>
-
-
-  
-
-
-<dt>
-        <a href="dialects/informix.html#module-sqlalchemy.dialects.informix.informixdb">sqlalchemy.dialects.informix.informixdb (module)</a>
 </dt>
 
 
@@ -10364,6 +11049,14 @@
 
 
 <dt>
+        <a href="orm/extensions/automap.html#module-sqlalchemy.ext.automap">sqlalchemy.ext.automap (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="core/compiler.html#module-sqlalchemy.ext.compiler">sqlalchemy.ext.compiler (module)</a>
 </dt>
 
@@ -10462,6 +11155,14 @@
 
 
 <dt>
+        <a href="orm/events.html#module-sqlalchemy.orm.instrumentation">sqlalchemy.orm.instrumentation (module)</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="orm/deprecated.html#module-sqlalchemy.orm.interfaces">sqlalchemy.orm.interfaces (module)</a>
 </dt>
 
@@ -10551,13 +11252,11 @@
 
 
 <dt>
-        <a href="core/metadata.html#sqlalchemy.schema.Column.startswith">startswith() (sqlalchemy.schema.Column method)</a>
+        <a href="orm/internals.html#sqlalchemy.orm.attributes.QueryableAttribute.startswith">startswith() (sqlalchemy.orm.attributes.QueryableAttribute method)</a>
 </dt>
 
     <dd><dl>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.startswith">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnClause.startswith">(sqlalchemy.sql.expression.ColumnClause method)</a>
+      <dt><a href="core/metadata.html#sqlalchemy.schema.Column.startswith">(sqlalchemy.schema.Column method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.startswith">(sqlalchemy.sql.expression.ColumnElement method)</a>
       </dt>
@@ -10664,6 +11363,10 @@
         <a href="orm/loading.html#sqlalchemy.orm.subqueryload">subqueryload() (in module sqlalchemy.orm)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="orm/query.html#sqlalchemy.orm.strategy_options.Load.subqueryload">(sqlalchemy.orm.strategy_options.Load method)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -10816,6 +11519,10 @@
         <a href="orm/mapper_config.html#sqlalchemy.orm.mapper.Mapper.tables">tables (sqlalchemy.orm.mapper.Mapper attribute)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="core/metadata.html#sqlalchemy.schema.MetaData.tables">(sqlalchemy.schema.MetaData attribute)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -10876,6 +11583,14 @@
 
 <dt>
         <a href="core/sqlelement.html#sqlalchemy.sql.expression.text">text() (in module sqlalchemy.sql.expression)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/selectable.html#sqlalchemy.sql.expression.TextAsFrom">TextAsFrom (class in sqlalchemy.sql.expression)</a>
 </dt>
 
 
@@ -11049,9 +11764,13 @@
 
 
 <dt>
-        <a href="orm/internals.html#sqlalchemy.orm.state.InstanceState.transient">transient (sqlalchemy.orm.state.InstanceState attribute)</a>
+        <a href="glossary.html#term-transient">transient</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="orm/internals.html#sqlalchemy.orm.state.InstanceState.transient">(sqlalchemy.orm.state.InstanceState attribute)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -11085,7 +11804,7 @@
 
 
 <dt>
-        <a href="core/sqlelement.html#sqlalchemy.sql.expression.True_">True_ (class in sqlalchemy.sql.expression)</a>
+        <a href="core/sqlelement.html#sqlalchemy.sql.elements.True_">True_ (class in sqlalchemy.sql.elements)</a>
 </dt>
 
 
@@ -11102,6 +11821,14 @@
 
 <dt>
         <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.TSTZRANGE">TSTZRANGE (class in sqlalchemy.dialects.postgresql)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="dialects/postgresql.html#sqlalchemy.dialects.postgresql.TSVECTOR">TSVECTOR (class in sqlalchemy.dialects.postgresql)</a>
 </dt>
 
 
@@ -11252,6 +11979,10 @@
         <a href="orm/mapper_config.html#sqlalchemy.orm.undefer">undefer() (in module sqlalchemy.orm)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="orm/query.html#sqlalchemy.orm.strategy_options.Load.undefer">(sqlalchemy.orm.strategy_options.Load method)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -11260,6 +11991,10 @@
         <a href="orm/mapper_config.html#sqlalchemy.orm.undefer_group">undefer_group() (in module sqlalchemy.orm)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="orm/query.html#sqlalchemy.orm.strategy_options.Load.undefer_group">(sqlalchemy.orm.strategy_options.Load method)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -11333,6 +12068,22 @@
 
 
 <dt>
+        <a href="glossary.html#term-unique-constraint">unique constraint</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="glossary.html#term-unique-key-index">unique key index</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="core/pooling.html#sqlalchemy.pool.Pool.unique_connection">unique_connection() (sqlalchemy.pool.Pool method)</a>
 </dt>
 
@@ -11353,8 +12104,6 @@
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Alias.unique_params">(sqlalchemy.sql.expression.Alias method)</a>
       </dt>
-      <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.BindParameter.unique_params">(sqlalchemy.sql.expression.BindParameter method)</a>
-      </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CTE.unique_params">(sqlalchemy.sql.expression.CTE method)</a>
       </dt>
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ClauseElement.unique_params">(sqlalchemy.sql.expression.ClauseElement method)</a>
@@ -11365,6 +12114,8 @@
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Delete.unique_params">(sqlalchemy.sql.expression.Delete method)</a>
       </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.unique_params">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
+      </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Insert.unique_params">(sqlalchemy.sql.expression.Insert method)</a>
       </dt>
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Join.unique_params">(sqlalchemy.sql.expression.Join method)</a>
@@ -11372,6 +12123,8 @@
       <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.unique_params">(sqlalchemy.sql.expression.Select method)</a>
       </dt>
       <dt><a href="core/dml.html#sqlalchemy.sql.expression.Update.unique_params">(sqlalchemy.sql.expression.Update method)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.UpdateBase.unique_params">(sqlalchemy.sql.expression.UpdateBase method)</a>
       </dt>
     </dl></dd>
 
@@ -11478,6 +12231,14 @@
 
 <dt>
         <a href="core/exceptions.html#sqlalchemy.exc.UnsupportedCompilationError">UnsupportedCompilationError</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="orm/internals.html#sqlalchemy.orm.session.UOWTransaction">UOWTransaction (class in sqlalchemy.orm.session)</a>
 </dt>
 
 
@@ -11642,6 +12403,8 @@
     </dl></dd>
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -11650,8 +12413,6 @@
 
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -11689,28 +12450,20 @@
 
   
 
-
-<dt>
-        <a href="orm/examples.html#module-versioning">versioning (module)</a>
-</dt>
-
-
-  
-
-
-<dt>
-        <a href="orm/examples.html#module-vertical">vertical (module)</a>
-</dt>
-
-
-  
-
 <dt></dt></dl>
 </td></tr></table>
 <h2 id="W">W</h2>
 <table width="100%" class="indextable genindextable"><tr><td width="33%" valign="top">
 <dl>
     
+
+<dt>
+        <a href="orm/session.html#sqlalchemy.orm.util.was_deleted">was_deleted() (in module sqlalchemy.orm.util)</a>
+</dt>
+
+
+  
+
 
 <dt>
         <a href="glossary.html#term-where-clause">WHERE clause</a>
@@ -11748,6 +12501,22 @@
         <a href="orm/query.html#sqlalchemy.orm.query.Query.with_entities">with_entities() (sqlalchemy.orm.query.Query method)</a>
 </dt>
 
+
+  
+
+
+<dt>
+        <a href="orm/query.html#sqlalchemy.orm.query.Query.with_for_update">with_for_update() (sqlalchemy.orm.query.Query method)</a>
+</dt>
+
+    <dd><dl>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.CompoundSelect.with_for_update">(sqlalchemy.sql.expression.CompoundSelect method)</a>
+      </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.GenerativeSelect.with_for_update">(sqlalchemy.sql.expression.GenerativeSelect method)</a>
+      </dt>
+      <dt><a href="core/selectable.html#sqlalchemy.sql.expression.Select.with_for_update">(sqlalchemy.sql.expression.Select method)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -11893,7 +12662,7 @@
 <div id="docs-bottom-navigation" class="docs-navigation-links">
 
     <div id="docs-copyright">
-        &copy; <a href="copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

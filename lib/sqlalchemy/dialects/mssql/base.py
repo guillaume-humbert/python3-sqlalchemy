@@ -1,5 +1,5 @@
 # mssql/base.py
-# Copyright (C) 2005-2013 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -295,7 +295,7 @@ class _MSDate(sqltypes.Date):
         def process(value):
             if isinstance(value, datetime.datetime):
                 return value.date()
-            elif isinstance(value, basestring):
+            elif isinstance(value, util.string_types):
                 return datetime.date(*[
                         int(x or 0)
                         for x in self._reg.match(value).groups()
@@ -328,7 +328,7 @@ class TIME(sqltypes.TIME):
         def process(value):
             if isinstance(value, datetime.datetime):
                 return value.time()
-            elif isinstance(value, basestring):
+            elif isinstance(value, util.string_types):
                 return datetime.time(*[
                         int(x or 0)
                         for x in self._reg.match(value).groups()])
@@ -1008,11 +1008,11 @@ class MSDDLCompiler(compiler.DDLCompiler):
         # handle other included columns
         if index.kwargs.get("mssql_include"):
             inclusions = [index.table.c[col]
-                            if isinstance(col, basestring) else col
+                            if isinstance(col, util.string_types) else col
                           for col in index.kwargs["mssql_include"]]
 
             text += " INCLUDE (%s)" \
-                % ', '.join([preparer.quote(c.name, c.quote)
+                % ', '.join([preparer.quote(c.name)
                              for c in inclusions])
 
         return text
@@ -1033,7 +1033,7 @@ class MSIdentifierPreparer(compiler.IdentifierPreparer):
     def _escape_identifier(self, value):
         return value
 
-    def quote_schema(self, schema, force=True):
+    def quote_schema(self, schema, force=None):
         """Prepare a quoted table and schema name."""
         result = '.'.join([self.quote(x, force) for x in schema.split('.')])
         return result
@@ -1107,7 +1107,7 @@ class MSDialect(default.DefaultDialect):
                  query_timeout=None,
                  use_scope_identity=True,
                  max_identifier_length=None,
-                 schema_name=u"dbo", **opts):
+                 schema_name="dbo", **opts):
         self.query_timeout = int(query_timeout or 0)
         self.schema_name = schema_name
 
@@ -1127,7 +1127,7 @@ class MSDialect(default.DefaultDialect):
 
     def initialize(self, connection):
         super(MSDialect, self).initialize(connection)
-        if self.server_version_info[0] not in range(8, 17):
+        if self.server_version_info[0] not in list(range(8, 17)):
             # FreeTDS with version 4.2 seems to report here
             # a number like "95.10.255".  Don't know what
             # that is.  So emit warning.
@@ -1154,22 +1154,17 @@ class MSDialect(default.DefaultDialect):
             try:
                 default_schema_name = connection.scalar(query, name=user_name)
                 if default_schema_name is not None:
-                    return unicode(default_schema_name)
+                    return util.text_type(default_schema_name)
             except:
                 pass
         return self.schema_name
-
-    def _unicode_cast(self, column):
-        if self.server_version_info >= MS_2005_VERSION:
-            return cast(column, NVARCHAR(_warn_on_bytestring=False))
-        else:
-            return column
 
     @_db_plus_owner
     def has_table(self, connection, tablename, dbname, owner, schema):
         columns = ischema.columns
 
-        whereclause = self._unicode_cast(columns.c.table_name) == tablename
+        whereclause = columns.c.table_name == tablename
+
         if owner:
             whereclause = sql.and_(whereclause,
                                    columns.c.table_schema == owner)
@@ -1192,7 +1187,7 @@ class MSDialect(default.DefaultDialect):
         s = sql.select([tables.c.table_name],
             sql.and_(
                 tables.c.table_schema == owner,
-                tables.c.table_type == u'BASE TABLE'
+                tables.c.table_type == 'BASE TABLE'
             ),
             order_by=[tables.c.table_name]
         )
@@ -1206,7 +1201,7 @@ class MSDialect(default.DefaultDialect):
         s = sql.select([tables.c.table_name],
             sql.and_(
                 tables.c.table_schema == owner,
-                tables.c.table_type == u'VIEW'
+                tables.c.table_type == 'VIEW'
             ),
             order_by=[tables.c.table_name]
         )
@@ -1271,7 +1266,7 @@ class MSDialect(default.DefaultDialect):
             if row['index_id'] in indexes:
                 indexes[row['index_id']]['column_names'].append(row['name'])
 
-        return indexes.values()
+        return list(indexes.values())
 
     @reflection.cache
     @_db_plus_owner
@@ -1478,4 +1473,4 @@ class MSDialect(default.DefaultDialect):
             local_cols.append(scol)
             remote_cols.append(rcol)
 
-        return fkeys.values()
+        return list(fkeys.values())

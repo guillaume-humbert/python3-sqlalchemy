@@ -1,4 +1,9 @@
-"""Illustrate a 'dict of sets of integers' model.
+"""dict_of_sets_with_default.py
+
+an advanced association proxy example which
+illustrates nesting of association proxies to produce multi-level Python
+collections, in this case a dictionary with string keys and sets of integers
+as values, which conceal the underlying mapped classes.
 
 This is a three table model which represents a parent table referencing a
 dictionary of string keys and sets as values, where each set stores a
@@ -75,13 +80,13 @@ if __name__ == '__main__':
     session.commit()
 
     a1 = session.query(A).first()
-    print a1.collections["1"]
+    print(a1.collections["1"])
     a1.collections["1"].add(4)
     session.commit()
 
     a1.collections["2"].update([7, 8, 9])
     session.commit()
 
-    print a1.collections["2"]
+    print(a1.collections["2"])
 
 

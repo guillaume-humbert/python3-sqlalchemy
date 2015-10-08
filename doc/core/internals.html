@@ -10,7 +10,7 @@
     
                 Core Internals
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Dialects" href="../dialects/index.html" />
         <link rel="prev" title="Core Exceptions" href="exceptions.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Core Internals
@@ -182,11 +183,11 @@ defaults.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dialect</strong> &#8211; <tt class="docutils literal"><span class="pre">Dialect</span></tt> to compile against.</li>
-<li><strong>statement</strong> &#8211; <tt class="docutils literal"><span class="pre">ClauseElement</span></tt> to be compiled.</li>
-<li><strong>bind</strong> &#8211; Optional Engine or Connection to compile this
+<li><span class="target" id="sqlalchemy.engine.interfaces.Compiled.__init__.params.dialect"></span><strong>dialect</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Compiled.__init__.params.dialect">¶</a> &#8211; <tt class="docutils literal"><span class="pre">Dialect</span></tt> to compile against.</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Compiled.__init__.params.statement"></span><strong>statement</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Compiled.__init__.params.statement">¶</a> &#8211; <tt class="docutils literal"><span class="pre">ClauseElement</span></tt> to be compiled.</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Compiled.__init__.params.bind"></span><strong>bind</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Compiled.__init__.params.bind">¶</a> &#8211; Optional Engine or Connection to compile this
 statement against.</li>
-<li><strong>compile_kwargs</strong> &#8211; <p>additional kwargs that will be
+<li><span class="target" id="sqlalchemy.engine.interfaces.Compiled.__init__.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Compiled.__init__.params.compile_kwargs">¶</a> &#8211; <p>additional kwargs that will be
 passed to the initial call to <tt class="xref py py-meth docutils literal"><span class="pre">Compiled.process()</span></tt>.</p>
 <div class="versionadded">
 <p><span>New in version 0.8.</span></p>
@@ -216,7 +217,7 @@ passed to the initial call to <tt class="xref py py-meth docutils literal"><span
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> &#8211; a dict of string/object pairs whose values will
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.engine.interfaces.Compiled.construct_params.params.params"></span><strong>params</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Compiled.construct_params.params.params">¶</a> &#8211; a dict of string/object pairs whose values will
 override bind values compiled in to the
 statement.</td>
 </tr>
@@ -255,23 +256,23 @@ scalar value.</p>
 <dl class="class">
 <dt id="sqlalchemy.sql.compiler.DDLCompiler">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.sql.compiler.</tt><tt class="descname">DDLCompiler</tt><big>(</big><em>dialect</em>, <em>statement</em>, <em>bind=None</em>, <em>compile_kwargs=immutabledict({})</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.DDLCompiler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.engine.interfaces.Compiled" title="sqlalchemy.engine.interfaces.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.engine.interfaces.Compiled</span></tt></a></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.compiler.Compiled</span></tt></p>
 <dl class="method">
 <dt id="sqlalchemy.sql.compiler.DDLCompiler.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>dialect</em>, <em>statement</em>, <em>bind=None</em>, <em>compile_kwargs=immutabledict({})</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.DDLCompiler.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.engine.interfaces.Compiled.__init__" title="sqlalchemy.engine.interfaces.Compiled.__init__"><tt class="xref py py-meth docutils literal"><span class="pre">__init__()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.engine.interfaces.Compiled" title="sqlalchemy.engine.interfaces.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></a></div>
+<em>inherited from the</em> <tt class="xref py py-meth docutils literal"><span class="pre">__init__()</span></tt> <em>method of</em> <tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></div>
 <p>Construct a new <tt class="docutils literal"><span class="pre">Compiled</span></tt> object.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dialect</strong> &#8211; <tt class="docutils literal"><span class="pre">Dialect</span></tt> to compile against.</li>
-<li><strong>statement</strong> &#8211; <tt class="docutils literal"><span class="pre">ClauseElement</span></tt> to be compiled.</li>
-<li><strong>bind</strong> &#8211; Optional Engine or Connection to compile this
+<li><span class="target" id="sqlalchemy.sql.compiler.DDLCompiler.__init__.params.dialect"></span><strong>dialect</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.compiler.DDLCompiler.__init__.params.dialect">¶</a> &#8211; <tt class="docutils literal"><span class="pre">Dialect</span></tt> to compile against.</li>
+<li><span class="target" id="sqlalchemy.sql.compiler.DDLCompiler.__init__.params.statement"></span><strong>statement</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.compiler.DDLCompiler.__init__.params.statement">¶</a> &#8211; <tt class="docutils literal"><span class="pre">ClauseElement</span></tt> to be compiled.</li>
+<li><span class="target" id="sqlalchemy.sql.compiler.DDLCompiler.__init__.params.bind"></span><strong>bind</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.compiler.DDLCompiler.__init__.params.bind">¶</a> &#8211; Optional Engine or Connection to compile this
 statement against.</li>
-<li><strong>compile_kwargs</strong> &#8211; <p>additional kwargs that will be
+<li><span class="target" id="sqlalchemy.sql.compiler.DDLCompiler.__init__.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.compiler.DDLCompiler.__init__.params.compile_kwargs">¶</a> &#8211; <p>additional kwargs that will be
 passed to the initial call to <tt class="xref py py-meth docutils literal"><span class="pre">Compiled.process()</span></tt>.</p>
 <div class="versionadded">
 <p><span>New in version 0.8.</span></p>
@@ -288,7 +289,7 @@ passed to the initial call to <tt class="xref py py-meth docutils literal"><span
 <dt id="sqlalchemy.sql.compiler.DDLCompiler.compile">
 <tt class="descname">compile</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.DDLCompiler.compile" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.engine.interfaces.Compiled.compile" title="sqlalchemy.engine.interfaces.Compiled.compile"><tt class="xref py py-meth docutils literal"><span class="pre">compile()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.engine.interfaces.Compiled" title="sqlalchemy.engine.interfaces.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></a></div>
+<em>inherited from the</em> <tt class="xref py py-meth docutils literal"><span class="pre">compile()</span></tt> <em>method of</em> <tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></div>
 <p>Produce the internal string representation of this element.</p>
 <div class="deprecated">
 <p><span>Deprecated since version 0.7: </span><a class="reference internal" href="#sqlalchemy.engine.interfaces.Compiled" title="sqlalchemy.engine.interfaces.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></a> objects now compile within the constructor.</p>
@@ -305,7 +306,7 @@ passed to the initial call to <tt class="xref py py-meth docutils literal"><span
 <dt id="sqlalchemy.sql.compiler.DDLCompiler.execute">
 <tt class="descname">execute</tt><big>(</big><em>*multiparams</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.DDLCompiler.execute" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.engine.interfaces.Compiled.execute" title="sqlalchemy.engine.interfaces.Compiled.execute"><tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.engine.interfaces.Compiled" title="sqlalchemy.engine.interfaces.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></a></div>
+<em>inherited from the</em> <tt class="xref py py-meth docutils literal"><span class="pre">execute()</span></tt> <em>method of</em> <tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></div>
 <p>Execute this compiled object.</p>
 </dd></dl>
 
@@ -313,7 +314,7 @@ passed to the initial call to <tt class="xref py py-meth docutils literal"><span
 <dt id="sqlalchemy.sql.compiler.DDLCompiler.params">
 <tt class="descname">params</tt><a class="headerlink" href="#sqlalchemy.sql.compiler.DDLCompiler.params" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.engine.interfaces.Compiled.params" title="sqlalchemy.engine.interfaces.Compiled.params"><tt class="xref py py-attr docutils literal"><span class="pre">params</span></tt></a> <em>attribute of</em> <a class="reference internal" href="#sqlalchemy.engine.interfaces.Compiled" title="sqlalchemy.engine.interfaces.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></a></div>
+<em>inherited from the</em> <tt class="xref py py-attr docutils literal"><span class="pre">params</span></tt> <em>attribute of</em> <tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></div>
 <p>Return the bind params for this compiled object.</p>
 </dd></dl>
 
@@ -321,7 +322,7 @@ passed to the initial call to <tt class="xref py py-meth docutils literal"><span
 <dt id="sqlalchemy.sql.compiler.DDLCompiler.scalar">
 <tt class="descname">scalar</tt><big>(</big><em>*multiparams</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.DDLCompiler.scalar" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
-<em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.engine.interfaces.Compiled.scalar" title="sqlalchemy.engine.interfaces.Compiled.scalar"><tt class="xref py py-meth docutils literal"><span class="pre">scalar()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.engine.interfaces.Compiled" title="sqlalchemy.engine.interfaces.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></a></div>
+<em>inherited from the</em> <tt class="xref py py-meth docutils literal"><span class="pre">scalar()</span></tt> <em>method of</em> <tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></div>
 <p>Execute this compiled object and return the result&#8217;s
 scalar value.</p>
 </dd></dl>
@@ -330,7 +331,7 @@ scalar value.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.engine.default.DefaultDialect">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.engine.default.</tt><tt class="descname">DefaultDialect</tt><big>(</big><em>convert_unicode=False</em>, <em>encoding='utf-8'</em>, <em>paramstyle=None</em>, <em>dbapi=None</em>, <em>implicit_returning=None</em>, <em>case_sensitive=True</em>, <em>label_length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.engine.default.</tt><tt class="descname">DefaultDialect</tt><big>(</big><em>convert_unicode=False</em>, <em>encoding='utf-8'</em>, <em>paramstyle=None</em>, <em>dbapi=None</em>, <em>implicit_returning=None</em>, <em>supports_right_nested_joins=None</em>, <em>case_sensitive=True</em>, <em>supports_native_boolean=None</em>, <em>label_length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect" title="sqlalchemy.engine.interfaces.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.engine.interfaces.Dialect</span></tt></a></p>
 <p>Default implementation of Dialect</p>
 <dl class="method">
@@ -363,8 +364,8 @@ requires_name_normalize=True.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>connection</strong> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
-<li><strong>xid</strong> &#8211; xid</li>
+<li><span class="target" id="sqlalchemy.engine.default.DefaultDialect.do_begin_twophase.params.connection"></span><strong>connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.default.DefaultDialect.do_begin_twophase.params.connection">¶</a> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
+<li><span class="target" id="sqlalchemy.engine.default.DefaultDialect.do_begin_twophase.params.xid"></span><strong>xid</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.default.DefaultDialect.do_begin_twophase.params.xid">¶</a> &#8211; xid</li>
 </ul>
 </td>
 </tr>
@@ -383,11 +384,11 @@ requires_name_normalize=True.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>connection</strong> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
-<li><strong>xid</strong> &#8211; xid</li>
-<li><strong>is_prepared</strong> &#8211; whether or not
+<li><span class="target" id="sqlalchemy.engine.default.DefaultDialect.do_commit_twophase.params.connection"></span><strong>connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.default.DefaultDialect.do_commit_twophase.params.connection">¶</a> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
+<li><span class="target" id="sqlalchemy.engine.default.DefaultDialect.do_commit_twophase.params.xid"></span><strong>xid</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.default.DefaultDialect.do_commit_twophase.params.xid">¶</a> &#8211; xid</li>
+<li><span class="target" id="sqlalchemy.engine.default.DefaultDialect.do_commit_twophase.params.is_prepared"></span><strong>is_prepared</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.default.DefaultDialect.do_commit_twophase.params.is_prepared">¶</a> &#8211; whether or not
 <a class="reference internal" href="connections.html#sqlalchemy.engine.TwoPhaseTransaction.prepare" title="sqlalchemy.engine.TwoPhaseTransaction.prepare"><tt class="xref py py-meth docutils literal"><span class="pre">TwoPhaseTransaction.prepare()</span></tt></a> was called.</li>
-<li><strong>recover</strong> &#8211; if the recover flag was passed.</li>
+<li><span class="target" id="sqlalchemy.engine.default.DefaultDialect.do_commit_twophase.params.recover"></span><strong>recover</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.default.DefaultDialect.do_commit_twophase.params.recover">¶</a> &#8211; if the recover flag was passed.</li>
 </ul>
 </td>
 </tr>
@@ -406,8 +407,8 @@ requires_name_normalize=True.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>connection</strong> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
-<li><strong>xid</strong> &#8211; xid</li>
+<li><span class="target" id="sqlalchemy.engine.default.DefaultDialect.do_prepare_twophase.params.connection"></span><strong>connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.default.DefaultDialect.do_prepare_twophase.params.connection">¶</a> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
+<li><span class="target" id="sqlalchemy.engine.default.DefaultDialect.do_prepare_twophase.params.xid"></span><strong>xid</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.default.DefaultDialect.do_prepare_twophase.params.xid">¶</a> &#8211; xid</li>
 </ul>
 </td>
 </tr>
@@ -426,7 +427,7 @@ identifiers on the given connection.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>connection</strong> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.engine.default.DefaultDialect.do_recover_twophase.params.connection"></span><strong>connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.default.DefaultDialect.do_recover_twophase.params.connection">¶</a> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</td>
 </tr>
 </tbody>
 </table>
@@ -443,11 +444,11 @@ identifiers on the given connection.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>connection</strong> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
-<li><strong>xid</strong> &#8211; xid</li>
-<li><strong>is_prepared</strong> &#8211; whether or not
+<li><span class="target" id="sqlalchemy.engine.default.DefaultDialect.do_rollback_twophase.params.connection"></span><strong>connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.default.DefaultDialect.do_rollback_twophase.params.connection">¶</a> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
+<li><span class="target" id="sqlalchemy.engine.default.DefaultDialect.do_rollback_twophase.params.xid"></span><strong>xid</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.default.DefaultDialect.do_rollback_twophase.params.xid">¶</a> &#8211; xid</li>
+<li><span class="target" id="sqlalchemy.engine.default.DefaultDialect.do_rollback_twophase.params.is_prepared"></span><strong>is_prepared</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.default.DefaultDialect.do_rollback_twophase.params.is_prepared">¶</a> &#8211; whether or not
 <a class="reference internal" href="connections.html#sqlalchemy.engine.TwoPhaseTransaction.prepare" title="sqlalchemy.engine.TwoPhaseTransaction.prepare"><tt class="xref py py-meth docutils literal"><span class="pre">TwoPhaseTransaction.prepare()</span></tt></a> was called.</li>
-<li><strong>recover</strong> &#8211; if the recover flag was passed.</li>
+<li><span class="target" id="sqlalchemy.engine.default.DefaultDialect.do_rollback_twophase.params.recover"></span><strong>recover</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.default.DefaultDialect.do_rollback_twophase.params.recover">¶</a> &#8211; if the recover flag was passed.</li>
 </ul>
 </td>
 </tr>
@@ -557,7 +558,7 @@ for those dialects which don&#8217;t implement get_pk_constraint().</p>
 <p>Return information about primary keys in <cite>table_name</cite>.</p>
 <p>Deprecated.  This method is only called by the default
 implementation of <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect.get_pk_constraint" title="sqlalchemy.engine.interfaces.Dialect.get_pk_constraint"><tt class="xref py py-meth docutils literal"><span class="pre">Dialect.get_pk_constraint()</span></tt></a>.  Dialects should
-instead implement this method directly.</p>
+instead implement the <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect.get_pk_constraint" title="sqlalchemy.engine.interfaces.Dialect.get_pk_constraint"><tt class="xref py py-meth docutils literal"><span class="pre">Dialect.get_pk_constraint()</span></tt></a> method directly.</p>
 </dd></dl>
 
 <dl class="method">
@@ -581,7 +582,12 @@ unique constraint information as a list of dicts with these keys:</p>
 <dd>the unique constraint&#8217;s name</dd>
 <dt>column_names</dt>
 <dd>list of column names in order</dd>
+<dt>**kw</dt>
+<dd>other options passed to the dialect&#8217;s get_unique_constraints() method.</dd>
 </dl>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -853,7 +859,7 @@ mode.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dbapi_connection</strong> &#8211; a DBAPI connection, typically
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_begin.params.dbapi_connection"></span><strong>dbapi_connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_begin.params.dbapi_connection">¶</a> &#8211; a DBAPI connection, typically
 proxied within a <tt class="xref py py-class docutils literal"><span class="pre">ConnectionFairy</span></tt>.</td>
 </tr>
 </tbody>
@@ -869,8 +875,8 @@ proxied within a <tt class="xref py py-class docutils literal"><span class="pre"
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>connection</strong> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
-<li><strong>xid</strong> &#8211; xid</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_begin_twophase.params.connection"></span><strong>connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_begin_twophase.params.connection">¶</a> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_begin_twophase.params.xid"></span><strong>xid</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_begin_twophase.params.xid">¶</a> &#8211; xid</li>
 </ul>
 </td>
 </tr>
@@ -900,7 +906,7 @@ DB-API connection.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dbapi_connection</strong> &#8211; a DBAPI connection, typically
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_commit.params.dbapi_connection"></span><strong>dbapi_connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_commit.params.dbapi_connection">¶</a> &#8211; a DBAPI connection, typically
 proxied within a <tt class="xref py py-class docutils literal"><span class="pre">ConnectionFairy</span></tt>.</td>
 </tr>
 </tbody>
@@ -916,11 +922,11 @@ proxied within a <tt class="xref py py-class docutils literal"><span class="pre"
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>connection</strong> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
-<li><strong>xid</strong> &#8211; xid</li>
-<li><strong>is_prepared</strong> &#8211; whether or not
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_commit_twophase.params.connection"></span><strong>connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_commit_twophase.params.connection">¶</a> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_commit_twophase.params.xid"></span><strong>xid</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_commit_twophase.params.xid">¶</a> &#8211; xid</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_commit_twophase.params.is_prepared"></span><strong>is_prepared</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_commit_twophase.params.is_prepared">¶</a> &#8211; whether or not
 <a class="reference internal" href="connections.html#sqlalchemy.engine.TwoPhaseTransaction.prepare" title="sqlalchemy.engine.TwoPhaseTransaction.prepare"><tt class="xref py py-meth docutils literal"><span class="pre">TwoPhaseTransaction.prepare()</span></tt></a> was called.</li>
-<li><strong>recover</strong> &#8211; if the recover flag was passed.</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_commit_twophase.params.recover"></span><strong>recover</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_commit_twophase.params.recover">¶</a> &#8211; if the recover flag was passed.</li>
 </ul>
 </td>
 </tr>
@@ -958,8 +964,8 @@ proxied within a <tt class="xref py py-class docutils literal"><span class="pre"
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>connection</strong> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
-<li><strong>xid</strong> &#8211; xid</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_prepare_twophase.params.connection"></span><strong>connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_prepare_twophase.params.connection">¶</a> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_prepare_twophase.params.xid"></span><strong>xid</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_prepare_twophase.params.xid">¶</a> &#8211; xid</li>
 </ul>
 </td>
 </tr>
@@ -976,7 +982,7 @@ identifiers on the given connection.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>connection</strong> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_recover_twophase.params.connection"></span><strong>connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_recover_twophase.params.connection">¶</a> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</td>
 </tr>
 </tbody>
 </table>
@@ -991,8 +997,8 @@ identifiers on the given connection.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>connection</strong> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
-<li><strong>name</strong> &#8211; savepoint name.</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_release_savepoint.params.connection"></span><strong>connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_release_savepoint.params.connection">¶</a> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_release_savepoint.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_release_savepoint.params.name">¶</a> &#8211; savepoint name.</li>
 </ul>
 </td>
 </tr>
@@ -1009,7 +1015,7 @@ a DB-API connection.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dbapi_connection</strong> &#8211; a DBAPI connection, typically
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_rollback.params.dbapi_connection"></span><strong>dbapi_connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_rollback.params.dbapi_connection">¶</a> &#8211; a DBAPI connection, typically
 proxied within a <tt class="xref py py-class docutils literal"><span class="pre">ConnectionFairy</span></tt>.</td>
 </tr>
 </tbody>
@@ -1025,8 +1031,8 @@ proxied within a <tt class="xref py py-class docutils literal"><span class="pre"
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>connection</strong> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
-<li><strong>name</strong> &#8211; savepoint name.</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_rollback_to_savepoint.params.connection"></span><strong>connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_rollback_to_savepoint.params.connection">¶</a> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_rollback_to_savepoint.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_rollback_to_savepoint.params.name">¶</a> &#8211; savepoint name.</li>
 </ul>
 </td>
 </tr>
@@ -1043,11 +1049,11 @@ proxied within a <tt class="xref py py-class docutils literal"><span class="pre"
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>connection</strong> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
-<li><strong>xid</strong> &#8211; xid</li>
-<li><strong>is_prepared</strong> &#8211; whether or not
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_rollback_twophase.params.connection"></span><strong>connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_rollback_twophase.params.connection">¶</a> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_rollback_twophase.params.xid"></span><strong>xid</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_rollback_twophase.params.xid">¶</a> &#8211; xid</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_rollback_twophase.params.is_prepared"></span><strong>is_prepared</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_rollback_twophase.params.is_prepared">¶</a> &#8211; whether or not
 <a class="reference internal" href="connections.html#sqlalchemy.engine.TwoPhaseTransaction.prepare" title="sqlalchemy.engine.TwoPhaseTransaction.prepare"><tt class="xref py py-meth docutils literal"><span class="pre">TwoPhaseTransaction.prepare()</span></tt></a> was called.</li>
-<li><strong>recover</strong> &#8211; if the recover flag was passed.</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_rollback_twophase.params.recover"></span><strong>recover</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_rollback_twophase.params.recover">¶</a> &#8211; if the recover flag was passed.</li>
 </ul>
 </td>
 </tr>
@@ -1064,8 +1070,8 @@ proxied within a <tt class="xref py py-class docutils literal"><span class="pre"
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>connection</strong> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
-<li><strong>name</strong> &#8211; savepoint name.</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_savepoint.params.connection"></span><strong>connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_savepoint.params.connection">¶</a> &#8211; a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>.</li>
+<li><span class="target" id="sqlalchemy.engine.interfaces.Dialect.do_savepoint.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.interfaces.Dialect.do_savepoint.params.name">¶</a> &#8211; savepoint name.</li>
 </ul>
 </td>
 </tr>
@@ -1168,7 +1174,7 @@ key information as a dictionary with these keys:</p>
 <dd><p>Return information about primary keys in <cite>table_name</cite>.</p>
 <p>Deprecated.  This method is only called by the default
 implementation of <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect.get_pk_constraint" title="sqlalchemy.engine.interfaces.Dialect.get_pk_constraint"><tt class="xref py py-meth docutils literal"><span class="pre">Dialect.get_pk_constraint()</span></tt></a>.  Dialects should
-instead implement this method directly.</p>
+instead implement the <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect.get_pk_constraint" title="sqlalchemy.engine.interfaces.Dialect.get_pk_constraint"><tt class="xref py py-meth docutils literal"><span class="pre">Dialect.get_pk_constraint()</span></tt></a> method directly.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1188,7 +1194,12 @@ unique constraint information as a list of dicts with these keys:</p>
 <dd>the unique constraint&#8217;s name</dd>
 <dt>column_names</dt>
 <dd>list of column names in order</dd>
+<dt>**kw</dt>
+<dd>other options passed to the dialect&#8217;s get_unique_constraints() method.</dd>
 </dl>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1260,17 +1271,18 @@ requires_name_normalize=True.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.interfaces.Dialect.reflecttable">
-<tt class="descname">reflecttable</tt><big>(</big><em>connection</em>, <em>table</em>, <em>include_columns=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.interfaces.Dialect.reflecttable" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">reflecttable</tt><big>(</big><em>connection</em>, <em>table</em>, <em>include_columns</em>, <em>exclude_columns</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.interfaces.Dialect.reflecttable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load table description from the database.</p>
 <p>Given a <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> and a
 <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, reflect its columns and
-properties from the database.  If include_columns (a list or
-set) is specified, limit the autoload to the given column
-names.</p>
-<p>The default implementation uses the
-<a class="reference internal" href="reflection.html#sqlalchemy.engine.reflection.Inspector" title="sqlalchemy.engine.reflection.Inspector"><tt class="xref py py-class docutils literal"><span class="pre">Inspector</span></tt></a> interface to
-provide the output, building upon the granular table/column/
-constraint etc. methods of <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect" title="sqlalchemy.engine.interfaces.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a>.</p>
+properties from the database.</p>
+<p>The implementation of this method is provided by
+<tt class="xref py py-meth docutils literal"><span class="pre">DefaultDialect.reflecttable()</span></tt>, which makes use of
+<a class="reference internal" href="reflection.html#sqlalchemy.engine.reflection.Inspector" title="sqlalchemy.engine.reflection.Inspector"><tt class="xref py py-class docutils literal"><span class="pre">Inspector</span></tt></a> to retrieve column information.</p>
+<p>Dialects should <strong>not</strong> seek to implement this method, and should
+instead implement individual schema inspection operations such as
+<a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect.get_columns" title="sqlalchemy.engine.interfaces.Dialect.get_columns"><tt class="xref py py-meth docutils literal"><span class="pre">Dialect.get_columns()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.engine.interfaces.Dialect.get_pk_constraint" title="sqlalchemy.engine.interfaces.Dialect.get_pk_constraint"><tt class="xref py py-meth docutils literal"><span class="pre">Dialect.get_pk_constraint()</span></tt></a>,
+etc.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1488,7 +1500,7 @@ not support schemae.</dd>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.compiler.IdentifierPreparer.format_schema">
-<tt class="descname">format_schema</tt><big>(</big><em>name</em>, <em>quote</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.IdentifierPreparer.format_schema" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">format_schema</tt><big>(</big><em>name</em>, <em>quote=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.IdentifierPreparer.format_schema" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prepare a quoted schema name.</p>
 </dd></dl>
 
@@ -1505,6 +1517,13 @@ not support schemae.</dd>
 </dd></dl>
 
 <dl class="method">
+<dt id="sqlalchemy.sql.compiler.IdentifierPreparer.quote">
+<tt class="descname">quote</tt><big>(</big><em>ident</em>, <em>force=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.IdentifierPreparer.quote" title="Permalink to this definition">¶</a></dt>
+<dd><p>Conditionally quote an identifier.</p>
+<p>the &#8216;force&#8217; flag should be considered deprecated.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="sqlalchemy.sql.compiler.IdentifierPreparer.quote_identifier">
 <tt class="descname">quote_identifier</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.IdentifierPreparer.quote_identifier" title="Permalink to this definition">¶</a></dt>
 <dd><p>Quote an identifier.</p>
@@ -1514,10 +1533,11 @@ quoting behavior.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.compiler.IdentifierPreparer.quote_schema">
-<tt class="descname">quote_schema</tt><big>(</big><em>schema</em>, <em>force</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.IdentifierPreparer.quote_schema" title="Permalink to this definition">¶</a></dt>
-<dd><p>Quote a schema.</p>
-<p>Subclasses should override this to provide database-dependent
-quoting behavior.</p>
+<tt class="descname">quote_schema</tt><big>(</big><em>schema</em>, <em>force=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.IdentifierPreparer.quote_schema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Conditionally quote a schema.</p>
+<p>Subclasses can override this to provide database-dependent
+quoting behavior for schema names.</p>
+<p>the &#8216;force&#8217; flag should be considered deprecated.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1531,7 +1551,7 @@ quoting behavior.</p>
 <dl class="class">
 <dt id="sqlalchemy.sql.compiler.SQLCompiler">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.sql.compiler.</tt><tt class="descname">SQLCompiler</tt><big>(</big><em>dialect</em>, <em>statement</em>, <em>column_keys=None</em>, <em>inline=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.engine.interfaces.Compiled" title="sqlalchemy.engine.interfaces.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.engine.interfaces.Compiled</span></tt></a></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.compiler.Compiled</span></tt></p>
 <p>Default implementation of Compiled.</p>
 <p>Compiles ClauseElements into SQL strings.   Uses a similar visit
 paradigm as visitors.ClauseVisitor but implements its own traversal.</p>
@@ -1688,7 +1708,7 @@ in an UPDATE statement.</p>
         <a href="../dialects/index.html" title="next chapter">Dialects</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>

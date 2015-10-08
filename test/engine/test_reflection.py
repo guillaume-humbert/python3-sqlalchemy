@@ -9,6 +9,8 @@ from sqlalchemy.testing import ComparesTables, \
 from sqlalchemy.testing.schema import Table, Column
 from sqlalchemy.testing import eq_, assert_raises, assert_raises_message
 from sqlalchemy import testing
+from sqlalchemy.util import ue
+
 
 metadata, users = None, None
 
@@ -600,6 +602,55 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
             is a2.c.user_id
         assert u2.join(a2).onclause.compare(u2.c.id == a2.c.user_id)
 
+    @testing.only_on(['postgresql', 'mysql'])
+    @testing.provide_metadata
+    def test_fk_options(self):
+        """test that foreign key reflection includes options (on
+        backends with {dialect}.get_foreign_keys() support)"""
+
+        if testing.against('postgresql'):
+            test_attrs = ('match', 'onupdate', 'ondelete', 'deferrable', 'initially')
+            addresses_user_id_fkey = sa.ForeignKey(
+                # Each option is specifically not a Postgres default, or
+                # it won't be returned by PG's inspection
+                'users.id',
+                name = 'addresses_user_id_fkey',
+                match='FULL',
+                onupdate='RESTRICT',
+                ondelete='RESTRICT',
+                deferrable=True,
+                initially='DEFERRED'
+            )
+        elif testing.against('mysql'):
+            # MATCH, DEFERRABLE, and INITIALLY cannot be defined for MySQL
+            # ON UPDATE and ON DELETE have defaults of RESTRICT, which are
+            # elided by MySQL's inspection
+            addresses_user_id_fkey = sa.ForeignKey(
+                'users.id',
+                name = 'addresses_user_id_fkey',
+                onupdate='CASCADE',
+                ondelete='CASCADE'
+            )
+            test_attrs = ('onupdate', 'ondelete')
+
+        meta = self.metadata
+        Table('users', meta,
+            Column('id', sa.Integer, primary_key=True),
+            Column('name', sa.String(30)),
+            test_needs_fk=True)
+        Table('addresses', meta,
+            Column('id', sa.Integer, primary_key=True),
+            Column('user_id', sa.Integer, addresses_user_id_fkey),
+            test_needs_fk=True)
+        meta.create_all()
+
+        meta2 = MetaData()
+        meta2.reflect(testing.db)
+        for fk in meta2.tables['addresses'].foreign_keys:
+            ref = addresses_user_id_fkey
+            for attr in test_attrs:
+                eq_(getattr(fk, attr), getattr(ref, attr))
+
     def test_pks_not_uniques(self):
         """test that primary key reflection not tripped up by unique
         indexes"""
@@ -703,10 +754,6 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
 
 
     @testing.crashes('oracle', 'FIXME: unknown, confirm not fails_on')
-    @testing.fails_on('+informixdb',
-                        "FIXME: should be supported via the "
-                        "DELIMITED env var but that breaks "
-                        "everything else for now")
     @testing.provide_metadata
     def test_reserved(self):
 
@@ -723,7 +770,7 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         # There's currently no way to calculate identifier case
         # normalization in isolation, so...
 
-        if testing.against('firebird', 'oracle', 'maxdb'):
+        if testing.against('firebird', 'oracle'):
             check_col = 'TRUE'
         else:
             check_col = 'true'
@@ -776,6 +823,7 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
     def test_reflect_uses_bind_engine_reflect(self):
         self._test_reflect_uses_bind(lambda e: MetaData().reflect(e))
 
+
     @testing.provide_metadata
     def test_reflect_all(self):
         existing = testing.db.table_names()
@@ -810,7 +858,7 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         try:
             m4.reflect(only=['rt_a', 'rt_f'])
             self.assert_(False)
-        except sa.exc.InvalidRequestError, e:
+        except sa.exc.InvalidRequestError as e:
             self.assert_(e.args[0].endswith('(rt_f)'))
 
         m5 = MetaData(testing.db)
@@ -831,8 +879,20 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
             m8.reflect
         )
 
+        m8_e1 = MetaData(testing.db)
+        rt_c = Table('rt_c', m8_e1)
+        m8_e1.reflect(extend_existing=True)
+        eq_(set(m8_e1.tables.keys()), set(names))
+        eq_(rt_c.c.keys(), ['id'])
+
+        m8_e2 = MetaData(testing.db)
+        rt_c = Table('rt_c', m8_e2)
+        m8_e2.reflect(extend_existing=True, only=['rt_a', 'rt_c'])
+        eq_(set(m8_e2.tables.keys()), set(['rt_a', 'rt_c']))
+        eq_(rt_c.c.keys(), ['id'])
+
         if existing:
-            print "Other tables present in database, skipping some checks."
+            print("Other tables present in database, skipping some checks.")
         else:
             baseline.drop_all()
             m9 = MetaData(testing.db)
@@ -1042,19 +1102,19 @@ class UnicodeReflectionTest(fixtures.TestBase):
         cls.metadata = metadata = MetaData()
 
         no_multibyte_period = set([
-            (u'plain', u'col_plain', u'ix_plain')
+            ('plain', 'col_plain', 'ix_plain')
         ])
         no_has_table = [
-            (u'no_has_table_1', u'col_Unit\u00e9ble', u'ix_Unit\u00e9ble'),
-            (u'no_has_table_2', u'col_\u6e2c\u8a66', u'ix_\u6e2c\u8a66'),
+            ('no_has_table_1', ue('col_Unit\u00e9ble'), ue('ix_Unit\u00e9ble')),
+            ('no_has_table_2', ue('col_\u6e2c\u8a66'), ue('ix_\u6e2c\u8a66')),
         ]
         no_case_sensitivity = [
-            (u'\u6e2c\u8a66', u'col_\u6e2c\u8a66', u'ix_\u6e2c\u8a66'),
-            (u'unit\u00e9ble', u'col_unit\u00e9ble', u'ix_unit\u00e9ble'),
+            (ue('\u6e2c\u8a66'), ue('col_\u6e2c\u8a66'), ue('ix_\u6e2c\u8a66')),
+            (ue('unit\u00e9ble'), ue('col_unit\u00e9ble'), ue('ix_unit\u00e9ble')),
         ]
         full = [
-            (u'Unit\u00e9ble', u'col_Unit\u00e9ble', u'ix_Unit\u00e9ble'),
-            (u'\u6e2c\u8a66', u'col_\u6e2c\u8a66', u'ix_\u6e2c\u8a66'),
+            (ue('Unit\u00e9ble'), ue('col_Unit\u00e9ble'), ue('ix_Unit\u00e9ble')),
+            (ue('\u6e2c\u8a66'), ue('col_\u6e2c\u8a66'), ue('ix_\u6e2c\u8a66')),
         ]
 
         # as you can see, our options for this kind of thing

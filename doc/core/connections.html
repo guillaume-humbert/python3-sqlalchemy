@@ -10,7 +10,7 @@
     
                 Working with Engines and Connections
              &mdash;
-    SQLAlchemy 0.8 Documentation
+    SQLAlchemy 0.9 Documentation
 
         </title>
 
@@ -18,6 +18,7 @@
             <!-- begin iterate through SQLA + sphinx environment css_files -->
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -30,7 +31,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.4',
+          VERSION:     '0.9.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -46,7 +47,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Connection Pooling" href="pooling.html" />
         <link rel="prev" title="Engine Configuration" href="engines.html" />
@@ -73,7 +74,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.8 Documentation</h1>
+    <h1>SQLAlchemy 0.9 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.4</span> | Release Date: December 8, 2013
+        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
 
 
     </div>
@@ -111,7 +112,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Working with Engines and Connections
@@ -607,7 +608,7 @@ the need for separate installation.   Use the <tt class="docutils literal"><span
 <h2>Connection / Engine API<a class="headerlink" href="#connection-engine-api" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sqlalchemy.engine.Connection">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.engine.</tt><tt class="descname">Connection</tt><big>(</big><em>engine</em>, <em>connection=None</em>, <em>close_with_result=False</em>, <em>_branch=False</em>, <em>_execution_options=None</em>, <em>_dispatch=None</em>, <em>_has_events=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.Connection" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.engine.</tt><tt class="descname">Connection</tt><big>(</big><em>engine</em>, <em>connection=None</em>, <em>close_with_result=False</em>, <em>_branch=False</em>, <em>_execution_options=None</em>, <em>_dispatch=None</em>, <em>_has_events=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.Connection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.engine.Connectable" title="sqlalchemy.engine.Connectable"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.engine.Connectable</span></tt></a></p>
 <p>Provides high-level functionality for a wrapped DB-API connection.</p>
 <p>Provides execution support for string-based SQL statements as well as
@@ -626,7 +627,7 @@ returned to the connection pool (i.e. <tt class="docutils literal"><span class="
 connection is not in use.</p>
 <span class="target" id="index-1"></span><dl class="method">
 <dt id="sqlalchemy.engine.Connection.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>engine</em>, <em>connection=None</em>, <em>close_with_result=False</em>, <em>_branch=False</em>, <em>_execution_options=None</em>, <em>_dispatch=None</em>, <em>_has_events=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.Connection.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>engine</em>, <em>connection=None</em>, <em>close_with_result=False</em>, <em>_branch=False</em>, <em>_execution_options=None</em>, <em>_dispatch=None</em>, <em>_has_events=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.Connection.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a new Connection.</p>
 <p>The constructor here is not public and is only called only by an
 <a class="reference internal" href="#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>. See <a class="reference internal" href="#sqlalchemy.engine.Engine.connect" title="sqlalchemy.engine.Engine.connect"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.connect()</span></tt></a> and
@@ -689,7 +690,7 @@ which in addition to the methods provided by
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xid</strong> &#8211; the two phase transaction id.  If not supplied, a
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.engine.Connection.begin_twophase.params.xid"></span><strong>xid</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.Connection.begin_twophase.params.xid">¶</a> &#8211; the two phase transaction id.  If not supplied, a
 random id will be generated.</td>
 </tr>
 </tbody>
@@ -779,14 +780,14 @@ connection pool.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>object</strong> &#8211; <p>The statement to be executed.  May be
+<li><span class="target" id="sqlalchemy.engine.Connection.execute.params.object"></span><strong>object</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.Connection.execute.params.object">¶</a> &#8211; <p>The statement to be executed.  May be
 one of:</p>
 <ul>
 <li>a plain string</li>
 <li>any <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> construct that is also
 a subclass of <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">Executable</span></tt></a>, such as a
 <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct</li>
-<li>a <tt class="xref py py-class docutils literal"><span class="pre">FunctionElement</span></tt>, such as that generated
+<li>a <a class="reference internal" href="functions.html#sqlalchemy.sql.functions.FunctionElement" title="sqlalchemy.sql.functions.FunctionElement"><tt class="xref py py-class docutils literal"><span class="pre">FunctionElement</span></tt></a>, such as that generated
 by <tt class="xref py py-attr docutils literal"><span class="pre">func</span></tt>, will be automatically wrapped in
 a SELECT statement, which is then executed.</li>
 <li>a <a class="reference internal" href="ddl.html#sqlalchemy.schema.DDLElement" title="sqlalchemy.schema.DDLElement"><tt class="xref py py-class docutils literal"><span class="pre">DDLElement</span></tt></a> object</li>
@@ -794,7 +795,7 @@ a SELECT statement, which is then executed.</li>
 <li>a <a class="reference internal" href="internals.html#sqlalchemy.engine.interfaces.Compiled" title="sqlalchemy.engine.interfaces.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></a> object</li>
 </ul>
 </li>
-<li><strong>*multiparams/**params</strong> &#8211; <p>represent bound parameter
+<li><span class="target" id="sqlalchemy.engine.Connection.execute.params.*multiparams/**params"></span><strong>*multiparams/**params</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.Connection.execute.params.*multiparams/**params">¶</a> &#8211; <p>represent bound parameter
 values to be used in the execution.   Typically,
 the format is either a collection of one or more
 dictionaries passed to *multiparams:</p>
@@ -864,7 +865,7 @@ as well as others that are specific to <a class="reference internal" href="#sqla
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>autocommit</strong> &#8211; Available on: Connection, statement.
+<li><span class="target" id="sqlalchemy.engine.Connection.execution_options.params.autocommit"></span><strong>autocommit</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.Connection.execution_options.params.autocommit">¶</a> &#8211; Available on: Connection, statement.
 When True, a COMMIT will be invoked after execution
 when executed in &#8216;autocommit&#8217; mode, i.e. when an explicit
 transaction is not begun on the connection. Note that DBAPI
@@ -877,7 +878,7 @@ constructs do not. Use this option when invoking a SELECT or other
 specific SQL construct where COMMIT is desired (typically when
 calling stored procedures and such), and an explicit
 transaction is not in progress.</li>
-<li><strong>compiled_cache</strong> &#8211; <p>Available on: Connection.
+<li><span class="target" id="sqlalchemy.engine.Connection.execution_options.params.compiled_cache"></span><strong>compiled_cache</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.Connection.execution_options.params.compiled_cache">¶</a> &#8211; <p>Available on: Connection.
 A dictionary where <a class="reference internal" href="internals.html#sqlalchemy.engine.interfaces.Compiled" title="sqlalchemy.engine.interfaces.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></a> objects
 will be cached when the <a class="reference internal" href="#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> compiles a clause
 expression into a <a class="reference internal" href="internals.html#sqlalchemy.engine.interfaces.Compiled" title="sqlalchemy.engine.interfaces.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></a> object.
@@ -893,7 +894,7 @@ some operations, including flush operations.  The caching
 used by the ORM internally supersedes a cache dictionary
 specified here.</p>
 </li>
-<li><strong>isolation_level</strong> &#8211; <p>Available on: Connection.
+<li><span class="target" id="sqlalchemy.engine.Connection.execution_options.params.isolation_level"></span><strong>isolation_level</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.Connection.execution_options.params.isolation_level">¶</a> &#8211; <p>Available on: Connection.
 Set the transaction isolation level for
 the lifespan of this connection.   Valid values include
 those string values accepted by the <tt class="docutils literal"><span class="pre">isolation_level</span></tt>
@@ -908,7 +909,7 @@ setting is not removed until the underlying DBAPI connection
 is returned to the connection pool, i.e.
 the <a class="reference internal" href="#sqlalchemy.engine.Connection.close" title="sqlalchemy.engine.Connection.close"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.close()</span></tt></a> method is called.</p>
 </li>
-<li><strong>no_parameters</strong> &#8211; <p>When <tt class="docutils literal"><span class="pre">True</span></tt>, if the final parameter
+<li><span class="target" id="sqlalchemy.engine.Connection.execution_options.params.no_parameters"></span><strong>no_parameters</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.Connection.execution_options.params.no_parameters">¶</a> &#8211; <p>When <tt class="docutils literal"><span class="pre">True</span></tt>, if the final parameter
 list or dictionary is totally empty, will invoke the
 statement on the cursor as <tt class="docutils literal"><span class="pre">cursor.execute(statement)</span></tt>,
 not passing the parameter collection at all.
@@ -923,7 +924,7 @@ command line tools.</p>
 <p><span>New in version 0.7.6.</span></p>
 </div>
 </li>
-<li><strong>stream_results</strong> &#8211; Available on: Connection, statement.
+<li><span class="target" id="sqlalchemy.engine.Connection.execution_options.params.stream_results"></span><strong>stream_results</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.Connection.execution_options.params.stream_results">¶</a> &#8211; Available on: Connection, statement.
 Indicate to the dialect that results should be
 &#8220;streamed&#8221; and not pre-buffered, if possible.  This is a limitation
 of many DBAPIs.  The flag is currently understood only by the
@@ -1166,7 +1167,7 @@ to provide contextual behavior.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>close_with_result</strong> &#8211; When True, the first <a class="reference internal" href="#sqlalchemy.engine.ResultProxy" title="sqlalchemy.engine.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.engine.Engine.contextual_connect.params.close_with_result"></span><strong>close_with_result</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.Engine.contextual_connect.params.close_with_result">¶</a> &#8211; When True, the first <a class="reference internal" href="#sqlalchemy.engine.ResultProxy" title="sqlalchemy.engine.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a>
 created by the <a class="reference internal" href="#sqlalchemy.engine.Connection" title="sqlalchemy.engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> will call the
 <a class="reference internal" href="#sqlalchemy.engine.Connection.close" title="sqlalchemy.engine.Connection.close"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.close()</span></tt></a> method of that connection as soon as any
 pending result rows are exhausted. This is used to supply the
@@ -1287,6 +1288,19 @@ options for a given <a class="reference internal" href="#sqlalchemy.engine.Engin
 </div>
 </dd></dl>
 
+<dl class="method">
+<dt id="sqlalchemy.engine.Engine.has_table">
+<tt class="descname">has_table</tt><big>(</big><em>table_name</em>, <em>schema=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.Engine.has_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if the given backend has a table of the given name.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="reflection.html#metadata-reflection-inspector"><em>Fine Grained Reflection with Inspector</em></a> - detailed schema inspection using
+the <a class="reference internal" href="reflection.html#sqlalchemy.engine.reflection.Inspector" title="sqlalchemy.engine.reflection.Inspector"><tt class="xref py py-class docutils literal"><span class="pre">Inspector</span></tt></a> interface.</p>
+<p class="last"><a class="reference internal" href="sqlelement.html#sqlalchemy.sql.elements.quoted_name" title="sqlalchemy.sql.elements.quoted_name"><tt class="xref py py-class docutils literal"><span class="pre">quoted_name</span></tt></a> - used to pass quoting information along
+with a schema identifier.</p>
+</div>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="sqlalchemy.engine.Engine.name">
 <tt class="descname">name</tt><a class="headerlink" href="#sqlalchemy.engine.Engine.name" title="Permalink to this definition">¶</a></dt>
@@ -1332,8 +1346,8 @@ which one is being dealt with.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>schema</strong> &#8211; Optional, retrieve names from a non-default schema.</li>
-<li><strong>connection</strong> &#8211; Optional, use a specified connection. Default is
+<li><span class="target" id="sqlalchemy.engine.Engine.table_names.params.schema"></span><strong>schema</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.Engine.table_names.params.schema">¶</a> &#8211; Optional, retrieve names from a non-default schema.</li>
+<li><span class="target" id="sqlalchemy.engine.Engine.table_names.params.connection"></span><strong>connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.engine.Engine.table_names.params.connection">¶</a> &#8211; Optional, use a specified connection. Default is
 the <tt class="docutils literal"><span class="pre">contextual_connect</span></tt> for this <tt class="docutils literal"><span class="pre">Engine</span></tt>.</li>
 </ul>
 </td>
@@ -1579,6 +1593,23 @@ or is not an insert() or update() construct.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="sqlalchemy.engine.ResultProxy.returned_defaults">
+<tt class="descname">returned_defaults</tt><a class="headerlink" href="#sqlalchemy.engine.ResultProxy.returned_defaults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the values of default columns that were fetched using
+the <a class="reference internal" href="dml.html#sqlalchemy.sql.expression.ValuesBase.return_defaults" title="sqlalchemy.sql.expression.ValuesBase.return_defaults"><tt class="xref py py-meth docutils literal"><span class="pre">ValuesBase.return_defaults()</span></tt></a> feature.</p>
+<p>The value is an instance of <a class="reference internal" href="#sqlalchemy.engine.RowProxy" title="sqlalchemy.engine.RowProxy"><tt class="xref py py-class docutils literal"><span class="pre">RowProxy</span></tt></a>, or <tt class="docutils literal"><span class="pre">None</span></tt>
+if <a class="reference internal" href="dml.html#sqlalchemy.sql.expression.ValuesBase.return_defaults" title="sqlalchemy.sql.expression.ValuesBase.return_defaults"><tt class="xref py py-meth docutils literal"><span class="pre">ValuesBase.return_defaults()</span></tt></a> was not used or if the
+backend does not support RETURNING.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="dml.html#sqlalchemy.sql.expression.ValuesBase.return_defaults" title="sqlalchemy.sql.expression.ValuesBase.return_defaults"><tt class="xref py py-meth docutils literal"><span class="pre">ValuesBase.return_defaults()</span></tt></a></p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="sqlalchemy.engine.ResultProxy.returns_rows">
 <tt class="descname">returns_rows</tt><a class="headerlink" href="#sqlalchemy.engine.ResultProxy.returns_rows" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if this <a class="reference internal" href="#sqlalchemy.engine.ResultProxy" title="sqlalchemy.engine.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> returns rows.</p>
@@ -1761,7 +1792,7 @@ with the addition of the <a class="reference internal" href="#sqlalchemy.engine.
         <a href="pooling.html" title="next chapter">Connection Pooling</a>
 
     <div id="docs-copyright">
-        &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.
         Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
