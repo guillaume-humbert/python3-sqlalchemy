@@ -7,33 +7,28 @@ Some key internal constructs are listed here.
 
 .. currentmodule: sqlalchemy
 
-.. autoclass:: sqlalchemy.engine.base.Compiled
+.. autoclass:: sqlalchemy.engine.interfaces.Compiled
     :members:
-    :undoc-members:
-    :show-inheritance:
 
 .. autoclass:: sqlalchemy.sql.compiler.DDLCompiler
     :members:
     :show-inheritance:
+    :inherited-members:
 
 .. autoclass:: sqlalchemy.engine.default.DefaultDialect
     :members:
-    :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
-.. autoclass:: sqlalchemy.engine.base.Dialect
+.. autoclass:: sqlalchemy.engine.interfaces.Dialect
     :members:
-    :undoc-members:
-    :show-inheritance:
 
 .. autoclass:: sqlalchemy.engine.default.DefaultExecutionContext
     :members:
-    :undoc-members:
     :show-inheritance:
 
-.. autoclass:: sqlalchemy.engine.base.ExecutionContext
+.. autoclass:: sqlalchemy.engine.interfaces.ExecutionContext
     :members:
-    :undoc-members:
     :show-inheritance:
 
 .. autoclass:: sqlalchemy.sql.compiler.IdentifierPreparer

@@ -1,4 +1,4 @@
-from test.lib.testing import eq_, assert_raises, assert_raises_message
+from sqlalchemy.testing import eq_, assert_raises, assert_raises_message
 import operator
 from sqlalchemy import *
 from sqlalchemy import exc as sa_exc, util
@@ -7,14 +7,16 @@ from sqlalchemy.engine import default
 from sqlalchemy.orm import *
 from sqlalchemy.orm import attributes
 
-from test.lib.testing import eq_
+from sqlalchemy.testing import eq_
 
 import sqlalchemy as sa
-from test.lib import testing, AssertsCompiledSQL, Column, engines
+from sqlalchemy import testing
+from sqlalchemy.testing import AssertsCompiledSQL, engines
+from sqlalchemy.testing.schema import Column
 
 from test.orm import _fixtures
 
-from test.lib import fixtures
+from sqlalchemy.testing import fixtures
 
 from sqlalchemy.orm.util import join, outerjoin, with_parent
 
@@ -65,49 +67,139 @@ class QueryTest(_fixtures.FixtureTest):
 
         configure_mappers()
 
+class QueryCorrelatesLikeSelect(QueryTest, AssertsCompiledSQL):
+
+    query_correlated = "SELECT users.name AS users_name, " \
+        "(SELECT count(addresses.id) AS count_1 FROM addresses " \
+        "WHERE addresses.user_id = users.id) AS anon_1 FROM users"
+
+    query_not_correlated = "SELECT users.name AS users_name, " \
+        "(SELECT count(addresses.id) AS count_1 FROM addresses, users " \
+        "WHERE addresses.user_id = users.id) AS anon_1 FROM users"
+
+    def test_as_scalar_select_auto_correlate(self):
+        addresses, users = self.tables.addresses, self.tables.users
+        query = select(
+            [func.count(addresses.c.id)],
+            addresses.c.user_id==users.c.id
+        ).as_scalar()
+        query = select([users.c.name.label('users_name'), query])
+        self.assert_compile(query, self.query_correlated,
+            dialect=default.DefaultDialect()
+        )
+
+    def test_as_scalar_select_explicit_correlate(self):
+        addresses, users = self.tables.addresses, self.tables.users
+        query = select(
+            [func.count(addresses.c.id)],
+            addresses.c.user_id==users.c.id
+        ).correlate(users).as_scalar()
+        query = select([users.c.name.label('users_name'), query])
+        self.assert_compile(query, self.query_correlated,
+            dialect=default.DefaultDialect()
+        )
+
+    def test_as_scalar_select_correlate_off(self):
+        addresses, users = self.tables.addresses, self.tables.users
+        query = select(
+            [func.count(addresses.c.id)],
+            addresses.c.user_id==users.c.id
+        ).correlate(None).as_scalar()
+        query = select([ users.c.name.label('users_name'), query])
+        self.assert_compile(query, self.query_not_correlated,
+            dialect=default.DefaultDialect()
+        )
+
+    def test_as_scalar_query_auto_correlate(self):
+        sess = create_session()
+        Address, User = self.classes.Address, self.classes.User
+        query = sess.query(func.count(Address.id))\
+            .filter(Address.user_id==User.id)\
+            .as_scalar()
+        query = sess.query(User.name, query)
+        self.assert_compile(query, self.query_correlated,
+            dialect=default.DefaultDialect()
+        )
+
+    def test_as_scalar_query_explicit_correlate(self):
+        sess = create_session()
+        Address, User = self.classes.Address, self.classes.User
+        query = sess.query(func.count(Address.id))\
+            .filter(Address.user_id==User.id)\
+            .correlate(self.tables.users)\
+            .as_scalar()
+        query = sess.query(User.name, query)
+        self.assert_compile(query, self.query_correlated,
+            dialect=default.DefaultDialect()
+        )
+
+    def test_as_scalar_query_correlate_off(self):
+        sess = create_session()
+        Address, User = self.classes.Address, self.classes.User
+        query = sess.query(func.count(Address.id))\
+            .filter(Address.user_id==User.id)\
+            .correlate(None)\
+            .as_scalar()
+        query = sess.query(User.name, query)
+        self.assert_compile(query, self.query_not_correlated,
+            dialect=default.DefaultDialect()
+        )
+
 
 class RawSelectTest(QueryTest, AssertsCompiledSQL):
-    """compare a bunch of select() tests with the equivalent Query using straight table/columns.
+    """compare a bunch of select() tests with the equivalent Query using
+    straight table/columns.
 
-    Results should be the same as Query should act as a select() pass-thru for ClauseElement entities.
+    Results should be the same as Query should act as a select() pass-
+    thru for ClauseElement entities.
 
     """
+    __dialect__ = 'default'
+
     def test_select(self):
         addresses, users = self.tables.addresses, self.tables.users
 
         sess = create_session()
 
-        self.assert_compile(sess.query(users).select_from(users.select()).with_labels().statement,
+        self.assert_compile(sess.query(users).select_from(
+                    users.select()).with_labels().statement,
             "SELECT users.id AS users_id, users.name AS users_name FROM users, "
             "(SELECT users.id AS id, users.name AS name FROM users) AS anon_1",
-            dialect=default.DefaultDialect()
             )
 
-        self.assert_compile(sess.query(users, exists([1], from_obj=addresses)).with_labels().statement,
+        self.assert_compile(sess.query(users, exists([1], from_obj=addresses)
+                ).with_labels().statement,
             "SELECT users.id AS users_id, users.name AS users_name, EXISTS "
             "(SELECT 1 FROM addresses) AS anon_1 FROM users",
-            dialect=default.DefaultDialect()
             )
 
-        # a little tedious here, adding labels to work around Query's auto-labelling.
-        # also correlate needed explicitly.  hmmm.....
-        # TODO: can we detect only one table in the "froms" and then turn off use_labels ?
-        s = sess.query(addresses.c.id.label('id'), addresses.c.email_address.label('email')).\
-            filter(addresses.c.user_id==users.c.id).correlate(users).statement.alias()
+        # a little tedious here, adding labels to work around Query's
+        # auto-labelling. TODO: can we detect only one table in the
+        # "froms" and then turn off use_labels ? note: this query is
+        # incorrect SQL with the correlate of users in the FROM list.
+        s = sess.query(addresses.c.id.label('id'),
+                            addresses.c.email_address.label('email')).\
+            filter(addresses.c.user_id == users.c.id).correlate(users).\
+                        statement.alias()
 
-        self.assert_compile(sess.query(users, s.c.email).select_from(users.join(s, s.c.id==users.c.id)).with_labels().statement,
-                "SELECT users.id AS users_id, users.name AS users_name, anon_1.email AS anon_1_email "
-                "FROM users JOIN (SELECT addresses.id AS id, addresses.email_address AS email FROM addresses "
-                "WHERE addresses.user_id = users.id) AS anon_1 ON anon_1.id = users.id",
-                dialect=default.DefaultDialect()
+        self.assert_compile(sess.query(users, s.c.email).select_from(
+                    users.join(s, s.c.id == users.c.id)
+                ).with_labels().statement,
+                "SELECT users.id AS users_id, users.name AS users_name, "
+                "anon_1.email AS anon_1_email "
+                "FROM users JOIN (SELECT addresses.id AS id, "
+                "addresses.email_address AS email FROM addresses "
+                "WHERE addresses.user_id = users.id) AS anon_1 "
+                "ON anon_1.id = users.id",
             )
 
         x = func.lala(users.c.id).label('foo')
-        self.assert_compile(sess.query(x).filter(x==5).statement,
-            "SELECT lala(users.id) AS foo FROM users WHERE lala(users.id) = :param_1", dialect=default.DefaultDialect())
+        self.assert_compile(sess.query(x).filter(x == 5).statement,
+            "SELECT lala(users.id) AS foo FROM users WHERE "
+            "lala(users.id) = :param_1")
 
         self.assert_compile(sess.query(func.sum(x).label('bar')).statement,
-            "SELECT sum(lala(users.id)) AS bar FROM users", dialect=default.DefaultDialect())
+            "SELECT sum(lala(users.id)) AS bar FROM users")
 
 
 class FromSelfTest(QueryTest, AssertsCompiledSQL):
@@ -1048,6 +1140,7 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
     @testing.fails_on('postgresql+zxjdbc',
                       "zxjdbc parses the SQL itself before passing on "
                       "to PG, doesn't parse this")
+    @testing.fails_on("firebird", "unknown")
     def test_values_with_boolean_selects(self):
         """Tests a values clause that works with select boolean
         evaluations"""
@@ -1237,6 +1330,7 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
             eq_(results, [(User(name='jack'), 'jack')])
         self.assert_sql_count(testing.db, go, 1)
 
+    @testing.fails_on("firebird", "unknown")
     @testing.fails_on('postgresql+pg8000', "'type oid 705 not mapped to py type' (due to literal)")
     def test_self_referential(self):
         Order = self.classes.Order
@@ -1572,7 +1666,7 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
         ]:
             q = s.query(crit)
             mzero = q._mapper_zero()
-            assert mzero._AliasedClass__alias is q._entity_zero().selectable
+            assert inspect(mzero).selectable is q._entity_zero().selectable
             q = q.join(j)
             self.assert_compile(q, exp)
 
@@ -1721,6 +1815,45 @@ class SelectFromTest(QueryTest, AssertsCompiledSQL):
         )
 
 
+    def test_aliased_class_vs_nonaliased(self):
+        User, users = self.classes.User, self.tables.users
+        mapper(User, users)
+
+        ua = aliased(User)
+
+        sess = create_session()
+        self.assert_compile(
+            sess.query(User).select_from(ua).join(User, ua.name > User.name),
+            "SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users AS users_1 JOIN users ON users.name < users_1.name"
+        )
+
+        self.assert_compile(
+            sess.query(User.name).select_from(ua).join(User, ua.name > User.name),
+            "SELECT users.name AS users_name FROM users AS users_1 "
+            "JOIN users ON users.name < users_1.name"
+        )
+
+        self.assert_compile(
+            sess.query(ua.name).select_from(ua).join(User, ua.name > User.name),
+            "SELECT users_1.name AS users_1_name FROM users AS users_1 "
+            "JOIN users ON users.name < users_1.name"
+        )
+
+        self.assert_compile(
+            sess.query(ua).select_from(User).join(ua, ua.name > User.name),
+            "SELECT users_1.id AS users_1_id, users_1.name AS users_1_name "
+            "FROM users JOIN users AS users_1 ON users.name < users_1.name"
+        )
+
+        # this is tested in many other places here, just adding it
+        # here for comparison
+        self.assert_compile(
+            sess.query(User.name).\
+                    select_from(users.select().where(users.c.id > 5)),
+            "SELECT anon_1.name AS anon_1_name FROM (SELECT users.id AS id, "
+            "users.name AS name FROM users WHERE users.id > :id_1) AS anon_1"
+        )
 
     def test_join_no_order_by(self):
         User, users = self.classes.User, self.tables.users

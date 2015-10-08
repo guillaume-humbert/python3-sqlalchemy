@@ -159,6 +159,8 @@ print 'Total executemany calls: %d' \
     % counts_by_methname.get("<method 'executemany' of 'sqlite3.Cursor' "
                          "objects>", 0)
 
+#stats.sort_stats('time', 'calls')
+#stats.print_stats()
 os.system("runsnake %s" % filename)
 
 # SQLA Version: 0.7b1

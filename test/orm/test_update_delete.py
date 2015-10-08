@@ -1,9 +1,12 @@
-from test.lib.testing import eq_, assert_raises, assert_raises_message
-from test.lib import fixtures, testing
-from sqlalchemy import Integer, String, ForeignKey, or_, and_, exc, select, func
-from sqlalchemy.orm import mapper, relationship, backref, Session, joinedload
+from sqlalchemy.testing import eq_, assert_raises, assert_raises_message
+from sqlalchemy.testing import fixtures
+from sqlalchemy import Integer, String, ForeignKey, or_, and_, exc, \
+    select, func, Boolean, case
+from sqlalchemy.orm import mapper, relationship, backref, Session, \
+    joinedload, aliased
+from sqlalchemy import testing
 
-from test.lib.schema import Table, Column
+from sqlalchemy.testing.schema import Table, Column
 
 
 
@@ -40,6 +43,18 @@ class UpdateDeleteTest(fixtures.MappedTest):
 
         mapper(User, users)
 
+    def test_illegal_eval(self):
+        User = self.classes.User
+        s = Session()
+        assert_raises_message(
+            exc.ArgumentError,
+            "Valid strategies for session synchronization "
+            "are 'evaluate', 'fetch', False",
+            s.query(User).update,
+            {},
+            synchronize_session="fake"
+        )
+
     def test_illegal_operations(self):
         User = self.classes.User
 
@@ -63,7 +78,6 @@ class UpdateDeleteTest(fixtures.MappedTest):
                 r"Can't call Query.delete\(\) when %s\(\) has been called" % mname,
                 q.delete)
 
-
     def test_delete(self):
         User = self.classes.User
 
@@ -75,6 +89,14 @@ class UpdateDeleteTest(fixtures.MappedTest):
         assert john not in sess and jill not in sess
 
         eq_(sess.query(User).order_by(User.id).all(), [jack,jane])
+
+    def test_delete_against_metadata(self):
+        User = self.classes.User
+        users = self.tables.users
+
+        sess = Session()
+        sess.query(users).delete(synchronize_session=False)
+        eq_(sess.query(User).count(), 0)
 
     def test_delete_with_bindparams(self):
         User = self.classes.User
@@ -183,6 +205,14 @@ class UpdateDeleteTest(fixtures.MappedTest):
         eq_([john.age, jack.age, jill.age, jane.age], [15,27,19,27])
         eq_(sess.query(User.age).order_by(User.id).all(), zip([15,27,19,27]))
 
+    def test_update_against_metadata(self):
+        User, users = self.classes.User, self.tables.users
+
+        sess = Session()
+
+        sess.query(users).update({users.c.age: 29}, synchronize_session=False)
+        eq_(sess.query(User.age).order_by(User.id).all(), zip([29,29,29,29]))
+
     def test_update_with_bindparams(self):
         User = self.classes.User
 
@@ -195,6 +225,15 @@ class UpdateDeleteTest(fixtures.MappedTest):
 
         eq_([john.age, jack.age, jill.age, jane.age], [25,37,29,27])
         eq_(sess.query(User.age).order_by(User.id).all(), zip([25,37,29,27]))
+
+    def test_update_without_load(self):
+        User = self.classes.User
+
+        sess = Session()
+
+        sess.query(User).filter(User.id == 3).\
+                update({'age': 44}, synchronize_session='fetch')
+        eq_(sess.query(User.age).order_by(User.id).all(), zip([25,47,44,37]))
 
     def test_update_changes_resets_dirty(self):
         User = self.classes.User
@@ -411,7 +450,7 @@ class UpdateDeleteTest(fixtures.MappedTest):
                             synchronize_session='fetch')
         assert john not in sess
 
-class UpdateDeleteRelatedTest(fixtures.MappedTest):
+class UpdateDeleteIgnoresLoadersTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('users', metadata,
@@ -501,6 +540,125 @@ class UpdateDeleteRelatedTest(fixtures.MappedTest):
 
         eq_(sess.query(Document.title).all(), zip(['baz']))
 
+class UpdateDeleteFromTest(fixtures.MappedTest):
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('users', metadata,
+              Column('id', Integer, primary_key=True),
+            )
+        Table('documents', metadata,
+              Column('id', Integer, primary_key=True),
+              Column('user_id', None, ForeignKey('users.id')),
+              Column('title', String(32)),
+              Column('flag', Boolean)
+        )
+
+    @classmethod
+    def setup_classes(cls):
+        class User(cls.Comparable):
+            pass
+
+        class Document(cls.Comparable):
+            pass
+
+    @classmethod
+    def insert_data(cls):
+        users = cls.tables.users
+
+        users.insert().execute([
+            dict(id=1, ),
+            dict(id=2, ),
+            dict(id=3, ),
+            dict(id=4, ),
+        ])
+
+        documents = cls.tables.documents
+
+        documents.insert().execute([
+            dict(id=1, user_id=1, title='foo'),
+            dict(id=2, user_id=1, title='bar'),
+            dict(id=3, user_id=2, title='baz'),
+            dict(id=4, user_id=2, title='hoho'),
+            dict(id=5, user_id=3, title='lala'),
+            dict(id=6, user_id=3, title='bleh'),
+        ])
+
+    @classmethod
+    def setup_mappers(cls):
+        documents, Document, User, users = (cls.tables.documents,
+                                cls.classes.Document,
+                                cls.classes.User,
+                                cls.tables.users)
+
+        mapper(User, users)
+        mapper(Document, documents, properties={
+            'user': relationship(User, backref='documents')
+        })
+
+    @testing.requires.update_from
+    def test_update_from_joined_subq_test(self):
+        Document = self.classes.Document
+        s = Session()
+
+        subq = s.query(func.max(Document.title).label('title')).\
+                group_by(Document.user_id).subquery()
+
+        s.query(Document).filter(Document.title == subq.c.title).\
+                update({'flag': True}, synchronize_session=False)
+
+        eq_(
+            set(s.query(Document.id, Document.flag)),
+            set([
+                    (1, True), (2, None),
+                    (3, None), (4, True),
+                    (5, True), (6, None),
+                ])
+        )
+
+    @testing.requires.update_where_target_in_subquery
+    def test_update_using_in(self):
+        Document = self.classes.Document
+        s = Session()
+
+        subq = s.query(func.max(Document.title).label('title')).\
+                group_by(Document.user_id).subquery()
+
+        s.query(Document).filter(Document.title.in_(subq)).\
+                update({'flag': True}, synchronize_session=False)
+
+        eq_(
+            set(s.query(Document.id, Document.flag)),
+            set([
+                    (1, True), (2, None),
+                    (3, None), (4, True),
+                    (5, True), (6, None),
+                ])
+        )
+
+    @testing.requires.update_where_target_in_subquery
+    @testing.requires.standalone_binds
+    def test_update_using_case(self):
+        Document = self.classes.Document
+        s = Session()
+
+
+        subq = s.query(func.max(Document.title).label('title')).\
+                group_by(Document.user_id).subquery()
+
+        # this would work with Firebird if you do literal_column('1')
+        # instead
+        case_stmt = case([(Document.title.in_(subq), True)], else_=False)
+        s.query(Document).update({'flag': case_stmt}, synchronize_session=False)
+
+        eq_(
+            set(s.query(Document.id, Document.flag)),
+            set([
+                    (1, True), (2, False),
+                    (3, False), (4, True),
+                    (5, True), (6, False),
+                ])
+        )
+
 class ExpressionUpdateTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
@@ -541,4 +699,90 @@ class ExpressionUpdateTest(fixtures.MappedTest):
         eq_(d1.cnt, 2)
         sess.close()
 
+class InheritTest(fixtures.DeclarativeMappedTest):
 
+    run_inserts = 'each'
+
+    run_deletes = 'each'
+
+    @classmethod
+    def setup_classes(cls):
+        Base = cls.DeclarativeBasic
+
+        class Person(Base):
+            __tablename__ = 'person'
+            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
+            type = Column(String(50))
+            name = Column(String(50))
+
+        class Engineer(Person):
+            __tablename__ = 'engineer'
+            id = Column(Integer, ForeignKey('person.id'), primary_key=True)
+            engineer_name = Column(String(50))
+
+        class Manager(Person):
+            __tablename__ = 'manager'
+            id = Column(Integer, ForeignKey('person.id'), primary_key=True)
+            manager_name = Column(String(50))
+
+    @classmethod
+    def insert_data(cls):
+        Engineer, Person, Manager = cls.classes.Engineer, \
+                    cls.classes.Person, cls.classes.Manager
+        s = Session(testing.db)
+        s.add_all([
+            Engineer(name='e1', engineer_name='e1'),
+            Manager(name='m1', manager_name='m1'),
+            Engineer(name='e2', engineer_name='e2'),
+            Person(name='p1'),
+        ])
+        s.commit()
+
+    def test_illegal_metadata(self):
+        person = self.classes.Person.__table__
+        engineer = self.classes.Engineer.__table__
+
+        sess = Session()
+        assert_raises_message(
+            exc.InvalidRequestError,
+            "This operation requires only one Table or entity be "
+            "specified as the target.",
+            sess.query(person.join(engineer)).update, {}
+        )
+
+    def test_update_subtable_only(self):
+        Engineer = self.classes.Engineer
+        s = Session(testing.db)
+        s.query(Engineer).update({'engineer_name': 'e5'})
+
+        eq_(
+            s.query(Engineer.engineer_name).all(),
+            [('e5', ), ('e5', )]
+        )
+
+    @testing.requires.update_from
+    def test_update_from(self):
+        Engineer = self.classes.Engineer
+        Person = self.classes.Person
+        s = Session(testing.db)
+        s.query(Engineer).filter(Engineer.id == Person.id).\
+            filter(Person.name == 'e2').update({'engineer_name': 'e5'})
+
+        eq_(
+            set(s.query(Person.name, Engineer.engineer_name)),
+            set([('e1', 'e1', ), ('e2', 'e5')])
+        )
+
+    @testing.only_on('mysql', 'Multi table update')
+    def test_update_from_multitable(self):
+        Engineer = self.classes.Engineer
+        Person = self.classes.Person
+        s = Session(testing.db)
+        s.query(Engineer).filter(Engineer.id == Person.id).\
+            filter(Person.name == 'e2').update({Person.name: 'e22',
+                                Engineer.engineer_name: 'e55'})
+
+        eq_(
+            set(s.query(Person.name, Engineer.engineer_name)),
+            set([('e1', 'e1', ), ('e22', 'e55')])
+        )

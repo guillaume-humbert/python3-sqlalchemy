@@ -6,10 +6,11 @@
 
 # TODO: should be using the sys. catalog with SQL Server, not information schema
 
-from sqlalchemy import Table, MetaData, Column
-from sqlalchemy.types import String, Unicode, Integer, TypeDecorator
+from ... import Table, MetaData, Column
+from ...types import String, Unicode, Integer, TypeDecorator
 
 ischema = MetaData()
+
 
 class CoerceUnicode(TypeDecorator):
     impl = Unicode
@@ -93,4 +94,3 @@ views = Table("VIEWS", ischema,
     Column("CHECK_OPTION", String, key="check_option"),
     Column("IS_UPDATABLE", String, key="is_updatable"),
     schema="INFORMATION_SCHEMA")
-

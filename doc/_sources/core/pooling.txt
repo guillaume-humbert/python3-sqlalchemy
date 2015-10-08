@@ -24,7 +24,7 @@ plain DBAPI approach.
 Connection Pool Configuration
 -----------------------------
 
-The :class:`~.engine.base.Engine` returned by the
+The :class:`~.engine.Engine` returned by the
 :func:`~sqlalchemy.create_engine` function in most cases has a :class:`.QueuePool`
 integrated, pre-configured with reasonable pooling defaults.  If
 you're reading this section only to learn how to enable pooling - congratulations!
@@ -127,7 +127,7 @@ within a transparent proxy::
     cursor.execute("select foo")
 
 The purpose of the transparent proxy is to intercept the ``close()`` call,
-such that instead of the DBAPI connection being closed, its returned to the
+such that instead of the DBAPI connection being closed, it's returned to the
 pool::
 
     # "close" the connection.  Returns

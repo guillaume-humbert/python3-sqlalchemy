@@ -2,9 +2,9 @@ from sqlalchemy import *
 from sqlalchemy.orm import *
 from sqlalchemy.orm.interfaces import ONETOMANY, MANYTOONE
 
-from test.lib import testing
-from test.lib.schema import Table, Column
-from test.lib import fixtures
+from sqlalchemy import testing
+from sqlalchemy.testing.schema import Table, Column
+from sqlalchemy.testing import fixtures
 
 
 def produce_test(parent, child, direction):
@@ -60,7 +60,6 @@ def produce_test(parent, child, direction):
             super(ABCTest, self).teardown()
 
 
-        @testing.uses_deprecated("fold_equivalents is deprecated.")
         def test_roundtrip(self):
             parent_table = {"a":ta, "b":tb, "c": tc}[parent]
             child_table = {"a":ta, "b":tb, "c": tc}[child]
@@ -84,14 +83,14 @@ def produce_test(parent, child, direction):
 
             abcjoin = polymorphic_union(
                 {"a":ta.select(tb.c.id==None, from_obj=[ta.outerjoin(tb, onclause=atob)]),
-                "b":ta.join(tb, onclause=atob).outerjoin(tc, onclause=btoc).select(tc.c.id==None, fold_equivalents=True),
+                "b":ta.join(tb, onclause=atob).outerjoin(tc, onclause=btoc).select(tc.c.id==None).reduce_columns(),
                 "c":tc.join(tb, onclause=btoc).join(ta, onclause=atob)
                 },"type", "abcjoin"
             )
 
             bcjoin = polymorphic_union(
             {
-            "b":ta.join(tb, onclause=atob).outerjoin(tc, onclause=btoc).select(tc.c.id==None, fold_equivalents=True),
+            "b":ta.join(tb, onclause=atob).outerjoin(tc, onclause=btoc).select(tc.c.id==None).reduce_columns(),
             "c":tc.join(tb, onclause=btoc).join(ta, onclause=atob)
             },"type", "bcjoin"
             )
@@ -111,7 +110,11 @@ def produce_test(parent, child, direction):
             parent_class = parent_mapper.class_
             child_class = child_mapper.class_
 
-            parent_mapper.add_property("collection", relationship(child_mapper, primaryjoin=relationshipjoin, foreign_keys=foreign_keys, remote_side=remote_side, uselist=True))
+            parent_mapper.add_property("collection",
+                                relationship(child_mapper,
+                                            primaryjoin=relationshipjoin,
+                                            foreign_keys=foreign_keys,
+                                            remote_side=remote_side, uselist=True))
 
             sess = create_session()
 

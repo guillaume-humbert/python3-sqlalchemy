@@ -1,20 +1,18 @@
-.. _engines_toplevel:
-
 ====================
 Engine Configuration
 ====================
 
-The **Engine** is the starting point for any SQLAlchemy application. It's
-"home base" for the actual database and its DBAPI, delivered to the SQLAlchemy
-application through a connection pool and a **Dialect**, which describes how
+The :class:`.Engine` is the starting point for any SQLAlchemy application. It's
+"home base" for the actual database and its :term:`DBAPI`, delivered to the SQLAlchemy
+application through a connection pool and a :class:`.Dialect`, which describes how
 to talk to a specific kind of database/DBAPI combination.
 
 The general structure can be illustrated as follows:
 
 .. image:: sqla_engine_arch.png
 
-Where above, an :class:`~sqlalchemy.engine.base.Engine` references both a
-:class:`~sqlalchemy.engine.base.Dialect` and a :class:`~sqlalchemy.pool.Pool`,
+Where above, an :class:`.Engine` references both a
+:class:`.Dialect` and a :class:`.Pool`,
 which together interpret the DBAPI's module functions as well as the behavior
 of the database.
 
@@ -45,96 +43,12 @@ applications.
 Supported Databases
 ====================
 
-SQLAlchemy includes many :class:`~sqlalchemy.engine.base.Dialect` implementations for various
-backends; each is described as its own package in the :ref:`sqlalchemy.dialects_toplevel` package.  A
-SQLAlchemy dialect always requires that an appropriate DBAPI driver is installed.
+SQLAlchemy includes many :class:`.Dialect` implementations for various
+backends.   Dialects for the most common databases are included with SQLAlchemy; a handful
+of others require an additional install of a separate dialect.
 
-The table below summarizes the state of DBAPI support in SQLAlchemy 0.7.  The values
-translate as:
+See the section :ref:`dialect_toplevel` for information on the various backends available.
 
-* yes / Python platform - The SQLAlchemy dialect is mostly or fully operational on the target platform.
-* yes / OS platform - The DBAPI supports that platform.
-* no / Python platform - The DBAPI does not support that platform, or there is no SQLAlchemy dialect support.
-* no / OS platform - The DBAPI does not support that platform.
-* partial - the DBAPI is partially usable on the target platform but has major unresolved issues.
-* development - a development version of the dialect exists, but is not yet usable.
-* thirdparty - the dialect itself is maintained by a third party, who should be consulted for
-  information on current support.
-* \* - indicates the given DBAPI is the "default" for SQLAlchemy, i.e. when just the database name is specified
-
-===============================================================  ===========================  ===========  ===========   ===========  =================  ============
-Driver                                                           Connect string               Py2K         Py3K          Jython       Unix               Windows
-===============================================================  ===========================  ===========  ===========   ===========  =================  ============
-**DB2/Informix IDS**
-ibm-db_                                                          thirdparty                   thirdparty   thirdparty    thirdparty   thirdparty         thirdparty
-**Drizzle** :ref:`(docs) <drizzle_toplevel>`
-mysql-python_                                                    ``drizzle+mysqldb``\*        yes          development   no           yes                yes
-**Firebird / Interbase** :ref:`(docs) <firebird_toplevel>`
-kinterbasdb_                                                     ``firebird+kinterbasdb``\*   yes          development   no           yes                yes
-**Informix** :ref:`(docs) <informix_toplevel>`
-informixdb_                                                      ``informix+informixdb``\*    yes          development   no           unknown            unknown
-**MaxDB** :ref:`(docs) <maxdb_toplevel>`
-sapdb_                                                           ``maxdb+sapdb``\*            development  development   no           yes                unknown
-**Microsoft Access** :ref:`(docs) <access_toplevel>`
-pyodbc_                                                          ``access+pyodbc``\*          development  development   no           unknown            yes
-**Microsoft SQL Server** :ref:`(docs) <mssql_toplevel>`
-adodbapi_                                                        ``mssql+adodbapi``           development  development   no           no                 yes
-`jTDS JDBC Driver`_                                              ``mssql+zxjdbc``             no           no            development  yes                yes
-mxodbc_                                                          ``mssql+mxodbc``             yes          development   no           yes with FreeTDS_  yes
-pyodbc_                                                          ``mssql+pyodbc``\*           yes          development   no           yes with FreeTDS_  yes
-pymssql_                                                         ``mssql+pymssql``            yes          development   no           yes                yes
-**MySQL** :ref:`(docs) <mysql_toplevel>`
-`MySQL Connector/J`_                                             ``mysql+zxjdbc``             no           no            yes          yes                yes
-`MySQL Connector/Python`_                                        ``mysql+mysqlconnector``     yes          development   no           yes                yes
-mysql-python_                                                    ``mysql+mysqldb``\*          yes          development   no           yes                yes
-OurSQL_                                                          ``mysql+oursql``             yes          yes           no           yes                yes
-pymysql_                                                         ``mysql+pymysql``            yes          development   no           yes                yes
-rdbms_ (Google Appengine)                                        ``mysql+gaerdbms``           yes          development   no           no                 no
-**Oracle** :ref:`(docs) <oracle_toplevel>`
-cx_oracle_                                                       ``oracle+cx_oracle``\*       yes          development   no           yes                yes
-`Oracle JDBC Driver`_                                            ``oracle+zxjdbc``            no           no            yes          yes                yes
-**Postgresql** :ref:`(docs) <postgresql_toplevel>`
-pg8000_                                                          ``postgresql+pg8000``        yes          yes           no           yes                yes
-`PostgreSQL JDBC Driver`_                                        ``postgresql+zxjdbc``        no           no            yes          yes                yes
-psycopg2_                                                        ``postgresql+psycopg2``\*    yes          yes           no           yes                yes
-pypostgresql_                                                    ``postgresql+pypostgresql``  no           yes           no           yes                yes
-**SQLite** :ref:`(docs) <sqlite_toplevel>`
-pysqlite_                                                        ``sqlite+pysqlite``\*        yes          yes           no           yes                yes
-sqlite3_                                                         ``sqlite+pysqlite``\*        yes          yes           no           yes                yes
-**Sybase ASE** :ref:`(docs) <sybase_toplevel>`
-mxodbc_                                                          ``sybase+mxodbc``            development  development   no           yes                yes
-pyodbc_                                                          ``sybase+pyodbc``\*          partial      development   no           unknown            unknown
-python-sybase_                                                   ``sybase+pysybase``          yes [1]_     development   no           yes                yes
-===============================================================  ===========================  ===========  ===========   ===========  =================  ============
-
-.. [1] The Sybase dialect currently lacks the ability to reflect tables.
-.. _psycopg2: http://www.initd.org/
-.. _pg8000: http://pybrary.net/pg8000/
-.. _pypostgresql: http://python.projects.postgresql.org/
-.. _mysql-python: http://sourceforge.net/projects/mysql-python
-.. _MySQL Connector/Python: https://launchpad.net/myconnpy
-.. _OurSQL: http://packages.python.org/oursql/
-.. _pymysql: http://code.google.com/p/pymysql/
-.. _rdbms: https://developers.google.com/cloud-sql/docs/developers_guide_python
-.. _PostgreSQL JDBC Driver: http://jdbc.postgresql.org/
-.. _sqlite3: http://docs.python.org/library/sqlite3.html
-.. _pysqlite: http://pypi.python.org/pypi/pysqlite/
-.. _MySQL Connector/J: http://dev.mysql.com/downloads/connector/j/
-.. _cx_Oracle: http://cx-oracle.sourceforge.net/
-.. _Oracle JDBC Driver: http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/index.html
-.. _kinterbasdb:  http://firebirdsql.org/index.php?op=devel&sub=python
-.. _pyodbc: http://code.google.com/p/pyodbc/
-.. _mxodbc: http://www.egenix.com/products/python/mxODBC/
-.. _FreeTDS: http://www.freetds.org/
-.. _adodbapi: http://adodbapi.sourceforge.net/
-.. _pymssql: http://code.google.com/p/pymssql/
-.. _jTDS JDBC Driver: http://jtds.sourceforge.net/
-.. _ibm-db: http://code.google.com/p/ibm-db/
-.. _informixdb: http://informixdb.sourceforge.net/
-.. _sapdb: http://www.sapdb.org/sapdbapi.html
-.. _python-sybase: http://python-sybase.sourceforge.net/
-
-Further detail on dialects is available at :ref:`dialect_toplevel`.
 
 
 .. _create_engine_args:
@@ -352,7 +266,7 @@ application that has logging enabled otherwise.
 
 The ``echo`` flags present as keyword arguments to
 :func:`~sqlalchemy.create_engine` and others as well as the ``echo`` property
-on :class:`~sqlalchemy.engine.base.Engine`, when set to ``True``, will first
+on :class:`~sqlalchemy.engine.Engine`, when set to ``True``, will first
 attempt to ensure that logging is enabled. Unfortunately, the ``logging``
 module provides no way of determining if output has already been configured
 (note we are referring to if a logging configuration has been set up, not just
@@ -364,7 +278,7 @@ configured **in addition** to any existing logger configurations. Therefore,
 **when using Python logging, ensure all echo flags are set to False at all
 times**, to avoid getting duplicate log lines.
 
-The logger name of instance such as an :class:`~sqlalchemy.engine.base.Engine`
+The logger name of instance such as an :class:`~sqlalchemy.engine.Engine`
 or :class:`~sqlalchemy.pool.Pool` defaults to using a truncated hex identifier
 string. To set this to a specific name, use the "logging_name" and
 "pool_logging_name" keyword arguments with :func:`sqlalchemy.create_engine`.

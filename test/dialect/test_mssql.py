@@ -1,5 +1,5 @@
 # -*- encoding: utf-8
-from test.lib.testing import eq_
+from sqlalchemy.testing import eq_
 import datetime
 import os
 import re
@@ -12,8 +12,10 @@ from sqlalchemy.databases import mssql
 from sqlalchemy.dialects.mssql import pyodbc, mxodbc, pymssql
 from sqlalchemy.dialects.mssql.base import TIME
 from sqlalchemy.engine import url
-from test.lib import *
-from test.lib.testing import eq_, emits_warning_on, \
+from sqlalchemy.testing import fixtures, AssertsCompiledSQL, \
+        AssertsExecutionResults, ComparesTables
+from sqlalchemy import testing
+from sqlalchemy.testing import eq_, emits_warning_on, \
     assert_raises_message
 from sqlalchemy.util.compat import decimal
 from sqlalchemy.engine.reflection import Inspector
@@ -153,12 +155,13 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
     #            ""
     #        )
 
-    # TODO: should this be for *all* MS-SQL dialects ?
-    def test_mxodbc_binds(self):
-        """mxodbc uses MS-SQL native binds, which aren't allowed in
-        various places."""
+    def test_strict_binds(self):
+        """test the 'strict' compiler binds."""
 
+        from sqlalchemy.dialects.mssql.base import MSSQLStrictCompiler
         mxodbc_dialect = mxodbc.dialect()
+        mxodbc_dialect.statement_compiler = MSSQLStrictCompiler
+
         t = table('sometable', column('foo'))
 
         for expr, compile in [
@@ -170,23 +173,13 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                 select([t]).where(t.c.foo.in_(['x', 'y', 'z'])),
                 "SELECT sometable.foo FROM sometable WHERE sometable.foo "
                 "IN ('x', 'y', 'z')",
-            ),
-            (
-                func.foobar("x", "y", 4, 5),
-                "foobar('x', 'y', 4, 5)",
-            ),
-            (
-                select([t]).where(func.len('xyz') > func.len(t.c.foo)),
-                "SELECT sometable.foo FROM sometable WHERE len('xyz') > "
-                "len(sometable.foo)",
             )
         ]:
             self.assert_compile(expr, compile, dialect=mxodbc_dialect)
 
-    @testing.uses_deprecated
     def test_in_with_subqueries(self):
-        """Test that when using subqueries in a binary expression
-        the == and != are changed to IN and NOT IN respectively.
+        """Test removal of legacy behavior that converted "x==subquery"
+        to use IN.
 
         """
 
@@ -194,14 +187,14 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(t.select().where(t.c.somecolumn
                             == t.select()),
                             'SELECT sometable.somecolumn FROM '
-                            'sometable WHERE sometable.somecolumn IN '
+                            'sometable WHERE sometable.somecolumn = '
                             '(SELECT sometable.somecolumn FROM '
                             'sometable)')
         self.assert_compile(t.select().where(t.c.somecolumn
                             != t.select()),
                             'SELECT sometable.somecolumn FROM '
-                            'sometable WHERE sometable.somecolumn NOT '
-                            'IN (SELECT sometable.somecolumn FROM '
+                            'sometable WHERE sometable.somecolumn != '
+                            '(SELECT sometable.somecolumn FROM '
                             'sometable)')
 
     def test_count(self):
@@ -538,7 +531,8 @@ class SchemaAliasingTest(fixtures.TestBase, AssertsCompiledSQL):
         t1, t2 = self.t1, self.t2
         self.assert_compile(
             t1.join(t2, t1.c.a==t2.c.a).select(),
-            "SELECT t1.a, t1.b, t1.c, t2_1.a, t2_1.b, t2_1.c FROM t1 JOIN [schema].t2 AS t2_1 ON t2_1.a = t1.a"
+            "SELECT t1.a, t1.b, t1.c, t2_1.a, t2_1.b, t2_1.c FROM t1 "
+            "JOIN [schema].t2 AS t2_1 ON t2_1.a = t1.a"
         )
 
     def test_union_schema_to_non(self):
@@ -697,6 +691,41 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         assert isinstance(t1.c.id.type, Integer)
         assert isinstance(t1.c.data.type, types.NullType)
 
+
+    @testing.provide_metadata
+    def test_db_qualified_items(self):
+        metadata = self.metadata
+        Table('foo', metadata, Column('id', Integer, primary_key=True))
+        Table('bar', metadata,
+                Column('id', Integer, primary_key=True),
+                Column('foo_id', Integer, ForeignKey('foo.id', name="fkfoo"))
+            )
+        metadata.create_all()
+
+        dbname = testing.db.scalar("select db_name()")
+        owner = testing.db.scalar("SELECT user_name()")
+
+        inspector = inspect(testing.db)
+        bar_via_db = inspector.get_foreign_keys(
+                            "bar", schema="%s.%s" % (dbname, owner))
+        eq_(
+            bar_via_db,
+            [{
+                'referred_table': 'foo',
+                'referred_columns': ['id'],
+                'referred_schema': 'test.dbo',
+                'name': 'fkfoo',
+                'constrained_columns': ['foo_id']}]
+        )
+
+        assert testing.db.has_table("bar", schema="test.dbo")
+
+        m2 = MetaData()
+        Table('bar', m2, schema="test.dbo", autoload=True,
+                                autoload_with=testing.db)
+        eq_(m2.tables["test.dbo.foo"].schema, "test.dbo")
+
+
     @testing.provide_metadata
     def test_indexes_cols(self):
         metadata = self.metadata
@@ -774,7 +803,7 @@ class QueryUnicodeTest(fixtures.TestBase):
         finally:
             meta.drop_all()
 
-from test.lib.assertsql import ExactSQL
+from sqlalchemy.testing.assertsql import ExactSQL
 class QueryTest(testing.AssertsExecutionResults, fixtures.TestBase):
     __only_on__ = 'mssql'
 

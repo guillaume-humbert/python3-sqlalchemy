@@ -10,7 +10,7 @@
     
                 SQLAlchemy Core
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
         <link rel="next" title="SQL Expression Language Tutorial" href="tutorial.html" />
         <link rel="prev" title="ORM Internals" href="../orm/internals.html" />
 
@@ -54,7 +54,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -66,7 +66,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -92,7 +92,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
         » 
                 SQLAlchemy Core
              
@@ -156,7 +156,10 @@ Language provides a schema-centric usage paradigm.</p>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#executing">Executing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#executing-multiple-statements">Executing Multiple Statements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#selecting">Selecting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#operators">Operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#operators">Operators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tutorial.html#operator-customization">Operator Customization</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#conjunctions">Conjunctions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#using-text">Using Text</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html#using-aliases">Using Aliases</a></li>
@@ -217,6 +220,10 @@ Language provides a schema-centric usage paradigm.</p>
 <li class="toctree-l2"><a class="reference internal" href="connections.html#understanding-autocommit">Understanding Autocommit</a></li>
 <li class="toctree-l2"><a class="reference internal" href="connections.html#connectionless-execution-implicit-execution">Connectionless Execution, Implicit Execution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="connections.html#using-the-threadlocal-execution-strategy">Using the Threadlocal Execution Strategy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="connections.html#registering-new-dialects">Registering New Dialects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="connections.html#registering-dialects-in-process">Registering Dialects In-Process</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="connections.html#connection-engine-api">Connection / Engine API</a></li>
 </ul>
 </li>
@@ -287,6 +294,9 @@ Language provides a schema-centric usage paradigm.</p>
 <li class="toctree-l3"><a class="reference internal" href="types.html#overriding-type-compilation">Overriding Type Compilation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="types.html#augmenting-existing-types">Augmenting Existing Types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="types.html#typedecorator-recipes">TypeDecorator Recipes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#replacing-the-bind-result-processing-of-existing-types">Replacing the Bind/Result Processing of Existing Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#applying-sql-level-bind-result-processing">Applying SQL-level Bind/Result Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="types.html#redefining-and-creating-new-operators">Redefining and Creating New Operators</a></li>
 <li class="toctree-l3"><a class="reference internal" href="types.html#creating-new-types">Creating New Types</a></li>
 </ul>
 </li>
@@ -303,7 +313,7 @@ Language provides a schema-centric usage paradigm.</p>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="events.html">Core Events</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="events.html#connection-pool-events">Connection Pool Events</a></li>
-<li class="toctree-l2"><a class="reference internal" href="events.html#connection-events">Connection Events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="events.html#sql-execution-and-connection-events">SQL Execution and Connection Events</a></li>
 <li class="toctree-l2"><a class="reference internal" href="events.html#schema-events">Schema Events</a></li>
 </ul>
 </li>
@@ -324,6 +334,10 @@ Language provides a schema-centric usage paradigm.</p>
 <li class="toctree-l3"><a class="reference internal" href="compiler.html#false-expression">&#8220;false&#8221; expression</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="inspection.html">Runtime Inspection API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="inspection.html#available-inspection-targets">Available Inspection Targets</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="serializer.html">Expression Serializer Extension</a></li>

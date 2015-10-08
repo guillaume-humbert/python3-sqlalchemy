@@ -7,7 +7,7 @@
         
         <title>
             
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '#',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -29,7 +29,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="#" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="#" />
 
     </head>
     <body>
@@ -49,7 +49,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -61,7 +61,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -81,7 +81,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="#">SQLAlchemy 0.7 Documentation</a>
+        <a href="#">SQLAlchemy 0.8 Documentation</a>
 
         <h2>
             
@@ -104,7 +104,9 @@
 <p>A high level view and getting set up.</p>
 <p><a class="reference internal" href="intro.html#id1"><em>Overview</em></a> |
 <a class="reference internal" href="intro.html#installation"><em>Installation Guide</em></a> |
-<a class="reference internal" href="intro.html#migration"><em>Migration from 0.6</em></a></p>
+<a class="reference internal" href="changelog/migration_08.html"><em>Migration from 0.7</em></a> |
+<a class="reference internal" href="glossary.html"><em>Glossary</em></a> |
+<a class="reference internal" href="changelog/index.html"><em>Changelog catalog</em></a></p>
 </div>
 <div class="section" id="sqlalchemy-orm">
 <h2>SQLAlchemy ORM<a class="headerlink" href="#sqlalchemy-orm" title="Permalink to this headline">¶</a></h2>
@@ -138,7 +140,7 @@ of Python objects, proceed first to the tutorial.</p>
 <a class="reference internal" href="orm/deprecated.html"><em>Deprecated Event Interfaces</em></a> |
 <a class="reference internal" href="orm/exceptions.html"><em>ORM Exceptions</em></a> |
 <a class="reference internal" href="orm/extensions/horizontal_shard.html"><em>Horizontal Sharding</em></a> |
-<a class="reference internal" href="orm/extensions/sqlsoup.html"><em>SQLSoup</em></a></li>
+<a class="reference internal" href="orm/extensions/instrumentation.html"><em>Alternate Instrumentation</em></a></li>
 </ul>
 </div>
 <div class="section" id="sqlalchemy-core">
@@ -167,6 +169,7 @@ are documented here.  In contrast to the ORM&#8217;s domain-centric mode of usag
 <a class="reference internal" href="core/types.html#types-sqlstandard"><em>SQL Standard Types</em></a> |
 <a class="reference internal" href="core/types.html#types-vendor"><em>Vendor Specific Types</em></a> |
 <a class="reference internal" href="core/types.html#types-custom"><em>Building Custom Types</em></a> |
+<a class="reference internal" href="core/types.html#types-operators"><em>Defining New Operators</em></a> |
 <a class="reference internal" href="core/types.html#types-api"><em>API</em></a></li>
 <li><strong>Extending the Core:</strong>
 <a class="reference internal" href="core/event.html"><em>SQLAlchemy Events</em></a> |
@@ -174,26 +177,16 @@ are documented here.  In contrast to the ORM&#8217;s domain-centric mode of usag
 <a class="reference internal" href="core/compiler.html"><em>Creating Custom SQL Constructs</em></a> |
 <a class="reference internal" href="core/internals.html"><em>Internals API</em></a></li>
 <li><strong>Other:</strong>
-<a class="reference internal" href="core/serializer.html"><em>Serializing Expressions</em></a> |
+<a class="reference internal" href="core/inspection.html"><em>Runtime Inspection API</em></a> |
 <a class="reference internal" href="core/interfaces.html"><em>Deprecated Event Interfaces</em></a> |
 <a class="reference internal" href="core/exceptions.html"><em>Core Exceptions</em></a></li>
 </ul>
 </div>
 <div class="section" id="dialect-documentation">
 <h2>Dialect Documentation<a class="headerlink" href="#dialect-documentation" title="Permalink to this headline">¶</a></h2>
-<p>The <strong>dialect</strong> is the system SQLAlchemy uses to communicate with various types of DBAPIs and databases.  This section describes notes, options, and
-usage patterns regarding individual dialects.</p>
-<p><a class="reference internal" href="dialects/drizzle.html"><em>Drizzle</em></a> |
-<a class="reference internal" href="dialects/firebird.html"><em>Firebird</em></a> |
-<a class="reference internal" href="dialects/informix.html"><em>Informix</em></a> |
-<a class="reference internal" href="dialects/maxdb.html"><em>MaxDB</em></a> |
-<a class="reference internal" href="dialects/access.html"><em>Microsoft Access</em></a> |
-<a class="reference internal" href="dialects/mssql.html"><em>Microsoft SQL Server</em></a> |
-<a class="reference internal" href="dialects/mysql.html"><em>MySQL</em></a> |
-<a class="reference internal" href="dialects/oracle.html"><em>Oracle</em></a> |
-<a class="reference internal" href="dialects/postgresql.html"><em>PostgreSQL</em></a> |
-<a class="reference internal" href="dialects/sqlite.html"><em>SQLite</em></a> |
-<a class="reference internal" href="dialects/sybase.html"><em>Sybase</em></a></p>
+<p>The <strong>dialect</strong> is the system SQLAlchemy uses to communicate with various types of DBAPIs and databases.
+This section describes notes, options, and usage patterns regarding individual dialects.</p>
+<p><a class="reference internal" href="dialects/index.html"><em>Index of all Dialects</em></a></p>
 </div>
 </div>
 

@@ -1,16 +1,15 @@
-from test.lib.testing import eq_, assert_raises, assert_raises_message
-import StringIO, unicodedata
-from sqlalchemy import types as sql_types
-from sqlalchemy import schema, events, event
-from sqlalchemy.engine.reflection import Inspector
-from sqlalchemy import MetaData, Integer, String
-from test.lib.schema import Table, Column
+import unicodedata
 import sqlalchemy as sa
-from test.lib import ComparesTables, \
-                            testing, engines, AssertsCompiledSQL
-from test.lib import fixtures
-
-create_inspector = Inspector.from_engine
+from sqlalchemy import exc as sa_exc
+from sqlalchemy import types as sql_types
+from sqlalchemy import schema, events, event, inspect
+from sqlalchemy import MetaData, Integer, String
+from sqlalchemy.engine.reflection import Inspector
+from sqlalchemy.testing import ComparesTables, \
+                            engines, AssertsCompiledSQL, fixtures
+from sqlalchemy.testing.schema import Table, Column
+from sqlalchemy.testing import eq_, assert_raises, assert_raises_message
+from sqlalchemy import testing
 
 metadata, users = None, None
 
@@ -66,7 +65,7 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
     @testing.provide_metadata
     def test_two_foreign_keys(self):
         meta = self.metadata
-        t1 = Table(
+        Table(
             't1',
             meta,
             Column('id', sa.Integer, primary_key=True),
@@ -74,10 +73,12 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
             Column('t3id', sa.Integer, sa.ForeignKey('t3.id')),
             test_needs_fk=True,
             )
-        t2 = Table('t2', meta, Column('id', sa.Integer,
-                   primary_key=True), test_needs_fk=True)
-        t3 = Table('t3', meta, Column('id', sa.Integer,
-                   primary_key=True), test_needs_fk=True)
+        Table('t2', meta,
+                    Column('id', sa.Integer, primary_key=True),
+                    test_needs_fk=True)
+        Table('t3', meta,
+                    Column('id', sa.Integer, primary_key=True),
+                    test_needs_fk=True)
         meta.create_all()
         meta2 = MetaData()
         t1r, t2r, t3r = [Table(x, meta2, autoload=True,
@@ -203,7 +204,11 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         assert len(t2.indexes) == 2
 
     @testing.provide_metadata
-    def test_autoload_replace_foreign_key(self):
+    def test_autoload_replace_foreign_key_nonpresent(self):
+        """test autoload_replace=False with col plus FK
+        establishes the FK not present in the DB.
+
+        """
         a = Table('a', self.metadata, Column('id', Integer, primary_key=True))
         b = Table('b', self.metadata, Column('id', Integer, primary_key=True),
                                     Column('a_id', Integer))
@@ -219,6 +224,51 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         assert b2.c.id is not None
         assert b2.c.a_id.references(a2.c.id)
         eq_(len(b2.constraints), 2)
+
+    @testing.provide_metadata
+    def test_autoload_replace_foreign_key_ispresent(self):
+        """test autoload_replace=False with col plus FK mirroring
+        DB-reflected FK skips the reflected FK and installs
+        the in-python one only.
+
+        """
+        a = Table('a', self.metadata, Column('id', Integer, primary_key=True))
+        b = Table('b', self.metadata, Column('id', Integer, primary_key=True),
+                                    Column('a_id', Integer, sa.ForeignKey('a.id')))
+        self.metadata.create_all()
+
+        m2 = MetaData()
+        b2 = Table('b', m2, Column('a_id', Integer, sa.ForeignKey('a.id')))
+        a2 = Table('a', m2, autoload=True, autoload_with=testing.db)
+        b2 = Table('b', m2, extend_existing=True, autoload=True,
+                                autoload_with=testing.db,
+                                autoload_replace=False)
+
+        assert b2.c.id is not None
+        assert b2.c.a_id.references(a2.c.id)
+        eq_(len(b2.constraints), 2)
+
+    @testing.provide_metadata
+    def test_autoload_replace_foreign_key_removed(self):
+        """test autoload_replace=False with col minus FK that's in the
+        DB means the FK is skipped and doesn't get installed at all.
+
+        """
+        a = Table('a', self.metadata, Column('id', Integer, primary_key=True))
+        b = Table('b', self.metadata, Column('id', Integer, primary_key=True),
+                                    Column('a_id', Integer, sa.ForeignKey('a.id')))
+        self.metadata.create_all()
+
+        m2 = MetaData()
+        b2 = Table('b', m2, Column('a_id', Integer))
+        a2 = Table('a', m2, autoload=True, autoload_with=testing.db)
+        b2 = Table('b', m2, extend_existing=True, autoload=True,
+                                autoload_with=testing.db,
+                                autoload_replace=False)
+
+        assert b2.c.id is not None
+        assert not b2.c.a_id.references(a2.c.id)
+        eq_(len(b2.constraints), 1)
 
     @testing.provide_metadata
     def test_autoload_replace_primary_key(self):
@@ -701,6 +751,33 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         table_c2 = Table('is', meta2, autoload=True)
 
     @testing.provide_metadata
+    def _test_reflect_uses_bind(self, fn):
+        from sqlalchemy.pool import AssertionPool
+        e = engines.testing_engine(options={"poolclass": AssertionPool})
+        fn(e)
+
+    @testing.uses_deprecated
+    def test_reflect_uses_bind_constructor_conn(self):
+        self._test_reflect_uses_bind(lambda e: MetaData(e.connect(),
+                    reflect=True))
+
+    @testing.uses_deprecated
+    def test_reflect_uses_bind_constructor_engine(self):
+        self._test_reflect_uses_bind(lambda e: MetaData(e, reflect=True))
+
+    def test_reflect_uses_bind_constructor_conn_reflect(self):
+        self._test_reflect_uses_bind(lambda e: MetaData(e.connect()).reflect())
+
+    def test_reflect_uses_bind_constructor_engine_reflect(self):
+        self._test_reflect_uses_bind(lambda e: MetaData(e).reflect())
+
+    def test_reflect_uses_bind_conn_reflect(self):
+        self._test_reflect_uses_bind(lambda e: MetaData().reflect(e.connect()))
+
+    def test_reflect_uses_bind_engine_reflect(self):
+        self._test_reflect_uses_bind(lambda e: MetaData().reflect(e))
+
+    @testing.provide_metadata
     def test_reflect_all(self):
         existing = testing.db.table_names()
 
@@ -745,16 +822,15 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         m6.reflect(only=lambda n, m: False)
         self.assert_(not m6.tables)
 
-        m7 = MetaData(testing.db, reflect=True)
+        m7 = MetaData(testing.db)
+        m7.reflect()
         self.assert_(nameset.issubset(set(m7.tables.keys())))
 
-        try:
-            m8 = MetaData(reflect=True)
-            self.assert_(False)
-        except sa.exc.ArgumentError, e:
-            self.assert_(e.args[0]
-                         == 'A bind must be supplied in '
-                         'conjunction with reflect=True')
+        m8 = MetaData()
+        assert_raises(
+            sa.exc.UnboundExecutionError,
+            m8.reflect
+        )
 
         if existing:
             print "Other tables present in database, skipping some checks."
@@ -773,7 +849,7 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
     def test_inspector_conn_closing(self):
         m1 = MetaData()
         c = testing.db.connect()
-        i = Inspector.from_engine(testing.db)
+        i = inspect(testing.db)
         assert not c.closed
 
     @testing.provide_metadata
@@ -1031,7 +1107,7 @@ class UnicodeReflectionTest(fixtures.TestBase):
 
         # Jython 2.5 on Java 5 lacks unicodedata.normalize
 
-        if not names.issubset(reflected) and hasattr(unicodedata,'normalize'):
+        if not names.issubset(reflected) and hasattr(unicodedata, 'normalize'):
 
             # Python source files in the utf-8 coding seem to
             # normalize literals as NFC (and the above are
@@ -1044,13 +1120,14 @@ class UnicodeReflectionTest(fixtures.TestBase):
             # Yep.  But still ensure that bulk reflection and
             # create/drop work with either normalization.
 
-        r = MetaData(bind, reflect=True)
+        r = MetaData(bind)
+        r.reflect()
         r.drop_all(checkfirst=False)
         r.create_all(checkfirst=False)
 
     @testing.requires.unicode_connections
     def test_get_names(self):
-        inspector = Inspector.from_engine(self.bind)
+        inspector = inspect(self.bind)
         names = dict(
             (tname, (cname, ixname)) for tname, cname, ixname in self.names
         )
@@ -1166,45 +1243,6 @@ class SchemaTest(fixtures.TestBase):
                 'test_schema.email_addresses'])
         )
 
-class HasSequenceTest(fixtures.TestBase):
-
-    @testing.requires.sequences
-    def test_has_sequence(self):
-        metadata = MetaData()
-        users = Table('users', metadata, Column('user_id', sa.Integer,
-                      sa.Sequence('user_id_seq'), primary_key=True),
-                      Column('user_name', sa.String(40)))
-        metadata.create_all(bind=testing.db)
-        try:
-            eq_(testing.db.dialect.has_sequence(testing.db,
-                'user_id_seq'), True)
-        finally:
-            metadata.drop_all(bind=testing.db)
-        eq_(testing.db.dialect.has_sequence(testing.db, 'user_id_seq'),
-            False)
-
-    @testing.requires.schemas
-    @testing.requires.sequences
-    def test_has_sequence_schema(self):
-        test_schema = 'test_schema'
-        s1 = sa.Sequence('user_id_seq', schema=test_schema)
-        s2 = sa.Sequence('user_id_seq')
-        testing.db.execute(schema.CreateSequence(s1))
-        testing.db.execute(schema.CreateSequence(s2))
-        eq_(testing.db.dialect.has_sequence(testing.db, 'user_id_seq',
-            schema=test_schema), True)
-        eq_(testing.db.dialect.has_sequence(testing.db, 'user_id_seq'),
-            True)
-        testing.db.execute(schema.DropSequence(s1))
-        eq_(testing.db.dialect.has_sequence(testing.db, 'user_id_seq',
-            schema=test_schema), False)
-        eq_(testing.db.dialect.has_sequence(testing.db, 'user_id_seq'),
-            True)
-        testing.db.execute(schema.DropSequence(s2))
-        eq_(testing.db.dialect.has_sequence(testing.db, 'user_id_seq',
-            schema=test_schema), False)
-        eq_(testing.db.dialect.has_sequence(testing.db, 'user_id_seq'),
-            False)
 
 
 
@@ -1358,271 +1396,6 @@ class CaseSensitiveTest(fixtures.TablesTest):
         eq_(t2.name, "sOmEtAbLe")
 
 
-class ComponentReflectionTest(fixtures.TestBase):
-
-    @testing.requires.schemas
-    def test_get_schema_names(self):
-        insp = Inspector(testing.db)
-
-        self.assert_('test_schema' in insp.get_schema_names())
-
-    def test_dialect_initialize(self):
-        engine = engines.testing_engine()
-        assert not hasattr(engine.dialect, 'default_schema_name')
-        insp = Inspector(engine)
-        assert hasattr(engine.dialect, 'default_schema_name')
-
-    def test_get_default_schema_name(self):
-        insp = Inspector(testing.db)
-        eq_(insp.default_schema_name, testing.db.dialect.default_schema_name)
-
-    @testing.provide_metadata
-    def _test_get_table_names(self, schema=None, table_type='table',
-                              order_by=None):
-        meta = self.metadata
-        users, addresses, dingalings = createTables(meta, schema)
-        meta.create_all()
-        _create_views(meta.bind, schema)
-        try:
-            insp = Inspector(meta.bind)
-            if table_type == 'view':
-                table_names = insp.get_view_names(schema)
-                table_names.sort()
-                answer = ['email_addresses_v', 'users_v']
-            else:
-                table_names = insp.get_table_names(schema,
-                                                   order_by=order_by)
-                if order_by == 'foreign_key':
-                    answer = ['dingalings', 'email_addresses', 'users']
-                    eq_(table_names, answer)
-                else:
-                    answer = ['dingalings', 'email_addresses', 'users']
-                    eq_(sorted(table_names), answer)
-        finally:
-            _drop_views(meta.bind, schema)
-
-    def test_get_table_names(self):
-        self._test_get_table_names()
-
-    def test_get_table_names_fks(self):
-        self._test_get_table_names(order_by='foreign_key')
-
-    @testing.requires.schemas
-    def test_get_table_names_with_schema(self):
-        self._test_get_table_names('test_schema')
-
-    @testing.requires.views
-    def test_get_view_names(self):
-        self._test_get_table_names(table_type='view')
-
-    @testing.requires.schemas
-    def test_get_view_names_with_schema(self):
-        self._test_get_table_names('test_schema', table_type='view')
-
-    def _test_get_columns(self, schema=None, table_type='table'):
-        meta = MetaData(testing.db)
-        users, addresses, dingalings = createTables(meta, schema)
-        table_names = ['users', 'email_addresses']
-        meta.create_all()
-        if table_type == 'view':
-            _create_views(meta.bind, schema)
-            table_names = ['users_v', 'email_addresses_v']
-        try:
-            insp = Inspector(meta.bind)
-            for table_name, table in zip(table_names, (users,
-                    addresses)):
-                schema_name = schema
-                cols = insp.get_columns(table_name, schema=schema_name)
-                self.assert_(len(cols) > 0, len(cols))
-
-                # should be in order
-
-                for i, col in enumerate(table.columns):
-                    eq_(col.name, cols[i]['name'])
-                    ctype = cols[i]['type'].__class__
-                    ctype_def = col.type
-                    if isinstance(ctype_def, sa.types.TypeEngine):
-                        ctype_def = ctype_def.__class__
-
-                    # Oracle returns Date for DateTime.
-
-                    if testing.against('oracle') and ctype_def \
-                        in (sql_types.Date, sql_types.DateTime):
-                        ctype_def = sql_types.Date
-
-                    # assert that the desired type and return type share
-                    # a base within one of the generic types.
-
-                    self.assert_(len(set(ctype.__mro__).
-                        intersection(ctype_def.__mro__).intersection([
-                        sql_types.Integer,
-                        sql_types.Numeric,
-                        sql_types.DateTime,
-                        sql_types.Date,
-                        sql_types.Time,
-                        sql_types.String,
-                        sql_types._Binary,
-                        ])) > 0, '%s(%s), %s(%s)' % (col.name,
-                                col.type, cols[i]['name'], ctype))
-        finally:
-            if table_type == 'view':
-                _drop_views(meta.bind, schema)
-            meta.drop_all()
-
-    def test_get_columns(self):
-        self._test_get_columns()
-
-    @testing.requires.schemas
-    def test_get_columns_with_schema(self):
-        self._test_get_columns(schema='test_schema')
-
-    @testing.requires.views
-    def test_get_view_columns(self):
-        self._test_get_columns(table_type='view')
-
-    @testing.requires.views
-    @testing.requires.schemas
-    def test_get_view_columns_with_schema(self):
-        self._test_get_columns(schema='test_schema', table_type='view')
-
-    @testing.provide_metadata
-    def _test_get_primary_keys(self, schema=None):
-        meta = self.metadata
-        users, addresses, dingalings = createTables(meta, schema)
-        meta.create_all()
-        insp = Inspector(meta.bind)
-        users_pkeys = insp.get_primary_keys(users.name,
-                                            schema=schema)
-        eq_(users_pkeys,  ['user_id'])
-        addr_cons = insp.get_pk_constraint(addresses.name,
-                                            schema=schema)
-
-        addr_pkeys = addr_cons['constrained_columns']
-        eq_(addr_pkeys,  ['address_id'])
-
-        @testing.requires.reflects_pk_names
-        def go():
-            eq_(addr_cons['name'], 'email_ad_pk')
-        go()
-
-    def test_get_primary_keys(self):
-        self._test_get_primary_keys()
-
-    @testing.fails_on('sqlite', 'no schemas')
-    def test_get_primary_keys_with_schema(self):
-        self._test_get_primary_keys(schema='test_schema')
-
-    @testing.provide_metadata
-    def _test_get_foreign_keys(self, schema=None):
-        meta = self.metadata
-        users, addresses, dingalings = createTables(meta, schema)
-        meta.create_all()
-        insp = Inspector(meta.bind)
-        expected_schema = schema
-        # users
-        users_fkeys = insp.get_foreign_keys(users.name,
-                                            schema=schema)
-        fkey1 = users_fkeys[0]
-
-        @testing.fails_on('sqlite', 'no support for constraint names')
-        def go():
-            self.assert_(fkey1['name'] is not None)
-        go()
-
-        eq_(fkey1['referred_schema'], expected_schema)
-        eq_(fkey1['referred_table'], users.name)
-        eq_(fkey1['referred_columns'], ['user_id', ])
-        eq_(fkey1['constrained_columns'], ['parent_user_id'])
-        #addresses
-        addr_fkeys = insp.get_foreign_keys(addresses.name,
-                                           schema=schema)
-        fkey1 = addr_fkeys[0]
-        @testing.fails_on('sqlite', 'no support for constraint names')
-        def go():
-            self.assert_(fkey1['name'] is not None)
-        go()
-        eq_(fkey1['referred_schema'], expected_schema)
-        eq_(fkey1['referred_table'], users.name)
-        eq_(fkey1['referred_columns'], ['user_id', ])
-        eq_(fkey1['constrained_columns'], ['remote_user_id'])
-
-    def test_get_foreign_keys(self):
-        self._test_get_foreign_keys()
-
-    @testing.requires.schemas
-    def test_get_foreign_keys_with_schema(self):
-        self._test_get_foreign_keys(schema='test_schema')
-
-    @testing.provide_metadata
-    def _test_get_indexes(self, schema=None):
-        meta = self.metadata
-        users, addresses, dingalings = createTables(meta, schema)
-        meta.create_all()
-        createIndexes(meta.bind, schema)
-        # The database may decide to create indexes for foreign keys, etc.
-        # so there may be more indexes than expected.
-        insp = Inspector(meta.bind)
-        indexes = insp.get_indexes('users', schema=schema)
-        expected_indexes = [
-            {'unique': False,
-             'column_names': ['test1', 'test2'],
-             'name': 'users_t_idx'}]
-        index_names = [d['name'] for d in indexes]
-        for e_index in expected_indexes:
-            assert e_index['name'] in index_names
-            index = indexes[index_names.index(e_index['name'])]
-            for key in e_index:
-                eq_(e_index[key], index[key])
-
-    def test_get_indexes(self):
-        self._test_get_indexes()
-
-    @testing.requires.schemas
-    def test_get_indexes_with_schema(self):
-        self._test_get_indexes(schema='test_schema')
-
-    @testing.provide_metadata
-    def _test_get_view_definition(self, schema=None):
-        meta = self.metadata
-        users, addresses, dingalings = createTables(meta, schema)
-        meta.create_all()
-        _create_views(meta.bind, schema)
-        view_name1 = 'users_v'
-        view_name2 = 'email_addresses_v'
-        try:
-            insp = Inspector(meta.bind)
-            v1 = insp.get_view_definition(view_name1, schema=schema)
-            self.assert_(v1)
-            v2 = insp.get_view_definition(view_name2, schema=schema)
-            self.assert_(v2)
-        finally:
-            _drop_views(meta.bind, schema)
-
-    @testing.requires.views
-    def test_get_view_definition(self):
-        self._test_get_view_definition()
-
-    @testing.requires.views
-    @testing.requires.schemas
-    def test_get_view_definition_with_schema(self):
-        self._test_get_view_definition(schema='test_schema')
-
-    @testing.only_on("postgresql", "PG specific feature")
-    @testing.provide_metadata
-    def _test_get_table_oid(self, table_name, schema=None):
-        meta = self.metadata
-        users, addresses, dingalings = createTables(meta, schema)
-        meta.create_all()
-        insp = create_inspector(meta.bind)
-        oid = insp.get_table_oid(table_name, schema)
-        self.assert_(isinstance(oid, (int, long)))
-
-    def test_get_table_oid(self):
-        self._test_get_table_oid('users')
-
-    @testing.requires.schemas
-    def test_get_table_oid_with_schema(self):
-        self._test_get_table_oid('users', schema='test_schema')
 
 class ColumnEventsTest(fixtures.TestBase):
     @classmethod
@@ -1648,7 +1421,7 @@ class ColumnEventsTest(fixtures.TestBase):
         from sqlalchemy.schema import Table
 
         m = MetaData(testing.db)
-        def column_reflect(table, column_info):
+        def column_reflect(insp, table, column_info):
             if column_info['name'] == col:
                 column_info.update(update)
 

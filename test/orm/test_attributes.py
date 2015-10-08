@@ -3,13 +3,13 @@ from sqlalchemy.orm import attributes, instrumentation, exc as orm_exc
 from sqlalchemy.orm.collections import collection
 from sqlalchemy.orm.interfaces import AttributeExtension
 from sqlalchemy import exc as sa_exc
-from test.lib import *
-from test.lib.testing import eq_, ne_, assert_raises, \
+from sqlalchemy.testing import eq_, ne_, assert_raises, \
     assert_raises_message
-from test.lib import fixtures
-from test.lib.util import gc_collect, all_partial_orderings
-from sqlalchemy.util import cmp, jython, topological
+from sqlalchemy.testing import fixtures
+from sqlalchemy.testing.util import gc_collect, all_partial_orderings
+from sqlalchemy.util import jython
 from sqlalchemy import event
+from sqlalchemy import testing
 
 # global for pickling tests
 MyTest = None
@@ -188,7 +188,7 @@ class AttributesTest(fixtures.ORMTest):
         u.email_address = 'lala@123.com'
         self.assert_(u.user_id == 7 and u.user_name == 'john'
                      and u.email_address == 'lala@123.com')
-        attributes.instance_state(u).commit_all(attributes.instance_dict(u))
+        attributes.instance_state(u)._commit_all(attributes.instance_dict(u))
         self.assert_(u.user_id == 7 and u.user_name == 'john'
                      and u.email_address == 'lala@123.com')
         u.user_name = 'heythere'
@@ -205,9 +205,6 @@ class AttributesTest(fixtures.ORMTest):
                 uselist=False, useobject=False)
         attributes.register_attribute(MyTest, 'email_address',
                 uselist=False, useobject=False)
-        attributes.register_attribute(MyTest, 'some_mutable_data',
-                mutable_scalars=True, copy_function=list,
-                compare_function=cmp, uselist=False, useobject=False)
         attributes.register_attribute(MyTest2, 'a', uselist=False,
                 useobject=False)
         attributes.register_attribute(MyTest2, 'b', uselist=False,
@@ -225,7 +222,6 @@ class AttributesTest(fixtures.ORMTest):
         o = MyTest()
         o.mt2.append(MyTest2())
         o.user_id=7
-        o.some_mutable_data = [1,2,3]
         o.mt2[0].a = 'abcde'
         pk_o = pickle.dumps(o)
 
@@ -268,11 +264,11 @@ class AttributesTest(fixtures.ORMTest):
         self.assert_(o4.user_id == 7)
         self.assert_(o4.user_name is None)
         self.assert_(o4.email_address is None)
-        self.assert_(o4.some_mutable_data == [1,2,3])
         self.assert_(len(o4.mt2) == 1)
         self.assert_(o4.mt2[0].a == 'abcde')
         self.assert_(o4.mt2[0].b is None)
 
+    @testing.requires.predictable_gc
     def test_state_gc(self):
         """test that InstanceState always has a dict, even after host
         object gc'ed."""
@@ -284,7 +280,7 @@ class AttributesTest(fixtures.ORMTest):
         f = Foo()
         state = attributes.instance_state(f)
         f.bar = "foo"
-        assert state.dict == {'bar':'foo', state.manager.STATE_ATTR:state}
+        eq_(state.dict, {'bar': 'foo', state.manager.STATE_ATTR: state})
         del f
         gc_collect()
         assert state.obj() is None
@@ -328,28 +324,28 @@ class AttributesTest(fixtures.ORMTest):
         attributes.register_attribute(Foo, 'b', uselist=False, useobject=False)
 
         f = Foo()
-        attributes.instance_state(f).expire(attributes.instance_dict(f),
+        attributes.instance_state(f)._expire(attributes.instance_dict(f),
                 set())
         eq_(f.a, 'this is a')
         eq_(f.b, 12)
         f.a = 'this is some new a'
-        attributes.instance_state(f).expire(attributes.instance_dict(f),
+        attributes.instance_state(f)._expire(attributes.instance_dict(f),
                 set())
         eq_(f.a, 'this is a')
         eq_(f.b, 12)
-        attributes.instance_state(f).expire(attributes.instance_dict(f),
+        attributes.instance_state(f)._expire(attributes.instance_dict(f),
                 set())
         f.a = 'this is another new a'
         eq_(f.a, 'this is another new a')
         eq_(f.b, 12)
-        attributes.instance_state(f).expire(attributes.instance_dict(f),
+        attributes.instance_state(f)._expire(attributes.instance_dict(f),
                 set())
         eq_(f.a, 'this is a')
         eq_(f.b, 12)
         del f.a
         eq_(f.a, None)
         eq_(f.b, 12)
-        attributes.instance_state(f).commit_all(attributes.instance_dict(f),
+        attributes.instance_state(f)._commit_all(attributes.instance_dict(f),
                 set())
         eq_(f.a, None)
         eq_(f.b, 12)
@@ -368,7 +364,7 @@ class AttributesTest(fixtures.ORMTest):
         attributes.register_attribute(MyTest, 'b', uselist=False, useobject=False)
 
         m = MyTest()
-        attributes.instance_state(m).expire(attributes.instance_dict(m), set())
+        attributes.instance_state(m)._expire(attributes.instance_dict(m), set())
         assert 'a' not in m.__dict__
         m2 = pickle.loads(pickle.dumps(m))
         assert 'a' not in m2.__dict__
@@ -404,7 +400,7 @@ class AttributesTest(fixtures.ORMTest):
         self.assert_(u.user_id == 7 and u.user_name == 'john'
                      and u.addresses[0].email_address == 'lala@123.com')
         (u,
-         attributes.instance_state(a).commit_all(attributes.instance_dict(a)))
+         attributes.instance_state(a)._commit_all(attributes.instance_dict(a)))
         self.assert_(u.user_id == 7 and u.user_name == 'john'
                      and u.addresses[0].email_address == 'lala@123.com')
 
@@ -438,17 +434,17 @@ class AttributesTest(fixtures.ORMTest):
 
             def append(self, state, child, initiator):
                 if commit:
-                    state.commit_all(state.dict)
+                    state._commit_all(state.dict)
                 return child
 
             def remove(self, state, child, initiator):
                 if commit:
-                    state.commit_all(state.dict)
+                    state._commit_all(state.dict)
                 return child
 
             def set(self, state, child, oldchild, initiator):
                 if commit:
-                    state.commit_all(state.dict)
+                    state._commit_all(state.dict)
                 return child
 
         instrumentation.register_class(Foo)
@@ -485,7 +481,7 @@ class AttributesTest(fixtures.ORMTest):
 
         def create_hist():
             def hist(key, shouldmatch, fn, *arg):
-                attributes.instance_state(f1).commit_all(attributes.instance_dict(f1))
+                attributes.instance_state(f1)._commit_all(attributes.instance_dict(f1))
                 fn(*arg)
                 histories.append((shouldmatch,
                                  attributes.get_history(f1, key)))
@@ -557,15 +553,14 @@ class AttributesTest(fixtures.ORMTest):
         x.bars
         b = Bar(id=4)
         b.foos.append(x)
-        attributes.instance_state(x).expire_attributes(attributes.instance_dict(x),
+        attributes.instance_state(x)._expire_attributes(attributes.instance_dict(x),
                 ['bars'])
         assert_raises(AssertionError, b.foos.remove, x)
 
 
     def test_scalar_listener(self):
 
-        # listeners on ScalarAttributeImpl and
-        # MutableScalarAttributeImpl aren't used normally. test that
+        # listeners on ScalarAttributeImpl aren't used normally. test that
         # they work for the benefit of user extensions
 
         class Foo(object):
@@ -586,27 +581,18 @@ class AttributesTest(fixtures.ORMTest):
 
         instrumentation.register_class(Foo)
         attributes.register_attribute(Foo, 'x', uselist=False,
-                mutable_scalars=False, useobject=False,
+                useobject=False,
                 extension=ReceiveEvents())
-        attributes.register_attribute(Foo, 'y', uselist=False,
-                mutable_scalars=True, useobject=False,
-                copy_function=lambda x: x, extension=ReceiveEvents())
 
         f = Foo()
         f.x = 5
         f.x = 17
         del f.x
-        f.y = [1,2,3]
-        f.y = [4,5,6]
-        del f.y
 
         eq_(results, [
             ('set', f, 5, attributes.NEVER_SET),
             ('set', f, 17, 5),
             ('remove', f, 17),
-            ('set', f, [1,2,3], attributes.NEVER_SET),
-            ('set', f, [4,5,6], [1,2,3]),
-            ('remove', f, [4,5,6])
         ])
 
     def test_lazytrackparent(self):
@@ -631,11 +617,11 @@ class AttributesTest(fixtures.ORMTest):
         # create objects as if they'd been freshly loaded from the database (without history)
         b = Blog()
         p1 = Post()
-        attributes.instance_state(b).set_callable(attributes.instance_dict(b),
+        attributes.instance_state(b)._set_callable(attributes.instance_dict(b),
                                                     'posts', lambda passive:[p1])
-        attributes.instance_state(p1).set_callable(attributes.instance_dict(p1),
+        attributes.instance_state(p1)._set_callable(attributes.instance_dict(p1),
                                                     'blog', lambda passive:b)
-        p1, attributes.instance_state(b).commit_all(attributes.instance_dict(b))
+        p1, attributes.instance_state(b)._commit_all(attributes.instance_dict(b))
 
         # no orphans (called before the lazy loaders fire off)
         assert attributes.has_parent(Blog, p1, 'posts', optimistic=True)
@@ -743,7 +729,7 @@ class AttributesTest(fixtures.ORMTest):
         x.element = el
         eq_(attributes.get_state_history(attributes.instance_state(x),
             'element'), ([el], (), ()))
-        attributes.instance_state(x).commit_all(attributes.instance_dict(x))
+        attributes.instance_state(x)._commit_all(attributes.instance_dict(x))
         added, unchanged, deleted = \
             attributes.get_state_history(attributes.instance_state(x),
                 'element')
@@ -776,7 +762,7 @@ class AttributesTest(fixtures.ORMTest):
         attributes.register_attribute(Bar, 'id', uselist=False,
                 useobject=True)
         x = Foo()
-        attributes.instance_state(x).commit_all(attributes.instance_dict(x))
+        attributes.instance_state(x)._commit_all(attributes.instance_dict(x))
         x.col2.append(bar4)
         eq_(attributes.get_state_history(attributes.instance_state(x),
             'col2'), ([bar4], [bar1, bar2, bar3], []))
@@ -816,31 +802,6 @@ class AttributesTest(fixtures.ORMTest):
         assert attributes.has_parent(Bar, f4, 'element')
         b3.element = f4
         assert attributes.has_parent(Bar, f4, 'element')
-
-    def test_mutablescalars(self):
-        """test detection of changes on mutable scalar items"""
-
-        class Foo(object):
-            pass
-
-        instrumentation.register_class(Foo)
-        attributes.register_attribute(Foo, 'element', uselist=False,
-                copy_function=lambda x: [y for y in x],
-                mutable_scalars=True, useobject=False)
-        x = Foo()
-        x.element = ['one', 'two', 'three']
-        attributes.instance_state(x).commit_all(attributes.instance_dict(x))
-        x.element[1] = 'five'
-        assert attributes.instance_state(x).modified
-        instrumentation.unregister_class(Foo)
-        instrumentation.register_class(Foo)
-        attributes.register_attribute(Foo, 'element', uselist=False,
-                useobject=False)
-        x = Foo()
-        x.element = ['one', 'two', 'three']
-        attributes.instance_state(x).commit_all(attributes.instance_dict(x))
-        x.element[1] = 'five'
-        assert not attributes.instance_state(x).modified
 
     def test_descriptorattributes(self):
         """changeset: 1633 broke ability to use ORM to map classes with
@@ -989,14 +950,6 @@ class GetNoValueTest(fixtures.ORMTest):
             attributes.NEVER_SET
         )
         assert 'attr' not in dict_
-
-    def test_passive_no_result_empty(self):
-        attr, state, dict_ = self._fixture(None)
-        eq_(
-            attr.get(state, dict_, passive=attributes.PASSIVE_NO_RESULT),
-            None
-        )
-        assert 'attr' in dict_
 
     def test_off_empty(self):
         attr, state, dict_ = self._fixture(None)
@@ -1397,8 +1350,8 @@ class PendingBackrefTest(fixtures.ORMTest):
 
         b = Blog("blog 1")
         p1.blog = b
-        attributes.instance_state(b).commit_all(attributes.instance_dict(b))
-        attributes.instance_state(p1).commit_all(attributes.instance_dict(p1))
+        attributes.instance_state(b)._commit_all(attributes.instance_dict(b))
+        attributes.instance_state(p1)._commit_all(attributes.instance_dict(p1))
         assert b.posts == [Post("post 1")]
 
 class HistoryTest(fixtures.TestBase):
@@ -1429,13 +1382,13 @@ class HistoryTest(fixtures.TestBase):
                 useobject=True)
         return Foo, Bar
 
-    def _someattr_history(self, f):
+    def _someattr_history(self, f, **kw):
         return attributes.get_state_history(
                     attributes.instance_state(f),
-                    'someattr')
+                    'someattr', **kw)
 
     def _commit_someattr(self, f):
-        attributes.instance_state(f).commit(attributes.instance_dict(f),
+        attributes.instance_state(f)._commit(attributes.instance_dict(f),
                 ['someattr'])
 
     def _someattr_committed_state(self, f):
@@ -1600,6 +1553,24 @@ class HistoryTest(fixtures.TestBase):
         assert 'someattr' not in f.__dict__
         assert 'someattr' not in attributes.instance_state(f).committed_state
 
+    def test_collection_never_set(self):
+        Foo = self._fixture(uselist=True, useobject=True,
+                                active_history=True)
+        f = Foo()
+        eq_(self._someattr_history(f, passive=True), ((), (), ()))
+
+    def test_scalar_obj_never_set(self):
+        Foo = self._fixture(uselist=False, useobject=True,
+                                active_history=True)
+        f = Foo()
+        eq_(self._someattr_history(f, passive=True), ((), (), ()))
+
+    def test_scalar_never_set(self):
+        Foo = self._fixture(uselist=False, useobject=False,
+                                active_history=True)
+        f = Foo()
+        eq_(self._someattr_history(f, passive=True), ((), (), ()))
+
     def test_scalar_active_set(self):
         Foo = self._fixture(uselist=False, useobject=False,
                                 active_history=True)
@@ -1694,91 +1665,6 @@ class HistoryTest(fixtures.TestBase):
         eq_(self._someattr_history(f), (['two'], (), ()))
 
 
-    def test_mutable_scalar_init(self):
-        Foo = self._fixture(uselist=False, useobject=False,
-                                active_history=False,
-                                mutable_scalars=True,copy_function=dict)
-        f = Foo()
-        eq_(self._someattr_history(f), ((), (), ()))
-
-    def test_mutable_scalar_no_init_side_effect(self):
-        Foo = self._fixture(uselist=False, useobject=False,
-                                active_history=False,
-                                mutable_scalars=True,copy_function=dict)
-        f = Foo()
-        self._someattr_history(f)
-        assert 'someattr' not in f.__dict__
-        assert 'someattr' not in attributes.instance_state(f).committed_state
-
-    def test_mutable_scalar_set(self):
-        Foo = self._fixture(uselist=False, useobject=False,
-                                active_history=False,
-                                mutable_scalars=True,copy_function=dict)
-        f = Foo()
-        f.someattr = {'foo': 'hi'}
-        eq_(self._someattr_history(f), ([{'foo': 'hi'}], (), ()))
-
-    def test_mutable_scalar_set_commit(self):
-        Foo = self._fixture(uselist=False, useobject=False,
-                                active_history=False,
-                                mutable_scalars=True,copy_function=dict)
-        f = Foo()
-        f.someattr = {'foo': 'hi'}
-        self._commit_someattr(f)
-        eq_(self._someattr_history(f), ((), [{'foo': 'hi'}], ()))
-        eq_(attributes.instance_state(f).committed_state['someattr'],
-            {'foo': 'hi'})
-
-    def test_mutable_scalar_set_commit_reset(self):
-        Foo = self._fixture(uselist=False, useobject=False,
-                                active_history=False,
-                                mutable_scalars=True,copy_function=dict)
-        f = Foo()
-        f.someattr = {'foo': 'hi'}
-        self._commit_someattr(f)
-        f.someattr['foo'] = 'there'
-        eq_(self._someattr_history(f), ([{'foo': 'there'}], (), [{'foo': 'hi'}]))
-        eq_(attributes.get_state_history(attributes.instance_state(f),
-            'someattr'), ([{'foo': 'there'}], (), [{'foo': 'hi'}]))
-
-    def test_mutable_scalar_set_commit_reset_commit(self):
-        Foo = self._fixture(uselist=False, useobject=False,
-                                active_history=False,
-                                mutable_scalars=True,copy_function=dict)
-        f = Foo()
-        f.someattr = {'foo': 'hi'}
-        self._commit_someattr(f)
-        f.someattr['foo'] = 'there'
-        self._commit_someattr(f)
-        eq_(self._someattr_history(f), ((), [{'foo': 'there'}], ()))
-
-    def test_mutable_scalar_set_dict(self):
-        Foo = self._fixture(uselist=False, useobject=False,
-                                active_history=False,
-                                mutable_scalars=True,copy_function=dict)
-        f = Foo()
-        f.__dict__['someattr'] = {'foo': 'new'}
-        eq_(self._someattr_history(f), ((), [{'foo': 'new'}], ()))
-
-    def test_mutable_scalar_set_dict_set(self):
-        Foo = self._fixture(uselist=False, useobject=False,
-                                active_history=False,
-                                mutable_scalars=True,copy_function=dict)
-        f = Foo()
-        f.__dict__['someattr'] = {'foo': 'new'}
-        eq_(self._someattr_history(f), ((), [{'foo': 'new'}], ()))
-        f.someattr = {'foo': 'old'}
-        eq_(self._someattr_history(f), ([{'foo': 'old'}], (), [{'foo': 'new'}]))
-
-    def test_mutable_scalar_set_dict_set_commit(self):
-        Foo = self._fixture(uselist=False, useobject=False,
-                                active_history=False,
-                                mutable_scalars=True,copy_function=dict)
-        f = Foo()
-        f.__dict__['someattr'] = {'foo': 'new'}
-        f.someattr = {'foo': 'old'}
-        self._commit_someattr(f)
-        eq_(self._someattr_history(f), ((), [{'foo': 'old'}], ()))
 
     def test_scalar_inplace_mutation_set(self):
         Foo = self._fixture(uselist=False, useobject=False,
@@ -1981,7 +1867,7 @@ class HistoryTest(fixtures.TestBase):
         f = Foo()
         collection = attributes.init_collection(f, 'someattr')
         collection.append_without_event(new)
-        attributes.instance_state(f).commit_all(attributes.instance_dict(f))
+        attributes.instance_state(f)._commit_all(attributes.instance_dict(f))
         eq_(attributes.get_state_history(attributes.instance_state(f),
             'someattr'), ((), [new], ()))
         f.someattr = [old]
@@ -2067,7 +1953,7 @@ class HistoryTest(fixtures.TestBase):
         f.someattr.append(new)
         eq_(attributes.get_state_history(attributes.instance_state(f),
             'someattr'), ([old, new], [hi], [there]))
-        attributes.instance_state(f).commit(attributes.instance_dict(f),
+        attributes.instance_state(f)._commit(attributes.instance_dict(f),
                 ['someattr'])
         eq_(attributes.get_state_history(attributes.instance_state(f),
             'someattr'), ((), [hi, old, new], ()))
@@ -2082,20 +1968,20 @@ class HistoryTest(fixtures.TestBase):
         f.__dict__['id'] = 1
         collection = attributes.init_collection(f, 'someattr')
         collection.append_without_event(new)
-        attributes.instance_state(f).commit_all(attributes.instance_dict(f))
+        attributes.instance_state(f)._commit_all(attributes.instance_dict(f))
         eq_(attributes.get_state_history(attributes.instance_state(f),
             'someattr'), ((), [new], ()))
         f.someattr.append(old)
         eq_(attributes.get_state_history(attributes.instance_state(f),
             'someattr'), ([old], [new], []))
-        attributes.instance_state(f).commit(attributes.instance_dict(f),
+        attributes.instance_state(f)._commit(attributes.instance_dict(f),
                 ['someattr'])
         eq_(attributes.get_state_history(attributes.instance_state(f),
             'someattr'), ((), [new, old], ()))
         f = Foo()
         collection = attributes.init_collection(f, 'someattr')
         collection.append_without_event(new)
-        attributes.instance_state(f).commit_all(attributes.instance_dict(f))
+        attributes.instance_state(f)._commit_all(attributes.instance_dict(f))
         eq_(attributes.get_state_history(attributes.instance_state(f),
             'someattr'), ((), [new], ()))
         f.id = 1
@@ -2124,7 +2010,7 @@ class HistoryTest(fixtures.TestBase):
         f.someattr.append(hi)
         eq_(attributes.get_state_history(attributes.instance_state(f),
             'someattr'), ([hi, there, hi], [], []))
-        attributes.instance_state(f).commit_all(attributes.instance_dict(f))
+        attributes.instance_state(f)._commit_all(attributes.instance_dict(f))
         eq_(attributes.get_state_history(attributes.instance_state(f),
             'someattr'), ((), [hi, there, hi], ()))
         f.someattr = []
@@ -2219,7 +2105,7 @@ class LazyloadHistoryTest(fixtures.TestBase):
         eq_(attributes.get_state_history(attributes.instance_state(f),
             'bars'), ([bar4], [], []))
         lazy_load = [bar1, bar2, bar3]
-        attributes.instance_state(f).expire_attributes(attributes.instance_dict(f),
+        attributes.instance_state(f)._expire_attributes(attributes.instance_dict(f),
                 ['bars'])
         eq_(attributes.get_state_history(attributes.instance_state(f),
             'bars'), ((), [bar1, bar2, bar3], ()))
@@ -2441,6 +2327,46 @@ class ListenerTest(fixtures.ORMTest):
         f1.barset.add(b1)
         assert f1.barset.pop().data == 'some bar appended'
 
+    def test_none_on_collection_event(self):
+        """test that append/remove of None in collections emits events.
+
+        This is new behavior as of 0.8.
+
+        """
+        class Foo(object):
+            pass
+        class Bar(object):
+            pass
+        instrumentation.register_class(Foo)
+        instrumentation.register_class(Bar)
+        attributes.register_attribute(Foo, 'barlist', uselist=True,
+                useobject=True)
+        canary = []
+        def append(state, child, initiator):
+            canary.append((state, child))
+        def remove(state, child, initiator):
+            canary.append((state, child))
+        event.listen(Foo.barlist, 'append', append)
+        event.listen(Foo.barlist, 'remove', remove)
+
+        b1, b2 = Bar(), Bar()
+        f1 = Foo()
+        f1.barlist.append(None)
+        eq_(canary, [(f1, None)])
+
+        canary[:] = []
+        f1 = Foo()
+        f1.barlist = [None, b2]
+        eq_(canary, [(f1, None), (f1, b2)])
+
+        canary[:] = []
+        f1 = Foo()
+        f1.barlist = [b1, None, b2]
+        eq_(canary, [(f1, b1), (f1, None), (f1, b2)])
+
+        f1.barlist.remove(None)
+        eq_(canary, [(f1, b1), (f1, None), (f1, b2), (f1, None)])
+
     def test_propagate(self):
         classes = [None, None, None]
         canary = []
@@ -2525,3 +2451,63 @@ class ListenerTest(fixtures.ORMTest):
 
             teardown()
 
+
+class TestUnlink(fixtures.TestBase):
+    def setUp(self):
+        class A(object):
+            pass
+        class B(object):
+            pass
+        self.A = A
+        self.B = B
+        instrumentation.register_class(A)
+        instrumentation.register_class(B)
+        attributes.register_attribute(A, 'bs', uselist=True,
+                useobject=True)
+
+    def test_expired(self):
+        A, B = self.A, self.B
+        a1 = A()
+        coll = a1.bs
+        a1.bs.append(B())
+        state = attributes.instance_state(a1)
+        state._expire(state.dict, set())
+        assert_raises(
+            Warning,
+            coll.append, B()
+        )
+
+    def test_replaced(self):
+        A, B = self.A, self.B
+        a1 = A()
+        coll = a1.bs
+        a1.bs.append(B())
+        a1.bs = []
+        # a bulk replace empties the old collection
+        assert len(coll) == 0
+        coll.append(B())
+        assert len(coll) == 1
+
+    def test_pop_existing(self):
+        A, B = self.A, self.B
+        a1 = A()
+        coll = a1.bs
+        a1.bs.append(B())
+        state = attributes.instance_state(a1)
+        state._reset(state.dict, "bs")
+        assert_raises(
+            Warning,
+            coll.append, B()
+        )
+
+    def test_ad_hoc_lazy(self):
+        A, B = self.A, self.B
+        a1 = A()
+        coll = a1.bs
+        a1.bs.append(B())
+        state = attributes.instance_state(a1)
+        state._set_callable(state.dict, "bs", lambda: B())
+        assert_raises(
+            Warning,
+            coll.append, B()
+        )

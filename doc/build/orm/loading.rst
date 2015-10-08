@@ -1,5 +1,3 @@
-.. _loading_toplevel:
-
 .. currentmodule:: sqlalchemy.orm
 
 Relationship Loading Techniques

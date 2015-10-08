@@ -1,5 +1,5 @@
-from test.lib import fixtures
-from test.lib.testing import AssertsCompiledSQL, assert_raises_message
+from sqlalchemy.testing import fixtures
+from sqlalchemy.testing import AssertsCompiledSQL, assert_raises_message
 from sqlalchemy.sql import table, column, select, func, literal
 from sqlalchemy.dialects import mssql
 from sqlalchemy.engine import default
@@ -350,3 +350,4 @@ class CTETest(fixtures.TestBase, AssertsCompiledSQL):
             checkpositional=('x', 'y'),
             dialect=dialect
         )
+

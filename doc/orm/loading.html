@@ -10,7 +10,7 @@
     
                 Relationship Loading Techniques
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="ORM Events" href="events.html" />
         <link rel="prev" title="Querying" href="query.html" />
@@ -55,7 +55,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -93,7 +93,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Relationship Loading Techniques
@@ -149,7 +149,7 @@
     <div id="docs-body" class="withsidebar" >
         
 <div class="section" id="relationship-loading-techniques">
-<span id="loading-toplevel"></span><h1>Relationship Loading Techniques<a class="headerlink" href="#relationship-loading-techniques" title="Permalink to this headline">¶</a></h1>
+<h1>Relationship Loading Techniques<a class="headerlink" href="#relationship-loading-techniques" title="Permalink to this headline">¶</a></h1>
 <p>A big part of SQLAlchemy is providing a wide range of control over how related objects get loaded when querying.   This behavior
 can be configured at mapper construction time using the <tt class="docutils literal"><span class="pre">lazy</span></tt> parameter to the <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> function,
 as well as by using options with the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object.</p>
@@ -687,12 +687,13 @@ indicates using an inner join instead of an outer:</p>
 it <strong>does not affect the query results</strong>.   An <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.order_by" title="sqlalchemy.orm.query.Query.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">Query.order_by()</span></tt></a>
 or <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-meth docutils literal"><span class="pre">Query.filter()</span></tt></a> call <strong>cannot</strong> reference these aliased
 tables - so-called &#8220;user space&#8221; joins are constructed using
-<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a>.   The rationale for this is that <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> is only
-applied in order to affect how related objects or collections are loaded
-as an optimizing detail - it can be added or removed with no impact
-on actual results.   See the section <a class="reference internal" href="#zen-of-eager-loading"><em>The Zen of Eager Loading</em></a> for
-a detailed description of how this is used, including how to use a single
-explicit JOIN for filtering/ordering and eager loading simultaneously.</p>
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a>.   The rationale for this is that
+<a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> is only applied in order to affect how related
+objects or collections are loaded as an optimizing detail - it can be
+added or removed with no impact on actual results.   See the section
+<a class="reference internal" href="#zen-of-eager-loading"><em>The Zen of Eager Loading</em></a> for a detailed description of how this is
+used, including how to use a single explicit JOIN for
+filtering/ordering and eager loading simultaneously.</p>
 </div>
 <p>See also:  <a class="reference internal" href="#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.lazyload" title="sqlalchemy.orm.lazyload"><tt class="xref py py-func docutils literal"><span class="pre">lazyload()</span></tt></a></p>
 </dd></dl>
@@ -712,8 +713,8 @@ foreseeable future in order to enable cross-compatibility.</p>
 <p>For example:</p>
 <div class="highlight-python"><pre>query.options(joinedload_all('orders.items.keywords'))...</pre>
 </div>
-<p>will set all of <tt class="docutils literal"><span class="pre">orders</span></tt>, <tt class="docutils literal"><span class="pre">orders.items</span></tt>, and <tt class="docutils literal"><span class="pre">orders.items.keywords</span></tt> to
-load in one joined eager load.</p>
+<p>will set all of <tt class="docutils literal"><span class="pre">orders</span></tt>, <tt class="docutils literal"><span class="pre">orders.items</span></tt>, and
+<tt class="docutils literal"><span class="pre">orders.items.keywords</span></tt> to load in one joined eager load.</p>
 <p>Individual descriptors are accepted as arguments as well:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload_all</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">orders</span><span class="p">,</span> <span class="n">Order</span><span class="o">.</span><span class="n">items</span><span class="p">,</span> <span class="n">Item</span><span class="o">.</span><span class="n">keywords</span><span class="p">))</span></pre></div>
 </div>
@@ -777,8 +778,8 @@ into a subquery eager load.</p>
 <p>For example:</p>
 <div class="highlight-python"><pre>query.options(subqueryload_all('orders.items.keywords'))...</pre>
 </div>
-<p>will set all of <tt class="docutils literal"><span class="pre">orders</span></tt>, <tt class="docutils literal"><span class="pre">orders.items</span></tt>, and <tt class="docutils literal"><span class="pre">orders.items.keywords</span></tt> to
-load in one subquery eager load.</p>
+<p>will set all of <tt class="docutils literal"><span class="pre">orders</span></tt>, <tt class="docutils literal"><span class="pre">orders.items</span></tt>, and
+<tt class="docutils literal"><span class="pre">orders.items.keywords</span></tt> to load in one subquery eager load.</p>
 <p>Individual descriptors are accepted as arguments as well:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">subqueryload_all</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">orders</span><span class="p">,</span> <span class="n">Order</span><span class="o">.</span><span class="n">items</span><span class="p">,</span>
 <span class="n">Item</span><span class="o">.</span><span class="n">keywords</span><span class="p">))</span></pre></div>

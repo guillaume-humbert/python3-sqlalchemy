@@ -12,7 +12,7 @@ API Reference
 
 .. autoclass:: declared_attr
 
-.. autofunction:: _declarative_constructor
+.. autofunction:: sqlalchemy.ext.declarative.api._declarative_constructor
 
 .. autofunction:: has_inherited_table
 
@@ -26,3 +26,4 @@ API Reference
 
 .. autoclass:: ConcreteBase
 
+.. autoclass:: DeferredReflection

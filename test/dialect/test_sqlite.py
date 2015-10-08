@@ -1,6 +1,6 @@
 """SQLite-specific tests."""
 
-from test.lib.testing import eq_, assert_raises, \
+from sqlalchemy.testing import eq_, assert_raises, \
     assert_raises_message
 import datetime
 from sqlalchemy import *
@@ -8,7 +8,9 @@ from sqlalchemy import exc, sql, schema, pool, types as sqltypes
 from sqlalchemy.dialects.sqlite import base as sqlite, \
     pysqlite as pysqlite_dialect
 from sqlalchemy.engine.url import make_url
-from test.lib import *
+from sqlalchemy.testing import fixtures, AssertsCompiledSQL, \
+    AssertsExecutionResults, engines
+from sqlalchemy import testing
 import os
 from sqlalchemy.schema import CreateTable
 
@@ -62,15 +64,6 @@ class TestTypes(fixtures.TestBase, AssertsExecutionResults):
                     text("select 'ASDF' as value", typemap={"value":typ})
                 ).scalar()
             )
-
-    def test_time_microseconds(self):
-        dt = datetime.datetime(2008, 6, 27, 12, 0, 0, 125, )
-        eq_(str(dt), '2008-06-27 12:00:00.000125')
-        sldt = sqlite.DATETIME()
-        bp = sldt.bind_processor(None)
-        eq_(bp(dt), '2008-06-27 12:00:00.000125')
-        rp = sldt.result_processor(None, None)
-        eq_(rp(bp(dt)), dt)
 
     def test_native_datetime(self):
         dbapi = testing.db.dialect.dbapi
@@ -181,6 +174,100 @@ class TestTypes(fixtures.TestBase, AssertsExecutionResults):
         t2 = Table('t', MetaData(), autoload=True, autoload_with=testing.db)
         assert isinstance(t2.c.x.type, sqltypes.NullType)
         assert isinstance(t2.c.y.type, sqltypes.NullType)
+
+
+class DateTimeTest(fixtures.TestBase, AssertsCompiledSQL):
+
+    def test_time_microseconds(self):
+        dt = datetime.datetime(2008, 6, 27, 12, 0, 0, 125, )
+        eq_(str(dt), '2008-06-27 12:00:00.000125')
+        sldt = sqlite.DATETIME()
+        bp = sldt.bind_processor(None)
+        eq_(bp(dt), '2008-06-27 12:00:00.000125')
+        rp = sldt.result_processor(None, None)
+        eq_(rp(bp(dt)), dt)
+
+    def test_truncate_microseconds(self):
+        dt = datetime.datetime(2008, 6, 27, 12, 0, 0, 125)
+        dt_out = datetime.datetime(2008, 6, 27, 12, 0, 0)
+        eq_(str(dt), '2008-06-27 12:00:00.000125')
+        sldt = sqlite.DATETIME(truncate_microseconds=True)
+        bp = sldt.bind_processor(None)
+        eq_(bp(dt), '2008-06-27 12:00:00')
+        rp = sldt.result_processor(None, None)
+        eq_(rp(bp(dt)), dt_out)
+
+    def test_custom_format_compact(self):
+        dt = datetime.datetime(2008, 6, 27, 12, 0, 0, 125)
+        eq_(str(dt), '2008-06-27 12:00:00.000125')
+        sldt = sqlite.DATETIME(
+            storage_format=(
+                "%(year)04d%(month)02d%(day)02d"
+                "%(hour)02d%(minute)02d%(second)02d%(microsecond)06d"
+            ),
+            regexp="(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{6})",
+        )
+        bp = sldt.bind_processor(None)
+        eq_(bp(dt), '20080627120000000125')
+        rp = sldt.result_processor(None, None)
+        eq_(rp(bp(dt)), dt)
+
+
+class DateTest(fixtures.TestBase, AssertsCompiledSQL):
+
+    def test_default(self):
+        dt = datetime.date(2008, 6, 27)
+        eq_(str(dt), '2008-06-27')
+        sldt = sqlite.DATE()
+        bp = sldt.bind_processor(None)
+        eq_(bp(dt), '2008-06-27')
+        rp = sldt.result_processor(None, None)
+        eq_(rp(bp(dt)), dt)
+
+    def test_custom_format(self):
+        dt = datetime.date(2008, 6, 27)
+        eq_(str(dt), '2008-06-27')
+        sldt = sqlite.DATE(
+            storage_format="%(month)02d/%(day)02d/%(year)04d",
+            regexp="(?P<month>\d+)/(?P<day>\d+)/(?P<year>\d+)",
+        )
+        bp = sldt.bind_processor(None)
+        eq_(bp(dt), '06/27/2008')
+        rp = sldt.result_processor(None, None)
+        eq_(rp(bp(dt)), dt)
+
+class TimeTest(fixtures.TestBase, AssertsCompiledSQL):
+
+    def test_default(self):
+        dt = datetime.date(2008, 6, 27)
+        eq_(str(dt), '2008-06-27')
+        sldt = sqlite.DATE()
+        bp = sldt.bind_processor(None)
+        eq_(bp(dt), '2008-06-27')
+        rp = sldt.result_processor(None, None)
+        eq_(rp(bp(dt)), dt)
+
+    def test_truncate_microseconds(self):
+        dt = datetime.time(12, 0, 0, 125)
+        dt_out = datetime.time(12, 0, 0)
+        eq_(str(dt), '12:00:00.000125')
+        sldt = sqlite.TIME(truncate_microseconds=True)
+        bp = sldt.bind_processor(None)
+        eq_(bp(dt), '12:00:00')
+        rp = sldt.result_processor(None, None)
+        eq_(rp(bp(dt)), dt_out)
+
+    def test_custom_format(self):
+        dt = datetime.date(2008, 6, 27)
+        eq_(str(dt), '2008-06-27')
+        sldt = sqlite.DATE(
+            storage_format="%(year)04d%(month)02d%(day)02d",
+            regexp="(\d{4})(\d{2})(\d{2})",
+        )
+        bp = sldt.bind_processor(None)
+        eq_(bp(dt), '20080627')
+        rp = sldt.result_processor(None, None)
+        eq_(rp(bp(dt)), dt)
 
 
 class DefaultsTest(fixtures.TestBase, AssertsCompiledSQL):
@@ -314,7 +401,7 @@ class DialectTest(fixtures.TestBase, AssertsExecutionResults):
             meta.drop_all()
 
     @testing.provide_metadata
-    def test_quoted_identifiers_one(self):
+    def test_quoted_identifiers_functional_one(self):
         """Tests autoload of tables created with quoted column names."""
 
         metadata = self.metadata
@@ -340,7 +427,7 @@ class DialectTest(fixtures.TestBase, AssertsExecutionResults):
                 == table2.c.id)
 
     @testing.provide_metadata
-    def test_quoted_identifiers_two(self):
+    def test_quoted_identifiers_functional_two(self):
         """"test the edgiest of edge cases, quoted table/col names
         that start and end with quotes.
 
@@ -374,6 +461,30 @@ class DialectTest(fixtures.TestBase, AssertsExecutionResults):
         #j = table1.join(table2)
         #assert j.onclause.compare(table1.c['"id"']
         #        == table2.c['"aid"'])
+
+    def test_legacy_quoted_identifiers_unit(self):
+        dialect = sqlite.dialect()
+        dialect._broken_fk_pragma_quotes = True
+
+
+        for row in [
+            (0, 'target', 'tid', 'id'),
+            (0, '"target"', 'tid', 'id'),
+            (0, '[target]', 'tid', 'id'),
+            (0, "'target'", 'tid', 'id'),
+            (0, '`target`', 'tid', 'id'),
+        ]:
+            fks = {}
+            fkeys = []
+            dialect._parse_fk(fks, fkeys, *row)
+            eq_(fkeys, [{
+                    'referred_table': 'target',
+                    'referred_columns': ['id'],
+                    'referred_schema': None,
+                    'name': None,
+                    'constrained_columns': ['tid']
+                }])
+
 
     def test_attached_as_schema(self):
         cx = testing.db.connect()

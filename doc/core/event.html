@@ -10,7 +10,7 @@
     
                 Events
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Core Events" href="events.html" />
         <link rel="prev" title="Column and Data Types" href="types.html" />
@@ -55,7 +55,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -93,7 +93,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Events
@@ -178,7 +178,7 @@ and that a user-defined listener function should receive two positional argument
 <h2>Targets<a class="headerlink" href="#targets" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference internal" href="#sqlalchemy.event.listen" title="sqlalchemy.event.listen"><tt class="xref py py-func docutils literal"><span class="pre">listen()</span></tt></a> function is very flexible regarding targets.  It generally accepts classes, instances of those
 classes, and related classes or objects from which the appropriate target can be derived.  For example,
-the above mentioned <tt class="docutils literal"><span class="pre">&quot;connect&quot;</span></tt> event accepts <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> classes and objects as well as <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>
+the above mentioned <tt class="docutils literal"><span class="pre">&quot;connect&quot;</span></tt> event accepts <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> classes and objects as well as <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>
 classes and objects:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.event</span> <span class="kn">import</span> <span class="n">listen</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.pool</span> <span class="kn">import</span> <span class="n">Pool</span><span class="p">,</span> <span class="n">QueuePool</span>

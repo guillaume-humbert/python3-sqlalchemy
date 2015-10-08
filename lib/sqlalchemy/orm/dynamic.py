@@ -11,24 +11,23 @@ basic add/delete mutation.
 
 """
 
-from sqlalchemy import log, util
-from sqlalchemy.orm import exc as orm_exc
-from sqlalchemy.sql import operators
-from sqlalchemy.orm import (
-    attributes, object_session, util as mapperutil, strategies, object_mapper
+from .. import log, util, exc
+from ..sql import operators
+from . import (
+    attributes, object_session, util as orm_util, strategies,
+    object_mapper, exc as orm_exc, collections
     )
-from sqlalchemy.orm.query import Query
-from sqlalchemy.orm.util import has_identity
-from sqlalchemy.orm import collections
+from .query import Query
+
 
 class DynaLoader(strategies.AbstractRelationshipLoader):
     def init_class_attribute(self, mapper):
         self.is_class_level = True
         if not self.uselist:
-            util.warn(
-                    "On relationship %s, 'dynamic' loaders cannot be used with "
-                    "many-to-one/one-to-one relationships and/or "
-                    "uselist=False." % self.parent_property)
+            raise exc.InvalidRequestError(
+                "On relationship %s, 'dynamic' loaders cannot be used with "
+                "many-to-one/one-to-one relationships and/or "
+                "uselist=False." % self.parent_property)
         strategies._register_attribute(self,
             mapper,
             useobject=True,
@@ -40,10 +39,12 @@ class DynaLoader(strategies.AbstractRelationshipLoader):
 
 log.class_logger(DynaLoader)
 
+
 class DynamicAttributeImpl(attributes.AttributeImpl):
     uses_objects = True
     accepts_scalar_loader = False
     supports_population = False
+    collection = False
 
     def __init__(self, class_, key, typecallable,
                      dispatch,
@@ -60,7 +61,7 @@ class DynamicAttributeImpl(attributes.AttributeImpl):
             self.query_class = mixin_user_query(query_class)
 
     def get(self, state, dict_, passive=attributes.PASSIVE_OFF):
-        if passive is not attributes.PASSIVE_OFF:
+        if not passive & attributes.SQL_OK:
             return self._get_collection_history(state,
                     attributes.PASSIVE_NO_INITIALIZE).added_items
         else:
@@ -68,7 +69,7 @@ class DynamicAttributeImpl(attributes.AttributeImpl):
 
     def get_collection(self, state, dict_, user_data=None,
                             passive=attributes.PASSIVE_NO_INITIALIZE):
-        if passive is not attributes.PASSIVE_OFF:
+        if not passive & attributes.SQL_OK:
             return self._get_collection_history(state,
                     passive).added_items
         else:
@@ -100,7 +101,7 @@ class DynamicAttributeImpl(attributes.AttributeImpl):
         if self.key not in state.committed_state:
             state.committed_state[self.key] = CollectionHistory(self, state)
 
-        state.modified_event(dict_,
+        state._modified_event(dict_,
                                 self,
                                 attributes.NEVER_SET)
 
@@ -118,7 +119,6 @@ class DynamicAttributeImpl(attributes.AttributeImpl):
         if pop and value is None:
             return
         self._set_iterable(state, dict_, value)
-
 
     def _set_iterable(self, state, dict_, iterable, adapter=None):
         collection_history = self._modified_event(state, dict_)
@@ -145,7 +145,8 @@ class DynamicAttributeImpl(attributes.AttributeImpl):
                                   c.deleted_items)
 
     def get_all_pending(self, state, dict_):
-        c = self._get_collection_history(state, True)
+        c = self._get_collection_history(
+            state, attributes.PASSIVE_NO_INITIALIZE)
         return [
                 (attributes.instance_state(x), x)
                 for x in
@@ -158,7 +159,9 @@ class DynamicAttributeImpl(attributes.AttributeImpl):
         else:
             c = CollectionHistory(self, state)
 
-        if passive is attributes.PASSIVE_OFF:
+        # TODO: consider using a different flag here, possibly
+        # one local to dynamic
+        if passive & attributes.INIT_OK:
             return CollectionHistory(self, state, apply_to=c)
         else:
             return c
@@ -172,6 +175,7 @@ class DynamicAttributeImpl(attributes.AttributeImpl):
                             passive=attributes.PASSIVE_OFF):
         if initiator is not self:
             self.fire_remove_event(state, dict_, value, initiator)
+
 
 class DynCollectionAdapter(object):
     """the dynamic analogue to orm.collections.CollectionAdapter"""
@@ -196,11 +200,12 @@ class DynCollectionAdapter(object):
     def remove_without_event(self, item):
         pass
 
+
 class AppenderMixin(object):
     query_class = None
 
     def __init__(self, attr, state):
-        Query.__init__(self, attr.target_mapper, None)
+        super(AppenderMixin, self).__init__(attr.target_mapper, None)
         self.instance = instance = state.obj()
         self.attr = attr
 
@@ -220,14 +225,14 @@ class AppenderMixin(object):
         if sess is not None and self.autoflush and sess.autoflush \
             and self.instance in sess:
             sess.flush()
-        if not has_identity(self.instance):
+        if not orm_util.has_identity(self.instance):
             return None
         else:
             return sess
 
     def session(self):
         return self.__session()
-    session = property(session, lambda s, x:None)
+    session = property(session, lambda s, x: None)
 
     def __iter__(self):
         sess = self.__session()
@@ -269,7 +274,7 @@ class AppenderMixin(object):
                     "Parent instance %s is not bound to a Session, and no "
                     "contextual session is established; lazy load operation "
                     "of attribute '%s' cannot proceed" % (
-                        mapperutil.instance_str(instance), self.attr.key))
+                        orm_util.instance_str(instance), self.attr.key))
 
         if self.query_class:
             query = self.query_class(self.attr.target_mapper, session=sess)
@@ -301,6 +306,7 @@ def mixin_user_query(cls):
     name = 'Appender' + cls.__name__
     return type(name, (AppenderMixin, cls), {'query_class': cls})
 
+
 class CollectionHistory(object):
     """Overrides AttributeHistory to receive append/remove events directly."""
 
@@ -317,4 +323,3 @@ class CollectionHistory(object):
             self.deleted_items = []
             self.added_items = []
             self.unchanged_items = []
-

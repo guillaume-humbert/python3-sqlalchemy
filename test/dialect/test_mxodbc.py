@@ -1,7 +1,7 @@
 from sqlalchemy import *
-from test.lib.testing import eq_
-from test.lib import engines
-from test.lib import fixtures
+from sqlalchemy.testing import eq_
+from sqlalchemy.testing import engines
+from sqlalchemy.testing import fixtures
 
 # TODO: we should probably build mock bases for
 # these to share with test_reconnect, test_parseconnect
@@ -30,7 +30,10 @@ class MockCursor(object):
     def __init__(self, parent):
         self.parent = parent
     def execute(self, *args, **kwargs):
-        self.parent.parent.log.append('execute')
+        if kwargs.get('direct', False):
+            self.executedirect()
+        else:
+            self.parent.parent.log.append('execute')
     def executedirect(self, *args, **kwargs):
         self.parent.parent.log.append('executedirect')
     def close(self):
@@ -64,9 +67,9 @@ class MxODBCTest(fixtures.TestBase):
                 execute(t1.insert().values(c1='foo'
                 ))
         eq_(dbapi.log, [
-            'execute',
-            'execute',
-            'execute',
+            'executedirect',
+            'executedirect',
+            'executedirect',
             'executedirect',
             'execute',
             'executedirect',

@@ -10,7 +10,7 @@
     
                 Object Relational Tutorial
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Mapper Configuration" href="mapper_config.html" />
         <link rel="prev" title="SQLAlchemy ORM" href="index.html" />
@@ -55,7 +55,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -93,7 +93,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Object Relational Tutorial
@@ -210,10 +210,10 @@ represents something you can type at a Python command prompt, and the
 following text represents the expected return value.</p>
 <div class="section" id="version-check">
 <h2>Version Check<a class="headerlink" href="#version-check" title="Permalink to this headline">¶</a></h2>
-<p>A quick check to verify that we are on at least <strong>version 0.7</strong> of SQLAlchemy:</p>
+<p>A quick check to verify that we are on at least <strong>version 0.8</strong> of SQLAlchemy:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sqlalchemy</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sqlalchemy</span><span class="o">.</span><span class="n">__version__</span> 
-<span class="go">0.7.0</span></pre></div>
+<span class="go">0.8.0</span></pre></div>
 </div>
 </div>
 <div class="section" id="connecting">
@@ -229,21 +229,21 @@ see all the generated SQL produced. If you are working through this tutorial
 and want less output generated, set it to <tt class="docutils literal"><span class="pre">False</span></tt>. This tutorial will format
 the SQL behind a popup window so it doesn&#8217;t get in our way; just click the
 &#8220;SQL&#8221; links to see what&#8217;s being generated.</p>
-<p>The return value of <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> is an instance of <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, and it represents
+<p>The return value of <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> is an instance of <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, and it represents
 the core interface to the database, adapted through a <strong>dialect</strong> that handles the details
 of the database and DBAPI in use.  In this case the SQLite dialect will interpret instructions
 to the Python built-in <tt class="docutils literal"><span class="pre">sqlite3</span></tt> module.</p>
-<p>The <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> has not actually tried to connect to the database yet; that happens
+<p>The <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> has not actually tried to connect to the database yet; that happens
 only the first time it is asked to perform a task against the database.   We can illustrate
 this by asking it to perform a simple SELECT statement:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;select 1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">scalar</span><span class="p">()</span>
 <div class='popup_sql'>select 1
 ()</div><span class="mi">1</span></pre></div>
 </div>
-<p>As the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine.execute" title="sqlalchemy.engine.base.Engine.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.execute()</span></tt></a> method is called, the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> establishes a connection to the
+<p>As the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine.execute" title="sqlalchemy.engine.Engine.execute"><tt class="xref py py-meth docutils literal"><span class="pre">Engine.execute()</span></tt></a> method is called, the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> establishes a connection to the
 SQLite database, which is then used to emit the SQL.   The connection is then returned to an internal
 connection pool where it will be reused on subsequent statement executions.  While we illustrate direct usage of the
-<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> here, this isn&#8217;t typically necessary when using the ORM, where the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>,
+<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> here, this isn&#8217;t typically necessary when using the ORM, where the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>,
 once created, is used behind the scenes by the ORM as we&#8217;ll see shortly.</p>
 </div>
 <div class="section" id="declare-a-mapping">
@@ -342,7 +342,7 @@ attribute.  In this example, we are defining
 new tables that have yet to be created in our SQLite database, so one helpful feature
 the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object offers is the ability to issue CREATE TABLE statements
 to the database for all tables that don&#8217;t yet exist.   We illustrate this
-by calling the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.MetaData.create_all" title="sqlalchemy.schema.MetaData.create_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.create_all()</span></tt></a> method, passing in our <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>
+by calling the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.MetaData.create_all" title="sqlalchemy.schema.MetaData.create_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.create_all()</span></tt></a> method, passing in our <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>
 as a source of database connectivity.  We will see that special commands are
 first emitted to check for the presence of the <tt class="docutils literal"><span class="pre">users</span></tt> table, and following that
 the actual <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statement:</p>
@@ -459,27 +459,27 @@ objects:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span></pre></div>
 </div>
 <p>In the case where your application does not yet have an
-<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> when you define your module-level
+<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> when you define your module-level
 objects, just set it up like this:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">()</span></pre></div>
 </div>
 <p>Later, when you create your engine with <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>,
 connect it to the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> using
-<tt class="xref py py-meth docutils literal"><span class="pre">configure()</span></tt>:</p>
+<a class="reference internal" href="session.html#sqlalchemy.orm.session.sessionmaker.configure" title="sqlalchemy.orm.session.sessionmaker.configure"><tt class="xref py py-meth docutils literal"><span class="pre">configure()</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Session</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>  <span class="c"># once engine is available</span></pre></div>
 </div>
 <p>This custom-made <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> class will create
 new <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> objects which are bound to our
 database. Other transactional characteristics may be defined when calling
-<a class="reference internal" href="session.html#sqlalchemy.orm.session.sessionmaker" title="sqlalchemy.orm.session.sessionmaker"><tt class="xref py py-func docutils literal"><span class="pre">sessionmaker()</span></tt></a> as well; these are described in a later
+<tt class="xref py py-func docutils literal"><span class="pre">sessionmaker()</span></tt> as well; these are described in a later
 chapter. Then, whenever you need to have a conversation with the database, you
 instantiate a <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span></pre></div>
 </div>
 <p>The above <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is associated with our
-SQLite-enabled <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, but it hasn&#8217;t opened any connections yet. When it&#8217;s first
+SQLite-enabled <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, but it hasn&#8217;t opened any connections yet. When it&#8217;s first
 used, it retrieves a connection from a pool of connections maintained by the
-<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, and holds onto it until we commit all changes and/or close the
+<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, and holds onto it until we commit all changes and/or close the
 session object.</p>
 <div class="topic">
 <p class="topic-title first">Session Creational Patterns</p>
@@ -701,7 +701,8 @@ FROM users
 <span class="n">fred</span> <span class="n">Fred</span> <span class="n">Flinstone</span></pre></div>
 </div>
 <p>The tuples returned by <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> are <em>named</em>
-tuples, and can be treated much like an ordinary Python object. The names are
+tuples, supplied by the <a class="reference internal" href="query.html#sqlalchemy.util.KeyedTuple" title="sqlalchemy.util.KeyedTuple"><tt class="xref py py-class docutils literal"><span class="pre">KeyedTuple</span></tt></a> class, and can be treated much like an
+ordinary Python object. The names are
 the same as the attribute&#8217;s name for an attribute, and the class name for a
 class:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span> 
@@ -717,7 +718,7 @@ FROM users
 <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;fred&#39;</span><span class="p">,</span><span class="s">&#39;Fred Flinstone&#39;</span><span class="p">,</span> <span class="s">&#39;blah&#39;</span><span class="p">)</span><span class="o">&gt;</span> <span class="n">fred</span></pre></div>
 </div>
 <p>You can control the names of individual column expressions using the
-<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression._CompareMixin.label" title="sqlalchemy.sql.expression._CompareMixin.label"><tt class="xref py py-meth docutils literal"><span class="pre">label()</span></tt></a> construct, which is available from
+<tt class="xref py py-meth docutils literal"><span class="pre">label()</span></tt> construct, which is available from
 any <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>-derived object, as well as any class attribute which
 is mapped to one (such as <tt class="docutils literal"><span class="pre">User.name</span></tt>):</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;name_label&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span> 
@@ -731,7 +732,7 @@ FROM users
 </div>
 <p>The name given to a full entity such as <tt class="docutils literal"><span class="pre">User</span></tt>, assuming that multiple
 entities are present in the call to <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.query" title="sqlalchemy.orm.session.Session.query"><tt class="xref py py-meth docutils literal"><span class="pre">query()</span></tt></a>, can be controlled using
-<a class="reference internal" href="query.html#sqlalchemy.orm.aliased" title="sqlalchemy.orm.aliased"><tt class="xref py py-class docutils literal"><span class="pre">aliased</span></tt></a> :</p>
+<tt class="xref py py-class docutils literal"><span class="pre">aliased</span></tt> :</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">aliased</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">user_alias</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;user_alias&#39;</span><span class="p">)</span>
 

@@ -10,7 +10,7 @@
     
                 Dialects
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
         <link rel="next" title="Drizzle" href="drizzle.html" />
         <link rel="prev" title="Core Internals" href="../core/internals.html" />
 
@@ -54,7 +54,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -66,7 +66,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -92,7 +92,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
         » 
                 Dialects
              
@@ -112,6 +112,10 @@
     <h3><a href="../index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Dialects</a><ul>
+<li><a class="reference internal" href="#included-dialects">Included Dialects</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#external-dialects">External Dialects</a></li>
 </ul>
 </li>
 </ul>
@@ -142,26 +146,41 @@
         
 <div class="section" id="dialects">
 <span id="dialect-toplevel"></span><h1>Dialects<a class="headerlink" href="#dialects" title="Permalink to this headline">¶</a></h1>
-<p>The <strong>dialect</strong> is the system SQLAlchemy uses to communicate with various types of DBAPIs and databases.
-A compatibility chart of supported backends can be found at <a class="reference internal" href="../core/engines.html#supported-dbapis"><em>Supported Databases</em></a>.  The sections that
-follow contain reference documentation and notes specific to the usage of each backend, as well as notes
+<p>The <strong>dialect</strong> is the system SQLAlchemy uses to communicate with various types of <a class="reference internal" href="../glossary.html#term-dbapi"><em class="xref std std-term">DBAPI</em></a> implementations and databases.
+The sections that follow contain reference documentation and notes specific to the usage of each backend, as well as notes
 for the various DBAPIs.</p>
-<p>Note that not all backends are fully ported and tested with
-current versions of SQLAlchemy. The compatibility chart
-should be consulted to check for current support level.</p>
+<p>All dialects require that an appropriate DBAPI driver is installed.</p>
+<div class="section" id="included-dialects">
+<h2>Included Dialects<a class="headerlink" href="#included-dialects" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="drizzle.html">Drizzle</a></li>
 <li class="toctree-l1"><a class="reference internal" href="firebird.html">Firebird</a></li>
 <li class="toctree-l1"><a class="reference internal" href="informix.html">Informix</a></li>
-<li class="toctree-l1"><a class="reference internal" href="maxdb.html">MaxDB</a></li>
-<li class="toctree-l1"><a class="reference internal" href="access.html">Microsoft Access</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mssql.html">Microsoft SQL Server</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mysql.html">MySQL</a></li>
 <li class="toctree-l1"><a class="reference internal" href="oracle.html">Oracle</a></li>
 <li class="toctree-l1"><a class="reference internal" href="postgresql.html">PostgreSQL</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sqlite.html">SQLite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sybase.html">Sybase</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="external-dialects">
+<span id="external-toplevel"></span><h2>External Dialects<a class="headerlink" href="#external-dialects" title="Permalink to this headline">¶</a></h2>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.8: </span>As of SQLAlchemy 0.8, several dialects have been moved to external
+projects, and dialects for new databases will also be published
+as external projects.   The rationale here is to keep the base
+SQLAlchemy install and test suite from growing inordinately large.<p>The &#8220;classic&#8221; dialects such as SQLite, MySQL, Postgresql, Oracle,
+SQL Server, Firebird will remain in the Core for the time being.</p>
+</p>
+<p>Current external dialect projects for SQLAlchemy include:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://bitbucket.org/zzzeek/sqlalchemy-access">sqlalchemy-access</a> - driver for Microsoft Access.</li>
+<li><a class="reference external" href="https://github.com/zzzeek/sqlalchemy_akiban">sqlalchemy-akiban</a> - driver and ORM extensions for the <a class="reference external" href="http://www.akiban.com">Akiban</a> database.</li>
+<li><a class="reference external" href="https://bitbucket.org/zzzeek/sqlalchemy-cubrid">sqlalchemy-cubrid</a> - driver for the CUBRID database.</li>
+<li><a class="reference external" href="https://bitbucket.org/zzzeek/sqlalchemy-maxdb">sqlalchemy-maxdb</a> - driver for the MaxDB database.</li>
 </ul>
 </div>
 </div>

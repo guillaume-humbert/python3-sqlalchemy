@@ -10,7 +10,7 @@
     
                 Microsoft SQL Server
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,10 +32,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="MySQL" href="mysql.html" />
-        <link rel="prev" title="Microsoft Access" href="access.html" />
+        <link rel="prev" title="Informix" href="informix.html" />
 
     </head>
     <body>
@@ -55,7 +55,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -78,7 +78,7 @@
     <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
-            <a href="access.html" title="previous chapter">Microsoft Access</a>
+            <a href="informix.html" title="previous chapter">Informix</a>
             </li>
             <li>Next:
             <a href="mysql.html" title="next chapter">MySQL</a>
@@ -93,7 +93,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
                 » <a href="index.html" title="Dialects">Dialects</a>
         » 
                 Microsoft SQL Server
@@ -114,7 +114,7 @@
     <h3><a href="../index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Microsoft SQL Server</a><ul>
-<li><a class="reference internal" href="#connecting">Connecting</a></li>
+<li><a class="reference internal" href="#dialect-mssql">Support for the Microsoft SQL Server database.</a></li>
 <li><a class="reference internal" href="#auto-increment-behavior">Auto Increment Behavior</a></li>
 <li><a class="reference internal" href="#collation-support">Collation Support</a></li>
 <li><a class="reference internal" href="#limit-offset-support">LIMIT/OFFSET Support</a></li>
@@ -123,30 +123,37 @@
 <li><a class="reference internal" href="#compatibility-levels">Compatibility Levels</a></li>
 <li><a class="reference internal" href="#triggers">Triggers</a></li>
 <li><a class="reference internal" href="#enabling-snapshot-isolation">Enabling Snapshot Isolation</a></li>
-<li><a class="reference internal" href="#scalar-select-comparisons">Scalar Select Comparisons</a></li>
 <li><a class="reference internal" href="#known-issues">Known Issues</a></li>
 <li><a class="reference internal" href="#sql-server-data-types">SQL Server Data Types</a></li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.mssql.pyodbc">PyODBC</a><ul>
-<li><a class="reference internal" href="#id1">Connecting</a></li>
+<li><a class="reference internal" href="#dialect-mssql-pyodbc-url">DBAPI</a></li>
+<li><a class="reference internal" href="#dialect-mssql-pyodbc-connect">Connecting</a></li>
+<li><a class="reference internal" href="#additional-connection-examples">Additional Connection Examples</a></li>
 <li><a class="reference internal" href="#unicode-binds">Unicode Binds</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.mssql.mxodbc">mxODBC</a><ul>
-<li><a class="reference internal" href="#id2">Connecting</a></li>
+<li><a class="reference internal" href="#dialect-mssql-mxodbc-url">DBAPI</a></li>
+<li><a class="reference internal" href="#dialect-mssql-mxodbc-connect">Connecting</a></li>
 <li><a class="reference internal" href="#execution-modes">Execution Modes</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.mssql.pymssql">pymssql</a><ul>
-<li><a class="reference internal" href="#id3">Connecting</a></li>
+<li><a class="reference internal" href="#dialect-mssql-pymssql-url">DBAPI</a></li>
+<li><a class="reference internal" href="#dialect-mssql-pymssql-connect">Connecting</a></li>
 <li><a class="reference internal" href="#limitations">Limitations</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-sqlalchemy.dialects.mssql.zxjdbc">zxjdbc Notes</a><ul>
-<li><a class="reference internal" href="#jdbc-driver">JDBC Driver</a></li>
-<li><a class="reference internal" href="#id4">Connecting</a></li>
+<li><a class="reference internal" href="#module-sqlalchemy.dialects.mssql.zxjdbc">zxjdbc</a><ul>
+<li><a class="reference internal" href="#dialect-mssql-zxjdbc-url">DBAPI</a></li>
+<li><a class="reference internal" href="#dialect-mssql-zxjdbc-connect">Connecting</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-sqlalchemy.dialects.mssql.adodbapi">AdoDBAPI</a></li>
+<li><a class="reference internal" href="#module-sqlalchemy.dialects.mssql.adodbapi">AdoDBAPI</a><ul>
+<li><a class="reference internal" href="#dialect-mssql-adodbapi-url">DBAPI</a></li>
+<li><a class="reference internal" href="#dialect-mssql-adodbapi-connect">Connecting</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -154,7 +161,7 @@
 
     <h4>Previous Topic</h4>
     <p>
-    <a href="access.html" title="previous chapter">Microsoft Access</a>
+    <a href="informix.html" title="previous chapter">Informix</a>
     </p>
     <h4>Next Topic</h4>
     <p>
@@ -177,10 +184,17 @@
         
 <div class="section" id="module-sqlalchemy.dialects.mssql.base">
 <span id="microsoft-sql-server"></span><span id="mssql-toplevel"></span><h1>Microsoft SQL Server<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.base" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="dialect-mssql">
 <p>Support for the Microsoft SQL Server database.</p>
-<div class="section" id="connecting">
-<h2>Connecting<a class="headerlink" href="#connecting" title="Permalink to this headline">¶</a></h2>
-<p>See the individual driver sections below for details on connecting.</p>
+<h2>DBAPI Support<a class="headerlink" href="#dialect-mssql" title="Permalink to this headline">¶</a></h2>
+<p>The following dialect/DBAPI options are available.  Please refer to individual DBAPI sections for connect information.<ul class="simple">
+<li><a class="reference external" href="#module-sqlalchemy.dialects.mssql.pyodbc">PyODBC</a></li>
+<li><a class="reference external" href="#module-sqlalchemy.dialects.mssql.mxodbc">mxODBC</a></li>
+<li><a class="reference external" href="#module-sqlalchemy.dialects.mssql.pymssql">pymssql</a></li>
+<li><a class="reference external" href="#module-sqlalchemy.dialects.mssql.zxjdbc">zxJDBC for Jython</a></li>
+<li><a class="reference external" href="#module-sqlalchemy.dialects.mssql.adodbapi">adodbapi</a></li>
+</ul>
+</p>
 </div>
 <div class="section" id="auto-increment-behavior">
 <h2>Auto Increment Behavior<a class="headerlink" href="#auto-increment-behavior" title="Permalink to this headline">¶</a></h2>
@@ -312,28 +326,6 @@ ALTER DATABASE MyDatabase SET READ_COMMITTED_SNAPSHOT ON</pre>
 <p>Background on SQL Server snapshot isolation is available at
 <a class="reference external" href="http://msdn.microsoft.com/en-us/library/ms175095.aspx">http://msdn.microsoft.com/en-us/library/ms175095.aspx</a>.</p>
 </div>
-<div class="section" id="scalar-select-comparisons">
-<h2>Scalar Select Comparisons<a class="headerlink" href="#scalar-select-comparisons" title="Permalink to this headline">¶</a></h2>
-<p class="deprecated">
-<span class="versionmodified">Deprecated since version 0.8: </span>The MSSQL dialect contains a legacy behavior whereby comparing
-a scalar select to a value using the <tt class="docutils literal"><span class="pre">=</span></tt> or <tt class="docutils literal"><span class="pre">!=</span></tt> operator
-will resolve to IN or NOT IN, respectively.  This behavior
-will be removed in 0.8 - the <tt class="docutils literal"><span class="pre">s.in_()</span></tt>/<tt class="docutils literal"><span class="pre">~s.in_()</span></tt> operators
-should be used when IN/NOT IN are desired.</p>
-<p>For the time being, the existing behavior prevents a comparison
-between scalar select and another value that actually wants to use <tt class="docutils literal"><span class="pre">=</span></tt>.
-To remove this behavior in a forwards-compatible way, apply this
-compilation rule by placing the following code at the module import
-level:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.compiler</span> <span class="kn">import</span> <span class="n">compiles</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.sql.expression</span> <span class="kn">import</span> <span class="n">_BinaryExpression</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.sql.compiler</span> <span class="kn">import</span> <span class="n">SQLCompiler</span>
-
-<span class="nd">@compiles</span><span class="p">(</span><span class="n">_BinaryExpression</span><span class="p">,</span> <span class="s">&#39;mssql&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">override_legacy_binary</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">compiler</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">SQLCompiler</span><span class="o">.</span><span class="n">visit_binary</span><span class="p">(</span><span class="n">compiler</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span></pre></div>
-</div>
-</div>
 <div class="section" id="known-issues">
 <h2>Known Issues<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
@@ -392,7 +384,7 @@ database into <tt class="docutils literal"><span class="pre">unicode</span></tt>
 <tt class="xref py py-attr docutils literal"><span class="pre">encoding</span></tt>, which
 defaults to <cite>utf-8</cite>.</p>
 <p>If False, may be overridden by
-<tt class="xref py py-attr docutils literal"><span class="pre">sqlalchemy.engine.base.Dialect.convert_unicode</span></tt>.</p>
+<tt class="xref py py-attr docutils literal"><span class="pre">sqlalchemy.engine.Dialect.convert_unicode</span></tt>.</p>
 </li>
 <li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
 value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
@@ -662,7 +654,7 @@ database into <tt class="docutils literal"><span class="pre">unicode</span></tt>
 <tt class="xref py py-attr docutils literal"><span class="pre">encoding</span></tt>, which
 defaults to <cite>utf-8</cite>.</p>
 <p>If False, may be overridden by
-<tt class="xref py py-attr docutils literal"><span class="pre">sqlalchemy.engine.base.Dialect.convert_unicode</span></tt>.</p>
+<tt class="xref py py-attr docutils literal"><span class="pre">sqlalchemy.engine.Dialect.convert_unicode</span></tt>.</p>
 </li>
 <li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
 value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
@@ -678,12 +670,20 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.mssql.pyodbc">
 <span id="pyodbc"></span><h2>PyODBC<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.pyodbc" title="Permalink to this headline">¶</a></h2>
-<p>Support for MS-SQL via pyodbc.</p>
-<p>pyodbc is available at:</p>
-<blockquote>
-<div><a class="reference external" href="http://pypi.python.org/pypi/pyodbc/">http://pypi.python.org/pypi/pyodbc/</a></div></blockquote>
-<div class="section" id="id1">
-<h3>Connecting<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>Support for the Microsoft SQL Server database via the PyODBC driver.</p>
+<div class="section" id="dialect-mssql-pyodbc-url">
+<h3>DBAPI<a class="headerlink" href="#dialect-mssql-pyodbc-url" title="Permalink to this headline">¶</a></h3>
+<p>Documentation and download information (if applicable) for PyODBC is available at:
+<a class="reference external" href="http://pypi.python.org/pypi/pyodbc/">http://pypi.python.org/pypi/pyodbc/</a></p>
+</div>
+<div class="section" id="dialect-mssql-pyodbc-connect">
+<h3>Connecting<a class="headerlink" href="#dialect-mssql-pyodbc-connect" title="Permalink to this headline">¶</a></h3>
+<p>Connect String:<div class="highlight-python"><pre>mssql+pyodbc://&lt;username&gt;:&lt;password&gt;@&lt;dsnname&gt;</pre>
+</div>
+</p>
+</div>
+<div class="section" id="additional-connection-examples">
+<h3>Additional Connection Examples<a class="headerlink" href="#additional-connection-examples" title="Permalink to this headline">¶</a></h3>
 <p>Examples of pyodbc connection string URLs:</p>
 <ul>
 <li><p class="first"><tt class="docutils literal"><span class="pre">mssql+pyodbc://mydsn</span></tt> - connects using the specified DSN named <tt class="docutils literal"><span class="pre">mydsn</span></tt>.
@@ -777,17 +777,17 @@ for unix + PyODBC.</p>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.mssql.mxodbc">
 <span id="mxodbc"></span><h2>mxODBC<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.mxodbc" title="Permalink to this headline">¶</a></h2>
-<p>Support for MS-SQL via mxODBC.</p>
-<p>mxODBC is available at:</p>
-<blockquote>
-<div><a class="reference external" href="http://www.egenix.com/">http://www.egenix.com/</a></div></blockquote>
-<p>This was tested with mxODBC 3.1.2 and the SQL Server Native
-Client connected to MSSQL 2005 and 2008 Express Editions.</p>
-<div class="section" id="id2">
-<h3>Connecting<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<p>Connection is via DSN:</p>
-<div class="highlight-python"><pre>mssql+mxodbc://&lt;username&gt;:&lt;password&gt;@&lt;dsnname&gt;</pre>
+<p>Support for the Microsoft SQL Server database via the mxODBC driver.</p>
+<div class="section" id="dialect-mssql-mxodbc-url">
+<h3>DBAPI<a class="headerlink" href="#dialect-mssql-mxodbc-url" title="Permalink to this headline">¶</a></h3>
+<p>Documentation and download information (if applicable) for mxODBC is available at:
+<a class="reference external" href="http://www.egenix.com/">http://www.egenix.com/</a></p>
 </div>
+<div class="section" id="dialect-mssql-mxodbc-connect">
+<h3>Connecting<a class="headerlink" href="#dialect-mssql-mxodbc-connect" title="Permalink to this headline">¶</a></h3>
+<p>Connect String:<div class="highlight-python"><pre>mssql+mxodbc://&lt;username&gt;:&lt;password&gt;@&lt;dsnname&gt;</pre>
+</div>
+</p>
 </div>
 <div class="section" id="execution-modes">
 <h3>Execution Modes<a class="headerlink" href="#execution-modes" title="Permalink to this headline">¶</a></h3>
@@ -816,20 +816,17 @@ of <tt class="docutils literal"><span class="pre">False</span></tt> will uncondi
 </div>
 <div class="section" id="module-sqlalchemy.dialects.mssql.pymssql">
 <span id="pymssql"></span><h2>pymssql<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.pymssql" title="Permalink to this headline">¶</a></h2>
-<p>Support for the pymssql dialect.</p>
-<p>This dialect supports pymssql 1.0 and greater.</p>
-<p>pymssql is available at:</p>
-<blockquote>
-<div><a class="reference external" href="http://pymssql.sourceforge.net/">http://pymssql.sourceforge.net/</a></div></blockquote>
-<div class="section" id="id3">
-<h3>Connecting<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<p>Sample connect string:</p>
-<div class="highlight-python"><pre>mssql+pymssql://&lt;username&gt;:&lt;password&gt;@&lt;freetds_name&gt;</pre>
+<p>Support for the Microsoft SQL Server database via the pymssql driver.</p>
+<div class="section" id="dialect-mssql-pymssql-url">
+<h3>DBAPI<a class="headerlink" href="#dialect-mssql-pymssql-url" title="Permalink to this headline">¶</a></h3>
+<p>Documentation and download information (if applicable) for pymssql is available at:
+<a class="reference external" href="http://pymssql.sourceforge.net/">http://pymssql.sourceforge.net/</a></p>
 </div>
-<p>Adding &#8221;?charset=utf8&#8221; or similar will cause pymssql to return
-strings as Python unicode objects.   This can potentially improve
-performance in some scenarios as decoding of strings is
-handled natively.</p>
+<div class="section" id="dialect-mssql-pymssql-connect">
+<h3>Connecting<a class="headerlink" href="#dialect-mssql-pymssql-connect" title="Permalink to this headline">¶</a></h3>
+<p>Connect String:<div class="highlight-python"><pre>mssql+pymssql://&lt;username&gt;:&lt;password&gt;@&lt;freetds_name&gt;?charset=utf8</pre>
+</div>
+</p>
 </div>
 <div class="section" id="limitations">
 <h3>Limitations<a class="headerlink" href="#limitations" title="Permalink to this headline">¶</a></h3>
@@ -844,26 +841,39 @@ handled natively.</p>
 </div>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.mssql.zxjdbc">
-<span id="zxjdbc-notes"></span><h2>zxjdbc Notes<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.zxjdbc" title="Permalink to this headline">¶</a></h2>
-<p>Support for the Microsoft SQL Server database via the zxjdbc JDBC
-connector.</p>
-<div class="section" id="jdbc-driver">
-<h3>JDBC Driver<a class="headerlink" href="#jdbc-driver" title="Permalink to this headline">¶</a></h3>
-<p>Requires the jTDS driver, available from: <a class="reference external" href="http://jtds.sourceforge.net/">http://jtds.sourceforge.net/</a></p>
+<span id="zxjdbc"></span><h2>zxjdbc<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.zxjdbc" title="Permalink to this headline">¶</a></h2>
+<p>Support for the Microsoft SQL Server database via the zxJDBC for Jython driver.</p>
+<div class="section" id="dialect-mssql-zxjdbc-url">
+<h3>DBAPI<a class="headerlink" href="#dialect-mssql-zxjdbc-url" title="Permalink to this headline">¶</a></h3>
+<p>Drivers for this database are available at:
+<a class="reference external" href="http://jtds.sourceforge.net/">http://jtds.sourceforge.net/</a></p>
 </div>
-<div class="section" id="id4">
-<h3>Connecting<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
-<p>URLs are of the standard form of
-<tt class="docutils literal"><span class="pre">mssql+zxjdbc://user:pass&#64;host:port/dbname[?key=value&amp;key=value...]</span></tt>.</p>
-<p>Additional arguments which may be specified either as query string
-arguments on the URL, or as keyword arguments to
-<a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> will be passed as Connection
-properties to the underlying JDBC driver.</p>
+<div class="section" id="dialect-mssql-zxjdbc-connect">
+<h3>Connecting<a class="headerlink" href="#dialect-mssql-zxjdbc-connect" title="Permalink to this headline">¶</a></h3>
+<p>Connect String:<div class="highlight-python"><pre>mssql+zxjdbc://user:pass@host:port/dbname[?key=value&amp;key=value...]</pre>
+</div>
+</p>
 </div>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.mssql.adodbapi">
 <span id="adodbapi"></span><h2>AdoDBAPI<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.adodbapi" title="Permalink to this headline">¶</a></h2>
-<p>The adodbapi dialect is not implemented for 0.6 at this time.</p>
+<p>Support for the Microsoft SQL Server database via the adodbapi driver.</p>
+<div class="section" id="dialect-mssql-adodbapi-url">
+<h3>DBAPI<a class="headerlink" href="#dialect-mssql-adodbapi-url" title="Permalink to this headline">¶</a></h3>
+<p>Documentation and download information (if applicable) for adodbapi is available at:
+<a class="reference external" href="http://adodbapi.sourceforge.net/">http://adodbapi.sourceforge.net/</a></p>
+</div>
+<div class="section" id="dialect-mssql-adodbapi-connect">
+<h3>Connecting<a class="headerlink" href="#dialect-mssql-adodbapi-connect" title="Permalink to this headline">¶</a></h3>
+<p>Connect String:<div class="highlight-python"><pre>mssql+adodbapi://&lt;username&gt;:&lt;password&gt;@&lt;dsnname&gt;</pre>
+</div>
+</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The adodbapi dialect is not implemented SQLAlchemy versions 0.6 and
+above at this time.</p>
+</div>
 </div>
 </div>
 
@@ -873,7 +883,7 @@ properties to the underlying JDBC driver.</p>
 
 <div id="docs-bottom-navigation" class="docs-navigation-links">
         Previous:
-        <a href="access.html" title="previous chapter">Microsoft Access</a>
+        <a href="informix.html" title="previous chapter">Informix</a>
         Next:
         <a href="mysql.html" title="next chapter">MySQL</a>
 

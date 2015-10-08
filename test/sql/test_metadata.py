@@ -1,19 +1,19 @@
-from test.lib.testing import assert_raises
-from test.lib.testing import assert_raises_message
-from test.lib.testing import emits_warning
+from sqlalchemy.testing import assert_raises
+from sqlalchemy.testing import assert_raises_message
+from sqlalchemy.testing import emits_warning
 
 import pickle
 from sqlalchemy import Integer, String, UniqueConstraint, \
     CheckConstraint, ForeignKey, MetaData, Sequence, \
     ForeignKeyConstraint, ColumnDefault, Index, event,\
     events, Unicode
-from test.lib.schema import Table, Column
+from sqlalchemy.testing.schema import Table, Column
 from sqlalchemy import schema, exc
 import sqlalchemy as tsa
-from test.lib import fixtures
-from test.lib import testing
-from test.lib.testing import ComparesTables, AssertsCompiledSQL
-from test.lib.testing import eq_, is_
+from sqlalchemy.testing import fixtures
+from sqlalchemy import testing
+from sqlalchemy.testing import ComparesTables, AssertsCompiledSQL
+from sqlalchemy.testing import eq_, is_
 
 class MetaDataTest(fixtures.TestBase, ComparesTables):
     def test_metadata_connect(self):
@@ -667,6 +667,7 @@ class MetaDataTest(fixtures.TestBase, ComparesTables):
             )
 
 class TableTest(fixtures.TestBase, AssertsCompiledSQL):
+    @testing.skip_if('mssql', 'different col format')
     def test_prefixes(self):
         from sqlalchemy import Table
         table1 = Table("temporary_table_1", MetaData(),
@@ -1071,6 +1072,34 @@ class ConstraintTest(fixtures.TestBase):
         assert s1.c.a.references(t1.c.a)
         assert not s1.c.a.references(t1.c.b)
 
+    def test_invalid_composite_fk_check(self):
+        m = MetaData()
+        t1 = Table('t1', m, Column('x', Integer), Column('y', Integer),
+            ForeignKeyConstraint(['x', 'y'], ['t2.x', 't3.y'])
+        )
+        t2 = Table('t2', m, Column('x', Integer))
+        t3 = Table('t3', m, Column('y', Integer))
+
+        assert_raises_message(
+            exc.ArgumentError,
+            r"ForeignKeyConstraint on t1\(x, y\) refers to "
+                "multiple remote tables: t2 and t3",
+            t1.join, t2
+        )
+        assert_raises_message(
+            exc.ArgumentError,
+            r"ForeignKeyConstraint on t1\(x, y\) refers to "
+                "multiple remote tables: t2 and t3",
+            t1.join, t3
+        )
+
+        assert_raises_message(
+            exc.ArgumentError,
+            r"ForeignKeyConstraint on t1\(x, y\) refers to "
+                "multiple remote tables: t2 and t3",
+            schema.CreateTable(t1).compile
+        )
+
 class ColumnDefinitionTest(AssertsCompiledSQL, fixtures.TestBase):
     """Test Column() construction."""
 
@@ -1217,6 +1246,48 @@ class ColumnDefinitionTest(AssertsCompiledSQL, fixtures.TestBase):
             getattr, select([t1.select().alias()]), 'c'
         )
 
+    def test_custom_create(self):
+        from sqlalchemy.ext.compiler import compiles, deregister
+
+        @compiles(schema.CreateColumn)
+        def compile(element, compiler, **kw):
+            column = element.element
+
+            if "special" not in column.info:
+                return compiler.visit_create_column(element, **kw)
+
+            text = "%s SPECIAL DIRECTIVE %s" % (
+                    column.name,
+                    compiler.type_compiler.process(column.type)
+                )
+            default = compiler.get_column_default_string(column)
+            if default is not None:
+                text += " DEFAULT " + default
+
+            if not column.nullable:
+                text += " NOT NULL"
+
+            if column.constraints:
+                text += " ".join(
+                            compiler.process(const)
+                            for const in column.constraints)
+            return text
+
+        t = Table('mytable', MetaData(),
+                Column('x', Integer, info={"special": True}, primary_key=True),
+                Column('y', String(50)),
+                Column('z', String(20), info={"special": True})
+            )
+
+        self.assert_compile(
+            schema.CreateTable(t),
+            "CREATE TABLE mytable (x SPECIAL DIRECTIVE INTEGER "
+                "NOT NULL, y VARCHAR(50), "
+                "z SPECIAL DIRECTIVE VARCHAR(20), PRIMARY KEY (x))"
+        )
+
+        deregister(schema.CreateColumn)
+
 class ColumnDefaultsTest(fixtures.TestBase):
     """test assignment of default fixures to columns"""
 
@@ -1228,6 +1299,37 @@ class ColumnDefaultsTest(fixtures.TestBase):
         c = self._fixture(target)
         assert c.server_default is target
         assert target.column is c
+
+    def test_onupdate_default_not_server_default_one(self):
+        target1 = schema.DefaultClause('y')
+        target2 = schema.DefaultClause('z')
+
+        c = self._fixture(server_default=target1, server_onupdate=target2)
+        eq_(c.server_default.arg, 'y')
+        eq_(c.server_onupdate.arg, 'z')
+
+    def test_onupdate_default_not_server_default_two(self):
+        target1 = schema.DefaultClause('y', for_update=True)
+        target2 = schema.DefaultClause('z', for_update=True)
+
+        c = self._fixture(server_default=target1, server_onupdate=target2)
+        eq_(c.server_default.arg, 'y')
+        eq_(c.server_onupdate.arg, 'z')
+
+    def test_onupdate_default_not_server_default_three(self):
+        target1 = schema.DefaultClause('y', for_update=False)
+        target2 = schema.DefaultClause('z', for_update=True)
+
+        c = self._fixture(target1, target2)
+        eq_(c.server_default.arg, 'y')
+        eq_(c.server_onupdate.arg, 'z')
+
+    def test_onupdate_default_not_server_default_four(self):
+        target1 = schema.DefaultClause('y', for_update=False)
+
+        c = self._fixture(server_onupdate=target1)
+        is_(c.server_default, None)
+        eq_(c.server_onupdate.arg, 'y')
 
     def test_server_default_keyword_as_schemaitem(self):
         target = schema.DefaultClause('y')

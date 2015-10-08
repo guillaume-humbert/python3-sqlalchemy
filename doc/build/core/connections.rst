@@ -4,7 +4,7 @@
 Working with Engines and Connections
 =====================================
 
-.. module:: sqlalchemy.engine.base
+.. module:: sqlalchemy.engine
 
 This section details direct usage of the :class:`.Engine`,
 :class:`.Connection`, and related objects. Its important to note that when
@@ -18,7 +18,7 @@ higher level management services, the :class:`.Engine` and
 Basic Usage
 ===========
 
-Recall from :ref:`engines_toplevel` that an :class:`.Engine` is created via
+Recall from :doc:`/core/engines` that an :class:`.Engine` is created via
 the :func:`.create_engine` call::
 
     engine = create_engine('mysql://scott:tiger@localhost/test')
@@ -42,7 +42,8 @@ is achieved via the usage of :class:`.NullPool`) does not have this
 requirement.
 
 The engine can be used directly to issue SQL to the database. The most generic
-way is first procure a connection resource, which you get via the :class:`connect` method::
+way is first procure a connection resource, which you get via the
+:meth:`.Engine.connect` method::
 
     connection = engine.connect()
     result = connection.execute("select username from users")
@@ -325,7 +326,7 @@ Overall, the usage of "bound metadata" has three general effects:
   on behalf of a particular mapped class, though the :class:`.Session`
   also features its own explicit system of establishing complex :class:`.Engine`/
   mapped class configurations.
-* The :meth:`.MetaData.create_all`, :meth:`.Metadata.drop_all`, :meth:`.Table.create`,
+* The :meth:`.MetaData.create_all`, :meth:`.MetaData.drop_all`, :meth:`.Table.create`,
   :meth:`.Table.drop`, and "autoload" features all make usage of the bound
   :class:`.Engine` automatically without the need to pass it explicitly.
 
@@ -366,7 +367,6 @@ call references the :class:`~sqlalchemy.engine.Connection` used to issue
 the SQL statement. When the :class:`.ResultProxy` is closed, the underlying
 :class:`.Connection` is closed for us, resulting in the
 DBAPI connection being returned to the pool with transactional resources removed.
-
 
 .. _threadlocal_strategy:
 
@@ -417,7 +417,7 @@ connectionless execution::
         db.rollback()
 
 Explicit execution can be mixed with connectionless execution by
-using the :class:`.Engine.connect` method to acquire a :class:`.Connection`
+using the :meth:`.Engine.connect` method to acquire a :class:`.Connection`
 that is not part of the threadlocal scope::
 
     db.begin()
@@ -445,6 +445,52 @@ Calling :meth:`~.Connection.close` on the "contextual" connection does not :term
 its resources until all other usages of that resource are closed as well, including
 that any ongoing transactions are rolled back or committed.
 
+Registering New Dialects
+========================
+
+The :func:`.create_engine` function call locates the given dialect
+using setuptools entrypoints.   These entry points can be established
+for third party dialects within the setup.py script.  For example,
+to create a new dialect "foodialect://", the steps are as follows:
+
+1. Create a package called ``foodialect``.
+2. The package should have a module containing the dialect class,
+   which is typically a subclass of :class:`sqlalchemy.engine.default.DefaultDialect`.
+   In this example let's say it's called ``FooDialect`` and its module is accessed
+   via ``foodialect.dialect``.
+3. The entry point can be established in setup.py as follows::
+
+      entry_points="""
+      [sqlalchemy.dialects]
+      foodialect = foodialect.dialect:FooDialect
+      """
+
+If the dialect is providing support for a particular DBAPI on top of
+an existing SQLAlchemy-supported database, the name can be given
+including a database-qualification.  For example, if ``FooDialect``
+were in fact a MySQL dialect, the entry point could be established like this::
+
+      entry_points="""
+      [sqlalchemy.dialects]
+      mysql.foodialect = foodialect.dialect:FooDialect
+      """
+
+The above entrypoint would then be accessed as ``create_engine("mysql+foodialect://")``.
+
+Registering Dialects In-Process
+-------------------------------
+
+SQLAlchemy also allows a dialect to be registered within the current process, bypassing
+the need for separate installation.   Use the ``register()`` function as follows::
+
+    from sqlalchemy.dialects import registry
+    registry.register("mysql.foodialect", "myapp.dialect", "MyMySQLDialect")
+
+The above will respond to ``create_engine("mysql+foodialect://")`` and load the
+``MyMySQLDialect`` class from the ``myapp.dialect`` module.
+
+.. versionadded:: 0.8
+
 Connection / Engine API
 =======================
 
@@ -464,10 +510,10 @@ Connection / Engine API
     :show-inheritance:
     :members:
 
-.. autoclass:: sqlalchemy.engine.base.ResultProxy
+.. autoclass:: sqlalchemy.engine.ResultProxy
     :members:
 
-.. autoclass:: sqlalchemy.engine.base.RowProxy
+.. autoclass:: sqlalchemy.engine.RowProxy
     :members:
 
 .. autoclass:: Transaction

@@ -1,9 +1,11 @@
-from test.lib.testing import eq_
+from sqlalchemy.testing import eq_
 from sqlalchemy import *
-from test.lib import *
-from test.lib.schema import Table, Column
+from sqlalchemy import testing
+from sqlalchemy.testing.schema import Table, Column
 from sqlalchemy.types import TypeDecorator
-from test.lib import fixtures
+from sqlalchemy.testing import fixtures, AssertsExecutionResults, engines, \
+        assert_raises_message
+from sqlalchemy import exc as sa_exc
 
 class ReturningTest(fixtures.TestBase, AssertsExecutionResults):
     __requires__ = 'returning',
@@ -36,8 +38,6 @@ class ReturningTest(fixtures.TestBase, AssertsExecutionResults):
     def teardown(self):
         table.drop()
 
-    @testing.exclude('firebird', '<', (2, 0), '2.0+ feature')
-    @testing.exclude('postgresql', '<', (8, 2), '8.2+ feature')
     def test_column_targeting(self):
         result = table.insert().returning(table.c.id, table.c.full).execute({'persons': 1, 'full': False})
 
@@ -55,8 +55,6 @@ class ReturningTest(fixtures.TestBase, AssertsExecutionResults):
         eq_(row['goofy'], "FOOsomegoofyBAR")
 
     @testing.fails_on('firebird', "fb can't handle returning x AS y")
-    @testing.exclude('firebird', '<', (2, 0), '2.0+ feature')
-    @testing.exclude('postgresql', '<', (8, 2), '8.2+ feature')
     def test_labeling(self):
         result = table.insert().values(persons=6).\
                             returning(table.c.persons.label('lala')).execute()
@@ -65,21 +63,17 @@ class ReturningTest(fixtures.TestBase, AssertsExecutionResults):
 
     @testing.fails_on('firebird', "fb/kintersbasdb can't handle the bind params")
     @testing.fails_on('oracle+zxjdbc', "JDBC driver bug")
-    @testing.exclude('firebird', '<', (2, 0), '2.0+ feature')
-    @testing.exclude('postgresql', '<', (8, 2), '8.2+ feature')
     def test_anon_expressions(self):
         result = table.insert().values(goofy="someOTHERgoofy").\
                             returning(func.lower(table.c.goofy, type_=GoofyType)).execute()
         row = result.first()
-        assert row[0] == "foosomeothergoofyBAR"
+        eq_(row[0], "foosomeothergoofyBAR")
 
         result = table.insert().values(persons=12).\
                             returning(table.c.persons + 18).execute()
         row = result.first()
-        assert row[0] == 30
+        eq_(row[0], 30)
 
-    @testing.exclude('firebird', '<', (2, 1), '2.1+ feature')
-    @testing.exclude('postgresql', '<', (8, 2), '8.2+ feature')
     def test_update_returning(self):
         table.insert().execute([{'persons': 5, 'full': False}, {'persons': 3, 'full': False}])
 
@@ -87,39 +81,59 @@ class ReturningTest(fixtures.TestBase, AssertsExecutionResults):
         eq_(result.fetchall(), [(1,)])
 
         result2 = select([table.c.id, table.c.full]).order_by(table.c.id).execute()
-        eq_(result2.fetchall(), [(1,True),(2,False)])
+        eq_(result2.fetchall(), [(1, True), (2, False)])
 
-    @testing.exclude('firebird', '<', (2, 0), '2.0+ feature')
-    @testing.exclude('postgresql', '<', (8, 2), '8.2+ feature')
     def test_insert_returning(self):
         result = table.insert().returning(table.c.id).execute({'persons': 1, 'full': False})
 
         eq_(result.fetchall(), [(1,)])
 
-        @testing.fails_on('postgresql', '')
-        @testing.fails_on('oracle+cx_oracle', '')
-        @testing.crashes('mssql+mxodbc', 'Raises an error')
-        def test_executemany():
-            # return value is documented as failing with psycopg2/executemany
-            result2 = table.insert().returning(table).execute(
-                 [{'persons': 2, 'full': False}, {'persons': 3, 'full': True}])
+    @testing.fails_on('postgresql', 'undefined behavior')
+    @testing.fails_on('oracle+cx_oracle', 'undefined behavior')
+    @testing.crashes('mssql+mxodbc', 'Raises an error')
+    def test_insert_returning_execmany(self):
 
-            if testing.against('mssql+zxjdbc'):
-                # jtds apparently returns only the first row
-                eq_(result2.fetchall(), [(2, 2, False, None)])
-            elif testing.against('firebird', 'mssql', 'oracle'):
-                # Multiple inserts only return the last row
-                eq_(result2.fetchall(), [(3, 3, True, None)])
-            else:
-                # nobody does this as far as we know (pg8000?)
-                eq_(result2.fetchall(), [(2, 2, False, None), (3, 3, True, None)])
+        # return value is documented as failing with psycopg2/executemany
+        result2 = table.insert().returning(table).execute(
+             [{'persons': 2, 'full': False}, {'persons': 3, 'full': True}])
 
-        test_executemany()
-
+        if testing.against('mssql+zxjdbc'):
+            # jtds apparently returns only the first row
+            eq_(result2.fetchall(), [(2, 2, False, None)])
+        elif testing.against('firebird', 'mssql', 'oracle'):
+            # Multiple inserts only return the last row
+            eq_(result2.fetchall(), [(3, 3, True, None)])
+        else:
+            # nobody does this as far as we know (pg8000?)
+            eq_(result2.fetchall(), [(2, 2, False, None), (3, 3, True, None)])
 
 
-    @testing.exclude('firebird', '<', (2, 1), '2.1+ feature')
-    @testing.exclude('postgresql', '<', (8, 2), '8.2+ feature')
+    @testing.requires.multivalues_inserts
+    def test_multirow_returning(self):
+        ins = table.insert().returning(table.c.id, table.c.persons).values(
+                            [
+                                {'persons': 1, 'full': False},
+                                {'persons': 2, 'full': True},
+                                {'persons': 3, 'full': False},
+                            ]
+                        )
+        result = testing.db.execute(ins)
+        eq_(
+                result.fetchall(),
+                 [(1, 1), (2, 2), (3, 3)]
+        )
+
+    def test_no_ipk_on_returning(self):
+        result = testing.db.execute(
+                    table.insert().returning(table.c.id),
+                    {'persons': 1, 'full': False}
+                )
+        assert_raises_message(
+            sa_exc.InvalidRequestError,
+            "Can't call inserted_primary_key when returning\(\) is used.",
+            getattr, result, "inserted_primary_key"
+        )
+
     @testing.fails_on_everything_except('postgresql', 'firebird')
     def test_literal_returning(self):
         if testing.against("postgresql"):
@@ -131,8 +145,6 @@ class ReturningTest(fixtures.TestBase, AssertsExecutionResults):
                                         'values (5, 10, %s) returning persons' % literal_true)
         eq_([dict(row) for row in result4], [{'persons': 10}])
 
-    @testing.exclude('firebird', '<', (2, 1), '2.1+ feature')
-    @testing.exclude('postgresql', '<', (8, 2), '8.2+ feature')
     def test_delete_returning(self):
         table.insert().execute([{'persons': 5, 'full': False}, {'persons': 3, 'full': False}])
 
@@ -140,10 +152,10 @@ class ReturningTest(fixtures.TestBase, AssertsExecutionResults):
         eq_(result.fetchall(), [(1,)])
 
         result2 = select([table.c.id, table.c.full]).order_by(table.c.id).execute()
-        eq_(result2.fetchall(), [(2,False),])
+        eq_(result2.fetchall(), [(2, False),])
 
 class SequenceReturningTest(fixtures.TestBase):
-    __requires__ = 'returning',
+    __requires__ = 'returning', 'sequences'
 
     def setup(self):
         meta = MetaData(testing.db)

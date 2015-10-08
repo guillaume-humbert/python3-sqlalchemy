@@ -1,14 +1,15 @@
 
-from test.lib.testing import assert_raises, assert_raises_message
+from sqlalchemy.testing import assert_raises, assert_raises_message
 from sqlalchemy import Integer, String, ForeignKey, Sequence, \
     exc as sa_exc
-from test.lib.schema import Table, Column
+from sqlalchemy.testing.schema import Table, Column
 from sqlalchemy.orm import mapper, relationship, create_session, \
-    sessionmaker, class_mapper, backref, Session, util as orm_util
+    sessionmaker, class_mapper, backref, Session, util as orm_util,\
+    configure_mappers
 from sqlalchemy.orm import attributes, exc as orm_exc
-from test.lib import testing
-from test.lib.testing import eq_
-from test.lib import fixtures
+from sqlalchemy import testing
+from sqlalchemy.testing import eq_
+from sqlalchemy.testing import fixtures
 from test.orm import _fixtures
 
 class CascadeArgTest(fixtures.MappedTest):
@@ -396,20 +397,20 @@ class O2MCascadeTest(fixtures.MappedTest):
 
         })
 
-    def test_none_skipped_assignment(self):
-        # [ticket:2229] proposes warning/raising on None
-        # for 0.8
+    def test_none_o2m_collection_assignment(self):
         User, Address = self.classes.User, self.classes.Address
         s = Session()
         u1 = User(name='u', addresses=[None])
         s.add(u1)
         eq_(u1.addresses, [None])
-        s.commit()
-        eq_(u1.addresses, [])
+        assert_raises_message(
+            orm_exc.FlushError,
+            "Can't flush None value found in collection User.addresses",
+            s.commit
+        )
+        eq_(u1.addresses, [None])
 
-    def test_none_skipped_append(self):
-        # [ticket:2229] proposes warning/raising on None
-        # for 0.8
+    def test_none_o2m_collection_append(self):
         User, Address = self.classes.User, self.classes.Address
         s = Session()
 
@@ -417,8 +418,13 @@ class O2MCascadeTest(fixtures.MappedTest):
         s.add(u1)
         u1.addresses.append(None)
         eq_(u1.addresses, [None])
-        s.commit()
-        eq_(u1.addresses, [])
+        assert_raises_message(
+            orm_exc.FlushError,
+            "Can't flush None value found in collection User.addresses",
+            s.commit
+        )
+        eq_(u1.addresses, [None])
+
 
 class O2MCascadeDeleteNoOrphanTest(fixtures.MappedTest):
     run_inserts = None
@@ -1725,6 +1731,24 @@ class M2MCascadeTest(fixtures.MappedTest):
         assert b.count().scalar() == 0
         assert a.count().scalar() == 0
 
+    def test_single_parent_error(self):
+        a, A, B, b, atob = (self.tables.a,
+                                self.classes.A,
+                                self.classes.B,
+                                self.tables.b,
+                                self.tables.atob)
+
+        mapper(A, a, properties={
+            'bs':relationship(B, secondary=atob,
+                        cascade="all, delete-orphan")
+        })
+        mapper(B, b)
+        assert_raises_message(
+            sa_exc.ArgumentError,
+            "On A.bs, delete-orphan cascade is not supported",
+            configure_mappers
+        )
+
     def test_single_parent_raise(self):
         a, A, B, b, atob = (self.tables.a,
                                 self.classes.A,
@@ -1777,6 +1801,57 @@ class M2MCascadeTest(fixtures.MappedTest):
         b1.a = a2
         assert b1 not in a1.bs
         assert b1 in a2.bs
+
+    def test_none_m2m_collection_assignment(self):
+        a, A, B, b, atob = (self.tables.a,
+                                self.classes.A,
+                                self.classes.B,
+                                self.tables.b,
+                                self.tables.atob)
+
+
+        mapper(A, a, properties={
+            'bs': relationship(B,
+                secondary=atob, backref="as")
+        })
+        mapper(B, b)
+
+        s = Session()
+        a1 = A(bs=[None])
+        s.add(a1)
+        eq_(a1.bs, [None])
+        assert_raises_message(
+            orm_exc.FlushError,
+            "Can't flush None value found in collection A.bs",
+            s.commit
+        )
+        eq_(a1.bs, [None])
+
+    def test_none_m2m_collection_append(self):
+        a, A, B, b, atob = (self.tables.a,
+                                self.classes.A,
+                                self.classes.B,
+                                self.tables.b,
+                                self.tables.atob)
+
+
+        mapper(A, a, properties={
+            'bs': relationship(B,
+                secondary=atob, backref="as")
+        })
+        mapper(B, b)
+
+        s = Session()
+        a1 = A()
+        a1.bs.append(None)
+        s.add(a1)
+        eq_(a1.bs, [None])
+        assert_raises_message(
+            orm_exc.FlushError,
+            "Can't flush None value found in collection A.bs",
+            s.commit
+        )
+        eq_(a1.bs, [None])
 
 class O2MSelfReferentialDetelOrphanTest(fixtures.MappedTest):
     @classmethod

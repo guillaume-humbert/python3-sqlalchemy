@@ -23,8 +23,10 @@ construction arguments, are as follows:
 
 .. currentmodule:: sqlalchemy.dialects.postgresql
 
+.. autoclass:: array
+
 .. autoclass:: ARRAY
-    :members: __init__
+    :members: __init__, Comparator
     :show-inheritance:
 
 .. autoclass:: BIT
@@ -47,6 +49,14 @@ construction arguments, are as follows:
     :members: __init__, create, drop
     :show-inheritance:
 
+.. autoclass:: HSTORE
+    :members:
+    :show-inheritance:
+
+.. autoclass:: hstore
+    :members:
+    :show-inheritance:
+
 .. autoclass:: INET
     :members: __init__
     :show-inheritance:
@@ -67,24 +77,22 @@ construction arguments, are as follows:
     :members: __init__
     :show-inheritance:
 
-
-psycopg2 Notes
+psycopg2
 --------------
 
 .. automodule:: sqlalchemy.dialects.postgresql.psycopg2
 
-
-py-postgresql Notes
+py-postgresql
 --------------------
 
 .. automodule:: sqlalchemy.dialects.postgresql.pypostgresql
 
-pg8000 Notes
+pg8000
 --------------
 
 .. automodule:: sqlalchemy.dialects.postgresql.pg8000
 
-zxjdbc Notes
+zxjdbc
 --------------
 
 .. automodule:: sqlalchemy.dialects.postgresql.zxjdbc

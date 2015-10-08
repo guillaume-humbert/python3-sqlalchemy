@@ -10,7 +10,7 @@
     
                 Oracle
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="PostgreSQL" href="postgresql.html" />
         <link rel="prev" title="MySQL" href="mysql.html" />
@@ -55,7 +55,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -93,7 +93,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
                 » <a href="index.html" title="Dialects">Dialects</a>
         » 
                 Oracle
@@ -114,6 +114,7 @@
     <h3><a href="../index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Oracle</a><ul>
+<li><a class="reference internal" href="#dialect-oracle">Support for the Oracle database.</a></li>
 <li><a class="reference internal" href="#connect-arguments">Connect Arguments</a></li>
 <li><a class="reference internal" href="#auto-increment-behavior">Auto Increment Behavior</a></li>
 <li><a class="reference internal" href="#identifier-casing">Identifier Casing</a></li>
@@ -123,17 +124,19 @@
 <li><a class="reference internal" href="#oracle-8-compatibility">Oracle 8 Compatibility</a></li>
 <li><a class="reference internal" href="#synonym-dblink-reflection">Synonym/DBLINK Reflection</a></li>
 <li><a class="reference internal" href="#oracle-data-types">Oracle Data Types</a></li>
-<li><a class="reference internal" href="#module-sqlalchemy.dialects.oracle.cx_oracle">cx_Oracle Notes</a><ul>
-<li><a class="reference internal" href="#driver">Driver</a></li>
-<li><a class="reference internal" href="#connecting">Connecting</a></li>
+<li><a class="reference internal" href="#module-sqlalchemy.dialects.oracle.cx_oracle">cx_Oracle</a><ul>
+<li><a class="reference internal" href="#dialect-oracle-cx_oracle-url">DBAPI</a></li>
+<li><a class="reference internal" href="#dialect-oracle-cx_oracle-connect">Connecting</a></li>
+<li><a class="reference internal" href="#additional-connect-arguments">Additional Connect Arguments</a></li>
 <li><a class="reference internal" href="#id1">Unicode</a></li>
 <li><a class="reference internal" href="#lob-objects">LOB Objects</a></li>
 <li><a class="reference internal" href="#two-phase-transaction-support">Two Phase Transaction Support</a></li>
 <li><a class="reference internal" href="#precision-numerics">Precision Numerics</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-sqlalchemy.dialects.oracle.zxjdbc">zxjdbc Notes</a><ul>
-<li><a class="reference internal" href="#jdbc-driver">JDBC Driver</a></li>
+<li><a class="reference internal" href="#module-sqlalchemy.dialects.oracle.zxjdbc">zxjdbc</a><ul>
+<li><a class="reference internal" href="#dialect-oracle-zxjdbc-url">DBAPI</a></li>
+<li><a class="reference internal" href="#dialect-oracle-zxjdbc-connect">Connecting</a></li>
 </ul>
 </li>
 </ul>
@@ -166,10 +169,15 @@
         
 <div class="section" id="module-sqlalchemy.dialects.oracle.base">
 <span id="oracle"></span><span id="oracle-toplevel"></span><h1>Oracle<a class="headerlink" href="#module-sqlalchemy.dialects.oracle.base" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="dialect-oracle">
 <p>Support for the Oracle database.</p>
-<p>Oracle version 8 through current (11g at the time of this writing) are supported.</p>
-<p>For information on connecting via specific drivers, see the documentation
-for that driver.</p>
+<h2>DBAPI Support<a class="headerlink" href="#dialect-oracle" title="Permalink to this headline">¶</a></h2>
+<p>The following dialect/DBAPI options are available.  Please refer to individual DBAPI sections for connect information.<ul class="simple">
+<li><a class="reference external" href="#module-sqlalchemy.dialects.oracle.cx_oracle">cx-Oracle</a></li>
+<li><a class="reference external" href="#module-sqlalchemy.dialects.oracle.zxjdbc">zxJDBC for Jython</a></li>
+</ul>
+</p>
+</div>
 <div class="section" id="connect-arguments">
 <h2>Connect Arguments<a class="headerlink" href="#connect-arguments" title="Permalink to this headline">¶</a></h2>
 <p>The dialect supports several <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> arguments which
@@ -360,11 +368,11 @@ to store for the fractional seconds field.  Defaults to &#8220;6&#8221;.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.oracle.NCLOB">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">NCLOB</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.NCLOB" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">NCLOB</tt><big>(</big><em>length=None</em>, <em>collation=None</em>, <em>convert_unicode=False</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.NCLOB" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Text</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.oracle.NCLOB.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.NCLOB.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>collation=None</em>, <em>convert_unicode=False</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.NCLOB.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a string-holding type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -372,12 +380,24 @@ to store for the fractional seconds field.  Defaults to &#8220;6&#8221;.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>length</strong> &#8211; optional, a length for the column for use in
-DDL statements.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
+DDL and CAST expressions.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <tt class="docutils literal"><span class="pre">length</span></tt> for use in DDL, and will raise an exception when
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued if a <tt class="docutils literal"><span class="pre">VARCHAR</span></tt>
 with no length is included.  Whether the value is
 interpreted as bytes or characters is database specific.</li>
+<li><strong>collation</strong> &#8211; <p>Optional, a column-level collation for
+use in DDL and CAST expressions.  Renders using the
+COLLATE keyword supported by SQLite, MySQL, and Postgresql.
+E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">cast</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">String</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">select</span><span class="p">([</span><span class="n">cast</span><span class="p">(</span><span class="s">&#39;some string&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="n">collation</span><span class="o">=</span><span class="s">&#39;utf8&#39;</span><span class="p">))])</span>
+<span class="go">SELECT CAST(:param_1 AS VARCHAR COLLATE utf8) AS anon_1</span></pre></div>
+</div>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8: </span>Added support for COLLATE to all
+string types.</p>
+</li>
 <li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the
 <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type will assume that
 input is to be passed as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects,
@@ -403,12 +423,6 @@ the value <tt class="docutils literal"><span class="pre">force</span></tt> can b
 cause SQLAlchemy&#8217;s encode/decode services to be
 used unconditionally.</p>
 </li>
-<li><strong>assert_unicode</strong> &#8211; Deprecated.  A warning is emitted
-when a non-<tt class="docutils literal"><span class="pre">unicode</span></tt> object is passed to the
-<a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> subtype of <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a>,
-or the <a class="reference internal" href="../core/types.html#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt></a> subtype of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">Text</span></tt></a>.
-See <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> for information on how to
-control this warning.</li>
 <li><strong>unicode_error</strong> &#8211; Optional, a method to use to handle Unicode
 conversion errors. Behaves like the <tt class="docutils literal"><span class="pre">errors</span></tt> keyword argument to
 the standard library&#8217;s <tt class="docutils literal"><span class="pre">string.decode()</span></tt> functions.   This flag
@@ -436,11 +450,11 @@ strings from a column with varied or corrupted encodings.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.oracle.LONG">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">LONG</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.LONG" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">LONG</tt><big>(</big><em>length=None</em>, <em>collation=None</em>, <em>convert_unicode=False</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.LONG" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Text</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.dialects.oracle.LONG.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.LONG.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>collation=None</em>, <em>convert_unicode=False</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.LONG.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a string-holding type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -448,12 +462,24 @@ strings from a column with varied or corrupted encodings.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>length</strong> &#8211; optional, a length for the column for use in
-DDL statements.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
+DDL and CAST expressions.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <tt class="docutils literal"><span class="pre">length</span></tt> for use in DDL, and will raise an exception when
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued if a <tt class="docutils literal"><span class="pre">VARCHAR</span></tt>
 with no length is included.  Whether the value is
 interpreted as bytes or characters is database specific.</li>
+<li><strong>collation</strong> &#8211; <p>Optional, a column-level collation for
+use in DDL and CAST expressions.  Renders using the
+COLLATE keyword supported by SQLite, MySQL, and Postgresql.
+E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">cast</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">String</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">select</span><span class="p">([</span><span class="n">cast</span><span class="p">(</span><span class="s">&#39;some string&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="n">collation</span><span class="o">=</span><span class="s">&#39;utf8&#39;</span><span class="p">))])</span>
+<span class="go">SELECT CAST(:param_1 AS VARCHAR COLLATE utf8) AS anon_1</span></pre></div>
+</div>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8: </span>Added support for COLLATE to all
+string types.</p>
+</li>
 <li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the
 <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type will assume that
 input is to be passed as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects,
@@ -479,12 +505,6 @@ the value <tt class="docutils literal"><span class="pre">force</span></tt> can b
 cause SQLAlchemy&#8217;s encode/decode services to be
 used unconditionally.</p>
 </li>
-<li><strong>assert_unicode</strong> &#8211; Deprecated.  A warning is emitted
-when a non-<tt class="docutils literal"><span class="pre">unicode</span></tt> object is passed to the
-<a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> subtype of <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a>,
-or the <a class="reference internal" href="../core/types.html#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt></a> subtype of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">Text</span></tt></a>.
-See <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> for information on how to
-control this warning.</li>
 <li><strong>unicode_error</strong> &#8211; Optional, a method to use to handle Unicode
 conversion errors. Behaves like the <tt class="docutils literal"><span class="pre">errors</span></tt> keyword argument to
 the standard library&#8217;s <tt class="docutils literal"><span class="pre">string.decode()</span></tt> functions.   This flag
@@ -512,37 +532,58 @@ strings from a column with varied or corrupted encodings.</li>
 
 </div>
 <div class="section" id="module-sqlalchemy.dialects.oracle.cx_oracle">
-<span id="cx-oracle-notes"></span><h2>cx_Oracle Notes<a class="headerlink" href="#module-sqlalchemy.dialects.oracle.cx_oracle" title="Permalink to this headline">¶</a></h2>
-<p>Support for the Oracle database via the cx_oracle driver.</p>
-<div class="section" id="driver">
-<h3>Driver<a class="headerlink" href="#driver" title="Permalink to this headline">¶</a></h3>
-<p>The Oracle dialect uses the cx_oracle driver, available at
-<a class="reference external" href="http://cx-oracle.sourceforge.net/">http://cx-oracle.sourceforge.net/</a> .   The dialect has several behaviors
-which are specifically tailored towards compatibility with this module.
-Version 5.0 or greater is <strong>strongly</strong> recommended, as SQLAlchemy makes
-extensive use of the cx_oracle output converters for numeric and
-string conversions.</p>
+<span id="cx-oracle"></span><h2>cx_Oracle<a class="headerlink" href="#module-sqlalchemy.dialects.oracle.cx_oracle" title="Permalink to this headline">¶</a></h2>
+<p>Support for the Oracle database via the cx-Oracle driver.</p>
+<div class="section" id="dialect-oracle-cx_oracle-url">
+<h3>DBAPI<a class="headerlink" href="#dialect-oracle-cx_oracle-url" title="Permalink to this headline">¶</a></h3>
+<p>Documentation and download information (if applicable) for cx-Oracle is available at:
+<a class="reference external" href="http://cx-oracle.sourceforge.net/">http://cx-oracle.sourceforge.net/</a></p>
 </div>
-<div class="section" id="connecting">
-<h3>Connecting<a class="headerlink" href="#connecting" title="Permalink to this headline">¶</a></h3>
-<p>Connecting with create_engine() uses the standard URL approach of
-<tt class="docutils literal"><span class="pre">oracle://user:pass&#64;host:port/dbname[?key=value&amp;key=value...]</span></tt>.  If dbname is present, the
-host, port, and dbname tokens are converted to a TNS name using the cx_oracle
-<tt class="xref py py-func docutils literal"><span class="pre">makedsn()</span></tt> function.  Otherwise, the host token is taken directly as a TNS name.</p>
-<p>Additional arguments which may be specified either as query string arguments on the
-URL, or as keyword arguments to <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> are:</p>
-<ul class="simple">
-<li><em>allow_twophase</em> - enable two-phase transactions.  Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>.</li>
-<li><em>arraysize</em> - set the cx_oracle.arraysize value on cursors, in SQLAlchemy
-it defaults to 50.  See the section on &#8220;LOB Objects&#8221; below.</li>
-<li><em>auto_convert_lobs</em> - defaults to True, see the section on LOB objects.</li>
-<li><em>auto_setinputsizes</em> - the cx_oracle.setinputsizes() call is issued for all bind parameters.
-This is required for LOB datatypes but can be disabled to reduce overhead.  Defaults
-to <tt class="docutils literal"><span class="pre">True</span></tt>.</li>
-<li><em>mode</em> - This is given the string value of SYSDBA or SYSOPER, or alternatively an
-integer value.  This value is only available as a URL query string argument.</li>
-<li><em>threaded</em> - enable multithreaded access to cx_oracle connections.  Defaults
-to <tt class="docutils literal"><span class="pre">True</span></tt>.  Note that this is the opposite default of cx_oracle itself.</li>
+<div class="section" id="dialect-oracle-cx_oracle-connect">
+<h3>Connecting<a class="headerlink" href="#dialect-oracle-cx_oracle-connect" title="Permalink to this headline">¶</a></h3>
+<p>Connect String:<div class="highlight-python"><pre>oracle+cx_oracle://user:pass@host:port/dbname[?key=value&amp;key=value...]</pre>
+</div>
+</p>
+</div>
+<div class="section" id="additional-connect-arguments">
+<h3>Additional Connect Arguments<a class="headerlink" href="#additional-connect-arguments" title="Permalink to this headline">¶</a></h3>
+<p>When connecting with <tt class="docutils literal"><span class="pre">dbname</span></tt> present, the host, port, and dbname tokens are
+converted to a TNS name using
+the cx_oracle <tt class="xref py py-func docutils literal"><span class="pre">makedsn()</span></tt> function.  Otherwise, the host token is taken
+directly as a TNS name.</p>
+<p>Additional arguments which may be specified either as query string arguments
+on the URL, or as keyword arguments to <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> are:</p>
+<ul>
+<li><p class="first">allow_twophase - enable two-phase transactions.  Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
+</li>
+<li><p class="first">arraysize - set the cx_oracle.arraysize value on cursors, in SQLAlchemy
+it defaults to 50.  See the section on &#8220;LOB Objects&#8221; below.</p>
+</li>
+<li><p class="first">auto_convert_lobs - defaults to True, see the section on LOB objects.</p>
+</li>
+<li><p class="first">auto_setinputsizes - the cx_oracle.setinputsizes() call is issued for
+all bind parameters.  This is required for LOB datatypes but can be
+disabled to reduce overhead.  Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>.  Specific types
+can be excluded from this process using the <tt class="docutils literal"><span class="pre">exclude_setinputsizes</span></tt>
+parameter.</p>
+</li>
+<li><p class="first">exclude_setinputsizes - a tuple or list of string DBAPI type names to
+be excluded from the &#8220;auto setinputsizes&#8221; feature.  The type names here
+must match DBAPI types that are found in the &#8220;cx_Oracle&#8221; module namespace,
+such as cx_Oracle.UNICODE, cx_Oracle.NCLOB, etc.   Defaults to
+<tt class="docutils literal"><span class="pre">(STRING,</span> <span class="pre">UNICODE)</span></tt>.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.8: </span>specific DBAPI types can be excluded from the
+auto_setinputsizes feature via the exclude_setinputsizes attribute.</p>
+</li>
+<li><p class="first">mode - This is given the string value of SYSDBA or SYSOPER, or alternatively
+an integer value.  This value is only available as a URL query string
+argument.</p>
+</li>
+<li><p class="first">threaded - enable multithreaded access to cx_oracle connections.  Defaults
+to <tt class="docutils literal"><span class="pre">True</span></tt>.  Note that this is the opposite default of the cx_Oracle DBAPI
+itself.</p>
+</li>
 </ul>
 </div>
 <div class="section" id="id1">
@@ -567,8 +608,35 @@ cursor is broken.</p>
 </div>
 <div class="section" id="two-phase-transaction-support">
 <h3>Two Phase Transaction Support<a class="headerlink" href="#two-phase-transaction-support" title="Permalink to this headline">¶</a></h3>
-<p>Two Phase transactions are implemented using XA transactions.  Success has been reported
-with this feature but it should be regarded as experimental.</p>
+<p>Two Phase transactions are implemented using XA transactions, and are known
+to work in a rudimental fashion with recent versions of cx_Oracle
+as of SQLAlchemy 0.8.0b2, 0.7.10.   However, the mechanism is not yet
+considered to be robust and should still be regarded as experimental.</p>
+<p>In particular, the cx_Oracle DBAPI as recently as 5.1.2 has a bug regarding
+two phase which prevents
+a particular DBAPI connection from being consistently usable in both
+prepared transactions as well as traditional DBAPI usage patterns; therefore
+once a particular connection is used via <tt class="xref py py-meth docutils literal"><span class="pre">Connection.begin_prepared()</span></tt>,
+all subsequent usages of the underlying DBAPI connection must be within
+the context of prepared transactions.</p>
+<p>The default behavior of <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> is to maintain a pool of DBAPI
+connections.  Therefore, due to the above glitch, a DBAPI connection that has
+been used in a two-phase operation, and is then returned to the pool, will
+not be usable in a non-two-phase context.   To avoid this situation,
+the application can make one of several choices:</p>
+<ul class="simple">
+<li>Disable connection pooling using <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.NullPool" title="sqlalchemy.pool.NullPool"><tt class="xref py py-class docutils literal"><span class="pre">NullPool</span></tt></a></li>
+<li>Ensure that the particular <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> in use is only used
+for two-phase operations.   A <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> bound to an ORM
+<a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> which includes <tt class="docutils literal"><span class="pre">twophase=True</span></tt> will consistently
+use the two-phase transaction style.</li>
+<li>For ad-hoc two-phase operations without disabling pooling, the DBAPI
+connection in use can be evicted from the connection pool using the
+<tt class="xref py py-class docutils literal"><span class="pre">Connection.detach</span></tt> method.</li>
+</ul>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.8.0b2,0.7.10: </span>Support for cx_oracle prepared transactions has been implemented
+and tested.</p>
 </div>
 <div class="section" id="precision-numerics">
 <h3>Precision Numerics<a class="headerlink" href="#precision-numerics" title="Permalink to this headline">¶</a></h3>
@@ -628,12 +696,18 @@ a decimal point.</p>
 </div>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.oracle.zxjdbc">
-<span id="zxjdbc-notes"></span><h2>zxjdbc Notes<a class="headerlink" href="#module-sqlalchemy.dialects.oracle.zxjdbc" title="Permalink to this headline">¶</a></h2>
-<p>Support for the Oracle database via the zxjdbc JDBC connector.</p>
-<div class="section" id="jdbc-driver">
-<h3>JDBC Driver<a class="headerlink" href="#jdbc-driver" title="Permalink to this headline">¶</a></h3>
-<p>The official Oracle JDBC driver is at
-<a class="reference external" href="http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/index.html">http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/index.html</a>.</p>
+<span id="zxjdbc"></span><h2>zxjdbc<a class="headerlink" href="#module-sqlalchemy.dialects.oracle.zxjdbc" title="Permalink to this headline">¶</a></h2>
+<p>Support for the Oracle database via the zxJDBC for Jython driver.</p>
+<div class="section" id="dialect-oracle-zxjdbc-url">
+<h3>DBAPI<a class="headerlink" href="#dialect-oracle-zxjdbc-url" title="Permalink to this headline">¶</a></h3>
+<p>Drivers for this database are available at:
+<a class="reference external" href="http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/index.html.">http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/index.html.</a></p>
+</div>
+<div class="section" id="dialect-oracle-zxjdbc-connect">
+<h3>Connecting<a class="headerlink" href="#dialect-oracle-zxjdbc-connect" title="Permalink to this headline">¶</a></h3>
+<p>Connect String:<div class="highlight-python"><pre>oracle+zxjdbc://user:pass@host/dbname</pre>
+</div>
+</p>
 </div>
 </div>
 </div>

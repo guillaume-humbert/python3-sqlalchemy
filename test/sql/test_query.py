@@ -1,10 +1,16 @@
-from test.lib.testing import eq_, assert_raises_message, assert_raises
+from sqlalchemy.testing import eq_, assert_raises_message, assert_raises, is_
+from sqlalchemy import testing
+from sqlalchemy.testing import fixtures, engines
+from sqlalchemy import util
 import datetime
 from sqlalchemy import *
-from sqlalchemy import exc, sql, util
-from sqlalchemy.engine import default, base
-from test.lib import *
-from test.lib.schema import Table, Column
+from sqlalchemy import exc, sql
+from sqlalchemy.engine import default, result as _result
+from sqlalchemy.testing.schema import Table, Column
+
+# ongoing - these are old tests.  those which are of general use
+# to test a dialect are being slowly migrated to
+# sqlalhcemy.testing.suite
 
 class QueryTest(fixtures.TestBase):
 
@@ -42,12 +48,21 @@ class QueryTest(fixtures.TestBase):
     def teardown_class(cls):
         metadata.drop_all()
 
-    def test_insert(self):
-        users.insert().execute(user_id = 7, user_name = 'jack')
-        assert users.count().scalar() == 1
+    @testing.requires.multivalues_inserts
+    def test_multivalues_insert(self):
+        users.insert(values=[{'user_id':7, 'user_name':'jack'},
+            {'user_id':8, 'user_name':'ed'}]).execute()
+        rows = users.select().execute().fetchall()
+        self.assert_(rows[0] == (7, 'jack'))
+        self.assert_(rows[1] == (8, 'ed'))
+        users.insert(values=[(9, 'jack'), (10, 'ed')]).execute()
+        rows = users.select().execute().fetchall()
+        self.assert_(rows[2] == (9, 'jack'))
+        self.assert_(rows[3] == (10, 'ed'))
 
     def test_insert_heterogeneous_params(self):
-        """test that executemany parameters are asserted to match the parameter set of the first."""
+        """test that executemany parameters are asserted to match the
+        parameter set of the first."""
 
         assert_raises_message(exc.StatementError,
             r"A value is required for bind parameter 'user_name', in "
@@ -67,13 +82,6 @@ class QueryTest(fixtures.TestBase):
             {'user_id':8, 'user_name':'ed'},
             {'user_id':9}
         )
-
-    def test_update(self):
-        users.insert().execute(user_id = 7, user_name = 'jack')
-        assert users.count().scalar() == 1
-
-        users.update(users.c.user_id == 7).execute(user_name = 'fred')
-        assert users.select(users.c.user_id==7).execute().first()['user_name'] == 'fred'
 
     def test_lastrow_accessor(self):
         """Tests the inserted_primary_key and lastrow_has_id() functions."""
@@ -194,7 +202,8 @@ class QueryTest(fixtures.TestBase):
         )
         t6 = Table("t6", metadata,
             Column('manual_id', Integer, ForeignKey('related.id'), primary_key=True),
-            Column('auto_id', Integer, primary_key=True, test_needs_autoincrement=True),
+            Column('auto_id', Integer, primary_key=True,
+                                    test_needs_autoincrement=True),
             mysql_engine='MyISAM'
         )
 
@@ -206,21 +215,6 @@ class QueryTest(fixtures.TestBase):
         r = t6.insert().values(manual_id=id).execute()
         eq_(r.inserted_primary_key, [12, 1])
 
-    def test_autoclose_on_insert(self):
-        if testing.against('firebird', 'postgresql', 'oracle', 'mssql'):
-            test_engines = [
-                engines.testing_engine(options={'implicit_returning':False}),
-                engines.testing_engine(options={'implicit_returning':True}),
-            ]
-        else:
-            test_engines = [testing.db]
-
-        for engine in test_engines:
-
-            r = engine.execute(users.insert(),
-                {'user_name':'jack'},
-            )
-            assert r.closed
 
     def test_row_iteration(self):
         users.insert().execute(
@@ -234,7 +228,6 @@ class QueryTest(fixtures.TestBase):
             l.append(row)
         self.assert_(len(l) == 3)
 
-    @testing.fails_on('firebird', "kinterbasdb doesn't send full type information")
     @testing.requires.subqueries
     def test_anonymous_rows(self):
         users.insert().execute(
@@ -562,16 +555,6 @@ class QueryTest(fixtures.TestBase):
         )
 
 
-    def test_delete(self):
-        users.insert().execute(user_id = 7, user_name = 'jack')
-        users.insert().execute(user_id = 8, user_name = 'fred')
-        print repr(users.select().execute().fetchall())
-
-        users.delete(users.c.user_name == 'fred').execute()
-
-        print repr(users.select().execute().fetchall())
-
-
 
     @testing.exclude('mysql', '<', (5, 0, 37), 'database bug')
     def test_scalar_select(self):
@@ -710,6 +693,8 @@ class QueryTest(fixtures.TestBase):
                               use_labels=labels),
                  [(3, 'a'), (2, 'b'), (1, None)])
 
+    @testing.fails_on('mssql+pyodbc',
+        "pyodbc result row doesn't support slicing")
     def test_column_slices(self):
         users.insert().execute(user_id=1, user_name='john')
         users.insert().execute(user_id=2, user_name='jack')
@@ -837,45 +822,7 @@ class QueryTest(fixtures.TestBase):
             lambda: r['foo']
         )
 
-    @testing.requires.dbapi_lastrowid
-    def test_native_lastrowid(self):
-        r = testing.db.execute(
-            users.insert(),
-            {'user_id':1, 'user_name':'ed'}
-        )
 
-        eq_(r.lastrowid, 1)
-
-    def test_returns_rows_flag_insert(self):
-        r = testing.db.execute(
-            users.insert(),
-            {'user_id':1, 'user_name':'ed'}
-        )
-        assert r.is_insert
-        assert not r.returns_rows
-
-    def test_returns_rows_flag_update(self):
-        r = testing.db.execute(
-            users.update().values(user_name='fred')
-        )
-        assert not r.is_insert
-        assert not r.returns_rows
-
-    def test_returns_rows_flag_select(self):
-        r = testing.db.execute(
-            users.select()
-        )
-        assert not r.is_insert
-        assert r.returns_rows
-
-    @testing.requires.returning
-    def test_returns_rows_flag_insert_returning(self):
-        r = testing.db.execute(
-            users.insert().returning(users.c.user_id),
-            {'user_id':1, 'user_name':'ed'}
-        )
-        assert r.is_insert
-        assert r.returns_rows
 
     def test_graceful_fetch_on_non_rows(self):
         """test that calling fetchone() etc. on a result that doesn't
@@ -885,9 +832,9 @@ class QueryTest(fixtures.TestBase):
 
         # these proxies don't work with no cursor.description present.
         # so they don't apply to this test at the moment.
-        # base.FullyBufferedResultProxy,
-        # base.BufferedRowResultProxy,
-        # base.BufferedColumnResultProxy
+        # result.FullyBufferedResultProxy,
+        # result.BufferedRowResultProxy,
+        # result.BufferedColumnResultProxy
 
         conn = testing.db.connect()
         for meth in ('fetchone', 'fetchall', 'first', 'scalar', 'fetchmany'):
@@ -919,9 +866,7 @@ class QueryTest(fixtures.TestBase):
             result.fetchone
         )
 
-    def test_result_case_sensitivity(self):
-        """test name normalization for result sets."""
-
+    def test_row_case_sensitive(self):
         row = testing.db.execute(
             select([
                 literal_column("1").label("case_insensitive"),
@@ -929,7 +874,33 @@ class QueryTest(fixtures.TestBase):
             ])
         ).first()
 
-        assert row.keys() == ["case_insensitive", "CaseSensitive"]
+        eq_(row.keys(), ["case_insensitive", "CaseSensitive"])
+        eq_(row["case_insensitive"], 1)
+        eq_(row["CaseSensitive"], 2)
+
+        assert_raises(
+            KeyError,
+            lambda: row["Case_insensitive"]
+        )
+        assert_raises(
+            KeyError,
+            lambda: row["casesensitive"]
+        )
+
+    def test_row_case_insensitive(self):
+        ins_db = engines.testing_engine(options={"case_sensitive":False})
+        row = ins_db.execute(
+            select([
+                literal_column("1").label("case_insensitive"),
+                literal_column("2").label("CaseSensitive")
+            ])
+        ).first()
+
+        eq_(row.keys(), ["case_insensitive", "CaseSensitive"])
+        eq_(row["case_insensitive"], 1)
+        eq_(row["CaseSensitive"], 2)
+        eq_(row["Case_insensitive"],1)
+        eq_(row["casesensitive"],2)
 
 
     def test_row_as_args(self):
@@ -952,11 +923,34 @@ class QueryTest(fixtures.TestBase):
 
     def test_ambiguous_column(self):
         users.insert().execute(user_id=1, user_name='john')
-        r = users.outerjoin(addresses).select().execute().first()
+        result = users.outerjoin(addresses).select().execute()
+        r = result.first()
+
         assert_raises_message(
             exc.InvalidRequestError,
             "Ambiguous column name",
             lambda: r['user_id']
+        )
+
+        assert_raises_message(
+            exc.InvalidRequestError,
+            "Ambiguous column name",
+            lambda: r[users.c.user_id]
+        )
+
+        assert_raises_message(
+            exc.InvalidRequestError,
+            "Ambiguous column name",
+            lambda: r[addresses.c.user_id]
+        )
+
+        # try to trick it - fake_table isn't in the result!
+        # we get the correct error
+        fake_table = Table('fake', MetaData(), Column('user_id', Integer))
+        assert_raises_message(
+            exc.InvalidRequestError,
+            "Could not locate column in row for column 'fake.user_id'",
+            lambda: r[fake_table.c.user_id]
         )
 
         r = util.pickle.loads(util.pickle.dumps(r))
@@ -967,9 +961,9 @@ class QueryTest(fixtures.TestBase):
         )
 
         result = users.outerjoin(addresses).select().execute()
-        result = base.BufferedColumnResultProxy(result.context)
+        result = _result.BufferedColumnResultProxy(result.context)
         r = result.first()
-        assert isinstance(r, base.BufferedColumnRow)
+        assert isinstance(r, _result.BufferedColumnRow)
         assert_raises_message(
             exc.InvalidRequestError,
             "Ambiguous column name",
@@ -989,19 +983,39 @@ class QueryTest(fixtures.TestBase):
             lambda: row[users.c.user_id]
         )
 
-        # this is a bug, should be ambiguous.
-        # Fixed in 0.8
-        eq_(row[ua.c.user_id], 1)
+        assert_raises_message(
+            exc.InvalidRequestError,
+            "Ambiguous column name",
+            lambda: row[ua.c.user_id]
+        )
 
-        # this is also a less severe bug - u2.c.user_id
-        # is not in the row at all so is not actually
-        # ambiguous.  Still is like this in 0.8
-        # and is due to overly liberal "this is a derived column"
-        # rules.
+        # Unfortunately, this fails -
+        # we'd like
+        # "Could not locate column in row"
+        # to be raised here, but the check for
+        # "common column" in _compare_name_for_result()
+        # has other requirements to be more liberal.
+        # Ultimately the
+        # expression system would need a way to determine
+        # if given two columns in a "proxy" relationship, if they
+        # refer to a different parent table
         assert_raises_message(
             exc.InvalidRequestError,
             "Ambiguous column name",
             lambda: row[u2.c.user_id]
+        )
+
+    def test_ambiguous_column_by_col_plus_label(self):
+        users.insert().execute(user_id=1, user_name='john')
+        result = select([users.c.user_id,
+                        type_coerce(users.c.user_id, Integer).label('foo')]
+                    ).execute()
+        row = result.first()
+        eq_(
+            row[users.c.user_id], 1
+        )
+        eq_(
+            row[1], 1
         )
 
     @testing.requires.subqueries
@@ -1037,14 +1051,6 @@ class QueryTest(fixtures.TestBase):
         eq_(len(r), 2)
         r = testing.db.execute('select user_name from query_users').first()
         eq_(len(r), 1)
-
-    @testing.uses_deprecated(r'.*which subclass Executable')
-    def test_cant_execute_join(self):
-        try:
-            users.join(addresses).execute()
-        except exc.StatementError, e:
-            assert str(e).startswith('Not an executable clause ')
-
 
 
     def test_column_order_with_simple_query(self):
@@ -1129,7 +1135,6 @@ class QueryTest(fixtures.TestBase):
     @testing.emits_warning('.*empty sequence.*')
     @testing.fails_on('firebird', "uses sql-92 rules")
     @testing.fails_on('sybase', "uses sql-92 rules")
-    @testing.fails_on('mssql+mxodbc', "uses sql-92 rules")
     @testing.fails_if(lambda:
                          testing.against('mssql+pyodbc') and not testing.db.dialect.freetds,
                          "uses sql-92 rules")
@@ -1154,7 +1159,6 @@ class QueryTest(fixtures.TestBase):
         assert len(r) == 0
 
     @testing.emits_warning('.*empty sequence.*')
-    @testing.fails_on('firebird', 'uses sql-92 bind rules')
     def test_literal_in(self):
         """similar to test_bind_in but use a bind with a value."""
 
@@ -1189,6 +1193,239 @@ class QueryTest(fixtures.TestBase):
         s = users.select(users.c.user_name.in_([]) == None)
         r = s.execute().fetchall()
         assert len(r) == 1
+
+class RequiredBindTest(fixtures.TablesTest):
+    run_create_tables = None
+    run_deletes = None
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('foo', metadata,
+                Column('id', Integer, primary_key=True),
+                Column('data', String(50)),
+                Column('x', Integer)
+            )
+
+    def _assert_raises(self, stmt, params):
+        assert_raises_message(
+            exc.StatementError,
+            "A value is required for bind parameter 'x'",
+            testing.db.execute, stmt, **params)
+
+        assert_raises_message(
+            exc.StatementError,
+            "A value is required for bind parameter 'x'",
+            testing.db.execute, stmt, params)
+
+    def test_insert(self):
+        stmt = self.tables.foo.insert().values(x=bindparam('x'),
+                                    data=bindparam('data'))
+        self._assert_raises(
+            stmt, {'data': 'data'}
+        )
+
+    def test_select_where(self):
+        stmt = select([self.tables.foo]).\
+                    where(self.tables.foo.c.data == bindparam('data')).\
+                    where(self.tables.foo.c.x == bindparam('x'))
+        self._assert_raises(
+            stmt, {'data': 'data'}
+        )
+
+    @testing.requires.standalone_binds
+    def test_select_columns(self):
+        stmt = select([bindparam('data'), bindparam('x')])
+        self._assert_raises(
+            stmt, {'data': 'data'}
+        )
+
+    def test_text(self):
+        stmt = text("select * from foo where x=:x and data=:data1")
+        self._assert_raises(
+            stmt, {'data1': 'data'}
+        )
+
+    def test_required_flag(self):
+        is_(bindparam('foo').required, True)
+        is_(bindparam('foo', required=False).required, False)
+        is_(bindparam('foo', 'bar').required, False)
+        is_(bindparam('foo', 'bar', required=True).required, True)
+
+        c = lambda: None
+        is_(bindparam('foo', callable_=c, required=True).required, True)
+        is_(bindparam('foo', callable_=c).required, False)
+        is_(bindparam('foo', callable_=c, required=False).required, False)
+
+class TableInsertTest(fixtures.TablesTest):
+    """test for consistent insert behavior across dialects
+    regarding the inline=True flag, lower-case 't' tables.
+
+    """
+    run_create_tables = 'each'
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('foo', metadata,
+                Column('id', Integer, Sequence('t_id_seq'), primary_key=True),
+                Column('data', String(50)),
+                Column('x', Integer)
+            )
+
+    def _fixture(self, types=True):
+        if types:
+            t = sql.table('foo', sql.column('id', Integer),
+                        sql.column('data', String),
+                        sql.column('x', Integer))
+        else:
+            t = sql.table('foo', sql.column('id'),
+                        sql.column('data'),
+                        sql.column('x'))
+        return t
+
+    def _test(self, stmt, row, returning=None, inserted_primary_key=False):
+        r = testing.db.execute(stmt)
+
+        if returning:
+            returned = r.first()
+            eq_(returned, returning)
+        elif inserted_primary_key is not False:
+            eq_(r.inserted_primary_key, inserted_primary_key)
+
+        eq_(testing.db.execute(self.tables.foo.select()).first(), row)
+
+    def _test_multi(self, stmt, rows, data):
+        testing.db.execute(stmt, rows)
+        eq_(
+            testing.db.execute(self.tables.foo.select().
+                            order_by(self.tables.foo.c.id)).fetchall(),
+            data)
+
+    @testing.requires.sequences
+    def test_expicit_sequence(self):
+        t = self._fixture()
+        self._test(
+            t.insert().values(
+                        id=func.next_value(Sequence('t_id_seq')),
+                        data='data', x=5
+                    ),
+            (1, 'data', 5)
+        )
+
+    def test_uppercase(self):
+        t = self.tables.foo
+        self._test(
+            t.insert().values(
+                        id=1,
+                        data='data', x=5
+                    ),
+            (1, 'data', 5),
+            inserted_primary_key=[1]
+        )
+
+    def test_uppercase_inline(self):
+        t = self.tables.foo
+        self._test(
+            t.insert(inline=True).values(
+                        id=1,
+                        data='data', x=5
+                    ),
+            (1, 'data', 5),
+            inserted_primary_key=[1]
+        )
+
+    def test_uppercase_inline_implicit(self):
+        t = self.tables.foo
+        self._test(
+            t.insert(inline=True).values(
+                        data='data', x=5
+                    ),
+            (1, 'data', 5),
+            inserted_primary_key=[None]
+        )
+
+    def test_uppercase_implicit(self):
+        t = self.tables.foo
+        self._test(
+            t.insert().values(data='data', x=5),
+            (1, 'data', 5),
+            inserted_primary_key=[1]
+        )
+
+    def test_uppercase_direct_params(self):
+        t = self.tables.foo
+        self._test(
+            t.insert().values(id=1, data='data', x=5),
+            (1, 'data', 5),
+            inserted_primary_key=[1]
+        )
+
+    @testing.requires.returning
+    def test_uppercase_direct_params_returning(self):
+        t = self.tables.foo
+        self._test(
+            t.insert().values(
+                        id=1, data='data', x=5).returning(t.c.id, t.c.x),
+            (1, 'data', 5),
+            returning=(1, 5)
+        )
+
+    @testing.fails_on('mssql',
+        "lowercase table doesn't support identity insert disable")
+    def test_direct_params(self):
+        t = self._fixture()
+        self._test(
+            t.insert().values(id=1, data='data', x=5),
+            (1, 'data', 5),
+            inserted_primary_key=[]
+        )
+
+    @testing.fails_on('mssql',
+        "lowercase table doesn't support identity insert disable")
+    @testing.requires.returning
+    def test_direct_params_returning(self):
+        t = self._fixture()
+        self._test(
+            t.insert().values(
+                        id=1, data='data', x=5).returning(t.c.id, t.c.x),
+            (1, 'data', 5),
+            returning=(1, 5)
+        )
+
+    @testing.requires.emulated_lastrowid
+    def test_implicit_pk(self):
+        t = self._fixture()
+        self._test(
+            t.insert().values(
+                        data='data', x=5),
+            (1, 'data', 5),
+            inserted_primary_key=[]
+        )
+
+    @testing.requires.emulated_lastrowid
+    def test_implicit_pk_multi_rows(self):
+        t = self._fixture()
+        self._test_multi(
+            t.insert(),
+            [
+                {'data':'d1', 'x':5},
+                {'data':'d2', 'x':6},
+                {'data':'d3', 'x':7},
+            ],
+            [
+                (1, 'd1', 5),
+                (2, 'd2', 6),
+                (3, 'd3', 7)
+            ],
+        )
+
+    @testing.requires.emulated_lastrowid
+    def test_implicit_pk_inline(self):
+        t = self._fixture()
+        self._test(
+            t.insert(inline=True).values(data='data', x=5),
+            (1, 'data', 5),
+            inserted_primary_key=[]
+        )
 
 class PercentSchemaNamesTest(fixtures.TestBase):
     """tests using percent signs, spaces in table and column names.
@@ -1344,6 +1581,13 @@ class KeyTargetingTest(fixtures.TablesTest):
             Column('ctype', String(30), key="content_type")
         )
 
+        if testing.requires.schemas.enabled:
+            wschema = Table('wschema', metadata,
+                Column("a", CHAR(2), key="b"),
+                Column("c", CHAR(2), key="q"),
+                schema="test_schema"
+            )
+
     @classmethod
     def insert_data(cls):
         cls.tables.keyed1.insert().execute(dict(b="a1", q="c1"))
@@ -1351,6 +1595,20 @@ class KeyTargetingTest(fixtures.TablesTest):
         cls.tables.keyed3.insert().execute(dict(a="a3", d="d3"))
         cls.tables.keyed4.insert().execute(dict(b="b4", q="q4"))
         cls.tables.content.insert().execute(type="t1")
+
+        if testing.requires.schemas.enabled:
+            cls.tables['test_schema.wschema'].insert().execute(dict(b="a1", q="c1"))
+
+    @testing.requires.schemas
+    def test_keyed_accessor_wschema(self):
+        keyed1 = self.tables['test_schema.wschema']
+        row = testing.db.execute(keyed1.select()).first()
+
+        eq_(row.b, "a1")
+        eq_(row.q, "c1")
+        eq_(row.a, "a1")
+        eq_(row.c, "c1")
+
 
     def test_keyed_accessor_single(self):
         keyed1 = self.tables.keyed1
@@ -1375,28 +1633,13 @@ class KeyTargetingTest(fixtures.TablesTest):
         keyed2 = self.tables.keyed2
 
         row = testing.db.execute(select([keyed1, keyed2])).first()
-        # without #2397, row.b is unambiguous
+        # row.b is unambiguous
         eq_(row.b, "b2")
         # row.a is ambiguous
         assert_raises_message(
             exc.InvalidRequestError,
             "Ambig",
             getattr, row, "a"
-        )
-
-    @testing.fails_if(lambda: True, "Possible future behavior")
-    def test_keyed_accessor_composite_conflict_2397(self):
-        keyed1 = self.tables.keyed1
-        keyed2 = self.tables.keyed2
-
-        row = testing.db.execute(select([keyed1, keyed2])).first()
-        # with #2397, row.a is unambiguous
-        eq_(row.a, "a2")
-        # row.b is ambiguous
-        assert_raises_message(
-            exc.InvalidRequestError,
-            "Ambiguous column name 'b'",
-            getattr, row, 'b'
         )
 
     def test_keyed_accessor_composite_names_precedent(self):
@@ -1414,24 +1657,17 @@ class KeyTargetingTest(fixtures.TablesTest):
         keyed3 = self.tables.keyed3
 
         row = testing.db.execute(select([keyed1, keyed3])).first()
-        assert 'b' not in row
         eq_(row.q, "c1")
+        assert_raises_message(
+            exc.InvalidRequestError,
+            "Ambiguous column name 'b'",
+            getattr, row, "b"
+        )
         assert_raises_message(
             exc.InvalidRequestError,
             "Ambiguous column name 'a'",
             getattr, row, "a"
         )
-        eq_(row.d, "d3")
-
-    @testing.fails_if(lambda: True, "Possible future behavior")
-    def test_keyed_accessor_composite_2397(self):
-        keyed1 = self.tables.keyed1
-        keyed3 = self.tables.keyed3
-
-        row = testing.db.execute(select([keyed1, keyed3])).first()
-        eq_(row.b, "a1")
-        eq_(row.q, "c1")
-        eq_(row.a, "a3")
         eq_(row.d, "d3")
 
     def test_keyed_accessor_composite_labeled(self):
@@ -1451,7 +1687,7 @@ class KeyTargetingTest(fixtures.TablesTest):
     def test_column_label_overlap_fallback(self):
         content, bar = self.tables.content, self.tables.bar
         row = testing.db.execute(select([content.c.type.label("content_type")])).first()
-        assert content.c.type in row
+        assert content.c.type not in row
         assert bar.c.content_type not in row
         assert sql.column('content_type') in row
 
@@ -1461,21 +1697,11 @@ class KeyTargetingTest(fixtures.TablesTest):
         assert sql.column('content_type') in row
 
     def test_column_label_overlap_fallback_2(self):
-        # this fails with #2397
         content, bar = self.tables.content, self.tables.bar
         row = testing.db.execute(content.select(use_labels=True)).first()
         assert content.c.type in row
         assert bar.c.content_type not in row
         assert sql.column('content_type') not in row
-
-    @testing.fails_if(lambda: True, "Possible future behavior")
-    def test_column_label_overlap_fallback_3(self):
-        # this passes with #2397
-        content, bar = self.tables.content, self.tables.bar
-        row = testing.db.execute(content.select(use_labels=True)).first()
-        assert content.c.type in row
-        assert bar.c.content_type not in row
-        assert sql.column('content_type') in row
 
 
 class LimitTest(fixtures.TestBase):

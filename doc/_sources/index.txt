@@ -11,7 +11,9 @@ A high level view and getting set up.
 
 :ref:`Overview <overview>` |
 :ref:`Installation Guide <installation>` |
-:ref:`Migration from 0.6 <migration>`
+:doc:`Migration from 0.7 <changelog/migration_08>` |
+:doc:`Glossary <glossary>` |
+:doc:`Changelog catalog <changelog/index>`
 
 SQLAlchemy ORM
 ==============
@@ -51,7 +53,7 @@ of Python objects, proceed first to the tutorial.
   :doc:`Deprecated Event Interfaces <orm/deprecated>` |
   :doc:`ORM Exceptions <orm/exceptions>` |
   :doc:`Horizontal Sharding <orm/extensions/horizontal_shard>` |
-  :doc:`SQLSoup <orm/extensions/sqlsoup>`
+  :doc:`Alternate Instrumentation <orm/extensions/instrumentation>`
 
 SQLAlchemy Core
 ===============
@@ -84,6 +86,7 @@ are documented here.  In contrast to the ORM's domain-centric mode of usage, the
   :ref:`SQL Standard Types <types_sqlstandard>` |
   :ref:`Vendor Specific Types <types_vendor>` |
   :ref:`Building Custom Types <types_custom>` |
+  :ref:`Defining New Operators <types_operators>` |
   :ref:`API <types_api>`
 
 * **Extending the Core:**
@@ -93,7 +96,7 @@ are documented here.  In contrast to the ORM's domain-centric mode of usage, the
   :doc:`Internals API <core/internals>`
 
 * **Other:**
-  :doc:`Serializing Expressions <core/serializer>` |
+  :doc:`Runtime Inspection API <core/inspection>` |
   :doc:`core/interfaces` |
   :doc:`core/exceptions`
 
@@ -101,19 +104,8 @@ are documented here.  In contrast to the ORM's domain-centric mode of usage, the
 Dialect Documentation
 ======================
 
-The **dialect** is the system SQLAlchemy uses to communicate with various types of DBAPIs and databases.  This section describes notes, options, and
-usage patterns regarding individual dialects.
+The **dialect** is the system SQLAlchemy uses to communicate with various types of DBAPIs and databases.
+This section describes notes, options, and usage patterns regarding individual dialects.
 
-:doc:`dialects/drizzle` |
-:doc:`dialects/firebird` |
-:doc:`dialects/informix` |
-:doc:`dialects/maxdb` |
-:doc:`dialects/access` |
-:doc:`dialects/mssql` |
-:doc:`dialects/mysql` |
-:doc:`dialects/oracle` |
-:doc:`dialects/postgresql` |
-:doc:`dialects/sqlite` |
-:doc:`dialects/sybase`
-
+:doc:`Index of all Dialects <dialects/index>`
 

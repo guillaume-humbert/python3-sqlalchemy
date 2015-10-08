@@ -50,13 +50,13 @@ Version Check
 =============
 
 
-A quick check to verify that we are on at least **version 0.7** of SQLAlchemy:
+A quick check to verify that we are on at least **version 0.8** of SQLAlchemy:
 
 .. sourcecode:: pycon+sql
 
     >>> import sqlalchemy
     >>> sqlalchemy.__version__ # doctest:+SKIP
-    0.7.0
+    0.8.0
 
 Connecting
 ==========
@@ -236,9 +236,9 @@ we use the ``connect()`` method::
 
     >>> conn = engine.connect()
     >>> conn #doctest: +ELLIPSIS
-    <sqlalchemy.engine.base.Connection object at 0x...>
+    <sqlalchemy.engine.Connection object at 0x...>
 
-The :class:`~sqlalchemy.engine.base.Connection` object represents an actively
+The :class:`~sqlalchemy.engine.Connection` object represents an actively
 checked out DBAPI connection resource. Lets feed it our
 :class:`~sqlalchemy.sql.expression.Insert` object and see what happens:
 
@@ -252,7 +252,7 @@ checked out DBAPI connection resource. Lets feed it our
 So the INSERT statement was now issued to the database. Although we got
 positional "qmark" bind parameters instead of "named" bind parameters in the
 output. How come ? Because when executed, the
-:class:`~sqlalchemy.engine.base.Connection` used the SQLite **dialect** to
+:class:`~sqlalchemy.engine.Connection` used the SQLite **dialect** to
 help generate the statement; when we use the ``str()`` function, the statement
 isn't aware of this dialect, and falls back onto a default which uses named
 parameters. We can view this manually as follows:
@@ -264,9 +264,9 @@ parameters. We can view this manually as follows:
     'INSERT INTO users (name, fullname) VALUES (?, ?)'
 
 What about the ``result`` variable we got when we called ``execute()`` ? As
-the SQLAlchemy :class:`~sqlalchemy.engine.base.Connection` object references a
+the SQLAlchemy :class:`~sqlalchemy.engine.Connection` object references a
 DBAPI connection, the result, known as a
-:class:`~sqlalchemy.engine.base.ResultProxy` object, is analogous to the DBAPI
+:class:`~sqlalchemy.engine.ResultProxy` object, is analogous to the DBAPI
 cursor object. In the case of an INSERT, we can get important information from
 it, such as the primary key values which were generated from our statement:
 
@@ -292,7 +292,7 @@ Our insert example above was intentionally a little drawn out to show some
 various behaviors of expression language constructs. In the usual case, an
 :class:`~sqlalchemy.sql.expression.Insert` statement is usually compiled
 against the parameters sent to the ``execute()`` method on
-:class:`~sqlalchemy.engine.base.Connection`, so that there's no need to use
+:class:`~sqlalchemy.engine.Connection`, so that there's no need to use
 the ``values`` keyword with :class:`~sqlalchemy.sql.expression.Insert`. Lets
 create a generic :class:`~sqlalchemy.sql.expression.Insert` statement again
 and use it in the "normal" way:
@@ -304,7 +304,7 @@ and use it in the "normal" way:
     {opensql}INSERT INTO users (id, name, fullname) VALUES (?, ?, ?)
     (2, 'wendy', 'Wendy Williams')
     COMMIT
-    {stop}<sqlalchemy.engine.base.ResultProxy object at 0x...>
+    {stop}<sqlalchemy.engine.ResultProxy object at 0x...>
 
 Above, because we specified all three columns in the the ``execute()`` method,
 the compiled :class:`~sqlalchemy.sql.expression.Insert` included all three
@@ -328,7 +328,7 @@ inserted, as we do here to add some email addresses:
     {opensql}INSERT INTO addresses (user_id, email_address) VALUES (?, ?)
     ((1, 'jack@yahoo.com'), (1, 'jack@msn.com'), (2, 'www@www.org'), (2, 'wendy@aol.com'))
     COMMIT
-    {stop}<sqlalchemy.engine.base.ResultProxy object at 0x...>
+    {stop}<sqlalchemy.engine.ResultProxy object at 0x...>
 
 Above, we again relied upon SQLite's automatic generation of primary key
 identifiers for each ``addresses`` row.
@@ -363,10 +363,10 @@ Above, we issued a basic :func:`.select` call, placing the ``users`` table
 within the COLUMNS clause of the select, and then executing. SQLAlchemy
 expanded the ``users`` table into the set of each of its columns, and also
 generated a FROM clause for us. The result returned is again a
-:class:`~sqlalchemy.engine.base.ResultProxy` object, which acts much like a
+:class:`~sqlalchemy.engine.ResultProxy` object, which acts much like a
 DBAPI cursor, including methods such as
-:func:`~sqlalchemy.engine.base.ResultProxy.fetchone` and
-:func:`~sqlalchemy.engine.base.ResultProxy.fetchall`. The easiest way to get
+:func:`~sqlalchemy.engine.ResultProxy.fetchone` and
+:func:`~sqlalchemy.engine.ResultProxy.fetchall`. The easiest way to get
 rows from it is to just iterate:
 
 .. sourcecode:: pycon+sql
@@ -418,7 +418,7 @@ But another way, whose usefulness will become apparent later on, is to use the
 
 Result sets which have pending rows remaining should be explicitly closed
 before discarding. While the cursor and connection resources referenced by the
-:class:`~sqlalchemy.engine.base.ResultProxy` will be respectively closed and
+:class:`~sqlalchemy.engine.ResultProxy` will be respectively closed and
 returned to the connection pool when the object is garbage collected, it's
 better to make it explicit as some database APIs are very picky about such
 things:
@@ -509,7 +509,7 @@ a WHERE clause. So lets see exactly what that expression is doing:
 .. sourcecode:: pycon+sql
 
     >>> users.c.id==addresses.c.user_id #doctest: +ELLIPSIS
-    <sqlalchemy.sql.expression._BinaryExpression object at 0x...>
+    <sqlalchemy.sql.expression.BinaryExpression object at 0x...>
 
 Wow, surprise ! This is neither a ``True`` nor a ``False``. Well what is it ?
 
@@ -596,11 +596,11 @@ not all of them. MySQL users, fear not:
     concat(users.name, users.fullname)
 
 The above illustrates the SQL that's generated for an
-:class:`~sqlalchemy.engine.base.Engine` that's connected to a MySQL database;
+:class:`~sqlalchemy.engine.Engine` that's connected to a MySQL database;
 the ``||`` operator now compiles as MySQL's ``concat()`` function.
 
 If you have come across an operator which really isn't available, you can
-always use the ``op()`` method; this generates whatever operator you need:
+always use the :meth:`.ColumnOperators.op` method; this generates whatever operator you need:
 
 .. sourcecode:: pycon+sql
 
@@ -612,6 +612,18 @@ This function can also be used to make bitwise operators explicit. For example::
     somecolumn.op('&')(0xff)
 
 is a bitwise AND of the value in `somecolumn`.
+
+Operator Customization
+-----------------------
+
+While :meth:`.ColumnOperators.op` is handy to get at a custom operator in a hurry,
+the Core supports fundamental customization and extension of the operator system at
+the type level.   The behavior of existing operators can be modified on a per-type
+basis, and new operations can be defined which become available for all column
+expressions that are part of that particular type.  See the section :ref:`types_operators`
+for a description.
+
+
 
 Conjunctions
 =============
@@ -981,7 +993,7 @@ to arrive with a full statement.
 Transforming a Statement
 ------------------------
 
-We've seen how methods like :meth:`.Select.where` and :meth:`._SelectBase.order_by` are
+We've seen how methods like :meth:`.Select.where` and :meth:`.SelectBase.order_by` are
 part of the so-called *Generative* family of methods on the :func:`.select` construct,
 where one :func:`.select` copies itself to return a new one with modifications.
 SQL constructs also support another form of generative behavior which is
@@ -1086,7 +1098,7 @@ single named value is needed in the execute parameters:
 Functions
 ---------
 
-SQL functions are created using the :attr:`~.expression.func` keyword, which
+SQL functions are created using the :data:`~.expression.func` keyword, which
 generates functions using attribute access:
 
 .. sourcecode:: pycon+sql
@@ -1173,13 +1185,13 @@ of our selectable:
     >>> s.compile().params
     {u'x_2': 5, u'y_2': 12, u'y_1': 45, u'x_1': 17}
 
-See also :attr:`sqlalchemy.sql.expression.func`.
+See also :data:`~.expression.func`.
 
 Window Functions
 -----------------
 
 Any :class:`.FunctionElement`, including functions generated by
-:attr:`~.expression.func`, can be turned into a "window function", that is an
+:data:`~.expression.func`, can be turned into a "window function", that is an
 OVER clause, using the :meth:`~.FunctionElement.over` method:
 
 .. sourcecode:: pycon+sql
@@ -1267,7 +1279,7 @@ Scalar Selects
 --------------
 
 To embed a SELECT in a column expression, use
-:func:`~sqlalchemy.sql.expression._SelectBaseMixin.as_scalar`:
+:func:`~sqlalchemy.sql.expression.SelectBase.as_scalar`:
 
 .. sourcecode:: pycon+sql
 
@@ -1297,6 +1309,8 @@ well:
     FROM users
     ()
     {stop}[(u'jack', 2), (u'wendy', 2), (u'fred', 0), (u'mary', 0)]
+
+.. _correlated_subqueries:
 
 Correlated Subqueries
 ---------------------
@@ -1414,7 +1428,7 @@ that can be specified:
     UPDATE users SET name=? WHERE users.name = ?
     ('ed', 'jack')
     COMMIT
-    {stop}<sqlalchemy.engine.base.ResultProxy object at 0x...>
+    {stop}<sqlalchemy.engine.ResultProxy object at 0x...>
 
     >>> # use bind parameters
     >>> u = users.update().\
@@ -1424,7 +1438,7 @@ that can be specified:
     UPDATE users SET name=? WHERE users.name = ?
     ('ed', 'jack')
     COMMIT
-    {stop}<sqlalchemy.engine.base.ResultProxy object at 0x...>
+    {stop}<sqlalchemy.engine.ResultProxy object at 0x...>
 
     >>> # with binds, you can also update many rows at once
     {sql}>>> conn.execute(u,
@@ -1435,7 +1449,7 @@ that can be specified:
     UPDATE users SET name=? WHERE users.name = ?
     [('ed', 'jack'), ('mary', 'wendy'), ('jake', 'jim')]
     COMMIT
-    {stop}<sqlalchemy.engine.base.ResultProxy object at 0x...>
+    {stop}<sqlalchemy.engine.ResultProxy object at 0x...>
 
     >>> # update a column to an expression.:
     {sql}>>> conn.execute(users.update().
@@ -1444,7 +1458,7 @@ that can be specified:
     UPDATE users SET fullname=(? || users.name)
     ('Fullname: ',)
     COMMIT
-    {stop}<sqlalchemy.engine.base.ResultProxy object at 0x...>
+    {stop}<sqlalchemy.engine.ResultProxy object at 0x...>
 
 Correlated Updates
 ------------------
@@ -1462,7 +1476,7 @@ table, or the same table:
     LIMIT 1 OFFSET 0)
     ()
     COMMIT
-    {stop}<sqlalchemy.engine.base.ResultProxy object at 0x...>
+    {stop}<sqlalchemy.engine.ResultProxy object at 0x...>
 
 Multiple Table Updates
 ----------------------
@@ -1525,13 +1539,13 @@ Finally, a delete.  This is accomplished easily enough using the
     DELETE FROM addresses
     ()
     COMMIT
-    {stop}<sqlalchemy.engine.base.ResultProxy object at 0x...>
+    {stop}<sqlalchemy.engine.ResultProxy object at 0x...>
 
     {sql}>>> conn.execute(users.delete().where(users.c.name > 'm')) #doctest: +ELLIPSIS
     DELETE FROM users WHERE users.name > ?
     ('m',)
     COMMIT
-    {stop}<sqlalchemy.engine.base.ResultProxy object at 0x...>
+    {stop}<sqlalchemy.engine.ResultProxy object at 0x...>
 
 Further Reference
 ==================
@@ -1540,7 +1554,7 @@ Expression Language Reference: :ref:`expression_api_toplevel`
 
 Database Metadata Reference: :ref:`metadata_toplevel`
 
-Engine Reference: :ref:`engines_toplevel`
+Engine Reference: :doc:`/core/engines`
 
 Connection Reference: :ref:`connections_toplevel`
 

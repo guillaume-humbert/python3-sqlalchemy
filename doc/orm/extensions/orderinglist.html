@@ -10,7 +10,7 @@
     
                 Ordering List
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../../index.html" />
         <link rel="up" title="ORM Extensions" href="index.html" />
         <link rel="next" title="Horizontal Sharding" href="horizontal_shard.html" />
         <link rel="prev" title="Mutation Tracking" href="mutable.html" />
@@ -55,7 +55,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -93,7 +93,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../../index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="../../index.html">SQLAlchemy 0.8 Documentation</a>
                 » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
                 » <a href="index.html" title="ORM Extensions">ORM Extensions</a>
         » 
@@ -155,10 +155,11 @@
 </tr>
 </tbody>
 </table>
-<p><tt class="docutils literal"><span class="pre">orderinglist</span></tt> is a helper for mutable ordered relationships.  It will intercept
-list operations performed on a relationship collection and automatically
-synchronize changes in list position with an attribute on the related objects.
-(See <em class="xref std std-ref">advdatamapping_entitycollections</em> for more information on the general pattern.)</p>
+<p><tt class="docutils literal"><span class="pre">orderinglist</span></tt> is a helper for mutable ordered relationships.  It will
+intercept list operations performed on a relationship collection and
+automatically synchronize changes in list position with an attribute on the
+related objects. (See <em class="xref std std-ref">advdatamapping_entitycollections</em> for more
+information on the general pattern.)</p>
 <p>Example: Two tables that store slides in a presentation.  Each slide
 has a number of bullet points, displayed in order by the &#8216;position&#8217;
 column on the bullets table.  These bullets can be inserted and re-ordered
@@ -184,14 +185,14 @@ affected rows when changes are made.</p>
  <span class="p">})</span>
  <span class="n">mapper</span><span class="p">(</span><span class="n">Bullet</span><span class="p">,</span> <span class="n">bullets_table</span><span class="p">)</span></pre></div>
 </div>
-<p>The standard relationship mapping will produce a list-like attribute on each Slide
-containing all related Bullets, but coping with changes in ordering is totally
-your responsibility.  If you insert a Bullet into that list, there is no
-magic- it won&#8217;t have a position attribute unless you assign it it one, and
+<p>The standard relationship mapping will produce a list-like attribute on each
+Slide containing all related Bullets, but coping with changes in ordering is
+totally your responsibility.  If you insert a Bullet into that list, there is
+no magic - it won&#8217;t have a position attribute unless you assign it it one, and
 you&#8217;ll need to manually renumber all the subsequent Bullets in the list to
 accommodate the insert.</p>
-<p>An <tt class="docutils literal"><span class="pre">orderinglist</span></tt> can automate this and manage the &#8216;position&#8217; attribute on all
-related bullets for you.</p>
+<p>An <tt class="docutils literal"><span class="pre">orderinglist</span></tt> can automate this and manage the &#8216;position&#8217; attribute on
+all related bullets for you.</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Slide</span><span class="p">,</span> <span class="n">slides_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
        <span class="s">&#39;bullets&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Bullet</span><span class="p">,</span>
                            <span class="n">collection_class</span><span class="o">=</span><span class="n">ordering_list</span><span class="p">(</span><span class="s">&#39;position&#39;</span><span class="p">),</span>
@@ -208,17 +209,19 @@ related bullets for you.</p>
 <span class="n">s</span><span class="o">.</span><span class="n">bullets</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">position</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="mi">2</span></pre></div>
 </div>
-<p>Use the <tt class="docutils literal"><span class="pre">ordering_list</span></tt> function to set up the <tt class="docutils literal"><span class="pre">collection_class</span></tt> on relationships
-(as in the mapper example above).  This implementation depends on the list
-starting in the proper order, so be SURE to put an order_by on your relationship.</p>
+<p>Use the <tt class="docutils literal"><span class="pre">ordering_list</span></tt> function to set up the <tt class="docutils literal"><span class="pre">collection_class</span></tt> on
+relationships (as in the mapper example above).  This implementation depends
+on the list starting in the proper order, so be SURE to put an order_by on
+your relationship.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last"><tt class="docutils literal"><span class="pre">ordering_list</span></tt> only provides limited functionality when a primary
-key column or unique column is the target of the sort.  Since changing the order of
-entries often means that two rows must trade values, this is not possible when
-the value is constrained by a primary key or unique constraint, since one of the rows
-would temporarily have to point to a third available value so that the other row
-could take its old value.   <tt class="docutils literal"><span class="pre">ordering_list</span></tt> doesn&#8217;t do any of this for you,
+key column or unique column is the target of the sort.  Since changing the
+order of entries often means that two rows must trade values, this is not
+possible when the value is constrained by a primary key or unique
+constraint, since one of the rows would temporarily have to point to a
+third available value so that the other row could take its old
+value.   <tt class="docutils literal"><span class="pre">ordering_list</span></tt> doesn&#8217;t do any of this for you,
 nor does SQLAlchemy itself.</p>
 </div>
 <p><tt class="docutils literal"><span class="pre">ordering_list</span></tt> takes the name of the related object&#8217;s ordering attribute as
@@ -235,8 +238,8 @@ index to any value you require.</p>
 <dt id="sqlalchemy.ext.orderinglist.ordering_list">
 <tt class="descclassname">sqlalchemy.ext.orderinglist.</tt><tt class="descname">ordering_list</tt><big>(</big><em>attr</em>, <em>count_from=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.orderinglist.ordering_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prepares an OrderingList factory for use in mapper definitions.</p>
-<p>Returns an object suitable for use as an argument to a Mapper relationship&#8217;s
-<tt class="docutils literal"><span class="pre">collection_class</span></tt> option.  Arguments are:</p>
+<p>Returns an object suitable for use as an argument to a Mapper
+relationship&#8217;s <tt class="docutils literal"><span class="pre">collection_class</span></tt> option.  Arguments are:</p>
 <dl class="docutils">
 <dt>attr</dt>
 <dd>Name of the mapped attribute to use for storage and retrieval of
@@ -291,9 +294,10 @@ so be <strong>sure</strong> to put an <tt class="docutils literal"><span class="
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>ordering_attr</strong> &#8211; Name of the attribute that stores the object&#8217;s order in the
 relationship.</li>
-<li><strong>ordering_func</strong> &#8211; <p>Optional.  A function that maps the position in the Python list to a
-value to store in the <tt class="docutils literal"><span class="pre">ordering_attr</span></tt>.  Values returned are
-usually (but need not be!) integers.</p>
+<li><strong>ordering_func</strong> &#8211; <p>Optional.  A function that maps the position in
+the Python list to a value to store in the
+<tt class="docutils literal"><span class="pre">ordering_attr</span></tt>.  Values returned are usually (but need not be!)
+integers.</p>
 <p>An <tt class="docutils literal"><span class="pre">ordering_func</span></tt> is called with two positional parameters: the
 index of the element in the list, and the list itself.</p>
 <p>If omitted, Python list indexes are used for the attribute values.

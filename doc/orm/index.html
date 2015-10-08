@@ -10,7 +10,7 @@
     
                 SQLAlchemy ORM
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
         <link rel="next" title="Object Relational Tutorial" href="tutorial.html" />
         <link rel="prev" title="Overview" href="../intro.html" />
 
@@ -54,7 +54,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -66,7 +66,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -92,7 +92,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
         » 
                 SQLAlchemy ORM
              
@@ -210,7 +210,7 @@ tutorial.</p>
 <li class="toctree-l3"><a class="reference internal" href="mapper_config.html#simple-validators">Simple Validators</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mapper_config.html#using-descriptors-and-hybrids">Using Descriptors and Hybrids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mapper_config.html#id2">Synonyms</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mapper_config.html#custom-comparators">Custom Comparators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mapper_config.html#operator-customization">Operator Customization</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="mapper_config.html#composite-column-types">Composite Column Types</a><ul>
@@ -235,6 +235,7 @@ tutorial.</p>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="relationships.html#adjacency-list-relationships">Adjacency List Relationships</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="relationships.html#composite-adjacency-lists">Composite Adjacency Lists</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#self-referential-query-strategies">Self-Referential Query Strategies</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#configuring-self-referential-eager-loading">Configuring Self-Referential Eager Loading</a></li>
 </ul>
@@ -244,10 +245,11 @@ tutorial.</p>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#one-way-backrefs">One Way Backrefs</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="relationships.html#setting-the-primaryjoin-and-secondaryjoin">Setting the primaryjoin and secondaryjoin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="relationships.html#configuring-how-relationship-joins">Configuring how Relationship Joins</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="relationships.html#handling-multiple-join-paths">Handling Multiple Join Paths</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#specifying-alternate-join-conditions">Specifying Alternate Join Conditions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="relationships.html#creating-custom-foreign-conditions">Creating Custom Foreign Conditions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#self-referential-many-to-many-relationship">Self-Referential Many-to-Many Relationship</a></li>
-<li class="toctree-l3"><a class="reference internal" href="relationships.html#specifying-foreign-keys">Specifying Foreign Keys</a></li>
 <li class="toctree-l3"><a class="reference internal" href="relationships.html#building-query-enabled-properties">Building Query-Enabled Properties</a></li>
 </ul>
 </li>
@@ -281,6 +283,7 @@ tutorial.</p>
 <li class="toctree-l3"><a class="reference internal" href="inheritance.html#basic-control-of-which-tables-are-queried">Basic Control of Which Tables are Queried</a></li>
 <li class="toctree-l3"><a class="reference internal" href="inheritance.html#advanced-control-of-which-tables-are-queried">Advanced Control of Which Tables are Queried</a></li>
 <li class="toctree-l3"><a class="reference internal" href="inheritance.html#creating-joins-to-specific-subtypes">Creating Joins to Specific Subtypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inheritance.html#eager-loading-of-specific-subtypes">Eager Loading of Specific Subtypes</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="inheritance.html#single-table-inheritance">Single Table Inheritance</a></li>
@@ -373,7 +376,6 @@ tutorial.</p>
 <li class="toctree-l2"><a class="reference internal" href="events.html#instance-events">Instance Events</a></li>
 <li class="toctree-l2"><a class="reference internal" href="events.html#session-events">Session Events</a></li>
 <li class="toctree-l2"><a class="reference internal" href="events.html#instrumentation-events">Instrumentation Events</a></li>
-<li class="toctree-l2"><a class="reference internal" href="events.html#alternate-class-instrumentation">Alternate Class Instrumentation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="extensions/index.html">ORM Extensions</a><ul>
@@ -430,14 +432,8 @@ tutorial.</p>
 <li class="toctree-l3"><a class="reference internal" href="extensions/hybrid.html#api-reference">API Reference</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="extensions/sqlsoup.html">SqlSoup</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="extensions/sqlsoup.html#introduction">Introduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="extensions/sqlsoup.html#loading-objects">Loading objects</a></li>
-<li class="toctree-l3"><a class="reference internal" href="extensions/sqlsoup.html#modifying-objects">Modifying objects</a></li>
-<li class="toctree-l3"><a class="reference internal" href="extensions/sqlsoup.html#joins">Joins</a></li>
-<li class="toctree-l3"><a class="reference internal" href="extensions/sqlsoup.html#relationships">Relationships</a></li>
-<li class="toctree-l3"><a class="reference internal" href="extensions/sqlsoup.html#advanced-use">Advanced Use</a></li>
-<li class="toctree-l3"><a class="reference internal" href="extensions/sqlsoup.html#sqlsoup-api">SqlSoup API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="extensions/instrumentation.html">Alternate Class Instrumentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="extensions/instrumentation.html#api-reference">API Reference</a></li>
 </ul>
 </li>
 </ul>
@@ -446,8 +442,7 @@ tutorial.</p>
 <li class="toctree-l2"><a class="reference internal" href="examples.html#adjacency-list">Adjacency List</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples.html#associations">Associations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples.html#attribute-instrumentation">Attribute Instrumentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples.html#beaker-caching">Beaker Caching</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples.html#declarative-reflection">Declarative Reflection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#dogpile-caching">Dogpile Caching</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples.html#directed-graphs">Directed Graphs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples.html#dynamic-relations-as-dictionaries">Dynamic Relations as Dictionaries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples.html#generic-associations">Generic Associations</a></li>

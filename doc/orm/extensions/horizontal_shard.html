@@ -10,7 +10,7 @@
     
                 Horizontal Sharding
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../../index.html" />
         <link rel="up" title="ORM Extensions" href="index.html" />
         <link rel="next" title="Hybrid Attributes" href="hybrid.html" />
         <link rel="prev" title="Ordering List" href="orderinglist.html" />
@@ -55,7 +55,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -93,7 +93,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="../../index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="../../index.html">SQLAlchemy 0.8 Documentation</a>
                 » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
                 » <a href="index.html" title="ORM Extensions">ORM Extensions</a>
         » 
@@ -165,20 +165,20 @@ the source distribution.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>shard_chooser</strong> &#8211; A callable which, passed a Mapper, a mapped instance, and possibly a
-SQL clause, returns a shard ID.  This id may be based off of the
-attributes present within the object, or on some round-robin
-scheme. If the scheme is based on a selection, it should set
-whatever state on the instance to mark it in the future as
+<li><strong>shard_chooser</strong> &#8211; A callable which, passed a Mapper, a mapped
+instance, and possibly a SQL clause, returns a shard ID.  This id
+may be based off of the attributes present within the object, or on
+some round-robin scheme. If the scheme is based on a selection, it
+should set whatever state on the instance to mark it in the future as
 participating in that shard.</li>
-<li><strong>id_chooser</strong> &#8211; A callable, passed a query and a tuple of identity values, which
-should return a list of shard ids where the ID might reside.  The
-databases will be queried in the order of this listing.</li>
-<li><strong>query_chooser</strong> &#8211; For a given Query, returns the list of shard_ids where the query
-should be issued.  Results from all shards returned will be combined
-together into a single listing.</li>
-<li><strong>shards</strong> &#8211; A dictionary of string shard names to <a class="reference internal" href="../../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>
-objects.</li>
+<li><strong>id_chooser</strong> &#8211; A callable, passed a query and a tuple of identity
+values, which should return a list of shard ids where the ID might
+reside.  The databases will be queried in the order of this listing.</li>
+<li><strong>query_chooser</strong> &#8211; For a given Query, returns the list of shard_ids
+where the query should be issued.  Results from all shards returned
+will be combined together into a single listing.</li>
+<li><strong>shards</strong> &#8211; A dictionary of string shard names
+to <a class="reference internal" href="../../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> objects.</li>
 </ul>
 </td>
 </tr>

@@ -1,11 +1,12 @@
-from test.lib.testing import eq_, assert_raises, \
+from sqlalchemy.testing import eq_, assert_raises, \
     assert_raises_message
 from sqlalchemy import exc as sa_exc, util, Integer, String, ForeignKey
 from sqlalchemy.orm import exc as orm_exc, mapper, relationship, \
     sessionmaker, Session
-from test.lib import testing, profiling
-from test.lib import fixtures
-from test.lib.schema import Table, Column
+from sqlalchemy import testing
+from sqlalchemy.testing import profiling
+from sqlalchemy.testing import fixtures
+from sqlalchemy.testing.schema import Table, Column
 import sys
 
 class MergeTest(fixtures.MappedTest):
@@ -58,17 +59,17 @@ class MergeTest(fixtures.MappedTest):
         # down from 185 on this this is a small slice of a usually
         # bigger operation so using a small variance
 
-        @profiling.function_call_count()
-        def go():
+        @profiling.function_call_count(variance=0.10)
+        def go1():
             return sess2.merge(p1, load=False)
-        p2 = go()
+        p2 = go1()
 
         # third call, merge object already present. almost no calls.
 
-        @profiling.function_call_count()
-        def go():
+        @profiling.function_call_count(variance=0.10)
+        def go2():
             return sess2.merge(p2, load=False)
-        p3 = go()
+        go2()
 
     def test_merge_load(self):
         Parent = self.classes.Parent
@@ -89,8 +90,10 @@ class MergeTest(fixtures.MappedTest):
 
         # one more time, count the SQL
 
+        def go2():
+            p2 = sess2.merge(p1)
         sess2 = sessionmaker(testing.db)()
-        self.assert_sql_count(testing.db, go, 2)
+        self.assert_sql_count(testing.db, go2, 2)
 
 class LoadManyToOneFromIdentityTest(fixtures.MappedTest):
     """test overhead associated with many-to-one fetches.
@@ -159,7 +162,7 @@ class LoadManyToOneFromIdentityTest(fixtures.MappedTest):
         parents = sess.query(Parent).all()
 
 
-        @profiling.function_call_count()
+        @profiling.function_call_count(variance=.2)
         def go():
             for p in parents:
                 p.child
@@ -239,7 +242,7 @@ class MergeBackrefsTest(fixtures.MappedTest):
         ])
         s.commit()
 
-    @profiling.function_call_count()
+    @profiling.function_call_count(variance=.10)
     def test_merge_pending_with_all_pks(self):
         A, B, C, D = self.classes.A, self.classes.B, \
                     self.classes.C, self.classes.D

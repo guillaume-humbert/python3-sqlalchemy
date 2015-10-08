@@ -10,7 +10,7 @@
     
                 Table of Contents
              &mdash; 
-    SQLAlchemy 0.7 Documentation
+    SQLAlchemy 0.8 Documentation
 
         </title>
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '#',
-          VERSION:     '0.7.9',
+          VERSION:     '0.8.0b2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.8 Documentation" href="index.html" />
         <link rel="next" title="Overview" href="intro.html" />
 
     </head>
@@ -53,7 +53,7 @@
 
 
 <div id="docs-header">
-    <h1>SQLAlchemy 0.7 Documentation</h1>
+    <h1>SQLAlchemy 0.8 Documentation</h1>
 
     <div id="docs-search">
     Search:
@@ -65,7 +65,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
+        Release: <span class="version-num">0.8.0b2</span> | Release Date: December 14, 2012
 
 
     </div>
@@ -88,7 +88,7 @@
     </div>
 
     <div id="docs-navigation-banner">
-        <a href="index.html">SQLAlchemy 0.7 Documentation</a>
+        <a href="index.html">SQLAlchemy 0.8 Documentation</a>
         » 
                 Table of Contents
              
@@ -154,7 +154,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="intro.html#checking-the-installed-sqlalchemy-version">Checking the Installed SQLAlchemy Version</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="intro.html#to-0-7-migration">0.6 to 0.7 Migration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro.html#to-0-8-migration">0.7 to 0.8 Migration</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="orm/index.html">SQLAlchemy ORM</a><ul>
@@ -194,7 +194,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#basic-relational-patterns">Basic Relational Patterns</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#adjacency-list-relationships">Adjacency List Relationships</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#linking-relationships-with-backref">Linking Relationships with Backref</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#setting-the-primaryjoin-and-secondaryjoin">Setting the primaryjoin and secondaryjoin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#configuring-how-relationship-joins">Configuring how Relationship Joins</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#rows-that-point-to-themselves-mutually-dependent-rows">Rows that point to themselves / Mutually Dependent Rows</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#mutable-primary-keys-update-cascades">Mutable Primary Keys / Update Cascades</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/relationships.html#relationships-api">Relationships API</a></li>
@@ -249,7 +249,6 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="orm/events.html#instance-events">Instance Events</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/events.html#session-events">Session Events</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/events.html#instrumentation-events">Instrumentation Events</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/events.html#alternate-class-instrumentation">Alternate Class Instrumentation</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="orm/extensions/index.html">ORM Extensions</a><ul>
@@ -259,15 +258,14 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="orm/extensions/orderinglist.html">Ordering List</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/extensions/horizontal_shard.html">Horizontal Sharding</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/extensions/hybrid.html">Hybrid Attributes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/extensions/sqlsoup.html">SqlSoup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/extensions/instrumentation.html">Alternate Class Instrumentation</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="orm/examples.html">Examples</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="orm/examples.html#adjacency-list">Adjacency List</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/examples.html#associations">Associations</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/examples.html#attribute-instrumentation">Attribute Instrumentation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#beaker-caching">Beaker Caching</a></li>
-<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#declarative-reflection">Declarative Reflection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/examples.html#dogpile-caching">Dogpile Caching</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/examples.html#directed-graphs">Directed Graphs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/examples.html#dynamic-relations-as-dictionaries">Dynamic Relations as Dictionaries</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/examples.html#generic-associations">Generic Associations</a></li>
@@ -328,6 +326,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="core/connections.html#understanding-autocommit">Understanding Autocommit</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/connections.html#connectionless-execution-implicit-execution">Connectionless Execution, Implicit Execution</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/connections.html#using-the-threadlocal-execution-strategy">Using the Threadlocal Execution Strategy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core/connections.html#registering-new-dialects">Registering New Dialects</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/connections.html#connection-engine-api">Connection / Engine API</a></li>
 </ul>
 </li>
@@ -368,7 +367,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 </li>
 <li class="toctree-l2"><a class="reference internal" href="core/events.html">Core Events</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="core/events.html#connection-pool-events">Connection Pool Events</a></li>
-<li class="toctree-l3"><a class="reference internal" href="core/events.html#connection-events">Connection Events</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core/events.html#sql-execution-and-connection-events">SQL Execution and Connection Events</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/events.html#schema-events">Schema Events</a></li>
 </ul>
 </li>
@@ -383,6 +382,10 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="core/compiler.html#further-examples">Further Examples</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="core/inspection.html">Runtime Inspection API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core/inspection.html#available-inspection-targets">Available Inspection Targets</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="core/serializer.html">Expression Serializer Extension</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core/interfaces.html">Deprecated Event Interfaces</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="core/interfaces.html#execution-connection-and-cursor-events">Execution, Connection and Cursor Events</a></li>
@@ -394,114 +397,42 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="dialects/index.html">Dialects</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dialects/drizzle.html">Drizzle</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dialects/drizzle.html#connecting">Connecting</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/drizzle.html#drizzle-data-types">Drizzle Data Types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/drizzle.html#module-sqlalchemy.dialects.drizzle.mysqldb">MySQL-Python Notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dialects/index.html#included-dialects">Included Dialects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dialects/drizzle.html">Drizzle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dialects/firebird.html">Firebird</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dialects/informix.html">Informix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html">Microsoft SQL Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html">MySQL</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dialects/oracle.html">Oracle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html">PostgreSQL</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dialects/sqlite.html">SQLite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dialects/sybase.html">Sybase</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="dialects/firebird.html">Firebird</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dialects/firebird.html#dialects">Dialects</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/firebird.html#locking-behavior">Locking Behavior</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/firebird.html#returning-support">RETURNING support</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/firebird.html#kinterbasdb">kinterbasdb</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dialects/index.html#external-dialects">External Dialects</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="dialects/informix.html">Informix</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dialects/informix.html#module-sqlalchemy.dialects.informix.informixdb">informixdb Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog/index.html">Changes and Migration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog/index.html#current-migration-guide">Current Migration Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog/migration_08.html">What&#8217;s New in SQLAlchemy 0.8?</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="dialects/maxdb.html">MaxDB</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dialects/maxdb.html#overview">Overview</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/maxdb.html#connecting">Connecting</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/maxdb.html#implementation-notes">Implementation Notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog/index.html#change-logs">Change logs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog/changelog_08.html">0.8 Changelog</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog/changelog_07.html">0.7 Changelog</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog/changelog_06.html">0.6 Changelog</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog/changelog_05.html">0.5 Changelog</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog/changelog_04.html">0.4 Changelog</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog/changelog_03.html">0.3 Changelog</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog/changelog_02.html">0.2 Changelog</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog/changelog_01.html">0.1 Changelog</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="dialects/access.html">Microsoft Access</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dialects/mssql.html">Microsoft SQL Server</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#connecting">Connecting</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#auto-increment-behavior">Auto Increment Behavior</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#collation-support">Collation Support</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#limit-offset-support">LIMIT/OFFSET Support</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#nullability">Nullability</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#date-time-handling">Date / Time Handling</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#compatibility-levels">Compatibility Levels</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#triggers">Triggers</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#enabling-snapshot-isolation">Enabling Snapshot Isolation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#scalar-select-comparisons">Scalar Select Comparisons</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#known-issues">Known Issues</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#sql-server-data-types">SQL Server Data Types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#module-sqlalchemy.dialects.mssql.pyodbc">PyODBC</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#module-sqlalchemy.dialects.mssql.mxodbc">mxODBC</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#module-sqlalchemy.dialects.mssql.pymssql">pymssql</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#module-sqlalchemy.dialects.mssql.zxjdbc">zxjdbc Notes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mssql.html#module-sqlalchemy.dialects.mssql.adodbapi">AdoDBAPI</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="dialects/mysql.html">MySQL</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#supported-versions-and-features">Supported Versions and Features</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#connecting">Connecting</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#connection-timeouts">Connection Timeouts</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#storage-engines">Storage Engines</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#case-sensitivity-and-table-reflection">Case Sensitivity and Table Reflection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#transaction-isolation-level">Transaction Isolation Level</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#keys">Keys</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#sql-mode">SQL Mode</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#mysql-sql-extensions">MySQL SQL Extensions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#rowcount-support">rowcount Support</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#cast-support">CAST Support</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#mysql-specific-index-options">MySQL Specific Index Options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#mysql-data-types">MySQL Data Types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#module-sqlalchemy.dialects.mysql.mysqldb">MySQL-Python Notes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#module-sqlalchemy.dialects.mysql.oursql">OurSQL Notes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#module-sqlalchemy.dialects.mysql.pymysql">pymysql Notes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#module-sqlalchemy.dialects.mysql.mysqlconnector">MySQL-Connector Notes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#module-sqlalchemy.dialects.mysql.gaerdbms">Google App Engine Notes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#module-sqlalchemy.dialects.mysql.pyodbc">pyodbc Notes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/mysql.html#module-sqlalchemy.dialects.mysql.zxjdbc">zxjdbc Notes</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="dialects/oracle.html">Oracle</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dialects/oracle.html#connect-arguments">Connect Arguments</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/oracle.html#auto-increment-behavior">Auto Increment Behavior</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/oracle.html#identifier-casing">Identifier Casing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/oracle.html#unicode">Unicode</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/oracle.html#limit-offset-support">LIMIT/OFFSET Support</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/oracle.html#on-update-cascade">ON UPDATE CASCADE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/oracle.html#oracle-8-compatibility">Oracle 8 Compatibility</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/oracle.html#synonym-dblink-reflection">Synonym/DBLINK Reflection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/oracle.html#oracle-data-types">Oracle Data Types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/oracle.html#module-sqlalchemy.dialects.oracle.cx_oracle">cx_Oracle Notes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/oracle.html#module-sqlalchemy.dialects.oracle.zxjdbc">zxjdbc Notes</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="dialects/postgresql.html">PostgreSQL</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#sequences-serial">Sequences/SERIAL</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#transaction-isolation-level">Transaction Isolation Level</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#remote-cross-schema-table-introspection">Remote / Cross-Schema Table Introspection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#insert-update-returning">INSERT/UPDATE...RETURNING</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#postgresql-specific-index-options">Postgresql-Specific Index Options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#postgresql-data-types">PostgreSQL Data Types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg2">psycopg2 Notes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.pypostgresql">py-postgresql Notes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.pg8000">pg8000 Notes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.zxjdbc">zxjdbc Notes</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="dialects/sqlite.html">SQLite</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dialects/sqlite.html#date-and-time-types">Date and Time Types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/sqlite.html#auto-incrementing-behavior">Auto Incrementing Behavior</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/sqlite.html#transaction-isolation-level">Transaction Isolation Level</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/sqlite.html#database-locking-behavior-concurrency">Database Locking Behavior / Concurrency</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/sqlite.html#foreign-key-support">Foreign Key Support</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/sqlite.html#sqlite-data-types">SQLite Data Types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/sqlite.html#module-sqlalchemy.dialects.sqlite.pysqlite">Pysqlite</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="dialects/sybase.html">Sybase</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dialects/sybase.html#module-sqlalchemy.dialects.sybase.pysybase">python-sybase notes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/sybase.html#module-sqlalchemy.dialects.sybase.pyodbc">pyodbc notes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dialects/sybase.html#module-sqlalchemy.dialects.sybase.mxodbc">mxodbc notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog/index.html#older-migration-guides">Older Migration Guides</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog/migration_07.html">What&#8217;s New in SQLAlchemy 0.7?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog/migration_06.html">What&#8217;s New in SQLAlchemy 0.6?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog/migration_05.html">What&#8217;s new in SQLAlchemy 0.5?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog/migration_04.html">What&#8217;s new in SQLAlchemy 0.4?</a></li>
 </ul>
 </li>
 </ul>

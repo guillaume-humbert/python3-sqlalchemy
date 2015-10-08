@@ -1,5 +1,3 @@
-.. _session_toplevel:
-
 =================
 Using the Session
 =================
@@ -44,7 +42,7 @@ held by the :class:`.Session` - there are a variety of events that will cause
 objects to re-access the database in order to keep synchronized.   It is
 possible to "detach" objects from a :class:`.Session`, and to continue using
 them, though this practice has its caveats.  It's intended that
-usually, you'd re-associate detached objects another :class:`.Session` when you
+usually, you'd re-associate detached objects with another :class:`.Session` when you
 want to work with them again, so that they can resume their normal task of
 representing database state.
 
@@ -55,12 +53,12 @@ Getting a Session
 
 :class:`.Session` is a regular Python class which can
 be directly instantiated. However, to standardize how sessions are configured
-and acquired, the :func:`.sessionmaker` function is normally
+and acquired, the :class:`.sessionmaker` class is normally
 used to create a top level :class:`.Session`
 configuration which can then be used throughout an application without the
 need to repeat the configurational arguments.
 
-The usage of :func:`.sessionmaker` is illustrated below:
+The usage of :class:`.sessionmaker` is illustrated below:
 
 .. sourcecode:: python+sql
 
@@ -82,39 +80,39 @@ The usage of :func:`.sessionmaker` is illustrated below:
     session.add(myobject)
     session.commit()
 
-Above, the :func:`.sessionmaker` call creates a factory for us,
+Above, the :class:`.sessionmaker` call creates a factory for us,
 which we assign to the name ``Session``.  This factory, when
 called, will create a new :class:`.Session` object using the configurational
 arguments we've given the factory.  In this case, as is typical,
 we've configured the factory to specify a particular :class:`.Engine` for
 connection resources.
 
-A typical setup will associate the :func:`.sessionmaker` with an :class:`.Engine`,
+A typical setup will associate the :class:`.sessionmaker` with an :class:`.Engine`,
 so that each :class:`.Session` generated will use this :class:`.Engine`
 to acquire connection resources.   This association can
 be set up as in the example above, using the ``bind`` argument.
 
 When you write your application, place the
-:func:`.sessionmaker` factory at the global level.   This
+:class:`.sessionmaker` factory at the global level.   This
 factory can then
 be used by the rest of the applcation as the source of new :class:`.Session`
 instances, keeping the configuration for how :class:`.Session` objects
 are constructed in one place.
 
-The :func:`.sessionmaker` factory can also be used in conjunction with
-other helpers, which are passed a user-defined :func:`.sessionmaker` that
+The :class:`.sessionmaker` factory can also be used in conjunction with
+other helpers, which are passed a user-defined :class:`.sessionmaker` that
 is then maintained by the helper.  Some of these helpers are discussed in the
 section :ref:`session_faq_whentocreate`.
 
 Adding Additional Configuration to an Existing sessionmaker()
 --------------------------------------------------------------
 
-A common scenario is where the :func:`.sessionmaker` is invoked
+A common scenario is where the :class:`.sessionmaker` is invoked
 at module import time, however the generation of one or more :class:`.Engine`
-instances to be associated with the :func:`.sessionmaker` has not yet proceeded.
-For this use case, the :func:`.sessionmaker` construct offers the
+instances to be associated with the :class:`.sessionmaker` has not yet proceeded.
+For this use case, the :class:`.sessionmaker` construct offers the
 :meth:`.sessionmaker.configure` method, which will place additional configuration
-directives into an existing :func:`.sessionmaker` that will take place
+directives into an existing :class:`.sessionmaker` that will take place
 when the construct is invoked::
 
 
@@ -142,7 +140,7 @@ such as a :class:`.Session` that binds to an alternate
 source of connectivity, or a :class:`.Session` that should
 have other arguments such as ``expire_on_commit`` established differently from
 what most of the application wants, specific arguments can be passed to the
-:func:`.sessionmaker` factory's :meth:`.sessionmaker.__call__` method.
+:class:`.sessionmaker` factory's :meth:`.sessionmaker.__call__` method.
 These arguments will override whatever
 configurations have already been placed, such as below, where a new :class:`.Session`
 is constructed against a specific :class:`.Connection`::
@@ -203,12 +201,12 @@ at the same time).
 Session Frequently Asked Questions
 -----------------------------------
 
-* When do I make a :func:`.sessionmaker` ?
+* When do I make a :class:`.sessionmaker` ?
 
     Just one time, somewhere in your application's global scope. It should be
     looked upon as part of your application's configuration. If your
     application has three .py files in a package, you could, for example,
-    place the :func:`.sessionmaker` line in your ``__init__.py`` file; from
+    place the :class:`.sessionmaker` line in your ``__init__.py`` file; from
     that point on your other modules say "from mypackage import Session". That
     way, everyone else just uses :class:`.Session()`,
     and the configuration of that session is controlled by that central point.
@@ -219,9 +217,9 @@ Session Frequently Asked Questions
     engine later on, using :meth:`.sessionmaker.configure`.
 
     In the examples in this section, we will frequently show the
-    :func:`.sessionmaker` being created right above the line where we actually
+    :class:`.sessionmaker` being created right above the line where we actually
     invoke :class:`.Session`. But that's just for
-    example's sake!  In reality, the :func:`.sessionmaker` would be somewhere
+    example's sake!  In reality, the :class:`.sessionmaker` would be somewhere
     at the module level.   The calls to instantiate :class:`.Session`
     would then be placed at the point in the application where database
     conversations begin.
@@ -305,7 +303,7 @@ Session Frequently Asked Questions
 
     In those situations where integration libraries are not available,
     SQLAlchemy includes its own "helper" class known as
-    :class:`.ScopedSession`.   A tutorial on the usage of this object
+    :class:`.scoped_session`.   A tutorial on the usage of this object
     is at :ref:`unitofwork_contextual`.   It provides both a quick way
     to associate a :class:`.Session` with the current thread, as well as
     patterns to associate :class:`.Session` objects with other kinds of
@@ -351,7 +349,7 @@ Session Frequently Asked Questions
     The :class:`.Session` is not designed to be a
     global object from which everyone consults as a "registry" of objects.
     That's more the job of a **second level cache**.   SQLAlchemy provides
-    a pattern for implementing second level caching using `Beaker <http://beaker.groovie.org/>`_,
+    a pattern for implementing second level caching using `dogpile.cache <http://dogpilecache.readthedocs.org/>`_,
     via the :ref:`examples_caching` example.
 
 * How can I get the :class:`~sqlalchemy.orm.session.Session` for a certain object ?
@@ -755,7 +753,7 @@ Regardless of the autoflush setting, a flush can always be forced by issuing
     session.flush()
 
 The "flush-on-Query" aspect of the behavior can be disabled by constructing
-:func:`.sessionmaker` with the flag ``autoflush=False``::
+:class:`.sessionmaker` with the flag ``autoflush=False``::
 
     Session = sessionmaker(autoflush=False)
 
@@ -808,7 +806,7 @@ complete. This is so that when the instances are next accessed, either through
 attribute access or by them being present in a
 :class:`~sqlalchemy.orm.query.Query` result set, they receive the most recent
 state. To disable this behavior, configure
-:func:`.sessionmaker` with ``expire_on_commit=False``.
+:class:`.sessionmaker` with ``expire_on_commit=False``.
 
 Normally, instances loaded into the :class:`~sqlalchemy.orm.session.Session`
 are never changed by subsequent queries; the assumption is that the current
@@ -993,7 +991,7 @@ as deleted, or persistent objects which have pending changes on them. After a
 full flush, these collections are all empty, and all objects are again weakly
 referenced. To disable the weak referencing behavior and force all objects
 within the session to remain until explicitly expunged, configure
-:func:`.sessionmaker` with the ``weak_identity_map=False``
+:class:`.sessionmaker` with the ``weak_identity_map=False``
 setting.
 
 .. _unitofwork_cascades:
@@ -1169,8 +1167,8 @@ This behavior can be disabled using the ``cascade_backrefs`` flag::
 
 So above, the assignment of ``i1.order = o1`` will append ``i1`` to the ``items``
 collection of ``o1``, but will not add ``i1`` to the session.   You can, of
-course, :meth:`~.Session.add` ``i1`` to the session at a later point.   This option
-may be helpful for situations where an object needs to be kept out of a
+course, :meth:`~.Session.add` ``i1`` to the session at a later point.   This
+option may be helpful for situations where an object needs to be kept out of a
 session until it's construction is completed, but still needs to be given
 associations to objects which are already persistent in the target session.
 
@@ -1297,6 +1295,7 @@ things like unique constraint exceptions::
             print "Skipped record %s" % record
     session.commit()
 
+.. _session_autocommit:
 
 Autocommit Mode
 ---------------
@@ -1311,16 +1310,21 @@ results have been iterated.   The :meth:`.Session.flush` operation
 still occurs within the scope of a single transaction, though this transaction
 is closed out after the :meth:`.Session.flush` operation completes.
 
-"autocommit" mode should **not be considered for general use**.   While
-very old versions of SQLAlchemy standardized on this mode, the modern
-:class:`.Session` benefits highly from being given a clear point of transaction
-demarcation via :meth:`.Session.rollback` and :meth:`.Session.commit`.
-The autoflush action can safely emit SQL to the database as needed without
-implicitly producing permanent effects, the contents of attributes
-are expired only when a logical series of steps has completed.   If the
-:class:`.Session` were to be used in pure "autocommit" mode without
-an ongoing transaction, these features should be disabled, that is,
-``autoflush=False, expire_on_commit=False``.
+.. warning::
+
+    "autocommit" mode should **not be considered for general use**.
+    If used, it should always be combined with the usage of
+    :meth:`.Session.begin` and :meth:`.Session.commit`, to ensure
+    a transaction demarcation.
+
+    Executing queries outside of a demarcated transaction is a legacy mode
+    of usage, and can in some cases lead to concurrent connection
+    checkouts.
+
+    In the absense of a demarcated transaction, the :class:`.Session`
+    cannot make appropriate decisions as to when autoflush should
+    occur nor when auto-expiration should occur, so these features
+    should be disabled with ``autoflush=False, expire_on_commit=False``.
 
 Modern usage of "autocommit" is for framework integrations that need to control
 specifically when the "begin" state occurs.  A session which is configured with
@@ -1343,9 +1347,8 @@ goes back into "autocommit" mode, until :meth:`.Session.begin` is called again::
         session.rollback()
         raise
 
-The :meth:`~.Session.begin` method also returns a
-transactional token which is compatible with the Python 2.6 ``with``
-statement::
+The :meth:`.Session.begin` method also returns a transactional token which is
+compatible with the Python 2.6 ``with`` statement::
 
     Session = sessionmaker(bind=engine, autocommit=True)
     session = Session()
@@ -1468,9 +1471,9 @@ SQL expressions and strings can be executed via the
 :class:`~sqlalchemy.orm.session.Session` within its transactional context.
 This is most easily accomplished using the
 :meth:`~.Session.execute` method, which returns a
-:class:`~sqlalchemy.engine.base.ResultProxy` in the same manner as an
-:class:`~sqlalchemy.engine.base.Engine` or
-:class:`~sqlalchemy.engine.base.Connection`::
+:class:`~sqlalchemy.engine.ResultProxy` in the same manner as an
+:class:`~sqlalchemy.engine.Engine` or
+:class:`~sqlalchemy.engine.Connection`::
 
     Session = sessionmaker(bind=engine)
     session = Session()
@@ -1481,15 +1484,15 @@ This is most easily accomplished using the
     # execute a SQL expression construct
     result = session.execute(select([mytable]).where(mytable.c.id==7))
 
-The current :class:`~sqlalchemy.engine.base.Connection` held by the
+The current :class:`~sqlalchemy.engine.Connection` held by the
 :class:`~sqlalchemy.orm.session.Session` is accessible using the
 :meth:`~.Session.connection` method::
 
     connection = session.connection()
 
 The examples above deal with a :class:`~sqlalchemy.orm.session.Session` that's
-bound to a single :class:`~sqlalchemy.engine.base.Engine` or
-:class:`~sqlalchemy.engine.base.Connection`. To execute statements using a
+bound to a single :class:`~sqlalchemy.engine.Engine` or
+:class:`~sqlalchemy.engine.Connection`. To execute statements using a
 :class:`~sqlalchemy.orm.session.Session` which is bound either to multiple
 engines, or none at all (i.e. relies upon bound metadata), both
 :meth:`~.Session.execute` and
@@ -1580,14 +1583,14 @@ SQLAlchemy includes its own helper object, which helps with the establishment
 of user-defined :class:`.Session` scopes.  It is also used by third-party
 integration systems to help construct their integration schemes.
 
-The object is the :class:`.ScopedSession` object, and it represents a
+The object is the :class:`.scoped_session` object, and it represents a
 **registry** of :class:`.Session` objects.  If you're not familiar with the
 registry pattern, a good introduction can be found in `Patterns of Enterprise
 Architecture <http://martinfowler.com/eaaCatalog/registry.html>`_.
 
 .. note::
 
-   The :class:`.ScopedSession` object is a very popular and useful object
+   The :class:`.scoped_session` object is a very popular and useful object
    used by many SQLAlchemy applications.  However, it is important to note
    that it presents **only one approach** to the issue of :class:`.Session`
    management.  If you're new to SQLAlchemy, and especially if the
@@ -1596,11 +1599,10 @@ Architecture <http://martinfowler.com/eaaCatalog/registry.html>`_.
    system such as `Flask-SQLAlchemy <http://packages.python.org/Flask-SQLAlchemy/>`_
    or `zope.sqlalchemy <http://pypi.python.org/pypi/zope.sqlalchemy>`_.
 
-A :class:`.ScopedSession` is constructed by calling the :func:`.scoped_session`
-function, passing it a
+A :class:`.scoped_session` is constructed by calling it, passing it a
 **factory** which can create new :class:`.Session` objects.   A factory
 is just something that produces a new object when called, and in the
-case of :class:`.Session`, the most common factory is the :func:`.sessionmaker`,
+case of :class:`.Session`, the most common factory is the :class:`.sessionmaker`,
 introduced earlier in this section.  Below we illustrate this usage::
 
     >>> from sqlalchemy.orm import scoped_session
@@ -1609,14 +1611,14 @@ introduced earlier in this section.  Below we illustrate this usage::
     >>> session_factory = sessionmaker(bind=some_engine)
     >>> Session = scoped_session(session_factory)
 
-The :class:`.ScopedSession` object we've created will now call upon the
-:func:`.sessionmaker` when we "call" the registry::
+The :class:`.scoped_session` object we've created will now call upon the
+:class:`.sessionmaker` when we "call" the registry::
 
     >>> some_session = Session()
 
 Above, ``some_session`` is an instance of :class:`.Session`, which we
 can now use to talk to the database.   This same :class:`.Session` is also
-present within the :class:`.ScopedSession` registry we've created.   If
+present within the :class:`.scoped_session` registry we've created.   If
 we call upon the registry a second time, we get back the **same** :class:`.Session`::
 
     >>> some_other_session = Session()
@@ -1624,20 +1626,19 @@ we call upon the registry a second time, we get back the **same** :class:`.Sessi
     True
 
 This pattern allows disparate sections of the application to call upon a global
-:class:`.ScopedSession`, so that all those areas may share the same session
+:class:`.scoped_session`, so that all those areas may share the same session
 without the need to pass it explicitly.   The :class:`.Session` we've established
 in our registry will remain, until we explicitly tell our regsitry to dispose of it,
-by calling :meth:`.ScopedSession.remove`::
+by calling :meth:`.scoped_session.remove`::
 
     >>> Session.remove()
 
-The :meth:`.ScopedSession.remove` method first calls :meth:`.Session.close` on
+The :meth:`.scoped_session.remove` method first calls :meth:`.Session.close` on
 the current :class:`.Session`, which has the effect of releasing any connection/transactional
 resources owned by the :class:`.Session` first, then discarding the :class:`.Session`
-itself.  "Releasing" here means that any pending transaction will be rolled back
-using ``connection.rollback()``.
+itself.  "Releasing" here means that connections are returned to their connection pool and any transactional state is rolled back, ultimately using the ``rollback()`` method of the underlying DBAPI connection.
 
-At this point, the :class:`.ScopedSession` object is "empty", and will create
+At this point, the :class:`.scoped_session` object is "empty", and will create
 a **new** :class:`.Session` when called again.  As illustrated below, this
 is not the same :class:`.Session` we had before::
 
@@ -1652,9 +1653,9 @@ of how this pattern proceeds.
 Implicit Method Access
 ----------------------
 
-The job of the :class:`.ScopedSession` is simple; hold onto a :class:`.Session`
+The job of the :class:`.scoped_session` is simple; hold onto a :class:`.Session`
 for all who ask for it.  As a means of producing more transparent access to this
-:class:`.Session`, the :class:`.ScopedSession` also includes **proxy behavior**,
+:class:`.Session`, the :class:`.scoped_session` also includes **proxy behavior**,
 meaning that the registry itself can be treated just like a :class:`.Session`
 directly; when methods are called on this object, they are **proxied** to the
 underlying :class:`.Session` being maintained by the registry::
@@ -1679,30 +1680,30 @@ anything as a global variable is usually a bad idea, as it implies that the
 global object will be accessed by many threads concurrently.   The :class:`.Session`
 object is entirely designed to be used in a **non-concurrent** fashion, which
 in terms of multithreading means "only in one thread at a time".   So our
-above example of :class:`.ScopedSession` usage, where the same :class:`.Session`
+above example of :class:`.scoped_session` usage, where the same :class:`.Session`
 object is maintained across multiple calls, suggests that some process needs
 to be in place such that mutltiple calls across many threads don't actually get
 a handle to the same session.   We call this notion **thread local storage**,
 which means, a special object is used that will maintain a distinct object
 per each application thread.   Python provides this via the
 `threading.local() <http://docs.python.org/library/threading.html#threading.local>`_
-construct.  The :class:`.ScopedSession` object by default uses this object
+construct.  The :class:`.scoped_session` object by default uses this object
 as storage, so that a single :class:`.Session` is maintained for all who call
-upon the :class:`.ScopedSession` registry, but only within the scope of a single
+upon the :class:`.scoped_session` registry, but only within the scope of a single
 thread.   Callers who call upon the registry in a different thread get a
 :class:`.Session` instance that is local to that other thread.
 
-Using this technique, the :class:`.ScopedSession` provides a quick and relatively
+Using this technique, the :class:`.scoped_session` provides a quick and relatively
 simple (if one is familiar with thread-local storage) way of providing
 a single, global object in an application that is safe to be called upon
 from multiple threads.
 
-The :meth:`.ScopedSession.remove` method, as always, removes the current
+The :meth:`.scoped_session.remove` method, as always, removes the current
 :class:`.Session` associated with the thread, if any.  However, one advantage of the
 ``threading.local()`` object is that if the application thread itself ends, the
 "storage" for that thread is also garbage collected.  So it is in fact "safe" to
 use thread local scope with an application that spawns and tears down threads,
-without the need to call :meth:`.ScopedSession.remove`.  However, the scope
+without the need to call :meth:`.scoped_session.remove`.  However, the scope
 of transactions themselves, i.e. ending them via :meth:`.Session.commit` or
 :meth:`.Session.rollback`, will usually still be something that must be explicitly
 arranged for at the appropriate time, unless the application actually ties the
@@ -1727,7 +1728,7 @@ This simple correspondence of web request and thread means that to associate a
 :class:`.Session` with a thread implies it is also associated with the web request
 running within that thread, and vice versa, provided that the :class:`.Session` is
 created only after the web request begins and torn down just before the web request ends.
-So it is a common practice to use :class:`.ScopedSession` as a quick way
+So it is a common practice to use :class:`.scoped_session` as a quick way
 to integrate the :class:`.Session` with a web application.  The sequence
 diagram below illustrates this flow::
 
@@ -1765,10 +1766,10 @@ diagram below illustrates this flow::
 Using the above flow, the process of integrating the :class:`.Session` with the
 web application has exactly two requirements:
 
-1. Create a single :class:`.ScopedSession` registry when the web application
+1. Create a single :class:`.scoped_session` registry when the web application
    first starts, ensuring that this object is accessible by the rest of the
    application.
-2. Ensure that :meth:`.ScopedSession.remove` is called when the web request ends,
+2. Ensure that :meth:`.scoped_session.remove` is called when the web request ends,
    usually by integrating with the web framework's event system to establish
    an "on request end" event.
 
@@ -1776,18 +1777,18 @@ As noted earlier, the above pattern is **just one potential way** to integrate a
 with a web framework, one which in particular makes the significant assumption
 that the **web framework associates web requests with application threads**.  It is
 however **strongly recommended that the integration tools provided with the web framework
-itself be used, if available**, instead of :class:`.ScopedSession`.
+itself be used, if available**, instead of :class:`.scoped_session`.
 
 In particular, while using a thread local can be convenient, it is preferable that the :class:`.Session` be
 associated **directly with the request**, rather than with
 the current thread.   The next section on custom scopes details a more advanced configuration
-which can combine the usage of :class:`.ScopedSession` with direct request based scope, or
+which can combine the usage of :class:`.scoped_session` with direct request based scope, or
 any kind of scope.
 
 Using Custom Created Scopes
 ---------------------------
 
-The :class:`.ScopedSession` object's default behavior of "thread local" scope is only
+The :class:`.scoped_session` object's default behavior of "thread local" scope is only
 one of many options on how to "scope" a :class:`.Session`.   A custom scope can be defined
 based on any existing system of getting at "the current thing we are working with".
 
@@ -1795,7 +1796,7 @@ Suppose a web framework defines a library function ``get_current_request()``.  A
 built using this framework can call this function at any time, and the result will be
 some kind of ``Request`` object that represents the current request being processed.
 If the ``Request`` object is hashable, then this function can be easily integrated with
-:class:`.ScopedSession` to associate the :class:`.Session` with the request.  Below we illustrate
+:class:`.scoped_session` to associate the :class:`.Session` with the request.  Below we illustrate
 this in conjunction with a hypothetical event marker provided by the web framework
 ``on_request_end``, which allows code to be invoked whenever a request ends::
 
@@ -1808,8 +1809,8 @@ this in conjunction with a hypothetical event marker provided by the web framewo
     def remove_session(req):
         Session.remove()
 
-Above, we instantiate :class:`.ScopedSession` in the usual way, except that we pass
-our request-returning function as the "scopefunc".  This instructs :class:`.ScopedSession`
+Above, we instantiate :class:`.scoped_session` in the usual way, except that we pass
+our request-returning function as the "scopefunc".  This instructs :class:`.scoped_session`
 to use this function to generate a dictionary key whenever the registry is called upon
 to return the current :class:`.Session`.   In this case it is particularly important
 that we ensure a reliable "remove" system is implemented, as this dictionary is not
@@ -1819,10 +1820,8 @@ otherwise self-managed.
 Contextual Session API
 ----------------------
 
-.. autofunction:: sqlalchemy.orm.scoped_session
-
-.. autoclass:: sqlalchemy.orm.scoping.ScopedSession
-  :members:
+.. autoclass:: sqlalchemy.orm.scoping.scoped_session
+   :members:
 
 .. autoclass:: sqlalchemy.util.ScopedRegistry
     :members:
@@ -1897,7 +1896,7 @@ a custom :class:`.Session` which delivers the following rules:
                 ]
 
 The above :class:`.Session` class is plugged in using the ``class_``
-argument to :func:`.sessionmaker`::
+argument to :class:`.sessionmaker`::
 
     Session = sessionmaker(class_=RoutingSession)
 
@@ -1919,10 +1918,15 @@ Sessions API
 Session and sessionmaker()
 ---------------------------
 
-.. autofunction:: sessionmaker
+.. autoclass:: sessionmaker
+    :members:
+    :show-inheritance:
+    :inherited-members:
 
 .. autoclass:: sqlalchemy.orm.session.Session
    :members:
+   :show-inheritance:
+   :inherited-members:
 
 .. autoclass:: sqlalchemy.orm.session.SessionTransaction
    :members:
@@ -1941,7 +1945,11 @@ These functions are provided by the SQLAlchemy attribute
 instrumentation API to provide a detailed interface for dealing
 with instances, attribute values, and history.  Some of them
 are useful when constructing event listener functions, such as
-those described in :ref:`events_orm_toplevel`.
+those described in :doc:`/orm/events`.
+
+.. currentmodule:: sqlalchemy.orm.util
+
+.. autofunction:: object_state
 
 .. currentmodule:: sqlalchemy.orm.attributes
 
@@ -1957,13 +1965,17 @@ those described in :ref:`events_orm_toplevel`.
 
 .. function:: instance_state
 
-    Return the :class:`.InstanceState` for a given object.
+    Return the :class:`.InstanceState` for a given
+    mapped object.
 
-.. autofunction:: is_instrumented
+    This function is the internal version
+    of :func:`.object_state`.   The
+    :func:`.object_state` and/or the
+    :func:`.inspect` function is preferred here
+    as they each emit an informative exception
+    if the given object is not mapped.
 
-.. function:: manager_of_class
-
-    Return the :class:`.ClassManager` for a given class.
+.. autofunction:: sqlalchemy.orm.instrumentation.is_instrumented
 
 .. autofunction:: set_attribute
 
@@ -1971,15 +1983,4 @@ those described in :ref:`events_orm_toplevel`.
 
 .. autoclass:: History
     :members:
-
-.. autodata:: PASSIVE_NO_INITIALIZE
-
-.. autodata:: PASSIVE_NO_FETCH
-
-.. autodata:: PASSIVE_NO_FETCH_RELATED
-
-.. autodata:: PASSIVE_ONLY_PERSISTENT
-
-.. autodata:: PASSIVE_OFF
-
 

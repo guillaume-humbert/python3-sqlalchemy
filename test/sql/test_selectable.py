@@ -1,14 +1,16 @@
 """Test various algorithmic properties of selectables."""
 
-from test.lib.testing import eq_, assert_raises, \
-    assert_raises_message
+from sqlalchemy.testing import eq_, assert_raises, \
+    assert_raises_message, is_
 from sqlalchemy import *
-from test.lib import *
+from sqlalchemy.testing import fixtures, AssertsCompiledSQL, \
+    AssertsExecutionResults
+from sqlalchemy import testing
 from sqlalchemy.sql import util as sql_util, visitors
 from sqlalchemy import exc
 from sqlalchemy.sql import table, column, null
 from sqlalchemy import util
-from test.lib import fixtures
+from sqlalchemy.testing import fixtures
 
 metadata = MetaData()
 table1 = Table('table1', metadata,
@@ -60,11 +62,11 @@ class SelectableTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiled
 
         eq_(
             s1.c.foo.proxy_set,
-            set([s1.c.foo, scalar_select, scalar_select.element, table1.c.col1])
+            set([s1.c.foo, scalar_select, scalar_select.element])
         )
         eq_(
             s2.c.foo.proxy_set,
-            set([s2.c.foo, scalar_select, scalar_select.element, table1.c.col1])
+            set([s2.c.foo, scalar_select, scalar_select.element])
         )
 
         assert s1.corresponding_column(scalar_select) is s1.c.foo
@@ -100,8 +102,6 @@ class SelectableTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiled
         s = select([keyed])
         eq_(s.c.colx.key, 'colx')
 
-        # this would change to 'colx'
-        # with #2397
         eq_(s.c.colx.name, 'x')
 
         assert s.corresponding_column(keyed.c.colx) is s.c.colx
@@ -113,6 +113,41 @@ class SelectableTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiled
         assert sel2.corresponding_column(keyed.c.coly) is sel2.c.coly
         assert sel2.corresponding_column(keyed.c.z) is sel2.c.z
 
+    def test_keyed_label_gen(self):
+        s = select([keyed]).apply_labels()
+
+        assert s.corresponding_column(keyed.c.colx) is s.c.keyed_colx
+        assert s.corresponding_column(keyed.c.coly) is s.c.keyed_coly
+        assert s.corresponding_column(keyed.c.z) is s.c.keyed_z
+
+        sel2 = s.alias()
+        assert sel2.corresponding_column(keyed.c.colx) is sel2.c.keyed_colx
+        assert sel2.corresponding_column(keyed.c.coly) is sel2.c.keyed_coly
+        assert sel2.corresponding_column(keyed.c.z) is sel2.c.keyed_z
+
+    def test_keyed_c_collection_upper(self):
+        c = Column('foo', Integer, key='bar')
+        t = Table('t', MetaData(), c)
+        is_(t.c.bar, c)
+
+    def test_keyed_c_collection_lower(self):
+        c = column('foo')
+        c.key = 'bar'
+        t = table('t', c)
+        is_(t.c.bar, c)
+
+    def test_clone_c_proxy_key_upper(self):
+        c = Column('foo', Integer, key='bar')
+        t = Table('t', MetaData(), c)
+        s = select([t])._clone()
+        assert c in s.c.bar.proxy_set
+
+    def test_clone_c_proxy_key_lower(self):
+        c = column('foo')
+        c.key = 'bar'
+        t = table('t', c)
+        s = select([t])._clone()
+        assert c in s.c.bar.proxy_set
 
     def test_distance_on_aliases(self):
         a1 = table1.alias('a1')
@@ -140,6 +175,7 @@ class SelectableTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiled
 
     def test_clone_append_column(self):
         sel = select([literal_column('1').label('a')])
+        eq_(sel.c.keys(), ['a'])
         cloned = visitors.ReplacingCloningVisitor().traverse(sel)
         cloned.append_column(literal_column('2').label('b'))
         cloned.append_column(func.foo())
@@ -192,6 +228,15 @@ class SelectableTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiled
             "table1.col3, table1.colx FROM table1) AS anon_1"
         )
 
+    def test_type_coerce_preserve_subq(self):
+        class MyType(TypeDecorator):
+            impl = Integer
+
+        stmt = select([type_coerce(column('x'), MyType).label('foo')])
+        stmt2 = stmt.select()
+        assert isinstance(stmt._raw_columns[0].type, MyType)
+        assert isinstance(stmt.c.foo.type, MyType)
+        assert isinstance(stmt2.c.foo.type, MyType)
 
     def test_select_on_table(self):
         sel = select([table1, table2], use_labels=True)
@@ -339,6 +384,14 @@ class SelectableTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiled
         criterion = a.c.table1_col1 == table2.c.col2
         self.assert_(criterion.compare(j.onclause))
 
+    def test_scalar_cloned_comparator(self):
+        sel = select([table1.c.col1]).as_scalar()
+        expr = sel == table1.c.col1
+
+        sel2 = visitors.ReplacingCloningVisitor().traverse(sel)
+
+        expr2 = sel2 == table1.c.col1
+        is_(expr2.left, sel2)
 
     def test_column_labels(self):
         a = select([table1.c.col1.label('acol1'),
@@ -569,20 +622,148 @@ class SelectableTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiled
         Table('t1', MetaData(), c1)
         eq_(c1._label, "t1_c1")
 
+
+class RefreshForNewColTest(fixtures.TestBase):
+    def test_join_uninit(self):
+        a = table('a', column('x'))
+        b = table('b', column('y'))
+        j = a.join(b, a.c.x == b.c.y)
+
+        q = column('q')
+        b.append_column(q)
+        j._refresh_for_new_column(q)
+        assert j.c.b_q is q
+
+    def test_join_init(self):
+        a = table('a', column('x'))
+        b = table('b', column('y'))
+        j = a.join(b, a.c.x == b.c.y)
+        j.c
+        q = column('q')
+        b.append_column(q)
+        j._refresh_for_new_column(q)
+        assert j.c.b_q is q
+
+
+    def test_join_samename_init(self):
+        a = table('a', column('x'))
+        b = table('b', column('y'))
+        j = a.join(b, a.c.x == b.c.y)
+        j.c
+        q = column('x')
+        b.append_column(q)
+        j._refresh_for_new_column(q)
+        assert j.c.b_x is q
+
+    def test_select_samename_init(self):
+        a = table('a', column('x'))
+        b = table('b', column('y'))
+        s = select([a, b]).apply_labels()
+        s.c
+        q = column('x')
+        b.append_column(q)
+        s._refresh_for_new_column(q)
+        assert q in s.c.b_x.proxy_set
+
+    def test_aliased_select_samename_uninit(self):
+        a = table('a', column('x'))
+        b = table('b', column('y'))
+        s = select([a, b]).apply_labels().alias()
+        q = column('x')
+        b.append_column(q)
+        s._refresh_for_new_column(q)
+        assert q in s.c.b_x.proxy_set
+
+    def test_aliased_select_samename_init(self):
+        a = table('a', column('x'))
+        b = table('b', column('y'))
+        s = select([a, b]).apply_labels().alias()
+        s.c
+        q = column('x')
+        b.append_column(q)
+        s._refresh_for_new_column(q)
+        assert q in s.c.b_x.proxy_set
+
+    def test_aliased_select_irrelevant(self):
+        a = table('a', column('x'))
+        b = table('b', column('y'))
+        c = table('c', column('z'))
+        s = select([a, b]).apply_labels().alias()
+        s.c
+        q = column('x')
+        c.append_column(q)
+        s._refresh_for_new_column(q)
+        assert 'c_x' not in s.c
+
+    def test_aliased_select_no_cols_clause(self):
+        a = table('a', column('x'))
+        s = select([a.c.x]).apply_labels().alias()
+        s.c
+        q = column('q')
+        a.append_column(q)
+        s._refresh_for_new_column(q)
+        assert 'a_q' not in s.c
+
+    def test_union_uninit(self):
+        a = table('a', column('x'))
+        s1 = select([a])
+        s2 = select([a])
+        s3 = s1.union(s2)
+        q = column('q')
+        a.append_column(q)
+        s3._refresh_for_new_column(q)
+        assert a.c.q in s3.c.q.proxy_set
+
+    def test_union_init_raises(self):
+        a = table('a', column('x'))
+        s1 = select([a])
+        s2 = select([a])
+        s3 = s1.union(s2)
+        s3.c
+        q = column('q')
+        a.append_column(q)
+        assert_raises_message(
+                NotImplementedError,
+                "CompoundSelect constructs don't support addition of "
+                "columns to underlying selectables",
+                s3._refresh_for_new_column, q
+        )
+    def test_nested_join_uninit(self):
+        a = table('a', column('x'))
+        b = table('b', column('y'))
+        c = table('c', column('z'))
+        j = a.join(b, a.c.x == b.c.y).join(c, b.c.y == c.c.z)
+
+        q = column('q')
+        b.append_column(q)
+        j._refresh_for_new_column(q)
+        assert j.c.b_q is q
+
+    def test_nested_join_init(self):
+        a = table('a', column('x'))
+        b = table('b', column('y'))
+        c = table('c', column('z'))
+        j = a.join(b, a.c.x == b.c.y).join(c, b.c.y == c.c.z)
+
+        j.c
+        q = column('q')
+        b.append_column(q)
+        j._refresh_for_new_column(q)
+        assert j.c.b_q is q
+
 class AnonLabelTest(fixtures.TestBase):
-    """Test behaviors that we hope to change with [ticket:2168]."""
+    """Test behaviors fixed by [ticket:2168]."""
 
     def test_anon_labels_named_column(self):
         c1 = column('x')
 
-        # surprising
-        assert c1.label(None) is c1
-        eq_(str(select([c1.label(None)])), "SELECT x")
+        assert c1.label(None) is not c1
+        eq_(str(select([c1.label(None)])), "SELECT x AS x_1")
 
     def test_anon_labels_literal_column(self):
         c1 = literal_column('x')
-        assert c1.label(None) is c1
-        eq_(str(select([c1.label(None)])), "SELECT x")
+        assert c1.label(None) is not c1
+        eq_(str(select([c1.label(None)])), "SELECT x AS x_1")
 
     def test_anon_labels_func(self):
         c1 = func.count('*')
@@ -660,7 +841,7 @@ class JoinConditionTest(fixtures.TestBase, AssertsExecutionResults):
 
 
         # TODO: this raises due to right side being "grouped", and no
-        # longer has FKs.  Did we want to make _FromGrouping friendlier
+        # longer has FKs.  Did we want to make FromGrouping friendlier
         # ?
 
         assert_raises_message(exc.ArgumentError,
@@ -863,11 +1044,11 @@ class ReduceTest(fixtures.TestBase, AssertsExecutionResults):
 
     def test_reduce_selectable(self):
         metadata = MetaData()
-        engineers = Table('engineers', metadata, Column('engineer_id',
-                          Integer, primary_key=True),
+        engineers = Table('engineers', metadata,
+                        Column('engineer_id', Integer, primary_key=True),
                           Column('engineer_name', String(50)))
-        managers = Table('managers', metadata, Column('manager_id',
-                         Integer, primary_key=True),
+        managers = Table('managers', metadata,
+                        Column('manager_id', Integer, primary_key=True),
                          Column('manager_name', String(50)))
         s = select([engineers,
                    managers]).where(engineers.c.engineer_name
@@ -876,6 +1057,61 @@ class ReduceTest(fixtures.TestBase, AssertsExecutionResults):
             util.column_set([s.c.engineer_id, s.c.engineer_name,
             s.c.manager_id]))
 
+    def test_reduce_generation(self):
+        m = MetaData()
+        t1 = Table('t1', m, Column('x', Integer, primary_key=True),
+                                        Column('y', Integer))
+        t2 = Table('t2', m, Column('z', Integer, ForeignKey('t1.x')),
+                                        Column('q', Integer))
+        s1 = select([t1, t2])
+        s2 = s1.reduce_columns(only_synonyms=False)
+        eq_(
+            set(s2.inner_columns),
+            set([t1.c.x, t1.c.y, t2.c.q])
+        )
+
+        s2 = s1.reduce_columns()
+        eq_(
+            set(s2.inner_columns),
+            set([t1.c.x, t1.c.y, t2.c.z, t2.c.q])
+        )
+
+
+    def test_reduce_only_synonym_fk(self):
+        m = MetaData()
+        t1 = Table('t1', m, Column('x', Integer, primary_key=True),
+                                        Column('y', Integer))
+        t2 = Table('t2', m, Column('x', Integer, ForeignKey('t1.x')),
+                                        Column('q', Integer, ForeignKey('t1.y')))
+        s1 = select([t1, t2])
+        s1 = s1.reduce_columns(only_synonyms=True)
+        eq_(
+            set(s1.c),
+            set([s1.c.x, s1.c.y, s1.c.q])
+        )
+
+    def test_reduce_only_synonym_lineage(self):
+        m = MetaData()
+        t1 = Table('t1', m, Column('x', Integer, primary_key=True),
+                                        Column('y', Integer),
+                                        Column('z', Integer)
+                            )
+        # test that the first appearance in the columns clause
+        # wins - t1 is first, t1.c.x wins
+        s1 = select([t1])
+        s2 = select([t1, s1]).where(t1.c.x == s1.c.x).where(s1.c.y == t1.c.z)
+        eq_(
+                set(s2.reduce_columns().inner_columns),
+                set([t1.c.x, t1.c.y, t1.c.z, s1.c.y, s1.c.z])
+        )
+
+        # reverse order, s1.c.x wins
+        s1 = select([t1])
+        s2 = select([s1, t1]).where(t1.c.x == s1.c.x).where(s1.c.y == t1.c.z)
+        eq_(
+                set(s2.reduce_columns().inner_columns),
+                set([s1.c.x, t1.c.y, t1.c.z, s1.c.y, s1.c.z])
+        )
 
     def test_reduce_aliased_join(self):
         metadata = MetaData()
@@ -928,7 +1164,6 @@ class ReduceTest(fixtures.TestBase, AssertsExecutionResults):
             item_join.c.dummy, item_join.c.child_name])),
             util.column_set([item_join.c.id, item_join.c.dummy,
             item_join.c.child_name]))
-
 
     def test_reduce_aliased_union_2(self):
         metadata = MetaData()
@@ -1052,10 +1287,38 @@ class AnnotationsTest(fixtures.TestBase):
             t.c.x,
             a,
             s,
-            s2
+            s2,
+            t.c.x > 1,
+            (t.c.x > 1).label(None)
         ]:
             annot = obj._annotate({})
             eq_(set([obj]), set([annot]))
+
+    def test_compare(self):
+        t = table('t', column('x'), column('y'))
+        x_a = t.c.x._annotate({})
+        assert t.c.x.compare(x_a)
+        assert x_a.compare(t.c.x)
+        assert not x_a.compare(t.c.y)
+        assert not t.c.y.compare(x_a)
+        assert (t.c.x == 5).compare(x_a == 5)
+        assert not (t.c.y == 5).compare(x_a == 5)
+
+        s = select([t])
+        x_p = s.c.x
+        assert not x_a.compare(x_p)
+        assert not t.c.x.compare(x_p)
+        x_p_a = x_p._annotate({})
+        assert x_p_a.compare(x_p)
+        assert x_p.compare(x_p_a)
+        assert not x_p_a.compare(x_a)
+
+    def test_late_name_add(self):
+        from sqlalchemy.schema import Column
+        c1 = Column(Integer)
+        c1_a = c1._annotate({"foo": "bar"})
+        c1.name = 'somename'
+        eq_(c1_a.name, 'somename')
 
     def test_custom_constructions(self):
         from sqlalchemy.schema import Column
@@ -1166,13 +1429,18 @@ class AnnotationsTest(fixtures.TestBase):
         assert b2.left is not bin.left
         assert b3.left is not b2.left is not bin.left
         assert b4.left is bin.left  # since column is immutable
-        assert b4.right is not bin.right is not b2.right is not b3.right
+        # deannotate copies the element
+        assert bin.right is not b2.right is not b3.right is not b4.right
 
     def test_annotate_unique_traversal(self):
         """test that items are copied only once during
         annotate, deannotate traversal
 
-        #2453
+        #2453 - however note this was modified by
+        #1401, and it's likely that re49563072578
+        is helping us with the str() comparison
+        case now, as deannotate is making
+        clones again in some cases.
         """
         table1 = table('table1', column('x'))
         table2 = table('table2', column('y'))
@@ -1180,20 +1448,80 @@ class AnnotationsTest(fixtures.TestBase):
         s = select([a1.c.x]).select_from(
                 a1.join(table2, a1.c.x==table2.c.y)
             )
-
         for sel in (
             sql_util._deep_deannotate(s),
-            sql_util._deep_annotate(s, {'foo':'bar'}),
             visitors.cloned_traverse(s, {}, {}),
             visitors.replacement_traverse(s, {}, lambda x:None)
         ):
             # the columns clause isn't changed at all
             assert sel._raw_columns[0].table is a1
-            # the from objects are internally consistent,
-            # i.e. the Alias at position 0 is the same
-            # Alias in the Join object in position 1
             assert sel._froms[0] is sel._froms[1].left
+
             eq_(str(s), str(sel))
+
+        # when we are modifying annotations sets only
+        # partially, each element is copied unconditionally
+        # when encountered.
+        for sel in (
+            sql_util._deep_deannotate(s, {"foo":"bar"}),
+            sql_util._deep_annotate(s, {'foo':'bar'}),
+        ):
+            assert sel._froms[0] is not sel._froms[1].left
+
+            # but things still work out due to
+            # re49563072578
+            eq_(str(s), str(sel))
+
+
+    def test_annotate_varied_annot_same_col(self):
+        """test two instances of the same column with different annotations
+        preserving them when deep_annotate is run on them.
+
+        """
+        t1 = table('table1', column("col1"), column("col2"))
+        s = select([t1.c.col1._annotate({"foo":"bar"})])
+        s2 = select([t1.c.col1._annotate({"bat":"hoho"})])
+        s3 = s.union(s2)
+        sel = sql_util._deep_annotate(s3, {"new":"thing"})
+
+        eq_(
+            sel.selects[0]._raw_columns[0]._annotations,
+            {"foo":"bar", "new":"thing"}
+        )
+
+        eq_(
+            sel.selects[1]._raw_columns[0]._annotations,
+            {"bat":"hoho", "new":"thing"}
+        )
+
+    def test_deannotate_2(self):
+        table1 = table('table1', column("col1"), column("col2"))
+        j = table1.c.col1._annotate({"remote":True}) == \
+                table1.c.col2._annotate({"local":True})
+        j2 = sql_util._deep_deannotate(j)
+        eq_(
+            j.left._annotations, {"remote":True}
+        )
+        eq_(
+            j2.left._annotations, {}
+        )
+
+    def test_deannotate_3(self):
+        table1 = table('table1', column("col1"), column("col2"),
+                            column("col3"), column("col4"))
+        j = and_(
+                table1.c.col1._annotate({"remote":True})==
+                table1.c.col2._annotate({"local":True}),
+                table1.c.col3._annotate({"remote":True})==
+                table1.c.col4._annotate({"local":True})
+        )
+        j2 = sql_util._deep_deannotate(j)
+        eq_(
+            j.clauses[0].left._annotations, {"remote":True}
+        )
+        eq_(
+            j2.clauses[0].left._annotations, {}
+        )
 
     def test_annotate_fromlist_preservation(self):
         """test the FROM list in select still works
