@@ -1,4 +1,4 @@
-# $Id: highlight.py 1199 2006-03-25 18:13:01Z zzzeek $
+# $Id: highlight.py 3151 2007-08-03 13:57:40Z ellisj $
 # highlight.py - syntax highlighting functions for Myghty 
 # Copyright (C) 2004 Michael Bayer mike_mp@zzzcomputing.com
 #
@@ -170,7 +170,7 @@ class PythonHighlighter(Highlighter):
                 curc = t[2][1]
     
             if self.get_style(t[0], t[1]) != curstyle:
-                if len(tokens):
+                if tokens:
                     self.colorize([(string.join(tokens, ''), curstyle)])
                     tokens = []
                 curstyle = self.get_style(t[0], t[1])
@@ -187,7 +187,7 @@ class PythonHighlighter(Highlighter):
             curl = t[3][0]
 
         # any remaining content to output, output it
-        if len(tokens):
+        if tokens:
             self.colorize([(string.join(tokens, ''), curstyle)])
 
         if trailingspace:

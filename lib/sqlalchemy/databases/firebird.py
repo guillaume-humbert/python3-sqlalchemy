@@ -5,15 +5,11 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 
-import sys, StringIO, string, types
+import warnings
 
-from sqlalchemy import util
+from sqlalchemy import util, sql, schema, ansisql, exceptions
 import sqlalchemy.engine.default as default
-import sqlalchemy.sql as sql
-import sqlalchemy.schema as schema
-import sqlalchemy.ansisql as ansisql
 import sqlalchemy.types as sqltypes
-import sqlalchemy.exceptions as exceptions
 
 
 _initialized_kb = False
@@ -99,7 +95,8 @@ def descriptor():
 
 
 class FBExecutionContext(default.DefaultExecutionContext):
-    pass
+    def supports_sane_rowcount(self):
+        return True
 
 
 class FBDialect(ansisql.ANSIDialect):
@@ -155,6 +152,10 @@ class FBDialect(ansisql.ANSIDialect):
 
     def max_identifier_length(self):
         return 31
+    
+    def table_names(self, connection, schema):
+        s = "SELECT R.RDB$RELATION_NAME FROM RDB$RELATIONS R"
+        return [row[0] for row in connection.execute(s)]
 
     def has_table(self, connection, table_name, schema=None):
         tblqry = """
@@ -175,7 +176,7 @@ class FBDialect(ansisql.ANSIDialect):
         else:
             return False
 
-    def reflecttable(self, connection, table):
+    def reflecttable(self, connection, table, include_columns):
         #TODO: map these better
         column_func = {
             14 : lambda r: sqltypes.String(r['FLEN']), # TEXT
@@ -253,17 +254,23 @@ class FBDialect(ansisql.ANSIDialect):
 
         while row:
             name = row['FNAME']
-            args = [lower_if_possible(name)]
+            python_name = lower_if_possible(name)
+            if include_columns and python_name not in include_columns:
+                continue
+            args = [python_name]
 
             kw = {}
             # get the data types and lengths
-            args.append(column_func[row['FTYPE']](row))
+            coltype = column_func.get(row['FTYPE'], None)
+            if coltype is None:
+                warnings.warn(RuntimeWarning("Did not recognize type '%s' of column '%s'" % (str(row['FTYPE']), name)))
+                coltype = sqltypes.NULLTYPE
+            else:
+                coltype = coltype(row)
+            args.append(coltype)
 
             # is it a primary key?
             kw['primary_key'] = name in pkfields
-
-            # is it nullable ?
-            kw['nullable'] = not bool(row['NULL_FLAG'])
 
             table.append_column(schema.Column(*args, **kw))
             row = c.fetchone()
@@ -303,39 +310,39 @@ class FBDialect(ansisql.ANSIDialect):
 class FBCompiler(ansisql.ANSICompiler):
     """Firebird specific idiosincrasies"""
 
-    def visit_alias(self, alias):
+    def visit_alias(self, alias, asfrom=False, **kwargs):
         # Override to not use the AS keyword which FB 1.5 does not like
-        self.froms[alias] = self.get_from_text(alias.original) + " " + self.preparer.format_alias(alias)
-        self.strings[alias] = self.get_str(alias.original)
+        if asfrom:
+            return self.process(alias.original, asfrom=True) + " " + self.preparer.format_alias(alias)
+        else:
+            return self.process(alias.original, asfrom=True)
 
     def visit_function(self, func):
-        if len(func.clauses):
-            super(FBCompiler, self).visit_function(func)
+        if func.clauses:
+            return super(FBCompiler, self).visit_function(func)
         else:
-            self.strings[func] = func.name
+            return func.name
 
-    def visit_insert_column(self, column, parameters):
-        # all column primary key inserts must be explicitly present
-        if column.primary_key:
-            parameters[column.key] = None
+    def uses_sequences_for_inserts(self):
+        return True
 
-    def visit_select_precolumns(self, select):
+    def get_select_precolumns(self, select):
         """Called when building a ``SELECT`` statement, position is just
         before column list Firebird puts the limit and offset right
         after the ``SELECT``...
         """
 
         result = ""
-        if select.limit:
-            result += " FIRST %d "  % select.limit
-        if select.offset:
-            result +=" SKIP %d "  %  select.offset
-        if select.distinct:
+        if select._limit:
+            result += " FIRST %d "  % select._limit
+        if select._offset:
+            result +=" SKIP %d "  %  select._offset
+        if select._distinct:
             result += " DISTINCT "
         return result
 
     def limit_clause(self, select):
-        """Already taken care of in the `visit_select_precolumns` method."""
+        """Already taken care of in the `get_select_precolumns` method."""
         return ""
 
 
@@ -366,7 +373,7 @@ class FBSchemaDropper(ansisql.ANSISchemaDropper):
 
 class FBDefaultRunner(ansisql.ANSIDefaultRunner):
     def exec_default_sql(self, default):
-        c = sql.select([default.arg], from_obj=["rdb$database"]).compile(engine=self.connection)
+        c = sql.select([default.arg], from_obj=["rdb$database"]).compile(bind=self.connection)
         return self.connection.execute_compiled(c).scalar()
 
     def visit_sequence(self, seq):

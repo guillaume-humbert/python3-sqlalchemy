@@ -4,19 +4,13 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-import datetime, string, types, re, random, warnings
+import re, random, warnings, operator
 
-from sqlalchemy import util, sql, schema, ansisql, exceptions
+from sqlalchemy import sql, schema, ansisql, exceptions, util
 from sqlalchemy.engine import base, default
 import sqlalchemy.types as sqltypes
-from sqlalchemy.databases import information_schema as ischema
 
-try:
-    import mx.DateTime.DateTime as mxDateTime
-except:
-    mxDateTime = None
 
-    
 class PGInet(sqltypes.TypeEngine):
     def get_col_spec(self):
         return "INET"
@@ -28,12 +22,22 @@ class PGNumeric(sqltypes.Numeric):
         else:
             return "NUMERIC(%(precision)s, %(length)s)" % {'precision': self.precision, 'length' : self.length}
 
+    def convert_bind_param(self, value, dialect):
+        return value
+
+    def convert_result_value(self, value, dialect):
+        if not self.asdecimal and isinstance(value, util.decimal_type):
+            return float(value)
+        else:
+            return value
+        
 class PGFloat(sqltypes.Float):
     def get_col_spec(self):
         if not self.precision:
             return "FLOAT"
         else:
             return "FLOAT(%(precision)s)" % {'precision': self.precision}
+
 
 class PGInteger(sqltypes.Integer):
     def get_col_spec(self):
@@ -47,74 +51,15 @@ class PGBigInteger(PGInteger):
     def get_col_spec(self):
         return "BIGINT"
 
-class PG2DateTime(sqltypes.DateTime):
+class PGDateTime(sqltypes.DateTime):
     def get_col_spec(self):
         return "TIMESTAMP " + (self.timezone and "WITH" or "WITHOUT") + " TIME ZONE"
 
-class PG1DateTime(sqltypes.DateTime):
-    def convert_bind_param(self, value, dialect):
-        if value is not None:
-            if isinstance(value, datetime.datetime):
-                seconds = float(str(value.second) + "."
-                                + str(value.microsecond))
-                mx_datetime = mxDateTime(value.year, value.month, value.day,
-                                         value.hour, value.minute,
-                                         seconds)
-                return dialect.dbapi.TimestampFromMx(mx_datetime)
-            return dialect.dbapi.TimestampFromMx(value)
-        else:
-            return None
-
-    def convert_result_value(self, value, dialect):
-        if value is None:
-            return None
-        second_parts = str(value.second).split(".")
-        seconds = int(second_parts[0])
-        microseconds = int(float(second_parts[1]))
-        return datetime.datetime(value.year, value.month, value.day,
-                                 value.hour, value.minute, seconds,
-                                 microseconds)
-
-    def get_col_spec(self):
-        return "TIMESTAMP " + (self.timezone and "WITH" or "WITHOUT") + " TIME ZONE"
-
-class PG2Date(sqltypes.Date):
+class PGDate(sqltypes.Date):
     def get_col_spec(self):
         return "DATE"
 
-class PG1Date(sqltypes.Date):
-    def convert_bind_param(self, value, dialect):
-        # TODO: perform appropriate postgres1 conversion between Python DateTime/MXDateTime
-        # this one doesnt seem to work with the "emulation" mode
-        if value is not None:
-            return dialect.dbapi.DateFromMx(value)
-        else:
-            return None
-
-    def convert_result_value(self, value, dialect):
-        # TODO: perform appropriate postgres1 conversion between Python DateTime/MXDateTime
-        return value
-
-    def get_col_spec(self):
-        return "DATE"
-
-class PG2Time(sqltypes.Time):
-    def get_col_spec(self):
-        return "TIME " + (self.timezone and "WITH" or "WITHOUT") + " TIME ZONE"
-
-class PG1Time(sqltypes.Time):
-    def convert_bind_param(self, value, dialect):
-        # TODO: perform appropriate postgres1 conversion between Python DateTime/MXDateTime
-        # this one doesnt seem to work with the "emulation" mode
-        if value is not None:
-            return psycopg.TimeFromMx(value)
-        else:
-            return None
-
-    def convert_result_value(self, value, dialect):
-        # TODO: perform appropriate postgres1 conversion between Python DateTime/MXDateTime
-        return value
-
+class PGTime(sqltypes.Time):
     def get_col_spec(self):
         return "TIME " + (self.timezone and "WITH" or "WITHOUT") + " TIME ZONE"
 
@@ -142,28 +87,55 @@ class PGBoolean(sqltypes.Boolean):
     def get_col_spec(self):
         return "BOOLEAN"
 
-pg2_colspecs = {
+class PGArray(sqltypes.TypeEngine, sqltypes.Concatenable):
+    def __init__(self, item_type):
+        if isinstance(item_type, type):
+            item_type = item_type()
+        self.item_type = item_type
+        
+    def dialect_impl(self, dialect):
+        impl = self.__class__.__new__(self.__class__)
+        impl.__dict__.update(self.__dict__)
+        impl.item_type = self.item_type.dialect_impl(dialect)
+        return impl
+    def convert_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        def convert_item(item):
+            if isinstance(item, (list,tuple)):
+                return [convert_item(child) for child in item]
+            else:
+                return self.item_type.convert_bind_param(item, dialect)
+        return [convert_item(item) for item in value]
+    def convert_result_value(self, value, dialect):
+        if value is None:
+            return value
+        def convert_item(item):
+            if isinstance(item, list):
+                return [convert_item(child) for child in item]
+            else:
+                return self.item_type.convert_result_value(item, dialect)
+        # Could specialcase when item_type.convert_result_value is the default identity func
+        return [convert_item(item) for item in value]
+    def get_col_spec(self):
+        return self.item_type.get_col_spec() + '[]'
+
+colspecs = {
     sqltypes.Integer : PGInteger,
     sqltypes.Smallinteger : PGSmallInteger,
     sqltypes.Numeric : PGNumeric,
     sqltypes.Float : PGFloat,
-    sqltypes.DateTime : PG2DateTime,
-    sqltypes.Date : PG2Date,
-    sqltypes.Time : PG2Time,
+    sqltypes.DateTime : PGDateTime,
+    sqltypes.Date : PGDate,
+    sqltypes.Time : PGTime,
     sqltypes.String : PGString,
     sqltypes.Binary : PGBinary,
     sqltypes.Boolean : PGBoolean,
     sqltypes.TEXT : PGText,
     sqltypes.CHAR: PGChar,
 }
-pg1_colspecs = pg2_colspecs.copy()
-pg1_colspecs.update({
-    sqltypes.DateTime :  PG1DateTime,
-    sqltypes.Date : PG1Date,
-    sqltypes.Time : PG1Time
-    })
 
-pg2_ischema_names = {
+ischema_names = {
     'integer' : PGInteger,
     'bigint' : PGBigInteger,
     'smallint' : PGSmallInteger,
@@ -175,24 +147,17 @@ pg2_ischema_names = {
     'real' : PGFloat,
     'inet': PGInet,
     'double precision' : PGFloat,
-    'timestamp' : PG2DateTime,
-    'timestamp with time zone' : PG2DateTime,
-    'timestamp without time zone' : PG2DateTime,
-    'time with time zone' : PG2Time,
-    'time without time zone' : PG2Time,
-    'date' : PG2Date,
-    'time': PG2Time,
+    'timestamp' : PGDateTime,
+    'timestamp with time zone' : PGDateTime,
+    'timestamp without time zone' : PGDateTime,
+    'time with time zone' : PGTime,
+    'time without time zone' : PGTime,
+    'date' : PGDate,
+    'time': PGTime,
     'bytea' : PGBinary,
     'boolean' : PGBoolean,
     'interval':PGInterval,
 }
-pg1_ischema_names = pg2_ischema_names.copy()
-pg1_ischema_names.update({
-    'timestamp with time zone' : PG1DateTime,
-    'timestamp without time zone' : PG1DateTime,
-    'date' : PG1Date,
-    'time' : PG1Time
-    })
 
 def descriptor():
     return {'name':'postgres',
@@ -206,20 +171,20 @@ def descriptor():
 
 class PGExecutionContext(default.DefaultExecutionContext):
 
-    def is_select(self):
-        return re.match(r'SELECT', self.statement.lstrip(), re.I) and not re.search(r'FOR UPDATE\s*$', self.statement, re.I)
-    
+    def _is_server_side(self):
+        return self.dialect.server_side_cursors and self.is_select() and not re.search(r'FOR UPDATE(?: NOWAIT)?\s*$', self.statement, re.I)
+        
     def create_cursor(self):
-        if self.dialect.server_side_cursors and self.is_select():
+        if self._is_server_side():
             # use server-side cursors:
             # http://lists.initd.org/pipermail/psycopg/2007-January/005251.html
             ident = "c" + hex(random.randint(0, 65535))[2:]
-            return self.connection.connection.cursor(ident)
+            return self._connection.connection.cursor(ident)
         else:
-            return self.connection.connection.cursor()
+            return self._connection.connection.cursor()
 
     def get_result_proxy(self):
-        if self.dialect.server_side_cursors and self.is_select():
+        if self._is_server_side():
             return base.BufferedRowResultProxy(self)
         else:
             return base.ResultProxy(self)
@@ -238,35 +203,21 @@ class PGExecutionContext(default.DefaultExecutionContext):
         super(PGExecutionContext, self).post_exec()
         
 class PGDialect(ansisql.ANSIDialect):
-    def __init__(self, use_oids=False, use_information_schema=False, server_side_cursors=False, **kwargs):
+    def __init__(self, use_oids=False, server_side_cursors=False, **kwargs):
         ansisql.ANSIDialect.__init__(self, default_paramstyle='pyformat', **kwargs)
         self.use_oids = use_oids
         self.server_side_cursors = server_side_cursors
-        if self.dbapi is None or not hasattr(self.dbapi, '__version__') or self.dbapi.__version__.startswith('2'):
-            self.version = 2
-        else:
-            self.version = 1
-        self.use_information_schema = use_information_schema
         self.paramstyle = 'pyformat'
         
     def dbapi(cls):
-        try:
-            import psycopg2 as psycopg
-        except ImportError, e:
-            try:
-                import psycopg
-            except ImportError, e2:
-                raise e
+        import psycopg2 as psycopg
         return psycopg
     dbapi = classmethod(dbapi)
     
     def create_connect_args(self, url):
         opts = url.translate_connect_args(['host', 'database', 'user', 'password', 'port'])
         if opts.has_key('port'):
-            if self.version == 2:
-                opts['port'] = int(opts['port'])
-            else:
-                opts['port'] = str(opts['port'])
+            opts['port'] = int(opts['port'])
         opts.update(url.query)
         return ([], opts)
 
@@ -278,10 +229,7 @@ class PGDialect(ansisql.ANSIDialect):
         return 63
         
     def type_descriptor(self, typeobj):
-        if self.version == 2:
-            return sqltypes.adapt_type(typeobj, pg2_colspecs)
-        else:
-            return sqltypes.adapt_type(typeobj, pg1_colspecs)
+        return sqltypes.adapt_type(typeobj, colspecs)
 
     def compiler(self, statement, bindparams, **kwargs):
         return PGCompiler(self, statement, bindparams, **kwargs)
@@ -292,8 +240,36 @@ class PGDialect(ansisql.ANSIDialect):
     def schemadropper(self, *args, **kwargs):
         return PGSchemaDropper(self, *args, **kwargs)
 
-    def defaultrunner(self, connection, **kwargs):
-        return PGDefaultRunner(connection, **kwargs)
+    def do_begin_twophase(self, connection, xid):
+        self.do_begin(connection.connection)
+
+    def do_prepare_twophase(self, connection, xid):
+        connection.execute(sql.text("PREPARE TRANSACTION %(tid)s", bindparams=[sql.bindparam('tid', xid)]))
+
+    def do_rollback_twophase(self, connection, xid, is_prepared=True, recover=False):
+        if is_prepared:
+            if recover:
+                #FIXME: ugly hack to get out of transaction context when commiting recoverable transactions
+                # Must find out a way how to make the dbapi not open a transaction.
+                connection.execute(sql.text("ROLLBACK"))
+            connection.execute(sql.text("ROLLBACK PREPARED %(tid)s", bindparams=[sql.bindparam('tid', xid)]))
+        else:
+            self.do_rollback(connection.connection)
+
+    def do_commit_twophase(self, connection, xid, is_prepared=True, recover=False):
+        if is_prepared:
+            if recover:
+                connection.execute(sql.text("ROLLBACK"))
+            connection.execute(sql.text("COMMIT PREPARED %(tid)s", bindparams=[sql.bindparam('tid', xid)]))
+        else:
+            self.do_commit(connection.connection)
+
+    def do_recover_twophase(self, connection):
+        resultset = connection.execute(sql.text("SELECT gid FROM pg_prepared_xacts"))
+        return [row[0] for row in resultset]
+
+    def defaultrunner(self, context, **kwargs):
+        return PGDefaultRunner(context, **kwargs)
 
     def preparer(self):
         return PGIdentifierPreparer(self)
@@ -337,7 +313,7 @@ class PGDialect(ansisql.ANSIDialect):
         return bool( not not cursor.rowcount )
 
     def has_sequence(self, connection, sequence_name):
-        cursor = connection.execute('''SELECT relname FROM pg_class WHERE relkind = 'S' AND relnamespace IN ( SELECT oid FROM pg_namespace WHERE nspname NOT LIKE 'pg_%%' AND nspname != 'information_schema' AND relname = %(seqname)s);''', {'seqname': sequence_name})
+        cursor = connection.execute('''SELECT relname FROM pg_class WHERE relkind = 'S' AND relnamespace IN ( SELECT oid FROM pg_namespace WHERE nspname NOT LIKE 'pg_%%' AND nspname != 'information_schema' AND relname = %(seqname)s);''', {'seqname': sequence_name.encode(self.encoding)})
         return bool(not not cursor.rowcount)
 
     def is_disconnect(self, e):
@@ -350,174 +326,182 @@ class PGDialect(ansisql.ANSIDialect):
             return "losed the connection unexpectedly" in str(e)
         else:
             return False
+        
+    def table_names(self, connection, schema):
+        s = """
+        SELECT relname 
+        FROM pg_class c
+        WHERE relkind = 'r'
+          AND '%(schema)s' = (select nspname from pg_namespace n where n.oid = c.relnamespace)
+        """ % locals()
+        return [row[0].decode(self.encoding) for row in connection.execute(s)]
 
-    def reflecttable(self, connection, table):
-        if self.version == 2:
-            ischema_names = pg2_ischema_names
+    def reflecttable(self, connection, table, include_columns):
+        preparer = self.identifier_preparer
+        if table.schema is not None:
+            schema_where_clause = "n.nspname = :schema"
         else:
-            ischema_names = pg1_ischema_names
+            schema_where_clause = "pg_catalog.pg_table_is_visible(c.oid)"
 
-        if self.use_information_schema:
-            ischema.reflecttable(connection, table, ischema_names)
-        else:
-            preparer = self.identifier_preparer
-            if table.schema is not None:
-                schema_where_clause = "n.nspname = :schema"
-            else:
-                schema_where_clause = "pg_catalog.pg_table_is_visible(c.oid)"
+        ## information schema in pg suffers from too many permissions' restrictions
+        ## let us find out at the pg way what is needed...
 
-            ## information schema in pg suffers from too many permissions' restrictions
-            ## let us find out at the pg way what is needed...
+        SQL_COLS = """
+            SELECT a.attname,
+              pg_catalog.format_type(a.atttypid, a.atttypmod),
+              (SELECT substring(d.adsrc for 128) FROM pg_catalog.pg_attrdef d
+               WHERE d.adrelid = a.attrelid AND d.adnum = a.attnum AND a.atthasdef)
+              AS DEFAULT,
+              a.attnotnull, a.attnum, a.attrelid as table_oid
+            FROM pg_catalog.pg_attribute a
+            WHERE a.attrelid = (
+                SELECT c.oid
+                FROM pg_catalog.pg_class c
+                     LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+                     WHERE (%s)
+                     AND c.relname = :table_name AND c.relkind in ('r','v')
+            ) AND a.attnum > 0 AND NOT a.attisdropped
+            ORDER BY a.attnum
+        """ % schema_where_clause
 
-            SQL_COLS = """
-                SELECT a.attname,
-                  pg_catalog.format_type(a.atttypid, a.atttypmod),
-                  (SELECT substring(d.adsrc for 128) FROM pg_catalog.pg_attrdef d
-                   WHERE d.adrelid = a.attrelid AND d.adnum = a.attnum AND a.atthasdef)
-                  AS DEFAULT,
-                  a.attnotnull, a.attnum, a.attrelid as table_oid
-                FROM pg_catalog.pg_attribute a
-                WHERE a.attrelid = (
-                    SELECT c.oid
-                    FROM pg_catalog.pg_class c
-                         LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-                         WHERE (%s)
-                         AND c.relname = :table_name AND c.relkind in ('r','v')
-                ) AND a.attnum > 0 AND NOT a.attisdropped
-                ORDER BY a.attnum
-            """ % schema_where_clause
+        s = sql.text(SQL_COLS, bindparams=[sql.bindparam('table_name', type_=sqltypes.Unicode), sql.bindparam('schema', type_=sqltypes.Unicode)], typemap={'attname':sqltypes.Unicode, 'default':sqltypes.Unicode})
+        c = connection.execute(s, table_name=table.name,
+                                  schema=table.schema)
+        rows = c.fetchall()
 
-            s = sql.text(SQL_COLS, bindparams=[sql.bindparam('table_name', type=sqltypes.Unicode), sql.bindparam('schema', type=sqltypes.Unicode)], typemap={'attname':sqltypes.Unicode})
-            c = connection.execute(s, table_name=table.name,
-                                      schema=table.schema)
-            rows = c.fetchall()
+        if not rows:
+            raise exceptions.NoSuchTableError(table.name)
 
-            if not rows:
-                raise exceptions.NoSuchTableError(table.name)
-
-            domains = self._load_domains(connection)
+        domains = self._load_domains(connection)
+        
+        for name, format_type, default, notnull, attnum, table_oid in rows:
+            if include_columns and name not in include_columns:
+                continue
             
-            for name, format_type, default, notnull, attnum, table_oid in rows:
-                ## strip (30) from character varying(30)
-                attype = re.search('([^\(]+)', format_type).group(1)
-                nullable = not notnull
+            ## strip (30) from character varying(30)
+            attype = re.search('([^\([]+)', format_type).group(1)
+            nullable = not notnull
+            is_array = format_type.endswith('[]')
 
-                try:
-                    charlen = re.search('\(([\d,]+)\)', format_type).group(1)
-                except:
-                    charlen = False
+            try:
+                charlen = re.search('\(([\d,]+)\)', format_type).group(1)
+            except:
+                charlen = False
 
-                numericprec = False
-                numericscale = False
-                if attype == 'numeric':
-                    if charlen is False:
-                        numericprec, numericscale = (None, None)
-                    else:
-                        numericprec, numericscale = charlen.split(',')
-                    charlen = False
-                if attype == 'double precision':
-                    numericprec, numericscale = (53, False)
-                    charlen = False
-                if attype == 'integer':
-                    numericprec, numericscale = (32, 0)
-                    charlen = False
-
-                args = []
-                for a in (charlen, numericprec, numericscale):
-                    if a is None:
-                        args.append(None)
-                    elif a is not False:
-                        args.append(int(a))
-
-                kwargs = {}
-                if attype == 'timestamp with time zone':
-                    kwargs['timezone'] = True
-                elif attype == 'timestamp without time zone':
-                    kwargs['timezone'] = False
-
-                if attype in ischema_names:
-                    coltype = ischema_names[attype]
+            numericprec = False
+            numericscale = False
+            if attype == 'numeric':
+                if charlen is False:
+                    numericprec, numericscale = (None, None)
                 else:
-                    if attype in domains:
-                        domain = domains[attype]
-                        if domain['attype'] in ischema_names:
-                            # A table can't override whether the domain is nullable.
-                            nullable = domain['nullable']
+                    numericprec, numericscale = charlen.split(',')
+                charlen = False
+            if attype == 'double precision':
+                numericprec, numericscale = (53, False)
+                charlen = False
+            if attype == 'integer':
+                numericprec, numericscale = (32, 0)
+                charlen = False
 
-                            if domain['default'] and not default:
-                                # It can, however, override the default value, but can't set it to null.
-                                default = domain['default']
-                            coltype = ischema_names[domain['attype']]
-                    else:
-                        coltype=None
+            args = []
+            for a in (charlen, numericprec, numericscale):
+                if a is None:
+                    args.append(None)
+                elif a is not False:
+                    args.append(int(a))
 
-                if coltype:
-                    coltype = coltype(*args, **kwargs)
+            kwargs = {}
+            if attype == 'timestamp with time zone':
+                kwargs['timezone'] = True
+            elif attype == 'timestamp without time zone':
+                kwargs['timezone'] = False
+
+            if attype in ischema_names:
+                coltype = ischema_names[attype]
+            else:
+                if attype in domains:
+                    domain = domains[attype]
+                    if domain['attype'] in ischema_names:
+                        # A table can't override whether the domain is nullable.
+                        nullable = domain['nullable']
+
+                        if domain['default'] and not default:
+                            # It can, however, override the default value, but can't set it to null.
+                            default = domain['default']
+                        coltype = ischema_names[domain['attype']]
                 else:
-                    warnings.warn(RuntimeWarning("Did not recognize type '%s' of column '%s'" % (attype, name)))
-                    coltype = sqltypes.NULLTYPE
+                    coltype=None
 
-                colargs= []
-                if default is not None:
-                    match = re.search(r"""(nextval\(')([^']+)('.*$)""", default)
-                    if match is not None:
-                        # the default is related to a Sequence
-                        sch = table.schema
-                        if '.' not in match.group(2) and sch is not None:
-                            default = match.group(1) + ('"%s"' % sch) + '.' + match.group(2) + match.group(3)
-                    colargs.append(schema.PassiveDefault(sql.text(default)))
-                table.append_column(schema.Column(name, coltype, nullable=nullable, *colargs))
+            if coltype:
+                coltype = coltype(*args, **kwargs)
+                if is_array:
+                    coltype = PGArray(coltype)
+            else:
+                warnings.warn(RuntimeWarning("Did not recognize type '%s' of column '%s'" % (attype, name)))
+                coltype = sqltypes.NULLTYPE
+
+            colargs= []
+            if default is not None:
+                match = re.search(r"""(nextval\(')([^']+)('.*$)""", default)
+                if match is not None:
+                    # the default is related to a Sequence
+                    sch = table.schema
+                    if '.' not in match.group(2) and sch is not None:
+                        # unconditionally quote the schema name.  this could
+                        # later be enhanced to obey quoting rules / "quote schema"
+                        default = match.group(1) + ('"%s"' % sch) + '.' + match.group(2) + match.group(3)
+                colargs.append(schema.PassiveDefault(sql.text(default)))
+            table.append_column(schema.Column(name, coltype, nullable=nullable, *colargs))
 
 
-            # Primary keys
-            PK_SQL = """
-              SELECT attname FROM pg_attribute
-              WHERE attrelid = (
-                 SELECT indexrelid FROM pg_index i
-                 WHERE i.indrelid = :table
-                 AND i.indisprimary = 't')
-              ORDER BY attnum
-            """
-            t = sql.text(PK_SQL, typemap={'attname':sqltypes.Unicode})
-            c = connection.execute(t, table=table_oid)
-            for row in c.fetchall():
-                pk = row[0]
-                table.primary_key.add(table.c[pk])
+        # Primary keys
+        PK_SQL = """
+          SELECT attname FROM pg_attribute
+          WHERE attrelid = (
+             SELECT indexrelid FROM pg_index i
+             WHERE i.indrelid = :table
+             AND i.indisprimary = 't')
+          ORDER BY attnum
+        """
+        t = sql.text(PK_SQL, typemap={'attname':sqltypes.Unicode})
+        c = connection.execute(t, table=table_oid)
+        for row in c.fetchall():
+            pk = row[0]
+            table.primary_key.add(table.c[pk])
 
-            # Foreign keys
-            FK_SQL = """
-              SELECT conname, pg_catalog.pg_get_constraintdef(oid, true) as condef
-              FROM  pg_catalog.pg_constraint r
-              WHERE r.conrelid = :table AND r.contype = 'f'
-              ORDER BY 1
-            """
+        # Foreign keys
+        FK_SQL = """
+          SELECT conname, pg_catalog.pg_get_constraintdef(oid, true) as condef
+          FROM  pg_catalog.pg_constraint r
+          WHERE r.conrelid = :table AND r.contype = 'f'
+          ORDER BY 1
+        """
 
-            t = sql.text(FK_SQL, typemap={'conname':sqltypes.Unicode, 'condef':sqltypes.Unicode})
-            c = connection.execute(t, table=table_oid)
-            for conname, condef in c.fetchall():
-                m = re.search('FOREIGN KEY \((.*?)\) REFERENCES (?:(.*?)\.)?(.*?)\((.*?)\)', condef).groups()
-                (constrained_columns, referred_schema, referred_table, referred_columns) = m
-                constrained_columns = [preparer._unquote_identifier(x) for x in re.split(r'\s*,\s*', constrained_columns)]
-                if referred_schema:
-                    referred_schema = preparer._unquote_identifier(referred_schema)
-                referred_table = preparer._unquote_identifier(referred_table)
-                referred_columns = [preparer._unquote_identifier(x) for x in re.split(r'\s*,\s', referred_columns)]
+        t = sql.text(FK_SQL, typemap={'conname':sqltypes.Unicode, 'condef':sqltypes.Unicode})
+        c = connection.execute(t, table=table_oid)
+        for conname, condef in c.fetchall():
+            m = re.search('FOREIGN KEY \((.*?)\) REFERENCES (?:(.*?)\.)?(.*?)\((.*?)\)', condef).groups()
+            (constrained_columns, referred_schema, referred_table, referred_columns) = m
+            constrained_columns = [preparer._unquote_identifier(x) for x in re.split(r'\s*,\s*', constrained_columns)]
+            if referred_schema:
+                referred_schema = preparer._unquote_identifier(referred_schema)
+            referred_table = preparer._unquote_identifier(referred_table)
+            referred_columns = [preparer._unquote_identifier(x) for x in re.split(r'\s*,\s', referred_columns)]
 
-                refspec = []
-                if referred_schema is not None:
-                    schema.Table(referred_table, table.metadata, autoload=True, schema=referred_schema,
-                                autoload_with=connection)
-                    for column in referred_columns:
-                        refspec.append(".".join([referred_schema, referred_table, column]))
-                else:
-                    schema.Table(referred_table, table.metadata, autoload=True, autoload_with=connection)
-                    for column in referred_columns:
-                        refspec.append(".".join([referred_table, column]))
+            refspec = []
+            if referred_schema is not None:
+                schema.Table(referred_table, table.metadata, autoload=True, schema=referred_schema,
+                            autoload_with=connection)
+                for column in referred_columns:
+                    refspec.append(".".join([referred_schema, referred_table, column]))
+            else:
+                schema.Table(referred_table, table.metadata, autoload=True, autoload_with=connection)
+                for column in referred_columns:
+                    refspec.append(".".join([referred_table, column]))
 
-                table.append_constraint(schema.ForeignKeyConstraint(constrained_columns, refspec, conname))
+            table.append_constraint(schema.ForeignKeyConstraint(constrained_columns, refspec, conname))
                 
     def _load_domains(self, connection):
-            
         ## Load data types for domains:
         SQL_DOMAINS = """
             SELECT t.typname as "name",
@@ -554,49 +538,46 @@ class PGDialect(ansisql.ANSIDialect):
         
         
         
-        
 class PGCompiler(ansisql.ANSICompiler):
-    def visit_insert_column(self, column, parameters):
-        # all column primary key inserts must be explicitly present
-        if column.primary_key:
-            parameters[column.key] = None
+    operators = ansisql.ANSICompiler.operators.copy()
+    operators.update(
+        {
+            operator.mod : '%%'
+        }
+    )
 
-    def visit_insert_sequence(self, column, sequence, parameters):
-        """this is the 'sequence' equivalent to ANSICompiler's 'visit_insert_column_default' which ensures
-        that the column is present in the generated column list"""
-        parameters.setdefault(column.key, None)
+    def uses_sequences_for_inserts(self):
+        return True
 
     def limit_clause(self, select):
         text = ""
-        if select.limit is not None:
-            text +=  " \n LIMIT " + str(select.limit)
-        if select.offset is not None:
-            if select.limit is None:
+        if select._limit is not None:
+            text +=  " \n LIMIT " + str(select._limit)
+        if select._offset is not None:
+            if select._limit is None:
                 text += " \n LIMIT ALL"
-            text += " OFFSET " + str(select.offset)
+            text += " OFFSET " + str(select._offset)
         return text
 
-    def visit_select_precolumns(self, select):
-        if select.distinct:
-            if type(select.distinct) == bool:
+    def get_select_precolumns(self, select):
+        if select._distinct:
+            if type(select._distinct) == bool:
                 return "DISTINCT "
-            if type(select.distinct) == list:
+            if type(select._distinct) == list:
                 dist_set = "DISTINCT ON ("
-                for col in select.distinct:
+                for col in select._distinct:
                     dist_set += self.strings[col] + ", "
                     dist_set = dist_set[:-2] + ") "
                 return dist_set
-            return "DISTINCT ON (" + str(select.distinct) + ") "
+            return "DISTINCT ON (" + str(select._distinct) + ") "
         else:
             return ""
 
-    def binary_operator_string(self, binary):
-        if isinstance(binary.type, sqltypes.String) and binary.operator == '+':
-            return '||'
-        elif binary.operator == '%':
-            return '%%'
+    def for_update_clause(self, select):
+        if select.for_update == 'nowait':
+            return " FOR UPDATE NOWAIT"
         else:
-            return ansisql.ANSICompiler.binary_operator_string(self, binary)
+            return super(PGCompiler, self).for_update_clause(select)
 
 class PGSchemaGenerator(ansisql.ANSISchemaGenerator):
     def get_column_specification(self, column, **kwargs):
@@ -617,14 +598,14 @@ class PGSchemaGenerator(ansisql.ANSISchemaGenerator):
         return colspec
 
     def visit_sequence(self, sequence):
-        if not sequence.optional and (not self.dialect.has_sequence(self.connection, sequence.name)):
+        if not sequence.optional and (not self.checkfirst or not self.dialect.has_sequence(self.connection, sequence.name)):
             self.append("CREATE SEQUENCE %s" % self.preparer.format_sequence(sequence))
             self.execute()
 
 class PGSchemaDropper(ansisql.ANSISchemaDropper):
     def visit_sequence(self, sequence):
-        if not sequence.optional and (self.dialect.has_sequence(self.connection, sequence.name)):
-            self.append("DROP SEQUENCE %s" % sequence.name)
+        if not sequence.optional and (not self.checkfirst or self.dialect.has_sequence(self.connection, sequence.name)):
+            self.append("DROP SEQUENCE %s" % self.preparer.format_sequence(sequence))
             self.execute()
 
 class PGDefaultRunner(ansisql.ANSIDefaultRunner):
@@ -632,7 +613,7 @@ class PGDefaultRunner(ansisql.ANSIDefaultRunner):
         if column.primary_key:
             # passive defaults on primary keys have to be overridden
             if isinstance(column.default, schema.PassiveDefault):
-                return self.connection.execute_text("select %s" % column.default.arg).scalar()
+                return self.connection.execute("select %s" % column.default.arg).scalar()
             elif (isinstance(column.type, sqltypes.Integer) and column.autoincrement) and (column.default is None or (isinstance(column.default, schema.Sequence) and column.default.optional)):
                 sch = column.table.schema
                 # TODO: this has to build into the Sequence object so we can get the quoting
@@ -641,7 +622,7 @@ class PGDefaultRunner(ansisql.ANSIDefaultRunner):
                     exc = "select nextval('\"%s\".\"%s_%s_seq\"')" % (sch, column.table.name, column.name)
                 else:
                     exc = "select nextval('\"%s_%s_seq\"')" % (column.table.name, column.name)
-                return self.connection.execute_text(exc).scalar()
+                return self.connection.execute(exc).scalar()
 
         return super(ansisql.ANSIDefaultRunner, self).get_column_default(column)
 

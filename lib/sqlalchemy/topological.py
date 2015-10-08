@@ -42,7 +42,6 @@ nature - very tricky to reproduce and track down, particularly before
 I realized this characteristic of the algorithm.
 """
 
-import string, StringIO
 from sqlalchemy import util
 from sqlalchemy.exceptions import CircularDependencyError
 
@@ -68,7 +67,7 @@ class _Node(object):
             str(self.item) + \
             (self.cycles is not None and (" (cycles: " + repr([x for x in self.cycles]) + ")") or "") + \
             "\n" + \
-            string.join([n.safestr(indent + 1) for n in self.children], '')
+            ''.join([n.safestr(indent + 1) for n in self.children])
 
     def __repr__(self):
         return "%s" % (str(self.item))
@@ -138,7 +137,7 @@ class _EdgeCollection(object):
         if children is not None:
             for child in children:
                 self.child_to_parents[child].remove(node)
-                if not len(self.child_to_parents[child]):
+                if not self.child_to_parents[child]:
                     yield child
 
     def __len__(self):
@@ -199,8 +198,8 @@ class QueueDependencySorter(object):
                 queue.append(n)
         cycles = {}
         output = []
-        while len(nodes) > 0:
-            if len(queue) == 0:
+        while nodes:
+            if not queue:
                 # edges remain but no edgeless nodes to remove; this indicates
                 # a cycle
                 if allow_all_cycles:
@@ -238,7 +237,7 @@ class QueueDependencySorter(object):
         set as siblings to each other as possible.
         """
 
-        if not len(nodes):
+        if not nodes:
             return None
         # a list of all currently independent subtrees as a tuple of
         # (root_node, set_of_all_tree_nodes, set_of_all_cycle_nodes_in_tree)
@@ -308,9 +307,9 @@ class QueueDependencySorter(object):
         for parent in edges.get_parents():
             traverse(parent)
 
-        for cycle in dict([(id(s), s) for s in cycles.values()]).values():
-            edgecollection = []
-            for edge in edges:
-                if edge[0] in cycle and edge[1] in cycle:
-                    edgecollection.append(edge)
+        # sets are not hashable, so uniquify with id
+        unique_cycles = dict([(id(s), s) for s in cycles.values()]).values()
+        for cycle in unique_cycles:
+            edgecollection = [edge for edge in edges
+                              if edge[0] in cycle and edge[1] in cycle]
             yield edgecollection

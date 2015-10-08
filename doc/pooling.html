@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.3 Documentation - Connection Pooling</title>
+	<title>SQLAlchemy 0.4 Documentation - Connection Pooling</title>
 	
     <link rel="stylesheet" href="style.css"></link>
     <link rel="stylesheet" href="docs.css"></link>
@@ -23,11 +23,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.3 Documentation</h1>
+<h1>SQLAlchemy 0.4 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.11   Last Updated: 10/14/07 15:20:01</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/12/07 12:43:00</div>
 
 
 
@@ -60,26 +60,14 @@
 	
     <ul>
         
-        <li><A style="" href="pooling.html#pooling_establishing">Establishing a Transparent Connection Pool</a></li>
+        <li><a style="" href="pooling.html#pooling_establishing">Establishing a Transparent Connection Pool</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="pooling.html#pooling_configuration">Connection Pool Configuration</a></li>
+        <li><a style="" href="pooling.html#pooling_configuration">Connection Pool Configuration</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="pooling.html#pooling_custom">Custom Pool Construction</a></li>
+        <li><a style="" href="pooling.html#pooling_custom">Custom Pool Construction</a></li>
         
-            
-    <ul>
-    </ul>
-
     </ul>
 
 	</div>
@@ -123,12 +111,14 @@
     
 
     <div class="sliding_code">
-        <pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
+        <pre>
+<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
 </span><span class="python_keyword">import </span><span class="python_name">psycopg2 as psycopg</span><span class="python_operator">
 </span><span class="python_name">psycopg </span><span class="python_operator">= </span><span class="python_name">pool</span><span class="python_operator">.</span><span class="python_name">manage</span><span class="python_enclosure">(</span><span class="python_name">psycopg</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># then connect normally
-</span><span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">psycopg</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_name">database</span><span class="python_operator">=</span><span class="python_literal">'test'</span><span class="python_operator">, </span><span class="python_name">username</span><span class="python_operator">=</span><span class="python_literal">'scott'</span><span class="python_operator">, </span><span class="python_name">password</span><span class="python_operator">=</span><span class="python_literal">'tiger'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+</span><span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">psycopg</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_name">database</span><span class="python_operator">=</span><span class="python_literal">'test'</span><span class="python_operator">, </span><span class="python_name">username</span><span class="python_operator">=</span><span class="python_literal">'scott'</span><span class="python_operator">, </span><span class="python_name">password</span><span class="python_operator">=</span><span class="python_literal">'tiger'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
     </div>
 <p>This produces a <code>sqlalchemy.pool.DBProxy</code> object which supports the same <code>connect()</code> function as the original DBAPI module.  Upon connection, a connection proxy object is returned, which delegates its calls to a real DBAPI connection object.  This connection object is stored persistently within a connection pool (an instance of <code>sqlalchemy.pool.Pool</code>) that corresponds to the exact connection arguments sent to the <code>connect()</code> function.  <br></br>
 </p>
@@ -185,17 +175,6 @@
         means upon checkout, if this timeout is surpassed the connection will be closed and replaced
         with a newly opened connection.
  </li>
-
- <li>
-     auto_close_cursors = True : cursors, returned by connection.cursor(), are tracked and are 
-        automatically closed when the connection is returned to the pool.  some DBAPIs like MySQLDB
-        become unstable if cursors remain open.
- </li>
-
- <li>
-     disallow_open_cursors = False : if auto_close_cursors is False, and disallow_open_cursors is True,
-        will raise an exception if an open cursor is detected upon connection checkin.  If auto_close_cursors and disallow_open_cursors are both False, then no cursor processing occurs upon checkin.
- </li>
 </ul>
 <p>QueuePool options include:
 </p>
@@ -246,7 +225,8 @@
 
     <div class="sliding_code">
             <div class="codetitle">Constructing a QueuePool</div>
-        <pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
+        <pre>
+<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
 </span><span class="python_keyword">import </span><span class="python_name">psycopg2</span><span class="python_operator">
 </span>
 <span class="python_keyword">def </span><span class="python_name">getconn</span><span class="python_enclosure">()</span><span class="python_operator">:
@@ -255,7 +235,8 @@
     </span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">cursor</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"setup_encodings()"</span><span class="python_enclosure">)</span><span class="python_operator">
     </span><span class="python_keyword">return </span><span class="python_name">c</span><span class="python_operator">
 </span>
-<span class="python_operator"></span><span class="python_name">p </span><span class="python_operator">= </span><span class="python_name">pool</span><span class="python_operator">.</span><span class="python_name">QueuePool</span><span class="python_enclosure">(</span><span class="python_name">getconn</span><span class="python_operator">, </span><span class="python_name">max_overflow</span><span class="python_operator">=</span><span class="python_number">10</span><span class="python_operator">, </span><span class="python_name">pool_size</span><span class="python_operator">=</span><span class="python_number">5</span><span class="python_operator">, </span><span class="python_name">use_threadlocal</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+<span class="python_operator"></span><span class="python_name">p </span><span class="python_operator">= </span><span class="python_name">pool</span><span class="python_operator">.</span><span class="python_name">QueuePool</span><span class="python_enclosure">(</span><span class="python_name">getconn</span><span class="python_operator">, </span><span class="python_name">max_overflow</span><span class="python_operator">=</span><span class="python_number">10</span><span class="python_operator">, </span><span class="python_name">pool_size</span><span class="python_operator">=</span><span class="python_number">5</span><span class="python_operator">, </span><span class="python_name">use_threadlocal</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
     </div>
 <p>Or with SingletonThreadPool:
 </p>
@@ -264,14 +245,16 @@
 
     <div class="sliding_code">
             <div class="codetitle">Constructing a SingletonThreadPool</div>
-        <pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
+        <pre>
+<span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
 </span><span class="python_keyword">import </span><span class="python_name">sqlite</span><span class="python_operator">
 </span>
 <span class="python_keyword">def </span><span class="python_name">getconn</span><span class="python_enclosure">()</span><span class="python_operator">:
     </span><span class="python_keyword">return </span><span class="python_name">sqlite</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_name">filename</span><span class="python_operator">=</span><span class="python_literal">'myfile.db'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># SQLite connections require the SingletonThreadPool    
-</span><span class="python_operator"></span><span class="python_name">p </span><span class="python_operator">= </span><span class="python_name">pool</span><span class="python_operator">.</span><span class="python_name">SingletonThreadPool</span><span class="python_enclosure">(</span><span class="python_name">getconn</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+</span><span class="python_operator"></span><span class="python_name">p </span><span class="python_operator">= </span><span class="python_name">pool</span><span class="python_operator">.</span><span class="python_name">SingletonThreadPool</span><span class="python_enclosure">(</span><span class="python_name">getconn</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
     </div>
 
 
@@ -286,7 +269,7 @@
     </div>
 
 
-</html>
+
 
 
     <div class="bottomnav">

@@ -1,4 +1,6 @@
-from sqlalchemy import sql, schema, exceptions, select, MetaData, Table, Column, String, Integer
+import sqlalchemy.sql as sql
+import sqlalchemy.exceptions as exceptions
+from sqlalchemy import select, MetaData, Table, Column, String, Integer
 from sqlalchemy.schema import PassiveDefault, ForeignKeyConstraint
 
 ischema = MetaData()
@@ -96,8 +98,12 @@ class ISchema(object):
         return self.cache[name]
 
 
-def reflecttable(connection, table, ischema_names):
-    
+def table_names(connection, schema):
+    s = select([tables.c.table_name], tables.c.table_schema==schema)
+    return [row[0] for row in connection.execute(s)]
+
+
+def reflecttable(connection, table, include_columns, ischema_names):
     key_constraints = pg_key_constraints
         
     if table.schema is not None:
@@ -128,7 +134,9 @@ def reflecttable(connection, table, ischema_names):
             row[columns.c.numeric_scale],
             row[columns.c.column_default]
             )
-
+        if include_columns and name not in include_columns:
+            continue
+        
         args = []
         for a in (charlen, numericprec, numericscale):
             if a is not None:
@@ -139,7 +147,7 @@ def reflecttable(connection, table, ischema_names):
         colargs= []
         if default is not None:
             colargs.append(PassiveDefault(sql.text(default)))
-        table.append_column(schema.Column(name, coltype, nullable=nullable, *colargs))
+        table.append_column(Column(name, coltype, nullable=nullable, *colargs))
     
     if not found_table:
         raise exceptions.NoSuchTableError(table.name)

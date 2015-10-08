@@ -1,9 +1,9 @@
 """basic tests of lazy loaded attributes"""
 
+import testbase
 from sqlalchemy import *
 from sqlalchemy.orm import *
-import testbase
-
+from testlib import *
 from fixtures import *
 from query import QueryTest
 
@@ -46,6 +46,7 @@ class LazyTest(QueryTest):
             u = q.filter(users.c.id == 7).first()
             sess.expunge(u)
             assert User(id=7, addresses=[Address(id=1, email_address='jack@bean.com')]) == u
+            assert False
         except exceptions.InvalidRequestError, err:
             assert "not bound to a Session, and no contextual session" in str(err)
 
@@ -214,6 +215,11 @@ class LazyTest(QueryTest):
             User(id=10)
         
         ] == q.all()
+        
+        sess = create_session()
+        user = sess.query(User).get(7)
+        assert [Order(id=1), Order(id=5)] == create_session().query(Order, entity_name='closed').with_parent(user, property='closed_orders').all()
+        assert [Order(id=3)] == create_session().query(Order, entity_name='open').with_parent(user, property='open_orders').all()
 
     def test_many_to_many(self):
 

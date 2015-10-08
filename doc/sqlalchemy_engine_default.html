@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SQLAlchemy 0.3 Documentation - module sqlalchemy.engine.default</title>
+	<title>SQLAlchemy 0.4 Documentation - module sqlalchemy.engine.default</title>
 	
     
     <link rel="stylesheet" href="style.css"></link>
@@ -26,11 +26,11 @@
 <div id="topanchor"><a name="top">&nbsp;</a></div>
 
 
-<h1>SQLAlchemy 0.3 Documentation</h1>
+<h1>SQLAlchemy 0.4 Documentation</h1>
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.11   Last Updated: 10/14/07 15:20:01</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/12/07 12:43:00</div>
 
 
 
@@ -50,7 +50,7 @@
         <a href="index.html">Table of Contents</a>
         
     <div class="prevnext">
-            Up: <a href="docstrings.html">Generated Documentation</a>
+            Up: <a href="docstrings.html">API Documentation</a>
 
                |   
             Previous: <a href="sqlalchemy_engine_strategies.html">module sqlalchemy.engine.strategies</a>
@@ -66,26 +66,11 @@
 	
     <ul>
         
-        <li><A style="" href="sqlalchemy_engine_default.html#docstrings_sqlalchemy.engine.default_DefaultDialect">class DefaultDialect(Dialect)</a></li>
+        <li><a style="" href="sqlalchemy_engine_default.html#docstrings_sqlalchemy.engine.default_DefaultDialect">class DefaultDialect(Dialect)</a></li>
         
-            
-    <ul>
-    </ul>
-
         
-        <li><A style="" href="sqlalchemy_engine_default.html#docstrings_sqlalchemy.engine.default_DefaultExecutionContext">class DefaultExecutionContext(ExecutionContext)</a></li>
+        <li><a style="" href="sqlalchemy_engine_default.html#docstrings_sqlalchemy.engine.default_DefaultExecutionContext">class DefaultExecutionContext(ExecutionContext)</a></li>
         
-            
-    <ul>
-    </ul>
-
-        
-        <li><A style="" href="sqlalchemy_engine_default.html#docstrings_sqlalchemy.engine.default_PoolConnectionProvider">class PoolConnectionProvider(ConnectionProvider)</a></li>
-        
-            
-    <ul>
-    </ul>
-
     </ul>
 
 	</div>
@@ -103,6 +88,8 @@
     <h3>module sqlalchemy.engine.default</h3>
     
     
+    <div class="darkcell"><p>Provide default implementations of per-dialect sqlalchemy.engine classes</p>
+</div>
     
 
 
@@ -137,16 +124,6 @@
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_compiled_params(<i>self</i>, <i>parameters</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def create_execution_context(<i>self</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
@@ -157,7 +134,30 @@
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def defaultrunner(<i>self</i>, <i>connection</i>)</b>
+    <b>def create_xid(<i>self</i>)</b>
+    <div class="docstring">
+    <p>create a two-phase transaction ID.</p>
+<p>this id will be passed to do_begin_twophase(), do_rollback_twophase(),
+do_commit_twophase().  its format is unspecified.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def dbapi_type_map(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def defaultrunner(<i>self</i>, <i>context</i>)</b>
     <div class="docstring">
     
     </div>
@@ -211,11 +211,41 @@ autocommit on/off, etc.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def do_release_savepoint(<i>self</i>, <i>connection</i>, <i>name</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def do_rollback(<i>self</i>, <i>connection</i>)</b>
     <div class="docstring">
     <p>Implementations might want to put logic here for turning
 autocommit on/off, etc.</p>
 
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def do_rollback_to_savepoint(<i>self</i>, <i>connection</i>, <i>name</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def do_savepoint(<i>self</i>, <i>connection</i>, <i>name</i>)</b>
+    <div class="docstring">
+    
     </div>
     </div>
 
@@ -339,12 +369,21 @@ types module to make this job easy.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>dialect</i>, <i>connection</i>, <i>compiled=None</i>, <i>compiled_parameters=None</i>, <i>statement=None</i>, <i>parameters=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>dialect</i>, <i>connection</i>, <i>compiled=None</i>, <i>statement=None</i>, <i>parameters=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">DefaultExecutionContext</span></tt>.</p>
 
     </div>
     </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>connection = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
 
                     
     <div class="darkcell">
@@ -391,9 +430,28 @@ types module to make this job easy.</p>
     <A name=""></a>
     <b>def is_select(<i>self</i>)</b>
     <div class="docstring">
-    
+    <p>return TRUE if the statement is expected to have result rows.</p>
+
     </div>
     </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>isinsert = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>isupdate = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
 
                     
     <div class="darkcell">
@@ -449,11 +507,60 @@ types module to make this job easy.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def post_execution(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def postfetch_cols(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def pre_exec(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
     </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def pre_execution(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def result(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>root_connection = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
 
                     
     <div class="darkcell">
@@ -486,59 +593,6 @@ from the bind parameter's <tt class="docutils literal"><span class="pre">TypeEng
 
 
 
-            
-    
-
-    
-    
-    <A name="docstrings_sqlalchemy.engine.default_PoolConnectionProvider"></a>
-    
-    <div class="sectionL3">
-
-    <h3>class PoolConnectionProvider(<a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_ConnectionProvider">ConnectionProvider</a>)</h3>
-    
-    
-    
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>url</i>, <i>pool</i>)</b>
-    <div class="docstring">
-    <p>Construct a new <tt class="docutils literal"><span class="pre">PoolConnectionProvider</span></tt>.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def dispose(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def get_connection(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-
-    
-
-            <a href="#top">back to section top</a>
-    </div>
-
-
-
     
 
     </div>
@@ -550,7 +604,7 @@ from the bind parameter's <tt class="docutils literal"><span class="pre">TypeEng
     <div class="bottomnav">
         
     <div class="prevnext">
-            Up: <a href="docstrings.html">Generated Documentation</a>
+            Up: <a href="docstrings.html">API Documentation</a>
 
                |   
             Previous: <a href="sqlalchemy_engine_strategies.html">module sqlalchemy.engine.strategies</a>

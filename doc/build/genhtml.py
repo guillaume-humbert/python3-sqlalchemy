@@ -2,7 +2,7 @@
 import sys,re,os,shutil
 import cPickle as pickle
 
-sys.path = ['../../lib', './lib/'] + sys.path
+sys.path = ['../../lib', './lib'] + sys.path
 
 import sqlalchemy
 import gen_docstrings, read_markdown, toc
@@ -14,18 +14,22 @@ import optparse
 files = [
     'index',
     'documentation',
-    'tutorial',
+    'intro',
+    'ormtutorial',
+    'sqlexpression',
+    'mappers',
+    'session',
     'dbengine',
     'metadata',
-    'sqlconstruction',
-    'datamapping',
-    'unitofwork',
-    'adv_datamapping',
     'types',
     'pooling',
     'plugins',
-    'docstrings'
+    'docstrings',
     ]
+
+post_files = [
+    'copyright'
+]
 
 parser = optparse.OptionParser(usage = "usage: %prog [options] [tests...]")
 parser.add_option("--file", action="store", dest="file", help="only generate file <file>")
@@ -34,9 +38,11 @@ parser.add_option("--version", action="store", dest="version", default=sqlalchem
 
 (options, args) = parser.parse_args()
 if options.file:
-    files = [options.file]
+    to_gen = [options.file]
+else:
+    to_gen = files + post_files
 
-title='SQLAlchemy 0.3 Documentation'
+title='SQLAlchemy 0.4 Documentation'
 version = options.version
 
 root = toc.TOCElement('', 'root', '', version=version, doctitle=title)
@@ -46,7 +52,7 @@ shutil.copy('./content/docstrings.html', './output/docstrings.html')
 shutil.copy('./content/documentation.html', './output/documentation.html')
 
 if not options.docstrings:
-    read_markdown.parse_markdown_files(root, files)
+    read_markdown.parse_markdown_files(root, [f for f in files if f in to_gen])
 
 if not options.file or options.docstrings:
     docstrings = gen_docstrings.make_all_docs()
@@ -54,8 +60,12 @@ if not options.file or options.docstrings:
 
     pickle.dump(docstrings, file('./output/compiled_docstrings.pickle', 'w'))
 
-    pickle.dump(root, file('./output/table_of_contents.pickle', 'w'))
+if not options.docstrings:
+    read_markdown.parse_markdown_files(root, [f for f in post_files if f in to_gen])
 
+if not options.file or options.docstrings:
+    pickle.dump(root, file('./output/table_of_contents.pickle', 'w'))
+    
 template_dirs = ['./templates', './output']
 output = os.path.dirname(os.getcwd())
 
@@ -69,7 +79,7 @@ def genfile(name, outname):
     outfile.write(t.render(attributes={}))
 
 if not options.docstrings:
-    for filename in files:
+    for filename in to_gen:
         try:
             genfile(filename, os.path.join(os.getcwd(), '../', filename + ".html"))
         except:

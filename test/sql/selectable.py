@@ -1,17 +1,13 @@
-"""tests that various From objects properly export their columns, as well as useable primary keys
-and foreign keys.  Full relational algebra depends on every selectable unit behaving
-nicely with others.."""
-
+"""tests that various From objects properly export their columns, as well as
+useable primary keys and foreign keys.  Full relational algebra depends on
+every selectable unit behaving nicely with others.."""
+ 
 import testbase
-import unittest, sys, datetime
-
-
-db = testbase.db
-
 from sqlalchemy import *
+from testlib import *
 
-
-table = Table('table1', db, 
+metadata = MetaData()
+table = Table('table1', metadata, 
     Column('col1', Integer, primary_key=True),
     Column('col2', String(20)),
     Column('col3', Integer),
@@ -19,14 +15,14 @@ table = Table('table1', db,
     
 )
 
-table2 = Table('table2', db,
+table2 = Table('table2', metadata,
     Column('col1', Integer, primary_key=True),
     Column('col2', Integer, ForeignKey('table1.col1')),
     Column('col3', String(20)),
     Column('coly', Integer),
 )
 
-class SelectableTest(testbase.AssertMixin):
+class SelectableTest(AssertMixin):
     def testdistance(self):
         s = select([table.c.col1.label('c2'), table.c.col1, table.c.col1.label('c1')])
 
@@ -57,7 +53,7 @@ class SelectableTest(testbase.AssertMixin):
         jj = select([ table.c.col1.label('bar_col1')],from_obj=[j]).alias('foo')
         jjj = join(table, jj, table.c.col1==jj.c.bar_col1)
         assert jjj.corresponding_column(jjj.c.table1_col1) is jjj.c.table1_col1
-
+        
         j2 = jjj.alias('foo')
         print j2.corresponding_column(jjj.c.table1_col1)
         assert j2.corresponding_column(jjj.c.table1_col1) is j2.c.table1_col1
@@ -170,8 +166,9 @@ class SelectableTest(testbase.AssertMixin):
         print str(criterion)
         print str(j.onclause)
         self.assert_(criterion.compare(j.onclause))
+        
 
-class PrimaryKeyTest(testbase.AssertMixin):
+class PrimaryKeyTest(AssertMixin):
     def test_join_pk_collapse_implicit(self):
         """test that redundant columns in a join get 'collapsed' into a minimal primary key, 
         which is the root column along a chain of foreign key relationships."""
@@ -224,17 +221,7 @@ class PrimaryKeyTest(testbase.AssertMixin):
         j.foreign_keys
         assert list(j.primary_key) == [a.c.id]
 
-    def test_non_column_clause(self):
-        meta = MetaData()
-        a = Table('a', meta, Column('id', Integer, primary_key=True), Column('x', Integer))
-        b = Table('b', meta, Column('id', Integer, ForeignKey('a.id'), primary_key=True), Column('x', Integer, primary_key=True))
 
-        j = a.join(b, and_(a.c.id==b.c.id, b.c.x==5))
-        assert str(j) == "a JOIN b ON a.id = b.id AND b.x = :b_x", str(j)
-        assert list(j.primary_key) == [a.c.id, b.c.x]
-
-        
-        
 if __name__ == "__main__":
     testbase.main()
-    
+

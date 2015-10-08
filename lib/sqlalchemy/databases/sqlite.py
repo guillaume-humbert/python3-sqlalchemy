@@ -5,9 +5,9 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 
-import sys, StringIO, string, types, re
+import re
 
-from sqlalchemy import sql, engine, schema, ansisql, exceptions, pool, PassiveDefault
+from sqlalchemy import schema, ansisql, exceptions, pool, PassiveDefault
 import sqlalchemy.engine.default as default
 import sqlalchemy.types as sqltypes
 import datetime,time, warnings
@@ -31,10 +31,7 @@ class SLSmallInteger(sqltypes.Smallinteger):
 
 class DateTimeMixin(object):
     def convert_bind_param(self, value, dialect):
-        if isinstance(value, basestring): 
-            # pass string values thru 
-            return value 
-        elif value is not None:
+        if value is not None:
             if getattr(value, 'microsecond', None) is not None:
                 return value.strftime(self.__format__ + "." + str(value.microsecond))
             else:
@@ -129,6 +126,7 @@ colspecs = {
 
 pragma_names = {
     'INTEGER' : SLInteger,
+    'INT' : SLInteger,
     'SMALLINT' : SLSmallInteger,
     'VARCHAR' : SLString,
     'CHAR' : SLChar,
@@ -153,8 +151,9 @@ class SQLiteExecutionContext(default.DefaultExecutionContext):
         if self.compiled.isinsert:
             if not len(self._last_inserted_ids) or self._last_inserted_ids[0] is None:
                 self._last_inserted_ids = [self.cursor.lastrowid] + self._last_inserted_ids[1:]
-                
-        super(SQLiteExecutionContext, self).post_exec()
+
+    def is_select(self):
+        return re.match(r'SELECT|PRAGMA', self.statement.lstrip(), re.I) is not None
         
 class SQLiteDialect(ansisql.ANSIDialect):
     
@@ -166,8 +165,6 @@ class SQLiteDialect(ansisql.ANSIDialect):
             sqlite_ver = self.dbapi.version_info
             if sqlite_ver < (2,1,'3'):
                 warnings.warn(RuntimeWarning("The installed version of pysqlite2 (%s) is out-dated, and will cause errors in some cases.  Version 2.1.3 or greater is recommended." % '.'.join([str(subver) for subver in sqlite_ver])))
-            if vers(self.dbapi.sqlite_version) < vers("3.3.13"):
-                warnings.warn(RuntimeWarning("The installed version of sqlite (%s) is out-dated, and will cause errors in some cases.  Version 3.3.13 or greater is recommended." % self.dbapi.sqlite_version))
         self.supports_cast = (self.dbapi is None or vers(self.dbapi.sqlite_version) >= vers("3.2.3"))
         
     def dbapi(cls):
@@ -177,10 +174,7 @@ class SQLiteDialect(ansisql.ANSIDialect):
             try:
                 from sqlite3 import dbapi2 as sqlite #try the 2.5+ stdlib name.
             except ImportError:
-                try:
-                    sqlite = __import__('sqlite') # skip ourselves
-                except ImportError:
-                    raise e
+                raise e
         return sqlite
     dbapi = classmethod(dbapi)
 
@@ -192,6 +186,9 @@ class SQLiteDialect(ansisql.ANSIDialect):
 
     def schemadropper(self, *args, **kwargs):
         return SQLiteSchemaDropper(self, *args, **kwargs)
+
+    def server_version_info(self, connection):
+        return self.dbapi.sqlite_version_info
 
     def supports_alter(self):
         return False
@@ -225,6 +222,10 @@ class SQLiteDialect(ansisql.ANSIDialect):
 
     def oid_column_name(self, column):
         return "oid"
+    
+    def table_names(self, connection, schema):
+        s = "SELECT name FROM sqlite_master WHERE type='table'"
+        return [row[0] for row in connection.execute(s)]
 
     def has_table(self, connection, table_name, schema=None):
         cursor = connection.execute("PRAGMA table_info(%s)" %
@@ -236,7 +237,7 @@ class SQLiteDialect(ansisql.ANSIDialect):
 
         return (row is not None)
 
-    def reflecttable(self, connection, table):
+    def reflecttable(self, connection, table, include_columns):
         c = connection.execute("PRAGMA table_info(%s)" % self.preparer().format_table(table), {})
         found_table = False
         while True:
@@ -247,6 +248,8 @@ class SQLiteDialect(ansisql.ANSIDialect):
             found_table = True
             (name, type, nullable, has_default, primary_key) = (row[1], row[2].upper(), not row[3], row[4] is not None, row[5])
             name = re.sub(r'^\"|\"$', '', name)
+            if include_columns and name not in include_columns:
+                continue
             match = re.match(r'(\w+)(\(.*?\))?', type)
             if match:
                 coltype = match.group(1)
@@ -256,7 +259,12 @@ class SQLiteDialect(ansisql.ANSIDialect):
                 args = ''
 
             #print "coltype: " + repr(coltype) + " args: " + repr(args)
-            coltype = pragma_names.get(coltype, SLString)
+            try:
+                coltype = pragma_names[coltype]
+            except KeyError:
+                warnings.warn(RuntimeWarning("Did not recognize type '%s' of column '%s'" % (coltype, name)))
+                coltype = sqltypes.NULLTYPE
+                
             if args is not None:
                 args = re.findall(r'(\d+)', args)
                 #print "args! " +repr(args)
@@ -321,21 +329,21 @@ class SQLiteDialect(ansisql.ANSIDialect):
 class SQLiteCompiler(ansisql.ANSICompiler):
     def visit_cast(self, cast):
         if self.dialect.supports_cast:
-            super(SQLiteCompiler, self).visit_cast(cast)
+            return super(SQLiteCompiler, self).visit_cast(cast)
         else:
-            if len(self.select_stack):
+            if self.select_stack:
                 # not sure if we want to set the typemap here...
                 self.typemap.setdefault("CAST", cast.type)
-            self.strings[cast] = self.strings[cast.clause]
+            return self.process(cast.clause)
 
     def limit_clause(self, select):
         text = ""
-        if select.limit is not None:
-            text +=  " \n LIMIT " + str(select.limit)
-        if select.offset is not None:
-            if select.limit is None:
+        if select._limit is not None:
+            text +=  " \n LIMIT " + str(select._limit)
+        if select._offset is not None:
+            if select._limit is None:
                 text += " \n LIMIT -1"
-            text += " OFFSET " + str(select.offset)
+            text += " OFFSET " + str(select._offset)
         else:
             text += " OFFSET 0"
         return text
@@ -343,12 +351,6 @@ class SQLiteCompiler(ansisql.ANSICompiler):
     def for_update_clause(self, select):
         # sqlite has no "FOR UPDATE" AFAICT
         return ''
-
-    def binary_operator_string(self, binary):
-        if isinstance(binary.type, sqltypes.String) and binary.operator == '+':
-            return '||'
-        else:
-            return ansisql.ANSICompiler.binary_operator_string(self, binary)
 
 class SQLiteSchemaGenerator(ansisql.ANSISchemaGenerator):
 

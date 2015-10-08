@@ -1,4 +1,6 @@
+import testbase
 from sqlalchemy import *
+from testlib import *
 
 _recursion_stack = util.Set()
 class Base(object):
@@ -26,8 +28,13 @@ class Base(object):
                     continue
                 value = getattr(self, attr)
                 if hasattr(value, '__iter__') and not isinstance(value, basestring):
-                    if len(value) == 0:
-                        continue
+                    try:
+                        # catch AttributeError so that lazy loaders trigger
+                        otherattr = getattr(other, attr)
+                    except AttributeError:
+                        return False
+                    if len(value) != len(getattr(other, attr)):
+                       return False
                     for (us, them) in zip(value, getattr(other, attr)):
                         if us != them:
                             return False
@@ -35,7 +42,7 @@ class Base(object):
                         continue
                 else:
                     if value is not None:
-                        if value != getattr(other, attr):
+                        if value != getattr(other, attr, None):
                             return False
             else:
                 return True
@@ -159,6 +166,12 @@ def install_fixture_data():
         dict(keyword_id=6, item_id=3)
     )
 
+class FixtureTest(ORMTest):
+    def define_tables(self, meta):
+        # a slight dirty trick here. 
+        meta.tables = metadata.tables
+        metadata.connect(meta.bind)
+    
 class Fixtures(object):
     @property
     def user_address_result(self):
