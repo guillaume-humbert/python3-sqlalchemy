@@ -6,3 +6,6 @@ ee79fdd13470faab0f0ff2f795343beb070eecd7
 sqlalchemy_1.0.8+ds1.orig.tar.gz
 7fd8f53483986163769db8645a70be2697a5b6dd
 2518499
+debianTag="debian/%e%v"
+patchedTag="patched/%e%v"
+upstreamTag="upstream/%e%u"
