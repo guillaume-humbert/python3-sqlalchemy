@@ -7,7 +7,7 @@
         
         <title>
     Table of Contents
- &mdash; SQLAlchemy 0.6beta2 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta3 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '#',
-          VERSION:     '0.6beta2',
+          VERSION:     '0.6beta3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="#" />
+    <link rel="top" title="SQLAlchemy 0.6beta3 Documentation" href="#" />
         <link rel="next" title="Overview / Installation" href="intro.html" />
     
 
@@ -37,7 +37,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -49,7 +49,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
+            Version: <span class="versionnum">0.6beta3</span> Last Updated: 03/28/2010 13:18:34
         </div>
         <div class="clearboth"></div>
 
@@ -227,6 +227,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference external" href="mappers.html#configuring-loader-strategies-lazy-loading-eager-loading">Configuring Loader Strategies: Lazy Loading, Eager Loading</a><ul>
+<li class="toctree-l4"><a class="reference external" href="mappers.html#what-kind-of-loading-to-use">What Kind of Loading to Use ?</a></li>
 <li class="toctree-l4"><a class="reference external" href="mappers.html#routing-explicit-joins-statements-into-eagerly-loaded-collections">Routing Explicit Joins/Statements into Eagerly Loaded Collections</a></li>
 </ul>
 </li>
@@ -457,39 +458,63 @@
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#date-time-handling">Date / Time Handling</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#compatibility-levels">Compatibility Levels</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#known-issues">Known Issues</a></li>
-<li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#module-sqlalchemy.dialects.mssql.pyodbc">PyODBC</a></li>
-<li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#module-sqlalchemy.dialects.mssql.pymssql">pymssql</a></li>
+<li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#module-sqlalchemy.dialects.mssql.pyodbc">PyODBC</a><ul>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/mssql.html#id1">Connecting</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#module-sqlalchemy.dialects.mssql.mxodbc">mxODBC</a><ul>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/mssql.html#id2">Connecting</a></li>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/mssql.html#execution-modes">Execution Modes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#module-sqlalchemy.dialects.mssql.pymssql">pymssql</a><ul>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/mssql.html#id3">Connecting</a></li>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/mssql.html#limitations">Limitations</a></li>
+</ul>
+</li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#module-sqlalchemy.dialects.mssql.zxjdbc">zxjdbc Notes</a><ul>
 <li class="toctree-l6"><a class="reference external" href="reference/dialects/mssql.html#jdbc-driver">JDBC Driver</a></li>
-<li class="toctree-l6"><a class="reference external" href="reference/dialects/mssql.html#id1">Connecting</a></li>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/mssql.html#id4">Connecting</a></li>
 </ul>
 </li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mssql.html#module-sqlalchemy.dialects.mssql.adodbapi">AdoDBAPI</a></li>
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference external" href="reference/dialects/mysql.html">MySQL</a><ul>
-<li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#overview">Overview</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#supported-versions-and-features">Supported Versions and Features</a></li>
+<li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#connecting">Connecting</a></li>
+<li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#data-types">Data Types</a></li>
+<li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#connection-timeouts">Connection Timeouts</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#storage-engines">Storage Engines</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#keys">Keys</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#sql-mode">SQL Mode</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#mysql-sql-extensions">MySQL SQL Extensions</a></li>
-<li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#boolean-types">Boolean Types</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#troubleshooting">Troubleshooting</a></li>
-<li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#mysql-column-types">MySQL Column Types</a></li>
+<li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#module-sqlalchemy.dialects.mysql">MySQL Column Types</a></li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#module-sqlalchemy.dialects.mysql.mysqldb">MySQL-Python Notes</a><ul>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/mysql.html#id1">Connecting</a></li>
 <li class="toctree-l6"><a class="reference external" href="reference/dialects/mysql.html#character-sets">Character Sets</a></li>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/mysql.html#known-issues">Known Issues</a></li>
 </ul>
 </li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#module-sqlalchemy.dialects.mysql.oursql">OurSQL Notes</a><ul>
-<li class="toctree-l6"><a class="reference external" href="reference/dialects/mysql.html#id1">Character Sets</a></li>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/mysql.html#id2">Connecting</a></li>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/mysql.html#id3">Character Sets</a></li>
 </ul>
 </li>
-<li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#module-sqlalchemy.dialects.mysql.mysqlconnector">MySQL-Connector Notes</a></li>
-<li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#module-sqlalchemy.dialects.mysql.pyodbc">pyodbc Notes</a></li>
+<li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#module-sqlalchemy.dialects.mysql.mysqlconnector">MySQL-Connector Notes</a><ul>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/mysql.html#id4">Connecting</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#module-sqlalchemy.dialects.mysql.pyodbc">pyodbc Notes</a><ul>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/mysql.html#id5">Connecting</a></li>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/mysql.html#limitations">Limitations</a></li>
+</ul>
+</li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/mysql.html#module-sqlalchemy.dialects.mysql.zxjdbc">zxjdbc Notes</a><ul>
 <li class="toctree-l6"><a class="reference external" href="reference/dialects/mysql.html#jdbc-driver">JDBC Driver</a></li>
-<li class="toctree-l6"><a class="reference external" href="reference/dialects/mysql.html#id2">Character Sets</a></li>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/mysql.html#id6">Connecting</a></li>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/mysql.html#id7">Character Sets</a></li>
 </ul>
 </li>
 </ul>
@@ -526,6 +551,7 @@
 <li class="toctree-l6"><a class="reference external" href="reference/dialects/postgresql.html#driver">Driver</a></li>
 <li class="toctree-l6"><a class="reference external" href="reference/dialects/postgresql.html#connecting">Connecting</a></li>
 <li class="toctree-l6"><a class="reference external" href="reference/dialects/postgresql.html#transactions">Transactions</a></li>
+<li class="toctree-l6"><a class="reference external" href="reference/dialects/postgresql.html#notice-logging">NOTICE logging</a></li>
 <li class="toctree-l6"><a class="reference external" href="reference/dialects/postgresql.html#per-statement-execution-options">Per-Statement Execution Options</a></li>
 </ul>
 </li>
@@ -554,17 +580,6 @@
 </li>
 </ul>
 </li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference external" href="reference/dialects/index.html#unsupported-databases">Unsupported Databases</a><ul>
-<li class="toctree-l4"><a class="reference external" href="reference/dialects/access.html">Microsoft Access</a></li>
-<li class="toctree-l4"><a class="reference external" href="reference/dialects/informix.html">Informix</a></li>
-<li class="toctree-l4"><a class="reference external" href="reference/dialects/maxdb.html">MaxDB</a><ul>
-<li class="toctree-l5"><a class="reference external" href="reference/dialects/maxdb.html#overview">Overview</a></li>
-<li class="toctree-l5"><a class="reference external" href="reference/dialects/maxdb.html#connecting">Connecting</a></li>
-<li class="toctree-l5"><a class="reference external" href="reference/dialects/maxdb.html#implementation-notes">Implementation Notes</a></li>
-</ul>
-</li>
 <li class="toctree-l4"><a class="reference external" href="reference/dialects/sybase.html">Sybase</a><ul>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/sybase.html#module-sqlalchemy.dialects.sybase.pysybase">python-sybase notes</a><ul>
 <li class="toctree-l6"><a class="reference external" href="reference/dialects/sybase.html#unicode-support">Unicode Support</a></li>
@@ -575,6 +590,17 @@
 </ul>
 </li>
 <li class="toctree-l5"><a class="reference external" href="reference/dialects/sybase.html#module-sqlalchemy.dialects.sybase.mxodbc">mxodbc notes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference external" href="reference/dialects/index.html#unsupported-databases">Unsupported Databases</a><ul>
+<li class="toctree-l4"><a class="reference external" href="reference/dialects/access.html">Microsoft Access</a></li>
+<li class="toctree-l4"><a class="reference external" href="reference/dialects/informix.html">Informix</a></li>
+<li class="toctree-l4"><a class="reference external" href="reference/dialects/maxdb.html">MaxDB</a><ul>
+<li class="toctree-l5"><a class="reference external" href="reference/dialects/maxdb.html#overview">Overview</a></li>
+<li class="toctree-l5"><a class="reference external" href="reference/dialects/maxdb.html#connecting">Connecting</a></li>
+<li class="toctree-l5"><a class="reference external" href="reference/dialects/maxdb.html#implementation-notes">Implementation Notes</a></li>
 </ul>
 </li>
 </ul>
@@ -610,7 +636,10 @@
 <li class="toctree-l4"><a class="reference external" href="reference/ext/associationproxy.html#api">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference external" href="reference/ext/orderinglist.html">orderinglist</a></li>
+<li class="toctree-l3"><a class="reference external" href="reference/ext/orderinglist.html">orderinglist</a><ul>
+<li class="toctree-l4"><a class="reference external" href="reference/ext/orderinglist.html#api-reference">API Reference</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference external" href="reference/ext/serializer.html">serializer</a></li>
 <li class="toctree-l3"><a class="reference external" href="reference/ext/sqlsoup.html">SqlSoup</a><ul>
 <li class="toctree-l4"><a class="reference external" href="reference/ext/sqlsoup.html#introduction">Introduction</a></li>
@@ -639,6 +668,10 @@
 </li>
 <li class="toctree-l4"><a class="reference external" href="reference/ext/compiler.html#changing-the-default-compilation-of-existing-constructs">Changing the default compilation of existing constructs</a></li>
 <li class="toctree-l4"><a class="reference external" href="reference/ext/compiler.html#subclassing-guidelines">Subclassing Guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference external" href="reference/ext/horizontal_shard.html">Horizontal Shard</a><ul>
+<li class="toctree-l4"><a class="reference external" href="reference/ext/horizontal_shard.html#api-documentation">API Documentation</a></li>
 </ul>
 </li>
 </ul>

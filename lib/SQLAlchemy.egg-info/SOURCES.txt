@@ -52,6 +52,7 @@ doc/_sources/reference/dialects/sybase.txt
 doc/_sources/reference/ext/associationproxy.txt
 doc/_sources/reference/ext/compiler.txt
 doc/_sources/reference/ext/declarative.txt
+doc/_sources/reference/ext/horizontal_shard.txt
 doc/_sources/reference/ext/index.txt
 doc/_sources/reference/ext/orderinglist.txt
 doc/_sources/reference/ext/serializer.txt
@@ -113,6 +114,7 @@ doc/build/reference/dialects/sybase.rst
 doc/build/reference/ext/associationproxy.rst
 doc/build/reference/ext/compiler.rst
 doc/build/reference/ext/declarative.rst
+doc/build/reference/ext/horizontal_shard.rst
 doc/build/reference/ext/index.rst
 doc/build/reference/ext/orderinglist.rst
 doc/build/reference/ext/serializer.rst
@@ -155,6 +157,7 @@ doc/reference/dialects/sybase.html
 doc/reference/ext/associationproxy.html
 doc/reference/ext/compiler.html
 doc/reference/ext/declarative.html
+doc/reference/ext/horizontal_shard.html
 doc/reference/ext/index.html
 doc/reference/ext/orderinglist.html
 doc/reference/ext/serializer.html
@@ -308,6 +311,7 @@ lib/sqlalchemy/ext/__init__.py
 lib/sqlalchemy/ext/associationproxy.py
 lib/sqlalchemy/ext/compiler.py
 lib/sqlalchemy/ext/declarative.py
+lib/sqlalchemy/ext/horizontal_shard.py
 lib/sqlalchemy/ext/orderinglist.py
 lib/sqlalchemy/ext/serializer.py
 lib/sqlalchemy/ext/sqlsoup.py
@@ -373,6 +377,7 @@ test/dialect/test_firebird.py
 test/dialect/test_informix.py
 test/dialect/test_maxdb.py
 test/dialect/test_mssql.py
+test/dialect/test_mxodbc.py
 test/dialect/test_mysql.py
 test/dialect/test_oracle.py
 test/dialect/test_postgresql.py
@@ -395,6 +400,7 @@ test/ext/__init__.py
 test/ext/test_associationproxy.py
 test/ext/test_compiler.py
 test/ext/test_declarative.py
+test/ext/test_horizontal_shard.py
 test/ext/test_orderinglist.py
 test/ext/test_serializer.py
 test/ext/test_sqlsoup.py
@@ -432,6 +438,7 @@ test/orm/test_relationships.py
 test/orm/test_scoping.py
 test/orm/test_selectable.py
 test/orm/test_session.py
+test/orm/test_subquery_relations.py
 test/orm/test_transaction.py
 test/orm/test_unitofwork.py
 test/orm/test_utils.py
@@ -450,8 +457,6 @@ test/orm/inheritance/test_productspec.py
 test/orm/inheritance/test_query.py
 test/orm/inheritance/test_selects.py
 test/orm/inheritance/test_single.py
-test/orm/sharding/__init__.py
-test/orm/sharding/test_shard.py
 test/perf/cascade_speed.py
 test/perf/insertspeed.py
 test/perf/masscreate.py

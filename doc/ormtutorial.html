@@ -7,7 +7,7 @@
         
         <title>
     Object Relational Tutorial
- &mdash; SQLAlchemy 0.6beta2 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta3 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '#',
-          VERSION:     '0.6beta2',
+          VERSION:     '0.6beta3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta3 Documentation" href="index.html" />
         <link rel="next" title="SQL Expression Language Tutorial" href="sqlexpression.html" />
         <link rel="prev" title="Overview / Installation" href="intro.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
+            Version: <span class="versionnum">0.6beta3</span> Last Updated: 03/28/2010 13:18:34
         </div>
         <div class="clearboth"></div>
 
@@ -742,11 +742,11 @@ WHERE ? = addresses.user_id ORDER BY addresses.id
 (5,)</div><span class="p">[</span><span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;j25@yahoo.com&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span></pre></div>
 </div>
 <p>When we accessed the <tt class="docutils literal"><span class="pre">addresses</span></tt> collection, SQL was suddenly issued.  This is an example of a <strong>lazy loading relationship</strong>.  The <tt class="docutils literal"><span class="pre">addresses</span></tt> collection is now loaded and behaves just like an ordinary list.</p>
-<p>If you want to reduce the number of queries (dramatically, in many cases), we can apply an <strong>eager load</strong> to the query operation, using the <a title="sqlalchemy.orm.eagerload" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.eagerload"><tt class="xref docutils literal"><span class="pre">eagerload()</span></tt></a> function.  This function is a <strong>query option</strong> that gives additional instructions to the query on how we would like it to load, in this case we&#8217;d like to indicate that we&#8217;d like <tt class="docutils literal"><span class="pre">addresses</span></tt> to load &#8220;eagerly&#8221;.  SQLAlchemy then constructs an outer join between the <tt class="docutils literal"><span class="pre">users</span></tt> and <tt class="docutils literal"><span class="pre">addresses</span></tt> tables, and loads them at once, populating the <tt class="docutils literal"><span class="pre">addresses</span></tt> collection on each <tt class="docutils literal"><span class="pre">User</span></tt> object if it&#8217;s not already populated:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">eagerload</span>
+<p>If you want to reduce the number of queries (dramatically, in many cases), we can apply an <strong>eager load</strong> to the query operation, using the <a title="sqlalchemy.orm.joinedload" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.joinedload"><tt class="xref docutils literal"><span class="pre">joinedload()</span></tt></a> function.  This function is a <strong>query option</strong> that gives additional instructions to the query on how we would like it to load, in this case we&#8217;d like to indicate that we&#8217;d like <tt class="docutils literal"><span class="pre">addresses</span></tt> to load &#8220;eagerly&#8221;.  SQLAlchemy then constructs an outer join between the <tt class="docutils literal"><span class="pre">users</span></tt> and <tt class="docutils literal"><span class="pre">addresses</span></tt> tables, and loads them at once, populating the <tt class="docutils literal"><span class="pre">addresses</span></tt> collection on each <tt class="docutils literal"><span class="pre">User</span></tt> object if it&#8217;s not already populated:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">joinedload</span>
 
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span>\
-<span class="o">...</span>                        <span class="n">options</span><span class="p">(</span><span class="n">eagerload</span><span class="p">(</span><span class="s">&#39;addresses&#39;</span><span class="p">))</span><span class="o">.</span>\
+<span class="o">...</span>                        <span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="s">&#39;addresses&#39;</span><span class="p">))</span><span class="o">.</span>\
 <span class="o">...</span>                        <span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname,
 users.password AS users_password, addresses_1.id AS addresses_1_id, addresses_1.email_address
@@ -759,11 +759,11 @@ WHERE users.name = ? ORDER BY addresses_1.id
 <span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span><span class="o">.</span><span class="n">addresses</span>
 <span class="p">[</span><span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;j25@yahoo.com&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span></pre></div>
 </div>
-<p>See <a title="sqlalchemy.orm.eagerload" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.eagerload"><tt class="xref docutils literal"><span class="pre">eagerload()</span></tt></a> for further detail.  We&#8217;ll also see another way to &#8220;eagerly&#8221; load in the next section.</p>
+<p>See <a class="reference external" href="mappers.html#mapper-loader-strategies"><em>Configuring Loader Strategies: Lazy Loading, Eager Loading</em></a> for information on <a title="sqlalchemy.orm.joinedload" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.joinedload"><tt class="xref docutils literal"><span class="pre">joinedload()</span></tt></a> and its new brother, <a title="sqlalchemy.orm.subqueryload" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.subqueryload"><tt class="xref docutils literal"><span class="pre">subqueryload()</span></tt></a>.   We&#8217;ll also see another way to &#8220;eagerly&#8221; load in the next section.</p>
 </div>
 <div class="section" id="querying-with-joins">
 <h2>Querying with Joins<a class="headerlink" href="#querying-with-joins" title="Permalink to this headline">¶</a></h2>
-<p>While <a title="sqlalchemy.orm.eagerload" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.eagerload"><tt class="xref docutils literal"><span class="pre">eagerload()</span></tt></a> created a JOIN specifically to populate a collection, we can also work explicitly with joins in many ways.  For example, to construct a simple inner join between <tt class="docutils literal"><span class="pre">User</span></tt> and <tt class="docutils literal"><span class="pre">Address</span></tt>, we can just <a title="sqlalchemy.orm.query.Query.filter" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.query.Query.filter"><tt class="xref docutils literal"><span class="pre">filter()</span></tt></a> their related columns together.  Below we load the <tt class="docutils literal"><span class="pre">User</span></tt> and <tt class="docutils literal"><span class="pre">Address</span></tt> entities at once using this method:</p>
+<p>While <a title="sqlalchemy.orm.joinedload" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.joinedload"><tt class="xref docutils literal"><span class="pre">joinedload()</span></tt></a> created a JOIN specifically to populate a collection, we can also work explicitly with joins in many ways.  For example, to construct a simple inner join between <tt class="docutils literal"><span class="pre">User</span></tt> and <tt class="docutils literal"><span class="pre">Address</span></tt>, we can just <a title="sqlalchemy.orm.query.Query.filter" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.query.Query.filter"><tt class="xref docutils literal"><span class="pre">filter()</span></tt></a> their related columns together.  Below we load the <tt class="docutils literal"><span class="pre">User</span></tt> and <tt class="docutils literal"><span class="pre">Address</span></tt> entities at once using this method:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">Address</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="n">Address</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span><span class="o">.</span>\
 <span class="o">...</span>         <span class="nb">filter</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">email_address</span><span class="o">==</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>   
 <span class="o">...</span>     <span class="k">print</span> <span class="n">u</span><span class="p">,</span> <span class="n">a</span>
@@ -809,10 +809,10 @@ WHERE addresses.email_address = ?
 </div>
 <div class="section" id="using-join-to-eagerly-load-collections-attributes">
 <h3>Using join() to Eagerly Load Collections/Attributes<a class="headerlink" href="#using-join-to-eagerly-load-collections-attributes" title="Permalink to this headline">¶</a></h3>
-<p>The &#8220;eager loading&#8221; capabilities of the <a title="sqlalchemy.orm.eagerload" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.eagerload"><tt class="xref docutils literal"><span class="pre">eagerload()</span></tt></a> function and the join-construction capabilities of <a title="sqlalchemy.orm.query.Query.join" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.query.Query.join"><tt class="xref docutils literal"><span class="pre">join()</span></tt></a> or an equivalent can be combined together using the <a title="sqlalchemy.orm.contains_eager" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.contains_eager"><tt class="xref docutils literal"><span class="pre">contains_eager()</span></tt></a> option.   This is typically used
+<p>The &#8220;eager loading&#8221; capabilities of the <a title="sqlalchemy.orm.joinedload" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.joinedload"><tt class="xref docutils literal"><span class="pre">joinedload()</span></tt></a> function and the join-construction capabilities of <a title="sqlalchemy.orm.query.Query.join" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.query.Query.join"><tt class="xref docutils literal"><span class="pre">join()</span></tt></a> or an equivalent can be combined together using the <a title="sqlalchemy.orm.contains_eager" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.contains_eager"><tt class="xref docutils literal"><span class="pre">contains_eager()</span></tt></a> option.   This is typically used
 for a query that is already joining to some related entity (more often than not via many-to-one), and you&#8217;d like the related entity to also be loaded onto the resulting objects
 in one step without the need for additional queries and without the &#8220;automatic&#8221; join embedded
-by the <a title="sqlalchemy.orm.eagerload" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.eagerload"><tt class="xref docutils literal"><span class="pre">eagerload()</span></tt></a> function:</p>
+by the <a title="sqlalchemy.orm.joinedload" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.joinedload"><tt class="xref docutils literal"><span class="pre">joinedload()</span></tt></a> function:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">contains_eager</span>
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">address</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Address</span><span class="p">)</span><span class="o">.</span>\
 <span class="o">...</span>                <span class="n">join</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">user</span><span class="p">)</span><span class="o">.</span>\

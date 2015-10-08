@@ -7,7 +7,7 @@
         
         <title>
     PostgreSQL
- &mdash; SQLAlchemy 0.6beta2 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta2',
+          VERSION:     '0.6beta3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta3 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.dialects" href="index.html" />
         <link rel="next" title="SQLite" href="sqlite.html" />
         <link rel="prev" title="Oracle" href="oracle.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
+            Version: <span class="versionnum">0.6beta3</span> Last Updated: 03/28/2010 13:18:34
         </div>
         <div class="clearboth"></div>
 
@@ -96,6 +96,7 @@
 <li><a class="reference external" href="#driver">Driver</a></li>
 <li><a class="reference external" href="#connecting">Connecting</a></li>
 <li><a class="reference external" href="#transactions">Transactions</a></li>
+<li><a class="reference external" href="#notice-logging">NOTICE logging</a></li>
 <li><a class="reference external" href="#per-statement-execution-options">Per-Statement Execution Options</a></li>
 </ul>
 </li>
@@ -417,7 +418,7 @@ with this module.</p>
 </div>
 <div class="section" id="connecting">
 <h3>Connecting<a class="headerlink" href="#connecting" title="Permalink to this headline">¶</a></h3>
-<p>URLs are of the form <cite>postgresql+psycopg2://user&#64;password&#64;host:port/dbname[?key=value&amp;key=value...]</cite>.</p>
+<p>URLs are of the form <cite>postgresql+psycopg2://user:password&#64;host:port/dbname[?key=value&amp;key=value...]</cite>.</p>
 <p>psycopg2-specific keyword arguments which are accepted by <a title="sqlalchemy.create_engine" class="reference external" href="../sqlalchemy/connections.html#sqlalchemy.create_engine"><tt class="xref docutils literal"><span class="pre">create_engine()</span></tt></a> are:</p>
 <ul class="simple">
 <li><em>server_side_cursors</em> - Enable the usage of &#8220;server side cursors&#8221; for SQL statements which support
@@ -437,6 +438,14 @@ within the engine. Valid isolation levels are <cite>READ_COMMITTED</cite>,
 <div class="section" id="transactions">
 <h3>Transactions<a class="headerlink" href="#transactions" title="Permalink to this headline">¶</a></h3>
 <p>The psycopg2 dialect fully supports SAVEPOINT and two-phase commit operations.</p>
+</div>
+<div class="section" id="notice-logging">
+<h3>NOTICE logging<a class="headerlink" href="#notice-logging" title="Permalink to this headline">¶</a></h3>
+<p>The psycopg2 dialect will log Postgresql NOTICE messages via the 
+<tt class="docutils literal"><span class="pre">sqlalchemy.dialects.postgresql</span></tt> logger:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;sqlalchemy.dialects.postgresql&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span></pre></div>
+</div>
 </div>
 <div class="section" id="per-statement-execution-options">
 <h3>Per-Statement Execution Options<a class="headerlink" href="#per-statement-execution-options" title="Permalink to this headline">¶</a></h3>

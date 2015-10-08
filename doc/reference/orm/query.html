@@ -7,7 +7,7 @@
         
         <title>
     Querying
- &mdash; SQLAlchemy 0.6beta2 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6beta2',
+          VERSION:     '0.6beta3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.6beta2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta3 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Sessions" href="sessions.html" />
         <link rel="prev" title="Collection Mapping" href="collections.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6beta2 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6beta2</span> Last Updated: 03/20/2010 14:44:55
+            Version: <span class="versionnum">0.6beta3</span> Last Updated: 03/28/2010 13:18:34
         </div>
         <div class="clearboth"></div>
 
@@ -121,7 +121,16 @@
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.add_column">
 <tt class="descname">add_column</tt><big>(</big><em>column</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.add_column" title="Permalink to this definition">¶</a></dt>
-<dd>Add a SQL ColumnElement to the list of result columns to be returned.</dd></dl>
+<dd><p>Add a column expression to the list of result columns</p>
+<p>Deprecated.
+to be returned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.orm.query.Query.add_columns">
+<tt class="descname">add_columns</tt><big>(</big><em>*column</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.add_columns" title="Permalink to this definition">¶</a></dt>
+<dd>Add one or more column expressions to the list 
+of result columns to be returned.</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.add_entity">
@@ -245,10 +254,13 @@ set by filter() or order_by(), for example.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.enable_eagerloads">
 <tt class="descname">enable_eagerloads</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.enable_eagerloads" title="Permalink to this definition">¶</a></dt>
-<dd><p>Control whether or not eager joins are rendered.</p>
+<dd><p>Control whether or not eager joins and subqueries are 
+rendered.</p>
 <p>When set to False, the returned Query will not render
-eager joins regardless of eagerload() options
-or mapper-level lazy=False configurations.</p>
+eager joins regardless of <a title="sqlalchemy.orm.joinedload" class="reference internal" href="#sqlalchemy.orm.joinedload"><tt class="xref docutils literal"><span class="pre">joinedload()</span></tt></a>,
+<a title="sqlalchemy.orm.subqueryload" class="reference internal" href="#sqlalchemy.orm.subqueryload"><tt class="xref docutils literal"><span class="pre">subqueryload()</span></tt></a> options
+or mapper-level <tt class="docutils literal"><span class="pre">lazy='joined'</span></tt>/<tt class="docutils literal"><span class="pre">lazy='subquery'</span></tt>
+configurations.</p>
 <p>This is used primarily when nesting the Query&#8217;s
 statement into a subquery or other
 selectable.</p>
@@ -300,7 +312,7 @@ method is used.</p>
 None if the result doesn&#8217;t contain any row.</p>
 <p>first() applies a limit of one within the generated SQL, so that
 only one primary entity row is generated on the server side 
-(note this may consist of multiple result rows if eagerly loaded
+(note this may consist of multiple result rows if join-loaded 
 collections are present).</p>
 <p>Calling <tt class="docutils literal"><span class="pre">first()</span></tt> results in an execution of the underlying query.</p>
 </dd></dl>
@@ -579,7 +591,8 @@ first.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.subquery">
 <tt class="descname">subquery</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.subquery" title="Permalink to this definition">¶</a></dt>
-<dd><p>return the full SELECT statement represented by this Query, embedded within an Alias.</p>
+<dd><p>return the full SELECT statement represented by this Query, 
+embedded within an Alias.</p>
 <p>Eager JOIN generation within the query is disabled.</p>
 <p>The statement by default will not have disambiguating labels
 applied to the construct unless with_labels(True) is called
@@ -680,6 +693,18 @@ methods are not called from this method.  For an update hook here, use the
 <dd>The WHERE criterion for this Query.</dd></dl>
 
 <dl class="method">
+<dt id="sqlalchemy.orm.query.Query.with_hint">
+<tt class="descname">with_hint</tt><big>(</big><em>selectable</em>, <em>text</em>, <em>dialect_name=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.with_hint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an indexing hint for the given entity or selectable to 
+this <tt class="xref docutils literal"><span class="pre">Query</span></tt>.</p>
+<p>Functionality is passed straight through to 
+<a title="sqlalchemy.sql.expression.Select.with_hint" class="reference external" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.Select.with_hint"><tt class="xref docutils literal"><span class="pre">with_hint()</span></tt></a>, 
+with the addition that <tt class="docutils literal"><span class="pre">selectable</span></tt> can be a 
+<tt class="xref docutils literal"><span class="pre">Table</span></tt>, <tt class="xref docutils literal"><span class="pre">Alias</span></tt>, or ORM entity / mapped class 
+/etc.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="sqlalchemy.orm.query.Query.with_labels">
 <tt class="descname">with_labels</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.with_labels" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply column labels to the return value of Query.statement.</p>
@@ -763,12 +788,15 @@ such as concrete table mappers.</li>
 in more than one batch of rows, end-user changes to attributes will be
 overwritten.</p>
 <p>In particular, it&#8217;s usually impossible to use this setting with
-eagerly loaded collections (i.e. any lazy=False) since those
-collections will be cleared for a new load when encountered in a
-subsequent result batch.</p>
+eagerly loaded collections (i.e. any lazy=&#8217;joined&#8217; or &#8216;subquery&#8217;) 
+since those collections will be cleared for a new load when 
+encountered in a subsequent result batch.   In the case of &#8216;subquery&#8217;
+loading, the full result for all rows is fetched which generally
+defeats the purpose of <a title="sqlalchemy.orm.query.Query.yield_per" class="reference internal" href="#sqlalchemy.orm.query.Query.yield_per"><tt class="xref docutils literal"><span class="pre">yield_per()</span></tt></a>.</p>
 <p>Also note that many DBAPIs do not &#8220;stream&#8221; results, pre-buffering
 all rows before making them available, including mysql-python and 
-psycopg2.  yield_per() will also set the <tt class="docutils literal"><span class="pre">stream_results</span></tt> execution
+psycopg2.  <a title="sqlalchemy.orm.query.Query.yield_per" class="reference internal" href="#sqlalchemy.orm.query.Query.yield_per"><tt class="xref docutils literal"><span class="pre">yield_per()</span></tt></a> will also 
+set the <tt class="docutils literal"><span class="pre">stream_results</span></tt> execution
 option to <tt class="xref docutils literal"><span class="pre">True</span></tt>, which currently is only understood by psycopg2
 and causes server side cursors to be used.</p>
 </dd></dl>
@@ -831,6 +859,15 @@ representing a relationship.</p>
 <h2>Query Options<a class="headerlink" href="#query-options" title="Permalink to this headline">¶</a></h2>
 <p>Options which are passed to <tt class="docutils literal"><span class="pre">query.options()</span></tt>, to affect the behavior of loading.</p>
 <dl class="function">
+<dt id="sqlalchemy.orm.contains_alias">
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">contains_alias</tt><big>(</big><em>alias</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.contains_alias" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will indicate to the query that
+the main table has been aliased.</p>
+<p><cite>alias</cite> is the string name or <tt class="docutils literal"><span class="pre">Alias</span></tt> object representing the
+alias.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="sqlalchemy.orm.contains_eager">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">contains_eager</tt><big>(</big><em>*keys</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.contains_eager" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will indicate to the query that
@@ -869,49 +906,13 @@ given name into a deferred load.</p>
 
 <dl class="function">
 <dt id="sqlalchemy.orm.eagerload">
-<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">eagerload</tt><big>(</big><em>*keys</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.eagerload" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the given
-name into an eager load.</p>
-<p>Used with <a title="sqlalchemy.orm.query.Query.options" class="reference internal" href="#sqlalchemy.orm.query.Query.options"><tt class="xref docutils literal"><span class="pre">options()</span></tt></a>.</p>
-<p>examples:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># eagerload the &quot;orders&quot; colleciton on &quot;User&quot;</span>
-<span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">eagerload</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">orders</span><span class="p">))</span>
-
-<span class="c"># eagerload the &quot;keywords&quot; collection on each &quot;Item&quot;,</span>
-<span class="c"># but not the &quot;items&quot; collection on &quot;Order&quot; - those </span>
-<span class="c"># remain lazily loaded.</span>
-<span class="n">query</span><span class="p">(</span><span class="n">Order</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">eagerload</span><span class="p">(</span><span class="n">Order</span><span class="o">.</span><span class="n">items</span><span class="p">,</span> <span class="n">Item</span><span class="o">.</span><span class="n">keywords</span><span class="p">))</span>
-
-<span class="c"># to eagerload across both, use eagerload_all()</span>
-<span class="n">query</span><span class="p">(</span><span class="n">Order</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">eagerload_all</span><span class="p">(</span><span class="n">Order</span><span class="o">.</span><span class="n">items</span><span class="p">,</span> <span class="n">Item</span><span class="o">.</span><span class="n">keywords</span><span class="p">))</span></pre></div>
-</div>
-<p><a title="sqlalchemy.orm.eagerload" class="reference internal" href="#sqlalchemy.orm.eagerload"><tt class="xref docutils literal"><span class="pre">eagerload()</span></tt></a> also accepts a keyword argument <cite>innerjoin=True</cite> which
-indicates using an inner join instead of an outer:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="p">(</span><span class="n">Order</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">eagerload</span><span class="p">(</span><span class="n">Order</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">innerjoin</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span></pre></div>
-</div>
-<p>Note that the join created by <a title="sqlalchemy.orm.eagerload" class="reference internal" href="#sqlalchemy.orm.eagerload"><tt class="xref docutils literal"><span class="pre">eagerload()</span></tt></a> is aliased such that
-no other aspects of the query will affect what it loads.  To use eager
-loading with a join that is constructed manually using <a title="sqlalchemy.orm.query.Query.join" class="reference internal" href="#sqlalchemy.orm.query.Query.join"><tt class="xref docutils literal"><span class="pre">join()</span></tt></a>
-or <a title="sqlalchemy.orm.join" class="reference internal" href="#sqlalchemy.orm.join"><tt class="xref docutils literal"><span class="pre">join()</span></tt></a>, see <a title="sqlalchemy.orm.contains_eager" class="reference internal" href="#sqlalchemy.orm.contains_eager"><tt class="xref docutils literal"><span class="pre">contains_eager()</span></tt></a>.</p>
-</dd></dl>
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">eagerload</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.eagerload" title="Permalink to this definition">¶</a></dt>
+<dd>A synonym for <a title="sqlalchemy.orm.joinedload" class="reference internal" href="#sqlalchemy.orm.joinedload"><tt class="xref docutils literal"><span class="pre">joinedload()</span></tt></a>.</dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.orm.eagerload_all">
-<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">eagerload_all</tt><big>(</big><em>*keys</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.eagerload_all" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert all properties along the
-given dot-separated path into an eager load.</p>
-<p>Used with <a title="sqlalchemy.orm.query.Query.options" class="reference internal" href="#sqlalchemy.orm.query.Query.options"><tt class="xref docutils literal"><span class="pre">options()</span></tt></a>.</p>
-<p>For example:</p>
-<div class="highlight-python"><pre>query.options(eagerload_all('orders.items.keywords'))...</pre>
-</div>
-<p>will set all of &#8216;orders&#8217;, &#8216;orders.items&#8217;, and &#8216;orders.items.keywords&#8217; to
-load in one eager load.</p>
-<p>Individual descriptors are accepted as arguments as well:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">eagerload_all</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">orders</span><span class="p">,</span> <span class="n">Order</span><span class="o">.</span><span class="n">items</span><span class="p">,</span> <span class="n">Item</span><span class="o">.</span><span class="n">keywords</span><span class="p">))</span></pre></div>
-</div>
-<p>The keyword arguments accept a flag <cite>innerjoin=True|False</cite> which will 
-override the value of the <cite>innerjoin</cite> flag specified on the relationship().</p>
-</dd></dl>
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">eagerload_all</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.eagerload_all" title="Permalink to this definition">¶</a></dt>
+<dd>A synonym for <a title="sqlalchemy.orm.joinedload_all" class="reference internal" href="#sqlalchemy.orm.joinedload_all"><tt class="xref docutils literal"><span class="pre">joinedload_all()</span></tt></a></dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.orm.extension">
@@ -923,11 +924,120 @@ that will be called in the context of the <tt class="docutils literal"><span cla
 </dd></dl>
 
 <dl class="function">
+<dt id="sqlalchemy.orm.joinedload">
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">joinedload</tt><big>(</big><em>*keys</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.joinedload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the given
+name into an joined eager load.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function is known as <a title="sqlalchemy.orm.eagerload" class="reference internal" href="#sqlalchemy.orm.eagerload"><tt class="xref docutils literal"><span class="pre">eagerload()</span></tt></a> in all versions
+of SQLAlchemy prior to version 0.6beta3, including the 0.5 and 0.4 series.
+<a title="sqlalchemy.orm.eagerload" class="reference internal" href="#sqlalchemy.orm.eagerload"><tt class="xref docutils literal"><span class="pre">eagerload()</span></tt></a> will remain available for 
+the foreseeable future in order to enable cross-compatibility.</p>
+</div>
+<p>Used with <a title="sqlalchemy.orm.query.Query.options" class="reference internal" href="#sqlalchemy.orm.query.Query.options"><tt class="xref docutils literal"><span class="pre">options()</span></tt></a>.</p>
+<p>examples:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># joined-load the &quot;orders&quot; colleciton on &quot;User&quot;</span>
+<span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">orders</span><span class="p">))</span>
+
+<span class="c"># joined-load the &quot;keywords&quot; collection on each &quot;Item&quot;,</span>
+<span class="c"># but not the &quot;items&quot; collection on &quot;Order&quot; - those </span>
+<span class="c"># remain lazily loaded.</span>
+<span class="n">query</span><span class="p">(</span><span class="n">Order</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="n">Order</span><span class="o">.</span><span class="n">items</span><span class="p">,</span> <span class="n">Item</span><span class="o">.</span><span class="n">keywords</span><span class="p">))</span>
+
+<span class="c"># to joined-load across both, use joinedload_all()</span>
+<span class="n">query</span><span class="p">(</span><span class="n">Order</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload_all</span><span class="p">(</span><span class="n">Order</span><span class="o">.</span><span class="n">items</span><span class="p">,</span> <span class="n">Item</span><span class="o">.</span><span class="n">keywords</span><span class="p">))</span></pre></div>
+</div>
+<p><a title="sqlalchemy.orm.joinedload" class="reference internal" href="#sqlalchemy.orm.joinedload"><tt class="xref docutils literal"><span class="pre">joinedload()</span></tt></a> also accepts a keyword argument <cite>innerjoin=True</cite> which
+indicates using an inner join instead of an outer:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="p">(</span><span class="n">Order</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="n">Order</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">innerjoin</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span></pre></div>
+</div>
+<p>Note that the join created by <a title="sqlalchemy.orm.joinedload" class="reference internal" href="#sqlalchemy.orm.joinedload"><tt class="xref docutils literal"><span class="pre">joinedload()</span></tt></a> is aliased such that
+no other aspects of the query will affect what it loads.  To use joined eager
+loading with a join that is constructed manually using <a title="sqlalchemy.orm.query.Query.join" class="reference internal" href="#sqlalchemy.orm.query.Query.join"><tt class="xref docutils literal"><span class="pre">join()</span></tt></a>
+or <a title="sqlalchemy.orm.join" class="reference internal" href="#sqlalchemy.orm.join"><tt class="xref docutils literal"><span class="pre">join()</span></tt></a>, see <a title="sqlalchemy.orm.contains_eager" class="reference internal" href="#sqlalchemy.orm.contains_eager"><tt class="xref docutils literal"><span class="pre">contains_eager()</span></tt></a>.</p>
+<p>See also:  <a title="sqlalchemy.orm.subqueryload" class="reference internal" href="#sqlalchemy.orm.subqueryload"><tt class="xref docutils literal"><span class="pre">subqueryload()</span></tt></a>, <a title="sqlalchemy.orm.lazyload" class="reference internal" href="#sqlalchemy.orm.lazyload"><tt class="xref docutils literal"><span class="pre">lazyload()</span></tt></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sqlalchemy.orm.joinedload_all">
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">joinedload_all</tt><big>(</big><em>*keys</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.joinedload_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert all properties along the
+given dot-separated path into an joined eager load.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function is known as <a title="sqlalchemy.orm.eagerload_all" class="reference internal" href="#sqlalchemy.orm.eagerload_all"><tt class="xref docutils literal"><span class="pre">eagerload_all()</span></tt></a> in all versions
+of SQLAlchemy prior to version 0.6beta3, including the 0.5 and 0.4 series.
+<a title="sqlalchemy.orm.eagerload_all" class="reference internal" href="#sqlalchemy.orm.eagerload_all"><tt class="xref docutils literal"><span class="pre">eagerload_all()</span></tt></a> will remain available for 
+the foreseeable future in order to enable cross-compatibility.</p>
+</div>
+<p>Used with <a title="sqlalchemy.orm.query.Query.options" class="reference internal" href="#sqlalchemy.orm.query.Query.options"><tt class="xref docutils literal"><span class="pre">options()</span></tt></a>.</p>
+<p>For example:</p>
+<div class="highlight-python"><pre>query.options(joinedload_all('orders.items.keywords'))...</pre>
+</div>
+<p>will set all of &#8216;orders&#8217;, &#8216;orders.items&#8217;, and &#8216;orders.items.keywords&#8217; to
+load in one joined eager load.</p>
+<p>Individual descriptors are accepted as arguments as well:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload_all</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">orders</span><span class="p">,</span> <span class="n">Order</span><span class="o">.</span><span class="n">items</span><span class="p">,</span> <span class="n">Item</span><span class="o">.</span><span class="n">keywords</span><span class="p">))</span></pre></div>
+</div>
+<p>The keyword arguments accept a flag <cite>innerjoin=True|False</cite> which will 
+override the value of the <cite>innerjoin</cite> flag specified on the relationship().</p>
+<p>See also:  <a title="sqlalchemy.orm.subqueryload_all" class="reference internal" href="#sqlalchemy.orm.subqueryload_all"><tt class="xref docutils literal"><span class="pre">subqueryload_all()</span></tt></a>, <a title="sqlalchemy.orm.lazyload" class="reference internal" href="#sqlalchemy.orm.lazyload"><tt class="xref docutils literal"><span class="pre">lazyload()</span></tt></a></p>
+</dd></dl>
+
+<dl class="function">
 <dt id="sqlalchemy.orm.lazyload">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">lazyload</tt><big>(</big><em>*keys</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.lazyload" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property of the given
 name into a lazy load.</p>
 <p>Used with <a title="sqlalchemy.orm.query.Query.options" class="reference internal" href="#sqlalchemy.orm.query.Query.options"><tt class="xref docutils literal"><span class="pre">options()</span></tt></a>.</p>
+<p>See also:  <a title="sqlalchemy.orm.eagerload" class="reference internal" href="#sqlalchemy.orm.eagerload"><tt class="xref docutils literal"><span class="pre">eagerload()</span></tt></a>, <a title="sqlalchemy.orm.subqueryload" class="reference internal" href="#sqlalchemy.orm.subqueryload"><tt class="xref docutils literal"><span class="pre">subqueryload()</span></tt></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sqlalchemy.orm.subqueryload">
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">subqueryload</tt><big>(</big><em>*keys</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.subqueryload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert the property 
+of the given name into an subquery eager load.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function is new as of SQLAlchemy version 0.6beta3.</p>
+</div>
+<p>Used with <a title="sqlalchemy.orm.query.Query.options" class="reference internal" href="#sqlalchemy.orm.query.Query.options"><tt class="xref docutils literal"><span class="pre">options()</span></tt></a>.</p>
+<p>examples:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># subquery-load the &quot;orders&quot; colleciton on &quot;User&quot;</span>
+<span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">subqueryload</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">orders</span><span class="p">))</span>
+
+<span class="c"># subquery-load the &quot;keywords&quot; collection on each &quot;Item&quot;,</span>
+<span class="c"># but not the &quot;items&quot; collection on &quot;Order&quot; - those </span>
+<span class="c"># remain lazily loaded.</span>
+<span class="n">query</span><span class="p">(</span><span class="n">Order</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">subqueryload</span><span class="p">(</span><span class="n">Order</span><span class="o">.</span><span class="n">items</span><span class="p">,</span> <span class="n">Item</span><span class="o">.</span><span class="n">keywords</span><span class="p">))</span>
+
+<span class="c"># to subquery-load across both, use subqueryload_all()</span>
+<span class="n">query</span><span class="p">(</span><span class="n">Order</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">subqueryload_all</span><span class="p">(</span><span class="n">Order</span><span class="o">.</span><span class="n">items</span><span class="p">,</span> <span class="n">Item</span><span class="o">.</span><span class="n">keywords</span><span class="p">))</span></pre></div>
+</div>
+<p>See also:  <a title="sqlalchemy.orm.joinedload" class="reference internal" href="#sqlalchemy.orm.joinedload"><tt class="xref docutils literal"><span class="pre">joinedload()</span></tt></a>, <a title="sqlalchemy.orm.lazyload" class="reference internal" href="#sqlalchemy.orm.lazyload"><tt class="xref docutils literal"><span class="pre">lazyload()</span></tt></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sqlalchemy.orm.subqueryload_all">
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">subqueryload_all</tt><big>(</big><em>*keys</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.subqueryload_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <tt class="docutils literal"><span class="pre">MapperOption</span></tt> that will convert all properties along the
+given dot-separated path into a subquery eager load.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function is new as of SQLAlchemy version 0.6beta3.</p>
+</div>
+<p>Used with <a title="sqlalchemy.orm.query.Query.options" class="reference internal" href="#sqlalchemy.orm.query.Query.options"><tt class="xref docutils literal"><span class="pre">options()</span></tt></a>.</p>
+<p>For example:</p>
+<div class="highlight-python"><pre>query.options(subqueryload_all('orders.items.keywords'))...</pre>
+</div>
+<p>will set all of &#8216;orders&#8217;, &#8216;orders.items&#8217;, and &#8216;orders.items.keywords&#8217; to
+load in one subquery eager load.</p>
+<p>Individual descriptors are accepted as arguments as well:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">subqueryload_all</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">orders</span><span class="p">,</span> <span class="n">Order</span><span class="o">.</span><span class="n">items</span><span class="p">,</span> <span class="n">Item</span><span class="o">.</span><span class="n">keywords</span><span class="p">))</span></pre></div>
+</div>
+<p>See also:  <a title="sqlalchemy.orm.joinedload_all" class="reference internal" href="#sqlalchemy.orm.joinedload_all"><tt class="xref docutils literal"><span class="pre">joinedload_all()</span></tt></a>, <a title="sqlalchemy.orm.lazyload" class="reference internal" href="#sqlalchemy.orm.lazyload"><tt class="xref docutils literal"><span class="pre">lazyload()</span></tt></a></p>
 </dd></dl>
 
 <dl class="function">
