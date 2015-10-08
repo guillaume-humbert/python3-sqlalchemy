@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4beta6   Last Updated: 09/26/07 20:38:24</div>
+<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
 
 
 
@@ -179,6 +179,9 @@
     </ul>
 
 	        </li>
+        
+        <li><a style="" href="session.html#unitofwork_extending">Extending Session</a></li>
+        
     </ul>
 
 	</div>
@@ -1649,13 +1652,58 @@ web response   <-
 
 
 
-
             <a href="#top">back to section top</a>
     </div>
 
 
 
 
+    </div>
+
+
+
+    
+    <A name="unitofwork_extending"></a>
+    
+    <div class="sectionL2">
+
+    <h3>Extending Session</h3>
+    
+    
+
+<p>Extending the session can be achieved through subclassing as well as through a simple extension class, which resembles the style of <a href="mappers.html#advdatamapping_mapper_extending">Extending Mapper</a> called <a href="sqlalchemy_orm_session.html#docstrings_sqlalchemy.orm.session_SessionExtension">SessionExtension</a>.  See the docstrings for more information on this class' methods.
+</p>
+<p>Basic usage is similar to <code>MapperExtension</code>:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_keyword">class </span><span class="python_name">MySessionExtension</span><span class="python_enclosure">(</span><span class="python_name">SessionExtension</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">def </span><span class="python_name">before_commit</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">session</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_keyword">print </span><span class="python_literal">"before commit!"</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_name">Session </span><span class="python_operator">= </span><span class="python_name">sessionmaker</span><span class="python_enclosure">(</span><span class="python_name">extension</span><span class="python_operator">=</span><span class="python_name">MySessionExtension</span><span class="python_enclosure">())</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>or with <code>create_session()</code>:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">extension</span><span class="python_operator">=</span><span class="python_name">MySessionExtension</span><span class="python_enclosure">())</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>The same <code>SessionExtension</code> instance can be used with any number of sessions.
+</p>
+
+
+
+
+            <a href="#top">back to section top</a>
     </div>
 
 

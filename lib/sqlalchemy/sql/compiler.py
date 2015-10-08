@@ -36,10 +36,8 @@ RESERVED_WORDS = util.Set([
     'then', 'to', 'trailing', 'true', 'union', 'unique', 'user',
     'using', 'verbose', 'when', 'where'])
 
-LEGAL_CHARACTERS = util.Set(string.ascii_lowercase +
-                            string.ascii_uppercase +
-                            string.digits + '_$')
-ILLEGAL_INITIAL_CHARACTERS = util.Set(string.digits + '$')
+LEGAL_CHARACTERS = re.compile(r'^[A-Z0-9_$]+$', re.I)
+ILLEGAL_INITIAL_CHARACTERS = re.compile(r'[0-9$]')
 
 BIND_PARAMS = re.compile(r'(?<![:\w\$\x5c]):([\w\$]+)(?![:\w\$])', re.UNICODE)
 BIND_PARAMS_ESC = re.compile(r'\x5c(:[\w\$]+)(?![:\w\$])', re.UNICODE)
@@ -106,8 +104,8 @@ class DefaultCompiler(engine.Compiled, visitors.ClauseVisitor):
         
         super(DefaultCompiler, self).__init__(dialect, statement, column_keys, **kwargs)
 
-        # if we are insert/update.  set to true when we visit an INSERT or UPDATE
-        self.isinsert = self.isupdate = False
+        # if we are insert/update/delete.  set to true when we visit an INSERT, UPDATE or DELETE
+        self.isdelete = self.isinsert = self.isupdate = False
         
         # compile INSERT/UPDATE defaults/sequences inlined (no pre-execute)
         self.inline = inline or getattr(statement, 'inline', False)
@@ -242,7 +240,7 @@ class DefaultCompiler(engine.Compiled, visitors.ClauseVisitor):
     def visit_label(self, label):
         labelname = self._truncated_identifier("colident", label.name)
         
-        if self.stack and self.stack[-1].get('select'):
+        if len(self.stack) == 1 and self.stack[-1].get('select'):
             self.typemap.setdefault(labelname.lower(), label.obj.type)
             if isinstance(label.obj, sql._ColumnClause):
                 self.column_labels[label.obj._label] = labelname
@@ -260,7 +258,7 @@ class DefaultCompiler(engine.Compiled, visitors.ClauseVisitor):
         else:
             name = column.name
 
-        if self.stack and self.stack[-1].get('select'):
+        if len(self.stack) == 1 and self.stack[-1].get('select'):
             # if we are within a visit to a Select, set up the "typemap"
             # for this column which is used to translate result set values
             self.typemap.setdefault(name.lower(), column.type)
@@ -417,7 +415,7 @@ class DefaultCompiler(engine.Compiled, visitors.ClauseVisitor):
 
         if len(anonname) > self.dialect.max_identifier_length:
             counter = self.generated_ids.get(ident_class, 1)
-            truncname = name[0:self.dialect.max_identifier_length - 6] + "_" + hex(counter)[2:]
+            truncname = anonname[0:self.dialect.max_identifier_length - 6] + "_" + hex(counter)[2:]
             self.generated_ids[ident_class] = counter + 1
         else:
             truncname = anonname
@@ -608,13 +606,16 @@ class DefaultCompiler(engine.Compiled, visitors.ClauseVisitor):
         return None
 
     def visit_insert(self, insert_stmt):
-
         self.isinsert = True
         colparams = self._get_colparams(insert_stmt)
+        preparer = self.preparer
 
-        return ("INSERT INTO " + self.preparer.format_table(insert_stmt.table) + " (" + string.join([self.preparer.format_column(c[0]) for c in colparams], ', ') + ")" +
-         " VALUES (" + string.join([c[1] for c in colparams], ', ') + ")")
-
+        return ("INSERT INTO %s (%s) VALUES (%s)" %
+                (preparer.format_table(insert_stmt.table),
+                 ', '.join([preparer.format_column(c[0])
+                            for c in colparams]),
+                 ', '.join([c[1] for c in colparams])))
+    
     def visit_update(self, update_stmt):
         self.stack.append({'from':util.Set([update_stmt.table])})
         
@@ -704,6 +705,7 @@ class DefaultCompiler(engine.Compiled, visitors.ClauseVisitor):
 
     def visit_delete(self, delete_stmt):
         self.stack.append({'from':util.Set([delete_stmt.table])})
+        self.isdelete = True
 
         text = "DELETE FROM " + self.preparer.format_table(delete_stmt.table)
 
@@ -965,25 +967,13 @@ class IdentifierPreparer(object):
 
         return self.initial_quote + self._escape_identifier(value) + self.final_quote
 
-    def _fold_identifier_case(self, value):
-        """Fold the case of an identifier.
-
-        Subclasses should override this to provide database-dependent
-        case folding behavior.
-        """
-
-        return value
-        # ANSI SQL calls for the case of all unquoted identifiers to be folded to UPPER.
-        # some tests would need to be rewritten if this is done.
-        #return value.upper()
-
     def _requires_quotes(self, value):
         """Return True if the given identifier requires quoting."""
-        return \
-            value in self.reserved_words \
-            or (value[0] in self.illegal_initial_characters) \
-            or bool(len([x for x in unicode(value) if x not in self.legal_characters])) \
-            or (value.lower() != value)
+        lc_value = value.lower()
+        return (lc_value in self.reserved_words
+                or self.illegal_initial_characters.match(value[0])
+                or not self.legal_characters.match(unicode(value))
+                or (lc_value != value))
 
     def __generic_obj_format(self, obj, ident):
         if getattr(obj, 'quote', False):

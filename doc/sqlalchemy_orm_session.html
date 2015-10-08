@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4beta6   Last Updated: 09/26/07 20:38:24</div>
+<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
 
 
 
@@ -67,6 +67,9 @@
     <ul>
         
         <li><a style="" href="sqlalchemy_orm_session.html#docstrings_sqlalchemy.orm.session_Session">class Session(object)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_orm_session.html#docstrings_sqlalchemy.orm.session_SessionExtension">class SessionExtension(object)</a></li>
         
     </ul>
 
@@ -194,7 +197,7 @@ sess = Session(binds={
 transactions. This is the equivalent of
 <tt class="docutils literal"><span class="pre">logging.getLogger('sqlalchemy.orm.unitofwork').setLevel(logging.DEBUG)</span></tt>.</dd>
 <dt>extension</dt>
-<dd>an optional <b>SessionExtension</b> instance, which will receive
+<dd>an optional <a href="sqlalchemy_orm_session.html#docstrings_sqlalchemy.orm.session_SessionExtension">SessionExtension</a> instance, which will receive
 pre- and post- commit and flush events, as well as a post-rollback event.  User-
 defined code may be placed within these hooks using a user-defined subclass
 of <tt class="docutils literal"><span class="pre">SessionExtension</span></tt>.</dd>
@@ -790,6 +793,108 @@ result of True.</p>
     <b>def __iter__(<i>self</i>)</b>
     <div class="docstring">
     <p>return an iterator of all objects which are pending or persistent within this Session.</p>
+
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.orm.session_SessionExtension"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class SessionExtension(object)</h3>
+    
+    
+    <div class="darkcell"><p>an extension hook object for Sessions.  Subclasses may be installed into a Session
+(or sessionmaker) using the <tt class="docutils literal"><span class="pre">extension</span></tt> keyword argument.</p>
+</div>
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def after_commit(<i>self</i>, <i>session</i>)</b>
+    <div class="docstring">
+    <p>execute after a commit has occured.</p>
+<p>Note that this may not be per-flush if a longer running transaction is ongoing.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def after_flush(<i>self</i>, <i>session</i>, <i>flush_context</i>)</b>
+    <div class="docstring">
+    <p>execute after flush has completed, but before commit has been called.</p>
+<p>Note that the session's state is still in pre-flush, i.e. 'new', 'dirty',
+and 'deleted' lists still show pre-flush state as well as the history
+settings on instance attributes.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def after_flush_postexec(<i>self</i>, <i>session</i>, <i>flush_context</i>)</b>
+    <div class="docstring">
+    <p>execute after flush has completed, and after the post-exec state occurs.</p>
+<p>this will be when the 'new', 'dirty', and 'deleted' lists are in their final
+state.  An actual commit() may or may not have occured, depending on whether or not
+the flush started its own transaction or participated in a larger transaction.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def after_rollback(<i>self</i>, <i>session</i>)</b>
+    <div class="docstring">
+    <p>execute after a rollback has occured.</p>
+<p>Note that this may not be per-flush if a longer running transaction is ongoing.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def before_commit(<i>self</i>, <i>session</i>)</b>
+    <div class="docstring">
+    <p>execute right before commit is called.</p>
+<p>Note that this may not be per-flush if a longer running transaction is ongoing.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def before_flush(<i>self</i>, <i>session</i>, <i>flush_context</i>, <i>objects</i>)</b>
+    <div class="docstring">
+    <p>execute before flush process has started.</p>
+<p>'objects' is an optional list of objects which were passed to the <tt class="docutils literal"><span class="pre">flush()</span></tt>
+method.</p>
 
     </div>
     </div>

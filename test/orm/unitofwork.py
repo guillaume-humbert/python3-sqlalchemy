@@ -254,7 +254,7 @@ class MutableTypesTest(ORMTest):
         table = Table('mutabletest', metadata,
             Column('id', Integer, Sequence('mutableidseq', optional=True), primary_key=True),
             Column('data', PickleType),
-            Column('value', Unicode(30)))
+            Column('val', Unicode(30)))
 
     def test_basic(self):
         """test that types marked as MutableType get changes detected on them"""
@@ -280,24 +280,24 @@ class MutableTypesTest(ORMTest):
         mapper(Foo, table)
         f1 = Foo()
         f1.data = pickleable.Bar(4,5)
-        f1.value = unicode('hi')
+        f1.val = unicode('hi')
         Session.commit()
         def go():
             Session.commit()
         self.assert_sql_count(testbase.db, go, 0)
-        f1.value = unicode('someothervalue')
+        f1.val = unicode('someothervalue')
         self.assert_sql(testbase.db, lambda: Session.commit(), [
             (
-                "UPDATE mutabletest SET value=:value WHERE mutabletest.id = :mutabletest_id",
-                {'mutabletest_id': f1.id, 'value': u'someothervalue'}
+                "UPDATE mutabletest SET val=:val WHERE mutabletest.id = :mutabletest_id",
+                {'mutabletest_id': f1.id, 'val': u'someothervalue'}
             ),
         ])
-        f1.value = unicode('hi')
+        f1.val = unicode('hi')
         f1.data.x = 9
         self.assert_sql(testbase.db, lambda: Session.commit(), [
             (
-                "UPDATE mutabletest SET data=:data, value=:value WHERE mutabletest.id = :mutabletest_id",
-                {'mutabletest_id': f1.id, 'value': u'hi', 'data':f1.data}
+                "UPDATE mutabletest SET data=:data, val=:val WHERE mutabletest.id = :mutabletest_id",
+                {'mutabletest_id': f1.id, 'val': u'hi', 'data':f1.data}
             ),
         ])
         
@@ -343,11 +343,11 @@ class MutableTypesTest(ORMTest):
         class Foo(object):pass
         mapper(Foo, table)
         f1 = Foo()
-        f1.value = u'hi'
+        f1.val = u'hi'
         Session.commit()
         Session.close()
         f1 = Session.get(Foo, f1.id)
-        f1.value = u'hi'
+        f1.val = u'hi'
         def go():
             Session.commit()
         self.assert_sql_count(testbase.db, go, 0)
@@ -804,9 +804,9 @@ class OneToManyTest(ORMTest):
         print repr(u.addresses)
         Session.commit()
 
-        usertable = users.select(users.c.user_id.in_(u.user_id)).execute().fetchall()
+        usertable = users.select(users.c.user_id.in_([u.user_id])).execute().fetchall()
         self.assertEqual(usertable[0].values(), [u.user_id, 'one2manytester'])
-        addresstable = addresses.select(addresses.c.address_id.in_(a.address_id, a2.address_id), order_by=[addresses.c.email_address]).execute().fetchall()
+        addresstable = addresses.select(addresses.c.address_id.in_([a.address_id, a2.address_id]), order_by=[addresses.c.email_address]).execute().fetchall()
         self.assertEqual(addresstable[0].values(), [a2.address_id, u.user_id, 'lala@test.org'])
         self.assertEqual(addresstable[1].values(), [a.address_id, u.user_id, 'one2many@test.org'])
 
@@ -1034,7 +1034,7 @@ class SaveTest(ORMTest):
 
         # select both
         #Session.close()
-        userlist = User.query.filter(users.c.user_id.in_(u.user_id, u2.user_id)).order_by([users.c.user_name]).all()
+        userlist = User.query.filter(users.c.user_id.in_([u.user_id, u2.user_id])).order_by([users.c.user_name]).all()
         print repr(u.user_id), repr(userlist[0].user_id), repr(userlist[0].user_name)
         self.assert_(u.user_id == userlist[0].user_id and userlist[0].user_name == 'modifiedname')
         self.assert_(u2.user_id == userlist[1].user_id and userlist[1].user_name == 'savetester2')
@@ -1126,18 +1126,18 @@ class SaveTest(ORMTest):
         u = Session.get(User, id)
         assert u.user_name == 'multitester'
         
-        usertable = users.select(users.c.user_id.in_(u.foo_id)).execute().fetchall()
+        usertable = users.select(users.c.user_id.in_([u.foo_id])).execute().fetchall()
         self.assertEqual(usertable[0].values(), [u.foo_id, 'multitester'])
-        addresstable = addresses.select(addresses.c.address_id.in_(u.address_id)).execute().fetchall()
+        addresstable = addresses.select(addresses.c.address_id.in_([u.address_id])).execute().fetchall()
         self.assertEqual(addresstable[0].values(), [u.address_id, u.foo_id, 'multi@test.org'])
 
         u.email = 'lala@hey.com'
         u.user_name = 'imnew'
         Session.commit()
 
-        usertable = users.select(users.c.user_id.in_(u.foo_id)).execute().fetchall()
+        usertable = users.select(users.c.user_id.in_([u.foo_id])).execute().fetchall()
         self.assertEqual(usertable[0].values(), [u.foo_id, 'imnew'])
-        addresstable = addresses.select(addresses.c.address_id.in_(u.address_id)).execute().fetchall()
+        addresstable = addresses.select(addresses.c.address_id.in_([u.address_id])).execute().fetchall()
         self.assertEqual(addresstable[0].values(), [u.address_id, u.foo_id, 'lala@hey.com'])
 
         Session.close()
@@ -1334,6 +1334,31 @@ class ManyToOneTest(ORMTest):
         u1 = Session.query(User).get(u1.user_id)
         u2 = Session.query(User).get(u2.user_id)
         assert a1.user is u2
+
+    def test_bidirectional_noload(self):
+        mapper(User, users, properties={
+            'addresses':relation(Address, backref='user', lazy=None)
+        })
+        mapper(Address, addresses)
+
+        sess = Session()
+
+        # try it on unsaved objects
+        u1 = User()
+        a1 = Address()
+        a1.user = u1
+        sess.save(u1)
+        sess.flush()
+        sess.clear()
+
+        a1 = sess.query(Address).get(a1.address_id)
+
+        a1.user = None
+        sess.flush()
+        sess.clear()
+        assert sess.query(Address).get(a1.address_id).user is None
+        assert sess.query(User).get(u1.user_id).addresses == []
+
         
 class ManyToManyTest(ORMTest):
     metadata = tables.metadata
@@ -1365,7 +1390,7 @@ class ManyToManyTest(ORMTest):
             item.item_name = elem['item_name']
             item.keywords = []
             if elem['keywords'][1]:
-                klist = Session.query(keywordmapper).select(keywords.c.name.in_(*[e['name'] for e in elem['keywords'][1]]))
+                klist = Session.query(keywordmapper).select(keywords.c.name.in_([e['name'] for e in elem['keywords'][1]]))
             else:
                 klist = []
             khash = {}
@@ -1381,7 +1406,7 @@ class ManyToManyTest(ORMTest):
 
         Session.commit()
         
-        l = Session.query(m).select(items.c.item_name.in_(*[e['item_name'] for e in data[1:]]), order_by=[items.c.item_name])
+        l = Session.query(m).select(items.c.item_name.in_([e['item_name'] for e in data[1:]]), order_by=[items.c.item_name])
         self.assert_result(l, *data)
 
         objects[4].item_name = 'item4updated'
@@ -1563,7 +1588,7 @@ class ManyToManyTest(ORMTest):
 
         Session.commit()
         Session.close()
-        l = Item.query.filter(items.c.item_name.in_(*[e['item_name'] for e in data[1:]])).order_by(items.c.item_name).all()
+        l = Item.query.filter(items.c.item_name.in_([e['item_name'] for e in data[1:]])).order_by(items.c.item_name).all()
         self.assert_result(l, *data)
     
 class SaveTest2(ORMTest):

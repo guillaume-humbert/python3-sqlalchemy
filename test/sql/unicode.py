@@ -8,7 +8,7 @@ from testlib.engines import utf8_engine
 
 
 class UnicodeSchemaTest(PersistTest):
-    @testing.unsupported('oracle')
+    @testing.unsupported('oracle', 'sybase')
     def setUpAll(self):
         global unicode_bind, metadata, t1, t2, t3
 
@@ -27,39 +27,48 @@ class UnicodeSchemaTest(PersistTest):
                    ),
                    test_needs_fk=True,
             )
-        t3 = Table(u'\u6e2c\u8a66', metadata,
-                   Column(u'\u6e2c\u8a66_id', Integer, primary_key=True,
-                          autoincrement=False),
-                   Column(u'unitable1_\u6e2c\u8a66', Integer,
-                            # lets leave these out for now so that PG tests pass, until
-                            # the test can be broken out into a pg-passing version (or we figure it out)
-                          #ForeignKey(u'unitable1.\u6e2c\u8a66')
-                          ),
-                   Column(u'Unitéble2_b', Integer,
-                         # ForeignKey(u'Unitéble2.b')
-                          ),
-                   Column(u'\u6e2c\u8a66_self', Integer,
-                        #  ForeignKey(u'\u6e2c\u8a66.\u6e2c\u8a66_id')
-                          ),
-                          test_needs_fk=True,
-                          
-                          )
+
+        # Few DBs support Unicode foreign keys
+        if testing.against('sqlite'):
+            t3 = Table(u'\u6e2c\u8a66', metadata,
+                       Column(u'\u6e2c\u8a66_id', Integer, primary_key=True,
+                              autoincrement=False),
+                       Column(u'unitable1_\u6e2c\u8a66', Integer,
+                              ForeignKey(u'unitable1.\u6e2c\u8a66')
+                              ),
+                       Column(u'Unitéble2_b', Integer,
+                              ForeignKey(u'Unitéble2.b')
+                              ),
+                       Column(u'\u6e2c\u8a66_self', Integer,
+                              ForeignKey(u'\u6e2c\u8a66.\u6e2c\u8a66_id')
+                              ),
+                       test_needs_fk=True,
+                       )
+        else:
+            t3 = Table(u'\u6e2c\u8a66', metadata,
+                       Column(u'\u6e2c\u8a66_id', Integer, primary_key=True,
+                              autoincrement=False),
+                       Column(u'unitable1_\u6e2c\u8a66', Integer),
+                       Column(u'Unitéble2_b', Integer),
+                       Column(u'\u6e2c\u8a66_self', Integer),
+                       test_needs_fk=True,
+                       )
         metadata.create_all()
 
-    @testing.unsupported('oracle')
+    @testing.unsupported('oracle', 'sybase')
     def tearDown(self):
         if metadata.tables:
             t3.delete().execute()
             t2.delete().execute()
             t1.delete().execute()
         
-    @testing.unsupported('oracle')
+    @testing.unsupported('oracle', 'sybase')
     def tearDownAll(self):
         global unicode_bind
         metadata.drop_all()
         del unicode_bind
         
-    @testing.unsupported('oracle')
+    @testing.unsupported('oracle', 'sybase')
     def test_insert(self):
         t1.insert().execute({u'méil':1, u'\u6e2c\u8a66':5})
         t2.insert().execute({'a':1, 'b':1})
@@ -72,7 +81,7 @@ class UnicodeSchemaTest(PersistTest):
         assert t2.select().execute().fetchall() == [(1, 1)]
         assert t3.select().execute().fetchall() == [(1, 5, 1, 1)]
     
-    @testing.unsupported('oracle')
+    @testing.unsupported('oracle', 'sybase')
     def test_reflect(self):
         t1.insert().execute({u'méil':2, u'\u6e2c\u8a66':7})
         t2.insert().execute({'a':2, 'b':2})

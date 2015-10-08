@@ -7,8 +7,8 @@
 """Default implementations of per-dialect sqlalchemy.engine classes."""
 
 
-from sqlalchemy import schema, exceptions, util
 import re, random
+from sqlalchemy import util
 from sqlalchemy.engine import base
 from sqlalchemy.sql import compiler, expression
 
@@ -270,7 +270,7 @@ class DefaultExecutionContext(base.ExecutionContext):
                     typeengine = params.get_type(key)
                     dbtype = typeengine.dialect_impl(self.dialect).get_dbapi_type(self.dialect.dbapi)
                     if dbtype is not None:
-                        inputsizes[key] = dbtype
+                        inputsizes[key.encode(self.dialect.encoding)] = dbtype
             self.cursor.setinputsizes(**inputsizes)
 
     def _process_defaults(self):

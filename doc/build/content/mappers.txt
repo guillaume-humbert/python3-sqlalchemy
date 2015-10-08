@@ -122,7 +122,7 @@ And an entire "deferred group", i.e. which uses the `group` keyword argument to 
 To add a SQL clause composed of local or external columns as a read-only, mapped column attribute, use the `column_property()` function.  Any scalar-returning `ClauseElement` may be used, as long as it has a `name` attribute; usually, you'll want to call `label()` to give it a specific name:
 
     {python}
-    mapper(User, users, properties={
+    mapper(User, users_table, properties={
         'fullname' : column_property(
             (users_table.c.firstname + " " + users_table.c.lastname).label('fullname')
         )
@@ -131,7 +131,7 @@ To add a SQL clause composed of local or external columns as a read-only, mapped
 Correlated subqueries may be used as well:
     
     {python}
-    mapper(User, users, properties={
+    mapper(User, users_table, properties={
         'address_count' : column_property(
                 select(
                     [func.count(addresses_table.c.address_id)], 
@@ -1162,13 +1162,13 @@ There is no requirement to be list-, or set-like at all.  Collection classes can
 A `dict` can be used as a collection, but a keying strategy is needed to map entities loaded by the ORM to key, value pairs.  The [collections](rel:docstrings_sqlalchemy.orm.collections) package provides several built-in types for dictionary-based collections:
 
     {python}
-    from sqlalchemy.orm.collections import column_mapped_collection, attr_mapped_collection, mapped_collection
+    from sqlalchemy.orm.collections import column_mapped_collection, attribute_mapped_collection, mapped_collection
 
     mapper(Item, items_table, properties={
         # key by column
         notes = relation(Note, collection_class=column_mapped_collection(notes_table.c.keyword))
         # or named attribute 
-        notes2 = relation(Note, collection_class=attr_mapped_collection('keyword'))
+        notes2 = relation(Note, collection_class=attribute_mapped_collection('keyword'))
         # or any callable
         notes3 = relation(Note, collection_class=mapped_collection(lambda entity: entity.a + entity.b))
     })

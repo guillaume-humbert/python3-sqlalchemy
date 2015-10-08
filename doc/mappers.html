@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4beta6   Last Updated: 09/26/07 20:38:24</div>
+<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
 
 
 
@@ -471,7 +471,7 @@
 
     <div class="sliding_code">
         <pre>
-<span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+<span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
     <span class="python_literal">'fullname' </span><span class="python_operator">: </span><span class="python_name">column_property</span><span class="python_enclosure">(</span>
         <span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">firstname </span><span class="python_operator">+ </span><span class="python_literal">" " </span><span class="python_operator">+ </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">lastname</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">label</span><span class="python_enclosure">(</span><span class="python_literal">'fullname'</span><span class="python_enclosure">)</span>
     <span class="python_enclosure">)</span>
@@ -485,7 +485,7 @@
 
     <div class="sliding_code">
         <pre>
-<span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+<span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
     <span class="python_literal">'address_count' </span><span class="python_operator">: </span><span class="python_name">column_property</span><span class="python_enclosure">(</span>
             <span class="python_name">select</span><span class="python_enclosure">(</span>
                 <span class="python_enclosure">[</span><span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">address_id</span><span class="python_enclosure">)]</span><span class="python_operator">, </span>
@@ -2245,13 +2245,13 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
 
     <div class="sliding_code">
         <pre>
-<span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">orm</span><span class="python_operator">.</span><span class="python_name">collections </span><span class="python_keyword">import </span><span class="python_name">column_mapped_collection</span><span class="python_operator">, </span><span class="python_name">attr_mapped_collection</span><span class="python_operator">, </span><span class="python_name">mapped_collection</span><span class="python_operator">
+<span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">orm</span><span class="python_operator">.</span><span class="python_name">collections </span><span class="python_keyword">import </span><span class="python_name">column_mapped_collection</span><span class="python_operator">, </span><span class="python_name">attribute_mapped_collection</span><span class="python_operator">, </span><span class="python_name">mapped_collection</span><span class="python_operator">
 </span>
 <span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_operator">, </span><span class="python_name">items_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
     <span class="python_comment"># key by column</span>
     <span class="python_name">notes </span><span class="python_operator">= </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Note</span><span class="python_operator">, </span><span class="python_name">collection_class</span><span class="python_operator">=</span><span class="python_name">column_mapped_collection</span><span class="python_enclosure">(</span><span class="python_name">notes_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">keyword</span><span class="python_enclosure">))</span>
     <span class="python_comment"># or named attribute </span>
-    <span class="python_name">notes2 </span><span class="python_operator">= </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Note</span><span class="python_operator">, </span><span class="python_name">collection_class</span><span class="python_operator">=</span><span class="python_name">attr_mapped_collection</span><span class="python_enclosure">(</span><span class="python_literal">'keyword'</span><span class="python_enclosure">))</span>
+    <span class="python_name">notes2 </span><span class="python_operator">= </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Note</span><span class="python_operator">, </span><span class="python_name">collection_class</span><span class="python_operator">=</span><span class="python_name">attribute_mapped_collection</span><span class="python_enclosure">(</span><span class="python_literal">'keyword'</span><span class="python_enclosure">))</span>
     <span class="python_comment"># or any callable</span>
     <span class="python_name">notes3 </span><span class="python_operator">= </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Note</span><span class="python_operator">, </span><span class="python_name">collection_class</span><span class="python_operator">=</span><span class="python_name">mapped_collection</span><span class="python_enclosure">(</span><span class="python_keyword">lambda </span><span class="python_name">entity</span><span class="python_operator">: </span><span class="python_name">entity</span><span class="python_operator">.</span><span class="python_name">a </span><span class="python_operator">+ </span><span class="python_name">entity</span><span class="python_operator">.</span><span class="python_name">b</span><span class="python_enclosure">))</span>
 <span class="python_enclosure">})</span><span class="python_operator">

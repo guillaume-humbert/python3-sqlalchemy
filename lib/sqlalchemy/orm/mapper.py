@@ -464,9 +464,12 @@ class Mapper(object):
             self.__log("Identified primary key columns: " + str(primary_key))
         
             _get_clause = sql.and_()
+            _get_params = {}
             for primary_key in self.primary_key:
-                _get_clause.clauses.append(primary_key == sql.bindparam(primary_key._label, type_=primary_key.type, unique=True))
-            self._get_clause = _get_clause
+                bind = sql.bindparam(None, type_=primary_key.type)
+                _get_params[primary_key] = bind
+                _get_clause.clauses.append(primary_key == bind)
+            self._get_clause = (_get_clause, _get_params)
 
     def _get_equivalent_columns(self):
         """Create a map of all *equivalent* columns, based on
@@ -1442,10 +1445,7 @@ class Mapper(object):
         
         return instance
 
-    def _deferred_inheritance_condition(self, needs_tables):
-        cond = self.inherit_condition
-
-        param_names = []
+    def _deferred_inheritance_condition(self, base_mapper, needs_tables):
         def visit_binary(binary):
             leftcol = binary.left
             rightcol = binary.right
@@ -1457,8 +1457,17 @@ class Mapper(object):
             elif rightcol not in needs_tables:
                 binary.right = sql.bindparam(rightcol.name, None, type_=binary.right.type, unique=True)
                 param_names.append(rightcol)
-        cond = mapperutil.BinaryVisitor(visit_binary).traverse(cond, clone=True)
-        return cond, param_names
+
+        allconds = []
+        param_names = []
+
+        visitor = mapperutil.BinaryVisitor(visit_binary)
+        for mapper in self.iterate_to_root():
+            if mapper is base_mapper:
+                break
+            allconds.append(visitor.traverse(mapper.inherit_condition, clone=True))
+        
+        return sql.and_(*allconds), param_names
 
     def translate_row(self, tomapper, row):
         """Translate the column keys of a row into a new or proxied
@@ -1484,8 +1493,8 @@ class Mapper(object):
         # "snapshot" of the stack, which represents a path from the lead mapper in the query to this one,
         # including relation() names.  the key also includes "self", and allows us to distinguish between
         # other mappers within our inheritance hierarchy
-        populators = selectcontext.attributes.get(((isnew or ispostselect) and 'new_populators' or 'existing_populators', self, snapshot, ispostselect), None)
-        if populators is None:
+        (new_populators, existing_populators) = selectcontext.attributes.get(('populators', self, snapshot, ispostselect), (None, None))
+        if new_populators is None:
             # no populators; therefore this is the first time we are receiving a row for
             # this result set.  issue create_row_processor() on all MapperProperty objects
             # and cache in the select context.
@@ -1505,13 +1514,13 @@ class Mapper(object):
             if poly_select_loader is not None:
                 post_processors.append(poly_select_loader)
                 
-            selectcontext.attributes[('new_populators', self, snapshot, ispostselect)] = new_populators
-            selectcontext.attributes[('existing_populators', self, snapshot, ispostselect)] = existing_populators
+            selectcontext.attributes[('populators', self, snapshot, ispostselect)] = (new_populators, existing_populators)
             selectcontext.attributes[('post_processors', self, ispostselect)] = post_processors
-            if isnew or ispostselect:
-                populators = new_populators
-            else:
-                populators = existing_populators
+
+        if isnew or ispostselect:
+            populators = new_populators
+        else:
+            populators = existing_populators
                 
         for p in populators:
             p(instance, row, ispostselect=ispostselect, isnew=isnew, **flags)
@@ -1532,7 +1541,7 @@ class Mapper(object):
         if hosted_mapper is None or len(needs_tables)==0 or hosted_mapper.polymorphic_fetch == 'deferred':
             return
         
-        cond, param_names = self._deferred_inheritance_condition(needs_tables)
+        cond, param_names = self._deferred_inheritance_condition(hosted_mapper, needs_tables)
         statement = sql.select(needs_tables, cond, use_labels=True)
         def post_execute(instance, **flags):
             self.__log_debug("Post query loading instance " + mapperutil.instance_str(instance))

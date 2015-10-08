@@ -4,11 +4,26 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-import re, random, warnings
+"""Support for the PostgreSQL database.
+
+PostgreSQL supports partial indexes. To create them pass a posgres_where
+option to the Index constructor::
+
+  Index('my_index', my_table.c.id, postgres_where=tbl.c.value > 10)
+
+PostgreSQL 8.2+ supports returning a result set from inserts and updates.
+To use this pass the column/expression list to the postgres_returning
+parameter when creating the queries::
+    
+  raises = tbl.update(empl.c.sales > 100, values=dict(salary=empl.c.salary * 1.1), 
+    postgres_returning=[empl.c.id, empl.c.salary]).execute().fetchall()
+"""
+
+import re, random, warnings, string
 
 from sqlalchemy import sql, schema, exceptions, util
 from sqlalchemy.engine import base, default
-from sqlalchemy.sql import compiler
+from sqlalchemy.sql import compiler, expression
 from sqlalchemy.sql import operators as sql_operators
 from sqlalchemy import types as sqltypes
 
@@ -190,13 +205,38 @@ def descriptor():
     ]}
 
 SELECT_RE = re.compile(
-    r'\s*(?:SELECT|FETCH)',
+    r'\s*(?:SELECT|FETCH|(UPDATE|INSERT))',
     re.I | re.UNICODE)
+
+RETURNING_RE = re.compile(
+    'RETURNING',
+    re.I | re.UNICODE)
+
+# This finds if the RETURNING is not inside a quoted/commented values. Handles string literals,
+# quoted identifiers, dollar quotes, SQL comments and C style multiline comments. This does not
+# handle correctly nested C style quotes, lets hope no one does the following:
+# UPDATE tbl SET x=y /* foo /* bar */ RETURNING */
+RETURNING_QUOTED_RE = re.compile(
+    """\s*(?:UPDATE|INSERT)\s
+        (?: # handle quoted and commented tokens separately
+            [^'"$/-] # non quote/comment character
+            | -(?!-) # a dash that does not begin a comment
+            | /(?!\*) # a slash that does not begin a comment
+            | "(?:[^"]|"")*" # quoted literal
+            | '(?:[^']|'')*' # quoted string
+            | \$(?P<dquote>[^$]*)\$.*?\$(?P=dquote)\$ # dollar quotes
+            | --[^\\n]*(?=\\n) # SQL comment, leave out line ending as that counts as whitespace
+                            # for the returning token
+            | /\*([^*]|\*(?!/))*\*/ # C style comment, doesn't handle nesting
+        )*
+        \sRETURNING\s""", re.I | re.UNICODE | re.VERBOSE)
 
 class PGExecutionContext(default.DefaultExecutionContext):
 
     def is_select(self):
-        return SELECT_RE.match(self.statement)
+        m = SELECT_RE.match(self.statement)
+        return m and (not m.group(1) or (RETURNING_RE.search(self.statement)
+           and RETURNING_QUOTED_RE.match(self.statement)))
         
     def create_cursor(self):
         # executing a default or Sequence standalone creates an execution context without a statement.  
@@ -278,6 +318,8 @@ class PGDialect(default.DefaultDialect):
                 # Must find out a way how to make the dbapi not open a transaction.
                 connection.execute(sql.text("ROLLBACK"))
             connection.execute(sql.text("ROLLBACK PREPARED %(tid)s", bindparams=[sql.bindparam('tid', xid)]))
+            connection.execute(sql.text("BEGIN"))
+            self.do_rollback(connection.connection)
         else:
             self.do_rollback(connection.connection)
 
@@ -286,6 +328,8 @@ class PGDialect(default.DefaultDialect):
             if recover:
                 connection.execute(sql.text("ROLLBACK"))
             connection.execute(sql.text("COMMIT PREPARED %(tid)s", bindparams=[sql.bindparam('tid', xid)]))
+            connection.execute(sql.text("BEGIN"))
+            self.do_rollback(connection.connection)
         else:
             self.do_commit(connection.connection)
 
@@ -341,6 +385,13 @@ class PGDialect(default.DefaultDialect):
           AND '%(schema)s' = (select nspname from pg_namespace n where n.oid = c.relnamespace)
         """ % locals()
         return [row[0].decode(self.encoding) for row in connection.execute(s)]
+
+    def server_version_info(self, connection):
+        v = connection.execute("select version()").scalar()
+        m = re.match('PostgreSQL (\d+)\.(\d+)\.(\d+)', v)
+        if not m:
+            raise exceptions.AssertionError("Could not determine version from string '%s'" % v)
+        return tuple([int(x) for x in m.group(1, 2, 3)])
 
     def reflecttable(self, connection, table, include_columns):
         preparer = self.identifier_preparer
@@ -494,6 +545,11 @@ class PGDialect(default.DefaultDialect):
             constrained_columns = [preparer._unquote_identifier(x) for x in re.split(r'\s*,\s*', constrained_columns)]
             if referred_schema:
                 referred_schema = preparer._unquote_identifier(referred_schema)
+            elif table.schema is not None and table.schema == self.get_default_schema_name(connection):
+                # no schema (i.e. its the default schema), and the table we're 
+                # reflecting has the default schema explicit, then use that.
+                # i.e. try to use the user's conventions
+                referred_schema = table.schema
             referred_table = preparer._unquote_identifier(referred_table)
             referred_columns = [preparer._unquote_identifier(x) for x in re.split(r'\s*,\s', referred_columns)]
 
@@ -590,6 +646,29 @@ class PGCompiler(compiler.DefaultCompiler):
         else:
             return super(PGCompiler, self).for_update_clause(select)
 
+    def _append_returning(self, text, stmt):
+        returning_cols = stmt.kwargs.get('postgres_returning', None)
+        if returning_cols:
+            def flatten_columnlist(collist):
+                for c in collist:
+                    if isinstance(c, expression.Selectable):
+                        for co in c.columns:
+                            yield co
+                    else:
+                        yield c
+            columns = [self.process(c) for c in flatten_columnlist(returning_cols)]
+            text += ' RETURNING ' + string.join(columns, ', ')
+        
+        return text
+
+    def visit_update(self, update_stmt):
+        text = super(PGCompiler, self).visit_update(update_stmt)
+        return self._append_returning(text, update_stmt)
+
+    def visit_insert(self, insert_stmt):
+        text = super(PGCompiler, self).visit_insert(insert_stmt)
+        return self._append_returning(text, insert_stmt)
+
 class PGSchemaGenerator(compiler.SchemaGenerator):
     def get_column_specification(self, column, **kwargs):
         colspec = self.preparer.format_column(column)
@@ -612,6 +691,24 @@ class PGSchemaGenerator(compiler.SchemaGenerator):
         if not sequence.optional and (not self.checkfirst or not self.dialect.has_sequence(self.connection, sequence.name)):
             self.append("CREATE SEQUENCE %s" % self.preparer.format_sequence(sequence))
             self.execute()
+    
+    def visit_index(self, index):
+        preparer = self.preparer
+        self.append("CREATE ")
+        if index.unique:
+            self.append("UNIQUE ")
+        self.append("INDEX %s ON %s (%s)" \
+                    % (preparer.format_index(index),
+                       preparer.format_table(index.table),
+                       string.join([preparer.format_column(c) for c in index.columns], ', ')))
+        whereclause = index.kwargs.get('postgres_where', None)
+        if whereclause is not None:
+            compiler = self._compile(whereclause, None)
+            # this might belong to the compiler class
+            inlined_clause = str(compiler) % dict(
+                [(key,bind.value) for key,bind in compiler.binds.iteritems()])
+            self.append(" WHERE " + inlined_clause)
+        self.execute()
 
 class PGSchemaDropper(compiler.SchemaDropper):
     def visit_sequence(self, sequence):
@@ -644,9 +741,6 @@ class PGDefaultRunner(base.DefaultRunner):
             return None
 
 class PGIdentifierPreparer(compiler.IdentifierPreparer):
-    def _fold_identifier_case(self, value):
-        return value.lower()
-
     def _unquote_identifier(self, value):
         if value[0] == self.initial_quote:
             value = value[1:-1].replace('""','"')

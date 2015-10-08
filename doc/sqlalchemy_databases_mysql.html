@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4beta6   Last Updated: 09/26/07 20:38:24</div>
+<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
 
 
 
@@ -300,10 +300,34 @@ available for use via table reflection but have no special support or
 mapping to Python classes.  If you're using these types and have opinions
 about how OpenGIS can be smartly integrated into SQLAlchemy please join
 the mailing list!</p>
+<p>Many of the MySQL SQL extensions are handled through SQLAlchemy's generic
+function and operator support:</p>
+<pre class="literal-block">
+table.select(table.c.password==func.md5('plaintext'))
+table.select(table.c.username.op('regexp')('^[a-d]'))
+</pre>
+<p>And of course any valid statement can be executed as a string rather than
+through the SQL expression language.</p>
+<p>Some limited support for MySQL extensions to SQL expressions is currently
+available.</p>
+<blockquote>
+<ul>
+<li><p class="first">SELECT pragma:</p>
+<pre class="literal-block">
+select(..., prefixes=['HIGH_PRIORITY', 'SQL_SMALL_RESULT'])
+</pre>
+</li>
+<li><p class="first">UPDATE with LIMIT:</p>
+<pre class="literal-block">
+update(..., mysql_limit=10)
+</pre>
+</li>
+</ul>
+</blockquote>
 <p>If you have problems that seem server related, first check that you are
 using the most recent stable MySQL-Python package available.  The Database
-Notes page on the wiki at <a class="reference" href="http://sqlalchemy.org">http://sqlalchemy.org</a> is a good resource for timely
-information affecting MySQL in SQLAlchemy.</p>
+Notes page on the wiki at <a class="reference" href="http://www.sqlalchemy.org">http://www.sqlalchemy.org</a> is a good resource for
+timely information affecting MySQL in SQLAlchemy.</p>
 </div>
     
 

@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4beta6   Last Updated: 09/26/07 20:38:24</div>
+<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
 
 
 
@@ -500,6 +500,10 @@ desired.</p>
     <b>def before_delete(<i>self</i>, <i>mapper</i>, <i>connection</i>, <i>instance</i>)</b>
     <div class="docstring">
     <p>Receive an object instance before that instance is DELETEed.</p>
+<p>Note that <em>no</em> changes to the overall
+flush plan can be made here; this means any collection modification,
+save() or delete() operations which occur within this method will
+not take effect until the next flush call.</p>
 
     </div>
     </div>
@@ -514,6 +518,11 @@ desired.</p>
 into its table.</p>
 <p>This is a good place to set up primary key values and such
 that aren't handled otherwise.</p>
+<p>Column-based attributes can be modified within this method which will
+result in the new value being inserted.  However <em>no</em> changes to the overall
+flush plan can be made; this means any collection modification or
+save() operations which occur within this method will not take effect
+until the next flush call.</p>
 
     </div>
     </div>
@@ -525,6 +534,23 @@ that aren't handled otherwise.</p>
     <b>def before_update(<i>self</i>, <i>mapper</i>, <i>connection</i>, <i>instance</i>)</b>
     <div class="docstring">
     <p>Receive an object instance before that instance is UPDATEed.</p>
+<p>Note that this method is called for all instances that are marked as
+&quot;dirty&quot;, even those which have no net changes to their column-based
+attributes.  An object is marked as dirty when any of its column-based
+attributes have a &quot;set attribute&quot; operation called or when any of its
+collections are modified.  If, at update time, no column-based attributes
+have any net changes, no UPDATE statement will be issued.  This means
+that an instance being sent to before_update is <em>not</em> a guarantee that
+an UPDATE statement will be issued (although you can affect the outcome
+here).</p>
+<p>To detect if the column-based attributes on the object have net changes,
+and will therefore generate an UPDATE statement, use
+<tt class="docutils literal"><span class="pre">object_session(instance).is_modified(instance,</span> <span class="pre">include_collections=False)</span></tt>.</p>
+<p>Column-based attributes can be modified within this method which will
+result in their being updated.  However <em>no</em> changes to the overall
+flush plan can be made; this means any collection modification or
+save() operations which occur within this method will not take effect
+until the next flush call.</p>
 
     </div>
     </div>
@@ -1040,7 +1066,7 @@ loading operation.</p>
     
     <div class="sectionL3">
 
-    <h3>class PropComparator(ColumnOperators)</h3>
+    <h3>class PropComparator(<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_ColumnOperators">ColumnOperators</a>)</h3>
     
     
     <div class="darkcell"><p>defines comparison operations for MapperProperty objects</p>
