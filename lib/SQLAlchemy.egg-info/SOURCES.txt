@@ -63,6 +63,7 @@ doc/_sources/reference/orm/utilities.txt
 doc/_sources/reference/sqlalchemy/connections.txt
 doc/_sources/reference/sqlalchemy/expressions.txt
 doc/_sources/reference/sqlalchemy/index.txt
+doc/_sources/reference/sqlalchemy/inspector.txt
 doc/_sources/reference/sqlalchemy/interfaces.txt
 doc/_sources/reference/sqlalchemy/pooling.txt
 doc/_sources/reference/sqlalchemy/schema.txt
@@ -79,6 +80,8 @@ doc/_static/minus.png
 doc/_static/plus.png
 doc/_static/pygments.css
 doc/_static/searchtools.js
+doc/_static/sidebar.js
+doc/_static/underscore.js
 doc/build/Makefile
 doc/build/conf.py
 doc/build/copyright.rst
@@ -126,6 +129,7 @@ doc/build/reference/orm/utilities.rst
 doc/build/reference/sqlalchemy/connections.rst
 doc/build/reference/sqlalchemy/expressions.rst
 doc/build/reference/sqlalchemy/index.rst
+doc/build/reference/sqlalchemy/inspector.rst
 doc/build/reference/sqlalchemy/interfaces.rst
 doc/build/reference/sqlalchemy/pooling.rst
 doc/build/reference/sqlalchemy/schema.rst
@@ -170,6 +174,7 @@ doc/reference/orm/utilities.html
 doc/reference/sqlalchemy/connections.html
 doc/reference/sqlalchemy/expressions.html
 doc/reference/sqlalchemy/index.html
+doc/reference/sqlalchemy/inspector.html
 doc/reference/sqlalchemy/interfaces.html
 doc/reference/sqlalchemy/pooling.html
 doc/reference/sqlalchemy/schema.html

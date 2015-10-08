@@ -222,7 +222,7 @@ class GetTest(QueryTest):
             'SELECT users.id AS users_id, users.name AS users_name FROM users WHERE users.id = ?'
             )
 
-class InvalidGenerationsTest(QueryTest):
+class InvalidGenerationsTest(QueryTest, AssertsCompiledSQL):
     def test_no_limit_offset(self):
         s = create_session()
         
@@ -302,6 +302,30 @@ class InvalidGenerationsTest(QueryTest):
         assert_raises(sa_exc.InvalidRequestError, q.from_statement, text("select * from table"))
         assert_raises(sa_exc.InvalidRequestError, q.with_polymorphic, User)
         
+    def test_cancel_order_by(self):
+        s = create_session()
+
+        q = s.query(User).order_by(User.id)
+        self.assert_compile(q, 
+            "SELECT users.id AS users_id, users.name AS users_name FROM users ORDER BY users.id",
+            use_default_dialect=True)
+
+        assert_raises(sa_exc.InvalidRequestError, q._no_select_modifiers, "foo")
+
+        q = q.order_by(None)
+        self.assert_compile(q, 
+                "SELECT users.id AS users_id, users.name AS users_name FROM users",
+                use_default_dialect=True)
+
+        assert_raises(sa_exc.InvalidRequestError, q._no_select_modifiers, "foo")
+
+        q = q.order_by(False)
+        self.assert_compile(q, 
+                "SELECT users.id AS users_id, users.name AS users_name FROM users",
+                use_default_dialect=True)
+
+        # after False was set, this should pass
+        q._no_select_modifiers("foo")
         
     def test_mapper_zero(self):
         s = create_session()
@@ -584,6 +608,14 @@ class ExpressionTest(QueryTest, AssertsCompiledSQL):
         
         eq_(User(id=7), q.one())
         
+    def test_param_transfer(self):
+        session = create_session()
+        
+        q = session.query(User.id).filter(User.id==bindparam('foo')).params(foo=7).subquery()
+        
+        q = session.query(User).filter(User.id==q)
+        
+        eq_(User(id=7), q.one())
         
     def test_in(self):
         session = create_session()
@@ -1693,6 +1725,23 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             "ON addresses.id = orders.address_id"
             , use_default_dialect=True
         )
+    
+    def test_common_mistake(self):
+        sess = create_session()
+        
+        subq = sess.query(User).subquery()
+        assert_raises_message(
+            sa_exc.ArgumentError, "You appear to be passing a clause expression",
+            sess.query(User).join, subq, User.name==subq.c.name)
+
+        subq = sess.query(Order).subquery()
+        assert_raises_message(
+            sa_exc.ArgumentError, "You appear to be passing a clause expression",
+            sess.query(User).join, subq, User.id==subq.c.user_id)
+
+        assert_raises_message(
+            sa_exc.ArgumentError, "You appear to be passing a clause expression",
+            sess.query(User).join, Order, User.id==Order.user_id)
         
     def test_single_prop(self):
         sess = create_session()

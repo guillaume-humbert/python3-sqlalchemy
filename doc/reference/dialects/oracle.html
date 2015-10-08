@@ -7,7 +7,7 @@
         
         <title>
     Oracle
- &mdash; SQLAlchemy 0.6.1 Documentation</title>
+ &mdash; SQLAlchemy 0.6.2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,17 +15,18 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.1',
+          VERSION:     '0.6.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
         <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.dialects" href="index.html" />
         <link rel="next" title="PostgreSQL" href="postgresql.html" />
         <link rel="prev" title="MySQL" href="mysql.html" />
@@ -38,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.1 Documentation</h1>
+        <h1>SQLAlchemy 0.6.2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
+            Version: <span class="versionnum">0.6.2</span> Last Updated: 07/06/2010 17:51:07
         </div>
         <div class="clearboth"></div>
 
@@ -86,26 +87,26 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="#">Oracle</a><ul>
-<li><a class="reference external" href="#connect-arguments">Connect Arguments</a></li>
-<li><a class="reference external" href="#auto-increment-behavior">Auto Increment Behavior</a></li>
-<li><a class="reference external" href="#identifier-casing">Identifier Casing</a></li>
-<li><a class="reference external" href="#unicode">Unicode</a></li>
-<li><a class="reference external" href="#limit-offset-support">LIMIT/OFFSET Support</a></li>
-<li><a class="reference external" href="#on-update-cascade">ON UPDATE CASCADE</a></li>
-<li><a class="reference external" href="#oracle-8-compatibility">Oracle 8 Compatibility</a></li>
-<li><a class="reference external" href="#synonym-dblink-reflection">Synonym/DBLINK Reflection</a></li>
-<li><a class="reference external" href="#module-sqlalchemy.dialects.oracle">Oracle Column Types</a></li>
-<li><a class="reference external" href="#module-sqlalchemy.dialects.oracle.cx_oracle">cx_Oracle Notes</a><ul>
-<li><a class="reference external" href="#driver">Driver</a></li>
-<li><a class="reference external" href="#connecting">Connecting</a></li>
-<li><a class="reference external" href="#id1">Unicode</a></li>
-<li><a class="reference external" href="#lob-objects">LOB Objects</a></li>
-<li><a class="reference external" href="#two-phase-transaction-support">Two Phase Transaction Support</a></li>
+<li><a class="reference internal" href="#">Oracle</a><ul>
+<li><a class="reference internal" href="#connect-arguments">Connect Arguments</a></li>
+<li><a class="reference internal" href="#auto-increment-behavior">Auto Increment Behavior</a></li>
+<li><a class="reference internal" href="#identifier-casing">Identifier Casing</a></li>
+<li><a class="reference internal" href="#unicode">Unicode</a></li>
+<li><a class="reference internal" href="#limit-offset-support">LIMIT/OFFSET Support</a></li>
+<li><a class="reference internal" href="#on-update-cascade">ON UPDATE CASCADE</a></li>
+<li><a class="reference internal" href="#oracle-8-compatibility">Oracle 8 Compatibility</a></li>
+<li><a class="reference internal" href="#synonym-dblink-reflection">Synonym/DBLINK Reflection</a></li>
+<li><a class="reference internal" href="#oracle-column-types">Oracle Column Types</a></li>
+<li><a class="reference internal" href="#module-sqlalchemy.dialects.oracle.cx_oracle">cx_Oracle Notes</a><ul>
+<li><a class="reference internal" href="#driver">Driver</a></li>
+<li><a class="reference internal" href="#connecting">Connecting</a></li>
+<li><a class="reference internal" href="#id1">Unicode</a></li>
+<li><a class="reference internal" href="#lob-objects">LOB Objects</a></li>
+<li><a class="reference internal" href="#two-phase-transaction-support">Two Phase Transaction Support</a></li>
 </ul>
 </li>
-<li><a class="reference external" href="#module-sqlalchemy.dialects.oracle.zxjdbc">zxjdbc Notes</a><ul>
-<li><a class="reference external" href="#jdbc-driver">JDBC Driver</a></li>
+<li><a class="reference internal" href="#module-sqlalchemy.dialects.oracle.zxjdbc">zxjdbc Notes</a><ul>
+<li><a class="reference internal" href="#jdbc-driver">JDBC Driver</a></li>
 </ul>
 </li>
 </ul>
@@ -119,14 +120,14 @@
             <div class="body">
                 
 <div class="section" id="module-sqlalchemy.dialects.oracle.base">
-<h1>Oracle<a class="headerlink" href="#module-sqlalchemy.dialects.oracle.base" title="Permalink to this headline">¶</a></h1>
+<span id="oracle"></span><h1>Oracle<a class="headerlink" href="#module-sqlalchemy.dialects.oracle.base" title="Permalink to this headline">¶</a></h1>
 <p>Support for the Oracle database.</p>
 <p>Oracle version 8 through current (11g at the time of this writing) are supported.</p>
 <p>For information on connecting via specific drivers, see the documentation
 for that driver.</p>
 <div class="section" id="connect-arguments">
 <h2>Connect Arguments<a class="headerlink" href="#connect-arguments" title="Permalink to this headline">¶</a></h2>
-<p>The dialect supports several <a title="sqlalchemy.create_engine" class="reference external" href="../sqlalchemy/connections.html#sqlalchemy.create_engine"><tt class="xref docutils literal"><span class="pre">create_engine()</span></tt></a> arguments which 
+<p>The dialect supports several <a class="reference internal" href="../sqlalchemy/connections.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> arguments which 
 affect the behavior of the dialect regardless of driver in use.</p>
 <ul class="simple">
 <li><em>use_ansi</em> - Use ANSI JOIN constructs (see the section on Oracle 8).  Defaults
@@ -206,10 +207,10 @@ behaviors:</p>
 JOIN phrases into the WHERE clause, and in the case of LEFT OUTER JOIN
 makes use of Oracle&#8217;s (+) operator.</li>
 <li>the NVARCHAR2 and NCLOB datatypes are no longer generated as DDL when 
-the <a title="sqlalchemy.types.Unicode" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Unicode"><tt class="xref docutils literal"><span class="pre">Unicode</span></tt></a> is used - VARCHAR2 and CLOB are issued 
+the <a class="reference internal" href="../sqlalchemy/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> is used - VARCHAR2 and CLOB are issued 
 instead.   This because these types don&#8217;t seem to work correctly on Oracle 8
-even though they are available.  The <a title="sqlalchemy.types.NVARCHAR" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.NVARCHAR"><tt class="xref docutils literal"><span class="pre">NVARCHAR</span></tt></a> 
-and <a title="sqlalchemy.dialects.oracle.NCLOB" class="reference internal" href="#sqlalchemy.dialects.oracle.NCLOB"><tt class="xref docutils literal"><span class="pre">NCLOB</span></tt></a> types will always generate NVARCHAR2 and NCLOB.</li>
+even though they are available.  The <a class="reference internal" href="../sqlalchemy/types.html#sqlalchemy.types.NVARCHAR" title="sqlalchemy.types.NVARCHAR"><tt class="xref py py-class docutils literal"><span class="pre">NVARCHAR</span></tt></a> 
+and <tt class="xref py py-class docutils literal"><span class="pre">NCLOB</span></tt> types will always generate NVARCHAR2 and NCLOB.</li>
 <li>the &#8220;native unicode&#8221; mode is disabled when using cx_oracle, i.e. SQLAlchemy 
 encodes all Python unicode objects to &#8220;string&#8221; before passing in as bind parameters.</li>
 </ul>
@@ -221,30 +222,33 @@ indicated by synonyms that reference DBLINK-ed tables by passing the flag
 oracle_resolve_synonyms=True as a keyword argument to the Table construct.  If DBLINK 
 is not in use this flag should be left off.</p>
 </div>
-<div class="section" id="module-sqlalchemy.dialects.oracle">
-<h2>Oracle Column Types<a class="headerlink" href="#module-sqlalchemy.dialects.oracle" title="Permalink to this headline">¶</a></h2>
-<p>In addition to those types at <a class="reference external" href="../sqlalchemy/types.html#types"><em>Column and Data Types</em></a>, datatypes specific to the
+<div class="section" id="oracle-column-types">
+<h2>Oracle Column Types<a class="headerlink" href="#oracle-column-types" title="Permalink to this headline">¶</a></h2>
+<p>In addition to those types at <a class="reference internal" href="../sqlalchemy/types.html#types"><em>Column and Data Types</em></a>, datatypes specific to the
 Oracle dialect include those listed here.</p>
 <dl class="class">
-<dt id="sqlalchemy.dialects.oracle.BFILE">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">BFILE</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.BFILE" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.LargeBinary" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.LargeBinary"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.LargeBinary</span></tt></a></p>
+<dt id="sqlalchemy.dialects.oracle.base.BFILE">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.base.</tt><tt class="descname">BFILE</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.BFILE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../sqlalchemy/types.html#sqlalchemy.types.LargeBinary" title="sqlalchemy.types.LargeBinary"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.LargeBinary</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.oracle.BFILE.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.BFILE.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.base.BFILE.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.BFILE.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a LargeBinary type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>length</em> &#8211; optional, a length for the column for use in
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
 May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <em>length</em> for use in DDL, and will raise an exception when
-the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</td>
+the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -253,23 +257,23 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.oracle.DOUBLE_PRECISION">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">DOUBLE_PRECISION</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.DOUBLE_PRECISION" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Numeric" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Numeric"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Numeric</span></tt></a></p>
+<dt id="sqlalchemy.dialects.oracle.base.DOUBLE_PRECISION">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.base.</tt><tt class="descname">DOUBLE_PRECISION</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.DOUBLE_PRECISION" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../sqlalchemy/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Numeric</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.oracle.DOUBLE_PRECISION.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.DOUBLE_PRECISION.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.base.DOUBLE_PRECISION.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.DOUBLE_PRECISION.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.oracle.INTERVAL">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">INTERVAL</tt><big>(</big><em>day_precision=None</em>, <em>second_precision=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.INTERVAL" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<dt id="sqlalchemy.dialects.oracle.base.INTERVAL">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.base.</tt><tt class="descname">INTERVAL</tt><big>(</big><em>day_precision=None</em>, <em>second_precision=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.INTERVAL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../sqlalchemy/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.oracle.INTERVAL.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>day_precision=None</em>, <em>second_precision=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.INTERVAL.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.base.INTERVAL.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>day_precision=None</em>, <em>second_precision=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.INTERVAL.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an INTERVAL.</p>
 <p>Note that only DAY TO SECOND intervals are currently supported.
 This is due to a lack of support for YEAR TO MONTH intervals
@@ -279,9 +283,9 @@ within available DBAPIs (cx_oracle and zxjdbc).</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>day_precision</em> &#8211; the day precision value.  this is the number of digits
+<li><strong>day_precision</strong> &#8211; the day precision value.  this is the number of digits
 to store for the day field.  Defaults to &#8220;2&#8221;</li>
-<li><em>second_precision</em> &#8211; the second precision value.  this is the number of digits
+<li><strong>second_precision</strong> &#8211; the second precision value.  this is the number of digits
 to store for the fractional seconds field.  Defaults to &#8220;6&#8221;.</li>
 </ul>
 </td>
@@ -293,25 +297,25 @@ to store for the fractional seconds field.  Defaults to &#8220;6&#8221;.</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.oracle.NCLOB">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">NCLOB</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.NCLOB" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Text" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Text"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Text</span></tt></a></p>
+<dt id="sqlalchemy.dialects.oracle.base.NCLOB">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.base.</tt><tt class="descname">NCLOB</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.NCLOB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../sqlalchemy/types.html#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Text</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.oracle.NCLOB.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.NCLOB.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.base.NCLOB.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.NCLOB.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a string-holding type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>length</em> &#8211; optional, a length for the column for use in
+<li><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <em>length</em> for use in DDL, and will raise an exception when
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.  Whether the value is
 interpreted as bytes or characters is database specific.</li>
-<li><em>convert_unicode</em> &#8211; <p>defaults to False.  If True, the 
+<li><strong>convert_unicode</strong> &#8211; <p>defaults to False.  If True, the 
 type will do what is necessary in order to accept 
 Python Unicode objects as bind parameters, and to return
 Python Unicode objects in result rows.   This may
@@ -321,24 +325,24 @@ back to Unicode, or it may not require any interaction
 from SQLAlchemy at all, depending on the DBAPI in use.</p>
 <p>When SQLAlchemy performs the encoding/decoding, 
 the encoding used is configured via
-<tt class="xref docutils literal"><span class="pre">encoding</span></tt>, which
+<tt class="xref py py-attr docutils literal"><span class="pre">encoding</span></tt>, which
 defaults to <cite>utf-8</cite>.</p>
 <p>The &#8220;convert_unicode&#8221; behavior can also be turned on
 for all String types by setting 
-<tt class="xref docutils literal"><span class="pre">sqlalchemy.engine.base.Dialect.convert_unicode</span></tt>
+<tt class="xref py py-attr docutils literal"><span class="pre">sqlalchemy.engine.base.Dialect.convert_unicode</span></tt>
 on create_engine().</p>
 <p>To instruct SQLAlchemy to perform Unicode encoding/decoding
 even on a platform that already handles Unicode natively,
 set convert_unicode=&#8217;force&#8217;.  This will incur significant
 performance overhead when fetching unicode result columns.</p>
 </li>
-<li><em>assert_unicode</em> &#8211; Deprecated.  A warning is raised in all cases when a non-Unicode
+<li><strong>assert_unicode</strong> &#8211; Deprecated.  A warning is raised in all cases when a non-Unicode
 object is passed when SQLAlchemy would coerce into an encoding
 (note: but <strong>not</strong> when the DBAPI handles unicode objects natively).
 To suppress or raise this warning to an 
 error, use the Python warnings filter documented at:
 <a class="reference external" href="http://docs.python.org/library/warnings.html">http://docs.python.org/library/warnings.html</a></li>
-<li><em>unicode_error</em> &#8211; Optional, a method to use to handle Unicode
+<li><strong>unicode_error</strong> &#8211; Optional, a method to use to handle Unicode
 conversion errors. Behaves like the &#8216;errors&#8217; keyword argument to
 the standard library&#8217;s string.decode() functions.   This flag
 requires that <cite>convert_unicode</cite> is set to <cite>&#8220;force&#8221;</cite> - otherwise,
@@ -360,36 +364,36 @@ in the first place (i.e. MySQL.  <em>not</em> PG, Sqlite, etc.)</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.oracle.NUMBER">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">NUMBER</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.NUMBER" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Numeric" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Numeric"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Numeric</span></tt></a>, <a title="sqlalchemy.types.Integer" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Integer"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Integer</span></tt></a></p>
+<dt id="sqlalchemy.dialects.oracle.base.NUMBER">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.base.</tt><tt class="descname">NUMBER</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.NUMBER" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../sqlalchemy/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Numeric</span></tt></a>, <a class="reference internal" href="../sqlalchemy/types.html#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Integer</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.oracle.NUMBER.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.NUMBER.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.base.NUMBER.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.NUMBER.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.oracle.LONG">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">LONG</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.LONG" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.Text" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Text"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Text</span></tt></a></p>
+<dt id="sqlalchemy.dialects.oracle.base.LONG">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.base.</tt><tt class="descname">LONG</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.LONG" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../sqlalchemy/types.html#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Text</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.oracle.LONG.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.LONG.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.base.LONG.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>convert_unicode=False</em>, <em>assert_unicode=None</em>, <em>unicode_error=None</em>, <em>_warn_on_bytestring=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.LONG.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a string-holding type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>length</em> &#8211; optional, a length for the column for use in
+<li><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <em>length</em> for use in DDL, and will raise an exception when
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.  Whether the value is
 interpreted as bytes or characters is database specific.</li>
-<li><em>convert_unicode</em> &#8211; <p>defaults to False.  If True, the 
+<li><strong>convert_unicode</strong> &#8211; <p>defaults to False.  If True, the 
 type will do what is necessary in order to accept 
 Python Unicode objects as bind parameters, and to return
 Python Unicode objects in result rows.   This may
@@ -399,24 +403,24 @@ back to Unicode, or it may not require any interaction
 from SQLAlchemy at all, depending on the DBAPI in use.</p>
 <p>When SQLAlchemy performs the encoding/decoding, 
 the encoding used is configured via
-<tt class="xref docutils literal"><span class="pre">encoding</span></tt>, which
+<tt class="xref py py-attr docutils literal"><span class="pre">encoding</span></tt>, which
 defaults to <cite>utf-8</cite>.</p>
 <p>The &#8220;convert_unicode&#8221; behavior can also be turned on
 for all String types by setting 
-<tt class="xref docutils literal"><span class="pre">sqlalchemy.engine.base.Dialect.convert_unicode</span></tt>
+<tt class="xref py py-attr docutils literal"><span class="pre">sqlalchemy.engine.base.Dialect.convert_unicode</span></tt>
 on create_engine().</p>
 <p>To instruct SQLAlchemy to perform Unicode encoding/decoding
 even on a platform that already handles Unicode natively,
 set convert_unicode=&#8217;force&#8217;.  This will incur significant
 performance overhead when fetching unicode result columns.</p>
 </li>
-<li><em>assert_unicode</em> &#8211; Deprecated.  A warning is raised in all cases when a non-Unicode
+<li><strong>assert_unicode</strong> &#8211; Deprecated.  A warning is raised in all cases when a non-Unicode
 object is passed when SQLAlchemy would coerce into an encoding
 (note: but <strong>not</strong> when the DBAPI handles unicode objects natively).
 To suppress or raise this warning to an 
 error, use the Python warnings filter documented at:
 <a class="reference external" href="http://docs.python.org/library/warnings.html">http://docs.python.org/library/warnings.html</a></li>
-<li><em>unicode_error</em> &#8211; Optional, a method to use to handle Unicode
+<li><strong>unicode_error</strong> &#8211; Optional, a method to use to handle Unicode
 conversion errors. Behaves like the &#8216;errors&#8217; keyword argument to
 the standard library&#8217;s string.decode() functions.   This flag
 requires that <cite>convert_unicode</cite> is set to <cite>&#8220;force&#8221;</cite> - otherwise,
@@ -438,25 +442,28 @@ in the first place (i.e. MySQL.  <em>not</em> PG, Sqlite, etc.)</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.oracle.RAW">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.</tt><tt class="descname">RAW</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.RAW" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a title="sqlalchemy.types.LargeBinary" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.LargeBinary"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.LargeBinary</span></tt></a></p>
+<dt id="sqlalchemy.dialects.oracle.base.RAW">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.oracle.base.</tt><tt class="descname">RAW</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.RAW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../sqlalchemy/types.html#sqlalchemy.types.LargeBinary" title="sqlalchemy.types.LargeBinary"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.LargeBinary</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.oracle.RAW.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.RAW.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.oracle.base.RAW.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.oracle.base.RAW.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a LargeBinary type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>length</em> &#8211; optional, a length for the column for use in
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
 May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <em>length</em> for use in DDL, and will raise an exception when
-the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</td>
+the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -466,7 +473,7 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 
 </div>
 <div class="section" id="module-sqlalchemy.dialects.oracle.cx_oracle">
-<h2>cx_Oracle Notes<a class="headerlink" href="#module-sqlalchemy.dialects.oracle.cx_oracle" title="Permalink to this headline">¶</a></h2>
+<span id="cx-oracle-notes"></span><h2>cx_Oracle Notes<a class="headerlink" href="#module-sqlalchemy.dialects.oracle.cx_oracle" title="Permalink to this headline">¶</a></h2>
 <p>Support for the Oracle database via the cx_oracle driver.</p>
 <div class="section" id="driver">
 <h3>Driver<a class="headerlink" href="#driver" title="Permalink to this headline">¶</a></h3>
@@ -482,9 +489,9 @@ string conversions.</p>
 <p>Connecting with create_engine() uses the standard URL approach of 
 <tt class="docutils literal"><span class="pre">oracle://user:pass&#64;host:port/dbname[?key=value&amp;key=value...]</span></tt>.  If dbname is present, the 
 host, port, and dbname tokens are converted to a TNS name using the cx_oracle 
-<tt class="xref docutils literal"><span class="pre">makedsn()</span></tt> function.  Otherwise, the host token is taken directly as a TNS name.</p>
+<tt class="xref py py-func docutils literal"><span class="pre">makedsn()</span></tt> function.  Otherwise, the host token is taken directly as a TNS name.</p>
 <p>Additional arguments which may be specified either as query string arguments on the
-URL, or as keyword arguments to <a title="sqlalchemy.create_engine" class="reference external" href="../sqlalchemy/connections.html#sqlalchemy.create_engine"><tt class="xref docutils literal"><span class="pre">create_engine()</span></tt></a> are:</p>
+URL, or as keyword arguments to <a class="reference internal" href="../sqlalchemy/connections.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> are:</p>
 <ul class="simple">
 <li><em>allow_twophase</em> - enable two-phase transactions.  Defaults to <tt class="xref docutils literal"><span class="pre">True</span></tt>.</li>
 <li><em>arraysize</em> - set the cx_oracle.arraysize value on cursors, in SQLAlchemy
@@ -515,7 +522,7 @@ other backends, and so that the linkage to a live cursor is not needed in scenar
 like result.fetchmany() and result.fetchall().   This means that by default, LOB
 objects are fully fetched unconditionally by SQLAlchemy, and the linkage to a live
 cursor is broken.</p>
-<p>To disable this processing, pass <tt class="docutils literal"><span class="pre">auto_convert_lobs=False</span></tt> to <tt class="xref docutils literal"><span class="pre">create_engine()</span></tt>.</p>
+<p>To disable this processing, pass <tt class="docutils literal"><span class="pre">auto_convert_lobs=False</span></tt> to <tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt>.</p>
 </div>
 <div class="section" id="two-phase-transaction-support">
 <h3>Two Phase Transaction Support<a class="headerlink" href="#two-phase-transaction-support" title="Permalink to this headline">¶</a></h3>
@@ -524,7 +531,7 @@ with this feature but it should be regarded as experimental.</p>
 </div>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.oracle.zxjdbc">
-<h2>zxjdbc Notes<a class="headerlink" href="#module-sqlalchemy.dialects.oracle.zxjdbc" title="Permalink to this headline">¶</a></h2>
+<span id="zxjdbc-notes"></span><h2>zxjdbc Notes<a class="headerlink" href="#module-sqlalchemy.dialects.oracle.zxjdbc" title="Permalink to this headline">¶</a></h2>
 <p>Support for the Oracle database via the zxjdbc JDBC connector.</p>
 <div class="section" id="jdbc-driver">
 <h3>JDBC Driver<a class="headerlink" href="#jdbc-driver" title="Permalink to this headline">¶</a></h3>
@@ -550,7 +557,7 @@ with this feature but it should be regarded as experimental.</p>
 
                 <div class="doc_copyright">
                     &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2+.
                 </div>
             </div>
         

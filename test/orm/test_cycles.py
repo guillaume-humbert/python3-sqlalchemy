@@ -713,44 +713,30 @@ class OneToManyManyToOneTest(_base.MappedTest):
              "VALUES (:favorite_ball_id, :data)",
              lambda ctx:{'favorite_ball_id':b.id, 'data':'some data'}),
 
-            AllOf(
-            CompiledSQL("UPDATE ball SET person_id=:person_id "
-             "WHERE ball.id = :ball_id",
-             lambda ctx:{'person_id':p.id,'ball_id':b.id}),
-
-            CompiledSQL("UPDATE ball SET person_id=:person_id "
-             "WHERE ball.id = :ball_id",
-             lambda ctx:{'person_id':p.id,'ball_id':b2.id}),
-
-            CompiledSQL("UPDATE ball SET person_id=:person_id "
-             "WHERE ball.id = :ball_id",
-             lambda ctx:{'person_id':p.id,'ball_id':b3.id}),
-
-            CompiledSQL("UPDATE ball SET person_id=:person_id "
-             "WHERE ball.id = :ball_id",
-             lambda ctx:{'person_id':p.id,'ball_id':b4.id})
+             CompiledSQL("UPDATE ball SET person_id=:person_id "
+              "WHERE ball.id = :ball_id",
+              lambda ctx:[
+                {'person_id':p.id,'ball_id':b.id},
+                {'person_id':p.id,'ball_id':b2.id},
+                {'person_id':p.id,'ball_id':b3.id},
+                {'person_id':p.id,'ball_id':b4.id}
+                ]
             ),
+
         )
         
         sess.delete(p)
         
         self.assert_sql_execution(testing.db, sess.flush, 
-            AllOf(CompiledSQL("UPDATE ball SET person_id=:person_id "
-             "WHERE ball.id = :ball_id",
-             lambda ctx:{'person_id': None, 'ball_id': b.id}),
-
             CompiledSQL("UPDATE ball SET person_id=:person_id "
-             "WHERE ball.id = :ball_id",
-             lambda ctx:{'person_id': None, 'ball_id': b2.id}),
-
-            CompiledSQL("UPDATE ball SET person_id=:person_id "
-             "WHERE ball.id = :ball_id",
-             lambda ctx:{'person_id': None, 'ball_id': b3.id}),
-
-            CompiledSQL("UPDATE ball SET person_id=:person_id "
-             "WHERE ball.id = :ball_id",
-             lambda ctx:{'person_id': None, 'ball_id': b4.id})),
-
+                "WHERE ball.id = :ball_id",
+                lambda ctx:[
+                    {'person_id': None, 'ball_id': b.id},
+                    {'person_id': None, 'ball_id': b2.id},
+                    {'person_id': None, 'ball_id': b3.id},
+                    {'person_id': None, 'ball_id': b4.id}
+                ]
+            ),
             CompiledSQL("DELETE FROM person WHERE person.id = :id",
              lambda ctx:[{'id':p.id}]),
 
@@ -763,7 +749,10 @@ class OneToManyManyToOneTest(_base.MappedTest):
 
 
 class SelfReferentialPostUpdateTest(_base.MappedTest):
-    """Post_update on a single self-referential mapper"""
+    """Post_update on a single self-referential mapper.
+    
+    
+    """
 
     @classmethod
     def define_tables(cls, metadata):
@@ -785,7 +774,7 @@ class SelfReferentialPostUpdateTest(_base.MappedTest):
                 self.path = path
 
     @testing.resolve_artifact_names
-    def test_basic(self):
+    def test_one(self):
         """Post_update only fires off when needed.
 
         This test case used to produce many superfluous update statements,
@@ -797,7 +786,6 @@ class SelfReferentialPostUpdateTest(_base.MappedTest):
             'children': relationship(
                 Node,
                 primaryjoin=node.c.id==node.c.parent_id,
-                lazy='select',
                 cascade="all",
                 backref=backref("parent", remote_side=node.c.id)
             ),
@@ -805,13 +793,11 @@ class SelfReferentialPostUpdateTest(_base.MappedTest):
                 Node,
                 primaryjoin=node.c.prev_sibling_id==node.c.id,
                 remote_side=node.c.id,
-                lazy='select',
                 uselist=False),
             'next_sibling': relationship(
                 Node,
                 primaryjoin=node.c.next_sibling_id==node.c.id,
                 remote_side=node.c.id,
-                lazy='select',
                 uselist=False,
                 post_update=True)})
 
@@ -849,6 +835,7 @@ class SelfReferentialPostUpdateTest(_base.MappedTest):
         session.flush()
 
         remove_child(root, cats)
+        
         # pre-trigger lazy loader on 'cats' to make the test easier
         cats.children
         self.assert_sql_execution(
@@ -873,16 +860,16 @@ class SelfReferentialPostUpdateTest(_base.MappedTest):
         )
 
         session.delete(root)
+
         self.assert_sql_execution(
             testing.db, 
             session.flush,
-            AllOf(
-                CompiledSQL("UPDATE node SET next_sibling_id=:next_sibling_id "
-                            "WHERE node.id = :node_id", 
-                            lambda ctx:{'next_sibling_id':None, 'node_id':about.id}),
-                CompiledSQL("UPDATE node SET next_sibling_id=:next_sibling_id "
-                            "WHERE node.id = :node_id",
-                            lambda ctx:{'node_id':stories.id, 'next_sibling_id':None})
+            CompiledSQL("UPDATE node SET next_sibling_id=:next_sibling_id "
+                "WHERE node.id = :node_id", 
+                lambda ctx: [
+                            {'node_id': about.id, 'next_sibling_id': None}, 
+                            {'node_id': stories.id, 'next_sibling_id': None}
+                        ]
             ),
             AllOf(
                 CompiledSQL("DELETE FROM node WHERE node.id = :id",
@@ -924,7 +911,7 @@ class SelfReferentialPostUpdateTest2(_base.MappedTest):
             pass
 
     @testing.resolve_artifact_names
-    def test_basic(self):
+    def test_one(self):
         """
         Test that post_update remembers to be involved in update operations as
         well, since it replaces the normal dependency processing completely
@@ -956,3 +943,174 @@ class SelfReferentialPostUpdateTest2(_base.MappedTest):
         assert f2.foo is f1
 
 
+class SelfReferentialPostUpdateTest3(_base.MappedTest):
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('parent', metadata,
+              Column('id', Integer, primary_key=True,
+                     test_needs_autoincrement=True),
+              Column('name', String(50), nullable=False),
+              Column('child_id', Integer,
+                     ForeignKey('child.id', use_alter=True, name='c1'), nullable=True))
+
+        Table('child', metadata,
+           Column('id', Integer, primary_key=True,
+                  test_needs_autoincrement=True),
+           Column('name', String(50), nullable=False),
+           Column('child_id', Integer,
+                  ForeignKey('child.id')),
+           Column('parent_id', Integer,
+                  ForeignKey('parent.id'), nullable=True))
+
+    @classmethod
+    def setup_classes(cls):
+        class Parent(_base.BasicEntity):
+            def __init__(self, name=''):
+                self.name = name
+
+        class Child(_base.BasicEntity):
+            def __init__(self, name=''):
+                self.name = name
+
+    @testing.resolve_artifact_names
+    def test_one(self):
+        mapper(Parent, parent, properties={
+            'children':relationship(Child, primaryjoin=parent.c.id==child.c.parent_id),
+            'child':relationship(Child, primaryjoin=parent.c.child_id==child.c.id, post_update=True)
+        })
+        mapper(Child, child, properties={
+            'parent':relationship(Child, remote_side=child.c.id)
+        })
+        
+        session = create_session()
+        p1 = Parent('p1')
+        c1 = Child('c1')
+        c2 = Child('c2')
+        p1.children =[c1, c2]
+        c2.parent = c1
+        p1.child = c2
+        
+        session.add_all([p1, c1, c2])
+        session.flush()
+
+        p2 = Parent('p2')
+        c3 = Child('c3')
+        p2.children = [c3]
+        p2.child = c3
+        session.add(p2)
+        
+        session.delete(c2)
+        p1.children.remove(c2)
+        p1.child = None
+        session.flush()
+        
+        p2.child = None
+        session.flush()
+        
+class PostUpdateBatchingTest(_base.MappedTest):
+    """test that lots of post update cols batch together into a single UPDATE."""
+    
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('parent', metadata,
+              Column('id', Integer, primary_key=True,
+                     test_needs_autoincrement=True),
+              Column('name', String(50), nullable=False),
+              Column('c1_id', Integer,
+                     ForeignKey('child1.id', use_alter=True, name='c1'), nullable=True),
+              Column('c2_id', Integer,
+                    ForeignKey('child2.id', use_alter=True, name='c2'), nullable=True),
+              Column('c3_id', Integer,
+                       ForeignKey('child3.id', use_alter=True, name='c3'), nullable=True)
+            )
+
+        Table('child1', metadata,
+           Column('id', Integer, primary_key=True,
+                  test_needs_autoincrement=True),
+           Column('name', String(50), nullable=False),
+           Column('parent_id', Integer,
+                  ForeignKey('parent.id'), nullable=False))
+
+        Table('child2', metadata,
+             Column('id', Integer, primary_key=True,
+                    test_needs_autoincrement=True),
+             Column('name', String(50), nullable=False),
+             Column('parent_id', Integer,
+                    ForeignKey('parent.id'), nullable=False))
+                    
+        Table('child3', metadata,
+           Column('id', Integer, primary_key=True,
+                  test_needs_autoincrement=True),
+           Column('name', String(50), nullable=False),
+           Column('parent_id', Integer,
+                  ForeignKey('parent.id'), nullable=False))
+
+    @classmethod
+    def setup_classes(cls):
+        class Parent(_base.BasicEntity):
+            def __init__(self, name=''):
+                self.name = name
+        class Child1(_base.BasicEntity):
+            def __init__(self, name=''):
+                self.name = name
+        class Child2(_base.BasicEntity):
+            def __init__(self, name=''):
+                self.name = name
+        class Child3(_base.BasicEntity):
+            def __init__(self, name=''):
+                self.name = name
+    
+    @testing.resolve_artifact_names
+    def test_one(self):
+        mapper(Parent, parent, properties={
+            'c1s':relationship(Child1, primaryjoin=child1.c.parent_id==parent.c.id),
+            'c2s':relationship(Child2, primaryjoin=child2.c.parent_id==parent.c.id),
+            'c3s':relationship(Child3, primaryjoin=child3.c.parent_id==parent.c.id),
+            
+            'c1':relationship(Child1, primaryjoin=child1.c.id==parent.c.c1_id, post_update=True),
+            'c2':relationship(Child2, primaryjoin=child2.c.id==parent.c.c2_id, post_update=True),
+            'c3':relationship(Child3, primaryjoin=child3.c.id==parent.c.c3_id, post_update=True),
+        })
+        mapper(Child1, child1)
+        mapper(Child2, child2)
+        mapper(Child3, child3)
+        
+        sess = create_session()
+        
+        p1 = Parent('p1')
+        c11, c12, c13 = Child1('c1'), Child1('c2'), Child1('c3')
+        c21, c22, c23 = Child2('c1'), Child2('c2'), Child2('c3')
+        c31, c32, c33 = Child3('c1'), Child3('c2'), Child3('c3')
+        
+        p1.c1s = [c11, c12, c13]
+        p1.c2s = [c21, c22, c23]
+        p1.c3s = [c31, c32, c33]
+        sess.add(p1)
+        sess.flush()
+        
+        p1.c1 = c12
+        p1.c2 = c23
+        p1.c3 = c31
+
+        self.assert_sql_execution(
+            testing.db, 
+            sess.flush,
+            CompiledSQL(
+                "UPDATE parent SET c1_id=:c1_id, c2_id=:c2_id, "
+                "c3_id=:c3_id WHERE parent.id = :parent_id",
+                lambda ctx: {'c2_id': c23.id, 'parent_id': p1.id, 'c1_id': c12.id, 'c3_id': c31.id}
+            )
+        )
+
+        p1.c1 = p1.c2 = p1.c3 = None
+
+        self.assert_sql_execution(
+            testing.db, 
+            sess.flush,
+            CompiledSQL(
+                "UPDATE parent SET c1_id=:c1_id, c2_id=:c2_id, "
+                "c3_id=:c3_id WHERE parent.id = :parent_id",
+                lambda ctx: {'c2_id': None, 'parent_id': p1.id, 'c1_id': None, 'c3_id': None}
+            )
+        )
+        

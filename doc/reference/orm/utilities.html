@@ -7,7 +7,7 @@
         
         <title>
     Utilities
- &mdash; SQLAlchemy 0.6.1 Documentation</title>
+ &mdash; SQLAlchemy 0.6.2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,17 +15,18 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.1',
+          VERSION:     '0.6.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
         <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="sqlalchemy.dialects" href="../dialects/index.html" />
         <link rel="prev" title="Interfaces" href="interfaces.html" />
@@ -38,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.1 Documentation</h1>
+        <h1>SQLAlchemy 0.6.2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
+            Version: <span class="versionnum">0.6.2</span> Last Updated: 07/06/2010 17:51:07
         </div>
         <div class="clearboth"></div>
 
@@ -92,7 +93,7 @@
             <div class="body">
                 
 <div class="section" id="module-sqlalchemy.orm.util">
-<h1>Utilities<a class="headerlink" href="#module-sqlalchemy.orm.util" title="Permalink to this headline">¶</a></h1>
+<span id="utilities"></span><h1>Utilities<a class="headerlink" href="#module-sqlalchemy.orm.util" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
 <dt id="sqlalchemy.orm.util.identity_key">
 <tt class="descclassname">sqlalchemy.orm.util.</tt><tt class="descname">identity_key</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.identity_key" title="Permalink to this definition">¶</a></dt>
@@ -133,7 +134,7 @@
 <dt id="sqlalchemy.orm.util.Validator">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.orm.util.</tt><tt class="descname">Validator</tt><big>(</big><em>key</em>, <em>validator</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.Validator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Runs a validation method on an attribute value to be set or appended.</p>
-<p>The Validator class is used by the <a title="sqlalchemy.orm.validates" class="reference external" href="mapping.html#sqlalchemy.orm.validates"><tt class="xref docutils literal"><span class="pre">validates()</span></tt></a>
+<p>The Validator class is used by the <a class="reference internal" href="mapping.html#sqlalchemy.orm.validates" title="sqlalchemy.orm.validates"><tt class="xref py py-func docutils literal"><span class="pre">validates()</span></tt></a>
 decorator, and direct access is usually not needed.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.util.Validator.__init__">
@@ -180,7 +181,7 @@ Query.</dd>
 <dt id="sqlalchemy.orm.util.polymorphic_union">
 <tt class="descclassname">sqlalchemy.orm.util.</tt><tt class="descname">polymorphic_union</tt><big>(</big><em>table_map</em>, <em>typecolname</em>, <em>aliasname='p_union'</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.polymorphic_union" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a <tt class="docutils literal"><span class="pre">UNION</span></tt> statement used by a polymorphic mapper.</p>
-<p>See  <a class="reference external" href="../../mappers.html#concrete-inheritance"><em>Concrete Table Inheritance</em></a> for an example of how
+<p>See  <a class="reference internal" href="../../mappers.html#concrete-inheritance"><em>Concrete Table Inheritance</em></a> for an example of how
 this is used.</p>
 </dd></dl>
 
@@ -202,7 +203,7 @@ this is used.</p>
 
                 <div class="doc_copyright">
                     &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2+.
                 </div>
             </div>
         

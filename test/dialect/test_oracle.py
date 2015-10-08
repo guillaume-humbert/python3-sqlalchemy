@@ -366,6 +366,12 @@ class CompatFlagsTest(TestBase, AssertsCompiledSQL):
             
         dialect = oracle.dialect()
         dialect._get_server_version_info = server_version_info
+
+        # before connect, assume modern DB
+        assert dialect._supports_char_length
+        assert dialect._supports_nchar
+        assert dialect.use_ansi
+
         dialect.initialize(testing.db.connect())
         assert not dialect._supports_char_length
         assert not dialect._supports_nchar
@@ -396,6 +402,7 @@ class CompatFlagsTest(TestBase, AssertsCompiledSQL):
         self.assert_compile(String(50),"VARCHAR(50 CHAR)",dialect=dialect)
         self.assert_compile(Unicode(50),"NVARCHAR2(50)",dialect=dialect)
         self.assert_compile(UnicodeText(),"NCLOB",dialect=dialect)
+    
     
 class MultiSchemaTest(TestBase, AssertsCompiledSQL):
     __only_on__ = 'oracle'
@@ -751,6 +758,90 @@ class TypesTest(TestBase, AssertsCompiledSQL):
         finally:
             t1.drop()
     
+    @testing.provide_metadata
+    def test_numerics_broken_inspection(self):
+        """Numeric scenarios where Oracle type info is 'broken',
+        returning us precision, scale of the form (0, 0) or (0, -127).
+        We convert to Decimal and let int()/float() processors take over.
+        
+        """
+        
+        # this test requires cx_oracle 5
+        
+        foo = Table('foo', metadata,
+            Column('idata', Integer),
+            Column('ndata', Numeric(20, 2)),
+            Column('fdata', Float()),
+        )
+        foo.create()
+        
+        foo.insert().execute(
+            {'idata':5, 'ndata':Decimal("45.6"), 'fdata':45.68392}
+        )
+
+        stmt = """
+        SELECT 
+            idata,
+            ndata,
+            fdata
+        FROM foo
+        """
+        eq_(
+            testing.db.execute(stmt).fetchall(), 
+            [(5, Decimal('45.6'), 45.683920000000001)]
+        )
+        
+        stmt = """
+        SELECT 
+            (SELECT (SELECT idata FROM foo) FROM DUAL) AS idata,
+            (SELECT CAST((SELECT ndata FROM foo) AS NUMERIC(20, 2)) FROM DUAL) AS ndata,
+            (SELECT CAST((SELECT fdata FROM foo) AS FLOAT) FROM DUAL) AS fdata
+        FROM dual
+        """
+        eq_(
+            testing.db.execute(stmt).fetchall(), 
+            [(Decimal('5'), Decimal('45.6'), Decimal('45.68392'))]
+        )
+        eq_(
+            testing.db.execute(text(stmt, 
+                                typemap={
+                                        'idata':Integer(), 
+                                        'ndata':Numeric(20, 2), 
+                                        'fdata':Float()
+                                })).fetchall(),
+            [(5, Decimal('45.6'), 45.683920000000001)]
+        )
+        
+        stmt = """
+        SELECT 
+                anon_1.idata AS anon_1_idata,
+                anon_1.ndata AS anon_1_ndata,
+                anon_1.fdata AS anon_1_fdata
+        FROM (SELECT idata, ndata, fdata
+        FROM (
+            SELECT 
+                (SELECT (SELECT idata FROM foo) FROM DUAL) AS idata,
+                (SELECT CAST((SELECT ndata FROM foo) AS NUMERIC(20, 2)) FROM DUAL) AS ndata,
+                (SELECT CAST((SELECT fdata FROM foo) AS FLOAT) FROM DUAL) AS fdata
+            FROM dual
+        )
+        WHERE ROWNUM >= 0) anon_1
+        """
+        eq_(
+            testing.db.execute(stmt).fetchall(), 
+            [(Decimal('5'), Decimal('45.6'), Decimal('45.68392'))]
+        )
+        eq_(
+            testing.db.execute(text(stmt, 
+                                typemap={
+                                        'anon_1_idata':Integer(), 
+                                        'anon_1_ndata':Numeric(20, 2), 
+                                        'anon_1_fdata':Float()
+                                })).fetchall(),
+            [(5, Decimal('45.6'), 45.683920000000001)]
+        )
+
+        
     def test_reflect_dates(self):
         metadata = MetaData(testing.db)
         Table(
@@ -815,7 +906,7 @@ class TypesTest(TestBase, AssertsCompiledSQL):
         self.assert_compile(VARCHAR(50),"VARCHAR(50 CHAR)")
 
         oracle8dialect = oracle.dialect()
-        oracle8dialect._supports_char_length = False
+        oracle8dialect.server_version_info = (8, 0)
         self.assert_compile(VARCHAR(50),"VARCHAR(50)",dialect=oracle8dialect)
 
         self.assert_compile(NVARCHAR(50),"NVARCHAR2(50)")
@@ -966,7 +1057,8 @@ class SequenceTest(TestBase, AssertsCompiledSQL):
 
         seq = Sequence("My_Seq", schema="Some_Schema")
         assert dialect.identifier_preparer.format_sequence(seq) == '"Some_Schema"."My_Seq"'
-
+    
+    
 class ExecuteTest(TestBase):
     __only_on__ = 'oracle'
     
@@ -976,7 +1068,17 @@ class ExecuteTest(TestBase):
             testing.db.execute("/*+ this is a comment */ SELECT 1 FROM DUAL").fetchall(),
             [(1,)]
         )
-
+    
+    def test_sequences_are_integers(self):
+        seq = Sequence('foo_seq')
+        seq.create(testing.db)
+        try:
+            val = testing.db.execute(seq)
+            eq_(val, 1)
+            assert type(val) is int
+        finally:
+            seq.drop(testing.db)
+            
     @testing.provide_metadata
     def test_limit_offset_for_update(self):
         # oracle can't actually do the ROWNUM thing with FOR UPDATE

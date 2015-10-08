@@ -7,7 +7,7 @@
         
         <title>
     associationproxy
- &mdash; SQLAlchemy 0.6.1 Documentation</title>
+ &mdash; SQLAlchemy 0.6.2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,17 +15,18 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.1',
+          VERSION:     '0.6.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
     </script>
         <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.ext" href="index.html" />
         <link rel="next" title="orderinglist" href="orderinglist.html" />
         <link rel="prev" title="declarative" href="declarative.html" />
@@ -38,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.1 Documentation</h1>
+        <h1>SQLAlchemy 0.6.2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.1</span> Last Updated: 05/31/2010 14:48:10
+            Version: <span class="versionnum">0.6.2</span> Last Updated: 07/06/2010 17:51:07
         </div>
         <div class="clearboth"></div>
 
@@ -86,11 +87,11 @@
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="#">associationproxy</a><ul>
-<li><a class="reference external" href="#simplifying-relationships">Simplifying Relationships</a></li>
-<li><a class="reference external" href="#simplifying-association-object-relationships">Simplifying Association Object Relationships</a></li>
-<li><a class="reference external" href="#building-complex-views">Building Complex Views</a></li>
-<li><a class="reference external" href="#api">API</a></li>
+<li><a class="reference internal" href="#">associationproxy</a><ul>
+<li><a class="reference internal" href="#simplifying-relationships">Simplifying Relationships</a></li>
+<li><a class="reference internal" href="#simplifying-association-object-relationships">Simplifying Association Object Relationships</a></li>
+<li><a class="reference internal" href="#building-complex-views">Building Complex Views</a></li>
+<li><a class="reference internal" href="#api">API</a></li>
 </ul>
 </li>
 </ul>
@@ -101,9 +102,9 @@
         <div class="document">
             <div class="body">
                 
-<div class="section" id="module-sqlalchemy.ext.associationproxy">
-<span id="associationproxy"></span><h1>associationproxy<a class="headerlink" href="#module-sqlalchemy.ext.associationproxy" title="Permalink to this headline">¶</a></h1>
-<p><tt class="docutils literal"><span class="pre">associationproxy</span></tt> is used to create a simplified, read/write view of a
+<div class="section" id="associationproxy">
+<span id="id1"></span><h1>associationproxy<a class="headerlink" href="#associationproxy" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-sqlalchemy.ext.associationproxy"></span><p><tt class="docutils literal"><span class="pre">associationproxy</span></tt> is used to create a simplified, read/write view of a
 relationship.  It can be used to cherry-pick fields from a collection of
 related objects or to greatly simplify access to associated objects in an
 association relationship.</p>
@@ -112,12 +113,12 @@ association relationship.</p>
 <p>Consider this &#8220;association object&#8221; mapping:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">users_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mf">64</span><span class="p">)),</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">64</span><span class="p">)),</span>
 <span class="p">)</span>
 
 <span class="n">keywords_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;keywords&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;keyword&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mf">64</span><span class="p">))</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;keyword&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">64</span><span class="p">))</span>
 <span class="p">)</span>
 
 <span class="n">userkeywords_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;userkeywords&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
@@ -148,7 +149,7 @@ awkward:</p>
 <span class="n">user</span><span class="o">.</span><span class="n">kw</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Keyword</span><span class="p">(</span><span class="s">&#39;cheese inspector&#39;</span><span class="p">))</span>
 <span class="k">print</span> <span class="n">user</span><span class="o">.</span><span class="n">kw</span>
 <span class="c"># [&lt;__main__.Keyword object at 0xb791ea0c&gt;]</span>
-<span class="k">print</span> <span class="n">user</span><span class="o">.</span><span class="n">kw</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span><span class="o">.</span><span class="n">keyword</span>
+<span class="k">print</span> <span class="n">user</span><span class="o">.</span><span class="n">kw</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keyword</span>
 <span class="c"># &#39;cheese inspector&#39;</span>
 <span class="k">print</span> <span class="p">[</span><span class="n">keyword</span><span class="o">.</span><span class="n">keyword</span> <span class="k">for</span> <span class="n">keyword</span> <span class="ow">in</span> <span class="n">user</span><span class="o">.</span><span class="n">kw</span><span class="p">]</span>
 <span class="c"># [&#39;cheese inspector&#39;]</span></pre></div>
@@ -220,7 +221,7 @@ relationship.</p>
 
 <span class="k">def</span> <span class="nf">get_current_uid</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Return the uid of the current user.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="mf">1</span>  <span class="c"># hardcoded for this example</span>
+    <span class="k">return</span> <span class="mi">1</span>  <span class="c"># hardcoded for this example</span>
 
 <span class="n">userkeywords_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;userkeywords&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;user_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&quot;users.id&quot;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
@@ -266,10 +267,10 @@ relationship.</p>
 <span class="n">UserKeyword</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">kw1</span><span class="p">)</span>
 
 <span class="c"># Accessing Keywords requires traversing UserKeywords</span>
-<span class="k">print</span> <span class="n">user</span><span class="o">.</span><span class="n">user_keywords</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span>
+<span class="k">print</span> <span class="n">user</span><span class="o">.</span><span class="n">user_keywords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="c"># &lt;__main__.UserKeyword object at 0xb79bbbec&gt;</span>
 
-<span class="k">print</span> <span class="n">user</span><span class="o">.</span><span class="n">user_keywords</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span><span class="o">.</span><span class="n">keyword</span>
+<span class="k">print</span> <span class="n">user</span><span class="o">.</span><span class="n">user_keywords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keyword</span>
 <span class="c"># Keyword(&#39;new_from_blammo&#39;)</span>
 
 <span class="c"># Lots of work.</span>
@@ -285,18 +286,18 @@ relationship.</p>
 <div class="section" id="building-complex-views">
 <h2>Building Complex Views<a class="headerlink" href="#building-complex-views" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">stocks_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&quot;stocks&quot;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span>
-   <span class="n">Column</span><span class="p">(</span><span class="s">&#39;symbol&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mf">10</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+   <span class="n">Column</span><span class="p">(</span><span class="s">&#39;symbol&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;last_price&#39;</span><span class="p">,</span> <span class="n">Numeric</span><span class="p">)</span>
 <span class="p">)</span>
 
 <span class="n">brokers_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&quot;brokers&quot;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span>
    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span><span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
-   <span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mf">100</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+   <span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">100</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="p">)</span>
 
 <span class="n">holdings_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&quot;holdings&quot;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span>
   <span class="n">Column</span><span class="p">(</span><span class="s">&#39;broker_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;brokers.id&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
-  <span class="n">Column</span><span class="p">(</span><span class="s">&#39;symbol&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mf">10</span><span class="p">),</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;stocks.symbol&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+  <span class="n">Column</span><span class="p">(</span><span class="s">&#39;symbol&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;stocks.symbol&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
   <span class="n">Column</span><span class="p">(</span><span class="s">&#39;shares&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">)</span>
 <span class="p">)</span></pre></div>
 </div>
@@ -323,10 +324,10 @@ each.  That&#8217;s easy:</p>
 <span class="k">class</span> <span class="nc">Stock</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="n">symbol</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">last_price</span> <span class="o">=</span> <span class="mf">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_price</span> <span class="o">=</span> <span class="mi">0</span>
 
 <span class="k">class</span> <span class="nc">Holding</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">broker</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">stock</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">shares</span><span class="o">=</span><span class="mf">0</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">broker</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">stock</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">shares</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">broker</span> <span class="o">=</span> <span class="n">broker</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stock</span> <span class="o">=</span> <span class="n">stock</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">shares</span> <span class="o">=</span> <span class="n">shares</span>
@@ -348,14 +349,14 @@ because of the complexity of the Holdings association object:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">stock</span> <span class="o">=</span> <span class="n">Stock</span><span class="p">(</span><span class="s">&#39;ZZK&#39;</span><span class="p">)</span>
 <span class="n">broker</span> <span class="o">=</span> <span class="n">Broker</span><span class="p">(</span><span class="s">&#39;paj&#39;</span><span class="p">)</span>
 
-<span class="n">broker</span><span class="o">.</span><span class="n">by_stock</span><span class="p">[</span><span class="n">stock</span><span class="p">]</span> <span class="o">=</span> <span class="n">Holding</span><span class="p">(</span><span class="n">broker</span><span class="p">,</span> <span class="n">stock</span><span class="p">,</span> <span class="mf">10</span><span class="p">)</span>
+<span class="n">broker</span><span class="o">.</span><span class="n">by_stock</span><span class="p">[</span><span class="n">stock</span><span class="p">]</span> <span class="o">=</span> <span class="n">Holding</span><span class="p">(</span><span class="n">broker</span><span class="p">,</span> <span class="n">stock</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 <span class="k">print</span> <span class="n">broker</span><span class="o">.</span><span class="n">by_stock</span><span class="p">[</span><span class="n">stock</span><span class="p">]</span><span class="o">.</span><span class="n">shares</span>
 <span class="c"># 10</span></pre></div>
 </div>
 <p>The <tt class="docutils literal"><span class="pre">holdings</span></tt> proxy we&#8217;ve added to the <tt class="docutils literal"><span class="pre">Broker</span></tt> class hides the details
 of the <tt class="docutils literal"><span class="pre">Holding</span></tt> while also giving access to <tt class="docutils literal"><span class="pre">.shares</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">for</span> <span class="n">stock</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Stock</span><span class="p">(</span><span class="s">&#39;JEK&#39;</span><span class="p">),</span> <span class="n">Stock</span><span class="p">(</span><span class="s">&#39;STPZ&#39;</span><span class="p">)):</span>
-    <span class="n">broker</span><span class="o">.</span><span class="n">holdings</span><span class="p">[</span><span class="n">stock</span><span class="p">]</span> <span class="o">=</span> <span class="mf">123</span>
+    <span class="n">broker</span><span class="o">.</span><span class="n">holdings</span><span class="p">[</span><span class="n">stock</span><span class="p">]</span> <span class="o">=</span> <span class="mi">123</span>
 
 <span class="k">for</span> <span class="n">stock</span><span class="p">,</span> <span class="n">shares</span> <span class="ow">in</span> <span class="n">broker</span><span class="o">.</span><span class="n">holdings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
     <span class="k">print</span> <span class="n">stock</span><span class="p">,</span> <span class="n">shares</span>
@@ -394,16 +395,16 @@ a simple scalar value.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><em>target_collection</em> &#8211; Name of the relationship attribute we&#8217;ll proxy to,
-usually created with <a title="sqlalchemy.orm.relationship" class="reference external" href="../orm/mapping.html#sqlalchemy.orm.relationship"><tt class="xref docutils literal"><span class="pre">relationship()</span></tt></a>.</li>
-<li><em>attr</em> &#8211; <p>Attribute on the associated instances we&#8217;ll proxy for.</p>
+<li><strong>target_collection</strong> &#8211; Name of the relationship attribute we&#8217;ll proxy to,
+usually created with <a class="reference internal" href="../orm/mapping.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.</li>
+<li><strong>attr</strong> &#8211; <p>Attribute on the associated instances we&#8217;ll proxy for.</p>
 <p>For example, given a target collection of [obj1, obj2], a list created
 by this proxy property would look like [getattr(obj1, <em>attr</em>),
 getattr(obj2, <em>attr</em>)]</p>
 <p>If the relationship is one-to-one or otherwise uselist=False, then simply:
 getattr(obj, <em>attr</em>)</p>
 </li>
-<li><em>creator</em> &#8211; <p>optional.</p>
+<li><strong>creator</strong> &#8211; <p>optional.</p>
 <p>When new items are added to this proxied collection, new instances of
 the class collected by the target collection will be created.  For list
 and set collections, the target class constructor will be called with
@@ -420,8 +421,8 @@ the unit tests for examples, and for examples of how creator() functions
 can be used to construct the scalar relationship on-demand in this
 situation.</p>
 </li>
-<li><em>**kw</em> &#8211; Passes along any other keyword arguments to
-<a title="sqlalchemy.ext.associationproxy.AssociationProxy" class="reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy"><tt class="xref docutils literal"><span class="pre">AssociationProxy</span></tt></a>.</li>
+<li><strong>**kw</strong> &#8211; Passes along any other keyword arguments to
+<a class="reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy" title="sqlalchemy.ext.associationproxy.AssociationProxy"><tt class="xref py py-class docutils literal"><span class="pre">AssociationProxy</span></tt></a>.</li>
 </ul>
 </td>
 </tr>
@@ -494,7 +495,8 @@ details.</dd>
 <dl class="attribute">
 <dt id="sqlalchemy.ext.associationproxy.AssociationProxy.target_class">
 <tt class="descname">target_class</tt><a class="headerlink" href="#sqlalchemy.ext.associationproxy.AssociationProxy.target_class" title="Permalink to this definition">¶</a></dt>
-<dd>The class the proxy is attached to.</dd></dl>
+<dd><p>The class the proxy is attached to.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -517,7 +519,7 @@ details.</dd>
 
                 <div class="doc_copyright">
                     &copy; Copyright 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2+.
                 </div>
             </div>
         

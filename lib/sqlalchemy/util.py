@@ -1422,7 +1422,7 @@ class memoized_property(object):
 
     def __get__(self, obj, cls):
         if obj is None:
-            return None
+            return self
         obj.__dict__[self.__name__] = result = self.fget(obj)
         return result
 
@@ -1442,7 +1442,7 @@ class memoized_instancemethod(object):
 
     def __get__(self, obj, cls):
         if obj is None:
-            return None
+            return self
         def oneshot(*args, **kw):
             result = self.fget(obj, *args, **kw)
             memo = lambda *a, **kw: result
@@ -1699,6 +1699,11 @@ class classproperty(property):
 
     This is helpful when you need to compute __table_args__ and/or
     __mapper_args__ when using declarative."""
+    
+    def __init__(self, fget, *arg, **kw):
+        super(classproperty, self).__init__(fget, *arg, **kw)
+        self.__doc__ = fget.__doc__
+        
     def __get__(desc, self, cls):
         return desc.fget(cls)
 

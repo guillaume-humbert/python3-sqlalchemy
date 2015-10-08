@@ -399,8 +399,11 @@ class Query(object):
         
         """
 
-        return self._compile_context(labels=self._with_labels).\
-                        statement._annotate({'_halt_adapt': True})
+        stmt = self._compile_context(labels=self._with_labels).\
+                        statement
+        if self._params:
+            stmt = stmt.params(self._params)
+        return stmt._annotate({'_halt_adapt': True})
 
     def subquery(self):
         """return the full SELECT statement represented by this Query, 
@@ -851,17 +854,34 @@ class Query(object):
     @util.accepts_a_list_as_starargs(list_deprecation='deprecated')
     def order_by(self, *criterion):
         """apply one or more ORDER BY criterion to the query and return 
-        the newly resulting ``Query``"""
+        the newly resulting ``Query``
+        
+        All existing ORDER BY settings can be suppressed by 
+        passing ``None`` - this will suppress any ORDER BY configured
+        on mappers as well.
+        
+        Alternatively, an existing ORDER BY setting on the Query
+        object can be entirely cancelled by passing ``False`` 
+        as the value - use this before calling methods where
+        an ORDER BY is invalid.
+        
+        """
 
-        if len(criterion) == 1 and criterion[0] is None:
-            self._order_by = None
+        if len(criterion) == 1:
+            if criterion[0] is False:
+                if '_order_by' in self.__dict__:
+                    del self._order_by
+                return
+            if criterion[0] is None:
+                self._order_by = None
+                return
+                
+        criterion = self._adapt_col_list(criterion)
+
+        if self._order_by is False or self._order_by is None:
+            self._order_by = criterion
         else:
-            criterion = self._adapt_col_list(criterion)
-
-            if self._order_by is False or self._order_by is None:
-                self._order_by = criterion
-            else:
-                self._order_by = self._order_by + criterion
+            self._order_by = self._order_by + criterion
 
     @_generative(_no_statement_condition, _no_limit_offset)
     @util.accepts_a_list_as_starargs(list_deprecation='deprecated')
@@ -1090,7 +1110,15 @@ class Query(object):
 
         if not from_joinpoint:
             self._reset_joinpoint()
-
+        
+        if len(keys) >= 2 and \
+                isinstance(keys[1], expression.ClauseElement) and \
+                not isinstance(keys[1], expression.FromClause):
+            raise sa_exc.ArgumentError(
+                        "You appear to be passing a clause expression as the second "
+                        "argument to query.join().   Did you mean to use the form "
+                        "query.join((target, onclause))?  Note the tuple.")
+            
         for arg1 in util.to_list(keys):
             if isinstance(arg1, tuple):
                 arg1, arg2 = arg1
@@ -1306,9 +1334,10 @@ class Query(object):
         if clause is None:
             raise sa_exc.InvalidRequestError(
                     "Could not find a FROM clause to join from")
-            
+
         clause = orm_join(clause, right, onclause, 
-                            isouter=outerjoin, join_to_left=join_to_left)
+                                isouter=outerjoin, join_to_left=join_to_left)
+            
         self._from_obj = self._from_obj + (clause,)
 
     def _reset_joinpoint(self):

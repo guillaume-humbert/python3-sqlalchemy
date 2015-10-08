@@ -7,8 +7,10 @@ from sqlalchemy.test import testing
 from sqlalchemy import MetaData, Integer, String, ForeignKey, ForeignKeyConstraint, asc, Index
 from sqlalchemy.test.schema import Table, Column
 from sqlalchemy.orm import relationship, create_session, class_mapper, \
-                            joinedload, compile_mappers, backref, clear_mappers, \
-                            polymorphic_union, deferred
+                            joinedload, compile_mappers, backref, \
+                            clear_mappers, polymorphic_union, \
+                            deferred, column_property
+                            
 from sqlalchemy.test.testing import eq_
 from sqlalchemy.util import classproperty
 
@@ -28,14 +30,16 @@ class DeclarativeTest(DeclarativeTestBase):
         class User(Base, ComparableEntity):
             __tablename__ = 'users'
 
-            id = Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
+            id = Column('id', Integer, primary_key=True,
+                                        test_needs_autoincrement=True)
             name = Column('name', String(50))
             addresses = relationship("Address", backref="user")
 
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
 
-            id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
+            id = Column(Integer, primary_key=True,
+                                        test_needs_autoincrement=True)
             email = Column(String(50), key='_email')
             user_id = Column('user_id', Integer, ForeignKey('users.id'),
                              key='_user_id')
@@ -1656,36 +1660,41 @@ def _produce_test(inline, stringbased):
 
             class User(Base, ComparableEntity):
                 __tablename__ = 'users'
-                id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
+                id = Column(Integer, primary_key=True,
+                                        test_needs_autoincrement=True)
                 name = Column(String(50))
             
             class Address(Base, ComparableEntity):
                 __tablename__ = 'addresses'
-                id = Column(Integer, primary_key=True, test_needs_autoincrement=True)
+                id = Column(Integer, primary_key=True,
+                                        test_needs_autoincrement=True)
                 email = Column(String(50))
                 user_id = Column(Integer, ForeignKey('users.id'))
                 if inline:
                     if stringbased:
                         user = relationship("User", 
-                                                    primaryjoin="User.id==Address.user_id",
-                                                    backref="addresses")
+                                    primaryjoin="User.id==Address.user_id",
+                                    backref="addresses")
                     else:
-                        user = relationship(User, primaryjoin=User.id==user_id, backref="addresses")
+                        user = relationship(User,
+                                    primaryjoin=User.id==user_id,
+                                    backref="addresses")
             
             if not inline:
                 compile_mappers()
                 if stringbased:
                     Address.user = relationship("User", 
-                                            primaryjoin="User.id==Address.user_id",
-                                            backref="addresses")
+                                    primaryjoin="User.id==Address.user_id",
+                                    backref="addresses")
                 else:
                     Address.user = relationship(User, 
-                                            primaryjoin=User.id==Address.user_id,
-                                            backref="addresses")
+                                    primaryjoin=User.id==Address.user_id,
+                                    backref="addresses")
 
         @classmethod
         def insert_data(cls):
-            params = [dict(zip(('id', 'name'), column_values)) for column_values in 
+            params = [dict(zip(('id', 'name'), column_values)) 
+                for column_values in 
                 [(7, 'jack'),
                 (8, 'ed'),
                 (9, 'fred'),
@@ -1694,7 +1703,8 @@ def _produce_test(inline, stringbased):
             User.__table__.insert().execute(params)
         
             Address.__table__.insert().execute(
-                [dict(zip(('id', 'user_id', 'email'), column_values)) for column_values in 
+                [dict(zip(('id', 'user_id', 'email'), column_values)) 
+                for column_values in 
                     [(1, 7, "jack@bean.com"),
                     (2, 8, "ed@wood.com"),
                     (3, 8, "ed@bettyboop.com"),
@@ -1707,8 +1717,10 @@ def _produce_test(inline, stringbased):
             # this query will screw up if the aliasing 
             # enabled in query.join() gets applied to the right half of the 
             # join condition inside the any().
-            # the join condition inside of any() comes from the "primaryjoin" of the relationship,
-            # and should not be annotated with _orm_adapt.  PropertyLoader.Comparator will annotate
+            # the join condition inside of any() comes from the 
+            # "primaryjoin" of the relationship,
+            # and should not be annotated with _orm_adapt. 
+            # PropertyLoader.Comparator will annotate
             # the left side with _orm_adapt, though.
             sess = create_session()
             eq_(
@@ -1878,7 +1890,8 @@ class DeclarativeMixinTest(DeclarativeTestBase):
     def test_simple(self):
 
         class MyMixin(object):
-            id =  Column(Integer, primary_key=True, test_needs_autoincrement=True)
+            id =  Column(Integer, primary_key=True,
+                                test_needs_autoincrement=True)
 
             def foo(self):
                 return 'bar'+str(self.id)
@@ -1898,11 +1911,24 @@ class DeclarativeMixinTest(DeclarativeTestBase):
         eq_(obj.id,1)
         eq_(obj.name,'testing')
         eq_(obj.foo(),'bar1')
+
+        
+    def test_unique_column(self):
+        
+        class MyMixin(object):
+            id = Column(Integer, primary_key=True)
+            value = Column(String, unique=True)
+
+        class MyModel(Base, MyMixin):
+            __tablename__ = 'test'
+        
+        assert MyModel.__table__.c.value.unique
         
     def test_hierarchical_bases(self):
 
         class MyMixinParent:
-            id =  Column(Integer, primary_key=True, test_needs_autoincrement=True)
+            id =  Column(Integer, primary_key=True,
+                                test_needs_autoincrement=True)
 
             def foo(self):
                 return 'bar'+str(self.id)
@@ -1944,6 +1970,19 @@ class DeclarativeMixinTest(DeclarativeTestBase):
                 __tablename__ = 'foo'
         assert_raises(sa.exc.InvalidRequestError, go)
         
+        class MyDefMixin:
+            foo = deferred(Column('foo', String))
+        def go():
+            class MyModel(Base, MyDefMixin):
+                __tablename__ = 'foo'
+        assert_raises(sa.exc.InvalidRequestError, go)
+
+        class MyCPropMixin:
+            foo = column_property(Column('foo', String))
+        def go():
+            class MyModel(Base, MyCPropMixin):
+                __tablename__ = 'foo'
+        assert_raises(sa.exc.InvalidRequestError, go)
         
     def test_table_name_inherited(self):
         
@@ -2058,9 +2097,9 @@ class DeclarativeMixinTest(DeclarativeTestBase):
             @classproperty
             def __mapper_args__(cls):
                 if cls.__name__=='Person':
-                    return dict(polymorphic_on=cls.discriminator)
+                    return {'polymorphic_on':cls.discriminator}
                 else:
-                    return dict(polymorphic_identity=cls.__name__)
+                    return {'polymorphic_identity':cls.__name__}
 
         class Person(Base,ComputedMapperArgs):
             __tablename__ = 'people'
@@ -2084,9 +2123,9 @@ class DeclarativeMixinTest(DeclarativeTestBase):
             @classproperty
             def __mapper_args__(cls):
                 if cls.__name__=='Person':
-                    return dict(polymorphic_on=cls.discriminator)
+                    return {'polymorphic_on':cls.discriminator}
                 else:
-                    return dict(polymorphic_identity=cls.__name__)
+                    return {'polymorphic_identity':cls.__name__}
 
         class Person(Base,ComputedMapperArgs):
             __tablename__ = 'people'
@@ -2130,7 +2169,7 @@ class DeclarativeMixinTest(DeclarativeTestBase):
     def test_mapper_args_inherited(self):
         
         class MyMixin:
-            __mapper_args__=dict(always_refresh=True)
+            __mapper_args__ = {'always_refresh':True}
 
         class MyModel(Base,MyMixin):
             __tablename__='test'
@@ -2160,7 +2199,7 @@ class DeclarativeMixinTest(DeclarativeTestBase):
 
         class MyMixin:
             type_ = Column(String(50))
-            __mapper_args__=dict(polymorphic_on=type_)
+            __mapper_args__= {'polymorphic_on':type_}
 
         class MyModel(Base,MyMixin):
             __tablename__='test'
@@ -2169,8 +2208,7 @@ class DeclarativeMixinTest(DeclarativeTestBase):
         col = MyModel.__mapper__.polymorphic_on
         eq_(col.name,'type_')
         assert col.table is not None
-    
-    
+
     def test_mapper_args_overridden(self):
         
         class MyMixin:
@@ -2187,10 +2225,10 @@ class DeclarativeMixinTest(DeclarativeTestBase):
 
         class MyMixin1:
             type_ = Column(String(50))
-            __mapper_args__=dict(polymorphic_on=type_)
+            __mapper_args__ = {'polymorphic_on':type_}
 
         class MyMixin2:
-            __mapper_args__=dict(always_refresh=True)
+            __mapper_args__ = {'always_refresh':True}
 
         class MyModel(Base,MyMixin1,MyMixin2):
             __tablename__='test'
@@ -2225,8 +2263,9 @@ class DeclarativeMixinTest(DeclarativeTestBase):
             __mapper_args__ = dict(polymorphic_identity='specific')
 
         assert Specific.__table__ is Generic.__table__
-        eq_(Generic.__table__.c.keys(),['type', 'value', 'id'])
-        assert class_mapper(Specific).polymorphic_on is Generic.__table__.c.type
+        eq_(Generic.__table__.c.keys(),['id', 'type', 'value'])
+        assert class_mapper(Specific).polymorphic_on is \
+                    Generic.__table__.c.type
         eq_(class_mapper(Specific).polymorphic_identity, 'specific')
 
     def test_joined_table_propagation(self):
@@ -2251,8 +2290,8 @@ class DeclarativeMixinTest(DeclarativeTestBase):
             id = Column(Integer, ForeignKey('generic.id'), primary_key=True)
         eq_(Generic.__table__.name,'generic')
         eq_(Specific.__table__.name,'specific')
-        eq_(Generic.__table__.c.keys(),['python_type', 'timestamp', 'id'])
-        eq_(Specific.__table__.c.keys(),['id', 'timestamp'])
+        eq_(Generic.__table__.c.keys(),['timestamp', 'id', 'python_type'])
+        eq_(Specific.__table__.c.keys(),['timestamp', 'id'])
         eq_(Generic.__table__.kwargs,{'mysql_engine': 'InnoDB'})
         eq_(Specific.__table__.kwargs,{'mysql_engine': 'InnoDB'})
             
@@ -2280,13 +2319,14 @@ class DeclarativeMixinTest(DeclarativeTestBase):
             id = Column(Integer, ForeignKey('basetype.id'), primary_key=True)
 
         eq_(BaseType.__table__.name,'basetype')
-        eq_(BaseType.__table__.c.keys(),['type', 'id', 'value', 'timestamp'])
+        eq_(BaseType.__table__.c.keys(),
+                ['timestamp', 'type', 'id', 'value', ])
         eq_(BaseType.__table__.kwargs,{'mysql_engine': 'InnoDB'})
 
         assert Single.__table__ is BaseType.__table__
 
         eq_(Joined.__table__.name,'joined')
-        eq_(Joined.__table__.c.keys(),['id','timestamp'])
+        eq_(Joined.__table__.c.keys(),['timestamp','id'])
         eq_(Joined.__table__.kwargs,{'mysql_engine': 'InnoDB'})
             
     def test_non_propagating_mixin(self):
@@ -2311,7 +2351,8 @@ class DeclarativeMixinTest(DeclarativeTestBase):
         eq_(BaseType.__table__.c.keys(),['type', 'id', 'value'])
 
         assert Specific.__table__ is BaseType.__table__
-        assert class_mapper(Specific).polymorphic_on is BaseType.__table__.c.type
+        assert class_mapper(Specific).polymorphic_on is\
+                        BaseType.__table__.c.type
         eq_(class_mapper(Specific).polymorphic_identity, 'specific')
 
     def test_non_propagating_mixin_used_for_joined(self):
@@ -2354,3 +2395,251 @@ class DeclarativeMixinTest(DeclarativeTestBase):
             __mapper_args__ = dict(polymorphic_identity='specific')
             
         eq_(BaseType.__table__.c.keys(),['type', 'id', 'timestamp'])
+
+    def test_table_in_model_and_same_column_in_mixin(self):
+        
+        class ColumnMixin:
+            data = Column(Integer)
+        
+        class Model(Base, ColumnMixin):
+            __table__ = Table(
+                'foo',
+                Base.metadata,
+                Column('data', Integer),
+                Column('id', Integer, primary_key=True) 
+                )
+        
+        model_col = Model.__table__.c.data
+        mixin_col = ColumnMixin.data
+        assert model_col is not mixin_col
+        eq_(model_col.name, 'data')
+        assert model_col.type.__class__ is mixin_col.type.__class__
+    
+    def test_table_in_model_and_different_named_column_in_mixin(self):
+        
+        class ColumnMixin:
+            tada = Column(Integer)
+        
+        def go():
+            class Model(Base, ColumnMixin):
+                __table__ = Table(
+                    'foo',
+                    Base.metadata,
+                    Column('data', Integer),
+                    Column('id', Integer, primary_key=True)
+                    )
+        
+        assert_raises_message(
+            sa.exc.ArgumentError,
+            "Can't add additional column 'tada' when specifying __table__",
+            go)
+    
+    def test_table_in_model_overrides_different_typed_column_in_mixin(self):
+        
+        class ColumnMixin:
+            data = Column(String)
+        
+        class Model(Base, ColumnMixin):
+            __table__ = Table(
+                'foo',
+                Base.metadata,
+                Column('data', Integer),
+                Column('id', Integer, primary_key=True)
+                )
+
+        model_col = Model.__table__.c.data
+        mixin_col = ColumnMixin.data
+        assert model_col is not mixin_col
+        eq_(model_col.name, 'data')
+        assert model_col.type.__class__ is Integer
+
+    def test_mixin_column_ordering(self):
+        
+        class Foo(object):
+            col1 = Column(Integer)
+            col3 = Column(Integer)
+            
+        class Bar(object):
+            col2 = Column(Integer)
+            col4 = Column(Integer)
+            
+        class Model(Base, Foo, Bar):
+            id = Column(Integer, primary_key=True)
+            __tablename__ = 'model'
+
+        eq_(Model.__table__.c.keys(),
+            ['col1', 'col3', 'col2', 'col4', 'id'])
+
+class DeclarativeMixinPropertyTest(DeclarativeTestBase):
+    def test_column_property(self):
+        class MyMixin(object):
+            @classproperty
+            def prop_hoho(cls):
+                return column_property(Column('prop', String(50)))
+
+        class MyModel(Base,MyMixin):
+            __tablename__ = 'test'
+            id = Column(Integer, primary_key=True,
+                            test_needs_autoincrement=True)
+
+        class MyOtherModel(Base,MyMixin):
+            __tablename__ = 'othertest'
+            id = Column(Integer, primary_key=True,
+                            test_needs_autoincrement=True)
+
+        assert MyModel.__table__.c.prop is not None 
+        assert MyOtherModel.__table__.c.prop is not None 
+        assert MyModel.__table__.c.prop is not MyOtherModel.__table__.c.prop 
+
+        assert MyModel.prop_hoho.property.columns == \
+                        [MyModel.__table__.c.prop] 
+        assert MyOtherModel.prop_hoho.property.columns == \
+                        [MyOtherModel.__table__.c.prop] 
+        assert MyModel.prop_hoho.property is not \
+                    MyOtherModel.prop_hoho.property
+        
+        Base.metadata.create_all()
+        sess = create_session()
+        m1, m2 = MyModel(prop_hoho='foo'), MyOtherModel(prop_hoho='bar')
+        sess.add_all([m1, m2])
+        sess.flush()
+        eq_(
+            sess.query(MyModel).filter(MyModel.prop_hoho=='foo').one(),
+            m1
+        )
+        eq_(
+            sess.query(MyOtherModel).\
+                    filter(MyOtherModel.prop_hoho=='bar').one(),
+            m2
+        )
+    
+    def test_doc(self):
+        """test documentation transfer.
+        
+        the documentation situation with @classproperty is
+        problematic.   at least see if mapped subclasses
+        get the doc.
+        
+        """
+
+        class MyMixin(object):
+            @classproperty
+            def type_(cls):
+                """this is a document."""
+                return Column(String(50))
+
+            @classproperty
+            def t2(cls):
+                """this is another document."""
+                return column_property(Column(String(50)))
+                
+        class MyModel(Base,MyMixin):
+            __tablename__='test'
+            id =  Column(Integer, primary_key=True)
+        compile_mappers()
+        eq_(
+            MyModel.type_.__doc__,
+            'this is a document.'
+        )
+        eq_(
+            MyModel.t2.__doc__,
+            'this is another document.'
+        )
+        
+    def test_column_in_mapper_args(self):
+        class MyMixin(object):
+            @classproperty
+            def type_(cls):
+                return Column(String(50))
+
+            __mapper_args__= {'polymorphic_on':type_}
+
+        class MyModel(Base,MyMixin):
+            __tablename__='test'
+            id =  Column(Integer, primary_key=True)
+        
+        compile_mappers()
+        col = MyModel.__mapper__.polymorphic_on
+        eq_(col.name,'type_')
+        assert col.table is not None
+    
+    def test_deferred(self):
+        class MyMixin(object):
+            @classproperty
+            def data(cls):
+                return deferred(Column('data', String(50)))
+        
+        class MyModel(Base,MyMixin):
+            __tablename__='test'
+            id =  Column(Integer, primary_key=True,
+                                    test_needs_autoincrement=True)
+        
+        Base.metadata.create_all()
+        sess = create_session()
+        sess.add_all([MyModel(data='d1'), MyModel(data='d2')])
+        sess.flush()
+        sess.expunge_all()
+        
+        d1, d2 = sess.query(MyModel).order_by(MyModel.data)
+        assert 'data' not in d1.__dict__
+        assert d1.data == 'd1'
+        assert 'data' in d1.__dict__
+            
+    def _test_relationship(self, usestring):
+        class RefTargetMixin(object):
+            @classproperty
+            def target_id(cls):
+                return Column('target_id', ForeignKey('target.id'))
+            
+            if usestring:
+                @classproperty
+                def target(cls):
+                    return relationship("Target",
+                        primaryjoin="Target.id==%s.target_id" % cls.__name__
+                    )
+            else:
+                @classproperty
+                def target(cls):
+                    return relationship("Target")
+            
+        class Foo(Base, RefTargetMixin):
+            __tablename__ = 'foo'
+            id = Column(Integer, primary_key=True,
+                            test_needs_autoincrement=True)
+            
+        class Bar(Base, RefTargetMixin):
+            __tablename__ = 'bar'
+            id = Column(Integer, primary_key=True,
+                            test_needs_autoincrement=True)
+                            
+        class Target(Base):
+            __tablename__ = 'target'
+            id = Column(Integer, primary_key=True,
+                            test_needs_autoincrement=True)
+            
+        Base.metadata.create_all()
+        sess = create_session()
+        t1, t2 = Target(), Target()
+        f1, f2, b1 = Foo(target=t1), Foo(target=t2), Bar(target=t1)
+        sess.add_all([f1, f2, b1])
+        sess.flush()
+        
+        eq_(
+            sess.query(Foo).filter(Foo.target==t2).one(),
+            f2
+        )
+        eq_(
+            sess.query(Bar).filter(Bar.target==t2).first(),
+            None
+        )
+        sess.expire_all()
+        eq_(f1.target, t1)
+        
+        
+        
+    def test_relationship(self):
+        self._test_relationship(False)
+
+    def test_relationship_primryjoin(self):
+        self._test_relationship(True)
+        
