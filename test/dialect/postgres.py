@@ -95,11 +95,15 @@ class ReturningTest(TestBase, AssertsExecutionResults):
 
             self.assertEqual(result.fetchall(), [(1,)])
 
-            # Multiple inserts only return the last row
-            result2 = table.insert(postgres_returning=[table]).execute(
-                 [{'persons': 2, 'full': False}, {'persons': 3, 'full': True}])
-            self.assertEqual(result2.fetchall(), [(3,3,True)])
-
+            @testing.fails_on('postgres', 'Known limitation of psycopg2')
+            def test_executemany():
+                # return value is documented as failing with psycopg2/executemany
+                result2 = table.insert(postgres_returning=[table]).execute(
+                     [{'persons': 2, 'full': False}, {'persons': 3, 'full': True}])
+                self.assertEqual(result2.fetchall(), [(2, 2, False), (3,3,True)])
+            
+            test_executemany()
+            
             result3 = table.insert(postgres_returning=[(table.c.id*2).label('double_id')]).execute({'persons': 4, 'full': False})
             self.assertEqual([dict(row) for row in result3], [{'double_id':8}])
 
@@ -432,6 +436,25 @@ class DomainReflectionTest(TestBase, AssertsExecutionResults):
         self.assertEquals(str(table.columns.answer.server_default.arg), '0', "Reflected default value didn't equal expected value")
         self.assertTrue(table.columns.answer.nullable, "Expected reflected column to be nullable.")
 
+    def test_unknown_types(self):
+        from sqlalchemy.databases import postgres
+
+        ischema_names = postgres.ischema_names
+        postgres.ischema_names = {}
+        try:
+            m2 = MetaData(testing.db)
+            self.assertRaises(exc.SAWarning, Table, "testtable", m2, autoload=True)
+
+            @testing.emits_warning('Did not recognize type')
+            def warns():
+                m3 = MetaData(testing.db)
+                t3 = Table("testtable", m3, autoload=True)
+                assert t3.c.answer.type.__class__ == sa.types.NullType
+
+        finally:
+            postgres.ischema_names = ischema_names
+
+
 class MiscTest(TestBase, AssertsExecutionResults):
     __only_on__ = 'postgres'
 
@@ -631,15 +654,23 @@ class MiscTest(TestBase, AssertsExecutionResults):
         m1 = MetaData(testing.db)
         t1 = Table('party', m1,
             Column('id', String(10), nullable=False),
-            Column('name', String(20), index=True)
+            Column('name', String(20), index=True), 
+            Column('aname', String(20))
             )
         m1.create_all()
+        
         testing.db.execute("""
           create index idx1 on party ((id || name))
         """, None) 
         testing.db.execute("""
           create unique index idx2 on party (id) where name = 'test'
         """, None)
+        
+        testing.db.execute("""
+            create index idx3 on party using btree
+                (lower(name::text), lower(aname::text))
+        """)
+        
         try:
             m2 = MetaData(testing.db)
 
@@ -655,6 +686,7 @@ class MiscTest(TestBase, AssertsExecutionResults):
             # Make sure indexes are in the order we expect them in
             tmp = [(idx.name, idx) for idx in t2.indexes]
             tmp.sort()
+            
             r1, r2 = [idx[1] for idx in tmp]
 
             assert r1.name == 'idx2'
@@ -868,6 +900,36 @@ class ServerSideCursorsTest(TestBase, AssertsExecutionResults):
             self.assertEquals(test_table.count().scalar(), 0)
         finally:
             test_table.drop(checkfirst=True)
+
+class SpecialTypesTest(TestBase, ComparesTables):
+    """test DDL and reflection of PG-specific types """
+    
+    __only_on__ = 'postgres'
+    __excluded_on__ = (('postgres', '<', (8, 3, 0)),)
+    
+    def setUpAll(self):
+        global metadata, table
+        metadata = MetaData(testing.db)
+        
+        table = Table('sometable', metadata,
+            Column('id', postgres.PGUuid, primary_key=True),
+            Column('flag', postgres.PGBit),
+            Column('addr', postgres.PGInet),
+            Column('addr2', postgres.PGMacAddr),
+            Column('addr3', postgres.PGCidr)
+        )
+        
+        metadata.create_all()
+    
+    def tearDownAll(self):
+        metadata.drop_all()
+    
+    def test_reflection(self):
+        m = MetaData(testing.db)
+        t = Table('sometable', m, autoload=True)
+        
+        self.assert_tables_equal(table, t)
+        
 
 class MatchTest(TestBase, AssertsCompiledSQL):
     __only_on__ = 'postgres'

@@ -7,7 +7,7 @@
         
         <title>
     Utilities
- &mdash; SQLAlchemy 0.5.2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.2',
+          VERSION:     '0.5.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.3 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="sqlalchemy.databases" href="../dialects/index.html" />
         <link rel="prev" title="Interfaces" href="interfaces.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.2</span> Last Updated: 01/24/2009 14:16:44
+            Version: <span class="versionnum">0.5.3</span> Last Updated: 03/25/2009 13:20:48
         </div>
         <div class="clearboth"></div>
 
@@ -96,7 +96,7 @@
 <h1>Utilities<a class="headerlink" href="#module-sqlalchemy.orm.util" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
 <dt id="sqlalchemy.orm.util.identity_key">
-<!--[sqlalchemy.orm.util.identity_key]--><tt class="descclassname">sqlalchemy.orm.util.</tt><tt class="descname">identity_key</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.identity_key" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.orm.util.</tt><tt class="descname">identity_key</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.identity_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get an identity key.</p>
 <p>Valid call signatures:</p>
 <ul>
@@ -132,16 +132,17 @@
 
 <dl class="class">
 <dt id="sqlalchemy.orm.util.Validator">
-<!--[sqlalchemy.orm.util.Validator]-->class <tt class="descclassname">sqlalchemy.orm.util.</tt><tt class="descname">Validator</tt><big>(</big><em>key</em>, <em>validator</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.Validator" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.orm.util.</tt><tt class="descname">Validator</tt><big>(</big><em>key</em>, <em>validator</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.Validator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Runs a validation method on an attribute value to be set or appended.</p>
 <p>The Validator class is used by the <a title="sqlalchemy.orm.validates" class="reference external" href="mapping.html#sqlalchemy.orm.validates"><tt class="xref docutils literal"><span class="pre">validates()</span></tt></a>
 decorator, and direct access is usually not needed.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.util.Validator.__init__">
-<!--[sqlalchemy.orm.util.Validator.__init__]--><tt class="descname">__init__</tt><big>(</big><em>key</em>, <em>validator</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.Validator.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>key</em>, <em>validator</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.Validator.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a new Validator.</p>
 <p>key - name of the attribute to be validated;
-will be passed as the second argument to 
+will be passed as the second argument to
 the validation method (the first is the object instance itself).</p>
 <p>validator - an function or instance method which accepts
 three arguments; an instance (usually just &#8216;self&#8217; for a method),
@@ -151,25 +152,23 @@ return the same value given, unless it wishes to modify it.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.util.Validator.append">
-<!--[sqlalchemy.orm.util.Validator.append]--><tt class="descname">append</tt><big>(</big><em>state</em>, <em>value</em>, <em>initiator</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.Validator.append" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">append</tt><big>(</big><em>state</em>, <em>value</em>, <em>initiator</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.Validator.append" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.orm.util.Validator.set">
-<!--[sqlalchemy.orm.util.Validator.set]--><tt class="descname">set</tt><big>(</big><em>state</em>, <em>value</em>, <em>oldvalue</em>, <em>initiator</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.Validator.set" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">set</tt><big>(</big><em>state</em>, <em>value</em>, <em>oldvalue</em>, <em>initiator</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.Validator.set" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.orm.util.with_parent">
-<!--[sqlalchemy.orm.util.with_parent]--><tt class="descclassname">sqlalchemy.orm.util.</tt><tt class="descname">with_parent</tt><big>(</big><em>instance</em>, <em>prop</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.with_parent" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.orm.util.</tt><tt class="descname">with_parent</tt><big>(</big><em>instance</em>, <em>prop</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.with_parent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return criterion which selects instances with a given parent.</p>
 <dl class="docutils">
 <dt>instance</dt>
-<dd><blockquote class="first">
-a parent instance, which should be persistent or detached.</blockquote>
-<dl class="last docutils">
+<dd>a parent instance, which should be persistent or detached.</dd>
 <dt>property</dt>
 <dd>a class-attached descriptor, MapperProperty or string property name
 attached to the parent instance.</dd>
@@ -177,13 +176,11 @@ attached to the parent instance.</dd>
 <dd>all extra keyword arguments are propagated to the constructor of
 Query.</dd>
 </dl>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.orm.util.polymorphic_union">
-<!--[sqlalchemy.orm.util.polymorphic_union]--><tt class="descclassname">sqlalchemy.orm.util.</tt><tt class="descname">polymorphic_union</tt><big>(</big><em>table_map</em>, <em>typecolname</em>, <em>aliasname='p_union'</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.polymorphic_union" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.orm.util.</tt><tt class="descname">polymorphic_union</tt><big>(</big><em>table_map</em>, <em>typecolname</em>, <em>aliasname='p_union'</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.util.polymorphic_union" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a <tt class="docutils literal"><span class="pre">UNION</span></tt> statement used by a polymorphic mapper.</p>
 <p>See  <a class="reference external" href="../../mappers.html#concrete-inheritance"><em>Concrete Table Inheritance</em></a> for an example of how
 this is used.</p>
@@ -207,7 +204,7 @@ this is used.</p>
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6b1.
                 </div>
             </div>
         

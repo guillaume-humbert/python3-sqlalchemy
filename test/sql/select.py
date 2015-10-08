@@ -131,6 +131,30 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
             select([ClauseList(column('a'), column('b'))]).select_from('sometable'), 
             'SELECT a, b FROM sometable'
         )
+        
+    def test_use_labels(self):
+        self.assert_compile(
+            select([table1.c.myid==5], use_labels=True),
+            "SELECT mytable.myid = :myid_1 AS anon_1 FROM mytable"
+        )
+
+        self.assert_compile(
+            select([func.foo()], use_labels=True),
+            "SELECT foo() AS foo_1"
+        )
+
+        self.assert_compile(
+            select([not_(True)], use_labels=True),
+            "SELECT NOT :param_1"       # TODO: should this make an anon label ??
+        )
+
+        self.assert_compile(
+            select([cast("data", sqlite.SLInteger)], use_labels=True),      # this will work with plain Integer in 0.6
+            "SELECT CAST(:param_1 AS INTEGER) AS anon_1"
+        )
+        
+        
+        
     def test_nested_uselabels(self):
         """test nested anonymous label generation.  this
         essentially tests the ANONYMOUS_LABEL regex.
@@ -283,6 +307,12 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
         s = select([table1.c.myid]).correlate(None).as_scalar()
         self.assert_compile(select([table1, s]), "SELECT mytable.myid, mytable.name, mytable.description, (SELECT mytable.myid FROM mytable) AS anon_1 FROM mytable")
 
+        # test that aliases use as_scalar() when used in an explicitly scalar context
+        s = select([table1.c.myid]).alias()
+        self.assert_compile(select([table1.c.myid]).where(table1.c.myid==s), "SELECT mytable.myid FROM mytable WHERE mytable.myid = (SELECT mytable.myid FROM mytable)")
+        self.assert_compile(select([table1.c.myid]).where(s > table1.c.myid), "SELECT mytable.myid FROM mytable WHERE mytable.myid < (SELECT mytable.myid FROM mytable)")
+
+
         s = select([table1.c.myid]).as_scalar()
         self.assert_compile(select([table2, s]), "SELECT myothertable.otherid, myothertable.othername, (SELECT mytable.myid FROM mytable) AS anon_1 FROM myothertable")
 
@@ -357,7 +387,7 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
             select([x.label('foo')]),
             'SELECT a AND b AND c AS foo'
         )
-        
+    
         self.assert_compile(
             and_(table1.c.myid == 12, table1.c.name=='asdf', table2.c.othername == 'foo', "sysdate() = today()"),
             "mytable.myid = :myid_1 AND mytable.name = :name_1 "\
@@ -807,20 +837,28 @@ FROM mytable, myothertable WHERE foo.id = foofoo(lala) AND datetime(foo) = Today
         self.assert_compile(select([extract("day", func.to_date("03/20/2005", "MM/DD/YYYY"))]), "SELECT extract(day FROM to_date(:to_date_1, :to_date_2)) AS extract_1")
 
     def test_collate(self):
-        for expr in (select([table1.c.name.collate('somecol')]),
-                     select([collate(table1.c.name, 'somecol')])):
+        for expr in (select([table1.c.name.collate('latin1_german2_ci')]),
+                     select([collate(table1.c.name, 'latin1_german2_ci')])):
             self.assert_compile(
-                expr, "SELECT mytable.name COLLATE somecol FROM mytable")
+                expr, "SELECT mytable.name COLLATE latin1_german2_ci AS anon_1 FROM mytable")
 
-        expr = select([table1.c.name.collate('somecol').like('%x%')])
+        assert table1.c.name.collate('latin1_german2_ci').type is table1.c.name.type
+        
+        expr = select([table1.c.name.collate('latin1_german2_ci').label('k1')]).order_by('k1')
+        self.assert_compile(expr,"SELECT mytable.name COLLATE latin1_german2_ci AS k1 FROM mytable ORDER BY k1")
+
+        expr = select([collate('foo', 'latin1_german2_ci').label('k1')])
+        self.assert_compile(expr,"SELECT :param_1 COLLATE latin1_german2_ci AS k1")
+
+        expr = select([table1.c.name.collate('latin1_german2_ci').like('%x%')])
         self.assert_compile(expr,
-                            "SELECT mytable.name COLLATE somecol "
+                            "SELECT mytable.name COLLATE latin1_german2_ci "
                             "LIKE :param_1 AS anon_1 FROM mytable")
 
-        expr = select([table1.c.name.like(collate('%x%', 'somecol'))])
+        expr = select([table1.c.name.like(collate('%x%', 'latin1_german2_ci'))])
         self.assert_compile(expr,
                             "SELECT mytable.name "
-                            "LIKE :param_1 COLLATE somecol AS anon_1 "
+                            "LIKE :param_1 COLLATE latin1_german2_ci AS anon_1 "
                             "FROM mytable")
 
         expr = select([table1.c.name.collate('col1').like(
@@ -830,10 +868,14 @@ FROM mytable, myothertable WHERE foo.id = foofoo(lala) AND datetime(foo) = Today
                             "LIKE :param_1 COLLATE col2 AS anon_1 "
                             "FROM mytable")
 
-        expr = select([func.concat('a', 'b').collate('somecol').label('x')])
+        expr = select([func.concat('a', 'b').collate('latin1_german2_ci').label('x')])
         self.assert_compile(expr,
                             "SELECT concat(:param_1, :param_2) "
-                            "COLLATE somecol AS x")
+                            "COLLATE latin1_german2_ci AS x")
+
+
+        expr = select([table1.c.name]).order_by(table1.c.name.collate('latin1_german2_ci'))
+        self.assert_compile(expr, "SELECT mytable.name FROM mytable ORDER BY mytable.name COLLATE latin1_german2_ci")
 
     def test_percent_chars(self):
         t = table("table%name",

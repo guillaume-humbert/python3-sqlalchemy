@@ -462,26 +462,8 @@ def case(whens, value=None, else_=None):
           })
 
     """
-    try:
-        whens = util.dictlike_iteritems(whens)
-    except TypeError:
-        pass
-
-    if value:
-        crit_filter = _literal_as_binds
-    else:
-        crit_filter = _no_literals
-
-    whenlist = [ClauseList('WHEN', crit_filter(c), 'THEN', _literal_as_binds(r), operator=None)
-                for (c,r) in whens]
-    if else_ is not None:
-        whenlist.append(ClauseList('ELSE', _literal_as_binds(else_), operator=None))
-    if whenlist:
-        type = list(whenlist[-1])[-1].type
-    else:
-        type = None
-    cc = _CalculatedClause(None, 'CASE', value, type_=type, operator=None, group_contents=False, *whenlist + ['END'])
-    return cc
+    
+    return _Case(whens, value=value, else_=else_)
 
 def cast(clause, totype, **kwargs):
     """Return a ``CAST`` function.
@@ -509,9 +491,10 @@ def collate(expression, collation):
     """Return the clause ``expression COLLATE collation``."""
 
     expr = _literal_as_binds(expression)
-    return _CalculatedClause(
-        expr, expr, _literal_as_text(collation),
-        operator=operators.collate, group=False)
+    return _BinaryExpression(
+        expr, 
+        _literal_as_text(collation), 
+        operators.collate, type_=expr.type)
 
 def exists(*args, **kwargs):
     """Return an ``EXISTS`` clause as applied to a :class:`~sqlalchemy.sql.expression.Select` object.
@@ -923,6 +906,12 @@ def _literal_as_text(element):
     else:
         return element
 
+def _clause_element_as_expr(element):
+    if hasattr(element, '__clause_element__'):
+        return element.__clause_element__()
+    else:
+        return element
+        
 def _literal_as_column(element):
     if hasattr(element, '__clause_element__'):
         return element.__clause_element__()
@@ -958,14 +947,6 @@ def _corresponding_column_or_error(fromclause, column, require_embedded=False):
                 "failed to locate a corresponding column from table '%s'"
                 % (column, getattr(column, 'table', None), fromclause.description))
     return c
-
-def _selectable(element):
-    if hasattr(element, '__selectable__'):
-        return element.__selectable__()
-    elif isinstance(element, Selectable):
-        return element
-    else:
-        raise exc.ArgumentError("Object %r is not a Selectable and does not implement `__selectable__()`" % element)
 
 def is_column(col):
     """True if ``col`` is an instance of ``ColumnElement``."""
@@ -1150,37 +1131,32 @@ class ClauseElement(Visitable):
 
         The return value is a :class:`~sqlalchemy.engine.Compiled` object.
         Calling `str()` or `unicode()` on the returned value will yield
-        a string representation of the result.   The ``Compiled``
+        a string representation of the result.   The :class:`~sqlalchemy.engine.Compiled`
         object also can return a dictionary of bind parameter names and
         values using the `params` accessor.
 
-        bind
-          An ``Engine`` or ``Connection`` from which a
+        :param bind: An ``Engine`` or ``Connection`` from which a
           ``Compiled`` will be acquired.  This argument
           takes precedence over this ``ClauseElement``'s
           bound engine, if any.
 
-        column_keys
-          Used for INSERT and UPDATE statements, a list of
+        :param column_keys: Used for INSERT and UPDATE statements, a list of
           column names which should be present in the VALUES clause
           of the compiled statement.  If ``None``, all columns
           from the target table object are rendered.
 
-        compiler
-          A ``Compiled`` instance which will be used to compile
+        :param compiler: A ``Compiled`` instance which will be used to compile
           this expression.  This argument takes precedence
           over the `bind` and `dialect` arguments as well as
           this ``ClauseElement``'s bound engine, if
           any.
 
-        dialect
-          A ``Dialect`` instance frmo which a ``Compiled``
+        :param dialect: A ``Dialect`` instance frmo which a ``Compiled``
           will be acquired.  This argument takes precedence
           over the `bind` argument as well as this
           ``ClauseElement``'s bound engine, if any.
 
-        inline
-          Used for INSERT statements, for a dialect which does
+        :param inline: Used for INSERT statements, for a dialect which does
           not support inline retrieval of newly generated
           primary key columns, will force the expression used
           to create the new primary key value to be rendered
@@ -1415,6 +1391,8 @@ class _CompareMixin(ColumnOperators):
         return self._in_impl(operators.in_op, operators.notin_op, other)
 
     def _in_impl(self, op, negate_op, seq_or_selectable):
+        seq_or_selectable = _clause_element_as_expr(seq_or_selectable)
+            
         if isinstance(seq_or_selectable, _ScalarSelect):
             return self.__compare( op, seq_or_selectable, negate=negate_op)
 
@@ -1432,7 +1410,8 @@ class _CompareMixin(ColumnOperators):
         for o in seq_or_selectable:
             if not _is_literal(o):
                 if not isinstance( o, _CompareMixin):
-                    raise exc.InvalidRequestError( "in() function accepts either a list of non-selectable values, or a selectable: "+repr(o) )
+                    raise exc.InvalidRequestError( 
+                        "in() function accepts either a list of non-selectable values, or a selectable: %r" % o)
             else:
                 o = self._bind_param(o)
             args.append(o)
@@ -1516,9 +1495,7 @@ class _CompareMixin(ColumnOperators):
     def collate(self, collation):
         """Produce a COLLATE clause, i.e. ``<column> COLLATE utf8_bin``"""
 
-        return _CalculatedClause(
-           None, self, _literal_as_text(collation),
-            operator=operators.collate, group=False)
+        return collate(self, collation)
 
     def op(self, operator):
         """produce a generic operator function.
@@ -1550,7 +1527,7 @@ class _CompareMixin(ColumnOperators):
             return other.__clause_element__()
         elif not isinstance(other, ClauseElement):
             return self._bind_param(other)
-        elif isinstance(other, _SelectBaseMixin):
+        elif isinstance(other, (_SelectBaseMixin, Alias)):
             return other.as_scalar()
         else:
             return other
@@ -1589,7 +1566,8 @@ class ColumnElement(ClauseElement, _CompareMixin):
     primary_key = False
     foreign_keys = []
     quote = None
-
+    _label = None
+    
     @property
     def _select_iterable(self):
         return (self, )
@@ -1791,7 +1769,21 @@ class FromClause(Selectable):
         return Join(self, right, onclause, True)
 
     def alias(self, name=None):
-        """return an alias of this ``FromClause`` against another ``FromClause``."""
+        """return an alias of this ``FromClause``.
+        
+        For table objects, this has the effect of the table being rendered
+        as ``tablename AS aliasname`` in a SELECT statement.  
+        For select objects, the effect is that of creating a named
+        subquery, i.e. ``(select ...) AS aliasname``.
+        The ``alias()`` method is the general way to create
+        a "subquery" out of an existing SELECT.
+        
+        The ``name`` parameter is optional, and if left blank an 
+        "anonymous" name will be generated at compile time, guaranteed
+        to be unique against other anonymous constructs used in the
+        same statement.
+        
+        """
 
         return Alias(self, name)
 
@@ -1812,6 +1804,10 @@ class FromClause(Selectable):
         return ClauseAdapter(alias).traverse(self)
 
     def correspond_on_equivalents(self, column, equivalents):
+        """Return corresponding_column for the given column, or if None
+        search for a match in the given dictionary.
+        
+        """
         col = self.corresponding_column(column, require_embedded=True)
         if col is None and col in equivalents:
             for equiv in equivalents[col]:
@@ -1825,11 +1821,9 @@ class FromClause(Selectable):
         object from this ``Selectable`` which corresponds to that
         original ``Column`` via a common anscestor column.
 
-        column
-          the target ``ColumnElement`` to be matched
+        :param column: the target ``ColumnElement`` to be matched
 
-        require_embedded
-          only return corresponding columns for the given
+        :param require_embedded: only return corresponding columns for the given
           ``ColumnElement``, if the given ``ColumnElement`` is
           actually present within a sub-element of this
           ``FromClause``.  Normally the column will match if it merely
@@ -2198,73 +2192,55 @@ class BooleanClauseList(ClauseList, ColumnElement):
         return (self, )
 
 
-class _CalculatedClause(ColumnElement):
-    """Describe a calculated SQL expression that has a type, like ``CASE``.
+class _Case(ColumnElement):
+    __visit_name__ = 'case'
 
-    Extends ``ColumnElement`` to provide column-level comparison
-    operators.
+    def __init__(self, whens, value=None, else_=None):
+        try:
+            whens = util.dictlike_iteritems(whens)
+        except TypeError:
+            pass
 
-    """
-
-    __visit_name__ = 'calculatedclause'
-
-    def __init__(self, name, *clauses, **kwargs):
-        self.name = name
-        self.type = sqltypes.to_instance(kwargs.get('type_', None))
-        self._bind = kwargs.get('bind', None)
-        self.group = kwargs.pop('group', True)
-        clauses = ClauseList(
-            operator=kwargs.get('operator', None),
-            group_contents=kwargs.get('group_contents', True),
-            *clauses)
-        if self.group:
-            self.clause_expr = clauses.self_group()
+        if value:
+            whenlist = [(_literal_as_binds(c).self_group(), _literal_as_binds(r)) for (c, r) in whens]
         else:
-            self.clause_expr = clauses
-
-    @property
-    def key(self):
-        return self.name or '_calc_'
+            whenlist = [(_no_literals(c).self_group(), _literal_as_binds(r)) for (c, r) in whens]
+            
+        if whenlist:
+            type_ = list(whenlist[-1])[-1].type
+        else:
+            type_ = None
+            
+        self.value = value
+        self.type = type_
+        self.whens = whenlist
+        if else_ is not None:
+            self.else_ = _literal_as_binds(else_)
+        else:
+            self.else_ = None
 
     def _copy_internals(self, clone=_clone):
-        self.clause_expr = clone(self.clause_expr)
-
-    @property
-    def clauses(self):
-        if isinstance(self.clause_expr, _Grouping):
-            return self.clause_expr.element
-        else:
-            return self.clause_expr
+        if self.value:
+            self.value = clone(self.value)
+        self.whens = [(clone(x), clone(y)) for x, y in self.whens]
+        if self.else_:
+            self.else_ = clone(self.else_)
 
     def get_children(self, **kwargs):
-        return self.clause_expr,
+        if self.value:
+            yield self.value
+        for x, y in self.whens:
+            yield x
+            yield y
+        if self.else_:
+            yield self.else_ 
 
     @property
     def _from_objects(self):
-        return self.clauses._from_objects
+        return itertools.chain(*[x._from_objects for x in self.get_children()])
 
-    def _bind_param(self, obj):
-        return _BindParamClause(self.name, obj, type_=self.type, unique=True)
-
-    def select(self):
-        return select([self])
-
-    def scalar(self):
-        return select([self]).execute().scalar()
-
-    def execute(self):
-        return select([self]).execute()
-
-    def _compare_type(self, obj):
-        return self.type
-
-class Function(_CalculatedClause, FromClause):
-    """Describe a SQL function.
-
-    Extends ``_CalculatedClause``, turn the *clauselist* into function
-    arguments, also adds a `packagenames` argument.
-
-    """
+class Function(ColumnElement, FromClause):
+    """Describe a SQL function."""
 
     __visit_name__ = 'function'
 
@@ -2284,12 +2260,36 @@ class Function(_CalculatedClause, FromClause):
     def columns(self):
         return [self]
 
-    def _copy_internals(self, clone=_clone):
-        _CalculatedClause._copy_internals(self, clone=clone)
-        self._reset_exported()
+    @util.memoized_property
+    def clauses(self):
+        return self.clause_expr.element
+        
+    @property
+    def _from_objects(self):
+        return self.clauses._from_objects
 
     def get_children(self, **kwargs):
-        return _CalculatedClause.get_children(self, **kwargs)
+        return self.clause_expr, 
+
+    def _copy_internals(self, clone=_clone):
+        self.clause_expr = clone(self.clause_expr)
+        self._reset_exported()
+        util.reset_memoized(self, 'clauses')
+        
+    def _bind_param(self, obj):
+        return _BindParamClause(self.name, obj, type_=self.type, unique=True)
+
+    def select(self):
+        return select([self])
+
+    def scalar(self):
+        return select([self]).execute().scalar()
+
+    def execute(self):
+        return select([self]).execute()
+
+    def _compare_type(self, obj):
+        return self.type
 
 
 class _Cast(ColumnElement):
@@ -2475,8 +2475,8 @@ class Join(FromClause):
     __visit_name__ = 'join'
 
     def __init__(self, left, right, onclause=None, isouter=False):
-        self.left = _selectable(left)
-        self.right = _selectable(right).self_group()
+        self.left = _literal_as_text(left)
+        self.right = _literal_as_text(right).self_group()
 
         if onclause is None:
             self.onclause = self._match_primaries(self.left, self.right)
@@ -2614,6 +2614,12 @@ class Alias(FromClause):
     def description(self):
         return self.name.encode('ascii', 'backslashreplace')
 
+    def as_scalar(self):
+        try:
+            return self.element.as_scalar()
+        except AttributeError:
+            raise AttributeError("Element %s does not support 'as_scalar()'" % self.element)
+        
     def is_derived_from(self, fromclause):
         if fromclause in self._cloned_set:
             return True
@@ -2710,6 +2716,12 @@ class _FromGrouping(FromClause):
 
     def __getattr__(self, attr):
         return getattr(self.element, attr)
+
+    def __getstate__(self):
+        return {'element':self.element}
+
+    def __setstate__(self, state):
+        self.element = state['element']
 
 class _Label(ColumnElement):
     """Represents a column label (AS).
@@ -2817,9 +2829,12 @@ class ColumnClause(_Immutable, ColumnElement):
 
         elif self.table and self.table.named_with_column:
             if getattr(self.table, 'schema', None):
-                label = self.table.schema + "_" + _escape_for_generated(self.table.name) + "_" + _escape_for_generated(self.name)
+                label = self.table.schema + "_" + \
+                            _escape_for_generated(self.table.name) + "_" + \
+                            _escape_for_generated(self.name)
             else:
-                label = _escape_for_generated(self.table.name) + "_" + _escape_for_generated(self.name)
+                label = _escape_for_generated(self.table.name) + "_" + \
+                            _escape_for_generated(self.name)
 
             if label in self.table.c:
                 # TODO: coverage does not seem to be present for this
@@ -3103,6 +3118,8 @@ class CompoundSelect(_SelectBaseMixin, FromClause):
 
         # some DBs do not like ORDER BY in the inner queries of a UNION, etc.
         for n, s in enumerate(selects):
+            s = _clause_element_as_expr(s)
+            
             if not numcols:
                 numcols = len(s.c)
             elif len(s.c) != numcols:
@@ -3368,9 +3385,7 @@ class Select(_SelectBaseMixin, FromClause):
         """return a new select() construct with the given FROM expression applied to its list of
         FROM objects."""
 
-        if _is_literal(fromclause):
-            fromclause = _TextClause(fromclause)
-
+        fromclause = _literal_as_text(fromclause)
         self._froms = self._froms.union([fromclause])
 
     @_generative

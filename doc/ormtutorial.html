@@ -7,7 +7,7 @@
         
         <title>
     Object Relational Tutorial
- &mdash; SQLAlchemy 0.5.2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.3 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.2',
+          VERSION:     '0.5.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.2 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.3 Documentation" href="index.html" />
         <link rel="next" title="SQL Expression Language Tutorial" href="sqlexpression.html" />
         <link rel="prev" title="Overview / Installation" href="intro.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.2</span> Last Updated: 01/24/2009 14:16:44
+            Version: <span class="versionnum">0.5.3</span> Last Updated: 03/25/2009 13:20:48
         </div>
         <div class="clearboth"></div>
 
@@ -578,7 +578,7 @@ LIMIT 2 OFFSET 0
     <span class="c"># ....</span>
     <span class="n">addresses</span> <span class="o">=</span> <span class="n">relation</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="n">Address</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&quot;user&quot;</span><span class="p">)</span></pre></div>
 </div>
-<p>We are also free to not define a backref, and to define the func:<cite>relation()</cite> only on one class and not the other.   It is also possible to define two separate <tt class="xref docutils literal"><span class="pre">relation()</span></tt> constructs for either direction, which is generally safe for many-to-one and one-to-many relations, but not for many-to-many relations.</p>
+<p>We are also free to not define a backref, and to define the <tt class="xref docutils literal"><span class="pre">relation()</span></tt> only on one class and not the other.   It is also possible to define two separate <tt class="xref docutils literal"><span class="pre">relation()</span></tt> constructs for either direction, which is generally safe for many-to-one and one-to-many relations, but not for many-to-many relations.</p>
 <p>When using the <tt class="docutils literal"><span class="pre">declarative</span></tt> extension, <tt class="docutils literal"><span class="pre">relation()</span></tt> gives us the option to use strings for most arguments that concern the target class, in the case that the target class has not yet been defined.  This <strong>only</strong> works in conjunction with <tt class="docutils literal"><span class="pre">declarative</span></tt>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="o">....</span>
@@ -604,7 +604,7 @@ COMMIT</div></pre></div>
 </div>
 <div class="section" id="working-with-related-objects">
 <h2>Working with Related Objects<a class="headerlink" href="#working-with-related-objects" title="Permalink to this headline">¶</a></h2>
-<p>Now when we create a <tt class="docutils literal"><span class="pre">User</span></tt>, a blank <tt class="docutils literal"><span class="pre">addresses</span></tt> collection will be present.  By default, the collection is a Python list.  Other collection types, such as sets and dictionaries, are available as well:</p>
+<p>Now when we create a <tt class="docutils literal"><span class="pre">User</span></tt>, a blank <tt class="docutils literal"><span class="pre">addresses</span></tt> collection will be present.  Various collection types, such as sets and dictionaries, are possible here (see <a class="reference external" href="mappers.html#advdatamapping-entitycollections"><em>Custom Collection Implementations</em></a> for details), but by default, the collection is a Python list.</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="s">&#39;jack&#39;</span><span class="p">,</span> <span class="s">&#39;Jack Bean&#39;</span><span class="p">,</span> <span class="s">&#39;gjffdd&#39;</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span><span class="o">.</span><span class="n">addresses</span>
 <span class="p">[]</span></pre></div>
@@ -742,7 +742,7 @@ WHERE addresses_1.email_address = ? AND addresses_2.email_address = ?
     (SELECT user_id, count(*) AS address_count FROM addresses GROUP BY user_id) AS adr_count
     ON users.id=adr_count.user_id</pre>
 </div>
-<p>Using the <tt class="docutils literal"><span class="pre">Query</span></tt>, we build a statement like this from the inside out.  The <tt class="docutils literal"><span class="pre">statement</span></tt> accessor returns a SQL expression representing the statement generated by a particular <tt class="docutils literal"><span class="pre">Query</span></tt> - this is an instance of a <tt class="docutils literal"><span class="pre">select()</span></tt> construct, which are described in <cite>sql</cite>:</p>
+<p>Using the <tt class="docutils literal"><span class="pre">Query</span></tt>, we build a statement like this from the inside out.  The <tt class="docutils literal"><span class="pre">statement</span></tt> accessor returns a SQL expression representing the statement generated by a particular <tt class="docutils literal"><span class="pre">Query</span></tt> - this is an instance of a <tt class="docutils literal"><span class="pre">select()</span></tt> construct, which are described in <em class="xref">sql</em>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">func</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">stmt</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;*&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;address_count&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span><span class="o">.</span><span class="n">subquery</span><span class="p">()</span></pre></div>
 </div>
@@ -941,7 +941,7 @@ WHERE addresses.email_address IN (?, ?)
 </div>
 <div class="section" id="building-a-many-to-many-relation">
 <h2>Building a Many To Many Relation<a class="headerlink" href="#building-a-many-to-many-relation" title="Permalink to this headline">¶</a></h2>
-<p>We&#8217;re moving into the bonus round here, but lets show off a many-to-many relationship.  We&#8217;ll sneak in some other features too, just to take a tour.  We&#8217;ll make our application a blog application, where users can write <tt class="docutils literal"><span class="pre">BlogPost``s,</span> <span class="pre">which</span> <span class="pre">have</span> <span class="pre">``Keywords</span></tt> associated with them.</p>
+<p>We&#8217;re moving into the bonus round here, but lets show off a many-to-many relationship.  We&#8217;ll sneak in some other features too, just to take a tour.  We&#8217;ll make our application a blog application, where users can write <tt class="docutils literal"><span class="pre">BlogPost</span></tt> items, which have <tt class="docutils literal"><span class="pre">Keyword</span></tt> items associated with them.</p>
 <p>The declarative setup is as follows:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Text</span>
 
@@ -979,7 +979,7 @@ WHERE addresses.email_address IN (?, ?)
 <span class="o">...</span>     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyword</span><span class="p">):</span>
 <span class="o">...</span>         <span class="bp">self</span><span class="o">.</span><span class="n">keyword</span> <span class="o">=</span> <span class="n">keyword</span></pre></div>
 </div>
-<p>Above, the many-to-many relation above is <tt class="docutils literal"><span class="pre">BlogPost.keywords</span></tt>.  The defining feature of a many to many relation is the <tt class="docutils literal"><span class="pre">secondary</span></tt> keyword argument which references a <tt class="docutils literal"><span class="pre">Table</span></tt> object representing the association table.  This table only contains columns which reference the two sides of the relation; if it has <em>any</em> other columns, such as its own primary key, or foreign keys to other tables, SQLAlchemy requires a different usage pattern called the &#8220;association object&#8221;, described at <a class="reference external" href="mappers.html#association-pattern"><em>Association Object</em></a>.</p>
+<p>Above, the many-to-many relation is <tt class="docutils literal"><span class="pre">BlogPost.keywords</span></tt>.  The defining feature of a many-to-many relation is the <tt class="docutils literal"><span class="pre">secondary</span></tt> keyword argument which references a <tt class="docutils literal"><span class="pre">Table</span></tt> object representing the association table.  This table only contains columns which reference the two sides of the relation; if it has <em>any</em> other columns, such as its own primary key, or foreign keys to other tables, SQLAlchemy requires a different usage pattern called the &#8220;association object&#8221;, described at <a class="reference external" href="mappers.html#association-pattern"><em>Association Object</em></a>.</p>
 <p>The many-to-many relation is also bi-directional using the <tt class="docutils literal"><span class="pre">backref</span></tt> keyword.  This is the one case where usage of <tt class="docutils literal"><span class="pre">backref</span></tt> is generally required, since if a separate <tt class="docutils literal"><span class="pre">posts</span></tt> relation were added to the <tt class="docutils literal"><span class="pre">Keyword</span></tt> entity, both relations would independently add and remove rows from the <tt class="docutils literal"><span class="pre">post_keywords</span></tt> table and produce conflicts.</p>
 <p>We would also like our <tt class="docutils literal"><span class="pre">BlogPost</span></tt> class to have an <tt class="docutils literal"><span class="pre">author</span></tt> field.  We will add this as another bidirectional relationship, except one issue we&#8217;ll have is that a single user might have lots of blog posts.  When we access <tt class="docutils literal"><span class="pre">User.posts</span></tt>, we&#8217;d like to be able to filter results further so as not to load the entire collection.  For this we use a setting accepted by <tt class="docutils literal"><span class="pre">relation()</span></tt> called <tt class="docutils literal"><span class="pre">lazy='dynamic'</span></tt>, which configures an alternate <strong>loader strategy</strong> on the attribute.  To use it on the &#8220;reverse&#8221; side of a <tt class="docutils literal"><span class="pre">relation()</span></tt>, we use the <tt class="docutils literal"><span class="pre">backref()</span></tt> function:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">backref</span>
@@ -1101,7 +1101,7 @@ WHERE posts.id = post_keywords.post_id AND keywords.id = post_keywords.keyword_i
 
                 <div class="doc_copyright">
                     &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6b1.
                 </div>
             </div>
         

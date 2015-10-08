@@ -7,7 +7,7 @@
         
         <title>
     SqlSoup
- &mdash; SQLAlchemy 0.5.2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.2',
+          VERSION:     '0.5.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.3 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.ext" href="index.html" />
         <link rel="prev" title="serializer" href="serializer.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.2</span> Last Updated: 01/24/2009 14:16:44
+            Version: <span class="versionnum">0.5.3</span> Last Updated: 03/25/2009 13:20:48
         </div>
         <div class="clearboth"></div>
 
@@ -361,6 +361,8 @@ you would also see on a cursor:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">entity</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span> <span class="o">==</span> <span class="n">db</span><span class="o">.</span><span class="n">loans</span>
 <span class="go">True</span></pre></div>
 </div>
+<p>entity() also takes an optional schema argument.  If none is specified, the
+default schema is used.</p>
 </div>
 </div>
 <div class="section" id="extra-tests">
@@ -392,15 +394,17 @@ you would also see on a cursor:</p>
 </div>
 <dl class="exception">
 <dt id="sqlalchemy.ext.sqlsoup.PKNotFoundError">
-<!--[sqlalchemy.ext.sqlsoup.PKNotFoundError]-->exception <tt class="descclassname">sqlalchemy.ext.sqlsoup.</tt><tt class="descname">PKNotFoundError</tt><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.PKNotFoundError" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+exception </em><tt class="descclassname">sqlalchemy.ext.sqlsoup.</tt><tt class="descname">PKNotFoundError</tt><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.PKNotFoundError" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.ext.sqlsoup.SqlSoup">
-<!--[sqlalchemy.ext.sqlsoup.SqlSoup]-->class <tt class="descclassname">sqlalchemy.ext.sqlsoup.</tt><tt class="descname">SqlSoup</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.ext.sqlsoup.</tt><tt class="descname">SqlSoup</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="method">
 <dt id="sqlalchemy.ext.sqlsoup.SqlSoup.__init__">
-<!--[sqlalchemy.ext.sqlsoup.SqlSoup.__init__]--><tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize a new <tt class="docutils literal"><span class="pre">SqlSoup</span></tt>.</p>
 <p><cite>args</cite> may either be an <tt class="docutils literal"><span class="pre">SQLEngine</span></tt> or a set of arguments
 suitable for passing to <tt class="docutils literal"><span class="pre">create_engine</span></tt>.</p>
@@ -408,52 +412,52 @@ suitable for passing to <tt class="docutils literal"><span class="pre">create_en
 
 <dl class="attribute">
 <dt id="sqlalchemy.ext.sqlsoup.SqlSoup.bind">
-<!--[sqlalchemy.ext.sqlsoup.SqlSoup.bind]--><tt class="descname">bind</tt><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.bind" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">bind</tt><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.bind" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.ext.sqlsoup.SqlSoup.clear">
-<!--[sqlalchemy.ext.sqlsoup.SqlSoup.clear]--><tt class="descname">clear</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.clear" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">clear</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.clear" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.ext.sqlsoup.SqlSoup.delete">
-<!--[sqlalchemy.ext.sqlsoup.SqlSoup.delete]--><tt class="descname">delete</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.delete" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">delete</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.delete" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="sqlalchemy.ext.sqlsoup.SqlSoup.engine">
-<!--[sqlalchemy.ext.sqlsoup.SqlSoup.engine]--><tt class="descname">engine</tt><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.engine" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">engine</tt><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.engine" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.ext.sqlsoup.SqlSoup.entity">
-<!--[sqlalchemy.ext.sqlsoup.SqlSoup.entity]--><tt class="descname">entity</tt><big>(</big><em>attr</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.entity" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">entity</tt><big>(</big><em>attr</em>, <em>schema=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.entity" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.ext.sqlsoup.SqlSoup.expunge_all">
-<!--[sqlalchemy.ext.sqlsoup.SqlSoup.expunge_all]--><tt class="descname">expunge_all</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.expunge_all" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">expunge_all</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.expunge_all" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.ext.sqlsoup.SqlSoup.flush">
-<!--[sqlalchemy.ext.sqlsoup.SqlSoup.flush]--><tt class="descname">flush</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.flush" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">flush</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.flush" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.ext.sqlsoup.SqlSoup.join">
-<!--[sqlalchemy.ext.sqlsoup.SqlSoup.join]--><tt class="descname">join</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.join" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">join</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.join" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.ext.sqlsoup.SqlSoup.map">
-<!--[sqlalchemy.ext.sqlsoup.SqlSoup.map]--><tt class="descname">map</tt><big>(</big><em>selectable</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.map" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">map</tt><big>(</big><em>selectable</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.map" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.ext.sqlsoup.SqlSoup.with_labels">
-<!--[sqlalchemy.ext.sqlsoup.SqlSoup.with_labels]--><tt class="descname">with_labels</tt><big>(</big><em>item</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.with_labels" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">with_labels</tt><big>(</big><em>item</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.with_labels" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -475,7 +479,7 @@ suitable for passing to <tt class="docutils literal"><span class="pre">create_en
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6b1.
                 </div>
             </div>
         

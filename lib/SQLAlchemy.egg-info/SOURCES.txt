@@ -43,6 +43,7 @@ doc/_sources/reference/ext/index.txt
 doc/_sources/reference/ext/orderinglist.txt
 doc/_sources/reference/ext/serializer.txt
 doc/_sources/reference/ext/sqlsoup.txt
+doc/_sources/reference/orm/collections.txt
 doc/_sources/reference/orm/index.txt
 doc/_sources/reference/orm/interfaces.txt
 doc/_sources/reference/orm/mapping.txt
@@ -56,17 +57,14 @@ doc/_sources/reference/sqlalchemy/interfaces.txt
 doc/_sources/reference/sqlalchemy/pooling.txt
 doc/_sources/reference/sqlalchemy/schema.txt
 doc/_sources/reference/sqlalchemy/types.txt
+doc/_static/basic.css
 doc/_static/default.css
 doc/_static/docs.css
 doc/_static/doctools.js
 doc/_static/init.js
 doc/_static/jquery.js
 doc/_static/pygments.css
-doc/_static/rightsidebar.css
 doc/_static/searchtools.js
-doc/_static/sphinxdoc.css
-doc/_static/stickysidebar.css
-doc/_static/traditional.css
 doc/build/Makefile
 doc/build/conf.py
 doc/build/copyright.rst
@@ -100,6 +98,7 @@ doc/build/reference/ext/index.rst
 doc/build/reference/ext/orderinglist.rst
 doc/build/reference/ext/serializer.rst
 doc/build/reference/ext/sqlsoup.rst
+doc/build/reference/orm/collections.rst
 doc/build/reference/orm/index.rst
 doc/build/reference/orm/interfaces.rst
 doc/build/reference/orm/mapping.rst
@@ -140,6 +139,7 @@ doc/reference/ext/index.html
 doc/reference/ext/orderinglist.html
 doc/reference/ext/serializer.html
 doc/reference/ext/sqlsoup.html
+doc/reference/orm/collections.html
 doc/reference/orm/index.html
 doc/reference/orm/interfaces.html
 doc/reference/orm/mapping.html

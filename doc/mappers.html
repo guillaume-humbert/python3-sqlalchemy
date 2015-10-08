@@ -7,7 +7,7 @@
         
         <title>
     Mapper Configuration
- &mdash; SQLAlchemy 0.5.2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.3 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.2',
+          VERSION:     '0.5.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.2 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.3 Documentation" href="index.html" />
         <link rel="next" title="Using the Session" href="session.html" />
         <link rel="prev" title="SQL Expression Language Tutorial" href="sqlexpression.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.2</span> Last Updated: 01/24/2009 14:16:44
+            Version: <span class="versionnum">0.5.3</span> Last Updated: 03/25/2009 13:20:48
         </div>
         <div class="clearboth"></div>
 
@@ -92,7 +92,7 @@
 <li><a class="reference external" href="#changing-attribute-behavior">Changing Attribute Behavior</a><ul>
 <li><a class="reference external" href="#simple-validators">Simple Validators</a></li>
 <li><a class="reference external" href="#using-descriptors">Using Descriptors</a></li>
-<li><a class="reference external" href="#id2">Custom Comparators</a></li>
+<li><a class="reference external" href="#custom-comparators">Custom Comparators</a></li>
 </ul>
 </li>
 <li><a class="reference external" href="#composite-column-types">Composite Column Types</a></li>
@@ -112,7 +112,7 @@
 <li><a class="reference external" href="#mapping-a-class-against-arbitrary-selects">Mapping a Class against Arbitrary Selects</a></li>
 <li><a class="reference external" href="#multiple-mappers-for-one-class">Multiple Mappers for One Class</a></li>
 <li><a class="reference external" href="#constructors-and-object-initialization">Constructors and Object Initialization</a></li>
-<li><a class="reference external" href="#id3">Extending Mapper</a></li>
+<li><a class="reference external" href="#extending-mapper">Extending Mapper</a></li>
 </ul>
 </li>
 <li><a class="reference external" href="#relation-configuration">Relation Configuration</a><ul>
@@ -329,8 +329,8 @@
 </div>
 <p>If the mapped class does not provide a property, the <tt class="docutils literal"><span class="pre">synonym()</span></tt> construct will create a default getter/setter object automatically.</p>
 </div>
-<div class="section" id="id2">
-<span id="custom-comparators"></span><h4>Custom Comparators<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="custom-comparators">
+<span id="id2"></span><h4>Custom Comparators<a class="headerlink" href="#custom-comparators" title="Permalink to this headline">¶</a></h4>
 <p>The expressions returned by comparison operations, such as <tt class="docutils literal"><span class="pre">User.name=='ed'</span></tt>, can be customized.  SQLAlchemy attributes generate these expressions using <a title="sqlalchemy.orm.interfaces.PropComparator" class="reference external" href="reference/orm/interfaces.html#sqlalchemy.orm.interfaces.PropComparator"><tt class="xref docutils literal"><span class="pre">PropComparator</span></tt></a> objects, which provide common Python expression overrides including <tt class="docutils literal"><span class="pre">__eq__()</span></tt>, <tt class="docutils literal"><span class="pre">__ne__()</span></tt>, <tt class="docutils literal"><span class="pre">__lt__()</span></tt>, and so on.  Any mapped attribute can be passed a user-defined class via the <tt class="docutils literal"><span class="pre">comparator_factory</span></tt> keyword argument, which subclasses the appropriate <tt class="docutils literal"><span class="pre">PropComparator</span></tt> in use, which can provide any or all of these methods:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.orm.properties</span> <span class="kn">import</span> <span class="n">ColumnProperty</span>
 <span class="k">class</span> <span class="nc">MyComparator</span><span class="p">(</span><span class="n">ColumnProperty</span><span class="o">.</span><span class="n">Comparator</span><span class="p">):</span>
@@ -855,8 +855,8 @@ operation, so the activity within a reconstructor should be conservative.</p>
 the ORM, allowing mappers to be compiled automatically and will fire a <tt class="docutils literal"><span class="pre">init_instance</span></tt> event that <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> objectss may listen for.
 <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> objects can also listen for a <tt class="docutils literal"><span class="pre">reconstruct_instance</span></tt> event, analogous to the <tt class="docutils literal"><span class="pre">reconstructor</span></tt> decorator above.</p>
 </div>
-<div class="section" id="id3">
-<span id="extending-mapper"></span><h3>Extending Mapper<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="extending-mapper">
+<span id="id3"></span><h3>Extending Mapper<a class="headerlink" href="#extending-mapper" title="Permalink to this headline">¶</a></h3>
 <p>Mappers can have functionality augmented or replaced at many points in its execution via the usage of the MapperExtension class.  This class is just a series of &#8220;hooks&#8221; where various functionality takes place.  An application can make its own MapperExtension objects, overriding only the methods it needs.  Methods that are not overridden return the special value <tt class="docutils literal"><span class="pre">sqlalchemy.orm.EXT_CONTINUE</span></tt> to allow processing to continue to the next MapperExtension or simply proceed normally if there are no more extensions.</p>
 <p>API documentation for MapperExtension: <a title="sqlalchemy.orm.interfaces.MapperExtension" class="reference external" href="reference/orm/interfaces.html#sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref docutils literal"><span class="pre">sqlalchemy.orm.interfaces.MapperExtension</span></tt></a></p>
 <p>To use MapperExtension, make your own subclass of it and just send it off to a mapper:</p>
@@ -1180,7 +1180,7 @@ FROM treenodes LEFT OUTER JOIN treenodes AS treenodes_2 ON treenodes.id = treeno
 </div>
 </div>
 <div class="section" id="alternate-collection-implementations">
-<h3>Alternate Collection Implementations<a class="headerlink" href="#alternate-collection-implementations" title="Permalink to this headline">¶</a></h3>
+<span id="id4"></span><h3>Alternate Collection Implementations<a class="headerlink" href="#alternate-collection-implementations" title="Permalink to this headline">¶</a></h3>
 <p>Mapping a one-to-many or many-to-many relationship results in a collection of values accessible through an attribute on the parent instance.  By default, this collection is a <tt class="docutils literal"><span class="pre">list</span></tt>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
     <span class="n">children</span> <span class="o">=</span> <span class="n">relation</span><span class="p">(</span><span class="n">Child</span><span class="p">)</span>
@@ -1541,7 +1541,7 @@ FROM users LEFT OUTER JOIN email_addresses AS email_addresses_1 ON users.user_id
 
                 <div class="doc_copyright">
                     &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6b1.
                 </div>
             </div>
         

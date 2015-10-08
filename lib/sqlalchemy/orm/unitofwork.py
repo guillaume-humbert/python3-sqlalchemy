@@ -107,10 +107,10 @@ class UOWTransaction(object):
             # if the cached lookup was "passive" and now we want non-passive, do a non-passive
             # lookup and re-cache
             if cached_passive and not passive:
-                history = attributes.get_history(state, key, passive=False)
+                history = attributes.get_state_history(state, key, passive=False)
                 self.attributes[hashkey] = (history, passive)
         else:
-            history = attributes.get_history(state, key, passive=passive)
+            history = attributes.get_state_history(state, key, passive=passive)
             self.attributes[hashkey] = (history, passive)
 
         if not history or not state.get_impl(key).uses_objects:
@@ -267,7 +267,7 @@ class UOWTransaction(object):
         for elem in self.elements:
             if elem.isdelete:
                 self.session._remove_newly_deleted(elem.state)
-            else:
+            elif not elem.listonly:
                 self.session._register_newly_persistent(elem.state)
 
     def _sort_dependencies(self):

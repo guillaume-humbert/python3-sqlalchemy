@@ -1285,6 +1285,8 @@ Theres no restriction on how many times you can relate from parent to child.  SQ
                     addresses_table.c.city=='New York')),
     })
 
+.. _alternate_collection_implementations:
+
 Alternate Collection Implementations 
 -------------------------------------
 
@@ -1672,7 +1674,6 @@ Note that eager/lazy loading options cannot be used in conjunction dynamic relat
 
 Setting Noload 
 ~~~~~~~~~~~~~~~
-
 
 The opposite of the dynamic relation is simply "noload", specified using ``lazy=None``:
 

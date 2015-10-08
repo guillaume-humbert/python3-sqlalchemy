@@ -7,7 +7,7 @@
         
         <title>
     MySQL
- &mdash; SQLAlchemy 0.5.2 Documentation</title>
+ &mdash; SQLAlchemy 0.5.3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.2',
+          VERSION:     '0.5.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.3 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.databases" href="index.html" />
         <link rel="next" title="Oracle" href="oracle.html" />
         <link rel="prev" title="SQL Server" href="mssql.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.2 Documentation</h1>
+        <h1>SQLAlchemy 0.5.3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.2</span> Last Updated: 01/24/2009 14:16:44
+            Version: <span class="versionnum">0.5.3</span> Last Updated: 03/25/2009 13:20:48
         </div>
         <div class="clearboth"></div>
 
@@ -306,12 +306,13 @@ timely information affecting MySQL in SQLAlchemy.</p>
 <h2>MySQL Column Types<a class="headerlink" href="#mysql-column-types" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSNumeric">
-<!--[sqlalchemy.databases.mysql.MSNumeric]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSNumeric</tt><big>(</big><em>precision=10</em>, <em>scale=2</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSNumeric" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSNumeric</tt><big>(</big><em>precision=10</em>, <em>scale=2</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSNumeric" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Numeric" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Numeric"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Numeric</span></tt></a>, <tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql._NumericType</span></tt></p>
 <p>MySQL NUMERIC type.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSNumeric.__init__">
-<!--[sqlalchemy.databases.mysql.MSNumeric.__init__]--><tt class="descname">__init__</tt><big>(</big><em>precision=10</em>, <em>scale=2</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSNumeric.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>precision=10</em>, <em>scale=2</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSNumeric.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a NUMERIC.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -337,12 +338,13 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSDecimal">
-<!--[sqlalchemy.databases.mysql.MSDecimal]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSDecimal</tt><big>(</big><em>precision=10</em>, <em>scale=2</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSDecimal" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSDecimal</tt><big>(</big><em>precision=10</em>, <em>scale=2</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSDecimal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.databases.mysql.MSNumeric" class="reference internal" href="#sqlalchemy.databases.mysql.MSNumeric"><tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql.MSNumeric</span></tt></a></p>
 <p>MySQL DECIMAL type.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSDecimal.__init__">
-<!--[sqlalchemy.databases.mysql.MSDecimal.__init__]--><tt class="descname">__init__</tt><big>(</big><em>precision=10</em>, <em>scale=2</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSDecimal.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>precision=10</em>, <em>scale=2</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSDecimal.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a DECIMAL.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -368,12 +370,13 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSDouble">
-<!--[sqlalchemy.databases.mysql.MSDouble]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSDouble</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSDouble" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSDouble</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSDouble" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Float" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Float"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Float</span></tt></a>, <tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql._NumericType</span></tt></p>
 <p>MySQL DOUBLE type.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSDouble.__init__">
-<!--[sqlalchemy.databases.mysql.MSDouble.__init__]--><tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSDouble.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSDouble.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a DOUBLE.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -399,12 +402,13 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSReal">
-<!--[sqlalchemy.databases.mysql.MSReal]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSReal</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSReal" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSReal</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSReal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.databases.mysql.MSDouble" class="reference internal" href="#sqlalchemy.databases.mysql.MSDouble"><tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql.MSDouble</span></tt></a></p>
 <p>MySQL REAL type.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSReal.__init__">
-<!--[sqlalchemy.databases.mysql.MSReal.__init__]--><tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSReal.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=True</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSReal.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a REAL.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -430,12 +434,13 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSFloat">
-<!--[sqlalchemy.databases.mysql.MSFloat]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSFloat</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=False</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSFloat" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSFloat</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=False</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSFloat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Float" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Float"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Float</span></tt></a>, <tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql._NumericType</span></tt></p>
 <p>MySQL FLOAT type.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSFloat.__init__">
-<!--[sqlalchemy.databases.mysql.MSFloat.__init__]--><tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=False</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSFloat.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>asdecimal=False</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSFloat.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a FLOAT.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -461,12 +466,13 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSInteger">
-<!--[sqlalchemy.databases.mysql.MSInteger]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSInteger</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSInteger" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSInteger</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSInteger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Integer" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Integer"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Integer</span></tt></a>, <tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql._NumericType</span></tt></p>
 <p>MySQL INTEGER type.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSInteger.__init__">
-<!--[sqlalchemy.databases.mysql.MSInteger.__init__]--><tt class="descname">__init__</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSInteger.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSInteger.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an INTEGER.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -490,12 +496,13 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSBigInteger">
-<!--[sqlalchemy.databases.mysql.MSBigInteger]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSBigInteger</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBigInteger" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSBigInteger</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBigInteger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.databases.mysql.MSInteger" class="reference internal" href="#sqlalchemy.databases.mysql.MSInteger"><tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql.MSInteger</span></tt></a></p>
 <p>MySQL BIGINTEGER type.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSBigInteger.__init__">
-<!--[sqlalchemy.databases.mysql.MSBigInteger.__init__]--><tt class="descname">__init__</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBigInteger.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBigInteger.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a BIGINTEGER.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -519,12 +526,13 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSMediumInteger">
-<!--[sqlalchemy.databases.mysql.MSMediumInteger]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSMediumInteger</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSMediumInteger" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSMediumInteger</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSMediumInteger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.databases.mysql.MSInteger" class="reference internal" href="#sqlalchemy.databases.mysql.MSInteger"><tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql.MSInteger</span></tt></a></p>
 <p>MySQL MEDIUMINTEGER type.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSMediumInteger.__init__">
-<!--[sqlalchemy.databases.mysql.MSMediumInteger.__init__]--><tt class="descname">__init__</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSMediumInteger.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSMediumInteger.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a MEDIUMINTEGER</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -548,12 +556,13 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSTinyInteger">
-<!--[sqlalchemy.databases.mysql.MSTinyInteger]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSTinyInteger</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTinyInteger" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSTinyInteger</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTinyInteger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.databases.mysql.MSInteger" class="reference internal" href="#sqlalchemy.databases.mysql.MSInteger"><tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql.MSInteger</span></tt></a></p>
 <p>MySQL TINYINT type.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSTinyInteger.__init__">
-<!--[sqlalchemy.databases.mysql.MSTinyInteger.__init__]--><tt class="descname">__init__</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTinyInteger.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTinyInteger.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a TINYINT.</p>
 <p>Note: following the usual MySQL conventions, TINYINT(1) columns
 reflected during Table(..., autoload=True) are treated as
@@ -580,12 +589,13 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSSmallInteger">
-<!--[sqlalchemy.databases.mysql.MSSmallInteger]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSSmallInteger</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSSmallInteger" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSSmallInteger</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSSmallInteger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.SmallInteger" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.SmallInteger"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.SmallInteger</span></tt></a>, <a title="sqlalchemy.databases.mysql.MSInteger" class="reference internal" href="#sqlalchemy.databases.mysql.MSInteger"><tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql.MSInteger</span></tt></a></p>
 <p>MySQL SMALLINTEGER type.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSSmallInteger.__init__">
-<!--[sqlalchemy.databases.mysql.MSSmallInteger.__init__]--><tt class="descname">__init__</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSSmallInteger.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>display_width=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSSmallInteger.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a SMALLINTEGER.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -609,7 +619,8 @@ numeric.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSBit">
-<!--[sqlalchemy.databases.mysql.MSBit]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSBit</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBit" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSBit</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>MySQL BIT type.</p>
 <p>This type is for MySQL 5.0.3 or greater for MyISAM, and 5.0.5 or greater for
@@ -617,7 +628,7 @@ MyISAM, MEMORY, InnoDB and BDB.  For older versions, use a MSTinyInteger()
 type.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSBit.__init__">
-<!--[sqlalchemy.databases.mysql.MSBit.__init__]--><tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBit.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBit.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a BIT.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -633,43 +644,47 @@ type.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSDateTime">
-<!--[sqlalchemy.databases.mysql.MSDateTime]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSDateTime</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSDateTime" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSDateTime</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSDateTime" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.DateTime" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.DateTime"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.DateTime</span></tt></a></p>
 <p>MySQL DATETIME type.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSDateTime.__init__">
-<!--[sqlalchemy.databases.mysql.MSDateTime.__init__]--><tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSDateTime.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSDateTime.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSDate">
-<!--[sqlalchemy.databases.mysql.MSDate]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSDate</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSDate" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSDate</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSDate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Date" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Date"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Date</span></tt></a></p>
 <p>MySQL DATE type.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSDate.__init__">
-<!--[sqlalchemy.databases.mysql.MSDate.__init__]--><tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSDate.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSDate.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSTime">
-<!--[sqlalchemy.databases.mysql.MSTime]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSTime</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTime" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSTime</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTime" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Time" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Time"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Time</span></tt></a></p>
 <p>MySQL TIME type.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSTime.__init__">
-<!--[sqlalchemy.databases.mysql.MSTime.__init__]--><tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTime.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTime.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSTimeStamp">
-<!--[sqlalchemy.databases.mysql.MSTimeStamp]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSTimeStamp</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTimeStamp" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSTimeStamp</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTimeStamp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TIMESTAMP" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.TIMESTAMP"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TIMESTAMP</span></tt></a></p>
 <p>MySQL TIMESTAMP type.</p>
 <p>To signal the orm to automatically re-select modified rows to retrieve the
@@ -686,31 +701,33 @@ the the default:</p>
 </div>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSTimeStamp.__init__">
-<!--[sqlalchemy.databases.mysql.MSTimeStamp.__init__]--><tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTimeStamp.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTimeStamp.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSYear">
-<!--[sqlalchemy.databases.mysql.MSYear]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSYear</tt><big>(</big><em>display_width=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSYear" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSYear</tt><big>(</big><em>display_width=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSYear" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.TypeEngine" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.TypeEngine"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>MySQL YEAR type, for single byte storage of years 1901-2155.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSYear.__init__">
-<!--[sqlalchemy.databases.mysql.MSYear.__init__]--><tt class="descname">__init__</tt><big>(</big><em>display_width=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSYear.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>display_width=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSYear.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSText">
-<!--[sqlalchemy.databases.mysql.MSText]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSText</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSText" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSText</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSText" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql._StringType</span></tt>, <a title="sqlalchemy.types.Text" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Text"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Text</span></tt></a></p>
 <p>MySQL TEXT type, for text up to 2^16 characters.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSText.__init__">
-<!--[sqlalchemy.databases.mysql.MSText.__init__]--><tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSText.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSText.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a TEXT.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -745,12 +762,13 @@ only the collation of character data.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSTinyText">
-<!--[sqlalchemy.databases.mysql.MSTinyText]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSTinyText</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTinyText" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSTinyText</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTinyText" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.databases.mysql.MSText" class="reference internal" href="#sqlalchemy.databases.mysql.MSText"><tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql.MSText</span></tt></a></p>
 <p>MySQL TINYTEXT type, for text up to 2^8 characters.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSTinyText.__init__">
-<!--[sqlalchemy.databases.mysql.MSTinyText.__init__]--><tt class="descname">__init__</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTinyText.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTinyText.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a TINYTEXT.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -782,12 +800,13 @@ only the collation of character data.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSMediumText">
-<!--[sqlalchemy.databases.mysql.MSMediumText]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSMediumText</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSMediumText" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSMediumText</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSMediumText" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.databases.mysql.MSText" class="reference internal" href="#sqlalchemy.databases.mysql.MSText"><tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql.MSText</span></tt></a></p>
 <p>MySQL MEDIUMTEXT type, for text up to 2^24 characters.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSMediumText.__init__">
-<!--[sqlalchemy.databases.mysql.MSMediumText.__init__]--><tt class="descname">__init__</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSMediumText.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSMediumText.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a MEDIUMTEXT.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -819,12 +838,13 @@ only the collation of character data.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSLongText">
-<!--[sqlalchemy.databases.mysql.MSLongText]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSLongText</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSLongText" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSLongText</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSLongText" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.databases.mysql.MSText" class="reference internal" href="#sqlalchemy.databases.mysql.MSText"><tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql.MSText</span></tt></a></p>
 <p>MySQL LONGTEXT type, for text up to 2^32 characters.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSLongText.__init__">
-<!--[sqlalchemy.databases.mysql.MSLongText.__init__]--><tt class="descname">__init__</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSLongText.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSLongText.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a LONGTEXT.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -856,12 +876,13 @@ only the collation of character data.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSString">
-<!--[sqlalchemy.databases.mysql.MSString]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSString</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSString" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSString</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSString" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql._StringType</span></tt>, <a title="sqlalchemy.types.String" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.String"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a></p>
 <p>MySQL VARCHAR type, for variable-length character data.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSString.__init__">
-<!--[sqlalchemy.databases.mysql.MSString.__init__]--><tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSString.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSString.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a VARCHAR.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -893,12 +914,13 @@ only the collation of character data.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSChar">
-<!--[sqlalchemy.databases.mysql.MSChar]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSChar</tt><big>(</big><em>length</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSChar" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSChar</tt><big>(</big><em>length</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSChar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql._StringType</span></tt>, <a title="sqlalchemy.types.CHAR" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.CHAR"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.CHAR</span></tt></a></p>
 <p>MySQL CHAR type, for fixed-length character data.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSChar.__init__">
-<!--[sqlalchemy.databases.mysql.MSChar.__init__]--><tt class="descname">__init__</tt><big>(</big><em>length</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSChar.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>length</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSChar.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an NCHAR.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -922,14 +944,15 @@ compatible with the national character set.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSNVarChar">
-<!--[sqlalchemy.databases.mysql.MSNVarChar]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSNVarChar</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSNVarChar" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSNVarChar</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSNVarChar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql._StringType</span></tt>, <a title="sqlalchemy.types.String" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.String"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a></p>
 <p>MySQL NVARCHAR type.</p>
 <p>For variable-length character data in the server&#8217;s configured national
 character set.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSNVarChar.__init__">
-<!--[sqlalchemy.databases.mysql.MSNVarChar.__init__]--><tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSNVarChar.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSNVarChar.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an NVARCHAR.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -953,14 +976,15 @@ compatible with the national character set.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSNChar">
-<!--[sqlalchemy.databases.mysql.MSNChar]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSNChar</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSNChar" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSNChar</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSNChar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql._StringType</span></tt>, <a title="sqlalchemy.types.CHAR" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.CHAR"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.CHAR</span></tt></a></p>
 <p>MySQL NCHAR type.</p>
 <p>For fixed-length character data in the server&#8217;s configured national
 character set.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSNChar.__init__">
-<!--[sqlalchemy.databases.mysql.MSNChar.__init__]--><tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSNChar.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSNChar.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an NCHAR.  Arguments are:</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -984,12 +1008,13 @@ compatible with the national character set.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSVarBinary">
-<!--[sqlalchemy.databases.mysql.MSVarBinary]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSVarBinary</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSVarBinary" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSVarBinary</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSVarBinary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql._BinaryType</span></tt></p>
 <p>MySQL VARBINARY type, for variable length binary data.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSVarBinary.__init__">
-<!--[sqlalchemy.databases.mysql.MSVarBinary.__init__]--><tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSVarBinary.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSVarBinary.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a VARBINARY.  Arguments are:</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1005,12 +1030,13 @@ compatible with the national character set.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSBinary">
-<!--[sqlalchemy.databases.mysql.MSBinary]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSBinary</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBinary" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSBinary</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBinary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql._BinaryType</span></tt></p>
 <p>MySQL BINARY type, for fixed length binary data</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSBinary.__init__">
-<!--[sqlalchemy.databases.mysql.MSBinary.__init__]--><tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBinary.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBinary.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a BINARY.</p>
 <p>This is a fixed length type, and short values will be right-padded
 with a server-version-specific pad value.</p>
@@ -1029,12 +1055,13 @@ specified, this will generate a BLOB.  This usage is deprecated.</td>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSBlob">
-<!--[sqlalchemy.databases.mysql.MSBlob]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSBlob</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBlob" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSBlob</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBlob" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql._BinaryType</span></tt></p>
 <p>MySQL BLOB type, for binary data up to 2^16 bytes</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSBlob.__init__">
-<!--[sqlalchemy.databases.mysql.MSBlob.__init__]--><tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBlob.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBlob.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a BLOB.  Arguments are:</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1052,12 +1079,13 @@ by substituting the smallest TEXT type sufficient to store
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSTinyBlob">
-<!--[sqlalchemy.databases.mysql.MSTinyBlob]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSTinyBlob</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTinyBlob" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSTinyBlob</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTinyBlob" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.databases.mysql.MSBlob" class="reference internal" href="#sqlalchemy.databases.mysql.MSBlob"><tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql.MSBlob</span></tt></a></p>
 <p>MySQL TINYBLOB type, for binary data up to 2^8 bytes.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSTinyBlob.__init__">
-<!--[sqlalchemy.databases.mysql.MSTinyBlob.__init__]--><tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTinyBlob.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSTinyBlob.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a BLOB.  Arguments are:</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1075,12 +1103,13 @@ by substituting the smallest TEXT type sufficient to store
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSMediumBlob">
-<!--[sqlalchemy.databases.mysql.MSMediumBlob]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSMediumBlob</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSMediumBlob" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSMediumBlob</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSMediumBlob" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.databases.mysql.MSBlob" class="reference internal" href="#sqlalchemy.databases.mysql.MSBlob"><tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql.MSBlob</span></tt></a></p>
 <p>MySQL MEDIUMBLOB type, for binary data up to 2^24 bytes.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSMediumBlob.__init__">
-<!--[sqlalchemy.databases.mysql.MSMediumBlob.__init__]--><tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSMediumBlob.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSMediumBlob.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a BLOB.  Arguments are:</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1098,12 +1127,13 @@ by substituting the smallest TEXT type sufficient to store
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSLongBlob">
-<!--[sqlalchemy.databases.mysql.MSLongBlob]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSLongBlob</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSLongBlob" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSLongBlob</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSLongBlob" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.databases.mysql.MSBlob" class="reference internal" href="#sqlalchemy.databases.mysql.MSBlob"><tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql.MSBlob</span></tt></a></p>
 <p>MySQL LONGBLOB type, for binary data up to 2^32 bytes.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSLongBlob.__init__">
-<!--[sqlalchemy.databases.mysql.MSLongBlob.__init__]--><tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSLongBlob.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSLongBlob.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a BLOB.  Arguments are:</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1121,12 +1151,13 @@ by substituting the smallest TEXT type sufficient to store
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSEnum">
-<!--[sqlalchemy.databases.mysql.MSEnum]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSEnum</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSEnum" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSEnum</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSEnum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.databases.mysql.MSString" class="reference internal" href="#sqlalchemy.databases.mysql.MSString"><tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql.MSString</span></tt></a></p>
 <p>MySQL ENUM type.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSEnum.__init__">
-<!--[sqlalchemy.databases.mysql.MSEnum.__init__]--><tt class="descname">__init__</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSEnum.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSEnum.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an ENUM.</p>
 <p>Example:</p>
 <blockquote>
@@ -1179,12 +1210,13 @@ literals for you.  This is a transitional option.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSSet">
-<!--[sqlalchemy.databases.mysql.MSSet]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSSet</tt><big>(</big><em>*values</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSSet" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSSet</tt><big>(</big><em>*values</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSSet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.databases.mysql.MSString" class="reference internal" href="#sqlalchemy.databases.mysql.MSString"><tt class="xref docutils literal"><span class="pre">sqlalchemy.databases.mysql.MSString</span></tt></a></p>
 <p>MySQL SET type.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSSet.__init__">
-<!--[sqlalchemy.databases.mysql.MSSet.__init__]--><tt class="descname">__init__</tt><big>(</big><em>*values</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSSet.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>*values</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSSet.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a SET.</p>
 <p>Example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Column</span><span class="p">(</span><span class="s">&#39;myset&#39;</span><span class="p">,</span> <span class="n">MSSet</span><span class="p">(</span><span class="s">&quot;&#39;foo&#39;&quot;</span><span class="p">,</span> <span class="s">&quot;&#39;bar&#39;&quot;</span><span class="p">,</span> <span class="s">&quot;&#39;baz&#39;&quot;</span><span class="p">))</span></pre></div>
@@ -1223,12 +1255,13 @@ only the collation of character data.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.databases.mysql.MSBoolean">
-<!--[sqlalchemy.databases.mysql.MSBoolean]-->class <tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSBoolean</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBoolean" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">sqlalchemy.databases.mysql.</tt><tt class="descname">MSBoolean</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBoolean" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a title="sqlalchemy.types.Boolean" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Boolean"><tt class="xref docutils literal"><span class="pre">sqlalchemy.types.Boolean</span></tt></a></p>
 <p>MySQL BOOLEAN type.</p>
 <dl class="method">
 <dt id="sqlalchemy.databases.mysql.MSBoolean.__init__">
-<!--[sqlalchemy.databases.mysql.MSBoolean.__init__]--><tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBoolean.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.databases.mysql.MSBoolean.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1252,7 +1285,7 @@ only the collation of character data.</li>
 
                 <div class="doc_copyright">
                     &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6b1.
                 </div>
             </div>
         
