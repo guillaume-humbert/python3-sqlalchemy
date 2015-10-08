@@ -836,7 +836,7 @@ class Column(SchemaItem, expression.ColumnClause):
 
         if self.server_onupdate is not None:
             if isinstance(self.server_onupdate, FetchedValue):
-                args.append(self.server_default)
+                args.append(self.server_onupdate)
             else:
                 args.append(DefaultClause(self.server_onupdate,
                                             for_update=True))
@@ -901,15 +901,17 @@ class Column(SchemaItem, expression.ColumnClause):
             ["%s=%s" % (k, repr(getattr(self, k))) for k in kwarg])
 
     def _set_parent(self, table):
-        if self.name is None:
+        if not self.name:
             raise exc.ArgumentError(
-                "Column must be constructed with a name or assign .name "
-                "before adding to a Table.")
+                "Column must be constructed with a non-blank name or "
+                "assign a non-blank .name before adding to a Table.")
         if self.key is None:
             self.key = self.name
 
         if getattr(self, 'table', None) is not None:
-            raise exc.ArgumentError("this Column already has a table!")
+            raise exc.ArgumentError(
+                    "Column object already assigned to Table '%s'" % 
+                    self.table.description)
 
         if self.key in table._columns:
             col = table._columns.get(self.key)
@@ -1275,7 +1277,8 @@ class ForeignKey(SchemaItem):
                 raise exc.NoReferencedTableError(
                     "Foreign key associated with column '%s' could not find "
                     "table '%s' with which to generate a "
-                    "foreign key to target column '%s'" % (self.parent, tname, colname))
+                    "foreign key to target column '%s'" % (self.parent, tname, colname),
+                    tname)
             table = Table(tname, parenttable.metadata,
                           mustexist=True, schema=schema)
 
@@ -1300,7 +1303,8 @@ class ForeignKey(SchemaItem):
                 raise exc.NoReferencedColumnError(
                     "Could not create ForeignKey '%s' on table '%s': "
                     "table '%s' has no column named '%s'" % (
-                    self._colspec, parenttable.name, table.name, key))
+                    self._colspec, parenttable.name, table.name, key), 
+                    table.name, key)
 
         elif hasattr(self._colspec, '__clause_element__'):
             _column = self._colspec.__clause_element__()
@@ -2306,32 +2310,36 @@ class MetaData(SchemaItem):
         if schema is not None:
             reflect_opts['schema'] = schema
 
-        available = util.OrderedSet(bind.engine.table_names(schema,
+        try:
+            available = util.OrderedSet(bind.engine.table_names(schema,
                                                             connection=conn))
-        if views:
-            available.update(
-                bind.dialect.get_view_names(conn or bind, schema)
-            )
+            if views:
+                available.update(
+                    bind.dialect.get_view_names(conn or bind, schema)
+                )
 
-        current = set(self.tables.iterkeys())
+            current = set(self.tables.iterkeys())
 
-        if only is None:
-            load = [name for name in available if name not in current]
-        elif util.callable(only):
-            load = [name for name in available
+            if only is None:
+                load = [name for name in available if name not in current]
+            elif util.callable(only):
+                load = [name for name in available
                     if name not in current and only(name, self)]
-        else:
-            missing = [name for name in only if name not in available]
-            if missing:
-                s = schema and (" schema '%s'" % schema) or ''
-                raise exc.InvalidRequestError(
-                    'Could not reflect: requested table(s) not available '
-                    'in %s%s: (%s)' % 
-                    (bind.engine.url, s, ', '.join(missing)))
-            load = [name for name in only if name not in current]
+            else:
+                missing = [name for name in only if name not in available]
+                if missing:
+                    s = schema and (" schema '%s'" % schema) or ''
+                    raise exc.InvalidRequestError(
+                        'Could not reflect: requested table(s) not available '
+                        'in %s%s: (%s)' % 
+                        (bind.engine.url, s, ', '.join(missing)))
+                load = [name for name in only if name not in current]
 
-        for name in load:
-            Table(name, self, **reflect_opts)
+            for name in load:
+                Table(name, self, **reflect_opts)
+        finally:
+            if conn is not None:
+                conn.close()
 
     def append_ddl_listener(self, event_name, listener):
         """Append a DDL event listener to this ``MetaData``.

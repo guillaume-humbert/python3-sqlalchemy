@@ -2,11 +2,12 @@ from test.lib.testing import eq_, assert_raises, assert_raises_message, config
 import re
 from sqlalchemy.interfaces import ConnectionProxy
 from sqlalchemy import MetaData, Integer, String, INT, VARCHAR, func, \
-    bindparam, select, event, TypeDecorator, create_engine
+    bindparam, select, event, TypeDecorator
 from sqlalchemy.sql import column, literal
 from test.lib.schema import Table, Column
 import sqlalchemy as tsa
 from test.lib import testing, engines
+from test.lib.engines import testing_engine
 import logging
 from sqlalchemy.dialects.oracle.zxjdbc import ReturningParam
 from sqlalchemy.engine import base, default
@@ -32,7 +33,7 @@ class ExecuteTest(fixtures.TestBase):
 
     @engines.close_first
     def teardown(self):
-        testing.db.connect().execute(users.delete())
+        testing.db.execute(users.delete())
 
     @classmethod
     def teardown_class(cls):
@@ -43,7 +44,7 @@ class ExecuteTest(fixtures.TestBase):
                                         '+mxodbc', '+zxjdbc', 'mysql+oursql',
                                         'informix+informixdb')
     def test_raw_qmark(self):
-        for conn in testing.db, testing.db.connect():
+        def go(conn):
             conn.execute('insert into users (user_id, user_name) '
                          'values (?, ?)', (1, 'jack'))
             conn.execute('insert into users (user_id, user_name) '
@@ -66,12 +67,19 @@ class ExecuteTest(fixtures.TestBase):
                 ]
             conn.execute('delete from users')
 
+        go(testing.db)
+        conn = testing.db.connect()
+        try:
+            go(conn)
+        finally:
+            conn.close()
+
     # some psycopg2 versions bomb this.
     @testing.fails_on_everything_except('mysql+mysqldb', 'mysql+pymysql',
             'mysql+mysqlconnector', 'postgresql')
     @testing.fails_on('postgresql+zxjdbc', 'sprintf not supported')
     def test_raw_sprintf(self):
-        for conn in testing.db, testing.db.connect():
+        def go(conn):
             conn.execute('insert into users (user_id, user_name) '
                          'values (%s, %s)', [1, 'jack'])
             conn.execute('insert into users (user_id, user_name) '
@@ -83,6 +91,12 @@ class ExecuteTest(fixtures.TestBase):
             assert res.fetchall() == [(1, 'jack'), (2, 'ed'), (3,
                     'horse'), (4, 'sally'), (5, None)]
             conn.execute('delete from users')
+        go(testing.db)
+        conn = testing.db.connect()
+        try:
+            go(conn)
+        finally:
+            conn.close()
 
     # pyformat is supported for mysql, but skipping because a few driver
     # versions have a bug that bombs out on this test. (1.2.2b3,
@@ -94,7 +108,7 @@ class ExecuteTest(fixtures.TestBase):
             'postgresql+pypostgresql', 'mysql+mysqlconnector', 
             'mysql+pymysql')
     def test_raw_python(self):
-        for conn in testing.db, testing.db.connect():
+        def go(conn):
             conn.execute('insert into users (user_id, user_name) '
                          'values (%(id)s, %(name)s)', {'id': 1, 'name'
                          : 'jack'})
@@ -108,10 +122,16 @@ class ExecuteTest(fixtures.TestBase):
             assert res.fetchall() == [(1, 'jack'), (2, 'ed'), (3,
                     'horse'), (4, 'sally')]
             conn.execute('delete from users')
+        go(testing.db)
+        conn = testing.db.connect()
+        try:
+            go(conn)
+        finally:
+            conn.close()
 
     @testing.fails_on_everything_except('sqlite', 'oracle+cx_oracle', 'informix+informixdb')
     def test_raw_named(self):
-        for conn in testing.db, testing.db.connect():
+        def go(conn):
             conn.execute('insert into users (user_id, user_name) '
                          'values (:id, :name)', {'id': 1, 'name': 'jack'
                          })
@@ -124,14 +144,26 @@ class ExecuteTest(fixtures.TestBase):
             assert res.fetchall() == [(1, 'jack'), (2, 'ed'), (3,
                     'horse'), (4, 'sally')]
             conn.execute('delete from users')
+        go(testing.db)
+        conn= testing.db.connect()
+        try:
+            go(conn)
+        finally:
+            conn.close()
 
     def test_exception_wrapping_dbapi(self):
-        for conn in testing.db, testing.db.connect():
+        def go(conn):
             assert_raises_message(
                 tsa.exc.DBAPIError,
                 r"not_a_valid_statement",
                 conn.execute, 'not_a_valid_statement'
             )
+        go(testing.db)
+        conn = testing.db.connect()
+        try:
+            go(conn)
+        finally:
+            conn.close()
 
     def test_exception_wrapping_non_dbapi_statement(self):
         class MyType(TypeDecorator):
@@ -139,7 +171,7 @@ class ExecuteTest(fixtures.TestBase):
             def process_bind_param(self, value, dialect):
                 raise Exception("nope")
 
-        for conn in testing.db, testing.db.connect():
+        def _go(conn):
             assert_raises_message(
                 tsa.exc.StatementError,
                 "nope 'SELECT 1 ",
@@ -149,6 +181,12 @@ class ExecuteTest(fixtures.TestBase):
                             column('foo') == literal('bar', MyType())
                         )
             )
+        _go(testing.db)
+        conn = testing.db.connect()
+        try:
+            _go(conn)
+        finally:
+            conn.close()
 
     def test_empty_insert(self):
         """test that execute() interprets [] as a list with no params"""
@@ -159,6 +197,7 @@ class ExecuteTest(fixtures.TestBase):
         eq_(testing.db.execute(users_autoinc.select()).fetchall(), [(1,
             None)])
 
+    @testing.requires.ad_hoc_engines
     def test_engine_level_options(self):
         eng = engines.testing_engine(options={'execution_options'
                 : {'foo': 'bar'}})
@@ -189,7 +228,7 @@ class CompiledCacheTest(fixtures.TestBase):
 
     @engines.close_first
     def teardown(self):
-        testing.db.connect().execute(users.delete())
+        testing.db.execute(users.delete())
 
     @classmethod
     def teardown_class(cls):
@@ -208,6 +247,8 @@ class CompiledCacheTest(fixtures.TestBase):
         eq_(conn.execute("select count(*) from users").scalar(), 3)
 
 class LoggingNameTest(fixtures.TestBase):
+    __requires__ = 'ad_hoc_engines',
+
     def _assert_names_in_execute(self, eng, eng_name, pool_name):
         eng.execute(select([1]))
         for name in [b.name for b in self.buf.buffer]:
@@ -291,6 +332,7 @@ class LoggingNameTest(fixtures.TestBase):
         self._assert_no_name_in_execute(eng)
 
 class EchoTest(fixtures.TestBase):
+    __requires__ = 'ad_hoc_engines',
 
     def setup(self):
         self.level = logging.getLogger('sqlalchemy.engine').level
@@ -307,7 +349,7 @@ class EchoTest(fixtures.TestBase):
 
         # do an initial execute to clear out 'first connect'
         # messages
-        e.execute(select([10]))
+        e.execute(select([10])).close()
         self.buf.flush()
 
         return e
@@ -345,22 +387,23 @@ class EchoTest(fixtures.TestBase):
         e2 = self.testing_engine()
 
         e1.echo = True
-        e1.execute(select([1]))
-        e2.execute(select([2]))
+        e1.execute(select([1])).close()
+        e2.execute(select([2])).close()
 
         e1.echo = False
-        e1.execute(select([3]))
-        e2.execute(select([4]))
+        e1.execute(select([3])).close()
+        e2.execute(select([4])).close()
 
         e2.echo = True
-        e1.execute(select([5]))
-        e2.execute(select([6]))
+        e1.execute(select([5])).close()
+        e2.execute(select([6])).close()
 
         assert self.buf.buffer[0].getMessage().startswith("SELECT 1")
         assert self.buf.buffer[2].getMessage().startswith("SELECT 6")
         assert len(self.buf.buffer) == 4
 
 class ResultProxyTest(fixtures.TestBase):
+
     def test_nontuple_row(self):
         """ensure the C version of BaseRowProxy handles 
         duck-type-dependent rows."""
@@ -424,6 +467,7 @@ class ResultProxyTest(fixtures.TestBase):
         finally:
             engine.dialect.execution_ctx_cls = execution_ctx_cls
 
+
     @testing.requires.python26
     def test_rowproxy_is_sequence(self):
         import collections
@@ -461,8 +505,8 @@ class AlternateResultProxyTest(fixtures.TestBase):
 
     @classmethod
     def setup_class(cls):
-        from sqlalchemy.engine import base, create_engine, default
-        cls.engine = engine = create_engine('sqlite://')
+        from sqlalchemy.engine import base, default
+        cls.engine = engine = testing_engine('sqlite://')
         m = MetaData()
         cls.table = t = Table('test', m, 
             Column('x', Integer, primary_key=True),
@@ -518,6 +562,8 @@ class AlternateResultProxyTest(fixtures.TestBase):
         self._test_proxy(base.BufferedColumnResultProxy)
 
 class EngineEventsTest(fixtures.TestBase):
+    __requires__ = 'ad_hoc_engines', 
+
     def tearDown(self):
         Engine.dispatch._clear()
 
@@ -535,8 +581,8 @@ class EngineEventsTest(fixtures.TestBase):
                     break
 
     def test_per_engine_independence(self):
-        e1 = create_engine(config.db_url)
-        e2 = create_engine(config.db_url)
+        e1 = testing_engine(config.db_url)
+        e2 = testing_engine(config.db_url)
 
         canary = []
         def before_exec(conn, stmt, *arg):
@@ -562,8 +608,8 @@ class EngineEventsTest(fixtures.TestBase):
             canary.append('be3')
 
         event.listen(Engine, "before_execute", be1)
-        e1 = create_engine(config.db_url)
-        e2 = create_engine(config.db_url)
+        e1 = testing_engine(config.db_url)
+        e2 = testing_engine(config.db_url)
 
         event.listen(e1, "before_execute", be2)
 
@@ -583,7 +629,7 @@ class EngineEventsTest(fixtures.TestBase):
         def after_execute(conn, clauseelement, multiparams, params, result):
             assert isinstance(multiparams, (list, tuple))
             assert isinstance(params, dict)
-        e1 = create_engine(config.db_url)
+        e1 = testing_engine(config.db_url)
         event.listen(e1, 'before_execute', before_execute)
         event.listen(e1, 'after_execute', after_execute)
 
@@ -783,6 +829,7 @@ class ProxyConnectionTest(fixtures.TestBase):
     the deprecated ConnectionProxy interface.
 
     """
+    __requires__ = 'ad_hoc_engines', 
 
     @testing.uses_deprecated(r'.*Use event.listen')
     @testing.fails_on('firebird', 'Data type unknown')

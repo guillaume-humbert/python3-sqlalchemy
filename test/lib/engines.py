@@ -1,39 +1,80 @@
 import sys, types, weakref
 from collections import deque
 from test.bootstrap import config
-from test.lib.util import decorator
+from test.lib.util import decorator, gc_collect
 from sqlalchemy.util import callable
-from sqlalchemy import event
+from sqlalchemy import event, pool
+from sqlalchemy.engine import base as engine_base
 import re
 import warnings
 
 class ConnectionKiller(object):
     def __init__(self):
         self.proxy_refs = weakref.WeakKeyDictionary()
+        self.testing_engines = weakref.WeakKeyDictionary()
+        self.conns = set()
+
+    def add_engine(self, engine):
+        self.testing_engines[engine] = True
+
+    def connect(self, dbapi_conn, con_record):
+        self.conns.add(dbapi_conn)
 
     def checkout(self, dbapi_con, con_record, con_proxy):
         self.proxy_refs[con_proxy] = True
 
-    def _apply_all(self, methods):
-        # must copy keys atomically
-        for rec in self.proxy_refs.keys():
-            if rec is not None and rec.is_valid:
-                try:
-                    for name in methods:
-                        if callable(name):
-                            name(rec)
-                        else:
-                            getattr(rec, name)()
-                except (SystemExit, KeyboardInterrupt):
-                    raise
-                except Exception, e:
-                    warnings.warn("testing_reaper couldn't close connection: %s" % e)
+    def _safe(self, fn):
+        try:
+            fn()
+        except (SystemExit, KeyboardInterrupt):
+            raise
+        except Exception, e:
+            warnings.warn(
+                    "testing_reaper couldn't "
+                    "rollback/close connection: %s" % e)
 
     def rollback_all(self):
-        self._apply_all(('rollback',))
+        for rec in self.proxy_refs.keys():
+            if rec is not None and rec.is_valid:
+                self._safe(rec.rollback)
 
     def close_all(self):
-        self._apply_all(('rollback', 'close'))
+        for rec in self.proxy_refs.keys():
+            if rec is not None:
+                self._safe(rec._close)
+
+    def _after_test_ctx(self):
+        pass
+        # this can cause a deadlock with pg8000 - pg8000 acquires
+        # prepared statment lock inside of rollback() - if async gc
+        # is collecting in finalize_fairy, deadlock.
+        # not sure if this should be if pypy/jython only
+        #for conn in self.conns:
+        #    self._safe(conn.rollback)
+
+    def _stop_test_ctx(self):
+        if config.options.low_connections:
+            self._stop_test_ctx_minimal()
+        else:
+            self._stop_test_ctx_aggressive()
+
+    def _stop_test_ctx_minimal(self):
+        from test.lib import testing
+        self.close_all()
+
+        self.conns = set()
+
+        for rec in self.testing_engines.keys():
+            if rec is not testing.db:
+                rec.dispose()
+
+    def _stop_test_ctx_aggressive(self):
+        self.close_all()
+        for conn in self.conns:
+            self._safe(conn.close)
+        self.conns = set()
+        for rec in self.testing_engines.keys():
+            rec.dispose()
 
     def assert_all_closed(self):
         for rec in self.proxy_refs:
@@ -104,6 +145,16 @@ class ReconnectFixture(object):
         self.connections.append(conn)
         return conn
 
+    def _safe(self, fn):
+        try:
+            fn()
+        except (SystemExit, KeyboardInterrupt):
+            raise
+        except Exception, e:
+            warnings.warn(
+                    "ReconnectFixture couldn't "
+                    "close connection: %s" % e)
+
     def shutdown(self):
         # TODO: this doesn't cover all cases
         # as nicely as we'd like, namely MySQLdb.
@@ -111,7 +162,7 @@ class ReconnectFixture(object):
         # proxy server idea to get better
         # coverage.
         for c in list(self.connections):
-            c.close()
+            self._safe(c.close)
         self.connections = []
 
 def reconnecting_engine(url=None, options=None):
@@ -121,7 +172,12 @@ def reconnecting_engine(url=None, options=None):
         options = {}
     options['module'] = ReconnectFixture(dbapi)
     engine = testing_engine(url, options)
+    _dispose = engine.dispose
+    def dispose():
+        engine.dialect.dbapi.shutdown()
+        _dispose()
     engine.test_shutdown = engine.dialect.dbapi.shutdown
+    engine.dispose = dispose
     return engine
 
 def testing_engine(url=None, options=None):
@@ -130,17 +186,24 @@ def testing_engine(url=None, options=None):
     from sqlalchemy import create_engine
     from test.lib.assertsql import asserter
 
+    if not options:
+        use_reaper = True
+    else:
+        use_reaper = options.pop('use_reaper', True)
+
     url = url or config.db_url
     options = options or config.db_opts
 
     engine = create_engine(url, **options)
+    if isinstance(engine.pool, pool.QueuePool):
+        engine.pool._timeout = 0
+        engine.pool._max_overflow = 0
     event.listen(engine, 'after_execute', asserter.execute)
     event.listen(engine, 'after_cursor_execute', asserter.cursor_execute)
-    event.listen(engine.pool, 'checkout', testing_reaper.checkout)
-
-    # may want to call this, results
-    # in first-connect initializers
-    #engine.connect()
+    if use_reaper:
+        event.listen(engine.pool, 'connect', testing_reaper.connect)
+        event.listen(engine.pool, 'checkout', testing_reaper.checkout)
+        testing_reaper.add_engine(engine)
 
     return engine
 

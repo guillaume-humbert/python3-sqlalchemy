@@ -27,6 +27,7 @@ class ZooMarkTest(fixtures.TestBase):
 
     """
 
+    __requires__ = 'cpython',
     __only_on__ = 'postgresql+psycopg2'
     __skip_if__ = lambda : sys.version_info < (2, 5),
 
@@ -34,7 +35,7 @@ class ZooMarkTest(fixtures.TestBase):
         global metadata, session
         creator = testing.db.pool._creator
         recorder = lambda : dbapi_session.recorder(creator())
-        engine = engines.testing_engine(options={'creator': recorder})
+        engine = engines.testing_engine(options={'creator': recorder, 'use_reaper':False})
         metadata = MetaData(engine)
         session = sessionmaker()()
         engine.connect()

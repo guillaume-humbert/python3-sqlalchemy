@@ -53,12 +53,20 @@ def _list_dbs(*args):
 def _server_side_cursors(options, opt_str, value, parser):
     db_opts['server_side_cursors'] = True
 
+def _zero_timeout(options, opt_str, value, parser):
+    warnings.warn("--zero-timeout testing option is now on in all cases")
+
 def _engine_strategy(options, opt_str, value, parser):
     if value:
         db_opts['strategy'] = value
 
 pre_configure = []
 post_configure = []
+
+def _setup_options(opt, file_config):
+    global options
+    options = opt
+pre_configure.append(_setup_options)
 
 def _monkeypatch_cdecimal(options, file_config):
     if options.cdecimal:

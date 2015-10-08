@@ -78,8 +78,17 @@ class NoReferenceError(InvalidRequestError):
 class NoReferencedTableError(NoReferenceError):
     """Raised by ``ForeignKey`` when the referred ``Table`` cannot be located."""
 
+    def __init__(self, message, tname):
+        NoReferenceError.__init__(self, message)
+        self.table_name = tname
+
 class NoReferencedColumnError(NoReferenceError):
     """Raised by ``ForeignKey`` when the referred ``Column`` cannot be located."""
+
+    def __init__(self, message, tname, cname):
+        NoReferenceError.__init__(self, message)
+        self.table_name = tname
+        self.column_name = cname
 
 class NoSuchTableError(InvalidRequestError):
     """Table does not exist or is not visible to a connection."""

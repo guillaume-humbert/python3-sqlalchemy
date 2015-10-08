@@ -6,7 +6,7 @@ from test.lib.testing import eq_
 from sqlalchemy import *
 from sqlalchemy import util
 from sqlalchemy.orm import *
-
+from sqlalchemy.orm.interfaces import MANYTOONE
 from test.lib import AssertsExecutionResults, testing
 from test.lib.util import function_named
 from test.lib import fixtures
@@ -1078,39 +1078,53 @@ class InheritingEagerTest(fixtures.MappedTest):
 class MissingPolymorphicOnTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
-        global tablea, tableb, tablec, tabled
         tablea = Table('tablea', metadata, 
-            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
+            Column('id', Integer, primary_key=True, 
+                            test_needs_autoincrement=True),
             Column('adata', String(50)),
             )
         tableb = Table('tableb', metadata, 
-            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
+            Column('id', Integer, primary_key=True, 
+                            test_needs_autoincrement=True),
             Column('aid', Integer, ForeignKey('tablea.id')),
             Column('data', String(50)),
             )
         tablec = Table('tablec', metadata, 
-            Column('id', Integer, ForeignKey('tablea.id'), primary_key=True),
+            Column('id', Integer, ForeignKey('tablea.id'), 
+                                    primary_key=True),
             Column('cdata', String(50)),
             )
         tabled = Table('tabled', metadata, 
-            Column('id', Integer, ForeignKey('tablec.id'), primary_key=True),
+            Column('id', Integer, ForeignKey('tablec.id'), 
+                                    primary_key=True),
             Column('ddata', String(50)),
             )
 
-    def test_polyon_col_setsup(self):
-        class A(fixtures.ComparableEntity):
+    @classmethod
+    def setup_classes(cls):
+        class A(cls.Comparable):
             pass
-        class B(fixtures.ComparableEntity):
+        class B(cls.Comparable):
             pass
         class C(A):
             pass
         class D(C):
             pass
 
-        poly_select = select([tablea, tableb.c.data.label('discriminator')], from_obj=tablea.join(tableb)).alias('poly')
+    def test_polyon_col_setsup(self):
+        tablea, tableb, tablec, tabled = self.tables.tablea, \
+            self.tables.tableb, self.tables.tablec, self.tables.tabled
+        A, B, C, D = self.classes.A, self.classes.B, self.classes.C, \
+            self.classes.D
+        poly_select = select(
+                        [tablea, tableb.c.data.label('discriminator')], 
+                        from_obj=tablea.join(tableb)).alias('poly')
 
         mapper(B, tableb)
-        mapper(A, tablea, with_polymorphic=('*', poly_select), polymorphic_on=poly_select.c.discriminator, properties={
+        mapper(A, tablea, 
+                    with_polymorphic=('*', poly_select),
+                     polymorphic_on=poly_select.c.discriminator, 
+        properties={
             'b':relationship(B, uselist=False)
         })
         mapper(C, tablec, inherits=A,polymorphic_identity='c')
@@ -1123,5 +1137,130 @@ class MissingPolymorphicOnTest(fixtures.MappedTest):
         sess.add(d)
         sess.flush()
         sess.expunge_all()
-        eq_(sess.query(A).all(), [C(cdata='c1', adata='a1'), D(cdata='c2', adata='a2', ddata='d2')])
+        eq_(
+            sess.query(A).all(), 
+            [
+                C(cdata='c1', adata='a1'), 
+                D(cdata='c2', adata='a2', ddata='d2')
+            ]
+        )
 
+class JoinedInhAdjacencyTest(fixtures.MappedTest):
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('people', metadata,
+                 Column('id', Integer, primary_key=True, 
+                                test_needs_autoincrement=True),
+                 Column('type', String(30)),
+                 )
+        Table('users', metadata,
+              Column('id', Integer, ForeignKey('people.id'), 
+                                primary_key=True),
+              Column('supervisor_id', Integer, ForeignKey('people.id')),
+        )
+        Table('dudes', metadata,
+              Column('id', Integer, ForeignKey('users.id'), 
+                                primary_key=True),
+        )
+
+    @classmethod
+    def setup_classes(cls):
+        class Person(cls.Comparable):
+            pass
+
+        class User(Person):
+            pass
+
+        class Dude(User):
+            pass
+
+    def _roundtrip(self):
+        Person, User = self.classes.Person, self.classes.User
+        sess = Session()
+        u1 = User()
+        u2 = User()
+        u2.supervisor = u1
+        sess.add_all([u1, u2])
+        sess.commit()
+
+        assert u2.supervisor is u1
+
+    def _dude_roundtrip(self):
+        Dude, User = self.classes.Dude, self.classes.User
+        sess = Session()
+        u1 = User()
+        d1 = Dude()
+        d1.supervisor = u1
+        sess.add_all([u1, d1])
+        sess.commit()
+
+        assert d1.supervisor is u1
+
+    def test_joined_to_base(self):
+        people, users = self.tables.people, self.tables.users
+        Person, User = self.classes.Person, self.classes.User
+
+        mapper(Person, people,
+            polymorphic_on=people.c.type,
+            polymorphic_identity='person',
+        )
+        mapper(User, users, inherits=Person,
+            polymorphic_identity='user',
+            inherit_condition=(users.c.id == people.c.id),
+            properties = {
+                'supervisor': relationship(Person,
+                                primaryjoin=users.c.supervisor_id==people.c.id,
+                               ),
+               }
+        )
+
+        assert User.supervisor.property.direction is MANYTOONE
+        self._roundtrip()
+
+    def test_joined_to_same_subclass(self):
+        people, users = self.tables.people, self.tables.users
+        Person, User = self.classes.Person, self.classes.User
+
+        mapper(Person, people,
+            polymorphic_on=people.c.type,
+            polymorphic_identity='person',
+        )
+        mapper(User, users, inherits=Person,
+            polymorphic_identity='user',
+            inherit_condition=(users.c.id == people.c.id),
+            properties = {
+                'supervisor': relationship(User,
+                                   primaryjoin=users.c.supervisor_id==people.c.id,
+                                   remote_side=people.c.id,
+                                   foreign_keys=[users.c.supervisor_id]
+                               ),
+               }
+        )
+        assert User.supervisor.property.direction is MANYTOONE
+        self._roundtrip()
+
+    def test_joined_subclass_to_superclass(self):
+        people, users, dudes = self.tables.people, self.tables.users, self.tables.dudes
+        Person, User, Dude = self.classes.Person, self.classes.User, self.classes.Dude
+
+        mapper(Person, people,
+            polymorphic_on=people.c.type,
+            polymorphic_identity='person',
+        )
+        mapper(User, users, inherits=Person,
+            polymorphic_identity='user',
+            inherit_condition=(users.c.id == people.c.id),
+        )
+        mapper(Dude, dudes, inherits=User,
+            polymorphic_identity='dude',
+            inherit_condition=(dudes.c.id==users.c.id),
+            properties={
+                'supervisor': relationship(User,
+                                   primaryjoin=users.c.supervisor_id==people.c.id,
+                                   remote_side=people.c.id,
+                                   foreign_keys=[users.c.supervisor_id]
+                               ),
+            }
+        )
+        assert Dude.supervisor.property.direction is MANYTOONE
+        self._dude_roundtrip()

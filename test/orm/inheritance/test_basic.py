@@ -5,7 +5,7 @@ from sqlalchemy import exc as sa_exc, util
 from sqlalchemy.orm import *
 from sqlalchemy.orm import exc as orm_exc, attributes
 from test.lib.assertsql import AllOf, CompiledSQL
-
+from sqlalchemy.sql import table, column
 from test.lib import testing, engines
 from test.lib import fixtures
 from test.orm import _fixtures
@@ -791,7 +791,7 @@ class VersioningTest(fixtures.MappedTest):
         s2.subdata = 'sess2 subdata'
         sess2.flush()
 
-    @testing.emits_warning(r".*updated rowcount")
+    @testing.emits_warning(r".*(update|delete)d rowcount")
     def test_delete(self):
         subtable, base = self.tables.subtable, self.tables.base
 
@@ -1507,6 +1507,139 @@ class NoPKOnSubTableWarningTest(fixtures.TestBase):
         mc = mapper(C, child, inherits=P, primary_key=[parent.c.id])
         eq_(mc.primary_key, (parent.c.id,))
 
+class InhCondTest(fixtures.TestBase):
+    def test_inh_cond_nonexistent_table_unrelated(self):
+        metadata = MetaData()
+        base_table = Table("base", metadata,
+            Column("id", Integer, primary_key=True)
+        )
+        derived_table = Table("derived", metadata,
+            Column("id", Integer, ForeignKey("base.id"), primary_key=True),
+            Column("owner_id", Integer, ForeignKey("owner.owner_id"))
+        )
+
+        class Base(object):
+            pass
+
+        class Derived(Base):
+            pass
+
+        mapper(Base, base_table)
+        # succeeds, despite "owner" table not configured yet
+        m2 = mapper(Derived, derived_table, 
+                    inherits=Base)
+        assert m2.inherit_condition.compare(
+                    base_table.c.id==derived_table.c.id
+                )
+
+    def test_inh_cond_nonexistent_col_unrelated(self):
+        m = MetaData()
+        base_table = Table("base", m,
+            Column("id", Integer, primary_key=True)
+        )
+        derived_table = Table("derived", m,
+            Column("id", Integer, ForeignKey('base.id'), 
+                primary_key=True),
+            Column('order_id', Integer, ForeignKey('order.foo'))
+        )
+        order_table = Table('order', m, Column('id', Integer, primary_key=True))
+        class Base(object):
+            pass
+
+        class Derived(Base):
+            pass
+
+        mapper(Base, base_table)
+
+        # succeeds, despite "order.foo" doesn't exist
+        m2 = mapper(Derived, derived_table, inherits=Base)
+        assert m2.inherit_condition.compare(
+                    base_table.c.id==derived_table.c.id
+                )
+
+    def test_inh_cond_no_fk(self):
+        metadata = MetaData()
+        base_table = Table("base", metadata,
+            Column("id", Integer, primary_key=True)
+        )
+        derived_table = Table("derived", metadata,
+            Column("id", Integer, primary_key=True),
+        )
+
+        class Base(object):
+            pass
+
+        class Derived(Base):
+            pass
+
+        mapper(Base, base_table)
+        assert_raises_message(
+            sa_exc.ArgumentError,
+            "Can't find any foreign key relationships between "
+            "'base' and 'derived'.",
+            mapper,
+            Derived, derived_table,  inherits=Base
+        )
+
+    def test_inh_cond_nonexistent_table_related(self):
+        m1 = MetaData()
+        m2 = MetaData()
+        base_table = Table("base", m1,
+            Column("id", Integer, primary_key=True)
+        )
+        derived_table = Table("derived", m2,
+            Column("id", Integer, ForeignKey('base.id'), 
+                primary_key=True),
+        )
+
+        class Base(object):
+            pass
+
+        class Derived(Base):
+            pass
+
+        mapper(Base, base_table)
+
+        # the ForeignKey def is correct but there are two
+        # different metadatas.  Would like the traditional
+        # "noreferencedtable" error to raise so that the
+        # user is directed towards the FK definition in question.
+        assert_raises_message(
+            sa_exc.NoReferencedTableError,
+            "Foreign key associated with column 'derived.id' "
+            "could not find table 'base' with which to generate "
+            "a foreign key to target column 'id'",
+            mapper,
+            Derived, derived_table,  inherits=Base
+        )
+
+    def test_inh_cond_nonexistent_col_related(self):
+        m = MetaData()
+        base_table = Table("base", m,
+            Column("id", Integer, primary_key=True)
+        )
+        derived_table = Table("derived", m,
+            Column("id", Integer, ForeignKey('base.q'), 
+                primary_key=True),
+        )
+
+        class Base(object):
+            pass
+
+        class Derived(Base):
+            pass
+
+        mapper(Base, base_table)
+
+        assert_raises_message(
+            sa_exc.NoReferencedColumnError,
+            "Could not create ForeignKey 'base.q' on table "
+            "'derived': table 'base' has no column named 'q'",
+            mapper,
+            Derived, derived_table,  inherits=Base
+        )
+
+
 class PKDiscriminatorTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
@@ -1683,4 +1816,60 @@ class DeleteOrphanTest(fixtures.MappedTest):
         sess.add(s1)
         assert_raises(sa_exc.DBAPIError, sess.flush)
 
+class PolymorphicUnionTest(fixtures.TestBase, testing.AssertsCompiledSQL):
+    __dialect__ = 'default'
+
+    def _fixture(self):
+        t1 = table('t1', column('c1', Integer), 
+                        column('c2', Integer), 
+                        column('c3', Integer))
+        t2 = table('t2', column('c1', Integer), column('c2', Integer), 
+                                column('c3', Integer), 
+                                column('c4', Integer))
+        t3 = table('t3', column('c1', Integer), 
+                                column('c3', Integer), 
+                                column('c5', Integer))
+        return t1, t2, t3
+
+    def test_type_col_present(self):
+        t1, t2, t3 = self._fixture()
+        self.assert_compile(
+            polymorphic_union(
+                util.OrderedDict([("a", t1), ("b", t2), ("c", t3)]),
+                'q1'
+            ),
+            "SELECT t1.c1, t1.c2, t1.c3, CAST(NULL AS INTEGER) AS c4, "
+            "CAST(NULL AS INTEGER) AS c5, 'a' AS q1 FROM t1 UNION ALL "
+            "SELECT t2.c1, t2.c2, t2.c3, t2.c4, CAST(NULL AS INTEGER) AS c5, "
+            "'b' AS q1 FROM t2 UNION ALL SELECT t3.c1, "
+            "CAST(NULL AS INTEGER) AS c2, t3.c3, CAST(NULL AS INTEGER) AS c4, "
+            "t3.c5, 'c' AS q1 FROM t3"
+        )
+
+    def test_type_col_non_present(self):
+        t1, t2, t3 = self._fixture()
+        self.assert_compile(
+            polymorphic_union(
+                util.OrderedDict([("a", t1), ("b", t2), ("c", t3)]),
+                None
+            ),
+            "SELECT t1.c1, t1.c2, t1.c3, CAST(NULL AS INTEGER) AS c4, "
+            "CAST(NULL AS INTEGER) AS c5 FROM t1 UNION ALL SELECT t2.c1, "
+            "t2.c2, t2.c3, t2.c4, CAST(NULL AS INTEGER) AS c5 FROM t2 "
+            "UNION ALL SELECT t3.c1, CAST(NULL AS INTEGER) AS c2, t3.c3, "
+            "CAST(NULL AS INTEGER) AS c4, t3.c5 FROM t3"
+        )
+
+    def test_no_cast_null(self):
+        t1, t2, t3 = self._fixture()
+        self.assert_compile(
+            polymorphic_union(
+                util.OrderedDict([("a", t1), ("b", t2), ("c", t3)]),
+                'q1', cast_nulls=False
+            ),
+            "SELECT t1.c1, t1.c2, t1.c3, NULL AS c4, NULL AS c5, 'a' AS q1 "
+            "FROM t1 UNION ALL SELECT t2.c1, t2.c2, t2.c3, t2.c4, NULL AS c5, "
+            "'b' AS q1 FROM t2 UNION ALL SELECT t3.c1, NULL AS c2, t3.c3, "
+            "NULL AS c4, t3.c5, 'c' AS q1 FROM t3"
+        )
 

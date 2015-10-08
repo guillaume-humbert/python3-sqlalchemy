@@ -258,6 +258,8 @@ class FloatCoercionTest(fixtures.TablesTest, AssertsExecutionResults):
             {'data':9},
         )
 
+    @testing.fails_on('postgresql+zxjdbc',
+                      'XXX: postgresql+zxjdbc currently returns a Decimal result for Float')
     def test_float_coercion(self):
         data_table = self.tables.data_table
 
@@ -282,6 +284,8 @@ class FloatCoercionTest(fixtures.TablesTest, AssertsExecutionResults):
             ).scalar()
             eq_(round_decimal(ret, 9), result)
 
+    @testing.fails_on('postgresql+zxjdbc',
+                      'zxjdbc has no support for PG arrays')
     @testing.provide_metadata
     def test_arrays(self):
         metadata = self.metadata
@@ -1203,6 +1207,33 @@ class DistinctOnTest(fixtures.TestBase, AssertsCompiledSQL):
             "t_1.a AS t_1_a, t_1.b AS t_1_b FROM t AS t_1"
         )
 
+    def test_distinct_on_subquery_anon(self):
+
+        sq = select([self.table]).alias()
+        q = select([self.table.c.id,sq.c.id]).\
+                    distinct(sq.c.id).\
+                    where(self.table.c.id==sq.c.id)
+
+        self.assert_compile(
+            q,
+            "SELECT DISTINCT ON (anon_1.id) t.id, anon_1.id "
+            "FROM t, (SELECT t.id AS id, t.a AS a, t.b "
+            "AS b FROM t) AS anon_1 WHERE t.id = anon_1.id"
+            )
+
+    def test_distinct_on_subquery_named(self):
+        sq = select([self.table]).alias('sq')
+        q = select([self.table.c.id,sq.c.id]).\
+                    distinct(sq.c.id).\
+                    where(self.table.c.id==sq.c.id)
+        self.assert_compile(
+            q,
+            "SELECT DISTINCT ON (sq.id) t.id, sq.id "
+            "FROM t, (SELECT t.id AS id, t.a AS a, "
+            "t.b AS b FROM t) AS sq WHERE t.id = sq.id"
+            )
+
+
 class MiscTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiledSQL):
 
     __only_on__ = 'postgresql'
@@ -1244,6 +1275,12 @@ class MiscTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiledSQL):
              'compiled by GCC gcc (GCC) 4.4.2, 64-bit', (8, 5))]:
             eq_(testing.db.dialect._get_server_version_info(MockConn(string)),
                 version)
+
+    @testing.only_on('postgresql+psycopg2', 'psycopg2-specific feature')
+    def test_psycopg2_version(self):
+        v = testing.db.dialect.psycopg2_version
+        assert testing.db.dialect.dbapi.__version__.\
+                    startswith(".".join(str(x) for x in v))
 
     @testing.only_on('postgresql+psycopg2', 'psycopg2-specific feature')
     def test_notice_logging(self):
@@ -1504,6 +1541,28 @@ class MiscTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiledSQL):
                 'expression-based index idx3'
             ])
 
+    @testing.provide_metadata
+    def test_index_reflection_modified(self):
+        """reflect indexes when a column name has changed - PG 9 
+        does not update the name of the column in the index def.
+        [ticket:2141]
+
+        """
+
+        metadata = self.metadata
+
+        t1 = Table('t', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('x', Integer)
+        )
+        metadata.create_all()
+        conn = testing.db.connect().execution_options(autocommit=True)
+        conn.execute("CREATE INDEX idx1 ON t (x)")
+        conn.execute("ALTER TABLE t RENAME COLUMN x to y")
+
+        ind = testing.db.dialect.get_indexes(conn, "t", None)
+        eq_(ind, [{'unique': False, 'column_names': [u'y'], 'name': u'idx1'}])
+        conn.close()
 
     @testing.fails_on('+zxjdbc', 'psycopg2/pg8000 specific assertion')
     @testing.fails_on('pypostgresql',
@@ -1567,6 +1626,8 @@ class TimezoneTest(fixtures.TestBase):
     def teardown_class(cls):
         metadata.drop_all()
 
+    @testing.fails_on('postgresql+zxjdbc',
+                      "XXX: postgresql+zxjdbc doesn't give a tzinfo back")
     def test_with_timezone(self):
 
         # get a date with a tzinfo
@@ -1783,6 +1844,9 @@ class ArrayTest(fixtures.TestBase, AssertsExecutionResults):
         sess.add(foo)
         sess.flush()
 
+    @testing.fails_on('+zxjdbc',
+                      "Can't infer the SQL type to use for an instance "
+                      "of org.python.core.PyList.")
     @testing.provide_metadata
     def test_tuple_flag(self):
         metadata = self.metadata
@@ -1834,33 +1898,42 @@ class ServerSideCursorsTest(fixtures.TestBase, AssertsExecutionResults):
 
     __only_on__ = 'postgresql+psycopg2'
 
-    @classmethod
-    def setup_class(cls):
-        global ss_engine
-        ss_engine = \
-            engines.testing_engine(options={'server_side_cursors'
-                                   : True})
+    def _fixture(self, server_side_cursors):
+        self.engine = engines.testing_engine(
+                        options={'server_side_cursors':server_side_cursors}
+                    )
+        return self.engine
 
-    @classmethod
-    def teardown_class(cls):
-        ss_engine.dispose()
+    def tearDown(self):
+        engines.testing_reaper.close_all()
+        self.engine.dispose()
 
-    def test_uses_ss(self):
-        result = ss_engine.execute('select 1')
-        assert result.cursor.name
-        result = ss_engine.execute(text('select 1'))
-        assert result.cursor.name
-        result = ss_engine.execute(select([1]))
+    def test_global_string(self):
+        engine = self._fixture(True)
+        result = engine.execute('select 1')
         assert result.cursor.name
 
-    def test_uses_ss_when_explicitly_enabled(self):
-        engine = engines.testing_engine(options={'server_side_cursors'
-                : False})
+    def test_global_text(self):
+        engine = self._fixture(True)
+        result = engine.execute(text('select 1'))
+        assert result.cursor.name
+
+    def test_global_expr(self):
+        engine = self._fixture(True)
+        result = engine.execute(select([1]))
+        assert result.cursor.name
+
+    def test_global_off_explicit(self):
+        engine = self._fixture(False)
         result = engine.execute(text('select 1'))
 
         # It should be off globally ...
 
         assert not result.cursor.name
+
+    def test_stmt_option(self):
+        engine = self._fixture(False)
+
         s = select([1]).execution_options(stream_results=True)
         result = engine.execute(s)
 
@@ -1868,65 +1941,78 @@ class ServerSideCursorsTest(fixtures.TestBase, AssertsExecutionResults):
 
         assert result.cursor.name
 
-        # and this one
 
+    def test_conn_option(self):
+        engine = self._fixture(False)
+
+        # and this one
         result = \
             engine.connect().execution_options(stream_results=True).\
                 execute('select 1'
                 )
         assert result.cursor.name
 
-        # not this one
+    def test_stmt_enabled_conn_option_disabled(self):
+        engine = self._fixture(False)
 
+        s = select([1]).execution_options(stream_results=True)
+
+        # not this one
         result = \
             engine.connect().execution_options(stream_results=False).\
                 execute(s)
         assert not result.cursor.name
 
-    def test_ss_explicitly_disabled(self):
+    def test_stmt_option_disabled(self):
+        engine = self._fixture(True)
         s = select([1]).execution_options(stream_results=False)
-        result = ss_engine.execute(s)
+        result = engine.execute(s)
         assert not result.cursor.name
 
     def test_aliases_and_ss(self):
-        engine = engines.testing_engine(options={'server_side_cursors'
-                : False})
+        engine = self._fixture(False)
         s1 = select([1]).execution_options(stream_results=True).alias()
         result = engine.execute(s1)
         assert result.cursor.name
 
         # s1's options shouldn't affect s2 when s2 is used as a
         # from_obj.
-
         s2 = select([1], from_obj=s1)
         result = engine.execute(s2)
         assert not result.cursor.name
 
-    def test_for_update_and_ss(self):
+    def test_for_update_expr(self):
+        engine = self._fixture(True)
         s1 = select([1], for_update=True)
-        result = ss_engine.execute(s1)
-        assert result.cursor.name
-        result = ss_engine.execute('SELECT 1 FOR UPDATE')
+        result = engine.execute(s1)
         assert result.cursor.name
 
-    def test_text_with_ss(self):
-        engine = engines.testing_engine(options={'server_side_cursors'
-                : False})
+    def test_for_update_string(self):
+        engine = self._fixture(True)
+        result = engine.execute('SELECT 1 FOR UPDATE')
+        assert result.cursor.name
+
+    def test_text_no_ss(self):
+        engine = self._fixture(False)
         s = text('select 42')
         result = engine.execute(s)
         assert not result.cursor.name
+
+    def test_text_ss_option(self):
+        engine = self._fixture(False)
         s = text('select 42').execution_options(stream_results=True)
         result = engine.execute(s)
         assert result.cursor.name
 
     def test_roundtrip(self):
-        test_table = Table('test_table', MetaData(ss_engine),
+        engine = self._fixture(True)
+        test_table = Table('test_table', MetaData(engine),
                            Column('id', Integer, primary_key=True),
                            Column('data', String(50)))
         test_table.create(checkfirst=True)
         try:
             test_table.insert().execute(data='data1')
-            nextid = ss_engine.execute(Sequence('test_table_id_seq'))
+            nextid = engine.execute(Sequence('test_table_id_seq'))
             test_table.insert().execute(id=nextid, data='data2')
             eq_(test_table.select().execute().fetchall(), [(1, 'data1'
                 ), (2, 'data2')])
@@ -2031,6 +2117,8 @@ class UUIDTest(fixtures.TestBase):
     __only_on__ = 'postgresql'
 
     @testing.requires.python25
+    @testing.fails_on('postgresql+zxjdbc',
+                      'column "data" is of type uuid but expression is of type character varying')
     @testing.fails_on('postgresql+pg8000', 'No support for UUID type')
     def test_uuid_string(self):
         import uuid
@@ -2043,6 +2131,8 @@ class UUIDTest(fixtures.TestBase):
         )
 
     @testing.requires.python25
+    @testing.fails_on('postgresql+zxjdbc',
+                      'column "data" is of type uuid but expression is of type character varying')
     @testing.fails_on('postgresql+pg8000', 'No support for UUID type')
     def test_uuid_uuid(self):
         import uuid

@@ -7,7 +7,7 @@
         
         <title>
                 Core Exceptions
-             &mdash; SQLAlchemy 0.7b4 Documentation</title>
+             &mdash; SQLAlchemy 0.7.0 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b4',
+          VERSION:     '0.7.0',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b4 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7.0 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Core Internals" href="internals.html" />
         <link rel="prev" title="Deprecated Event Interfaces" href="interfaces.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7b4 Documentation</h1>
+<h1>SQLAlchemy 0.7.0 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7b4</span> Last Updated: 04/17/2011 16:53:50
+    Version: <span class="versionnum">0.7.0</span> Last Updated: 05/20/2011 17:59:22
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7b4 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7.0 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Core Exceptions
@@ -207,14 +207,14 @@ be raised by a <tt class="docutils literal"><span class="pre">PoolListener</span
 
 <dl class="exception">
 <dt id="sqlalchemy.exc.NoReferencedColumnError">
-<em class="property">exception </em><tt class="descclassname">sqlalchemy.exc.</tt><tt class="descname">NoReferencedColumnError</tt><a class="headerlink" href="#sqlalchemy.exc.NoReferencedColumnError" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">sqlalchemy.exc.</tt><tt class="descname">NoReferencedColumnError</tt><big>(</big><em>message</em>, <em>tname</em>, <em>cname</em><big>)</big><a class="headerlink" href="#sqlalchemy.exc.NoReferencedColumnError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.exc.NoReferenceError" title="sqlalchemy.exc.NoReferenceError"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.exc.NoReferenceError</span></tt></a></p>
 <p>Raised by <tt class="docutils literal"><span class="pre">ForeignKey</span></tt> when the referred <tt class="docutils literal"><span class="pre">Column</span></tt> cannot be located.</p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="sqlalchemy.exc.NoReferencedTableError">
-<em class="property">exception </em><tt class="descclassname">sqlalchemy.exc.</tt><tt class="descname">NoReferencedTableError</tt><a class="headerlink" href="#sqlalchemy.exc.NoReferencedTableError" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">sqlalchemy.exc.</tt><tt class="descname">NoReferencedTableError</tt><big>(</big><em>message</em>, <em>tname</em><big>)</big><a class="headerlink" href="#sqlalchemy.exc.NoReferencedTableError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.exc.NoReferenceError" title="sqlalchemy.exc.NoReferenceError"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.exc.NoReferenceError</span></tt></a></p>
 <p>Raised by <tt class="docutils literal"><span class="pre">ForeignKey</span></tt> when the referred <tt class="docutils literal"><span class="pre">Table</span></tt> cannot be located.</p>
 </dd></dl>
