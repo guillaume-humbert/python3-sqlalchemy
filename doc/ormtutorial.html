@@ -7,7 +7,7 @@
         
         <title>
     Object Relational Tutorial
- &mdash; SQLAlchemy 0.5.3 Documentation</title>
+ &mdash; SQLAlchemy 0.5.4p1 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.3',
+          VERSION:     '0.5.4p1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.3 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.4p1 Documentation" href="index.html" />
         <link rel="next" title="SQL Expression Language Tutorial" href="sqlexpression.html" />
         <link rel="prev" title="Overview / Installation" href="intro.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.3 Documentation</h1>
+        <h1>SQLAlchemy 0.5.4p1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.3</span> Last Updated: 03/25/2009 13:20:48
+            Version: <span class="versionnum">0.5.4p1</span> Last Updated: 05/18/2009 12:31:20
         </div>
         <div class="clearboth"></div>
 
@@ -105,6 +105,7 @@
 <li><a class="reference external" href="#querying-with-joins">Querying with Joins</a><ul>
 <li><a class="reference external" href="#using-aliases">Using Aliases</a></li>
 <li><a class="reference external" href="#using-subqueries">Using Subqueries</a></li>
+<li><a class="reference external" href="#selecting-entities-from-subqueries">Selecting Entities from Subqueries</a></li>
 <li><a class="reference external" href="#using-exists">Using EXISTS</a></li>
 <li><a class="reference external" href="#common-relation-operators">Common Relation Operators</a></li>
 </ul>
@@ -160,7 +161,7 @@
 <p>Next, we can issue CREATE TABLE statements derived from our table metadata, by calling <tt class="docutils literal"><span class="pre">create_all()</span></tt> and passing it the <tt class="docutils literal"><span class="pre">engine</span></tt> instance which points to our database.  This will check for the presence of a table first before creating, so it&#8217;s safe to call multiple times:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span> 
 <div class='popup_sql'>PRAGMA table_info("users")
-{}
+()
 CREATE TABLE users (
     id INTEGER NOT NULL,
     name VARCHAR,
@@ -168,7 +169,7 @@ CREATE TABLE users (
     password VARCHAR,
     PRIMARY KEY (id)
 )
-{}
+()
 COMMIT</div></pre></div>
 </div>
 <p>Users familiar with the syntax of CREATE TABLE may notice that the VARCHAR columns were generated without a length; on SQLite, this is a valid datatype, but on most databases it&#8217;s not allowed.  So if running this tutorial on a database such as Postgres or MySQL, and you wish to use SQLAlchemy to generate the tables, a &#8220;length&#8221; may be provided to the <tt class="docutils literal"><span class="pre">String</span></tt> type as below:</p>
@@ -333,7 +334,7 @@ WHERE users.id = ?
 <span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fake_user</span><span class="p">)</span></pre></div>
 </div>
 <p>Querying the session, we can see that they&#8217;re flushed into the current transaction:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">in_</span><span class="p">([</span><span class="s">&#39;Edwardo&#39;</span><span class="p">,</span> <span class="s">&#39;fakeuser&#39;</span><span class="p">]))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">in_</span><span class="p">([</span><span class="s">&#39;Edwardo&#39;</span><span class="p">,</span> <span class="s">&#39;fakeuser&#39;</span><span class="p">]))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
 <div class='popup_sql'>UPDATE users SET name=? WHERE users.id = ?
 ['Edwardo', 1]
 INSERT INTO users (name, fullname, password) VALUES (?, ?, ?)
@@ -345,7 +346,7 @@ WHERE users.name IN (?, ?)
 </div>
 <p>Rolling back, we can see that <tt class="docutils literal"><span class="pre">ed_user</span></tt>&#8216;s name is back to <tt class="docutils literal"><span class="pre">ed</span></tt>, and <tt class="docutils literal"><span class="pre">fake_user</span></tt> has been kicked out of the session:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
-<div class='popup_sql'>ROLLBACK</div><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">ed_user</span><span class="o">.</span><span class="n">name</span>
+<div class='popup_sql'>ROLLBACK</div><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">ed_user</span><span class="o">.</span><span class="n">name</span> 
 <div class='popup_sql'>BEGIN
 SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
 FROM users
@@ -355,7 +356,7 @@ WHERE users.id = ?
 <span class="bp">False</span></pre></div>
 </div>
 <p>issuing a SELECT illustrates the changes made to the database:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">in_</span><span class="p">([</span><span class="s">&#39;ed&#39;</span><span class="p">,</span> <span class="s">&#39;fakeuser&#39;</span><span class="p">]))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">in_</span><span class="p">([</span><span class="s">&#39;ed&#39;</span><span class="p">,</span> <span class="s">&#39;fakeuser&#39;</span><span class="p">]))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
 FROM users
 WHERE users.name IN (?, ?)
@@ -386,7 +387,7 @@ FROM users
 <span class="n">fred</span> <span class="n">Fred</span> <span class="n">Flinstone</span></pre></div>
 </div>
 <p>The tuples returned by <tt class="docutils literal"><span class="pre">Query</span></tt> are <em>named</em> tuples, and can be treated much like an ordinary Python object.  The names are the same as the attribute&#8217;s name for an attribute, and the class name for a class:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span> 
 <span class="o">...</span>    <span class="k">print</span> <span class="n">row</span><span class="o">.</span><span class="n">User</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">name</span>
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
 FROM users
@@ -398,7 +399,7 @@ FROM users
 <p>You can control the names using the <tt class="docutils literal"><span class="pre">label()</span></tt> construct for scalar attributes and <tt class="docutils literal"><span class="pre">aliased()</span></tt> for class constructs:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">aliased</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">user_alias</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;user_alias&#39;</span><span class="p">)</span>
-<a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">user_alias</span><span class="p">,</span> <span class="n">user_alias</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;name_label&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+<a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">user_alias</span><span class="p">,</span> <span class="n">user_alias</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;name_label&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span> 
 <span class="o">...</span>    <span class="k">print</span> <span class="n">row</span><span class="o">.</span><span class="n">user_alias</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">name_label</span>
 <div class='popup_sql'>SELECT users_1.id AS users_1_id, users_1.name AS users_1_name, users_1.fullname AS users_1_fullname, users_1.password AS users_1_password, users_1.name AS name_label
 FROM users AS users_1
@@ -488,14 +489,14 @@ The contents of the match parameter are database backend specific.</blockquote>
 <h3>Returning Lists and Scalars<a class="headerlink" href="#returning-lists-and-scalars" title="Permalink to this headline">¶</a></h3>
 <p>The <tt class="docutils literal"><span class="pre">all()</span></tt>, <tt class="docutils literal"><span class="pre">one()</span></tt>, and <tt class="docutils literal"><span class="pre">first()</span></tt> methods of <tt class="docutils literal"><span class="pre">Query</span></tt> immediately issue SQL and return a non-iterator value.  <tt class="docutils literal"><span class="pre">all()</span></tt> returns a list:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">query</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%e</span><span class="s">d&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-<a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
 FROM users
 WHERE users.name LIKE ? ORDER BY users.id
 ['%ed']</div><span class="p">[</span><span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;ed&#39;</span><span class="p">,</span><span class="s">&#39;Ed Jones&#39;</span><span class="p">,</span> <span class="s">&#39;f8s7ccs&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;fred&#39;</span><span class="p">,</span><span class="s">&#39;Fred Flinstone&#39;</span><span class="p">,</span> <span class="s">&#39;blah&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span></pre></div>
 </div>
 <p><tt class="docutils literal"><span class="pre">first()</span></tt> applies a limit of one and returns the first result as a scalar:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">query</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">query</span><span class="o">.</span><span class="n">first</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
 FROM users
 WHERE users.name LIKE ? ORDER BY users.id
@@ -503,9 +504,10 @@ WHERE users.name LIKE ? ORDER BY users.id
 ['%ed']</div><span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;ed&#39;</span><span class="p">,</span><span class="s">&#39;Ed Jones&#39;</span><span class="p">,</span> <span class="s">&#39;f8s7ccs&#39;</span><span class="p">)</span><span class="o">&gt;</span></pre></div>
 </div>
 <p><tt class="docutils literal"><span class="pre">one()</span></tt>, applies a limit of <em>two</em>, and if not exactly one row returned, raises an error:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">try</span><span class="p">:</span>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm.exc</span> <span class="kn">import</span> <span class="n">MultipleResultsFound</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">try</span><span class="p">:</span> 
 <span class="o">...</span>     <span class="n">user</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
-<span class="o">...</span> <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+<span class="o">...</span> <span class="k">except</span> <span class="n">MultipleResultsFound</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
 <span class="o">...</span>     <span class="k">print</span> <span class="n">e</span>
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
 FROM users
@@ -513,9 +515,10 @@ WHERE users.name LIKE ? ORDER BY users.id
  LIMIT 2 OFFSET 0
 ['%ed']</div><span class="n">Multiple</span> <span class="n">rows</span> <span class="n">were</span> <span class="n">found</span> <span class="k">for</span> <span class="n">one</span><span class="p">()</span></pre></div>
 </div>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">try</span><span class="p">:</span>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm.exc</span> <span class="kn">import</span> <span class="n">NoResultFound</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">try</span><span class="p">:</span> 
 <span class="o">...</span>     <span class="n">user</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="mf">99</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
-<span class="o">...</span> <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+<span class="o">...</span> <span class="k">except</span> <span class="n">NoResultFound</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
 <span class="o">...</span>     <span class="k">print</span> <span class="n">e</span>
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
 FROM users
@@ -527,7 +530,7 @@ WHERE users.name LIKE ? AND users.id = ? ORDER BY users.id
 <div class="section" id="using-literal-sql">
 <h3>Using Literal SQL<a class="headerlink" href="#using-literal-sql" title="Permalink to this headline">¶</a></h3>
 <p>Literal strings can be used flexibly with <tt class="docutils literal"><span class="pre">Query</span></tt>.  Most methods accept strings in addition to SQLAlchemy clause constructs.  For example, <tt class="docutils literal"><span class="pre">filter()</span></tt> and <tt class="docutils literal"><span class="pre">order_by()</span></tt>:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s">&quot;id&lt;224&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s">&quot;id&lt;224&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span> 
 <span class="o">...</span>     <span class="k">print</span> <span class="n">user</span><span class="o">.</span><span class="n">name</span>
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
 FROM users
@@ -588,9 +591,9 @@ LIMIT 2 OFFSET 0
 <p>We&#8217;ll need to create the <tt class="docutils literal"><span class="pre">addresses</span></tt> table in the database, so we will issue another CREATE from our metadata, which will skip over tables which have already been created:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span> 
 <div class='popup_sql'>PRAGMA table_info("users")
-{}
+()
 PRAGMA table_info("addresses")
-{}
+()
 CREATE TABLE addresses (
     id INTEGER NOT NULL,
     email_address VARCHAR NOT NULL,
@@ -598,7 +601,7 @@ CREATE TABLE addresses (
     PRIMARY KEY (id),
      FOREIGN KEY(user_id) REFERENCES users (id)
 )
-{}
+()
 COMMIT</div></pre></div>
 </div>
 </div>
@@ -631,19 +634,17 @@ INSERT INTO addresses (email_address, user_id) VALUES (?, ?)
 COMMIT</div></pre></div>
 </div>
 <p>Querying for Jack, we get just Jack back.  No SQL is yet issued for Jack&#8217;s addresses:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;jack&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span> 
 <div class='popup_sql'>BEGIN
 SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
 FROM users
 WHERE users.name = ?
  LIMIT 2 OFFSET 0
-['jack']
-
->>> jack
-<User('jack','Jack Bean', 'gjffdd')></div></pre></div>
+['jack']</div><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span>
+<span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;jack&#39;</span><span class="p">,</span><span class="s">&#39;Jack Bean&#39;</span><span class="p">,</span> <span class="s">&#39;gjffdd&#39;</span><span class="p">)</span><span class="o">&gt;</span></pre></div>
 </div>
 <p>Let&#8217;s look at the <tt class="docutils literal"><span class="pre">addresses</span></tt> collection.  Watch the SQL:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span><span class="o">.</span><span class="n">addresses</span>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span><span class="o">.</span><span class="n">addresses</span> 
 <div class='popup_sql'>SELECT addresses.id AS addresses_id, addresses.email_address AS addresses_email_address, addresses.user_id AS addresses_user_id
 FROM addresses
 WHERE ? = addresses.user_id ORDER BY addresses.id
@@ -658,18 +659,16 @@ WHERE ? = addresses.user_id ORDER BY addresses.id
 anon_1.users_fullname AS anon_1_users_fullname, anon_1.users_password AS anon_1_users_password,
 addresses_1.id AS addresses_1_id, addresses_1.email_address AS addresses_1_email_address,
 addresses_1.user_id AS addresses_1_user_id
-    FROM (SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname,
-    users.password AS users_password
-    FROM users WHERE users.name = ?
-     LIMIT 2 OFFSET 0) AS anon_1 LEFT OUTER JOIN addresses AS addresses_1
-     ON anon_1.users_id = addresses_1.user_id ORDER BY addresses_1.id
-    ['jack']
+FROM (SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname,
+users.password AS users_password
+FROM users WHERE users.name = ?
+LIMIT 2 OFFSET 0) AS anon_1 LEFT OUTER JOIN addresses AS addresses_1
+ON anon_1.users_id = addresses_1.user_id ORDER BY addresses_1.id
+['jack']</div><span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span>
+<span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;jack&#39;</span><span class="p">,</span><span class="s">&#39;Jack Bean&#39;</span><span class="p">,</span> <span class="s">&#39;gjffdd&#39;</span><span class="p">)</span><span class="o">&gt;</span>
 
->>> jack
-<User('jack','Jack Bean', 'gjffdd')>
-
->>> jack.addresses
-[<Address('jack@google.com')>, <Address('j25@yahoo.com')>]</div></pre></div>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">jack</span><span class="o">.</span><span class="n">addresses</span>
+<span class="p">[</span><span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;j25@yahoo.com&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span></pre></div>
 </div>
 <p>SQLAlchemy has the ability to control exactly which attributes and how many levels deep should be joined together in a single SQL query.  More information on this feature is available in <cite>advdatamapping_relation</cite>.</p>
 </div>
@@ -689,7 +688,7 @@ WHERE users.id = addresses.user_id AND addresses.email_address = ?
 <p>Or we can make a real JOIN construct; one way to do so is to use the ORM <tt class="docutils literal"><span class="pre">join()</span></tt> function, and tell <tt class="docutils literal"><span class="pre">Query</span></tt> to &#8220;select from&#8221; this join:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">join</span>
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">Address</span><span class="p">))</span><span class="o">.</span>\
-<span class="o">...</span>         <span class="nb">filter</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">email_address</span><span class="o">==</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="o">...</span>         <span class="nb">filter</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">email_address</span><span class="o">==</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
 FROM users JOIN addresses ON users.id = addresses.user_id
 WHERE addresses.email_address = ?
@@ -702,7 +701,7 @@ WHERE addresses.email_address = ?
 </div>
 <p>The functionality of <tt class="docutils literal"><span class="pre">join()</span></tt> is also available generatively from <tt class="docutils literal"><span class="pre">Query</span></tt> itself using <tt class="docutils literal"><span class="pre">Query.join</span></tt>.  This is most easily used with just the &#8220;ON&#8221; clause portion of the join, such as:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">)</span><span class="o">.</span>\
-<span class="o">...</span>     <span class="nb">filter</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">email_address</span><span class="o">==</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="o">...</span>     <span class="nb">filter</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">email_address</span><span class="o">==</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
 FROM users JOIN addresses ON users.id = addresses.user_id
 WHERE addresses.email_address = ?
@@ -762,6 +761,22 @@ ORDER BY users.id
 <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;mary&#39;</span><span class="p">,</span><span class="s">&#39;Mary Contrary&#39;</span><span class="p">,</span> <span class="s">&#39;xxg527&#39;</span><span class="p">)</span><span class="o">&gt;</span> <span class="bp">None</span>
 <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;fred&#39;</span><span class="p">,</span><span class="s">&#39;Fred Flinstone&#39;</span><span class="p">,</span> <span class="s">&#39;blah&#39;</span><span class="p">)</span><span class="o">&gt;</span> <span class="bp">None</span>
 <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;jack&#39;</span><span class="p">,</span><span class="s">&#39;Jack Bean&#39;</span><span class="p">,</span> <span class="s">&#39;gjffdd&#39;</span><span class="p">)</span><span class="o">&gt;</span> <span class="mf">2</span></pre></div>
+</div>
+</div>
+<div class="section" id="selecting-entities-from-subqueries">
+<h3>Selecting Entities from Subqueries<a class="headerlink" href="#selecting-entities-from-subqueries" title="Permalink to this headline">¶</a></h3>
+<p>Above, we just selected a result that included a column from a subquery.  What if we wanted our subquery to map to an entity ?   For this we use <tt class="docutils literal"><span class="pre">aliased()</span></tt> to associate an &#8220;alias&#8221; of a mapped class to a subquery:</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">stmt</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Address</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Address</span><span class="o">.</span><span class="n">email_address</span> <span class="o">!=</span> <span class="s">&#39;j25@yahoo.com&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">subquery</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">adalias</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">stmt</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">user</span><span class="p">,</span> <span class="n">address</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">adalias</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">adalias</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">addresses</span><span class="p">)):</span> 
+<span class="o">...</span>     <span class="k">print</span> <span class="n">user</span><span class="p">,</span> <span class="n">address</span>
+<div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname,
+users.password AS users_password, anon_1.id AS anon_1_id,
+anon_1.email_address AS anon_1_email_address, anon_1.user_id AS anon_1_user_id
+FROM users JOIN (SELECT addresses.id AS id, addresses.email_address AS email_address, addresses.user_id AS user_id
+FROM addresses
+WHERE addresses.email_address != ?) AS anon_1 ON users.id = anon_1.user_id
+['j25@yahoo.com']</div><span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;jack&#39;</span><span class="p">,</span><span class="s">&#39;Jack Bean&#39;</span><span class="p">,</span> <span class="s">&#39;gjffdd&#39;</span><span class="p">)</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">Address</span><span class="p">(</span><span class="s">&#39;jack@google.com&#39;</span><span class="p">)</span><span class="o">&gt;</span></pre></div>
 </div>
 </div>
 <div class="section" id="using-exists">
@@ -901,7 +916,7 @@ SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_f
 FROM users
 WHERE users.id = ?
 [5]</div><span class="c"># remove one Address (lazy load fires off)</span>
-<a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">del</span> <span class="n">jack</span><span class="o">.</span><span class="n">addresses</span><span class="p">[</span><span class="mf">1</span><span class="p">]</span>
+<a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="k">del</span> <span class="n">jack</span><span class="o">.</span><span class="n">addresses</span><span class="p">[</span><span class="mf">1</span><span class="p">]</span> 
 <div class='popup_sql'>SELECT addresses.id AS addresses_id, addresses.email_address AS addresses_email_address, addresses.user_id AS addresses_user_id
 FROM addresses
 WHERE ? = addresses.user_id
@@ -989,15 +1004,15 @@ WHERE addresses.email_address IN (?, ?)
 <p>Create new tables:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span> 
 <div class='popup_sql'>PRAGMA table_info("users")
-{}
+()
 PRAGMA table_info("addresses")
-{}
+()
 PRAGMA table_info("posts")
-{}
+()
 PRAGMA table_info("keywords")
-{}
+()
 PRAGMA table_info("post_keywords")
-{}
+()
 CREATE TABLE posts (
     id INTEGER NOT NULL,
     user_id INTEGER,
@@ -1006,7 +1021,7 @@ CREATE TABLE posts (
     PRIMARY KEY (id),
      FOREIGN KEY(user_id) REFERENCES users (id)
 )
-{}
+()
 COMMIT
 CREATE TABLE keywords (
     id INTEGER NOT NULL,
@@ -1014,7 +1029,7 @@ CREATE TABLE keywords (
     PRIMARY KEY (id),
      UNIQUE (keyword)
 )
-{}
+()
 COMMIT
 CREATE TABLE post_keywords (
     post_id INTEGER,
@@ -1022,34 +1037,32 @@ CREATE TABLE post_keywords (
      FOREIGN KEY(post_id) REFERENCES posts (id),
      FOREIGN KEY(keyword_id) REFERENCES keywords (id)
 )
-{}
+()
 COMMIT</div></pre></div>
 </div>
 <p>Usage is not too different from what we&#8217;ve been doing.  Let&#8217;s give Wendy some blog posts:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">wendy</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;wendy&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">wendy</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;wendy&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password
 FROM users
 WHERE users.name = ?
  LIMIT 2 OFFSET 0
-['wendy']
-
->>> post = BlogPost("Wendy's Blog Post", "This is a test", wendy)
->>> session.add(post)</div></pre></div>
+['wendy']</div><span class="o">&gt;&gt;&gt;</span> <span class="n">post</span> <span class="o">=</span> <span class="n">BlogPost</span><span class="p">(</span><span class="s">&quot;Wendy&#39;s Blog Post&quot;</span><span class="p">,</span> <span class="s">&quot;This is a test&quot;</span><span class="p">,</span> <span class="n">wendy</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">post</span><span class="p">)</span></pre></div>
 </div>
 <p>We&#8217;re storing keywords uniquely in the database, but we know that we don&#8217;t have any yet, so we can just create them:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">post</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Keyword</span><span class="p">(</span><span class="s">&#39;wendy&#39;</span><span class="p">))</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">post</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Keyword</span><span class="p">(</span><span class="s">&#39;firstpost&#39;</span><span class="p">))</span></pre></div>
 </div>
 <p>We can now look up all blog posts with the keyword &#8216;firstpost&#8217;.   We&#8217;ll use the <tt class="docutils literal"><span class="pre">any</span></tt> operator to locate &#8220;blog posts where any of its keywords has the keyword string &#8216;firstpost&#8217;&#8221;:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BlogPost</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">BlogPost</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">keyword</span><span class="o">=</span><span class="s">&#39;firstpost&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-<div class='popup_sql'>INSERT INTO posts (user_id, headline, body) VALUES (?, ?, ?)
-[2, "Wendy's Blog Post", 'This is a test']
-INSERT INTO keywords (keyword) VALUES (?)
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BlogPost</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">BlogPost</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">keyword</span><span class="o">=</span><span class="s">&#39;firstpost&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
+<div class='popup_sql'>INSERT INTO keywords (keyword) VALUES (?)
 ['wendy']
 INSERT INTO keywords (keyword) VALUES (?)
 ['firstpost']
+INSERT INTO posts (user_id, headline, body) VALUES (?, ?, ?)
+[2, "Wendy's Blog Post", 'This is a test']
 INSERT INTO post_keywords (post_id, keyword_id) VALUES (?, ?)
-[[1, 1], [1, 2]]
+[[1, 2], [1, 1]]
 SELECT posts.id AS posts_id, posts.user_id AS posts_user_id, posts.headline AS posts_headline, posts.body AS posts_body
 FROM posts
 WHERE EXISTS (SELECT 1
@@ -1059,7 +1072,7 @@ WHERE posts.id = post_keywords.post_id AND keywords.id = post_keywords.keyword_i
 </div>
 <p>If we want to look up just Wendy&#8217;s posts, we can tell the query to narrow down to her as a parent:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BlogPost</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">BlogPost</span><span class="o">.</span><span class="n">author</span><span class="o">==</span><span class="n">wendy</span><span class="p">)</span><span class="o">.</span>\
-<span class="o">...</span> <span class="nb">filter</span><span class="p">(</span><span class="n">BlogPost</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">keyword</span><span class="o">=</span><span class="s">&#39;firstpost&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="o">...</span> <span class="nb">filter</span><span class="p">(</span><span class="n">BlogPost</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">keyword</span><span class="o">=</span><span class="s">&#39;firstpost&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT posts.id AS posts_id, posts.user_id AS posts_user_id, posts.headline AS posts_headline, posts.body AS posts_body
 FROM posts
 WHERE ? = posts.user_id AND (EXISTS (SELECT 1
@@ -1068,7 +1081,7 @@ WHERE posts.id = post_keywords.post_id AND keywords.id = post_keywords.keyword_i
 [2, 'firstpost']</div><span class="p">[</span><span class="n">BlogPost</span><span class="p">(</span><span class="s">&quot;Wendy&#39;s Blog Post&quot;</span><span class="p">,</span> <span class="s">&#39;This is a test&#39;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="s">&#39;wendy&#39;</span><span class="p">,</span><span class="s">&#39;Wendy Williams&#39;</span><span class="p">,</span> <span class="s">&#39;foobar&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">)]</span></pre></div>
 </div>
 <p>Or we can use Wendy&#8217;s own <tt class="docutils literal"><span class="pre">posts</span></tt> relation, which is a &#8220;dynamic&#8221; relation, to query straight from there:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">wendy</span><span class="o">.</span><span class="n">posts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">BlogPost</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">keyword</span><span class="o">=</span><span class="s">&#39;firstpost&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">wendy</span><span class="o">.</span><span class="n">posts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">BlogPost</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">keyword</span><span class="o">=</span><span class="s">&#39;firstpost&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT posts.id AS posts_id, posts.user_id AS posts_user_id, posts.headline AS posts_headline, posts.body AS posts_body
 FROM posts
 WHERE ? = posts.user_id AND (EXISTS (SELECT 1
@@ -1101,7 +1114,7 @@ WHERE posts.id = post_keywords.post_id AND keywords.id = post_keywords.keyword_i
 
                 <div class="doc_copyright">
                     &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6b1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
                 </div>
             </div>
         

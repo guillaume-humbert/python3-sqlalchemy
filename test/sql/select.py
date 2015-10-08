@@ -404,6 +404,7 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
             "myothertable.othername = :othername_2 OR myothertable.otherid = :otherid_1) AND sysdate() = today()",
             checkparams = {'othername_1': 'asdf', 'othername_2':'foo', 'otherid_1': 9, 'myid_1': 12}
         )
+        
 
     def test_distinct(self):
         self.assert_compile(
@@ -829,12 +830,6 @@ FROM mytable, myothertable WHERE foo.id = foofoo(lala) AND datetime(foo) = Today
              select([value_tbl.c.id], value_tbl.c.val1 / (value_tbl.c.val2 - value_tbl.c.val1) /value_tbl.c.val1 > 2.0),
              "SELECT values.id FROM values WHERE values.val1 / (values.val2 - values.val1) / values.val1 > :param_1"
          )
-
-    def test_extract(self):
-        """test the EXTRACT function"""
-        self.assert_compile(select([extract("month", table3.c.otherstuff)]), "SELECT extract(month FROM thirdtable.otherstuff) AS extract_1 FROM thirdtable")
-
-        self.assert_compile(select([extract("day", func.to_date("03/20/2005", "MM/DD/YYYY"))]), "SELECT extract(day FROM to_date(:to_date_1, :to_date_2)) AS extract_1")
 
     def test_collate(self):
         for expr in (select([table1.c.name.collate('latin1_german2_ci')]),

@@ -38,6 +38,7 @@ doc/_sources/reference/dialects/postgres.txt
 doc/_sources/reference/dialects/sqlite.txt
 doc/_sources/reference/dialects/sybase.txt
 doc/_sources/reference/ext/associationproxy.txt
+doc/_sources/reference/ext/compiler.txt
 doc/_sources/reference/ext/declarative.txt
 doc/_sources/reference/ext/index.txt
 doc/_sources/reference/ext/orderinglist.txt
@@ -93,6 +94,7 @@ doc/build/reference/dialects/postgres.rst
 doc/build/reference/dialects/sqlite.rst
 doc/build/reference/dialects/sybase.rst
 doc/build/reference/ext/associationproxy.rst
+doc/build/reference/ext/compiler.rst
 doc/build/reference/ext/declarative.rst
 doc/build/reference/ext/index.rst
 doc/build/reference/ext/orderinglist.rst
@@ -134,6 +136,7 @@ doc/reference/dialects/postgres.html
 doc/reference/dialects/sqlite.html
 doc/reference/dialects/sybase.html
 doc/reference/ext/associationproxy.html
+doc/reference/ext/compiler.html
 doc/reference/ext/declarative.html
 doc/reference/ext/index.html
 doc/reference/ext/orderinglist.html
@@ -220,6 +223,7 @@ lib/sqlalchemy/engine/threadlocal.py
 lib/sqlalchemy/engine/url.py
 lib/sqlalchemy/ext/__init__.py
 lib/sqlalchemy/ext/associationproxy.py
+lib/sqlalchemy/ext/compiler.py
 lib/sqlalchemy/ext/declarative.py
 lib/sqlalchemy/ext/orderinglist.py
 lib/sqlalchemy/ext/serializer.py
@@ -239,6 +243,7 @@ lib/sqlalchemy/orm/query.py
 lib/sqlalchemy/orm/scoping.py
 lib/sqlalchemy/orm/session.py
 lib/sqlalchemy/orm/shard.py
+lib/sqlalchemy/orm/state.py
 lib/sqlalchemy/orm/strategies.py
 lib/sqlalchemy/orm/sync.py
 lib/sqlalchemy/orm/unitofwork.py
@@ -289,6 +294,7 @@ test/engine/transaction.py
 test/ext/__init__.py
 test/ext/alltests.py
 test/ext/associationproxy.py
+test/ext/compiler.py
 test/ext/declarative.py
 test/ext/orderinglist.py
 test/ext/serializer.py

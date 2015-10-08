@@ -45,6 +45,7 @@ def find_join_source(clauses, join_to):
                 return i, f
     else:
         return None, None
+
     
 def find_tables(clause, check_columns=False, include_aliases=False, include_joins=False, include_selects=False):
     """locate Table objects within the given expression."""
@@ -342,14 +343,14 @@ def criterion_as_pairs(expression, consider_as_foreign_keys=None, consider_as_re
             return
 
         if consider_as_foreign_keys:
-            if binary.left in consider_as_foreign_keys:
+            if binary.left in consider_as_foreign_keys and (binary.right is binary.left or binary.right not in consider_as_foreign_keys):
                 pairs.append((binary.right, binary.left))
-            elif binary.right in consider_as_foreign_keys:
+            elif binary.right in consider_as_foreign_keys and (binary.left is binary.right or binary.left not in consider_as_foreign_keys):
                 pairs.append((binary.left, binary.right))
         elif consider_as_referenced_keys:
-            if binary.left in consider_as_referenced_keys:
+            if binary.left in consider_as_referenced_keys and (binary.right is binary.left or binary.right not in consider_as_referenced_keys):
                 pairs.append((binary.left, binary.right))
-            elif binary.right in consider_as_referenced_keys:
+            elif binary.right in consider_as_referenced_keys and (binary.left is binary.right or binary.left not in consider_as_referenced_keys):
                 pairs.append((binary.right, binary.left))
         else:
             if isinstance(binary.left, schema.Column) and isinstance(binary.right, schema.Column):

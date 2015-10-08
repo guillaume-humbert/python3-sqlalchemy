@@ -7,7 +7,7 @@
         
         <title>
     Database Engines
- &mdash; SQLAlchemy 0.5.3 Documentation</title>
+ &mdash; SQLAlchemy 0.5.4p1 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.3',
+          VERSION:     '0.5.4p1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.3 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.4p1 Documentation" href="index.html" />
         <link rel="next" title="Database Meta Data" href="metadata.html" />
         <link rel="prev" title="Using the Session" href="session.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.3 Documentation</h1>
+        <h1>SQLAlchemy 0.5.4p1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.3</span> Last Updated: 03/25/2009 13:20:48
+            Version: <span class="versionnum">0.5.4p1</span> Last Updated: 05/18/2009 12:31:20
         </div>
         <div class="clearboth"></div>
 
@@ -182,8 +182,12 @@ driver://username:password&#64;host:port/database</blockquote>
 <span class="c"># mysql</span>
 <span class="n">mysql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql://localhost/foo&#39;</span><span class="p">)</span>
 
+<span class="c"># oracle</span>
+<span class="n">oracle_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle://scott:tiger@host:port/dbname?key1=value1&amp;key2=value2&#39;</span><span class="p">)</span>
+
 <span class="c"># oracle via TNS name</span>
-<span class="n">oracle_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle://scott:tiger@dsn&#39;</span><span class="p">)</span>
+<span class="n">oracle_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle://scott:tiger@tnsname&#39;</span><span class="p">)</span>
+<span class="n">oracle_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle://scott:tiger@tnsname/?key1=value1&amp;key2=value2&#39;</span><span class="p">)</span>
 
 <span class="c"># oracle will feed host/port/SID into cx_oracle.makedsn</span>
 <span class="n">oracle_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle://scott:tiger@127.0.0.1:1521/sidname&#39;</span><span class="p">)</span>
@@ -192,7 +196,8 @@ driver://username:password&#64;host:port/database</blockquote>
 <span class="n">mssql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql://username:password@localhost/database&#39;</span><span class="p">)</span>
 
 <span class="c"># mssql via a DSN connection</span>
-<span class="n">mssql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql://username:password@/?dsn=mydsn&#39;</span><span class="p">)</span></pre></div>
+<span class="n">mssql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql://mydsn&#39;</span><span class="p">)</span>
+<span class="n">mssql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql://username:password@mydsn&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>The <a title="sqlalchemy.engine.base.Engine" class="reference external" href="reference/sqlalchemy/connections.html#sqlalchemy.engine.base.Engine"><tt class="xref docutils literal"><span class="pre">Engine</span></tt></a> will ask the connection pool for a connection when the <tt class="docutils literal"><span class="pre">connect()</span></tt> or <tt class="docutils literal"><span class="pre">execute()</span></tt> methods are called.  The default connection pool, <a title="sqlalchemy.pool.QueuePool" class="reference external" href="reference/sqlalchemy/pooling.html#sqlalchemy.pool.QueuePool"><tt class="xref docutils literal"><span class="pre">QueuePool</span></tt></a>, as well as the default connection pool used with SQLite, <a title="sqlalchemy.pool.SingletonThreadPool" class="reference external" href="reference/sqlalchemy/pooling.html#sqlalchemy.pool.SingletonThreadPool"><tt class="xref docutils literal"><span class="pre">SingletonThreadPool</span></tt></a>, will open connections to the database on an as-needed basis.  As concurrent statements are executed, <a title="sqlalchemy.pool.QueuePool" class="reference external" href="reference/sqlalchemy/pooling.html#sqlalchemy.pool.QueuePool"><tt class="xref docutils literal"><span class="pre">QueuePool</span></tt></a> will grow its pool of connections to a default size of five, and will allow a default &#8220;overflow&#8221; of ten.   Since the <tt class="docutils literal"><span class="pre">Engine</span></tt> is essentially &#8220;home base&#8221; for the connection pool, it follows that you should keep a single <a title="sqlalchemy.engine.base.Engine" class="reference external" href="reference/sqlalchemy/connections.html#sqlalchemy.engine.base.Engine"><tt class="xref docutils literal"><span class="pre">Engine</span></tt></a> per database established within an application, rather than creating a new one for each connection.</p>
 <div class="section" id="custom-dbapi-connect-arguments">
@@ -455,7 +460,7 @@ driver://username:password&#64;host:port/database</blockquote>
 
                 <div class="doc_copyright">
                     &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6b1.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
                 </div>
             </div>
         

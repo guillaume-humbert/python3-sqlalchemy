@@ -1330,7 +1330,7 @@ class Query(object):
             rowtuple.keys = labels.keys
 
         while True:
-            context.progress = set()
+            context.progress = {}
             context.partials = {}
 
             if self._yield_per:
@@ -1354,13 +1354,13 @@ class Query(object):
                 rows = filter(rows)
 
             if context.refresh_state and self._only_load_props and context.refresh_state in context.progress:
-                context.refresh_state.commit(self._only_load_props)
-                context.progress.remove(context.refresh_state)
+                context.refresh_state.commit(context.refresh_state.dict, self._only_load_props)
+                context.progress.pop(context.refresh_state)
 
             session._finalize_loaded(context.progress)
 
-            for ii, attrs in context.partials.items():
-                ii.commit(attrs)
+            for ii, (dict_, attrs) in context.partials.items():
+                ii.commit(dict_, attrs)
 
             for row in rows:
                 yield row
@@ -1549,6 +1549,8 @@ class Query(object):
         if synchronize_session not in [False, 'evaluate', 'fetch']:
             raise sa_exc.ArgumentError("Valid strategies for session synchronization are False, 'evaluate' and 'fetch'")
 
+        self = self.enable_eagerloads(False)
+
         context = self._compile_context()
         if len(context.statement.froms) != 1 or not isinstance(context.statement.froms[0], schema.Table):
             raise sa_exc.ArgumentError("Only deletion via a single table query is currently supported")
@@ -1643,6 +1645,8 @@ class Query(object):
         if synchronize_session not in [False, 'evaluate', 'expire']:
             raise sa_exc.ArgumentError("Valid strategies for session synchronization are False, 'evaluate' and 'expire'")
 
+        self = self.enable_eagerloads(False)
+
         context = self._compile_context()
         if len(context.statement.froms) != 1 or not isinstance(context.statement.froms[0], schema.Table):
             raise sa_exc.ArgumentError("Only update via a single table query is currently supported")
@@ -1679,14 +1683,14 @@ class Query(object):
                 evaluated_keys = value_evaluators.keys()
 
                 if issubclass(cls, target_cls) and eval_condition(obj):
-                    state = attributes.instance_state(obj)
+                    state, dict_ = attributes.instance_state(obj), attributes.instance_dict(obj)
 
                     # only evaluate unmodified attributes
                     to_evaluate = state.unmodified.intersection(evaluated_keys)
                     for key in to_evaluate:
-                        state.dict[key] = value_evaluators[key](obj)
+                        dict_[key] = value_evaluators[key](obj)
 
-                    state.commit(list(to_evaluate))
+                    state.commit(dict_, list(to_evaluate))
 
                     # expire attributes with pending changes (there was no autoflush, so they are overwritten)
                     state.expire_attributes(set(evaluated_keys).difference(to_evaluate))
@@ -2111,7 +2115,7 @@ class QueryContext(object):
         self.froms = []
         self.adapter = None
 
-        self.options = query._with_options
+        self.options = set(query._with_options)
         self.attributes = query._attributes.copy()
 
 class AliasOption(interfaces.MapperOption):
