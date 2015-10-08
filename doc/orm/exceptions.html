@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.8',
+          VERSION:     '0.7.9',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
+        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
 
 
     </div>
@@ -153,7 +153,7 @@
 <dt id="sqlalchemy.orm.exc.DetachedInstanceError">
 <em class="property">exception </em><tt class="descclassname">sqlalchemy.orm.exc.</tt><tt class="descname">DetachedInstanceError</tt><a class="headerlink" href="#sqlalchemy.orm.exc.DetachedInstanceError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/exceptions.html#sqlalchemy.exc.SQLAlchemyError" title="sqlalchemy.exc.SQLAlchemyError"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.exc.SQLAlchemyError</span></tt></a></p>
-<p>An attempt to access unloaded attributes on a 
+<p>An attempt to access unloaded attributes on a
 mapped instance that is detached.</p>
 </dd></dl>
 
@@ -190,15 +190,15 @@ mapped instance that is detached.</p>
 <dd><p>Bases: <a class="reference internal" href="../core/exceptions.html#sqlalchemy.exc.InvalidRequestError" title="sqlalchemy.exc.InvalidRequestError"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.exc.InvalidRequestError</span></tt></a></p>
 <p>A refresh operation failed to retrieve the database
 row corresponding to an object&#8217;s known primary key identity.</p>
-<p>A refresh operation proceeds when an expired attribute is 
+<p>A refresh operation proceeds when an expired attribute is
 accessed on an object, or when <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.get" title="sqlalchemy.orm.query.Query.get"><tt class="xref py py-meth docutils literal"><span class="pre">Query.get()</span></tt></a> is
 used to retrieve an object which is, upon retrieval, detected
 as expired.   A SELECT is emitted for the target row
 based on primary key; if no row is returned, this
 exception is raised.</p>
-<p>The true meaning of this exception is simply that 
+<p>The true meaning of this exception is simply that
 no row exists for the primary key identifier associated
-with a persistent object.   The row may have been 
+with a persistent object.   The row may have been
 deleted, or in some cases the primary key updated
 to a new value, outside of the ORM&#8217;s management of the target
 object.</p>
@@ -219,13 +219,13 @@ object.</p>
 <p>Conditions which cause this to happen include:</p>
 <ul>
 <li><p class="first">A flush may have attempted to update or delete rows
-and an unexpected number of rows were matched during 
-the UPDATE or DELETE statement.   Note that when 
+and an unexpected number of rows were matched during
+the UPDATE or DELETE statement.   Note that when
 version_id_col is used, rows in UPDATE or DELETE statements
 are also matched against the current known version
 identifier.</p>
 </li>
-<li><p class="first">A mapped object with version_id_col was refreshed, 
+<li><p class="first">A mapped object with version_id_col was refreshed,
 and the version number coming back from the database does
 not match that of the object itself.</p>
 </li>

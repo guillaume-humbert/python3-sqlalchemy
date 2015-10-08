@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.8',
+          VERSION:     '0.7.9',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
+        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
 
 
     </div>
@@ -225,6 +225,13 @@ function in conjunction with <tt class="docutils literal"><span class="pre">lazy
 <p class="last">The <a class="reference internal" href="relationships.html#sqlalchemy.orm.dynamic_loader" title="sqlalchemy.orm.dynamic_loader"><tt class="xref py py-func docutils literal"><span class="pre">dynamic_loader()</span></tt></a> function is essentially the same
 as <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> with the <tt class="docutils literal"><span class="pre">lazy='dynamic'</span></tt> argument specified.</p>
 </div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The &#8220;dynamic&#8221; loader applies to <strong>collections only</strong>.   It is not valid
+to use &#8220;dynamic&#8221; loaders with many-to-one, one-to-one, or uselist=False
+relationships.   Newer versions of SQLAlchemy emit warnings or exceptions
+in these cases.</p>
+</div>
 </div>
 <div class="section" id="setting-noload">
 <h3>Setting Noload<a class="headerlink" href="#setting-noload" title="Permalink to this headline">¶</a></h3>
@@ -244,8 +251,7 @@ from the database, the <tt class="docutils literal"><span class="pre">children</
 <span id="passive-deletes"></span><h3>Using Passive Deletes<a class="headerlink" href="#using-passive-deletes" title="Permalink to this headline">¶</a></h3>
 <p>Use <tt class="docutils literal"><span class="pre">passive_deletes=True</span></tt> to disable child object loading on a DELETE
 operation, in conjunction with &#8220;ON DELETE (CASCADE|SET NULL)&#8221; on your database
-to automatically cascade deletes to child objects. Note that &#8220;ON DELETE&#8221; is
-not supported on SQLite, and requires <tt class="docutils literal"><span class="pre">InnoDB</span></tt> tables when using MySQL:</p>
+to automatically cascade deletes to child objects:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;mytable&#39;</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -259,6 +265,17 @@ not supported on SQLite, and requires <tt class="docutils literal"><span class="
     <span class="n">parent_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span>
                 <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;mytable.id&#39;</span><span class="p">,</span> <span class="n">ondelete</span><span class="o">=</span><span class="s">&#39;CASCADE&#39;</span><span class="p">)</span>
                     <span class="p">)</span></pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>To use &#8220;ON DELETE CASCADE&#8221;, the underlying database engine must
+support foreign keys.</p>
+<ul class="last simple">
+<li>When using MySQL, an appropriate storage engine must be
+selected.  See <a class="reference internal" href="../dialects/mysql.html#mysql-storage-engines"><em>Storage Engines</em></a> for details.</li>
+<li>When using SQLite, foreign key support must be enabled explicitly.
+See <a class="reference internal" href="../dialects/sqlite.html#sqlite-foreign-keys"><em>Foreign Key Support</em></a> for details.</li>
+</ul>
 </div>
 <p>When <tt class="docutils literal"><span class="pre">passive_deletes</span></tt> is applied, the <tt class="docutils literal"><span class="pre">children</span></tt> relationship will not be
 loaded into memory when an instance of <tt class="docutils literal"><span class="pre">MyClass</span></tt> is marked for deletion. The

@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.8',
+          VERSION:     '0.7.9',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
+        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
 
 
     </div>
@@ -211,7 +211,7 @@ the Python side deals in <tt class="docutils literal"><span class="pre">True</sp
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>create_constraint</strong> &#8211; defaults to True.  If the boolean 
+<li><strong>create_constraint</strong> &#8211; defaults to True.  If the boolean
 is generated as an int/smallint, also create a CHECK constraint
 on the table that ensures 1 or 0 as a value.</li>
 <li><strong>name</strong> &#8211; if a CHECK constraint is generated, specify
@@ -266,9 +266,9 @@ effect.</p>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Enum</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Enum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.String</span></tt></a>, <a class="reference internal" href="#sqlalchemy.types.SchemaType" title="sqlalchemy.types.SchemaType"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.SchemaType</span></tt></a></p>
 <p>Generic Enum Type.</p>
-<p>The Enum type provides a set of possible string values which the 
+<p>The Enum type provides a set of possible string values which the
 column is constrained towards.</p>
-<p>By default, uses the backend&#8217;s native ENUM type if available, 
+<p>By default, uses the backend&#8217;s native ENUM type if available,
 else uses VARCHAR + a CHECK constraint.</p>
 <p>See also:</p>
 <blockquote>
@@ -358,8 +358,8 @@ conversion as needed.</p>
 defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.   Note that setting this flag to <tt class="docutils literal"><span class="pre">True</span></tt>
 results in floating point conversion.</li>
 <li><strong>**kwargs</strong> &#8211; deprecated.  Additional arguments here are ignored
-by the default <a class="reference internal" href="#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a> type.  For database specific 
-floats that support additional arguments, see that dialect&#8217;s 
+by the default <a class="reference internal" href="#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a> type.  For database specific
+floats that support additional arguments, see that dialect&#8217;s
 documentation for details, such as <a class="reference internal" href="../dialects/mysql.html#sqlalchemy.dialects.mysql.FLOAT" title="sqlalchemy.dialects.mysql.FLOAT"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.mysql.FLOAT</span></tt></a>.</li>
 </ul>
 </td>
@@ -404,12 +404,12 @@ currently is a manual procedure (such as via
 <li><strong>native</strong> &#8211; when True, use the actual
 INTERVAL type provided by the database, if
 supported (currently Postgresql, Oracle).
-Otherwise, represent the interval data as 
+Otherwise, represent the interval data as
 an epoch value regardless.</li>
 <li><strong>second_precision</strong> &#8211; For native interval types
 which support a &#8220;fractional seconds precision&#8221; parameter,
 i.e. Oracle and Postgresql</li>
-<li><strong>day_precision</strong> &#8211; for native interval types which 
+<li><strong>day_precision</strong> &#8211; for native interval types which
 support a &#8220;day precision&#8221; parameter, i.e. Oracle.</li>
 </ul>
 </td>
@@ -484,16 +484,16 @@ imported:</p>
 <span class="kn">import</span> <span class="nn">cdecimal</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s">&quot;decimal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cdecimal</span></pre></div>
 </div>
-<p>While the global patch is a little ugly, it&#8217;s particularly 
-important to use just one decimal library at a time since 
-Python Decimal and cdecimal Decimal objects 
+<p>While the global patch is a little ugly, it&#8217;s particularly
+important to use just one decimal library at a time since
+Python Decimal and cdecimal Decimal objects
 are not currently compatible <em>with each other</em>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">cdecimal</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">decimal</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s">&quot;10&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">cdecimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s">&quot;10&quot;</span><span class="p">)</span>
 <span class="go">False</span></pre></div>
 </div>
-<p class="last">SQLAlchemy will provide more natural support of 
+<p class="last">SQLAlchemy will provide more natural support of
 cdecimal if and when it becomes a standard part of Python
 installations and is supported by all DBAPIs.</p>
 </div>
@@ -524,13 +524,13 @@ that the asdecimal setting is apppropriate for the DBAPI in use -
 when Numeric applies a conversion from Decimal-&gt;float or float-&gt;
 Decimal, this conversion incurs an additional performance overhead
 for all result columns received.</p>
-<p>DBAPIs that return Decimal natively (e.g. psycopg2) will have 
+<p>DBAPIs that return Decimal natively (e.g. psycopg2) will have
 better accuracy and higher performance with a setting of <tt class="docutils literal"><span class="pre">True</span></tt>,
 as the native translation to Decimal reduces the amount of floating-
 point issues at play, and the Numeric type itself doesn&#8217;t need
-to apply any further conversions.  However, another DBAPI which 
-returns floats natively <em>will</em> incur an additional conversion 
-overhead, and is still subject to floating point data loss - in 
+to apply any further conversions.  However, another DBAPI which
+returns floats natively <em>will</em> incur an additional conversion
+overhead, and is still subject to floating point data loss - in
 which case <tt class="docutils literal"><span class="pre">asdecimal=False</span></tt> will at least remove the extra
 conversion overhead.</p>
 </dd></dl>
@@ -561,8 +561,8 @@ cPickle is not available.  May be any object with
 pickle-compatible <tt class="docutils literal"><span class="pre">dumps`</span> <span class="pre">and</span> <span class="pre">``loads</span></tt> methods.</li>
 <li><strong>mutable</strong> &#8211; <p>defaults to False; implements
 <tt class="xref py py-meth docutils literal"><span class="pre">AbstractType.is_mutable()</span></tt>.   When <tt class="docutils literal"><span class="pre">True</span></tt>, incoming
-objects will be compared against copies of themselves 
-using the Python &#8220;equals&#8221; operator, unless the 
+objects will be compared against copies of themselves
+using the Python &#8220;equals&#8221; operator, unless the
 <tt class="docutils literal"><span class="pre">comparator</span></tt> argument is present.   See
 <a class="reference internal" href="#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a> for details on &#8220;mutable&#8221; type
 behavior.</p>
@@ -571,12 +571,12 @@ behavior.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This functionality is now superseded by the
-<tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt> extension described in 
+<tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt> extension described in
 <a class="reference internal" href="../orm/extensions/mutable.html"><em>Mutation Tracking</em></a>.</p>
 </div>
 </li>
 <li><strong>comparator</strong> &#8211; a 2-arg callable predicate used
-to compare values of this type.  If left as <tt class="docutils literal"><span class="pre">None</span></tt>, 
+to compare values of this type.  If left as <tt class="docutils literal"><span class="pre">None</span></tt>,
 the Python &#8220;equals&#8221; operator is used to compare values.</li>
 </ul>
 </td>
@@ -610,7 +610,7 @@ is recommended as a helper.</p>
 <p>Supports types that must be explicitly created/dropped (i.e. PG ENUM type)
 as well as types that are complimented by table or schema level
 constraints, triggers, and other rules.</p>
-<p><a class="reference internal" href="#sqlalchemy.types.SchemaType" title="sqlalchemy.types.SchemaType"><tt class="xref py py-class docutils literal"><span class="pre">SchemaType</span></tt></a> classes can also be targets for the 
+<p><a class="reference internal" href="#sqlalchemy.types.SchemaType" title="sqlalchemy.types.SchemaType"><tt class="xref py py-class docutils literal"><span class="pre">SchemaType</span></tt></a> classes can also be targets for the
 <a class="reference internal" href="events.html#sqlalchemy.events.DDLEvents.before_parent_attach" title="sqlalchemy.events.DDLEvents.before_parent_attach"><tt class="xref py py-meth docutils literal"><span class="pre">DDLEvents.before_parent_attach()</span></tt></a> and <a class="reference internal" href="events.html#sqlalchemy.events.DDLEvents.after_parent_attach" title="sqlalchemy.events.DDLEvents.after_parent_attach"><tt class="xref py py-meth docutils literal"><span class="pre">DDLEvents.after_parent_attach()</span></tt></a>
 events, where the events fire off surrounding the association of
 the type object with a parent <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>.</p>
@@ -669,22 +669,22 @@ DDL statements.  May be safely omitted if no <tt class="docutils literal"><span 
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued if a <tt class="docutils literal"><span class="pre">VARCHAR</span></tt>
 with no length is included.  Whether the value is
 interpreted as bytes or characters is database specific.</li>
-<li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the 
+<li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the
 <a class="reference internal" href="#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type will assume that
 input is to be passed as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects,
 and results returned as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects.
 If the DBAPI in use does not support Python unicode
 (which is fewer and fewer these days), SQLAlchemy
-will encode/decode the value, using the 
-value of the <tt class="docutils literal"><span class="pre">encoding</span></tt> parameter passed to 
+will encode/decode the value, using the
+value of the <tt class="docutils literal"><span class="pre">encoding</span></tt> parameter passed to
 <a class="reference internal" href="engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> as the encoding.</p>
 <p>When using a DBAPI that natively supports Python
-unicode objects, this flag generally does not 
+unicode objects, this flag generally does not
 need to be set.  For columns that are explicitly
 intended to store non-ASCII data, the <a class="reference internal" href="#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a>
-or <a class="reference internal" href="#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt></a> 
+or <a class="reference internal" href="#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt></a>
 types should be used regardless, which feature
-the same behavior of <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> but 
+the same behavior of <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> but
 also indicate an underlying column type that
 directly supports unicode, such as <tt class="docutils literal"><span class="pre">NVARCHAR</span></tt>.</p>
 <p>For the extremely rare case that Python <tt class="docutils literal"><span class="pre">unicode</span></tt>
@@ -694,11 +694,11 @@ the value <tt class="docutils literal"><span class="pre">force</span></tt> can b
 cause SQLAlchemy&#8217;s encode/decode services to be
 used unconditionally.</p>
 </li>
-<li><strong>assert_unicode</strong> &#8211; Deprecated.  A warning is emitted 
-when a non-<tt class="docutils literal"><span class="pre">unicode</span></tt> object is passed to the 
-<a class="reference internal" href="#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> subtype of <a class="reference internal" href="#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a>, 
-or the <a class="reference internal" href="#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt></a> subtype of <a class="reference internal" href="#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">Text</span></tt></a>.   
-See <a class="reference internal" href="#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> for information on how to 
+<li><strong>assert_unicode</strong> &#8211; Deprecated.  A warning is emitted
+when a non-<tt class="docutils literal"><span class="pre">unicode</span></tt> object is passed to the
+<a class="reference internal" href="#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> subtype of <a class="reference internal" href="#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a>,
+or the <a class="reference internal" href="#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt></a> subtype of <a class="reference internal" href="#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">Text</span></tt></a>.
+See <a class="reference internal" href="#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> for information on how to
 control this warning.</li>
 <li><strong>unicode_error</strong> &#8211; Optional, a method to use to handle Unicode
 conversion errors. Behaves like the <tt class="docutils literal"><span class="pre">errors</span></tt> keyword argument to
@@ -745,15 +745,15 @@ params (and the reverse for result sets.)</p>
 that assumes input and output as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> data,
 and in that regard is equivalent to the usage of the
 <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> flag with the <a class="reference internal" href="#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type.
-However, unlike plain <a class="reference internal" href="#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a>, it also implies an 
+However, unlike plain <a class="reference internal" href="#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a>, it also implies an
 underlying column type that is explicitly supporting of non-ASCII
 data, such as <tt class="docutils literal"><span class="pre">NVARCHAR</span></tt> on Oracle and SQL Server.
-This can impact the output of <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statements 
-and <tt class="docutils literal"><span class="pre">CAST</span></tt> functions at the dialect level, and can 
+This can impact the output of <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statements
+and <tt class="docutils literal"><span class="pre">CAST</span></tt> functions at the dialect level, and can
 also affect the handling of bound parameters in some
 specific DBAPI scenarios.</p>
 <p>The encoding used by the <a class="reference internal" href="#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> type is usually
-determined by the DBAPI itself; most modern DBAPIs 
+determined by the DBAPI itself; most modern DBAPIs
 feature support for Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects as bound
 values and result set values, and the encoding should
 be configured as detailed in the notes for the target
@@ -761,24 +761,24 @@ DBAPI in the <a class="reference internal" href="../dialects/index.html"><em>Dia
 <p>For those DBAPIs which do not support, or are not configured
 to accommodate Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects
 directly, SQLAlchemy does the encoding and decoding
-outside of the DBAPI.   The encoding in this scenario 
-is determined by the <tt class="docutils literal"><span class="pre">encoding</span></tt> flag passed to 
+outside of the DBAPI.   The encoding in this scenario
+is determined by the <tt class="docutils literal"><span class="pre">encoding</span></tt> flag passed to
 <a class="reference internal" href="engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>.</p>
-<p>When using the <a class="reference internal" href="#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> type, it is only appropriate 
+<p>When using the <a class="reference internal" href="#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> type, it is only appropriate
 to pass Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects, and not plain <tt class="docutils literal"><span class="pre">str</span></tt>.
 If a plain <tt class="docutils literal"><span class="pre">str</span></tt> is passed under Python 2, a warning
-is emitted.  If you notice your application emitting these warnings but 
-you&#8217;re not sure of the source of them, the Python 
-<tt class="docutils literal"><span class="pre">warnings</span></tt> filter, documented at 
-<a class="reference external" href="http://docs.python.org/library/warnings.html">http://docs.python.org/library/warnings.html</a>, 
-can be used to turn these warnings into exceptions 
+is emitted.  If you notice your application emitting these warnings but
+you&#8217;re not sure of the source of them, the Python
+<tt class="docutils literal"><span class="pre">warnings</span></tt> filter, documented at
+<a class="reference external" href="http://docs.python.org/library/warnings.html">http://docs.python.org/library/warnings.html</a>,
+can be used to turn these warnings into exceptions
 which will illustrate a stack trace:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">warnings</span>
 <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s">&#39;error&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>For an application that wishes to pass plain bytestrings
 and Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects to the <tt class="docutils literal"><span class="pre">Unicode</span></tt> type
-equally, the bytestrings must first be decoded into 
+equally, the bytestrings must first be decoded into
 unicode.  The recipe at <a class="reference internal" href="#coerce-to-unicode"><em>Coercing Encoded Strings to Unicode</em></a> illustrates
 how this is done.</p>
 <p>See also:</p>
@@ -803,8 +803,8 @@ defaults to <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
 <p>An unbounded-length Unicode string type.</p>
 <p>See <a class="reference internal" href="#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> for details on the unicode
 behavior of this object.</p>
-<p>Like <a class="reference internal" href="#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a>, usage the <a class="reference internal" href="#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt></a> type implies a 
-unicode-capable type being used on the backend, such as 
+<p>Like <a class="reference internal" href="#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a>, usage the <a class="reference internal" href="#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt></a> type implies a
+unicode-capable type being used on the backend, such as
 <tt class="docutils literal"><span class="pre">NCLOB</span></tt>, <tt class="docutils literal"><span class="pre">NTEXT</span></tt>.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.UnicodeText.__init__">
@@ -1067,7 +1067,7 @@ to and from the database is required.</p>
 <p>Allows the creation of types which add additional functionality
 to an existing type.</p>
 <p>This method is preferred to direct subclassing of SQLAlchemy&#8217;s
-built-in types as it ensures that all required functionality of 
+built-in types as it ensures that all required functionality of
 the underlying type is kept in place.</p>
 <p>Typical usage:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sqlalchemy.types</span> <span class="kn">as</span> <span class="nn">types</span>
@@ -1100,9 +1100,9 @@ Python objects into bind parameters within expressions. Consider this
 expression:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mytable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">somecol</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="mi">2009</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span></pre></div>
 </div>
-<p>Above, if &#8220;somecol&#8221; is an <tt class="docutils literal"><span class="pre">Integer</span></tt> variant, it makes sense that 
+<p>Above, if &#8220;somecol&#8221; is an <tt class="docutils literal"><span class="pre">Integer</span></tt> variant, it makes sense that
 we&#8217;re doing date arithmetic, where above is usually interpreted
-by databases as adding a number of days to the given date. 
+by databases as adding a number of days to the given date.
 The expression system does the right thing by not attempting to
 coerce the &#8220;date()&#8221; value into an integer-oriented bind parameter.</p>
 <p>However, in the case of <tt class="docutils literal"><span class="pre">TypeDecorator</span></tt>, we are usually changing an
@@ -1137,13 +1137,13 @@ value is assumed to be a date and will be treated as a <tt class="docutils liter
 <dt id="sqlalchemy.types.TypeDecorator.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>.</p>
-<p>Arguments sent here are passed to the constructor 
+<p>Arguments sent here are passed to the constructor
 of the class assigned to the <tt class="docutils literal"><span class="pre">impl</span></tt> class level attribute,
 assuming the <tt class="docutils literal"><span class="pre">impl</span></tt> is a callable, and the resulting
 object is assigned to the <tt class="docutils literal"><span class="pre">self.impl</span></tt> instance attribute
 (thus overriding the class attribute of the same name).</p>
 <p>If the class level <tt class="docutils literal"><span class="pre">impl</span></tt> is not a callable (the unusual case),
-it will be assigned to the same instance attribute &#8216;as-is&#8217;, 
+it will be assigned to the same instance attribute &#8216;as-is&#8217;,
 ignoring those arguments passed to the constructor.</p>
 <p>Subclasses can override this to customize the generation
 of <tt class="docutils literal"><span class="pre">self.impl</span></tt> entirely.</p>
@@ -1152,9 +1152,9 @@ of <tt class="docutils literal"><span class="pre">self.impl</span></tt> entirely
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.adapt">
 <tt class="descname">adapt</tt><big>(</big><em>cls</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.adapt" title="Permalink to this definition">¶</a></dt>
-<dd><p>Produce an &#8220;adapted&#8221; form of this type, given an &#8220;impl&#8221; class 
+<dd><p>Produce an &#8220;adapted&#8221; form of this type, given an &#8220;impl&#8221; class
 to work with.</p>
-<p>This method is used internally to associate generic 
+<p>This method is used internally to associate generic
 types with &#8220;implementation&#8221; types that are specific to a particular
 dialect.</p>
 </dd></dl>
@@ -1162,11 +1162,11 @@ dialect.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.bind_processor">
 <tt class="descname">bind_processor</tt><big>(</big><em>dialect</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.bind_processor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Provide a bound value processing function for the 
+<dd><p>Provide a bound value processing function for the
 given <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a>.</p>
-<p>This is the method that fulfills the <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> 
+<p>This is the method that fulfills the <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a>
 contract for bound value conversion.   <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>
-will wrap a user-defined implementation of 
+will wrap a user-defined implementation of
 <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.process_bind_param" title="sqlalchemy.types.TypeDecorator.process_bind_param"><tt class="xref py py-meth docutils literal"><span class="pre">process_bind_param()</span></tt></a> here.</p>
 <p>User-defined code can override this method directly,
 though its likely best to use <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.process_bind_param" title="sqlalchemy.types.TypeDecorator.process_bind_param"><tt class="xref py py-meth docutils literal"><span class="pre">process_bind_param()</span></tt></a> so that
@@ -1188,7 +1188,7 @@ the processing provided by <tt class="docutils literal"><span class="pre">self.i
 <tt class="descname">coerce_compared_value</tt><big>(</big><em>op</em>, <em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.coerce_compared_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Suggest a type for a &#8216;coerced&#8217; Python value in an expression.</p>
 <p>By default, returns self.   This method is called by
-the expression system when an object using this type is 
+the expression system when an object using this type is
 on the left or right side of an expression against a plain Python
 object which does not yet have a SQLAlchemy type assigned:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">expr</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">somecolumn</span> <span class="o">+</span> <span class="mi">35</span></pre></div>
@@ -1203,7 +1203,7 @@ be used for <tt class="docutils literal"><span class="pre">35</span></tt> for th
 <dt id="sqlalchemy.types.TypeDecorator.compare_values">
 <tt class="descname">compare_values</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.compare_values" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given two values, compare them for equality.</p>
-<p>By default this calls upon <a class="reference internal" href="#sqlalchemy.types.TypeEngine.compare_values" title="sqlalchemy.types.TypeEngine.compare_values"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.compare_values()</span></tt></a> 
+<p>By default this calls upon <a class="reference internal" href="#sqlalchemy.types.TypeEngine.compare_values" title="sqlalchemy.types.TypeEngine.compare_values"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.compare_values()</span></tt></a>
 of the underlying &#8220;impl&#8221;, which in turn usually
 uses the Python equals operator <tt class="docutils literal"><span class="pre">==</span></tt>.</p>
 <p>This function is used by the ORM to compare
@@ -1232,7 +1232,7 @@ to produce a string result.</p>
 <dt id="sqlalchemy.types.TypeDecorator.copy">
 <tt class="descname">copy</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Produce a copy of this <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a> instance.</p>
-<p>This is a shallow copy and is provided to fulfill part of 
+<p>This is a shallow copy and is provided to fulfill part of
 the <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> contract.  It usually does not
 need to be overridden unless the user-defined <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>
 has local state that should be deep-copied.</p>
@@ -1242,18 +1242,18 @@ has local state that should be deep-copied.</p>
 <dt id="sqlalchemy.types.TypeDecorator.copy_value">
 <tt class="descname">copy_value</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.copy_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a value, produce a copy of it.</p>
-<p>By default this calls upon <a class="reference internal" href="#sqlalchemy.types.TypeEngine.copy_value" title="sqlalchemy.types.TypeEngine.copy_value"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.copy_value()</span></tt></a> 
+<p>By default this calls upon <a class="reference internal" href="#sqlalchemy.types.TypeEngine.copy_value" title="sqlalchemy.types.TypeEngine.copy_value"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.copy_value()</span></tt></a>
 of the underlying &#8220;impl&#8221;.</p>
 <p><a class="reference internal" href="#sqlalchemy.types.TypeDecorator.copy_value" title="sqlalchemy.types.TypeDecorator.copy_value"><tt class="xref py py-meth docutils literal"><span class="pre">copy_value()</span></tt></a> will return the object
 itself, assuming &#8220;mutability&#8221; is not enabled.
-Only the <a class="reference internal" href="#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a> mixin provides a copy 
+Only the <a class="reference internal" href="#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a> mixin provides a copy
 function that actually produces a new object.
 The copying function is used by the ORM when
 &#8220;mutable&#8221; types are used, to memoize the original
 version of an object as loaded from the database,
 which is then compared to the possibly mutated
 version to check for changes.</p>
-<p>Modern implementations should use the 
+<p>Modern implementations should use the
 <tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt> extension described in
 <a class="reference internal" href="../orm/extensions/mutable.html"><em>Mutation Tracking</em></a> for intercepting in-place
 changes to values.</p>
@@ -1269,7 +1269,7 @@ changes to values.</p>
 <dt id="sqlalchemy.types.TypeDecorator.get_dbapi_type">
 <tt class="descname">get_dbapi_type</tt><big>(</big><em>dbapi</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.get_dbapi_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the DBAPI type object represented by this <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>.</p>
-<p>By default this calls upon <a class="reference internal" href="#sqlalchemy.types.TypeEngine.get_dbapi_type" title="sqlalchemy.types.TypeEngine.get_dbapi_type"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.get_dbapi_type()</span></tt></a> of the 
+<p>By default this calls upon <a class="reference internal" href="#sqlalchemy.types.TypeEngine.get_dbapi_type" title="sqlalchemy.types.TypeEngine.get_dbapi_type"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.get_dbapi_type()</span></tt></a> of the
 underlying &#8220;impl&#8221;.</p>
 </dd></dl>
 
@@ -1280,12 +1280,12 @@ underlying &#8220;impl&#8221;.</p>
 <p>This allows systems like the ORM to know if a column value can
 be considered &#8216;not changed&#8217; by comparing the identity of
 objects alone.  Values such as dicts, lists which
-are serialized into strings are examples of &#8220;mutable&#8221; 
+are serialized into strings are examples of &#8220;mutable&#8221;
 column structures.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This functionality is now superseded by the
-<tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt> extension described in 
+<tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt> extension described in
 <a class="reference internal" href="../orm/extensions/mutable.html"><em>Mutation Tracking</em></a>.</p>
 </div>
 </dd></dl>
@@ -1296,7 +1296,7 @@ column structures.</p>
 <dd><p>Return a <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> object corresponding to a dialect.</p>
 <p>This is an end-user override hook that can be used to provide
 differing types depending on the given dialect.  It is used
-by the <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a> implementation of <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.type_engine" title="sqlalchemy.types.TypeDecorator.type_engine"><tt class="xref py py-meth docutils literal"><span class="pre">type_engine()</span></tt></a> 
+by the <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a> implementation of <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.type_engine" title="sqlalchemy.types.TypeDecorator.type_engine"><tt class="xref py py-meth docutils literal"><span class="pre">type_engine()</span></tt></a>
 to help determine what type should ultimately be returned
 for a given <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>.</p>
 <p>By default returns <tt class="docutils literal"><span class="pre">self.impl</span></tt>.</p>
@@ -1308,10 +1308,10 @@ for a given <a class="reference internal" href="#sqlalchemy.types.TypeDecorator"
 <dd><p>Receive a bound parameter value to be converted.</p>
 <p>Subclasses override this method to return the
 value that should be passed along to the underlying
-<a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> object, and from there to the 
+<a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> object, and from there to the
 DBAPI <tt class="docutils literal"><span class="pre">execute()</span></tt> method.</p>
 <p>The operation could be anything desired to perform custom
-behavior, such as transforming or serializing data. 
+behavior, such as transforming or serializing data.
 This could also be used as a hook for validating logic.</p>
 <p>This operation should be designed with the reverse operation
 in mind, which would be the process_result_value method of
@@ -1343,7 +1343,7 @@ given a value that is already processed by
 the underlying <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> object, originally
 from the DBAPI cursor method <tt class="docutils literal"><span class="pre">fetchone()</span></tt> or similar.</p>
 <p>The operation could be anything desired to perform custom
-behavior, such as transforming or serializing data. 
+behavior, such as transforming or serializing data.
 This could also be used as a hook for validating logic.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1368,7 +1368,7 @@ the &#8220;process_bind_param&#8221; method of this class.</p>
 <dd><p>Return the Python type object expected to be returned
 by instances of this type, if known.</p>
 <p>Basically, for those types which enforce a return type,
-or are known across the board to do such for all common 
+or are known across the board to do such for all common
 DBAPIs (like <tt class="docutils literal"><span class="pre">int</span></tt> for example), will return that type.</p>
 <p>If a return type is not defined, raises
 <tt class="docutils literal"><span class="pre">NotImplementedError</span></tt>.</p>
@@ -1381,9 +1381,9 @@ in practice.</p>
 <dt id="sqlalchemy.types.TypeDecorator.result_processor">
 <tt class="descname">result_processor</tt><big>(</big><em>dialect</em>, <em>coltype</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.result_processor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provide a result value processing function for the given <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a>.</p>
-<p>This is the method that fulfills the <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> 
+<p>This is the method that fulfills the <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a>
 contract for result value conversion.   <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>
-will wrap a user-defined implementation of 
+will wrap a user-defined implementation of
 <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.process_result_value" title="sqlalchemy.types.TypeDecorator.process_result_value"><tt class="xref py py-meth docutils literal"><span class="pre">process_result_value()</span></tt></a> here.</p>
 <p>User-defined code can override this method directly,
 though its likely best to use <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.process_result_value" title="sqlalchemy.types.TypeDecorator.process_result_value"><tt class="xref py py-meth docutils literal"><span class="pre">process_result_value()</span></tt></a> so that
@@ -1418,7 +1418,7 @@ Behavior can be customized here by overriding <a class="reference internal" href
 <dl class="method">
 <dt id="sqlalchemy.types.TypeDecorator.with_variant">
 <tt class="descname">with_variant</tt><big>(</big><em>type_</em>, <em>dialect_name</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.with_variant" title="Permalink to this definition">¶</a></dt>
-<dd><p>Produce a new type object that will utilize the given 
+<dd><p>Produce a new type object that will utilize the given
 type when applied to the dialect of the given name.</p>
 <p>e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.types</span> <span class="kn">import</span> <span class="n">String</span>
@@ -1431,7 +1431,7 @@ type when applied to the dialect of the given name.</p>
 <p>The construction of <a class="reference internal" href="#sqlalchemy.types.TypeEngine.with_variant" title="sqlalchemy.types.TypeEngine.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.with_variant()</span></tt></a> is always
 from the &#8220;fallback&#8221; type to that which is dialect specific.
 The returned type is an instance of <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a>, which
-itself provides a <a class="reference internal" href="#sqlalchemy.types.Variant.with_variant" title="sqlalchemy.types.Variant.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">with_variant()</span></tt></a> that can 
+itself provides a <a class="reference internal" href="#sqlalchemy.types.Variant.with_variant" title="sqlalchemy.types.Variant.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">with_variant()</span></tt></a> that can
 be called repeatedly.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1441,7 +1441,7 @@ be called repeatedly.</p>
 <li><strong>type</strong> &#8211; a <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> that will be selected
 as a variant from the originating type, when a dialect
 of the given name is in use.</li>
-<li><strong>dialect_name</strong> &#8211; base name of the dialect which uses 
+<li><strong>dialect_name</strong> &#8211; base name of the dialect which uses
 this type. (i.e. <tt class="docutils literal"><span class="pre">'postgresql'</span></tt>, <tt class="docutils literal"><span class="pre">'mysql'</span></tt>, etc.)</li>
 </ul>
 </td>
@@ -1639,9 +1639,9 @@ more appropriate:</p>
 <dl class="method">
 <dt id="sqlalchemy.types.UserDefinedType.adapt">
 <tt class="descname">adapt</tt><big>(</big><em>cls</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.UserDefinedType.adapt" title="Permalink to this definition">¶</a></dt>
-<dd><p>Produce an &#8220;adapted&#8221; form of this type, given an &#8220;impl&#8221; class 
+<dd><p>Produce an &#8220;adapted&#8221; form of this type, given an &#8220;impl&#8221; class
 to work with.</p>
-<p>This method is used internally to associate generic 
+<p>This method is used internally to associate generic
 types with &#8220;implementation&#8221; types that are specific to a particular
 dialect.</p>
 </dd></dl>
@@ -1721,12 +1721,12 @@ any.</p>
 <p>This allows systems like the ORM to know if a column value can
 be considered &#8216;not changed&#8217; by comparing the identity of
 objects alone.  Values such as dicts, lists which
-are serialized into strings are examples of &#8220;mutable&#8221; 
+are serialized into strings are examples of &#8220;mutable&#8221;
 column structures.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This functionality is now superseded by the
-<tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt> extension described in 
+<tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt> extension described in
 <a class="reference internal" href="../orm/extensions/mutable.html"><em>Mutation Tracking</em></a>.</p>
 </div>
 <p>When this method is overridden, <a class="reference internal" href="#sqlalchemy.types.UserDefinedType.copy_value" title="sqlalchemy.types.UserDefinedType.copy_value"><tt class="xref py py-meth docutils literal"><span class="pre">copy_value()</span></tt></a> should
@@ -1740,7 +1740,7 @@ is recommended as a helper.</p>
 <dd><p>Return the Python type object expected to be returned
 by instances of this type, if known.</p>
 <p>Basically, for those types which enforce a return type,
-or are known across the board to do such for all common 
+or are known across the board to do such for all common
 DBAPIs (like <tt class="docutils literal"><span class="pre">int</span></tt> for example), will return that type.</p>
 <p>If a return type is not defined, raises
 <tt class="docutils literal"><span class="pre">NotImplementedError</span></tt>.</p>
@@ -1774,7 +1774,7 @@ to return to the user.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.UserDefinedType.with_variant">
 <tt class="descname">with_variant</tt><big>(</big><em>type_</em>, <em>dialect_name</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.UserDefinedType.with_variant" title="Permalink to this definition">¶</a></dt>
-<dd><p>Produce a new type object that will utilize the given 
+<dd><p>Produce a new type object that will utilize the given
 type when applied to the dialect of the given name.</p>
 <p>e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.types</span> <span class="kn">import</span> <span class="n">String</span>
@@ -1787,7 +1787,7 @@ type when applied to the dialect of the given name.</p>
 <p>The construction of <a class="reference internal" href="#sqlalchemy.types.TypeEngine.with_variant" title="sqlalchemy.types.TypeEngine.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.with_variant()</span></tt></a> is always
 from the &#8220;fallback&#8221; type to that which is dialect specific.
 The returned type is an instance of <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a>, which
-itself provides a <a class="reference internal" href="#sqlalchemy.types.Variant.with_variant" title="sqlalchemy.types.Variant.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">with_variant()</span></tt></a> that can 
+itself provides a <a class="reference internal" href="#sqlalchemy.types.Variant.with_variant" title="sqlalchemy.types.Variant.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">with_variant()</span></tt></a> that can
 be called repeatedly.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1797,7 +1797,7 @@ be called repeatedly.</p>
 <li><strong>type</strong> &#8211; a <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> that will be selected
 as a variant from the originating type, when a dialect
 of the given name is in use.</li>
-<li><strong>dialect_name</strong> &#8211; base name of the dialect which uses 
+<li><strong>dialect_name</strong> &#8211; base name of the dialect which uses
 this type. (i.e. <tt class="docutils literal"><span class="pre">'postgresql'</span></tt>, <tt class="docutils literal"><span class="pre">'mysql'</span></tt>, etc.)</li>
 </ul>
 </td>
@@ -1818,7 +1818,7 @@ this type. (i.e. <tt class="docutils literal"><span class="pre">'postgresql'</sp
 <dt id="sqlalchemy.types.AbstractType">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">AbstractType</tt><a class="headerlink" href="#sqlalchemy.types.AbstractType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.visitors.Visitable</span></tt></p>
-<p>Base for all types - not needed except for backwards 
+<p>Base for all types - not needed except for backwards
 compatibility.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.types.AbstractType.__init__">
@@ -1842,9 +1842,9 @@ compatibility.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.adapt">
 <tt class="descname">adapt</tt><big>(</big><em>cls</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.adapt" title="Permalink to this definition">¶</a></dt>
-<dd><p>Produce an &#8220;adapted&#8221; form of this type, given an &#8220;impl&#8221; class 
+<dd><p>Produce an &#8220;adapted&#8221; form of this type, given an &#8220;impl&#8221; class
 to work with.</p>
-<p>This method is used internally to associate generic 
+<p>This method is used internally to associate generic
 types with &#8220;implementation&#8221; types that are specific to a particular
 dialect.</p>
 </dd></dl>
@@ -1915,12 +1915,12 @@ any.</p>
 <p>This allows systems like the ORM to know if a column value can
 be considered &#8216;not changed&#8217; by comparing the identity of
 objects alone.  Values such as dicts, lists which
-are serialized into strings are examples of &#8220;mutable&#8221; 
+are serialized into strings are examples of &#8220;mutable&#8221;
 column structures.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This functionality is now superseded by the
-<tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt> extension described in 
+<tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt> extension described in
 <a class="reference internal" href="../orm/extensions/mutable.html"><em>Mutation Tracking</em></a>.</p>
 </div>
 <p>When this method is overridden, <a class="reference internal" href="#sqlalchemy.types.TypeEngine.copy_value" title="sqlalchemy.types.TypeEngine.copy_value"><tt class="xref py py-meth docutils literal"><span class="pre">copy_value()</span></tt></a> should
@@ -1934,7 +1934,7 @@ is recommended as a helper.</p>
 <dd><p>Return the Python type object expected to be returned
 by instances of this type, if known.</p>
 <p>Basically, for those types which enforce a return type,
-or are known across the board to do such for all common 
+or are known across the board to do such for all common
 DBAPIs (like <tt class="docutils literal"><span class="pre">int</span></tt> for example), will return that type.</p>
 <p>If a return type is not defined, raises
 <tt class="docutils literal"><span class="pre">NotImplementedError</span></tt>.</p>
@@ -1968,7 +1968,7 @@ to return to the user.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.with_variant">
 <tt class="descname">with_variant</tt><big>(</big><em>type_</em>, <em>dialect_name</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.with_variant" title="Permalink to this definition">¶</a></dt>
-<dd><p>Produce a new type object that will utilize the given 
+<dd><p>Produce a new type object that will utilize the given
 type when applied to the dialect of the given name.</p>
 <p>e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.types</span> <span class="kn">import</span> <span class="n">String</span>
@@ -1981,7 +1981,7 @@ type when applied to the dialect of the given name.</p>
 <p>The construction of <a class="reference internal" href="#sqlalchemy.types.TypeEngine.with_variant" title="sqlalchemy.types.TypeEngine.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.with_variant()</span></tt></a> is always
 from the &#8220;fallback&#8221; type to that which is dialect specific.
 The returned type is an instance of <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a>, which
-itself provides a <a class="reference internal" href="#sqlalchemy.types.Variant.with_variant" title="sqlalchemy.types.Variant.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">with_variant()</span></tt></a> that can 
+itself provides a <a class="reference internal" href="#sqlalchemy.types.Variant.with_variant" title="sqlalchemy.types.Variant.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">with_variant()</span></tt></a> that can
 be called repeatedly.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1991,7 +1991,7 @@ be called repeatedly.</p>
 <li><strong>type</strong> &#8211; a <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> that will be selected
 as a variant from the originating type, when a dialect
 of the given name is in use.</li>
-<li><strong>dialect_name</strong> &#8211; base name of the dialect which uses 
+<li><strong>dialect_name</strong> &#8211; base name of the dialect which uses
 this type. (i.e. <tt class="docutils literal"><span class="pre">'postgresql'</span></tt>, <tt class="docutils literal"><span class="pre">'mysql'</span></tt>, etc.)</li>
 </ul>
 </td>
@@ -2018,17 +2018,17 @@ by the <tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</sp
 driven approach to in-place mutation detection that does not
 incur the severe performance penalty of the <a class="reference internal" href="#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a>
 approach.</p>
-<p>&#8220;mutable&#8221; means that changes can occur in place to a value 
+<p>&#8220;mutable&#8221; means that changes can occur in place to a value
 of this type.   Examples includes Python lists, dictionaries,
 and sets, as well as user-defined objects.  The primary
-need for identification of &#8220;mutable&#8221; types is by the ORM, 
-which applies special rules to such values in order to guarantee 
-that changes are detected.  These rules may have a significant 
+need for identification of &#8220;mutable&#8221; types is by the ORM,
+which applies special rules to such values in order to guarantee
+that changes are detected.  These rules may have a significant
 performance impact, described below.</p>
 <p>A <a class="reference internal" href="#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a> usually allows a flag called
 <tt class="docutils literal"><span class="pre">mutable=False</span></tt> to enable/disable the &#8220;mutability&#8221; flag,
-represented on this class by <a class="reference internal" href="#sqlalchemy.types.MutableType.is_mutable" title="sqlalchemy.types.MutableType.is_mutable"><tt class="xref py py-meth docutils literal"><span class="pre">is_mutable()</span></tt></a>.  Examples 
-include <a class="reference internal" href="#sqlalchemy.types.PickleType" title="sqlalchemy.types.PickleType"><tt class="xref py py-class docutils literal"><span class="pre">PickleType</span></tt></a> and 
+represented on this class by <a class="reference internal" href="#sqlalchemy.types.MutableType.is_mutable" title="sqlalchemy.types.MutableType.is_mutable"><tt class="xref py py-meth docutils literal"><span class="pre">is_mutable()</span></tt></a>.  Examples
+include <a class="reference internal" href="#sqlalchemy.types.PickleType" title="sqlalchemy.types.PickleType"><tt class="xref py py-class docutils literal"><span class="pre">PickleType</span></tt></a> and
 <tt class="xref py py-class docutils literal"><span class="pre">ARRAY</span></tt>.  Setting
 this flag to <tt class="docutils literal"><span class="pre">True</span></tt> enables mutability-specific behavior
 by the ORM.</p>
@@ -2081,7 +2081,7 @@ the usage of <a class="reference internal" href="#sqlalchemy.types.MutableType" 
 <dt id="sqlalchemy.types.MutableType.is_mutable">
 <tt class="descname">is_mutable</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.types.MutableType.is_mutable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return True if the target Python type is &#8216;mutable&#8217;.</p>
-<p>For <a class="reference internal" href="#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a>, this method is set to 
+<p>For <a class="reference internal" href="#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a>, this method is set to
 return <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
 </dd></dl>
 
@@ -2129,7 +2129,7 @@ using the <a class="reference internal" href="#sqlalchemy.types.TypeEngine.with_
 <dt id="sqlalchemy.types.Variant.with_variant">
 <tt class="descname">with_variant</tt><big>(</big><em>type_</em>, <em>dialect_name</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Variant.with_variant" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a> which adds the given
-type + dialect name to the mapping, in addition to the 
+type + dialect name to the mapping, in addition to the
 mapping present in this <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2139,7 +2139,7 @@ mapping present in this <a class="reference internal" href="#sqlalchemy.types.Va
 <li><strong>type</strong> &#8211; a <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> that will be selected
 as a variant from the originating type, when a dialect
 of the given name is in use.</li>
-<li><strong>dialect_name</strong> &#8211; base name of the dialect which uses 
+<li><strong>dialect_name</strong> &#8211; base name of the dialect which uses
 this type. (i.e. <tt class="docutils literal"><span class="pre">'postgresql'</span></tt>, <tt class="docutils literal"><span class="pre">'mysql'</span></tt>, etc.)</li>
 </ul>
 </td>
@@ -2158,7 +2158,7 @@ this type. (i.e. <tt class="docutils literal"><span class="pre">'postgresql'</sp
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>base</strong> &#8211; the base &#8216;fallback&#8217; type</li>
-<li><strong>mapping</strong> &#8211; dictionary of string dialect names to <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> 
+<li><strong>mapping</strong> &#8211; dictionary of string dialect names to <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a>
 instances.</li>
 </ul>
 </td>

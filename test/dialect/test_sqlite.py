@@ -84,11 +84,11 @@ class TestTypes(fixtures.TestBase, AssertsExecutionResults):
         t.create(engine)
         try:
             engine.execute(t.insert(), {'d1': datetime.date(2010, 5,
-                           10), 
+                           10),
                           'd2': datetime.datetime( 2010, 5, 10, 12, 15, 25,
                           )})
             row = engine.execute(t.select()).first()
-            eq_(row, (1, datetime.date(2010, 5, 10), 
+            eq_(row, (1, datetime.date(2010, 5, 10),
             datetime.datetime( 2010, 5, 10, 12, 15, 25, )))
             r = engine.execute(func.current_date()).scalar()
             assert isinstance(r, basestring)
@@ -251,7 +251,7 @@ class DefaultsTest(fixtures.TestBase, AssertsCompiledSQL):
             m2 = MetaData(db)
             t2 = Table('r_defaults', m2, autoload=True)
             self.assert_compile(
-                CreateTable(t2), 
+                CreateTable(t2),
                 "CREATE TABLE r_defaults (data VARCHAR(40) "
                 "DEFAULT 'my_default', val INTEGER DEFAULT 0 "
                 "NOT NULL)"
@@ -261,7 +261,7 @@ class DefaultsTest(fixtures.TestBase, AssertsCompiledSQL):
 
     @testing.provide_metadata
     def test_boolean_default(self):
-        t= Table("t", self.metadata, 
+        t = Table("t", self.metadata,
                 Column("x", Boolean, server_default=sql.false()))
         t.create(testing.db)
         testing.db.execute(t.insert())
@@ -270,6 +270,19 @@ class DefaultsTest(fixtures.TestBase, AssertsCompiledSQL):
             testing.db.execute(t.select().order_by(t.c.x)).fetchall(),
             [(False,), (True,)]
         )
+
+    def test_old_style_default(self):
+        """test non-quoted integer value on older sqlite pragma"""
+
+        dialect = sqlite.dialect()
+        eq_(
+            dialect._get_column_info("foo", "INTEGER", False, 3, False),
+            {'primary_key': False, 'nullable': False,
+                'default': '3', 'autoincrement': False,
+                'type': INTEGER, 'name': 'foo'}
+        )
+
+
 
 
 class DialectTest(fixtures.TestBase, AssertsExecutionResults):
@@ -300,11 +313,11 @@ class DialectTest(fixtures.TestBase, AssertsExecutionResults):
         finally:
             meta.drop_all()
 
-    def test_quoted_identifiers(self):
+    @testing.provide_metadata
+    def test_quoted_identifiers_one(self):
         """Tests autoload of tables created with quoted column names."""
 
-        # This is quirky in sqlite.
-
+        metadata = self.metadata
         testing.db.execute("""CREATE TABLE "django_content_type" (
             "id" integer NOT NULL PRIMARY KEY,
             "django_stuff" text NULL
@@ -314,22 +327,53 @@ class DialectTest(fixtures.TestBase, AssertsExecutionResults):
         CREATE TABLE "django_admin_log" (
             "id" integer NOT NULL PRIMARY KEY,
             "action_time" datetime NOT NULL,
-            "content_type_id" integer NULL 
+            "content_type_id" integer NULL
                     REFERENCES "django_content_type" ("id"),
             "object_id" text NULL,
             "change_message" text NOT NULL
         )
         """)
-        try:
-            meta = MetaData(testing.db)
-            table1 = Table('django_admin_log', meta, autoload=True)
-            table2 = Table('django_content_type', meta, autoload=True)
-            j = table1.join(table2)
-            assert j.onclause.compare(table1.c.content_type_id
-                    == table2.c.id)
-        finally:
-            testing.db.execute('drop table django_admin_log')
-            testing.db.execute('drop table django_content_type')
+        table1 = Table('django_admin_log', metadata, autoload=True)
+        table2 = Table('django_content_type', metadata, autoload=True)
+        j = table1.join(table2)
+        assert j.onclause.compare(table1.c.content_type_id
+                == table2.c.id)
+
+    @testing.provide_metadata
+    def test_quoted_identifiers_two(self):
+        """"test the edgiest of edge cases, quoted table/col names
+        that start and end with quotes.
+
+        SQLite claims to have fixed this in
+        http://www.sqlite.org/src/info/600482d161, however
+        it still fails if the FK points to a table name that actually
+        has quotes as part of its name.
+
+        """
+
+        metadata = self.metadata
+        testing.db.execute(r'''CREATE TABLE """a""" (
+            """id""" integer NOT NULL PRIMARY KEY
+        )
+        ''')
+
+        # unfortunately, still can't do this; sqlite quadruples
+        # up the quotes on the table name here for pragma foreign_key_list
+        #testing.db.execute(r'''
+        #CREATE TABLE """b""" (
+        #    """id""" integer NOT NULL PRIMARY KEY,
+        #    """aid""" integer NULL
+        #           REFERENCES """a""" ("""id""")
+        #)
+        #''')
+
+        table1 = Table(r'"a"', metadata, autoload=True)
+        assert '"id"' in table1.c
+
+        #table2 = Table(r'"b"', metadata, autoload=True)
+        #j = table1.join(table2)
+        #assert j.onclause.compare(table1.c['"id"']
+        #        == table2.c['"aid"'])
 
     def test_attached_as_schema(self):
         cx = testing.db.connect()
@@ -457,26 +501,32 @@ class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
             sql.false(), "0"
         )
         self.assert_compile(
-            sql.true(), 
+            sql.true(),
             "1"
+        )
+
+    def test_localtime(self):
+        self.assert_compile(
+            func.localtimestamp(),
+            'DATETIME(CURRENT_TIMESTAMP, "localtime")'
         )
 
     def test_constraints_with_schemas(self):
         metadata = MetaData()
-        t1 = Table('t1', metadata, 
+        t1 = Table('t1', metadata,
                         Column('id', Integer, primary_key=True),
                         schema='master')
-        t2 = Table('t2', metadata, 
+        t2 = Table('t2', metadata,
                         Column('id', Integer, primary_key=True),
                         Column('t1_id', Integer, ForeignKey('master.t1.id')),
                         schema='master'
                     )
-        t3 = Table('t3', metadata, 
+        t3 = Table('t3', metadata,
                         Column('id', Integer, primary_key=True),
                         Column('t1_id', Integer, ForeignKey('master.t1.id')),
                         schema='alternate'
                     )
-        t4 = Table('t4', metadata, 
+        t4 = Table('t4', metadata,
                         Column('id', Integer, primary_key=True),
                         Column('t1_id', Integer, ForeignKey('master.t1.id')),
                     )
@@ -607,17 +657,17 @@ class MatchTest(fixtures.TestBase, AssertsCompiledSQL):
         metadata = MetaData(testing.db)
         testing.db.execute("""
         CREATE VIRTUAL TABLE cattable using FTS3 (
-            id INTEGER NOT NULL, 
-            description VARCHAR(50), 
+            id INTEGER NOT NULL,
+            description VARCHAR(50),
             PRIMARY KEY (id)
         )
         """)
         cattable = Table('cattable', metadata, autoload=True)
         testing.db.execute("""
         CREATE VIRTUAL TABLE matchtable using FTS3 (
-            id INTEGER NOT NULL, 
+            id INTEGER NOT NULL,
             title VARCHAR(200),
-            category_id INTEGER NOT NULL, 
+            category_id INTEGER NOT NULL,
             PRIMARY KEY (id)
         )
         """)
@@ -782,7 +832,7 @@ class ReflectFKConstraintTest(fixtures.TestBase):
 
     def test_name_not_none(self):
         # we don't have names for PK constraints,
-        # it appears we get back None in the pragma for 
+        # it appears we get back None in the pragma for
         # FKs also (also it doesn't even appear to be documented on sqlite's docs
         # at http://www.sqlite.org/pragma.html#pragma_foreign_key_list
         # how did we ever know that's the "name" field ??)

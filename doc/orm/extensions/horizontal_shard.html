@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.7.8',
+          VERSION:     '0.7.9',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
+        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
 
 
     </div>
@@ -149,7 +149,7 @@
 <p>Horizontal sharding support.</p>
 <p>Defines a rudimental &#8216;horizontal sharding&#8217; system which allows a Session to
 distribute queries and persistence operations across multiple databases.</p>
-<p>For a usage example, see the <a class="reference internal" href="../examples.html#examples-sharding"><em>Horizontal Sharding</em></a> example included in 
+<p>For a usage example, see the <a class="reference internal" href="../examples.html#examples-sharding"><em>Horizontal Sharding</em></a> example included in
 the source distribution.</p>
 <div class="section" id="api-documentation">
 <h2>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h2>
@@ -195,7 +195,7 @@ objects.</li>
 <dt id="sqlalchemy.ext.horizontal_shard.ShardedQuery.set_shard">
 <tt class="descname">set_shard</tt><big>(</big><em>shard_id</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.horizontal_shard.ShardedQuery.set_shard" title="Permalink to this definition">¶</a></dt>
 <dd><p>return a new query, limited to a single shard ID.</p>
-<p>all subsequent operations with the returned query will 
+<p>all subsequent operations with the returned query will
 be against the single shard regardless of other state.</p>
 </dd></dl>
 

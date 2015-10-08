@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.8',
+          VERSION:     '0.7.9',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
+        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
 
 
     </div>
@@ -118,7 +118,10 @@
 <li><a class="reference internal" href="#one-to-many">One To Many</a></li>
 <li><a class="reference internal" href="#many-to-one">Many To One</a></li>
 <li><a class="reference internal" href="#one-to-one">One To One</a></li>
-<li><a class="reference internal" href="#many-to-many">Many To Many</a></li>
+<li><a class="reference internal" href="#many-to-many">Many To Many</a><ul>
+<li><a class="reference internal" href="#deleting-rows-from-the-many-to-many-table">Deleting Rows from the Many to Many Table</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#association-object">Association Object</a></li>
 </ul>
 </li>
@@ -329,6 +332,51 @@ is accepted as well, matching the name of the table as stored in <tt class="docu
     <span class="n">children</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Child&quot;</span><span class="p">,</span>
                     <span class="n">secondary</span><span class="o">=</span><span class="s">&quot;association&quot;</span><span class="p">,</span>
                     <span class="n">backref</span><span class="o">=</span><span class="s">&quot;parents&quot;</span><span class="p">)</span></pre></div>
+</div>
+<div class="section" id="deleting-rows-from-the-many-to-many-table">
+<h4>Deleting Rows from the Many to Many Table<a class="headerlink" href="#deleting-rows-from-the-many-to-many-table" title="Permalink to this headline">¶</a></h4>
+<p>A behavior which is unique to the <tt class="docutils literal"><span class="pre">secondary</span></tt> argument to <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>
+is that the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> which is specified here is automatically subject
+to INSERT and DELETE statements, as objects are added or removed from the collection.
+There is <strong>no need to delete from this table manually</strong>.   The act of removing a
+record from the collection will have the effect of the row being deleted on flush:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># row will be deleted from the &quot;secondary&quot; table</span>
+<span class="c"># automatically</span>
+<span class="n">myparent</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">somechild</span><span class="p">)</span></pre></div>
+</div>
+<p>A question which often arises is how the row in the &#8220;secondary&#8221; table can be deleted
+when the child object is handed directly to <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.delete" title="sqlalchemy.orm.session.Session.delete"><tt class="xref py py-meth docutils literal"><span class="pre">Session.delete()</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">somechild</span><span class="p">)</span></pre></div>
+</div>
+<p>There are several possibilities here:</p>
+<ul class="simple">
+<li>If there is a <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> from <tt class="docutils literal"><span class="pre">Parent</span></tt> to <tt class="docutils literal"><span class="pre">Child</span></tt>, but there is
+<strong>not</strong> a reverse-relationship that links a particular <tt class="docutils literal"><span class="pre">Child</span></tt> to each <tt class="docutils literal"><span class="pre">Parent</span></tt>,
+SQLAlchemy will not have any awareness that when deleting this particular
+<tt class="docutils literal"><span class="pre">Child</span></tt> object, it needs to maintain the &#8220;secondary&#8221; table that links it to
+the <tt class="docutils literal"><span class="pre">Parent</span></tt>.  No delete of the &#8220;secondary&#8221; table will occur.</li>
+<li>If there is a relationship that links a particular <tt class="docutils literal"><span class="pre">Child</span></tt> to each <tt class="docutils literal"><span class="pre">Parent</span></tt>,
+suppose it&#8217;s called <tt class="docutils literal"><span class="pre">Child.parents</span></tt>, SQLAlchemy by default will load in
+the <tt class="docutils literal"><span class="pre">Child.parents</span></tt> collection to locate all <tt class="docutils literal"><span class="pre">Parent</span></tt> objects, and remove
+each row from the &#8220;secondary&#8221; table which establishes this link.  Note that
+this relationship does not need to be bidrectional; SQLAlchemy is strictly
+looking at every <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> associated with the <tt class="docutils literal"><span class="pre">Child</span></tt> object
+being deleted.</li>
+<li>A higher performing option here is to use ON DELETE CASCADE directives
+with the foreign keys used by the database.   Assuming the database supports
+this feature, the database itself can be made to automatically delete rows in the
+&#8220;secondary&#8221; table as referencing rows in &#8220;child&#8221; are deleted.   SQLAlchemy
+can be instructed to forego actively loading in the <tt class="docutils literal"><span class="pre">Child.parents</span></tt>
+collection in this case using the <tt class="docutils literal"><span class="pre">passive_deletes=True</span></tt> directive
+on <tt class="xref py py-meth docutils literal"><span class="pre">relationship()</span></tt>; see <a class="reference internal" href="collections.html#passive-deletes"><em>Using Passive Deletes</em></a> for more details
+on this.</li>
+</ul>
+<p>Note again, these behaviors are <em>only</em> relevant to the <tt class="docutils literal"><span class="pre">secondary</span></tt> option
+used with <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.   If dealing with association tables that
+are mapped explicitly and are <em>not</em> present in the <tt class="docutils literal"><span class="pre">secondary</span></tt> option
+of a relevant <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>, cascade rules can be used instead
+to automatically delete entities in reaction to a related entity being
+deleted - see <a class="reference internal" href="session.html#unitofwork-cascades"><em>Cascades</em></a> for information on this feature.</p>
 </div>
 </div>
 <div class="section" id="association-object">
@@ -1313,21 +1361,21 @@ constructed class is an instance of <a class="reference internal" href="internal
   <span class="s">&#39;children&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Child</span><span class="p">)</span>
 <span class="p">})</span></pre></div>
 </div>
-<p>Some arguments accepted by <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> optionally accept a 
+<p>Some arguments accepted by <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> optionally accept a
 callable function, which when called produces the desired value.
 The callable is invoked by the parent <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> at &#8220;mapper initialization&#8221;
 time, which happens only when mappers are first used, and is assumed
 to be after all mappings have been constructed.  This can be used
-to resolve order-of-declaration and other dependency issues, such as 
+to resolve order-of-declaration and other dependency issues, such as
 if <tt class="docutils literal"><span class="pre">Child</span></tt> is declared below <tt class="docutils literal"><span class="pre">Parent</span></tt> in the same file:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-    <span class="s">&quot;children&quot;</span><span class="p">:</span><span class="n">relationship</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">Child</span><span class="p">,</span> 
+    <span class="s">&quot;children&quot;</span><span class="p">:</span><span class="n">relationship</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">Child</span><span class="p">,</span>
                         <span class="n">order_by</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">Child</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
 <span class="p">})</span></pre></div>
 </div>
 <p>When using the <a class="reference internal" href="extensions/declarative.html"><em>Declarative</em></a> extension, the Declarative
 initializer allows string arguments to be passed to <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.
-These string arguments are converted into callables that evaluate 
+These string arguments are converted into callables that evaluate
 the string as Python code, using the Declarative
 class-registry as a namespace.  This allows the lookup of related
 classes to be automatic via their string name, and removes the need to import
@@ -1351,17 +1399,17 @@ related classes at all into the local module space:</p>
 <li><strong>argument</strong> &#8211; <p>a mapped class, or actual <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> instance, representing the target of
 the relationship.</p>
 <p><tt class="docutils literal"><span class="pre">argument</span></tt> may also be passed as a callable function
-which is evaluated at mapper initialization time, and may be passed as a 
+which is evaluated at mapper initialization time, and may be passed as a
 Python-evaluable string when using Declarative.</p>
 </li>
 <li><strong>secondary</strong> &#8211; <p>for a many-to-many relationship, specifies the intermediary
-table, and is an instance of <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.  The <tt class="docutils literal"><span class="pre">secondary</span></tt> keyword 
+table, and is an instance of <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.  The <tt class="docutils literal"><span class="pre">secondary</span></tt> keyword
 argument should generally only
 be used for a table that is not otherwise expressed in any class
 mapping, unless this relationship is declared as view only, otherwise
 conflicting persistence operations can occur.</p>
 <p><tt class="docutils literal"><span class="pre">secondary</span></tt> may
-also be passed as a callable function which is evaluated at 
+also be passed as a callable function which is evaluated at
 mapper initialization time.</p>
 </li>
 <li><strong>active_history=False</strong> &#8211; When <tt class="docutils literal"><span class="pre">True</span></tt>, indicates that the &#8220;previous&#8221; value for a
@@ -1374,14 +1422,14 @@ for applications that make use of
 the &#8220;previous&#8221; value of the attribute.</li>
 <li><strong>backref</strong> &#8211; indicates the string name of a property to be placed on the related
 mapper&#8217;s class that will handle this relationship in the other
-direction. The other property will be created automatically 
+direction. The other property will be created automatically
 when the mappers are configured.  Can also be passed as a
 <a class="reference internal" href="#sqlalchemy.orm.backref" title="sqlalchemy.orm.backref"><tt class="xref py py-func docutils literal"><span class="pre">backref()</span></tt></a> object to control the configuration of the
 new relationship.</li>
-<li><strong>back_populates</strong> &#8211; Takes a string name and has the same meaning as <tt class="docutils literal"><span class="pre">backref</span></tt>, 
-except the complementing property is <strong>not</strong> created automatically, 
-and instead must be configured explicitly on the other mapper.  The 
-complementing property should also indicate <tt class="docutils literal"><span class="pre">back_populates</span></tt> 
+<li><strong>back_populates</strong> &#8211; Takes a string name and has the same meaning as <tt class="docutils literal"><span class="pre">backref</span></tt>,
+except the complementing property is <strong>not</strong> created automatically,
+and instead must be configured explicitly on the other mapper.  The
+complementing property should also indicate <tt class="docutils literal"><span class="pre">back_populates</span></tt>
 to this relationship to ensure proper functioning.</li>
 <li><strong>cascade</strong> &#8211; <blockquote>
 <div>a comma-separated list of cascade rules which determines how
@@ -1389,12 +1437,12 @@ Session operations should be &#8220;cascaded&#8221; from parent to child.
 This defaults to <tt class="docutils literal"><span class="pre">False</span></tt>, which means the default cascade
 should be used.  The default value is <tt class="docutils literal"><span class="pre">&quot;save-update,</span> <span class="pre">merge&quot;</span></tt>.<p>Available cascades are:</p>
 <ul>
-<li><tt class="docutils literal"><span class="pre">save-update</span></tt> - cascade the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">Session.add()</span></tt></a> 
+<li><tt class="docutils literal"><span class="pre">save-update</span></tt> - cascade the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">Session.add()</span></tt></a>
 operation.  This cascade applies both to future and
-past calls to <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">add()</span></tt></a>, 
+past calls to <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">add()</span></tt></a>,
 meaning new items added to a collection or scalar relationship
-get placed into the same session as that of the parent, and 
-also applies to items which have been removed from this 
+get placed into the same session as that of the parent, and
+also applies to items which have been removed from this
 relationship but are still part of unflushed history.</li>
 <li><tt class="docutils literal"><span class="pre">merge</span></tt> - cascade the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.merge" title="sqlalchemy.orm.session.Session.merge"><tt class="xref py py-meth docutils literal"><span class="pre">merge()</span></tt></a>
 operation</li>
@@ -1402,7 +1450,7 @@ operation</li>
 operation</li>
 <li><tt class="docutils literal"><span class="pre">delete</span></tt> - cascade the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.delete" title="sqlalchemy.orm.session.Session.delete"><tt class="xref py py-meth docutils literal"><span class="pre">Session.delete()</span></tt></a>
 operation</li>
-<li><tt class="docutils literal"><span class="pre">delete-orphan</span></tt> - if an item of the child&#8217;s type is 
+<li><tt class="docutils literal"><span class="pre">delete-orphan</span></tt> - if an item of the child&#8217;s type is
 detached from its parent, mark it for deletion.<p class="versionchanged">
 <span class="versionmodified">Changed in version 0.7: </span>This option does not prevent
 a new instance of the child object from being persisted
@@ -1410,7 +1458,7 @@ without a parent to start with; to constrain against
 that case, ensure the child&#8217;s foreign key column(s)
 is configured as NOT NULL</p>
 </li>
-<li><tt class="docutils literal"><span class="pre">refresh-expire</span></tt> - cascade the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire()</span></tt></a> 
+<li><tt class="docutils literal"><span class="pre">refresh-expire</span></tt> - cascade the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.expire" title="sqlalchemy.orm.session.Session.expire"><tt class="xref py py-meth docutils literal"><span class="pre">Session.expire()</span></tt></a>
 and <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.refresh" title="sqlalchemy.orm.session.Session.refresh"><tt class="xref py py-meth docutils literal"><span class="pre">refresh()</span></tt></a> operations</li>
 <li><tt class="docutils literal"><span class="pre">all</span></tt> - shorthand for &#8220;save-update,merge, refresh-expire,
 expunge, delete&#8221;</li>
@@ -1420,7 +1468,7 @@ expunge, delete&#8221;</li>
 on configuring cascades.</p>
 </li>
 <li><strong>cascade_backrefs=True</strong> &#8211; <p>a boolean value indicating if the <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade should
-operate along an assignment event intercepted by a backref.   
+operate along an assignment event intercepted by a backref.
 When set to <tt class="docutils literal"><span class="pre">False</span></tt>,
 the attribute managed by this relationship will not cascade
 an incoming transient object into the session of a
@@ -1432,11 +1480,11 @@ persistent parent, if the event is received via backref.</p>
 </div>
 <p>If an <tt class="docutils literal"><span class="pre">A()</span></tt> is present in the session, assigning it to
 the &#8220;a&#8221; attribute on a transient <tt class="docutils literal"><span class="pre">B()</span></tt> will not place
-the <tt class="docutils literal"><span class="pre">B()</span></tt> into the session.   To set the flag in the other 
-direction, i.e. so that <tt class="docutils literal"><span class="pre">A().bs.append(B())</span></tt> won&#8217;t add 
+the <tt class="docutils literal"><span class="pre">B()</span></tt> into the session.   To set the flag in the other
+direction, i.e. so that <tt class="docutils literal"><span class="pre">A().bs.append(B())</span></tt> won&#8217;t add
 a transient <tt class="docutils literal"><span class="pre">A()</span></tt> into the session for a persistent <tt class="docutils literal"><span class="pre">B()</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">a_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
-    <span class="s">&#39;bs&#39;</span><span class="p">:</span><span class="n">relationship</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> 
+    <span class="s">&#39;bs&#39;</span><span class="p">:</span><span class="n">relationship</span><span class="p">(</span><span class="n">B</span><span class="p">,</span>
             <span class="n">backref</span><span class="o">=</span><span class="n">backref</span><span class="p">(</span><span class="s">&quot;a&quot;</span><span class="p">,</span> <span class="n">cascade_backrefs</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="p">)</span>
 <span class="p">})</span></pre></div>
@@ -1458,9 +1506,9 @@ the resulting descriptor placed on the class.
 <li><strong>foreign_keys</strong> &#8211; <p>a list of columns which are to be used as &#8220;foreign key&#8221; columns.
 Normally, <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> uses the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a>
 and <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> objects present within the
-mapped or secondary <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> to determine the &#8220;foreign&#8221; side of 
+mapped or secondary <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> to determine the &#8220;foreign&#8221; side of
 the join condition.  This is used to construct SQL clauses in order
-to load objects, as well as to &#8220;synchronize&#8221; values from 
+to load objects, as well as to &#8220;synchronize&#8221; values from
 primary key columns to referencing foreign key columns.
 The <tt class="docutils literal"><span class="pre">foreign_keys</span></tt> parameter overrides the notion of what&#8217;s
 &#8220;foreign&#8221; in the table metadata, allowing the specification
@@ -1474,7 +1522,7 @@ have foreign keys on it). The other is for extremely
 rare and exotic composite foreign key setups where some columns
 should artificially not be considered as foreign.</p>
 <p><tt class="docutils literal"><span class="pre">foreign_keys</span></tt> may also be passed as a callable function
-which is evaluated at mapper initialization time, and may be passed as a 
+which is evaluated at mapper initialization time, and may be passed as a
 Python-evaluable string when using Declarative.</p>
 </li>
 <li><strong>innerjoin=False</strong> &#8211; <p>when <tt class="docutils literal"><span class="pre">True</span></tt>, joined eager loads will use an inner join to join
@@ -1488,15 +1536,15 @@ or when the reference is one-to-one or a collection that is guaranteed
 to have one or at least one entry.</p>
 </li>
 <li><strong>join_depth</strong> &#8211; when non-<tt class="docutils literal"><span class="pre">None</span></tt>, an integer value indicating how many levels
-deep &#8220;eager&#8221; loaders should join on a self-referring or cyclical 
-relationship.  The number counts how many times the same Mapper 
-shall be present in the loading condition along a particular join 
+deep &#8220;eager&#8221; loaders should join on a self-referring or cyclical
+relationship.  The number counts how many times the same Mapper
+shall be present in the loading condition along a particular join
 branch.  When left at its default of <tt class="docutils literal"><span class="pre">None</span></tt>, eager loaders
-will stop chaining when they encounter a the same target mapper 
+will stop chaining when they encounter a the same target mapper
 which is already higher up in the chain.  This option applies
 both to joined- and subquery- eager loaders.</li>
-<li><strong>lazy=&#8217;select&#8217;</strong> &#8211; <p>specifies 
-how the related items should be loaded.  Default value is 
+<li><strong>lazy=&#8217;select&#8217;</strong> &#8211; <p>specifies
+how the related items should be loaded.  Default value is
 <tt class="docutils literal"><span class="pre">select</span></tt>.  Values include:</p>
 <ul>
 <li><tt class="docutils literal"><span class="pre">select</span></tt> - items should be loaded lazily when the property is first
@@ -1515,11 +1563,11 @@ parameter.</li>
 query as that of the parent, using a second SQL statement
 which issues a JOIN to a subquery of the original
 statement.</li>
-<li><tt class="docutils literal"><span class="pre">noload</span></tt> - no loading should occur at any time.  This is to 
+<li><tt class="docutils literal"><span class="pre">noload</span></tt> - no loading should occur at any time.  This is to
 support &#8220;write-only&#8221; attributes, or attributes which are
 populated in some manner specific to the application.</li>
 <li><tt class="docutils literal"><span class="pre">dynamic</span></tt> - the attribute will return a pre-configured
-<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object for all read 
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object for all read
 operations, onto which further filtering operations can be
 applied before iterating the results.  See
 the section <a class="reference internal" href="collections.html#dynamic-relationship"><em>Dynamic Relationship Loaders</em></a> for more details.</li>
@@ -1539,8 +1587,8 @@ collection. Attachment of transient objects to the session without
 moving to the &#8220;pending&#8221; state is not a supported behavior at this time.</p>
 <p>Note that the load of related objects on a pending or transient object
 also does not trigger any attribute change events - no user-defined
-events will be emitted for these attributes, and if and when the 
-object is ultimately flushed, only the user-specific foreign key 
+events will be emitted for these attributes, and if and when the
+object is ultimately flushed, only the user-specific foreign key
 attributes will be part of the modified state.</p>
 <p>The load_on_pending flag does not improve behavior
 when the ORM is used normally - object references should be constructed
@@ -1551,11 +1599,11 @@ is not not intended for general use.</p>
 </li>
 <li><strong>order_by</strong> &#8211; <p>indicates the ordering that should be applied when loading these
 items.  <tt class="docutils literal"><span class="pre">order_by</span></tt> is expected to refer to one of the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>
-objects to which the target class is mapped, or 
+objects to which the target class is mapped, or
 the attribute itself bound to the target class which refers
 to the column.</p>
 <p><tt class="docutils literal"><span class="pre">order_by</span></tt> may also be passed as a callable function
-which is evaluated at mapper initialization time, and may be passed as a 
+which is evaluated at mapper initialization time, and may be passed as a
 Python-evaluable string when using Declarative.</p>
 </li>
 <li><strong>passive_deletes=False</strong> &#8211; <p>Indicates loading behavior during delete operations.</p>
@@ -1624,18 +1672,18 @@ association table. By default, this value is computed based on the
 foreign key relationships of the parent and child tables (or association
 table).</p>
 <p><tt class="docutils literal"><span class="pre">primaryjoin</span></tt> may also be passed as a callable function
-which is evaluated at mapper initialization time, and may be passed as a 
+which is evaluated at mapper initialization time, and may be passed as a
 Python-evaluable string when using Declarative.</p>
 </li>
 <li><strong>remote_side</strong> &#8211; <p>used for self-referential relationships, indicates the column or
 list of columns that form the &#8220;remote side&#8221; of the relationship.</p>
 <p><tt class="docutils literal"><span class="pre">remote_side</span></tt> may also be passed as a callable function
-which is evaluated at mapper initialization time, and may be passed as a 
+which is evaluated at mapper initialization time, and may be passed as a
 Python-evaluable string when using Declarative.</p>
 </li>
 <li><strong>query_class</strong> &#8211; a <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> subclass that will be used as the base of the
 &#8220;appender query&#8221; returned by a &#8220;dynamic&#8221; relationship, that
-is, a relationship that specifies <tt class="docutils literal"><span class="pre">lazy=&quot;dynamic&quot;</span></tt> or was 
+is, a relationship that specifies <tt class="docutils literal"><span class="pre">lazy=&quot;dynamic&quot;</span></tt> or was
 otherwise constructed using the <a class="reference internal" href="#sqlalchemy.orm.dynamic_loader" title="sqlalchemy.orm.dynamic_loader"><tt class="xref py py-func docutils literal"><span class="pre">orm.dynamic_loader()</span></tt></a>
 function.</li>
 <li><strong>secondaryjoin</strong> &#8211; <p>a SQL expression that will be used as the join of
@@ -1643,14 +1691,14 @@ an association table to the child object. By default, this value is
 computed based on the foreign key relationships of the association and
 child tables.</p>
 <p><tt class="docutils literal"><span class="pre">secondaryjoin</span></tt> may also be passed as a callable function
-which is evaluated at mapper initialization time, and may be passed as a 
+which is evaluated at mapper initialization time, and may be passed as a
 Python-evaluable string when using Declarative.</p>
 </li>
 <li><strong>single_parent=(True|False)</strong> &#8211; when True, installs a validator which will prevent objects
 from being associated with more than one parent at a time.
 This is used for many-to-one or many-to-many relationships that
 should be treated either as one-to-one or one-to-many.  Its
-usage is optional unless delete-orphan cascade is also 
+usage is optional unless delete-orphan cascade is also
 set on this relationship(), in which case its required.</li>
 <li><strong>uselist=(True|False)</strong> &#8211; a boolean that indicates if this property should be loaded as a
 list or a scalar. In most cases, this value is determined
@@ -1695,7 +1743,7 @@ place of a string argument, e.g.:</p>
 <dt id="sqlalchemy.orm.dynamic_loader">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">dynamic_loader</tt><big>(</big><em>argument</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.dynamic_loader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a dynamically-loading mapper property.</p>
-<p>This is essentially the same as 
+<p>This is essentially the same as
 using the <tt class="docutils literal"><span class="pre">lazy='dynamic'</span></tt> argument with <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">dynamic_loader</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">)</span>
 

@@ -150,7 +150,7 @@ each table first before creating, so it's safe to call multiple times:
     ()
     COMMIT
 
-.. note:: 
+.. note::
 
     Users familiar with the syntax of CREATE TABLE may notice that the
     VARCHAR columns were generated without a length; on SQLite and Postgresql,
@@ -339,52 +339,6 @@ others. This is because the :class:`~sqlalchemy.sql.expression.Insert`
 statement is compiled against the **first** dictionary in the list, and it's
 assumed that all subsequent argument dictionaries are compatible with that
 statement.
-
-Connectionless / Implicit Execution
-====================================
-
-We're executing our :class:`~sqlalchemy.sql.expression.Insert` using a
-:class:`~sqlalchemy.engine.base.Connection`. There's two options that allow
-you to not have to deal with the connection part. You can execute in the
-**connectionless** style, using the engine, which checks out from the
-connection pool a connection for you, performs the execute operation with that
-connection, and then checks the connection back into the pool upon completion
-of the operation:
-
-.. sourcecode:: pycon+sql
-
-    {sql}>>> result = engine.execute(users.insert(), name='fred', fullname="Fred Flintstone")
-    INSERT INTO users (name, fullname) VALUES (?, ?)
-    ('fred', 'Fred Flintstone')
-    COMMIT
-
-and you can save even more steps than that, if you connect the
-:class:`~sqlalchemy.engine.base.Engine` to the
-:class:`~sqlalchemy.schema.MetaData` object we created earlier. When this is
-done, all SQL expressions which involve tables within the
-:class:`~sqlalchemy.schema.MetaData` object will be automatically **bound** to
-the :class:`~sqlalchemy.engine.base.Engine`. In this case, we call it
-**implicit execution**:
-
-.. sourcecode:: pycon+sql
-
-    >>> metadata.bind = engine
-    {sql}>>> result = users.insert().execute(name="mary", fullname="Mary Contrary")
-    INSERT INTO users (name, fullname) VALUES (?, ?)
-    ('mary', 'Mary Contrary')
-    COMMIT
-
-When the :class:`~sqlalchemy.schema.MetaData` is bound, statements will also
-compile against the engine's dialect. Since a lot of the examples here assume
-the default dialect, we'll detach the engine from the metadata which we just
-attached:
-
-.. sourcecode:: pycon+sql
-
-    >>> metadata.bind = None
-
-Detailed examples of connectionless and implicit execution are available in
-the "Engines" chapter: :ref:`dbengine_implicit`.
 
 .. _coretutorial_selecting:
 
@@ -836,12 +790,12 @@ once for each address.   We create two :class:`.Alias` constructs against
     ('jack@msn.com', 'jack@yahoo.com')
     {stop}[(1, u'jack', u'Jack Jones')]
 
-Note that the :class:`.Alias` construct generated the names ``addresses_1`` and 
+Note that the :class:`.Alias` construct generated the names ``addresses_1`` and
 ``addresses_2`` in the final SQL result.  The generation of these names is determined
 by the position of the construct within the statement.   If we created a query using
-only the second ``a2`` alias, the name would come out as ``addresses_1``.  The 
-generation of the names is also *deterministic*, meaning the same SQLAlchemy 
-statement construct will produce the identical SQL string each time it is 
+only the second ``a2`` alias, the name would come out as ``addresses_1``.  The
+generation of the names is also *deterministic*, meaning the same SQLAlchemy
+statement construct will produce the identical SQL string each time it is
 rendered for a particular dialect.
 
 Since on the outside, we refer to the alias using the :class:`.Alias` construct
@@ -1027,7 +981,7 @@ to arrive with a full statement.
 Transforming a Statement
 ------------------------
 
-We've seen how methods like :meth:`.Select.where` and :meth:`._SelectBase.order_by` are 
+We've seen how methods like :meth:`.Select.where` and :meth:`._SelectBase.order_by` are
 part of the so-called *Generative* family of methods on the :func:`.select` construct,
 where one :func:`.select` copies itself to return a new one with modifications.
 SQL constructs also support another form of generative behavior which is
@@ -1232,7 +1186,7 @@ OVER clause, using the :meth:`~.FunctionElement.over` method:
 
     >>> s = select([users.c.id, func.row_number().over(order_by=users.c.name)])
     >>> print s # doctest: +NORMALIZE_WHITESPACE
-    SELECT users.id, row_number() OVER (ORDER BY users.name) AS anon_1 
+    SELECT users.id, row_number() OVER (ORDER BY users.name) AS anon_1
     FROM users
 
 Unions and Other Set Operations
@@ -1473,7 +1427,7 @@ that can be specified:
     {stop}<sqlalchemy.engine.base.ResultProxy object at 0x...>
 
     >>> # with binds, you can also update many rows at once
-    {sql}>>> conn.execute(u, 
+    {sql}>>> conn.execute(u,
     ...     {'oldname':'jack', 'newname':'ed'},
     ...     {'oldname':'wendy', 'newname':'mary'},
     ...     {'oldname':'jim', 'newname':'jake'},
@@ -1520,7 +1474,7 @@ that refer to multiple tables.   For PG and MSSQL, this is the "UPDATE FROM" syn
 which updates one table at a time, but can reference additional tables in an additional
 "FROM" clause that can then be referenced in the WHERE clause directly.   On MySQL,
 multiple tables can be embedded into a single UPDATE statement separated by a comma.
-The SQLAlchemy :func:`.update` construct supports both of these modes 
+The SQLAlchemy :func:`.update` construct supports both of these modes
 implicitly, by specifying multiple tables in the WHERE clause::
 
     stmt = users.update().\
@@ -1531,8 +1485,8 @@ implicitly, by specifying multiple tables in the WHERE clause::
 
 The resulting SQL from the above statement would render as::
 
-    UPDATE users SET name=:name FROM addresses 
-    WHERE users.id = addresses.id AND 
+    UPDATE users SET name=:name FROM addresses
+    WHERE users.id = addresses.id AND
     addresses.email_address LIKE :email_address_1 || '%%'
 
 When using MySQL, columns from each table can be assigned to in the
@@ -1540,7 +1494,7 @@ SET clause directly, using the dictionary form passed to :meth:`.Update.values`:
 
     stmt = users.update().\
             values({
-                users.c.name:'ed wood', 
+                users.c.name:'ed wood',
                 addresses.c.email_address:'ed.wood@foo.com'
             }).\
             where(users.c.id==addresses.c.id).\
@@ -1548,11 +1502,11 @@ SET clause directly, using the dictionary form passed to :meth:`.Update.values`:
 
 The tables are referenced explicitly in the SET clause::
 
-    UPDATE users, addresses SET addresses.email_address=%s, 
-            users.name=%s WHERE users.id = addresses.id 
+    UPDATE users, addresses SET addresses.email_address=%s,
+            users.name=%s WHERE users.id = addresses.id
             AND addresses.email_address LIKE concat(%s, '%%')
 
-SQLAlchemy doesn't do anything special when these constructs are used on 
+SQLAlchemy doesn't do anything special when these constructs are used on
 a non-supporting database.  The ``UPDATE FROM`` syntax generates by default
 when multiple tables are present, and the statement will be rejected
 by the database if this syntax is not supported.

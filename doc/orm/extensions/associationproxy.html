@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.7.8',
+          VERSION:     '0.7.9',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
+        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
 
 
     </div>
@@ -615,7 +615,7 @@ synonyms for the actual proxied attributes, and usable for querying.</p>
 <dt id="sqlalchemy.ext.associationproxy.association_proxy">
 <tt class="descclassname">sqlalchemy.ext.associationproxy.</tt><tt class="descname">association_proxy</tt><big>(</big><em>target_collection</em>, <em>attr</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.associationproxy.association_proxy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a Python property implementing a view of a target
-attribute which references an attribute on members of the 
+attribute which references an attribute on members of the
 target.</p>
 <p>The returned value is an instance of <a class="reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy" title="sqlalchemy.ext.associationproxy.AssociationProxy"><tt class="xref py py-class docutils literal"><span class="pre">AssociationProxy</span></tt></a>.</p>
 <p>Implements a Python property representing a relationship as a collection of
@@ -627,7 +627,7 @@ a simple scalar value.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>target_collection</strong> &#8211; Name of the attribute we&#8217;ll proxy to.  
+<li><strong>target_collection</strong> &#8211; Name of the attribute we&#8217;ll proxy to.
 This attribute is typically mapped by
 <a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> to link to a target collection, but
 can also be a many-to-one or non-scalar relationship.</li>
@@ -680,7 +680,7 @@ and/or subclassed directly.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>target_collection</strong> &#8211; Name of the collection we&#8217;ll proxy to, 
+<li><strong>target_collection</strong> &#8211; Name of the collection we&#8217;ll proxy to,
 usually created with <a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.</li>
 <li><strong>attr</strong> &#8211; Attribute on the collected instances we&#8217;ll proxy for.  For example,
 given a target collection of [obj1, obj2], a list created by this
@@ -707,7 +707,7 @@ sniffing the target collection.  If your collection type can&#8217;t be
 determined by duck typing or you&#8217;d like to use a different
 collection implementation, you may supply a factory function to
 produce those collections.  Only applicable to non-scalar relationships.</li>
-<li><strong>proxy_bulk_set</strong> &#8211; Optional, use with proxy_factory.  See 
+<li><strong>proxy_bulk_set</strong> &#8211; Optional, use with proxy_factory.  See
 the _set() method for details.</li>
 </ul>
 </td>
@@ -722,7 +722,7 @@ the _set() method for details.</li>
 <dd><p>Produce a proxied &#8216;any&#8217; expression using EXISTS.</p>
 <p>This expression will be a composed product
 using the <a class="reference internal" href="../internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.any" title="sqlalchemy.orm.properties.RelationshipProperty.Comparator.any"><tt class="xref py py-meth docutils literal"><span class="pre">RelationshipProperty.Comparator.any()</span></tt></a>
-and/or <a class="reference internal" href="../internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.has" title="sqlalchemy.orm.properties.RelationshipProperty.Comparator.has"><tt class="xref py py-meth docutils literal"><span class="pre">RelationshipProperty.Comparator.has()</span></tt></a> 
+and/or <a class="reference internal" href="../internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.has" title="sqlalchemy.orm.properties.RelationshipProperty.Comparator.has"><tt class="xref py py-meth docutils literal"><span class="pre">RelationshipProperty.Comparator.has()</span></tt></a>
 operators of the underlying proxied attributes.</p>
 </dd></dl>
 
@@ -730,7 +730,7 @@ operators of the underlying proxied attributes.</p>
 <dt id="sqlalchemy.ext.associationproxy.AssociationProxy.attr">
 <tt class="descname">attr</tt><a class="headerlink" href="#sqlalchemy.ext.associationproxy.AssociationProxy.attr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a tuple of <tt class="docutils literal"><span class="pre">(local_attr,</span> <span class="pre">remote_attr)</span></tt>.</p>
-<p>This attribute is convenient when specifying a join 
+<p>This attribute is convenient when specifying a join
 using <a class="reference internal" href="../query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a> across two relationships:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Parent</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">Parent</span><span class="o">.</span><span class="n">proxied</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span></pre></div>
 </div>
@@ -758,7 +758,7 @@ operators of the underlying proxied attributes.</p>
 <dd><p>Produce a proxied &#8216;has&#8217; expression using EXISTS.</p>
 <p>This expression will be a composed product
 using the <a class="reference internal" href="../internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.any" title="sqlalchemy.orm.properties.RelationshipProperty.Comparator.any"><tt class="xref py py-meth docutils literal"><span class="pre">RelationshipProperty.Comparator.any()</span></tt></a>
-and/or <a class="reference internal" href="../internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.has" title="sqlalchemy.orm.properties.RelationshipProperty.Comparator.has"><tt class="xref py py-meth docutils literal"><span class="pre">RelationshipProperty.Comparator.has()</span></tt></a> 
+and/or <a class="reference internal" href="../internals.html#sqlalchemy.orm.properties.RelationshipProperty.Comparator.has" title="sqlalchemy.orm.properties.RelationshipProperty.Comparator.has"><tt class="xref py py-meth docutils literal"><span class="pre">RelationshipProperty.Comparator.has()</span></tt></a>
 operators of the underlying proxied attributes.</p>
 </dd></dl>
 

@@ -49,7 +49,7 @@ class QueryTest(fixtures.TestBase):
     def test_insert_heterogeneous_params(self):
         """test that executemany parameters are asserted to match the parameter set of the first."""
 
-        assert_raises_message(exc.StatementError, 
+        assert_raises_message(exc.StatementError,
             r"A value is required for bind parameter 'user_name', in "
             "parameter group 2 \(original cause: (sqlalchemy.exc.)?InvalidRequestError: A "
             "value is required for bind parameter 'user_name', in "
@@ -60,7 +60,7 @@ class QueryTest(fixtures.TestBase):
             {'user_id':9}
         )
 
-        # this succeeds however.   We aren't yet doing 
+        # this succeeds however.   We aren't yet doing
         # a length check on all subsequent parameters.
         users.insert().execute(
             {'user_id':7},
@@ -99,7 +99,7 @@ class QueryTest(fixtures.TestBase):
                 ret[col.key] = id
 
             if result.lastrow_has_defaults():
-                criterion = and_(*[col==id for col, id in 
+                criterion = and_(*[col==id for col, id in
                                     zip(table.primary_key, result.inserted_primary_key)])
                 row = engine.execute(table.select(criterion)).first()
                 for c in table.c:
@@ -217,7 +217,7 @@ class QueryTest(fixtures.TestBase):
 
         for engine in test_engines:
 
-            r = engine.execute(users.insert(), 
+            r = engine.execute(users.insert(),
                 {'user_name':'jack'},
             )
             assert r.closed
@@ -312,7 +312,7 @@ class QueryTest(fixtures.TestBase):
         content = Table('content', self.metadata,
             Column('type', String(30)),
         )
-        bar = Table('bar', self.metadata, 
+        bar = Table('bar', self.metadata,
             Column('content_type', String(30))
         )
         self.metadata.create_all(testing.db)
@@ -325,12 +325,16 @@ class QueryTest(fixtures.TestBase):
 
         row = testing.db.execute(select([content.c.type.label("content_type")])).first()
         assert content.c.type in row
+
         assert bar.c.content_type not in row
+
         assert sql.column('content_type') in row
 
         row = testing.db.execute(select([func.now().label("content_type")])).first()
         assert content.c.type not in row
+
         assert bar.c.content_type not in row
+
         assert sql.column('content_type') in row
 
     def test_pickled_rows(self):
@@ -348,7 +352,7 @@ class QueryTest(fixtures.TestBase):
                     result = util.pickle.loads(util.pickle.dumps(result))
 
                 eq_(
-                    result, 
+                    result,
                     [(7, "jack"), (8, "ed"), (9, "fred")]
                 )
                 if use_labels:
@@ -365,7 +369,7 @@ class QueryTest(fixtures.TestBase):
                 if not pickle or use_labels:
                     assert_raises(exc.NoSuchColumnError, lambda: result[0][addresses.c.user_id])
                 else:
-                    # test with a different table.  name resolution is 
+                    # test with a different table.  name resolution is
                     # causing 'user_id' to match when use_labels wasn't used.
                     eq_(result[0][addresses.c.user_id], 7)
 
@@ -387,7 +391,7 @@ class QueryTest(fixtures.TestBase):
             (unprintable(), "unprintable element.*"),
         ]:
             assert_raises_message(
-                exc.NoSuchColumnError, 
+                exc.NoSuchColumnError,
                 msg % repl,
                 lambda: row[accessor]
             )
@@ -441,7 +445,7 @@ class QueryTest(fixtures.TestBase):
                     ), [(3,)]),
             (select([users.c.user_id]).\
                     where(
-                        users.c.user_name.contains('i % t', escape='\\')
+                        users.c.user_name.contains('i % t', escape='&')
                     ), [(5,)]),
         ):
             eq_(expr.execute().fetchall(), result)
@@ -731,7 +735,23 @@ class QueryTest(fixtures.TestBase):
             dict(user_id=1, user_name='john'),
             dict(user_id=2, user_name='jack')
         )
-        r = text("select * from query_users where user_id=2", bind=testing.db).execute().first()
+        r = testing.db.execute(
+                text("select * from query_users where user_id=2")
+            ).first()
+        self.assert_(r.user_id == r['user_id'] == r[users.c.user_id] == 2)
+        self.assert_(r.user_name == r['user_name'] == r[users.c.user_name] == 'jack')
+
+    def test_column_accessor_textual_select(self):
+        users.insert().execute(
+            dict(user_id=1, user_name='john'),
+            dict(user_id=2, user_name='jack')
+        )
+        # this will create column() objects inside
+        # the select(), these need to match on name anyway
+        r = testing.db.execute(
+            select(['user_id', 'user_name']).select_from('query_users').
+                where('user_id=2')
+        ).first()
         self.assert_(r.user_id == r['user_id'] == r[users.c.user_id] == 2)
         self.assert_(r.user_name == r['user_name'] == r[users.c.user_name] == 'jack')
 
@@ -740,11 +760,13 @@ class QueryTest(fixtures.TestBase):
             dict(user_id=1, user_name='john'),
         )
 
-        # test a little sqlite weirdness - with the UNION, 
+        # test a little sqlite weirdness - with the UNION,
         # cols come back as "query_users.user_id" in cursor.description
-        r = text("select query_users.user_id, query_users.user_name from query_users "
-            "UNION select query_users.user_id, query_users.user_name from query_users",
-            bind=testing.db).execute().first()
+        r = testing.db.execute(
+                text("select query_users.user_id, query_users.user_name from query_users "
+                "UNION select query_users.user_id, query_users.user_name from query_users"
+                )
+            ).first()
         eq_(r['user_id'], 1)
         eq_(r['user_name'], "john")
         eq_(r.keys(), ["user_id", "user_name"])
@@ -785,7 +807,7 @@ class QueryTest(fixtures.TestBase):
         )
         # test using literal tablename.colname
         r = text('select query_users.user_id AS "query_users.user_id", '
-                'query_users.user_name AS "query_users.user_name" from query_users', 
+                'query_users.user_name AS "query_users.user_name" from query_users',
                 bind=testing.db).execution_options(sqlite_raw_colnames=True).execute().first()
         eq_(r['query_users.user_id'], 1)
         eq_(r['query_users.user_name'], "john")
@@ -954,6 +976,34 @@ class QueryTest(fixtures.TestBase):
             lambda: r['user_id']
         )
 
+    def test_ambiguous_column_by_col(self):
+        users.insert().execute(user_id=1, user_name='john')
+        ua = users.alias()
+        u2 = users.alias()
+        result = select([users.c.user_id, ua.c.user_id]).execute()
+        row = result.first()
+
+        assert_raises_message(
+            exc.InvalidRequestError,
+            "Ambiguous column name",
+            lambda: row[users.c.user_id]
+        )
+
+        # this is a bug, should be ambiguous.
+        # Fixed in 0.8
+        eq_(row[ua.c.user_id], 1)
+
+        # this is also a less severe bug - u2.c.user_id
+        # is not in the row at all so is not actually
+        # ambiguous.  Still is like this in 0.8
+        # and is due to overly liberal "this is a derived column"
+        # rules.
+        assert_raises_message(
+            exc.InvalidRequestError,
+            "Ambiguous column name",
+            lambda: row[u2.c.user_id]
+        )
+
     @testing.requires.subqueries
     def test_column_label_targeting(self):
         users.insert().execute(user_id=7, user_name='ed')
@@ -1030,9 +1080,9 @@ class QueryTest(fixtures.TestBase):
         )
         shadowed.create(checkfirst=True)
         try:
-            shadowed.insert().execute(shadow_id=1, shadow_name='The Shadow', parent='The Light', 
-                                            row='Without light there is no shadow', 
-                                            _parent='Hidden parent', 
+            shadowed.insert().execute(shadow_id=1, shadow_name='The Shadow', parent='The Light',
+                                            row='Without light there is no shadow',
+                                            _parent='Hidden parent',
                                             _row='Hidden row')
             r = shadowed.select(shadowed.c.shadow_id==1).execute().first()
             self.assert_(r.shadow_id == r['shadow_id'] == r[shadowed.c.shadow_id] == 1)
@@ -1080,7 +1130,7 @@ class QueryTest(fixtures.TestBase):
     @testing.fails_on('firebird', "uses sql-92 rules")
     @testing.fails_on('sybase', "uses sql-92 rules")
     @testing.fails_on('mssql+mxodbc', "uses sql-92 rules")
-    @testing.fails_if(lambda: 
+    @testing.fails_if(lambda:
                          testing.against('mssql+pyodbc') and not testing.db.dialect.freetds,
                          "uses sql-92 rules")
     def test_bind_in(self):
@@ -1120,7 +1170,7 @@ class QueryTest(fixtures.TestBase):
     @testing.emits_warning('.*empty sequence.*')
     @testing.requires.boolean_col_expressions
     def test_in_filtering_advanced(self):
-        """test the behavior of the in_() function when 
+        """test the behavior of the in_() function when
         comparing against an empty collection, specifically
         that a proper boolean value is generated.
 
@@ -1143,7 +1193,7 @@ class QueryTest(fixtures.TestBase):
 class PercentSchemaNamesTest(fixtures.TestBase):
     """tests using percent signs, spaces in table and column names.
 
-    Doesn't pass for mysql, postgresql, but this is really a 
+    Doesn't pass for mysql, postgresql, but this is really a
     SQLAlchemy bug - we should be escaping out %% signs for this
     operation the same way we do for text() and column labels.
 
@@ -1157,7 +1207,7 @@ class PercentSchemaNamesTest(fixtures.TestBase):
             Column("percent%", Integer),
             Column("spaces % more spaces", Integer),
         )
-        lightweight_percent_table = sql.table('percent%table', 
+        lightweight_percent_table = sql.table('percent%table',
             sql.column("percent%"),
             sql.column("spaces % more spaces"),
         )
@@ -1170,7 +1220,7 @@ class PercentSchemaNamesTest(fixtures.TestBase):
     def teardown_class(cls):
         metadata.drop_all()
 
-    @testing.skip_if(lambda: testing.against('postgresql'), 
+    @testing.skip_if(lambda: testing.against('postgresql'),
                     "psycopg2 2.4 no longer accepts % in bind placeholders")
     def test_single_roundtrip(self):
         percent_table.insert().execute(
@@ -1187,7 +1237,7 @@ class PercentSchemaNamesTest(fixtures.TestBase):
         )
         self._assert_table()
 
-    @testing.skip_if(lambda: testing.against('postgresql'), 
+    @testing.skip_if(lambda: testing.against('postgresql'),
                 "psycopg2 2.4 no longer accepts % in bind placeholders")
     @testing.crashes('mysql+mysqldb', "MySQLdb handles executemany() "
                         "inconsistently vs. execute()")
@@ -1204,9 +1254,9 @@ class PercentSchemaNamesTest(fixtures.TestBase):
 
     def _assert_table(self):
         for table in (
-                    percent_table, 
-                    percent_table.alias(), 
-                    lightweight_percent_table, 
+                    percent_table,
+                    percent_table.alias(),
+                    lightweight_percent_table,
                     lightweight_percent_table.alias()):
             eq_(
                 list(
@@ -1290,7 +1340,7 @@ class KeyTargetingTest(fixtures.TablesTest):
         content = Table('content', metadata,
             Column('t', String(30), key="type"),
         )
-        bar = Table('bar', metadata, 
+        bar = Table('bar', metadata,
             Column('ctype', String(30), key="content_type")
         )
 
@@ -1623,7 +1673,7 @@ class CompoundTest(fixtures.TestBase):
         eq_(found2, wanted)
 
     def test_union_all_lightweight(self):
-        """like test_union_all, but breaks the sub-union into 
+        """like test_union_all, but breaks the sub-union into
         a subquery with an explicit column reference on the outside,
         more palatable to a wider variety of engines.
 

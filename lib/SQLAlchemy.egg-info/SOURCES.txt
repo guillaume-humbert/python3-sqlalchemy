@@ -14,6 +14,7 @@ sqla_nose.py
 doc/contents.html
 doc/copyright.html
 doc/genindex.html
+doc/glossary.html
 doc/index.html
 doc/intro.html
 doc/search.html
@@ -22,6 +23,7 @@ doc/_images/sqla_arch_small.png
 doc/_images/sqla_engine_arch.png
 doc/_sources/contents.txt
 doc/_sources/copyright.txt
+doc/_sources/glossary.txt
 doc/_sources/index.txt
 doc/_sources/intro.txt
 doc/_sources/core/compiler.txt
@@ -99,6 +101,7 @@ doc/build/Makefile
 doc/build/conf.py
 doc/build/contents.rst
 doc/build/copyright.rst
+doc/build/glossary.rst
 doc/build/index.rst
 doc/build/intro.rst
 doc/build/requirements.txt
@@ -462,9 +465,11 @@ test/lib/__init__.py
 test/lib/assertsql.py
 test/lib/engines.py
 test/lib/entities.py
+test/lib/exclusions.py
 test/lib/fixtures.py
 test/lib/orm.py
 test/lib/pickleable.py
+test/lib/profiles.txt
 test/lib/profiling.py
 test/lib/requires.py
 test/lib/schema.py
@@ -551,11 +556,13 @@ test/sql/__init__.py
 test/sql/test_case_statement.py
 test/sql/test_compiler.py
 test/sql/test_constraints.py
+test/sql/test_cte.py
 test/sql/test_defaults.py
 test/sql/test_functions.py
 test/sql/test_generative.py
 test/sql/test_labels.py
 test/sql/test_metadata.py
+test/sql/test_operators.py
 test/sql/test_query.py
 test/sql/test_quote.py
 test/sql/test_returning.py

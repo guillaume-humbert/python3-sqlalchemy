@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.8',
+          VERSION:     '0.7.9',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
+        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
 
 
     </div>
@@ -167,7 +167,7 @@ defaults.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>dialect</strong> &#8211; <tt class="docutils literal"><span class="pre">Dialect</span></tt> to compile against.</li>
 <li><strong>statement</strong> &#8211; <tt class="docutils literal"><span class="pre">ClauseElement</span></tt> to be compiled.</li>
-<li><strong>bind</strong> &#8211; Optional Engine or Connection to compile this 
+<li><strong>bind</strong> &#8211; Optional Engine or Connection to compile this
 statement against.</li>
 </ul>
 </td>
@@ -220,7 +220,7 @@ statement.</td>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Compiled.scalar">
 <tt class="descname">scalar</tt><big>(</big><em>*multiparams</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Compiled.scalar" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute this compiled object and return the result&#8217;s 
+<dd><p>Execute this compiled object and return the result&#8217;s
 scalar value.</p>
 </dd></dl>
 
@@ -626,10 +626,10 @@ executemany.</dd>
 in order to get their value.   This is currently oriented towards
 Postgresql.</dd>
 <dt>implicit_returning</dt>
-<dd>use RETURNING or equivalent during INSERT execution in order to load 
+<dd>use RETURNING or equivalent during INSERT execution in order to load
 newly generated primary keys and other column defaults in one execution,
 which are then available via inserted_primary_key.
-If an insert statement has returning() specified explicitly, 
+If an insert statement has returning() specified explicitly,
 the &#8220;implicit&#8221; functionality is not used and inserted_primary_key
 will not be available.</dd>
 <dt>dbapi_type_map</dt>
@@ -670,7 +670,7 @@ constraint when that type is used.</dd>
 <dt id="sqlalchemy.engine.base.Dialect.connect">
 <tt class="descname">connect</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.connect" title="Permalink to this definition">¶</a></dt>
 <dd><p>return a callable which sets up a newly created DBAPI connection.</p>
-<p>The callable accepts a single argument &#8220;conn&#8221; which is the 
+<p>The callable accepts a single argument &#8220;conn&#8221; which is the
 DBAPI connection itself.  It has no return value.</p>
 <p>This is used to set dialect-wide per-connection options such as
 isolation modes, unicode modes, etc.</p>
@@ -709,7 +709,7 @@ requires_name_normalize=True.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_begin">
 <tt class="descname">do_begin</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_begin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Provide an implementation of <em>connection.begin()</em>, given a 
+<dd><p>Provide an implementation of <em>connection.begin()</em>, given a
 DB-API connection.</p>
 </dd></dl>
 
@@ -722,7 +722,7 @@ DB-API connection.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_commit">
 <tt class="descname">do_commit</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_commit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Provide an implementation of <em>connection.commit()</em>, given a 
+<dd><p>Provide an implementation of <em>connection.commit()</em>, given a
 DB-API connection.</p>
 </dd></dl>
 
@@ -775,7 +775,7 @@ identifiers on the given connection.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_rollback">
 <tt class="descname">do_rollback</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_rollback" title="Permalink to this definition">¶</a></dt>
-<dd><p>Provide an implementation of <em>connection.rollback()</em>, given 
+<dd><p>Provide an implementation of <em>connection.rollback()</em>, given
 a DB-API connection.</p>
 </dd></dl>
 
@@ -946,7 +946,7 @@ otherwise.</p>
 connection.</p>
 <p>Allows dialects to configure options based on server version info or
 other properties.</p>
-<p>The connection passed here is a SQLAlchemy Connection object, 
+<p>The connection passed here is a SQLAlchemy Connection object,
 with full capabilities.</p>
 <p>The initalize() method of the base dialect should be called via
 super().</p>
@@ -962,7 +962,7 @@ connection</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.normalize_name">
 <tt class="descname">normalize_name</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.normalize_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>convert the given name to lowercase if it is detected as 
+<dd><p>convert the given name to lowercase if it is detected as
 case insensitive.</p>
 <p>this method is only used if the dialect defines
 requires_name_normalize=True.</p>
@@ -977,8 +977,8 @@ requires_name_normalize=True.</p>
 properties from the database.  If include_columns (a list or
 set) is specified, limit the autoload to the given column
 names.</p>
-<p>The default implementation uses the 
-<a class="reference internal" href="schema.html#sqlalchemy.engine.reflection.Inspector" title="sqlalchemy.engine.reflection.Inspector"><tt class="xref py py-class docutils literal"><span class="pre">Inspector</span></tt></a> interface to 
+<p>The default implementation uses the
+<a class="reference internal" href="schema.html#sqlalchemy.engine.reflection.Inspector" title="sqlalchemy.engine.reflection.Inspector"><tt class="xref py py-class docutils literal"><span class="pre">Inspector</span></tt></a> interface to
 provide the output, building upon the granular table/column/
 constraint etc. methods of <a class="reference internal" href="#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a>.</p>
 </dd></dl>
@@ -1050,7 +1050,7 @@ which support &#8220;implicit&#8221; primary key generation,
 keep preexecute_autoincrement_sequences set to False,
 and when no explicit id value was bound to the
 statement.</p>
-<p>The function is called once, directly after 
+<p>The function is called once, directly after
 post_exec() and before the transaction is committed
 or ResultProxy is generated.   If the post_exec()
 method assigns a value to <cite>self._lastrowid</cite>, the
@@ -1152,7 +1152,7 @@ in all cases.</p>
 <dd><p>Given a cursor and ClauseParameters, call the appropriate
 style of <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt> on the cursor, using DB-API types
 from the bind parameter&#8217;s <tt class="docutils literal"><span class="pre">TypeEngine</span></tt> objects.</p>
-<p>This method only called by those dialects which require it, 
+<p>This method only called by those dialects which require it,
 currently cx_oracle.</p>
 </dd></dl>
 
@@ -1249,7 +1249,7 @@ cases an interpreted value.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.ExecutionContext.handle_dbapi_exception">
 <tt class="descname">handle_dbapi_exception</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.ExecutionContext.handle_dbapi_exception" title="Permalink to this definition">¶</a></dt>
-<dd><p>Receive a DBAPI exception which occurred upon execute, result 
+<dd><p>Receive a DBAPI exception which occurred upon execute, result
 fetch, etc.</p>
 </dd></dl>
 
@@ -1288,7 +1288,7 @@ initialized after this statement is complete.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.ExecutionContext.should_autocommit_text">
 <tt class="descname">should_autocommit_text</tt><big>(</big><em>statement</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.ExecutionContext.should_autocommit_text" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parse the given textual statement and return True if it refers to 
+<dd><p>Parse the given textual statement and return True if it refers to
 a &#8220;committable&#8221; statement</p>
 </dd></dl>
 
@@ -1351,7 +1351,7 @@ quoting behavior.</p>
 <dt id="sqlalchemy.sql.compiler.IdentifierPreparer.quote_schema">
 <tt class="descname">quote_schema</tt><big>(</big><em>schema</em>, <em>force</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.IdentifierPreparer.quote_schema" title="Permalink to this definition">¶</a></dt>
 <dd><p>Quote a schema.</p>
-<p>Subclasses should override this to provide database-dependent 
+<p>Subclasses should override this to provide database-dependent
 quoting behavior.</p>
 </dd></dl>
 
@@ -1455,7 +1455,7 @@ INSERT/UPDATE/DELETE</p>
 <dl class="attribute">
 <dt id="sqlalchemy.sql.compiler.SQLCompiler.params">
 <tt class="descname">params</tt><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the bind param dictionary embedded into this 
+<dd><p>Return the bind param dictionary embedded into this
 compiled object, for those values that are present.</p>
 </dd></dl>
 
@@ -1495,7 +1495,7 @@ clauses before the VALUES or WHERE clause (i.e. MSSQL)</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.compiler.SQLCompiler.update_from_clause">
 <tt class="descname">update_from_clause</tt><big>(</big><em>update_stmt</em>, <em>from_table</em>, <em>extra_froms</em>, <em>from_hints</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.update_from_clause" title="Permalink to this definition">¶</a></dt>
-<dd><p>Provide a hook to override the generation of an 
+<dd><p>Provide a hook to override the generation of an
 UPDATE..FROM clause.</p>
 <p>MySQL and MSSQL override this.</p>
 </dd></dl>

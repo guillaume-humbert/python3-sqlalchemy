@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.8',
+          VERSION:     '0.7.9',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -64,7 +64,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
+        Release: <span class="version-num">0.7.9</span> | Release Date: October 1, 2012
 
 
     </div>
@@ -145,7 +145,7 @@ a consistent interface to all events without the need for subclassing.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperExtension" title="sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref py py-class docutils literal"><span class="pre">MapperExtension</span></tt></a> is deprecated.   Please
-refer to <a class="reference internal" href="../core/event.html#sqlalchemy.event.listen" title="sqlalchemy.event.listen"><tt class="xref py py-func docutils literal"><span class="pre">event.listen()</span></tt></a> as well as 
+refer to <a class="reference internal" href="../core/event.html#sqlalchemy.event.listen" title="sqlalchemy.event.listen"><tt class="xref py py-func docutils literal"><span class="pre">event.listen()</span></tt></a> as well as
 <a class="reference internal" href="events.html#sqlalchemy.orm.events.MapperEvents" title="sqlalchemy.orm.events.MapperEvents"><tt class="xref py py-class docutils literal"><span class="pre">MapperEvents</span></tt></a>.</p>
 </div>
 <p>New extension classes subclass <a class="reference internal" href="#sqlalchemy.orm.interfaces.MapperExtension" title="sqlalchemy.orm.interfaces.MapperExtension"><tt class="xref py py-class docutils literal"><span class="pre">MapperExtension</span></tt></a> and are specified
@@ -171,8 +171,8 @@ EXT_CONTINUE by default.   This symbol generally means &#8220;move
 to the next <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> for processing&#8221;.  For methods
 that return objects like translated rows or new object
 instances, EXT_CONTINUE means the result of the method
-should be ignored.   In some cases it&#8217;s required for a 
-default mapper activity to be performed, such as adding a 
+should be ignored.   In some cases it&#8217;s required for a
+default mapper activity to be performed, such as adding a
 new instance to a result list.</p>
 <p>The symbol EXT_STOP has significance within a chain
 of <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> objects that the chain will be stopped
@@ -191,7 +191,7 @@ chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</
 <dt id="sqlalchemy.orm.interfaces.MapperExtension.after_insert">
 <tt class="descname">after_insert</tt><big>(</big><em>mapper</em>, <em>connection</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension.after_insert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Receive an object instance after that instance is inserted.</p>
-<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt>
 chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
 </dd></dl>
 
@@ -199,7 +199,7 @@ chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</
 <dt id="sqlalchemy.orm.interfaces.MapperExtension.after_update">
 <tt class="descname">after_update</tt><big>(</big><em>mapper</em>, <em>connection</em>, <em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension.after_update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Receive an object instance after that instance is updated.</p>
-<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt>
 chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
 </dd></dl>
 
@@ -239,7 +239,7 @@ desired.</p>
 here; and manipulation of the <tt class="docutils literal"><span class="pre">Session</span></tt> will not have the
 desired effect. To manipulate the <tt class="docutils literal"><span class="pre">Session</span></tt> within an
 extension, use <tt class="docutils literal"><span class="pre">SessionExtension</span></tt>.</p>
-<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt>
 chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
 </dd></dl>
 
@@ -252,11 +252,11 @@ into its table.</p>
 that aren&#8217;t handled otherwise.</p>
 <p>Column-based attributes can be modified within this method
 which will result in the new value being inserted.  However
-<em>no</em> changes to the overall flush plan can be made, and 
+<em>no</em> changes to the overall flush plan can be made, and
 manipulation of the <tt class="docutils literal"><span class="pre">Session</span></tt> will not have the desired effect.
-To manipulate the <tt class="docutils literal"><span class="pre">Session</span></tt> within an extension, use 
+To manipulate the <tt class="docutils literal"><span class="pre">Session</span></tt> within an extension, use
 <tt class="docutils literal"><span class="pre">SessionExtension</span></tt>.</p>
-<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt>
 chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
 </dd></dl>
 
@@ -279,11 +279,11 @@ changes, and will therefore generate an UPDATE statement, use
 <span class="pre">include_collections=False)</span></tt>.</p>
 <p>Column-based attributes can be modified within this method
 which will result in the new value being updated.  However
-<em>no</em> changes to the overall flush plan can be made, and 
+<em>no</em> changes to the overall flush plan can be made, and
 manipulation of the <tt class="docutils literal"><span class="pre">Session</span></tt> will not have the desired effect.
-To manipulate the <tt class="docutils literal"><span class="pre">Session</span></tt> within an extension, use 
+To manipulate the <tt class="docutils literal"><span class="pre">Session</span></tt> within an extension, use
 <tt class="docutils literal"><span class="pre">SessionExtension</span></tt>.</p>
-<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt>
 chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
 </dd></dl>
 
@@ -311,12 +311,12 @@ EXT_CONTINUE to indicate normal object creation should take place.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.interfaces.MapperExtension.init_failed">
 <tt class="descname">init_failed</tt><big>(</big><em>mapper</em>, <em>class_</em>, <em>oldinit</em>, <em>instance</em>, <em>args</em>, <em>kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension.init_failed" title="Permalink to this definition">¶</a></dt>
-<dd><p>Receive an instance when it&#8217;s constructor has been called, 
+<dd><p>Receive an instance when it&#8217;s constructor has been called,
 and raised an exception.</p>
-<p>This method is only called during a userland construction of 
+<p>This method is only called during a userland construction of
 an object.  It is not called when an object is loaded from the
 database.</p>
-<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt>
 chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
 </dd></dl>
 
@@ -324,10 +324,10 @@ chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</
 <dt id="sqlalchemy.orm.interfaces.MapperExtension.init_instance">
 <tt class="descname">init_instance</tt><big>(</big><em>mapper</em>, <em>class_</em>, <em>oldinit</em>, <em>instance</em>, <em>args</em>, <em>kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension.init_instance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Receive an instance when it&#8217;s constructor is called.</p>
-<p>This method is only called during a userland construction of 
+<p>This method is only called during a userland construction of
 an object.  It is not called when an object is loaded from the
 database.</p>
-<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt>
 chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
 </dd></dl>
 
@@ -336,7 +336,7 @@ chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</
 <tt class="descname">instrument_class</tt><big>(</big><em>mapper</em>, <em>class_</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperExtension.instrument_class" title="Permalink to this definition">¶</a></dt>
 <dd><p>Receive a class when the mapper is first constructed, and has
 applied instrumentation to the mapped class.</p>
-<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt>
 chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
 </dd></dl>
 
@@ -371,10 +371,10 @@ occurred.</p>
 incoming result rows, and is only called once for that
 instance&#8217;s lifetime.</p>
 <p>Note that during a result-row load, this method is called upon
-the first row received for this instance.  Note that some 
-attributes and collections may or may not be loaded or even 
+the first row received for this instance.  Note that some
+attributes and collections may or may not be loaded or even
 initialized, depending on what&#8217;s present in the result rows.</p>
-<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt> 
+<p>The return value is only significant within the <tt class="docutils literal"><span class="pre">MapperExtension</span></tt>
 chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</p>
 </dd></dl>
 
@@ -385,9 +385,9 @@ chain; the parent mapper&#8217;s behavior isn&#8217;t modified by this method.</
 new row instance.</p>
 <p>This is called when the mapper first receives a row, before
 the object identity or the instance itself has been derived
-from that row.   The given row may or may not be a 
+from that row.   The given row may or may not be a
 <tt class="docutils literal"><span class="pre">RowProxy</span></tt> object - it will always be a dictionary-like
-object which contains mapped columns as keys.  The 
+object which contains mapped columns as keys.  The
 returned object should also be a dictionary-like object
 which recognizes mapped columns as keys.</p>
 <p>If the ultimate return value is EXT_CONTINUE, the row
@@ -406,7 +406,7 @@ is not translated.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.orm.interfaces.SessionExtension" title="sqlalchemy.orm.interfaces.SessionExtension"><tt class="xref py py-class docutils literal"><span class="pre">SessionExtension</span></tt></a> is deprecated.   Please
-refer to <a class="reference internal" href="../core/event.html#sqlalchemy.event.listen" title="sqlalchemy.event.listen"><tt class="xref py py-func docutils literal"><span class="pre">event.listen()</span></tt></a> as well as 
+refer to <a class="reference internal" href="../core/event.html#sqlalchemy.event.listen" title="sqlalchemy.event.listen"><tt class="xref py py-func docutils literal"><span class="pre">event.listen()</span></tt></a> as well as
 <a class="reference internal" href="events.html#sqlalchemy.orm.events.SessionEvents" title="sqlalchemy.orm.events.SessionEvents"><tt class="xref py py-class docutils literal"><span class="pre">SessionEvents</span></tt></a>.</p>
 </div>
 <p>Subclasses may be installed into a <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> (or
@@ -523,7 +523,7 @@ that fire upon attribute mutations in user code.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a> is deprecated.   Please
-refer to <a class="reference internal" href="../core/event.html#sqlalchemy.event.listen" title="sqlalchemy.event.listen"><tt class="xref py py-func docutils literal"><span class="pre">event.listen()</span></tt></a> as well as 
+refer to <a class="reference internal" href="../core/event.html#sqlalchemy.event.listen" title="sqlalchemy.event.listen"><tt class="xref py py-func docutils literal"><span class="pre">event.listen()</span></tt></a> as well as
 <a class="reference internal" href="events.html#sqlalchemy.orm.events.AttributeEvents" title="sqlalchemy.orm.events.AttributeEvents"><tt class="xref py py-class docutils literal"><span class="pre">AttributeEvents</span></tt></a>.</p>
 </div>
 <p><a class="reference internal" href="#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a> is used to listen for set,

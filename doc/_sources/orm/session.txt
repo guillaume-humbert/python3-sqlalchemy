@@ -41,12 +41,14 @@ of Work <http://martinfowler.com/eaaCatalog/unitOfWork.html>`_ pattern.
 When using a :class:`.Session`, it's important to note that the objects
 which are associated with it are **proxy objects** to the transaction being
 held by the :class:`.Session` - there are a variety of events that will cause
-objects to re-access the database in order to keep synchronized.   It is 
-possible to "detach" objects from a :class:`.Session`, and to continue using 
+objects to re-access the database in order to keep synchronized.   It is
+possible to "detach" objects from a :class:`.Session`, and to continue using
 them, though this practice has its caveats.  It's intended that
-usually, you'd re-associate detached objects another :class:`.Session` when you 
-want to work with them again, so that they can resume their normal task of 
+usually, you'd re-associate detached objects another :class:`.Session` when you
+want to work with them again, so that they can resume their normal task of
 representing database state.
+
+.. _session_getting:
 
 Getting a Session
 =================
@@ -80,38 +82,37 @@ The usage of :func:`.sessionmaker` is illustrated below:
     session.add(myobject)
     session.commit()
 
-Above, the :func:`.sessionmaker` call creates a class for us,
-which we assign to the name ``Session``. This class is a subclass of the
-actual :class:`.Session` class, which when instantiated, will
-use the arguments we've given the function, in this case
-to use a particular :class:`.Engine` for connection resources.
+Above, the :func:`.sessionmaker` call creates a factory for us,
+which we assign to the name ``Session``.  This factory, when
+called, will create a new :class:`.Session` object using the configurational
+arguments we've given the factory.  In this case, as is typical,
+we've configured the factory to specify a particular :class:`.Engine` for
+connection resources.
 
 A typical setup will associate the :func:`.sessionmaker` with an :class:`.Engine`,
 so that each :class:`.Session` generated will use this :class:`.Engine`
 to acquire connection resources.   This association can
-be set up as in the example above, using the ``bind`` argument. 
+be set up as in the example above, using the ``bind`` argument.
 
-When you write your application, place the result of the
-:func:`.sessionmaker` call at the global level.   The resulting
-``Session`` class, configured for your application, should then
+When you write your application, place the
+:func:`.sessionmaker` factory at the global level.   This
+factory can then
 be used by the rest of the applcation as the source of new :class:`.Session`
-instances.
+instances, keeping the configuration for how :class:`.Session` objects
+are constructed in one place.
 
-An extremely common step taken by applications, including virtually
-all web applications, is to further wrap the :func:`.sessionmaker`
-construct in a so-called "contextual" session, provided by the
-:func:`.scoped_session` construct.  This construct places the :func:`.sessionmaker`
-into a **registry** that maintains a single :class:`.Session` per 
-application thread.   Information on using contextual sessions
-is at :ref:`unitofwork_contextual`.
+The :func:`.sessionmaker` factory can also be used in conjunction with
+other helpers, which are passed a user-defined :func:`.sessionmaker` that
+is then maintained by the helper.  Some of these helpers are discussed in the
+section :ref:`session_faq_whentocreate`.
 
 Adding Additional Configuration to an Existing sessionmaker()
 --------------------------------------------------------------
 
-A common scenario is where the :func:`.sessionmaker` is invoked 
+A common scenario is where the :func:`.sessionmaker` is invoked
 at module import time, however the generation of one or more :class:`.Engine`
 instances to be associated with the :func:`.sessionmaker` has not yet proceeded.
-For this use case, the :func:`.sessionmaker` construct offers the 
+For this use case, the :func:`.sessionmaker` construct offers the
 :meth:`.sessionmaker.configure` method, which will place additional configuration
 directives into an existing :func:`.sessionmaker` that will take place
 when the construct is invoked::
@@ -136,12 +137,13 @@ Creating Ad-Hoc Session Objects with Alternate Arguments
 ---------------------------------------------------------
 
 For the use case where an application needs to create a new :class:`.Session` with
-special arguments that deviate from what is normally used throughout the application, 
-such as a :class:`.Session` that binds to an alternate 
-source of connectivity, or a :class:`.Session` that should 
-have other arguments such as ``expire_on_commit`` established differently from 
-what most of the application wants, specific arguments can be passed to the 
-:func:`.sessionmaker` construct's class itself.  These arguments will override whatever
+special arguments that deviate from what is normally used throughout the application,
+such as a :class:`.Session` that binds to an alternate
+source of connectivity, or a :class:`.Session` that should
+have other arguments such as ``expire_on_commit`` established differently from
+what most of the application wants, specific arguments can be passed to the
+:func:`.sessionmaker` factory's :meth:`.sessionmaker.__call__` method.
+These arguments will override whatever
 configurations have already been placed, such as below, where a new :class:`.Session`
 is constructed against a specific :class:`.Connection`::
 
@@ -149,13 +151,13 @@ is constructed against a specific :class:`.Connection`::
     # bound to a specific Engine
     Session = sessionmaker(bind=engine)
 
-    # later, some unit of code wants to create a 
+    # later, some unit of code wants to create a
     # Session that is bound to a specific Connection
     conn = engine.connect()
     session = Session(bind=conn)
 
 The typical rationale for the association of a :class:`.Session` with a specific
-:class:`.Connection` is that of a test fixture that maintains an external 
+:class:`.Connection` is that of a test fixture that maintains an external
 transaction - see :ref:`session_external_transaction` for an example of this.
 
 Using the Session
@@ -168,33 +170,35 @@ Quickie Intro to Object States
 
 It's helpful to know the states which an instance can have within a session:
 
-* *Transient* - an instance that's not in a session, and is not saved to the
+* **Transient** - an instance that's not in a session, and is not saved to the
   database; i.e. it has no database identity. The only relationship such an
   object has to the ORM is that its class has a ``mapper()`` associated with
   it.
 
-* *Pending* - when you :func:`~sqlalchemy.orm.session.Session.add` a transient
+* **Pending** - when you :meth:`~.Session.add` a transient
   instance, it becomes pending. It still wasn't actually flushed to the
   database yet, but it will be when the next flush occurs.
 
-* *Persistent* - An instance which is present in the session and has a record
+* **Persistent** - An instance which is present in the session and has a record
   in the database. You get persistent instances by either flushing so that the
   pending instances become persistent, or by querying the database for
   existing instances (or moving persistent instances from other sessions into
   your local session).
 
-* *Detached* - an instance which has a record in the database, but is not in
+* **Detached** - an instance which has a record in the database, but is not in
   any session. There's nothing wrong with this, and you can use objects
   normally when they're detached, **except** they will not be able to issue
   any SQL in order to load collections or attributes which are not yet loaded,
   or were marked as "expired".
 
 Knowing these states is important, since the
-:class:`~sqlalchemy.orm.session.Session` tries to be strict about ambiguous
+:class:`.Session` tries to be strict about ambiguous
 operations (such as trying to save the same object to two different sessions
 at the same time).
 
 .. _session_faq:
+
+.. _session_faq_whentocreate:
 
 Session Frequently Asked Questions
 -----------------------------------
@@ -212,55 +216,121 @@ Session Frequently Asked Questions
     If your application starts up, does imports, but does not know what
     database it's going to be connecting to, you can bind the
     :class:`.Session` at the "class" level to the
-    engine later on, using ``configure()``.
+    engine later on, using :meth:`.sessionmaker.configure`.
 
     In the examples in this section, we will frequently show the
     :func:`.sessionmaker` being created right above the line where we actually
-    invoke :class:`~sqlalchemy.orm.session.Session()`. But that's just for
-    example's sake ! In reality, the :func:`.sessionmaker` would be somewhere
-    at the module level, and your individual
-    :class:`~sqlalchemy.orm.session.Session()` calls would be sprinkled all
-    throughout your app, such as in a web application within each controller
-    method.
+    invoke :class:`.Session`. But that's just for
+    example's sake!  In reality, the :func:`.sessionmaker` would be somewhere
+    at the module level.   The calls to instantiate :class:`.Session`
+    would then be placed at the point in the application where database
+    conversations begin.
 
-* When do I make a :class:`.Session` ?
+* When do I construct a :class:`.Session`, when do I commit it, and when do I close it ?
 
-    You typically invoke :class:`.Session` when you first need to talk to your
-    database, and want to save some objects or load some existing ones. It
-    then remains in use for the lifespan of a particular database
-    conversation, which includes not just the initial loading of objects but
-    throughout the whole usage of those instances.
+    A :class:`.Session` is typically constructed at the beginning of a logical
+    operation where database access is potentially anticipated.
 
-    Objects become detached if their owning session is discarded. They are
-    still functional in the detached state if the user has ensured that their
-    state has not been expired before detachment, but they will not be able to
-    represent the current state of database data. Because of this, it's best
-    to consider persisted objects as an extension of the state of a particular
-    :class:`.Session`, and to keep that session around until all referenced
-    objects have been discarded.
+    The :class:`.Session`, whenever it is used to talk to the database,
+    begins a database transaction as soon as it starts communicating.
+    Assuming the ``autocommit`` flag is left at its recommended default
+    of ``False``, this transaction remains in progress until the :class:`.Session`
+    is rolled back, committed, or closed.   The :class:`.Session` will
+    begin a new transaction if it is used again, subsequent to the previous
+    transaction ending; from this it follows that the :class:`.Session`
+    is capable of having a lifespan across many transactions, though only
+    one at a time.   We refer to these two concepts as **transaction scope**
+    and **session scope**.
 
-    An exception to this is when objects are placed in caches or otherwise
-    shared among threads or processes, in which case their detached state can
-    be stored, transmitted, or shared. However, the state of detached objects
-    should still be transferred back into a new :class:`.Session` using
-    :meth:`.Session.add` or :meth:`.Session.merge` before working with the
-    object (or in the case of merge, its state) again.
+    The implication here is that the SQLAlchemy ORM is encouraging the
+    developer to establish these two scopes in his or her application,
+    including not only when the scopes begin and end, but also the
+    expanse of those scopes, for example should a single
+    :class:`.Session` instance be local to the execution flow within a
+    function or method, should it be a global object used by the
+    entire application, or somewhere in between these two.
 
-    It is also very common that a :class:`.Session` as well as its associated
-    objects are only referenced by a single thread.  Sharing objects between
-    threads is most safely accomplished by sharing their state among multiple
-    instances of those objects, each associated with a distinct
-    :class:`.Session` per thread, :meth:`.Session.merge` to transfer state
-    between threads.   This pattern is not a strict requirement by any means, 
-    but it has the least chance of introducing concurrency issues.
+    The burden placed on the developer to determine this scope is one
+    area where the SQLAlchemy ORM necessarily has a strong opinion
+    about how the database should be used.  The unit-of-work pattern
+    is specifically one of accumulating changes over time and flushing
+    them periodically, keeping in-memory state in sync with what's
+    known to be present in a local transaction. This pattern is only
+    effective when meaningful transaction scopes are in place.
 
-    To help with the recommended :class:`.Session` -per-thread,
-    :class:`.Session` -per-set-of-objects patterns, the
-    :func:`.scoped_session` function is provided which produces a
-    thread-managed registry of :class:`.Session` objects. It is commonly used
-    in web applications so that a single global variable can be used to safely
-    represent transactional sessions with sets of objects, localized to a
-    single thread. More on this object is in :ref:`unitofwork_contextual`.
+    It's usually not very hard to determine the best points at which
+    to begin and end the scope of a :class:`.Session`, though the wide
+    variety of application architectures possible can introduce
+    challenging situations.
+
+    A common choice is to tear down the :class:`.Session` at the same
+    time the transaction ends, meaning the transaction and session scopes
+    are the same.  This is a great choice to start out with as it
+    removes the need to consider session scope as separate from transaction
+    scope.
+
+    While there's no one-size-fits-all recommendation for how transaction
+    scope should be determined, there are common patterns.   Especially
+    if one is writing a web application, the choice is pretty much established.
+
+    A web application is the easiest case because such an appication is already
+    constructed around a single, consistent scope - this is the **request**,
+    which represents an incoming request from a browser, the processing
+    of that request to formulate a response, and finally the delivery of that
+    response back to the client.    Integrating web applications with the
+    :class:`.Session` is then the straightforward task of linking the
+    scope of the :class:`.Session` to that of the request.  The :class:`.Session`
+    can be established as the request begins, or using a **lazy initialization**
+    pattern which establishes one as soon as it is needed.  The request
+    then proceeds, with some system in place where application logic can access
+    the current :class:`.Session` in a manner associated with how the actual
+    request object is accessed.  As the request ends, the :class:`.Session`
+    is torn down as well, usually through the usage of event hooks provided
+    by the web framework.   The transaction used by the :class:`.Session`
+    may also be committed at this point, or alternatively the application may
+    opt for an explicit commit pattern, only committing for those requests
+    where one is warranted, but still always tearing down the :class:`.Session`
+    unconditionally at the end.
+
+    Most web frameworks include infrastructure to establish a single
+    :class:`.Session`, associated with the request, which is correctly
+    constructed and torn down corresponding
+    torn down at the end of a request.   Such infrastructure pieces
+    include products such as `Flask-SQLAlchemy <http://packages.python.org/Flask-SQLAlchemy/>`_,
+    for usage in conjunction with the Flask web framework,
+    and `Zope-SQLAlchemy <http://pypi.python.org/pypi/zope.sqlalchemy>`_,
+    for usage in conjunction with the Pyramid and Zope frameworks.
+    SQLAlchemy strongly recommends that these products be used as
+    available.
+
+    In those situations where integration libraries are not available,
+    SQLAlchemy includes its own "helper" class known as
+    :class:`.ScopedSession`.   A tutorial on the usage of this object
+    is at :ref:`unitofwork_contextual`.   It provides both a quick way
+    to associate a :class:`.Session` with the current thread, as well as
+    patterns to associate :class:`.Session` objects with other kinds of
+    scopes.
+
+    As mentioned before, for non-web applications there is no one clear
+    pattern, as applications themselves don't have just one pattern
+    of architecture.   The best strategy is to attempt to demarcate
+    "operations", points at which a particular thread begins to perform
+    a series of operations for some period of time, which can be committed
+    at the end.   Some examples:
+
+    * A background daemon which spawns off child forks
+      would want to create a :class:`.Session` local to each child
+      process work with that :class:`.Session` through the life of the "job"
+      that the fork is handling, then tear it down when the job is completed.
+
+    * For a command-line script, the application would create a single, global
+      :class:`.Session` that is established when the program begins to do its
+      work, and commits it right as the program is completing its task.
+
+    * For a GUI interface-driven application, the scope of the :class:`.Session`
+      may best be within the scope of a user-generated event, such as a button
+      push.  Or, the scope may correspond to explicit user interaction, such as
+      the user "opening" a series of records, then "saving" them.
 
 * Is the Session a cache ?
 
@@ -281,53 +351,48 @@ Session Frequently Asked Questions
     The :class:`.Session` is not designed to be a
     global object from which everyone consults as a "registry" of objects.
     That's more the job of a **second level cache**.   SQLAlchemy provides
-    a pattern for implementing second level caching using `Beaker <http://beaker.groovie.org/>`_, 
+    a pattern for implementing second level caching using `Beaker <http://beaker.groovie.org/>`_,
     via the :ref:`examples_caching` example.
 
 * How can I get the :class:`~sqlalchemy.orm.session.Session` for a certain object ?
 
-    Use the :func:`~sqlalchemy.orm.session.Session.object_session` classmethod
+    Use the :meth:`~.Session.object_session` classmethod
     available on :class:`~sqlalchemy.orm.session.Session`::
 
         session = Session.object_session(someobject)
 
-.. index::
-   single: thread safety; sessions
-   single: thread safety; Session
-
 * Is the session thread-safe?
 
-    Nope. It has no thread synchronization of any kind built in, and
-    particularly when you do a flush operation, it definitely is not open to
-    concurrent threads accessing it, because it holds onto a single database
-    connection at that point. If you use a session which is non-transactional
-    (meaning, ``autocommit`` is set to ``True``, not the default setting)
-    for read operations only, it's still not thread-"safe", but you also wont
-    get any catastrophic failures either, since it checks out and returns
-    connections to the connection pool on an as-needed basis; it's just that
-    different threads might load the same objects independently of each other,
-    but only one will wind up in the identity map (however, the other one
-    might still live in a collection somewhere).
+    The :class:`.Session` is very much intended to be used in a
+    **non-concurrent** fashion, which usually means in only one thread at a
+    time.
 
-    But the bigger point here is, you should not *want* to use the session
+    The :class:`.Session` should be used in such a way that one
+    instance exists for a single series of operations within a single
+    transaction.   One expedient way to get this effect is by associating
+    a :class:`.Session` with the current thread (see :ref:`unitofwork_contextual`
+    for background).  Another is to use a pattern
+    where the :class:`.Session` is passed between functions and is otherwise
+    not shared with other threads.
+
+    The bigger point is that you should not *want* to use the session
     with multiple concurrent threads. That would be like having everyone at a
     restaurant all eat from the same plate. The session is a local "workspace"
     that you use for a specific set of tasks; you don't want to, or need to,
-    share that session with other threads who are doing some other task. If,
-    on the other hand, there are other threads participating in the same task
-    you are, such as in a desktop graphical application, then you would be
-    sharing the session with those threads, but you also will have implemented
-    a proper locking scheme (or your graphical framework does) so that those
-    threads do not collide.
+    share that session with other threads who are doing some other task.
 
-    A multithreaded application is usually going to want to make usage of
-    :func:`.scoped_session` to transparently manage sessions per thread.
-    More on this at :ref:`unitofwork_contextual`.
+    If there are in fact multiple threads participating
+    in the same task, then you may consider sharing the session between
+    those threads, though this would be an extremely unusual scenario.
+    In this case it would be necessary
+    to implement a proper locking scheme so that the :class:`.Session` is still not
+    exposed to concurrent access.
+
 
 Querying
 --------
 
-The :func:`~sqlalchemy.orm.session.Session.query` function takes one or more
+The :meth:`~.Session.query` function takes one or more
 *entities* and returns a new :class:`~sqlalchemy.orm.query.Query` object which
 will issue mapper queries within the context of this Session. An entity is
 defined as a mapped class, a :class:`~sqlalchemy.orm.mapper.Mapper` object, an
@@ -363,7 +428,7 @@ The :class:`.Query` object is introduced in great detail in
 Adding New or Existing Items
 ----------------------------
 
-:func:`~sqlalchemy.orm.session.Session.add` is used to place instances in the
+:meth:`~.Session.add` is used to place instances in the
 session. For *transient* (i.e. brand new) instances, this will have the effect
 of an INSERT taking place for those instances upon the next flush. For
 instances which are *persistent* (i.e. were loaded by this session), they are
@@ -379,11 +444,11 @@ using this method::
     session.commit()     # write changes to the database
 
 To add a list of items to the session at once, use
-:func:`~sqlalchemy.orm.session.Session.add_all`::
+:meth:`~.Session.add_all`::
 
     session.add_all([item1, item2, item3])
 
-The :func:`~sqlalchemy.orm.session.Session.add` operation **cascades** along
+The :meth:`~.Session.add` operation **cascades** along
 the ``save-update`` cascade. For more details see the section
 :ref:`unitofwork_cascades`.
 
@@ -392,38 +457,52 @@ the ``save-update`` cascade. For more details see the section
 Merging
 -------
 
-:func:`~sqlalchemy.orm.session.Session.merge` reconciles the current state of
-an instance and its associated children with existing data in the database,
-and returns a copy of the instance associated with the session. Usage is as
-follows::
+:meth:`~.Session.merge` transfers state from an
+outside object into a new or already existing instance within a session.   It
+also reconciles the incoming data against the state of the
+database, producing a history stream which will be applied towards the next
+flush, or alternatively can be made to produce a simple "transfer" of
+state without producing change history or accessing the database.  Usage is as follows::
 
     merged_object = session.merge(existing_object)
 
 When given an instance, it follows these steps:
 
 * It examines the primary key of the instance. If it's present, it attempts
-  to load an instance with that primary key (or pulls from the local
-  identity map).
-* If there's no primary key on the given instance, or the given primary key
-  does not exist in the database, a new instance is created.
+  to locate that instance in the local identity map.   If the ``load=True``
+  flag is left at its default, it also checks the database for this primary
+  key if not located locally.
+* If the given instance has no primary key, or if no instance can be found
+  with the primary key given, a new instance is created.
 * The state of the given instance is then copied onto the located/newly
-  created instance.
-* The operation is cascaded to associated child items along the ``merge``
-  cascade. Note that all changes present on the given instance, including
-  changes to collections, are merged.
+  created instance.    For attributes which are present on the source
+  instance, the value is transferred to the target instance.  For mapped
+  attributes which aren't present on the source, the attribute is
+  expired on the target instance, discarding its existing value.
+
+  If the ``load=True`` flag is left at its default,
+  this copy process emits events and will load the target object's
+  unloaded collections for each attribute present on the source object,
+  so that the incoming state can be reconciled against what's
+  present in the database.  If ``load``
+  is passed as ``False``, the incoming data is "stamped" directly without
+  producing any history.
+* The operation is cascaded to related objects and collections, as
+  indicated by the ``merge`` cascade (see :ref:`unitofwork_cascades`).
 * The new instance is returned.
 
-With :func:`~sqlalchemy.orm.session.Session.merge`, the given instance is not
-placed within the session, and can be associated with a different session or
-detached. :func:`~sqlalchemy.orm.session.Session.merge` is very useful for
+With :meth:`~.Session.merge`, the given "source"
+instance is not modifed nor is it associated with the target :class:`.Session`,
+and remains available to be merged with any number of other :class:`.Session`
+objects.  :meth:`~.Session.merge` is useful for
 taking the state of any kind of object structure without regard for its
-origins or current session associations and placing that state within a
-session. Here's two examples:
+origins or current session associations and copying its state into a
+new session. Here's some examples:
 
 * An application which reads an object structure from a file and wishes to
   save it to the database might parse the file, build up the
   structure, and then use
-  :func:`~sqlalchemy.orm.session.Session.merge` to save it
+  :meth:`~.Session.merge` to save it
   to the database, ensuring that the data within the file is
   used to formulate the primary key of each element of the
   structure. Later, when the file has changed, the same
@@ -431,26 +510,34 @@ session. Here's two examples:
   object structure, which can then be ``merged`` in again,
   and the :class:`~sqlalchemy.orm.session.Session` will
   automatically update the database to reflect those
-  changes.
-* A web application stores mapped entities within an HTTP session object.
-  When each request starts up, the serialized data can be
-  merged into the session, so that the original entity may
-  be safely shared among requests and threads.
+  changes, loading each object from the database by primary key and
+  then updating its state with the new state given.
 
-:func:`~sqlalchemy.orm.session.Session.merge` is frequently used by
-applications which implement their own second level caches. This refers to an
-application which uses an in memory dictionary, or an tool like Memcached to
-store objects over long running spans of time. When such an object needs to
-exist within a :class:`~sqlalchemy.orm.session.Session`,
-:func:`~sqlalchemy.orm.session.Session.merge` is a good choice since it leaves
-the original cached object untouched. For this use case, merge provides a
-keyword option called ``load=False``. When this boolean flag is set to
-``False``, :func:`~sqlalchemy.orm.session.Session.merge` will not issue any
-SQL to reconcile the given object against the current state of the database,
-thereby reducing query overhead. The limitation is that the given object and
-all of its children may not contain any pending changes, and it's also of
-course possible that newer information in the database will not be present on
-the merged object, since no load is issued.
+* An application is storing objects in an in-memory cache, shared by
+  many :class:`.Session` objects simultaneously.   :meth:`~.Session.merge`
+  is used each time an object is retrieved from the cache to create
+  a local copy of it in each :class:`.Session` which requests it.
+  The cached object remains detached; only its state is moved into
+  copies of itself that are local to individual :class:`~.Session`
+  objects.
+
+  In the caching use case, it's common that the ``load=False`` flag
+  is used to remove the overhead of reconciling the object's state
+  with the database.   There's also a "bulk" version of
+  :meth:`~.Session.merge` called :meth:`~.Query.merge_result`
+  that was designed to work with cache-extended :class:`.Query`
+  objects - see the section :ref:`examples_caching`.
+
+* An application wants to transfer the state of a series of objects
+  into a :class:`.Session` maintained by a worker thread or other
+  concurrent system.  :meth:`~.Session.merge` makes a copy of each object
+  to be placed into this new :class:`.Session`.  At the end of the operation,
+  the parent thread/process maintains the objects it started with,
+  and the thread/worker can proceed with local copies of those objects.
+
+  In the "transfer between threads/processes" use case, the application
+  may want to use the ``load=False`` flag as well to avoid overhead and
+  redundant SQL queries as the data is transferred.
 
 Merge Tips
 ~~~~~~~~~~
@@ -459,7 +546,7 @@ Merge Tips
 it deals with the intricate border between objects that are transient/detached and
 those that are persistent, as well as the automated transferrence of state.
 The wide variety of scenarios that can present themselves here often require a
-more careful approach to the state of objects.   Common problems with merge usually involve 
+more careful approach to the state of objects.   Common problems with merge usually involve
 some unexpected state regarding the object being passed to :meth:`~.Session.merge`.
 
 Lets use the canonical example of the User and Address objects::
@@ -495,8 +582,8 @@ A surprise would occur if we said this::
     >>> a1.user = u1
     >>> a1 = session.merge(a1)
     >>> session.commit()
-    sqlalchemy.orm.exc.FlushError: New instance <Address at 0x1298f50> 
-    with identity key (<class '__main__.Address'>, (1,)) conflicts with 
+    sqlalchemy.orm.exc.FlushError: New instance <Address at 0x1298f50>
+    with identity key (<class '__main__.Address'>, (1,)) conflicts with
     persistent instance <Address at 0x12a25d0>
 
 Why is that ?   We weren't careful with our cascades.   The assignment
@@ -536,12 +623,12 @@ Another example of unexpected state::
     >>> True
     >>> a1 = session.merge(a1)
     >>> session.commit()
-    sqlalchemy.exc.IntegrityError: (IntegrityError) address.user_id 
+    sqlalchemy.exc.IntegrityError: (IntegrityError) address.user_id
     may not be NULL
 
 Here, we accessed a1.user, which returned its default value
-of ``None``, which as a result of this access, has been placed in the ``__dict__`` of 
-our object ``a1``.  Normally, this operation creates no change event, 
+of ``None``, which as a result of this access, has been placed in the ``__dict__`` of
+our object ``a1``.  Normally, this operation creates no change event,
 so the ``user_id`` attribute takes precedence during a
 flush.  But when we merge the ``Address`` object into the session, the operation
 is equivalent to::
@@ -554,8 +641,8 @@ Where above, both ``user_id`` and ``user`` are assigned to, and change events
 are emitted for both.  The ``user`` association
 takes precedence, and None is applied to ``user_id``, causing a failure.
 
-Most :meth:`~.Session.merge` issues can be examined by first checking - 
-is the object prematurely in the session ? 
+Most :meth:`~.Session.merge` issues can be examined by first checking -
+is the object prematurely in the session ?
 
 .. sourcecode:: python+sql
 
@@ -569,9 +656,9 @@ is a quick way to check::
     >>> a1 = Address(id=existing_a1, user_id=user.id)
     >>> a1.user
     >>> a1.__dict__
-    {'_sa_instance_state': <sqlalchemy.orm.state.InstanceState object at 0x1298d10>, 
-        'user_id': 1, 
-        'id': 1, 
+    {'_sa_instance_state': <sqlalchemy.orm.state.InstanceState object at 0x1298d10>,
+        'user_id': 1,
+        'id': 1,
         'user': None}
     >>> # we don't want user=None merged, remove it
     >>> del a1.user
@@ -629,7 +716,7 @@ as illustrated in the example below::
     del user.addresses[1]
     session.flush()
 
-Where above, upon removing the ``Address`` object from the ``User.addresses`` 
+Where above, upon removing the ``Address`` object from the ``User.addresses``
 collection, the ``delete-orphan`` cascade has the effect of marking the ``Address``
 object for deletion in the same way as passing it to :meth:`~.Session.delete`.
 
@@ -658,12 +745,12 @@ When the :class:`~sqlalchemy.orm.session.Session` is used with its default
 configuration, the flush step is nearly always done transparently.
 Specifically, the flush occurs before any individual
 :class:`~sqlalchemy.orm.query.Query` is issued, as well as within the
-:func:`~sqlalchemy.orm.session.Session.commit` call before the transaction is
+:meth:`~.Session.commit` call before the transaction is
 committed. It also occurs before a SAVEPOINT is issued when
-:func:`~sqlalchemy.orm.session.Session.begin_nested` is used.
+:meth:`~.Session.begin_nested` is used.
 
 Regardless of the autoflush setting, a flush can always be forced by issuing
-:func:`~sqlalchemy.orm.session.Session.flush`::
+:meth:`~.Session.flush`::
 
     session.flush()
 
@@ -685,10 +772,10 @@ The flush process *always* occurs within a transaction, even if the
 :class:`~sqlalchemy.orm.session.Session` has been configured with
 ``autocommit=True``, a setting that disables the session's persistent
 transactional state. If no transaction is present,
-:func:`~sqlalchemy.orm.session.Session.flush` creates its own transaction and
+:meth:`~.Session.flush` creates its own transaction and
 commits it. Any failures during flush will always result in a rollback of
 whatever transaction is present. If the Session is not in ``autocommit=True``
-mode, an explicit call to :func:`~sqlalchemy.orm.session.Session.rollback` is
+mode, an explicit call to :meth:`~.Session.rollback` is
 required after a flush fails, even though the underlying transaction will have
 been rolled back already - this is so that the overall nesting pattern of
 so-called "subtransactions" is consistently maintained.
@@ -696,26 +783,26 @@ so-called "subtransactions" is consistently maintained.
 Committing
 ----------
 
-:func:`~sqlalchemy.orm.session.Session.commit` is used to commit the current
-transaction. It always issues :func:`~sqlalchemy.orm.session.Session.flush`
+:meth:`~.Session.commit` is used to commit the current
+transaction. It always issues :meth:`~.Session.flush`
 beforehand to flush any remaining state to the database; this is independent
 of the "autoflush" setting. If no transaction is present, it raises an error.
 Note that the default behavior of the :class:`~sqlalchemy.orm.session.Session`
 is that a "transaction" is always present; this behavior can be disabled by
 setting ``autocommit=True``. In autocommit mode, a transaction can be
-initiated by calling the :func:`~sqlalchemy.orm.session.Session.begin` method.
+initiated by calling the :meth:`~.Session.begin` method.
 
-.. note:: 
+.. note::
 
    The term "transaction" here refers to a transactional
    construct within the :class:`.Session` itself which may be
    maintaining zero or more actual database (DBAPI) transactions.  An individual
    DBAPI connection begins participation in the "transaction" as it is first
    used to execute a SQL statement, then remains present until the session-level
-   "transaction" is completed.  See :ref:`unitofwork_transaction` for 
+   "transaction" is completed.  See :ref:`unitofwork_transaction` for
    further detail.
 
-Another behavior of :func:`~sqlalchemy.orm.session.Session.commit` is that by
+Another behavior of :meth:`~.Session.commit` is that by
 default it expires the state of all instances present after the commit is
 complete. This is so that when the instances are next accessed, either through
 attribute access or by them being present in a
@@ -734,7 +821,7 @@ transaction is present.
 Rolling Back
 ------------
 
-:func:`~sqlalchemy.orm.session.Session.rollback` rolls back the current
+:meth:`~.Session.rollback` rolls back the current
 transaction. With a default configured session, the post-rollback state of the
 session is as follows:
 
@@ -755,15 +842,15 @@ session is as follows:
 With that state understood, the :class:`~sqlalchemy.orm.session.Session` may
 safely continue usage after a rollback occurs.
 
-When a :func:`~sqlalchemy.orm.session.Session.flush` fails, typically for
+When a :meth:`~.Session.flush` fails, typically for
 reasons like primary key, foreign key, or "not nullable" constraint
-violations, a :func:`~sqlalchemy.orm.session.Session.rollback` is issued
+violations, a :meth:`~.Session.rollback` is issued
 automatically (it's currently not possible for a flush to continue after a
 partial failure). However, the flush process always uses its own transactional
 demarcator called a *subtransaction*, which is described more fully in the
 docstrings for :class:`~sqlalchemy.orm.session.Session`. What it means here is
 that even though the database transaction has been rolled back, the end user
-must still issue :func:`~sqlalchemy.orm.session.Session.rollback` to fully
+must still issue :meth:`~.Session.rollback` to fully
 reset the state of the :class:`~sqlalchemy.orm.session.Session`.
 
 Expunging
@@ -776,14 +863,14 @@ the detached state, and pending instances to the transient state:
 
     session.expunge(obj1)
 
-To remove all items, call :func:`~sqlalchemy.orm.session.Session.expunge_all`
+To remove all items, call :meth:`~.Session.expunge_all`
 (this method was formerly known as ``clear()``).
 
 Closing
 -------
 
-The :func:`~sqlalchemy.orm.session.Session.close` method issues a
-:func:`~sqlalchemy.orm.session.Session.expunge_all`, and releases any
+The :meth:`~.Session.close` method issues a
+:meth:`~.Session.expunge_all`, and :term:`releases` any
 transactional/connection resources. When connections are returned to the
 connection pool, transactional state is rolled back as well.
 
@@ -799,8 +886,8 @@ transaction isolation is that emitting the same SELECT statement twice will
 return the same results as when it was called the first time, even if the data
 has been modified in another transaction.
 
-For this reason, the :class:`.Session` gains very efficient behavior by 
-loading the attributes of each instance only once.   Subsequent reads of the 
+For this reason, the :class:`.Session` gains very efficient behavior by
+loading the attributes of each instance only once.   Subsequent reads of the
 same row in the same transaction are assumed to have the same value.  The
 user application also gains directly from this assumption, that the transaction
 is regarded as a temporary shield against concurrent changes - a good application
@@ -894,7 +981,7 @@ all objects which have had changes since they were last loaded or saved (i.e.
     # identity key
     session.identity_map
 
-(Documentation: :attr:`.Session.new`, :attr:`.Session.dirty`, 
+(Documentation: :attr:`.Session.new`, :attr:`.Session.dirty`,
 :attr:`.Session.deleted`, :attr:`.Session.identity_map`).
 
 Note that objects within the session are by default *weakly referenced*. This
@@ -919,22 +1006,22 @@ Mappers support the concept of configurable **cascade** behavior on
 to how operations performed on a parent object relative to a
 particular :class:`.Session` should be propagated to items
 referred to by that relationship.
-The default cascade behavior is usually suitable for 
+The default cascade behavior is usually suitable for
 most situations, and the option is normally invoked explicitly
 in order to enable ``delete`` and ``delete-orphan`` cascades,
 which refer to how the relationship should be treated when
 the parent is marked for deletion as well as when a child
 is de-associated from its parent.
 
-Cascade behavior is configured by setting the ``cascade`` keyword 
-argument on 
+Cascade behavior is configured by setting the ``cascade`` keyword
+argument on
 :func:`~sqlalchemy.orm.relationship`::
 
     class Order(Base):
         __tablename__ = 'order'
 
         items = relationship("Item", cascade="all, delete-orphan")
-        customer = relationship("User", secondary=user_orders_table, 
+        customer = relationship("User", secondary=user_orders_table,
                                     cascade="save-update")
 
 To set cascades on a backref, the same flag can be used with the
@@ -944,11 +1031,11 @@ its arguments back into :func:`~sqlalchemy.orm.relationship`::
     class Item(Base):
         __tablename__ = 'item'
 
-        order = relationship("Order", 
+        order = relationship("Order",
                         backref=backref("items", cascade="all, delete-orphan")
                     )
 
-The default value of ``cascade`` is ``save-update, merge``.  
+The default value of ``cascade`` is ``save-update, merge``.
 The ``all`` symbol in the cascade options indicates that all
 cascade flags should be enabled, with the exception of ``delete-orphan``.
 Typically, cascade is usually left at its default, or configured
@@ -958,7 +1045,7 @@ treated as "owned" by the parent.
 The list of available values which can be specified in ``cascade``
 are as follows:
 
-* ``save-update`` - Indicates that when an object is placed into a 
+* ``save-update`` - Indicates that when an object is placed into a
   :class:`.Session`
   via :meth:`.Session.add`, all the objects associated with it via this
   :func:`~sqlalchemy.orm.relationship` should also be added to that
@@ -968,20 +1055,20 @@ are as follows:
   added to sets, or otherwise associated with the parent.
 
   ``save-update`` cascade also cascades the *pending history* of the
-  target attribute, meaning that objects which were 
-  removed from a scalar or collection attribute whose changes have not 
+  target attribute, meaning that objects which were
+  removed from a scalar or collection attribute whose changes have not
   yet been flushed are  also placed into the target session.  This
   is because they may have foreign key attributes present which
-  will need to be updated to no longer refer to the parent. 
+  will need to be updated to no longer refer to the parent.
 
   The ``save-update`` cascade is on by default, and it's common to not
   even be aware of it.  It's customary that only a single call to
   :meth:`.Session.add` against the lead object of a structure
-  has the effect of placing the full structure of 
+  has the effect of placing the full structure of
   objects into the :class:`.Session` at once.
 
-  However, it can be turned off, which would 
-  imply that objects associated with a parent would need to be 
+  However, it can be turned off, which would
+  imply that objects associated with a parent would need to be
   placed individually using :meth:`.Session.add` calls for
   each one.
 
@@ -989,25 +1076,25 @@ are as follows:
   take effect in the reverse direction, that is, associating a child
   with a parent when a backref is present means both relationships
   are affected; the parent will be added to the child's session.
-  To disable this somewhat indirect session addition, use the 
-  ``cascade_backrefs=False`` option described below in 
+  To disable this somewhat indirect session addition, use the
+  ``cascade_backrefs=False`` option described below in
   :ref:`backref_cascade`.
 
 * ``delete`` - This cascade indicates that when the parent object
-  is marked for deletion, the related objects should also be marked 
+  is marked for deletion, the related objects should also be marked
   for deletion.   Without this cascade present, SQLAlchemy will
-  set the foreign key on a one-to-many relationship to NULL 
+  set the foreign key on a one-to-many relationship to NULL
   when the parent object is deleted.  When enabled, the row is instead
   deleted.
 
   ``delete`` cascade is often used in conjunction with ``delete-orphan``
   cascade, as is appropriate for an object whose foreign key is
-  not intended to be nullable.  On some backends, it's also 
+  not intended to be nullable.  On some backends, it's also
   a good idea to set ``ON DELETE`` on the foreign key itself;
   see the section :ref:`passive_deletes` for more details.
 
-  Note that for many-to-many relationships which make usage of the 
-  ``secondary`` argument to :func:`~.sqlalchemy.orm.relationship`, 
+  Note that for many-to-many relationships which make usage of the
+  ``secondary`` argument to :func:`~.sqlalchemy.orm.relationship`,
   SQLAlchemy always emits
   a DELETE for the association row in between "parent" and "child",
   when the parent is deleted or whenever the linkage between a particular
@@ -1019,20 +1106,20 @@ are as follows:
   for deletion.   This is a common feature when dealing with a related
   object that is "owned" by its parent, with a NOT NULL foreign key,
   so that removal of the item from the parent collection results
-  in its deletion.   
+  in its deletion.
 
-  ``delete-orphan`` cascade implies that each child object can only 
+  ``delete-orphan`` cascade implies that each child object can only
   have one parent at a time, so is configured in the vast majority of cases
-  on a one-to-many relationship.   Setting it on a many-to-one or 
-  many-to-many relationship is more awkward; for this use case, 
+  on a one-to-many relationship.   Setting it on a many-to-one or
+  many-to-many relationship is more awkward; for this use case,
   SQLAlchemy requires that the :func:`~sqlalchemy.orm.relationship`
-  be configured with the ``single_parent=True`` function, which 
+  be configured with the ``single_parent=True`` function, which
   establishes Python-side validation that ensures the object
   is associated with only one parent at a time.
 
 * ``merge`` - This cascade indicates that the :meth:`.Session.merge`
   operation should be propagated from a parent that's the subject
-  of the :meth:`.Session.merge` call down to referred objects. 
+  of the :meth:`.Session.merge` call down to referred objects.
   This cascade is also on by default.
 
 * ``refresh-expire`` - A less common option, indicates that the
@@ -1041,7 +1128,7 @@ are as follows:
   the referred objects are expired only, but not actually refreshed.
 
 * ``expunge`` - Indicate that when the parent object is removed
-  from the :class:`.Session` using :meth:`.Session.expunge`, the 
+  from the :class:`.Session` using :meth:`.Session.expunge`, the
   operation should be propagated down to referred objects.
 
 .. _backref_cascade:
@@ -1076,13 +1163,13 @@ place::
 This behavior can be disabled using the ``cascade_backrefs`` flag::
 
     mapper(Order, order_table, properties={
-        'items' : relationship(Item, backref='order', 
+        'items' : relationship(Item, backref='order',
                                     cascade_backrefs=False)
     })
 
 So above, the assignment of ``i1.order = o1`` will append ``i1`` to the ``items``
 collection of ``o1``, but will not add ``i1`` to the session.   You can, of
-course, :func:`~.Session.add` ``i1`` to the session at a later point.   This option
+course, :meth:`~.Session.add` ``i1`` to the session at a later point.   This option
 may be helpful for situations where an object needs to be kept out of a
 session until it's construction is completed, but still needs to be given
 associations to objects which are already persistent in the target session.
@@ -1094,7 +1181,7 @@ Managing Transactions
 =====================
 
 A newly constructed :class:`.Session` may be said to be in the "begin" state.
-In this state, the :class:`.Session` has not established any connection or 
+In this state, the :class:`.Session` has not established any connection or
 transactional state with any of the :class:`.Engine` objects that may be associated
 with it.
 
@@ -1104,30 +1191,29 @@ Typically, this means it is called upon to execute SQL statements using a partic
 or within a flush operation of pending data, which occurs when such state exists
 and :meth:`.Session.commit` or :meth:`.Session.flush` is called.
 
-As these requests are received, each new :class:`.Engine` encountered is associated 
+As these requests are received, each new :class:`.Engine` encountered is associated
 with an ongoing transactional state maintained by the :class:`.Session`.
 When the first :class:`.Engine` is operated upon, the :class:`.Session` can be said
 to have left the "begin" state and entered "transactional" state.   For each
 :class:`.Engine` encountered, a :class:`.Connection` is associated with it,
 which is acquired via the :meth:`.Engine.contextual_connect` method.  If a
 :class:`.Connection` was directly associated with the :class:`.Session` (see :ref:`session_external_transaction`
-for an example of this), it is 
+for an example of this), it is
 added to the transactional state directly.
 
-For each :class:`.Connection`, the :class:`.Session` also maintains a :class:`.Transaction` object, 
+For each :class:`.Connection`, the :class:`.Session` also maintains a :class:`.Transaction` object,
 which is acquired by calling :meth:`.Connection.begin` on each :class:`.Connection`,
 or if the :class:`.Session`
 object has been established using the flag ``twophase=True``, a :class:`.TwoPhaseTransaction`
-object acquired via :meth:`.Connection.begin_twophase`.  These transactions are all committed or 
-rolled back corresponding to the invocation of the 
+object acquired via :meth:`.Connection.begin_twophase`.  These transactions are all committed or
+rolled back corresponding to the invocation of the
 :meth:`.Session.commit` and :meth:`.Session.rollback` methods.   A commit operation will
 also call the :meth:`.TwoPhaseTransaction.prepare` method on all transactions if applicable.
 
 When the transactional state is completed after a rollback or commit, the :class:`.Session`
-releases all :class:`.Transaction` and :class:`.Connection` resources (which has the effect
-of returning DBAPI connections to the connection pool of each :class:`.Engine`), 
+:term:`releases` all :class:`.Transaction` and :class:`.Connection` resources,
 and goes back to the "begin" state, which
-will again invoke new :class:`.Connection` and :class:`.Transaction` objects as new 
+will again invoke new :class:`.Connection` and :class:`.Transaction` objects as new
 requests to emit SQL statements are received.
 
 The example below illustrates this lifecycle::
@@ -1139,7 +1225,7 @@ The example below illustrates this lifecycle::
     session = Session()
     try:
         # first query.  a Connection is acquired
-        # from the Engine, and a Transaction 
+        # from the Engine, and a Transaction
         # started.
         item1 = session.query(Item).get(1)
 
@@ -1169,7 +1255,7 @@ Using SAVEPOINT
 ---------------
 
 SAVEPOINT transactions, if supported by the underlying engine, may be
-delineated using the :func:`~sqlalchemy.orm.session.Session.begin_nested`
+delineated using the :meth:`~.Session.begin_nested`
 method::
 
     Session = sessionmaker()
@@ -1183,19 +1269,34 @@ method::
 
     session.commit() # commits u1 and u2
 
-:func:`~sqlalchemy.orm.session.Session.begin_nested` may be called any number
+:meth:`~.Session.begin_nested` may be called any number
 of times, which will issue a new SAVEPOINT with a unique identifier for each
-call. For each :func:`~sqlalchemy.orm.session.Session.begin_nested` call, a
-corresponding :func:`~sqlalchemy.orm.session.Session.rollback` or
-:func:`~sqlalchemy.orm.session.Session.commit` must be issued.
+call. For each :meth:`~.Session.begin_nested` call, a
+corresponding :meth:`~.Session.rollback` or
+:meth:`~.Session.commit` must be issued.
 
-When :func:`~sqlalchemy.orm.session.Session.begin_nested` is called, a
-:func:`~sqlalchemy.orm.session.Session.flush` is unconditionally issued
+When :meth:`~.Session.begin_nested` is called, a
+:meth:`~.Session.flush` is unconditionally issued
 (regardless of the ``autoflush`` setting). This is so that when a
-:func:`~sqlalchemy.orm.session.Session.rollback` occurs, the full state of the
+:meth:`~.Session.rollback` occurs, the full state of the
 session is expired, thus causing all subsequent attribute/instance access to
 reference the full state of the :class:`~sqlalchemy.orm.session.Session` right
-before :func:`~sqlalchemy.orm.session.Session.begin_nested` was called.
+before :meth:`~.Session.begin_nested` was called.
+
+:meth:`~.Session.begin_nested`, in the same manner as the less often
+used :meth:`~.Session.begin` method, returns a transactional object
+which also works as a context manager.
+It can be succinctly used around individual record inserts in order to catch
+things like unique constraint exceptions::
+
+    for record in records:
+        try:
+            with session.begin_nested():
+                session.merge(record)
+        except:
+            print "Skipped record %s" % record
+    session.commit()
+
 
 Autocommit Mode
 ---------------
@@ -1215,18 +1316,18 @@ very old versions of SQLAlchemy standardized on this mode, the modern
 :class:`.Session` benefits highly from being given a clear point of transaction
 demarcation via :meth:`.Session.rollback` and :meth:`.Session.commit`.
 The autoflush action can safely emit SQL to the database as needed without
-implicitly producing permanent effects, the contents of attributes 
+implicitly producing permanent effects, the contents of attributes
 are expired only when a logical series of steps has completed.   If the
-:class:`.Session` were to be used in pure "autocommit" mode without 
+:class:`.Session` were to be used in pure "autocommit" mode without
 an ongoing transaction, these features should be disabled, that is,
 ``autoflush=False, expire_on_commit=False``.
 
 Modern usage of "autocommit" is for framework integrations that need to control
-specifically when the "begin" state occurs.  A session which is configured with 
-``autocommit=True`` may be placed into the "begin" state using the 
+specifically when the "begin" state occurs.  A session which is configured with
+``autocommit=True`` may be placed into the "begin" state using the
 :meth:`.Session.begin` method.
 After the cycle completes upon :meth:`.Session.commit` or :meth:`.Session.rollback`,
-connection and transaction resources are released and the :class:`.Session`
+connection and transaction resources are :term:`released` and the :class:`.Session`
 goes back into "autocommit" mode, until :meth:`.Session.begin` is called again::
 
     Session = sessionmaker(bind=engine, autocommit=True)
@@ -1242,7 +1343,7 @@ goes back into "autocommit" mode, until :meth:`.Session.begin` is called again::
         session.rollback()
         raise
 
-The :func:`.Session.begin` method also returns a
+The :meth:`~.Session.begin` method also returns a
 transactional token which is compatible with the Python 2.6 ``with``
 statement::
 
@@ -1259,15 +1360,15 @@ statement::
 Using Subtransactions with Autocommit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A subtransaction indicates usage of the :meth:`.Session.begin` method in conjunction with 
+A subtransaction indicates usage of the :meth:`.Session.begin` method in conjunction with
 the ``subtransactions=True`` flag.  This produces a a non-transactional, delimiting construct that
 allows nesting of calls to :meth:`~.Session.begin` and :meth:`~.Session.commit`.
 It's purpose is to allow the construction of code that can function within a transaction
 both independently of any external code that starts a transaction,
-as well as within a block that has already demarcated a transaction. 
+as well as within a block that has already demarcated a transaction.
 
-``subtransactions=True`` is generally only useful in conjunction with 
-autocommit, and is equivalent to the pattern described at :ref:`connections_nested_transactions`, 
+``subtransactions=True`` is generally only useful in conjunction with
+autocommit, and is equivalent to the pattern described at :ref:`connections_nested_transactions`,
 where any number of functions can call :meth:`.Connection.begin` and :meth:`.Transaction.commit`
 as though they are the initiator of the transaction, but in fact may be participating
 in an already ongoing transaction::
@@ -1315,7 +1416,7 @@ For backends which support two-phase operaration (currently MySQL and
 PostgreSQL), the session can be instructed to use two-phase commit semantics.
 This will coordinate the committing of transactions across databases so that
 the transaction is either committed or rolled back in all databases. You can
-also :func:`~sqlalchemy.orm.session.Session.prepare` the session for
+also :meth:`~.Session.prepare` the session for
 interacting with transactions not managed by SQLAlchemy. To use two phase
 transactions set the flag ``twophase=True`` on the session::
 
@@ -1366,7 +1467,7 @@ Using SQL Expressions with Sessions
 SQL expressions and strings can be executed via the
 :class:`~sqlalchemy.orm.session.Session` within its transactional context.
 This is most easily accomplished using the
-:func:`~sqlalchemy.orm.session.Session.execute` method, which returns a
+:meth:`~.Session.execute` method, which returns a
 :class:`~sqlalchemy.engine.base.ResultProxy` in the same manner as an
 :class:`~sqlalchemy.engine.base.Engine` or
 :class:`~sqlalchemy.engine.base.Connection`::
@@ -1382,7 +1483,7 @@ This is most easily accomplished using the
 
 The current :class:`~sqlalchemy.engine.base.Connection` held by the
 :class:`~sqlalchemy.orm.session.Session` is accessible using the
-:func:`~sqlalchemy.orm.session.Session.connection` method::
+:meth:`~.Session.connection` method::
 
     connection = session.connection()
 
@@ -1391,8 +1492,8 @@ bound to a single :class:`~sqlalchemy.engine.base.Engine` or
 :class:`~sqlalchemy.engine.base.Connection`. To execute statements using a
 :class:`~sqlalchemy.orm.session.Session` which is bound either to multiple
 engines, or none at all (i.e. relies upon bound metadata), both
-:func:`~sqlalchemy.orm.session.Session.execute` and
-:func:`~sqlalchemy.orm.session.Session.connection` accept a ``mapper`` keyword
+:meth:`~.Session.execute` and
+:meth:`~.Session.connection` accept a ``mapper`` keyword
 argument, which is passed a mapped class or
 :class:`~sqlalchemy.orm.mapper.Mapper` instance, which is used to locate the
 proper context for the desired engine::
@@ -1448,10 +1549,13 @@ entire database interaction is rolled back::
 
         def tearDown(self):
             # rollback - everything that happened with the
-            # Session above (including calls to commit()) 
+            # Session above (including calls to commit())
             # is rolled back.
             self.trans.rollback()
             self.session.close()
+
+            # return connection to the Engine
+            self.connection.close()
 
 Above, we issue :meth:`.Session.commit` as well as
 :meth:`.Transaction.rollback`. This is an example of where we take advantage
@@ -1465,118 +1569,252 @@ everything is rolled back.
 Contextual/Thread-local Sessions
 =================================
 
-A common need in applications, particularly those built around web frameworks,
-is the ability to "share" a :class:`~sqlalchemy.orm.session.Session` object
-among disparate parts of an application, without needing to pass the object
-explicitly to all method and function calls. What you're really looking for is
-some kind of "global" session object, or at least "global" to all the parts of
-an application which are tasked with servicing the current request. For this
-pattern, SQLAlchemy provides the ability to enhance the
-:class:`~sqlalchemy.orm.session.Session` class generated by
-:func:`.sessionmaker` to provide auto-contextualizing support.
-This means that whenever you create a :class:`~sqlalchemy.orm.session.Session`
-instance with its constructor, you get an *existing*
-:class:`~sqlalchemy.orm.session.Session` object which is bound to some
-"context". By default, this context is the current thread. This feature is
-what previously was accomplished using the ``sessioncontext`` SQLAlchemy
-extension.
+Recall from the section :ref:`session_faq_whentocreate`, the concept of
+"session scopes" was introduced, with an emphasis on web applications
+and the practice of linking the scope of a :class:`.Session` with that
+of a web request.   Most modern web frameworks include integration tools
+so that the scope of the :class:`.Session` can be managed automatically,
+and these tools should be used as they are available.
 
-Creating a Thread-local Context
--------------------------------
+SQLAlchemy includes its own helper object, which helps with the establishment
+of user-defined :class:`.Session` scopes.  It is also used by third-party
+integration systems to help construct their integration schemes.
 
-The :func:`~sqlalchemy.orm.scoped_session` function wraps around the
-:func:`.sessionmaker` function, and produces an object which
-behaves the same as the :class:`~sqlalchemy.orm.session.Session` subclass
-returned by :func:`.sessionmaker`::
+The object is the :class:`.ScopedSession` object, and it represents a
+**registry** of :class:`.Session` objects.  If you're not familiar with the
+registry pattern, a good introduction can be found in `Patterns of Enterprise
+Architecture <http://martinfowler.com/eaaCatalog/registry.html>`_.
 
-    from sqlalchemy.orm import scoped_session, sessionmaker
-    Session = scoped_session(sessionmaker())
+.. note::
 
-However, when you instantiate this :class:`~sqlalchemy.orm.session.Session`
-"class", in reality the object is pulled from a threadlocal variable, or if it
-doesn't exist yet, it's created using the underlying class generated by
-:func:`.sessionmaker`::
+   The :class:`.ScopedSession` object is a very popular and useful object
+   used by many SQLAlchemy applications.  However, it is important to note
+   that it presents **only one approach** to the issue of :class:`.Session`
+   management.  If you're new to SQLAlchemy, and especially if the
+   term "thread-local variable" seems strange to you, we recommend that
+   if possible you familiarize first with an off-the-shelf integration
+   system such as `Flask-SQLAlchemy <http://packages.python.org/Flask-SQLAlchemy/>`_
+   or `zope.sqlalchemy <http://pypi.python.org/pypi/zope.sqlalchemy>`_.
 
-    >>> # call Session() the first time.  the new Session instance is created.
-    >>> session = Session()
+A :class:`.ScopedSession` is constructed by calling the :func:`.scoped_session`
+function, passing it a
+**factory** which can create new :class:`.Session` objects.   A factory
+is just something that produces a new object when called, and in the
+case of :class:`.Session`, the most common factory is the :func:`.sessionmaker`,
+introduced earlier in this section.  Below we illustrate this usage::
 
-    >>> # later, in the same application thread, someone else calls Session()
-    >>> session2 = Session()
+    >>> from sqlalchemy.orm import scoped_session
+    >>> from sqlalchemy.orm import sessionmaker
 
-    >>> # the two Session objects are *the same* object
-    >>> session is session2
+    >>> session_factory = sessionmaker(bind=some_engine)
+    >>> Session = scoped_session(session_factory)
+
+The :class:`.ScopedSession` object we've created will now call upon the
+:func:`.sessionmaker` when we "call" the registry::
+
+    >>> some_session = Session()
+
+Above, ``some_session`` is an instance of :class:`.Session`, which we
+can now use to talk to the database.   This same :class:`.Session` is also
+present within the :class:`.ScopedSession` registry we've created.   If
+we call upon the registry a second time, we get back the **same** :class:`.Session`::
+
+    >>> some_other_session = Session()
+    >>> some_session is some_other_session
     True
 
-Since the :class:`~sqlalchemy.orm.session.Session()` constructor now returns
-the same :class:`~sqlalchemy.orm.session.Session` object every time within the
-current thread, the object returned by :func:`~sqlalchemy.orm.scoped_session`
-also implements most of the :class:`~sqlalchemy.orm.session.Session` methods
-and properties at the "class" level, such that you don't even need to
-instantiate :class:`~sqlalchemy.orm.session.Session()`::
+This pattern allows disparate sections of the application to call upon a global
+:class:`.ScopedSession`, so that all those areas may share the same session
+without the need to pass it explicitly.   The :class:`.Session` we've established
+in our registry will remain, until we explicitly tell our regsitry to dispose of it,
+by calling :meth:`.ScopedSession.remove`::
 
-    # create some objects
-    u1 = User()
-    u2 = User()
+    >>> Session.remove()
 
-    # save to the contextual session, without instantiating
-    Session.add(u1)
-    Session.add(u2)
+The :meth:`.ScopedSession.remove` method first calls :meth:`.Session.close` on
+the current :class:`.Session`, which has the effect of releasing any connection/transactional
+resources owned by the :class:`.Session` first, then discarding the :class:`.Session`
+itself.  "Releasing" here means that any pending transaction will be rolled back
+using ``connection.rollback()``.
 
-    # view the "new" attribute
-    assert u1 in Session.new
+At this point, the :class:`.ScopedSession` object is "empty", and will create
+a **new** :class:`.Session` when called again.  As illustrated below, this
+is not the same :class:`.Session` we had before::
 
-    # commit changes
-    Session.commit()
+    >>> new_session = Session()
+    >>> new_session is some_session
+    False
 
-The contextual session may be disposed of by calling ``Session.remove()``::
+The above series of steps illustrates the idea of the "registry" pattern in a
+nutshell.  With that basic idea in hand, we can discuss some of the details
+of how this pattern proceeds.
 
-    # remove current contextual session
-    Session.remove()
+Implicit Method Access
+----------------------
 
-After ``remove()`` is called, the next operation with the contextual session
-will start a new :class:`~sqlalchemy.orm.session.Session` for the current
-thread.
+The job of the :class:`.ScopedSession` is simple; hold onto a :class:`.Session`
+for all who ask for it.  As a means of producing more transparent access to this
+:class:`.Session`, the :class:`.ScopedSession` also includes **proxy behavior**,
+meaning that the registry itself can be treated just like a :class:`.Session`
+directly; when methods are called on this object, they are **proxied** to the
+underlying :class:`.Session` being maintained by the registry::
+
+    Session = scoped_session(some_factory)
+
+    # equivalent to:
+    #
+    # session = Session()
+    # print session.query(MyClass).all()
+    #
+    print Session.query(MyClass).all()
+
+The above code accomplishes the same task as that of acquiring the current
+:class:`.Session` by calling upon the registry, then using that :class:`.Session`.
+
+Thread-Local Scope
+------------------
+
+Users who are familiar with multithreaded programming will note that representing
+anything as a global variable is usually a bad idea, as it implies that the
+global object will be accessed by many threads concurrently.   The :class:`.Session`
+object is entirely designed to be used in a **non-concurrent** fashion, which
+in terms of multithreading means "only in one thread at a time".   So our
+above example of :class:`.ScopedSession` usage, where the same :class:`.Session`
+object is maintained across multiple calls, suggests that some process needs
+to be in place such that mutltiple calls across many threads don't actually get
+a handle to the same session.   We call this notion **thread local storage**,
+which means, a special object is used that will maintain a distinct object
+per each application thread.   Python provides this via the
+`threading.local() <http://docs.python.org/library/threading.html#threading.local>`_
+construct.  The :class:`.ScopedSession` object by default uses this object
+as storage, so that a single :class:`.Session` is maintained for all who call
+upon the :class:`.ScopedSession` registry, but only within the scope of a single
+thread.   Callers who call upon the registry in a different thread get a
+:class:`.Session` instance that is local to that other thread.
+
+Using this technique, the :class:`.ScopedSession` provides a quick and relatively
+simple (if one is familiar with thread-local storage) way of providing
+a single, global object in an application that is safe to be called upon
+from multiple threads.
+
+The :meth:`.ScopedSession.remove` method, as always, removes the current
+:class:`.Session` associated with the thread, if any.  However, one advantage of the
+``threading.local()`` object is that if the application thread itself ends, the
+"storage" for that thread is also garbage collected.  So it is in fact "safe" to
+use thread local scope with an application that spawns and tears down threads,
+without the need to call :meth:`.ScopedSession.remove`.  However, the scope
+of transactions themselves, i.e. ending them via :meth:`.Session.commit` or
+:meth:`.Session.rollback`, will usually still be something that must be explicitly
+arranged for at the appropriate time, unless the application actually ties the
+lifespan of a thread to the lifespan of a transaction.
 
 .. _session_lifespan:
 
-Lifespan of a Contextual Session
---------------------------------
+Using Thread-Local Scope with Web Applications
+----------------------------------------------
 
-A (really, really) common question is when does the contextual session get
-created, when does it get disposed ? We'll consider a typical lifespan as used
-in a web application::
+As discussed in the section :ref:`session_faq_whentocreate`, a web application
+is architected around the concept of a **web request**, and integrating
+such an application with the :class:`.Session` usually implies that the :class:`.Session`
+will be associated with that request.  As it turns out, most Python web frameworks,
+with notable exceptions such as the asynchronous frameworks Twisted and
+Tornado, use threads in a simple way, such that a particular web request is received,
+processed, and completed within the scope of a single *worker thread*.  When
+the request ends, the worker thread is released to a pool of workers where it
+is available to handle another request.
 
-    Web Server          Web Framework        User-defined Controller Call
+This simple correspondence of web request and thread means that to associate a
+:class:`.Session` with a thread implies it is also associated with the web request
+running within that thread, and vice versa, provided that the :class:`.Session` is
+created only after the web request begins and torn down just before the web request ends.
+So it is a common practice to use :class:`.ScopedSession` as a quick way
+to integrate the :class:`.Session` with a web application.  The sequence
+diagram below illustrates this flow::
+
+    Web Server          Web Framework        SQLAlchemy ORM Code
     --------------      --------------       ------------------------------
-    web request    ->
-                        call controller ->   # call Session().  this establishes a new,
-                                             # contextual Session.
-                                             session = Session()
+    startup        ->   Web framework        # Session registry is established
+                        initializes          Session = scoped_session(sessionmaker())
 
-                                             # load some objects, save some changes
-                                             objects = session.query(MyClass).all()
+    incoming
+    web request    ->   web request     ->   # The registry is *optionally*
+                        starts               # called upon explicitly to create
+                                             # a Session local to the thread and/or request
+                                             Session()
 
-                                             # some other code calls Session, it's the
-                                             # same contextual session as "sess"
-                                             session2 = Session()
-                                             session2.add(foo)
-                                             session2.commit()
+                                             # the Session registry can otherwise
+                                             # be used at any time, creating the
+                                             # request-local Session() if not present,
+                                             # or returning the existing one
+                                             Session.query(MyClass) # ...
 
-                                             # generate content to be returned
-                                             return generate_content()
-                        Session.remove() <-
-    web response   <-
+                                             Session.add(some_object) # ...
 
-The above example illustrates an explicit call to :meth:`.ScopedSession.remove`. This
-has the effect such that each web request starts fresh with a brand new
-session, and is the most definitive approach to closing out a request.
+                                             # if data was modified, commit the
+                                             # transaction
+                                             Session.commit()
 
-It's not strictly necessary to remove the session at the end of the request -
-other options include calling :meth:`.Session.close`, :meth:`.Session.rollback`,
-:meth:`.Session.commit` at the end so that the existing session returns 
-its connections to the pool and removes any existing transactional context.
-Doing nothing is an option too, if individual controller methods take responsibility
-for ensuring that no transactions remain open after a request ends.
+                        web request ends  -> # the registry is instructed to
+                                             # remove the Session
+                                             Session.remove()
+
+                        sends output      <-
+    outgoing web    <-
+    response
+
+Using the above flow, the process of integrating the :class:`.Session` with the
+web application has exactly two requirements:
+
+1. Create a single :class:`.ScopedSession` registry when the web application
+   first starts, ensuring that this object is accessible by the rest of the
+   application.
+2. Ensure that :meth:`.ScopedSession.remove` is called when the web request ends,
+   usually by integrating with the web framework's event system to establish
+   an "on request end" event.
+
+As noted earlier, the above pattern is **just one potential way** to integrate a :class:`.Session`
+with a web framework, one which in particular makes the significant assumption
+that the **web framework associates web requests with application threads**.  It is
+however **strongly recommended that the integration tools provided with the web framework
+itself be used, if available**, instead of :class:`.ScopedSession`.
+
+In particular, while using a thread local can be convenient, it is preferable that the :class:`.Session` be
+associated **directly with the request**, rather than with
+the current thread.   The next section on custom scopes details a more advanced configuration
+which can combine the usage of :class:`.ScopedSession` with direct request based scope, or
+any kind of scope.
+
+Using Custom Created Scopes
+---------------------------
+
+The :class:`.ScopedSession` object's default behavior of "thread local" scope is only
+one of many options on how to "scope" a :class:`.Session`.   A custom scope can be defined
+based on any existing system of getting at "the current thing we are working with".
+
+Suppose a web framework defines a library function ``get_current_request()``.  An application
+built using this framework can call this function at any time, and the result will be
+some kind of ``Request`` object that represents the current request being processed.
+If the ``Request`` object is hashable, then this function can be easily integrated with
+:class:`.ScopedSession` to associate the :class:`.Session` with the request.  Below we illustrate
+this in conjunction with a hypothetical event marker provided by the web framework
+``on_request_end``, which allows code to be invoked whenever a request ends::
+
+    from my_web_framework import get_current_request, on_request_end
+    from sqlalchemy.orm import scoped_session, sessionmaker
+
+    Session = scoped_session(sessionmaker(bind=some_engine), scopefunc=get_current_request)
+
+    @on_request_end
+    def remove_session(req):
+        Session.remove()
+
+Above, we instantiate :class:`.ScopedSession` in the usual way, except that we pass
+our request-returning function as the "scopefunc".  This instructs :class:`.ScopedSession`
+to use this function to generate a dictionary key whenever the registry is called upon
+to return the current :class:`.Session`.   In this case it is particularly important
+that we ensure a reliable "remove" system is implemented, as this dictionary is not
+otherwise self-managed.
+
 
 Contextual Session API
 ----------------------
@@ -1584,7 +1822,7 @@ Contextual Session API
 .. autofunction:: sqlalchemy.orm.scoped_session
 
 .. autoclass:: sqlalchemy.orm.scoping.ScopedSession
-   :members:
+  :members:
 
 .. autoclass:: sqlalchemy.util.ScopedRegistry
     :members:
@@ -1629,7 +1867,7 @@ a custom :class:`.Session` which delivers the following rules:
 
 1. Flush operations are delivered to the engine named ``master``.
 
-2. Operations on objects that subclass ``MyOtherClass`` all 
+2. Operations on objects that subclass ``MyOtherClass`` all
    occur on the ``other`` engine.
 
 3. Read operations for all other classes occur on a random
@@ -1664,7 +1902,7 @@ argument to :func:`.sessionmaker`::
     Session = sessionmaker(class_=RoutingSession)
 
 This approach can be combined with multiple :class:`.MetaData` objects,
-using an approach such as that of using the declarative ``__abstract__`` 
+using an approach such as that of using the declarative ``__abstract__``
 keyword, described at :ref:`declarative_abstract`.
 
 Horizontal Partitioning
@@ -1702,7 +1940,7 @@ Attribute and State Management Utilities
 These functions are provided by the SQLAlchemy attribute
 instrumentation API to provide a detailed interface for dealing
 with instances, attribute values, and history.  Some of them
-are useful when constructing event listener functions, such as 
+are useful when constructing event listener functions, such as
 those described in :ref:`events_orm_toplevel`.
 
 .. currentmodule:: sqlalchemy.orm.attributes
