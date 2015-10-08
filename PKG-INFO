@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: SQLAlchemy
-Version: 0.2.5
+Version: 0.2.6
 Summary: Database Abstraction Library
 Home-page: http://www.sqlalchemy.org
 Author: Mike Bayer
@@ -32,7 +32,7 @@ Description: SQLAlchemy is:
         * The type system allows pre- and post- processing of data, both at the bind parameter and the result set level. User-defined types can be freely mixed with built-in types. Generic types as well as SQL-specific types are available.
         
 Platform: UNKNOWN
-Classifier: Development Status :: 3 - Alpha
+Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Programming Language :: Python

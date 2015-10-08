@@ -85,7 +85,68 @@ class MultipleTableTest(testbase.PersistTest):
     def test_t_t_t(self):
         self.do_test(True, True, True)
         
+    def testcompile(self):
+        person_join = polymorphic_union( {
+            'engineer':people.join(engineers),
+            'manager':people.join(managers),
+            'person':people.select(people.c.type=='person'),
+            }, None, 'pjoin')
+
+        person_mapper = mapper(Person, people, select_table=person_join, polymorphic_on=person_join.c.type, polymorphic_identity='person')
+        mapper(Engineer, engineers, inherits=person_mapper, polymorphic_identity='engineer')
+        mapper(Manager, managers, inherits=person_mapper, polymorphic_identity='manager')
+
+        session = create_session()
+        session.save(Manager(name='Tom', status='knows how to manage things'))
+        session.save(Engineer(name='Kurt', status='knows how to hack'))
+        session.flush()
+        print session.query(Engineer).select()
+
+        print session.query(Person).select()        
     
+    def testcompile2(self):
+        """test that a mapper can reference a property whose mapper inherits from this one."""
+        person_join = polymorphic_union( {
+            'engineer':people.join(engineers),
+            'manager':people.join(managers),
+            'person':people.select(people.c.type=='person'),
+            }, None, 'pjoin')
+
+
+        person_mapper = mapper(Person, people, select_table=person_join, polymorphic_on=person_join.c.type,
+                    polymorphic_identity='person', 
+                    properties = dict(managers = relation(Manager, lazy=True))
+                )
+
+        mapper(Engineer, engineers, inherits=person_mapper, polymorphic_identity='engineer')
+        mapper(Manager, managers, inherits=person_mapper, polymorphic_identity='manager')
+
+        #person_mapper.compile()
+        class_mapper(Manager).compile()
+
+    def testcompile3(self):
+        """test that a mapper referencing an inheriting mapper in a self-referential relationship does 
+        not allow an eager load to be set up."""
+        person_join = polymorphic_union( {
+            'engineer':people.join(engineers),
+            'manager':people.join(managers),
+            'person':people.select(people.c.type=='person'),
+            }, None, 'pjoin')
+
+        person_mapper = mapper(Person, people, select_table=person_join, polymorphic_on=person_join.c.type,
+                    polymorphic_identity='person', 
+                    properties = dict(managers = relation(Manager, lazy=False))
+                )
+
+        mapper(Engineer, engineers, inherits=person_mapper, polymorphic_identity='engineer')
+        mapper(Manager, managers, inherits=person_mapper, polymorphic_identity='manager')
+
+        try:
+            class_mapper(Manager).compile()
+            assert False
+        except exceptions.ArgumentError:
+            assert True
+        
     def do_test(self, include_base=False, lazy_relation=True, redefine_colprop=False):
         """tests the polymorph.py example, with several options:
         

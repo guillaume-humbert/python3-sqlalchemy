@@ -89,12 +89,13 @@ FROM all_constraints ac,
   all_cons_columns rem
 WHERE ac.table_name = :table_name
 AND ac.constraint_type IN ('R','P')
+AND ac.owner = :owner
 AND ac.owner = loc.owner
 AND ac.constraint_name = loc.constraint_name
 AND ac.r_owner = rem.owner(+)
 AND ac.r_constraint_name = rem.constraint_name(+)
 -- order multiple primary keys correctly
-ORDER BY ac.constraint_name, loc.position"""
+ORDER BY ac.constraint_name, loc.position, rem.position"""
 
 
 def descriptor():
@@ -166,9 +167,24 @@ class OracleDialect(ansisql.ANSIDialect):
         return bool( cursor.fetchone() is not None )
         
     def reflecttable(self, connection, table):
-        c = connection.execute ("select COLUMN_NAME, DATA_TYPE, DATA_LENGTH, DATA_PRECISION, DATA_SCALE, NULLABLE, DATA_DEFAULT from ALL_TAB_COLUMNS where TABLE_NAME = :table_name", {'table_name':table.name.upper()})
+        c = connection.execute ("select distinct OWNER from ALL_TAB_COLUMNS where TABLE_NAME = :table_name", {'table_name':table.name.upper()})
+        rows = c.fetchall()
+        if not rows :
+            raise exceptions.NoSuchTableError(table.name)
+        else:
+            if table.owner is not None:
+                if table.owner.upper() in [r[0] for r in rows]:
+                    owner = table.owner.upper()
+                else:
+                    raise exceptions.AssertionError("Specified owner %s does not own table %s"%(table.owner, table.name))
+            else:
+                if len(rows)==1:
+                    owner = rows[0][0]
+                else:
+                    raise exceptions.AssertionError("There are multiple tables with name %s in the schema, you must specifie owner"%table.name)
+
+        c = connection.execute ("select COLUMN_NAME, DATA_TYPE, DATA_LENGTH, DATA_PRECISION, DATA_SCALE, NULLABLE, DATA_DEFAULT from ALL_TAB_COLUMNS where TABLE_NAME = :table_name and OWNER = :owner", {'table_name':table.name.upper(), 'owner':owner})
         
-        found_table = False
         while True:
             row = c.fetchone()
             if row is None:
@@ -203,10 +219,9 @@ class OracleDialect(ansisql.ANSIDialect):
             
             table.append_item (schema.Column(name, coltype, nullable=nullable, *colargs))
 
-        if not found_table:
-            raise exceptions.NoSuchTableError(table.name)
-        
-        c = connection.execute(constraintSQL, {'table_name' : table.name.upper()})
+       
+        c = connection.execute(constraintSQL, {'table_name' : table.name.upper(), 'owner' : owner})
+        fks = {}
         while True:
             row = c.fetchone()
             if row is None:
@@ -216,12 +231,19 @@ class OracleDialect(ansisql.ANSIDialect):
             if cons_type == 'P':
                 table.c[local_column]._set_primary_key()
             elif cons_type == 'R':
-                table.c[local_column].append_item(
-                    schema.ForeignKey(schema.Table(remote_table,
-                                            table.metadata,
-                                            autoload=True).c[remote_column]
-                                      )
-                    )
+                try:
+                    fk = fks[cons_name]
+                except KeyError:
+                   fk = ([], [])
+                   fks[cons_name] = fk
+                refspec = ".".join([remote_table, remote_column])
+                if local_column not in fk[0]:
+                    fk[0].append(local_column)
+                if refspec not in fk[1]:
+                    fk[1].append(refspec)
+
+        for name, value in fks.iteritems():
+            table.append_item(schema.ForeignKeyConstraint(value[0], value[1], name=name))
 
     def do_executemany(self, c, statement, parameters, context=None):
         rowcount = 0
@@ -320,7 +342,7 @@ class OracleCompiler(ansisql.ANSICompiler):
         return ""
 
 class OracleSchemaGenerator(ansisql.ANSISchemaGenerator):
-    def get_column_specification(self, column, override_pk=False, **kwargs):
+    def get_column_specification(self, column, **kwargs):
         colspec = column.name
         colspec += " " + column.type.engine_impl(self.engine).get_col_spec()
         default = self.get_column_default_string(column)
@@ -329,10 +351,6 @@ class OracleSchemaGenerator(ansisql.ANSISchemaGenerator):
 
         if not column.nullable:
             colspec += " NOT NULL"
-        if column.primary_key and not override_pk:
-            colspec += " PRIMARY KEY"
-        if column.foreign_key:
-            colspec += " REFERENCES %s(%s)" % (column.foreign_key.column.table.name, column.foreign_key.column.name) 
         return colspec
 
     def visit_sequence(self, sequence):

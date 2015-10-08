@@ -3,7 +3,7 @@ use_setuptools()
 from setuptools import setup, find_packages
 
 setup(name = "SQLAlchemy",
-    version = "0.2.5",
+    version = "0.2.6",
     description = "Database Abstraction Library",
     author = "Mike Bayer",
     author_email = "mike_mp@zzzcomputing.com",
@@ -38,7 +38,7 @@ SQLAlchemy's Advantages:
     * The type system allows pre- and post- processing of data, both at the bind parameter and the result set level. User-defined types can be freely mixed with built-in types. Generic types as well as SQL-specific types are available.
 """,
     classifiers = [
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",

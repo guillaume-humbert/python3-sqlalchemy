@@ -12,7 +12,7 @@ import query as querylib
 import session as sessionlib
 import weakref
 
-__all__ = ['Mapper', 'MapperExtension', 'class_mapper', 'object_mapper', 'EXT_PASS']
+__all__ = ['Mapper', 'MapperExtension', 'class_mapper', 'object_mapper', 'SynonymProperty', 'EXT_PASS']
 
 # a dictionary mapping classes to their primary mappers
 mapper_registry = weakref.WeakKeyDictionary()
@@ -76,6 +76,7 @@ class Mapper(object):
         self.always_refresh = always_refresh
         self.version_id_col = version_id_col
         self.concrete = concrete
+        self.single = False
         self.inherits = inherits
         self.select_table = select_table
         self.local_table = local_table
@@ -149,18 +150,29 @@ class Mapper(object):
         if self.__is_compiled:
             return self
             
-        self._do_compile()
-        
-        # look for another mapper thats not compiled, and compile it.
-        # this will utlimately compile all mappers, including any that 
-        # need to set up backrefs on this mapper.
+        # compile all primary mappers
         for mapper in mapper_registry.values():
             if not mapper.__is_compiled:
-                mapper.compile()
-                break
+                mapper._do_compile()
+                
+        # initialize properties on all mappers
+        for mapper in mapper_registry.values():
+            if not mapper.__props_init:
+                mapper._initialize_properties()
+        
+        # if we're not primary, compile us
+        if self.non_primary:
+            self._do_compile()
+            self._initialize_properties()
                 
         return self
-
+    
+    def _check_compile(self):
+        if self.non_primary:
+            self._do_compile()
+            self._initialize_properties()
+        return self
+        
     def _do_compile(self):
         """compile this mapper into its final internal format.  
         
@@ -171,12 +183,13 @@ class Mapper(object):
             return self
         #print "COMPILING!", self.class_key, "non primary: ", self.non_primary
         self.__is_compiled = True
+        self.__props_init = False
         self._compile_extensions()
         self._compile_inheritance()
         self._compile_tables()
         self._compile_properties()
         self._compile_selectable()
-        self._initialize_properties()
+#        self._initialize_properties()
 
         return self
         
@@ -186,6 +199,7 @@ class Mapper(object):
         # uber-pendantic style of making mapper chain, as various testbase/
         # threadlocal/assignmapper combinations keep putting dupes etc. in the list
         # TODO: do something that isnt 21 lines....
+
         extlist = util.Set()
         for ext_class in global_extensions:
             if isinstance(ext_class, MapperExtension):
@@ -198,17 +212,10 @@ class Mapper(object):
             for ext_obj in util.to_list(extension):
                 extlist.add(ext_obj)
 
-        self.extension = None
-        previous = None
+        self.extension = ExtensionCarrier()
         for ext in extlist:
-            if self.extension is None:
-                self.extension = ext
-            if previous is not None:
-                previous.chain(ext)
-            previous = ext    
-        if self.extension is None:
-            self.extension = MapperExtension()
-
+            self.extension.elements.append(ext)
+        
     def _compile_inheritance(self):
         """determines if this Mapper inherits from another mapper, and if so calculates the mapped_table
         for this Mapper taking the inherited mapper into account.  for joined table inheritance, creates
@@ -224,6 +231,7 @@ class Mapper(object):
             # inherit_condition is optional.
             if self.local_table is None:
                 self.local_table = self.inherits.local_table
+                self.single = True
             if not self.local_table is self.inherits.local_table:
                 if self.concrete:
                     self._synchronizer= None
@@ -342,9 +350,7 @@ class Mapper(object):
             self.inherits._inheriting_mappers.add(self)
             for key, prop in self.inherits.__props.iteritems():
                 if not self.__props.has_key(key):
-                    p = prop.copy()
-                    if p.adapt(self):
-                        self._compile_property(key, p, init=False)
+                    prop.adapt_to_inherited(key, self)
 
         # load properties from the main table object,
         # not overriding those set up in the 'properties' argument
@@ -358,6 +364,7 @@ class Mapper(object):
             if prop is None:
                 prop = ColumnProperty(column)
                 self.__props[column.key] = prop
+                prop.set_parent(self)
             elif isinstance(prop, ColumnProperty):
                 prop.columns.append(column)
             else:
@@ -378,7 +385,8 @@ class Mapper(object):
         for key, prop in l:
             if getattr(prop, 'key', None) is None:
                 prop.init(key, self)
-
+        self.__props_init = True
+        
     def _compile_selectable(self):
         """if the 'select_table' keyword argument was specified, 
         set up a second "surrogate mapper" that will be used for select operations.
@@ -435,7 +443,7 @@ class Mapper(object):
             if session is not None and mapper is not None:
                 self._entity_name = entity_name
                 session._register_new(self)
-
+                
             if oldinit is not None:
                 try:
                     oldinit(self, *args, **kwargs)
@@ -458,12 +466,19 @@ class Mapper(object):
             self.class_.c = self.c
             
     def base_mapper(self):
-        """returns the ultimate base mapper in an inheritance chain"""
+        """return the ultimate base mapper in an inheritance chain"""
         if self.inherits is not None:
             return self.inherits.base_mapper()
         else:
             return self
     
+    def isa(self, other):
+        """return True if the given mapper inherits from this mapper"""
+        m = other
+        while m is not self and m.inherits is not None:
+            m = m.inherits
+        return m is self
+            
     def add_properties(self, dict_of_properties):
         """adds the given dictionary of properties to this mapper, using add_property."""
         for key, value in dict_of_properties.iteritems():
@@ -511,7 +526,8 @@ class Mapper(object):
                 raise exceptions.ArgumentError("'%s' is not an instance of MapperProperty or Column" % repr(prop))
 
         self.__props[key] = prop
-
+        prop.set_parent(self)
+        
         if isinstance(prop, ColumnProperty):
             col = self.select_table.corresponding_column(prop.columns[0], keys_ok=True, raiseerr=False)
             if col is None:
@@ -525,9 +541,7 @@ class Mapper(object):
             prop.init(key, self)
 
         for mapper in self._inheriting_mappers:
-            p = prop.copy()
-            if p.adapt(mapper):
-                mapper._compile_property(key, p, init=False)
+            prop.adapt_to_inherited(key, mapper)
         
     def __str__(self):
         return "Mapper|" + self.class_.__name__ + "|" + (self.entity_name is not None and "/%s" % self.entity_name or "") + str(self.local_table)
@@ -713,10 +727,6 @@ class Mapper(object):
                 # already inserted/updated this row but I need you to UPDATE one more 
                 # time"
                 isinsert = not postupdate and not hasattr(obj, "_instance_key")
-                if isinsert:
-                    self.extension.before_insert(self, connection, obj)
-                else:
-                    self.extension.before_update(self, connection, obj)
                 hasdata = False
                 for col in table.columns:
                     if col is self.version_id_col:
@@ -917,7 +927,7 @@ class Mapper(object):
         for prop in self.__props.values():
             prop.register_dependencies(uowcommit, *args, **kwargs)
     
-    def cascade_iterator(self, type, object, callable_=None, recursive=None):
+    def cascade_iterator(self, type, object, recursive=None):
         if recursive is None:
             recursive=util.Set()
         for prop in self.__props.values():
@@ -1107,22 +1117,25 @@ class MapperProperty(object):
     def setup(self, key, statement, **options):
         """called when a statement is being constructed.  """
         return self
-    def init(self, key, parent):
-        """called during Mapper compilation to compile each MapperProperty."""
-        self.key = key
+    def set_parent(self, parent):
         self.parent = parent
+    def init(self, key, parent):
+        """called after all mappers are compiled to assemble relationships between 
+        mappers, establish instrumented class attributes"""
+        self.key = key
         self.localparent = parent
-        self.do_init(key, parent)
-    def adapt(self, newparent):
-        """adapts this MapperProperty to a new parent, assuming the new parent is an inheriting
-        descendant of the old parent.  Should return True if the adaptation was successful, or
-        False if this MapperProperty cannot be adapted to the new parent (the case for "False" is,
-        the parent mapper has a polymorphic select, and this property represents a column that is not
-        represented in the new mapper's mapped table)"""
-        #self.parent = newparent
-        self.localparent = newparent
-        return True
-    def do_init(self, key, parent):
+        if not hasattr(self, 'inherits'):
+            self.inherits = None
+        self.do_init()
+    def adapt_to_inherited(self, key, newparent):
+        """adapt this MapperProperty to a new parent, assuming the new parent is an inheriting
+        descendant of the old parent.  """
+        p = self.copy()
+        newparent._compile_property(key, p, init=False)
+        p.localparent = newparent
+        p.parent = self.parent
+        p.inherits = getattr(self, 'inherits', self)
+    def do_init(self):
         """template method for subclasses"""
         pass
     def register_deleted(self, object, uow):
@@ -1137,8 +1150,19 @@ class MapperProperty(object):
         """a return value of True indicates we are the primary MapperProperty for this loader's
         attribute on our mapper's class.  It means we can set the object's attribute behavior
         at the class level.  otherwise we have to set attribute behavior on a per-instance level."""
-        return self.parent._is_primary_mapper()
+        return self.inherits is None and self.parent._is_primary_mapper()
 
+class SynonymProperty(MapperProperty):
+    """a marker object used by query.select_by to allow a property name to refer to another.
+    
+    this object may be expanded in the future."""
+    def __init__(self, name):
+        self.name = name
+    def execute(self, session, instance, row, identitykey, imap, isnew):
+        pass
+    def copy(self):
+        return SynonymProperty(self.name)
+        
 class MapperOption(object):
     """describes a modification to a Mapper in the context of making a copy
     of it.  This is used to assist in the prototype pattern used by mapper.options()."""
@@ -1159,31 +1183,17 @@ class MapperExtension(object):
     """base implementation for an object that provides overriding behavior to various
     Mapper functions.  For each method in MapperExtension, a result of EXT_PASS indicates
     the functionality is not overridden."""
-    def __init__(self):
-        self.next = None
-    def chain(self, ext):
-        self.next = ext
-        return self
     def get_session(self):
         """called to retrieve a contextual Session instance with which to
         register a new object. Note: this is not called if a session is 
         provided with the __init__ params (i.e. _sa_session)"""
-        if self.next is None:
-            return EXT_PASS
-        else:
-            return self.next.get_session()
+        return EXT_PASS
     def select_by(self, query, *args, **kwargs):
         """overrides the select_by method of the Query object"""
-        if self.next is None:
-            return EXT_PASS
-        else:
-            return self.next.select_by(query, *args, **kwargs)
+        return EXT_PASS
     def select(self, query, *args, **kwargs):
         """overrides the select method of the Query object"""
-        if self.next is None:
-            return EXT_PASS
-        else:
-            return self.next.select(query, *args, **kwargs)
+        return EXT_PASS
     def create_instance(self, mapper, session, row, imap, class_):
         """called when a new object instance is about to be created from a row.  
         the method can choose to create the instance itself, or it can return 
@@ -1198,10 +1208,7 @@ class MapperExtension(object):
         
         class_ - the class we are mapping.
         """
-        if self.next is None:
-            return EXT_PASS
-        else:
-            return self.next.create_instance(mapper, session, row, imap, class_)
+        return EXT_PASS
     def append_result(self, mapper, session, row, imap, result, instance, isnew, populate_existing=False):
         """called when an object instance is being appended to a result list.
         
@@ -1227,10 +1234,7 @@ class MapperExtension(object):
         populate_existing - usually False, indicates if object instances that were already in the main 
         identity map, i.e. were loaded by a previous select(), get their attributes overwritten
         """
-        if self.next is None:
-            return EXT_PASS
-        else:
-            return self.next.append_result(mapper, session, row, imap, result, instance, isnew, populate_existing)
+        return EXT_PASS
     def populate_instance(self, mapper, session, instance, row, identitykey, imap, isnew):
         """called right before the mapper, after creating an instance from a row, passes the row
         to its MapperProperty objects which are responsible for populating the object's attributes.
@@ -1243,37 +1247,67 @@ class MapperExtension(object):
                 othermapper.populate_instance(session, instance, row, identitykey, imap, isnew, frommapper=mapper)
                 return True
         """
-        if self.next is None:
-            return EXT_PASS
-        else:
-            return self.next.populate_instance(mapper, session, instance, row, identitykey, imap, isnew)
+        return EXT_PASS
     def before_insert(self, mapper, connection, instance):
         """called before an object instance is INSERTed into its table.
         
         this is a good place to set up primary key values and such that arent handled otherwise."""
-        if self.next is not None:
-            self.next.before_insert(mapper, connection, instance)
+        return EXT_PASS
     def before_update(self, mapper, connection, instance):
         """called before an object instnace is UPDATED"""
-        if self.next is not None:
-            self.next.before_update(mapper, connection, instance)
+        return EXT_PASS
     def after_update(self, mapper, connection, instance):
         """called after an object instnace is UPDATED"""
-        if self.next is not None:
-            self.next.after_update(mapper, connection, instance)
+        return EXT_PASS
     def after_insert(self, mapper, connection, instance):
         """called after an object instance has been INSERTed"""
-        if self.next is not None:
-            self.next.after_insert(mapper, connection, instance)
+        return EXT_PASS
     def before_delete(self, mapper, connection, instance):
         """called before an object instance is DELETEed"""
-        if self.next is not None:
-            self.next.before_delete(mapper, connection, instance)
+        return EXT_PASS
     def after_delete(self, mapper, connection, instance):
         """called after an object instance is DELETEed"""
-        if self.next is not None:
-            self.next.after_delete(mapper, connection, instance)
+        return EXT_PASS
 
+class ExtensionCarrier(MapperExtension):
+    def __init__(self):
+        self.elements = []
+    # TODO: shrink down this approach using __getattribute__ or similar
+    def get_session(self):
+        return self._do('get_session')
+    def select_by(self, *args, **kwargs):
+        return self._do('select_by', *args, **kwargs)
+    def select(self, *args, **kwargs):
+        return self._do('select', *args, **kwargs)
+    def create_instance(self, *args, **kwargs):
+        return self._do('create_instance', *args, **kwargs)
+    def append_result(self, *args, **kwargs):
+        return self._do('append_result', *args, **kwargs)
+    def populate_instance(self, *args, **kwargs):
+        return self._do('populate_instance', *args, **kwargs)
+    def before_insert(self, *args, **kwargs):
+        return self._do('before_insert', *args, **kwargs)
+    def before_update(self, *args, **kwargs):
+        return self._do('before_update', *args, **kwargs)
+    def after_update(self, *args, **kwargs):
+        return self._do('after_update', *args, **kwargs)
+    def after_insert(self, *args, **kwargs):
+        return self._do('after_insert', *args, **kwargs)
+    def before_delete(self, *args, **kwargs):
+        return self._do('before_delete', *args, **kwargs)
+    def after_delete(self, *args, **kwargs):
+        return self._do('after_delete', *args, **kwargs)
+        
+    def _do(self, funcname, *args, **kwargs):
+        for elem in self.elements:
+            if elem is self:
+                raise "WTF"
+            ret = getattr(elem, funcname)(*args, **kwargs)
+            if ret is not EXT_PASS:
+                return ret
+        else:
+            return EXT_PASS
+            
 class TranslatingDict(dict):
     """a dictionary that stores ColumnElement objects as keys.  incoming ColumnElement
     keys are translated against those of an underling FromClause for all operations.
@@ -1331,8 +1365,8 @@ def has_mapper(object):
 def object_mapper(object, raiseerror=True):
     """given an object, returns the primary Mapper associated with the object instance"""
     try:
-        mapper = mapper_registry[ClassKey(object.__class__, getattr(object, '_entity_name'))]
-    except (KeyError, AttributeError):
+        mapper = mapper_registry[ClassKey(object.__class__, getattr(object, '_entity_name', None))]
+    except (KeyError, AttributeError):        
         if raiseerror:
             raise exceptions.InvalidRequestError("Class '%s' entity name '%s' has no mapper associated with it" % (object.__class__.__name__, getattr(object, '_entity_name', None)))
         else:

@@ -79,6 +79,10 @@ class SLBinary(sqltypes.Binary):
 class SLBoolean(sqltypes.Boolean):
     def get_col_spec(self):
         return "BOOLEAN"
+    def convert_result_value(self, value, dialect):
+        if value is None:
+            return None
+        return value and True or False
         
 colspecs = {
     sqltypes.Integer : SLInteger,
@@ -126,6 +130,11 @@ class SQLiteExecutionContext(default.DefaultExecutionContext):
             self._last_inserted_ids = [proxy().lastrowid]
     
 class SQLiteDialect(ansisql.ANSIDialect):
+    def __init__(self, **kwargs):
+        def vers(num):
+            return tuple([int(x) for x in num.split('.')])
+        self.supports_cast = (vers(sqlite.sqlite_version) >= vers("3.2.3"))
+        ansisql.ANSIDialect.__init__(self, **kwargs)
     def compiler(self, statement, bindparams, **kwargs):
         return SQLiteCompiler(self, statement, bindparams, **kwargs)
     def schemagenerator(self, *args, **kwargs):
@@ -154,6 +163,10 @@ class SQLiteDialect(ansisql.ANSIDialect):
     def has_table(self, connection, table_name):
         cursor = connection.execute("PRAGMA table_info(" + table_name + ")", {})
         row = cursor.fetchone()
+        
+        # consume remaining rows, to work around: http://www.sqlite.org/cvstrac/tktview?tn=1884
+        while cursor.fetchone() is not None:pass
+        
         return (row is not None)
 
     def reflecttable(self, connection, table):
@@ -218,6 +231,14 @@ class SQLiteDialect(ansisql.ANSIDialect):
                 table.columns[col]._set_primary_key()
                     
 class SQLiteCompiler(ansisql.ANSICompiler):
+    def visit_cast(self, cast):
+        if self.dialect.supports_cast:
+            super(SQLiteCompiler, self).visit_cast(cast)
+        else:
+            if len(self.select_stack):
+                # not sure if we want to set the typemap here...
+                self.typemap.setdefault("CAST", cast.type)
+            self.strings[cast] = self.strings[cast.clause]
     def limit_clause(self, select):
         text = ""
         if select.limit is not None:
@@ -236,7 +257,7 @@ class SQLiteCompiler(ansisql.ANSICompiler):
             return ansisql.ANSICompiler.binary_operator_string(self, binary)
 
 class SQLiteSchemaGenerator(ansisql.ANSISchemaGenerator):
-    def get_column_specification(self, column, override_pk=False, **kwargs):
+    def get_column_specification(self, column, **kwargs):
         colspec = column.name + " " + column.type.engine_impl(self.engine).get_col_spec()
         default = self.get_column_default_string(column)
         if default is not None:
@@ -244,34 +265,17 @@ class SQLiteSchemaGenerator(ansisql.ANSISchemaGenerator):
 
         if not column.nullable:
             colspec += " NOT NULL"
-        if column.primary_key and not override_pk:
-            colspec += " PRIMARY KEY"
-        if column.foreign_key:
-            colspec += " REFERENCES %s(%s)" % (column.foreign_key.column.table.name, column.foreign_key.column.name) 
         return colspec
-    def visit_table(self, table):
-        """sqlite is going to create multi-primary keys with just a UNIQUE index."""
-        self.append("\nCREATE TABLE " + table.fullname + "(")
 
-        separator = "\n"
-
-        have_pk = False
-        use_pks = len(table.primary_key) == 1
-        for column in table.columns:
-            self.append(separator)
-            separator = ", \n"
-            self.append("\t" + self.get_column_specification(column, override_pk=not use_pks))
-                
-        if len(table.primary_key) > 1:
-            self.append(", \n")
-            # put all PRIMARY KEYS in a UNIQUE index
-            self.append("\tUNIQUE (%s)" % string.join([c.name for c in table.primary_key],', '))
-
-        self.append("\n)\n\n")
-        self.execute()        
-        if hasattr(table, 'indexes'):
-            for index in table.indexes:
-                self.visit_index(index)
-
+    # this doesnt seem to be needed, although i suspect older versions of sqlite might still
+    # not directly support composite primary keys
+    #def visit_primary_key_constraint(self, constraint):
+    #    if len(constraint) > 1:
+    #        self.append(", \n")
+    #        # put all PRIMARY KEYS in a UNIQUE index
+    #        self.append("\tUNIQUE (%s)" % string.join([c.name for c in constraint],', '))
+    #    else:
+    #        super(SQLiteSchemaGenerator, self).visit_primary_key_constraint(constraint)
+            
 dialect = SQLiteDialect
 poolclass = pool.SingletonThreadPool       

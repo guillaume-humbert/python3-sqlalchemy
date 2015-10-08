@@ -157,7 +157,7 @@ class MSBinary(sqltypes.Binary):
             return "BINARY(%d)" % self.length
         else:
             return "BLOB"
-    def convert_result_value(self, value, engine):
+    def convert_result_value(self, value, dialect):
         if value is None:
             return None
         else:
@@ -182,7 +182,20 @@ class MSEnum(sqltypes.String):
 class MSBoolean(sqltypes.Boolean):
     def get_col_spec(self):
         return "BOOLEAN"
-        
+    def convert_result_value(self, value, dialect):
+        if value is None:
+            return None
+        return value and True or False
+    def convert_bind_param(self, value, dialect):
+        if value is True:
+            return 1
+        elif value is False:
+            return 0
+        elif value is None:
+            return None
+        else:
+            return value and True or False
+            
 colspecs = {
 #    sqltypes.BIGinteger : MSInteger,
     sqltypes.Integer : MSInteger,
@@ -296,8 +309,6 @@ class MySQLDialect(ansisql.ANSIDialect):
                 break
             #print "row! " + repr(row)
             if not found_table:
-                tabletype, foreignkeyD = self.moretableinfo(connection, table=table)
-                table.kwargs['mysql_engine'] = tabletype
                 found_table = True
 
             (name, type, nullable, primary_key, default) = (row[0], row[1], row[2] == 'YES', row[3] == 'PRI', row[4])
@@ -325,16 +336,15 @@ class MySQLDialect(ansisql.ANSIDialect):
                     argslist = re.findall(r'(\d+)', args)
                     coltype = coltype(*[int(a) for a in argslist], **kw)
             
-            arglist = []
-            fkey = foreignkeyD.get(name)
-            if fkey is not None:
-                arglist.append(schema.ForeignKey(fkey))
-    
-            table.append_item(schema.Column(name, coltype, *arglist,
+            table.append_item(schema.Column(name, coltype, 
                                             **dict(primary_key=primary_key,
                                                    nullable=nullable,
                                                    default=default
                                                    )))
+
+        tabletype = self.moretableinfo(connection, table=table)
+        table.kwargs['mysql_engine'] = tabletype
+
         if not found_table:
             raise exceptions.NoSuchTableError(table.name)
     
@@ -355,15 +365,15 @@ class MySQLDialect(ansisql.ANSIDialect):
             match = re.search(r'\b(?:TYPE|ENGINE)=(?P<ttype>.+)\b', desc[lastparen.start():], re.I)
             if match:
                 tabletype = match.group('ttype')
-        foreignkeyD = {}
-        fkpat = (r'FOREIGN KEY\s*\(`?(?P<name>.+?)`?\)'
-                 r'\s*REFERENCES\s*`?(?P<reftable>.+?)`?'
-                 r'\s*\(`?(?P<refcol>.+?)`?\)'
-                )
-        for match in re.finditer(fkpat, desc):
-            foreignkeyD[match.group('name')] = match.group('reftable') + '.' + match.group('refcol')
 
-        return (tabletype, foreignkeyD)
+        fkpat = r'CONSTRAINT `(?P<name>.+?)` FOREIGN KEY \((?P<columns>.+?)\) REFERENCES `(?P<reftable>.+?)` \((?P<refcols>.+?)\)'
+        for match in re.finditer(fkpat, desc):
+            columns = re.findall(r'`(.+?)`', match.group('columns'))
+            refcols = [match.group('reftable') + "." + x for x in re.findall(r'`(.+?)`', match.group('refcols'))]
+            constraint = schema.ForeignKeyConstraint(columns, refcols, name=match.group('name'))
+            table.append_item(constraint)
+
+        return tabletype
         
 
 class MySQLCompiler(ansisql.ANSICompiler):
@@ -398,12 +408,8 @@ class MySQLSchemaGenerator(ansisql.ANSISchemaGenerator):
         if not column.nullable:
             colspec += " NOT NULL"
         if column.primary_key:
-            if not override_pk:
-                colspec += " PRIMARY KEY"
             if not column.foreign_key and first_pk and isinstance(column.type, sqltypes.Integer):
                 colspec += " AUTO_INCREMENT"
-        if column.foreign_key:
-            colspec += ", FOREIGN KEY (%s) REFERENCES %s(%s)" % (column.name, column.foreign_key.column.table.name, column.foreign_key.column.name) 
         return colspec
 
     def post_create_table(self, table):
