@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
+<div class="versionheader">Version: 0.4.5   Last Updated: 04/03/08 21:06:31</div>
 
 
 
@@ -248,14 +248,16 @@ existing table in the database, in a similar fashion as
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>name</i>, <i>type_</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def __init__(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">Column</span></tt> object.</p>
 <p>Arguments are:</p>
 <dl class="docutils">
 <dt>name</dt>
 <dd>The name of this column.  This should be the identical name as it
-appears, or will appear, in the database.</dd>
+appears, or will appear, in the database.  Name may be omitted at
+construction time but must be assigned before adding a Column
+instance to a Table.</dd>
 <dt>type_</dt>
 <dd>The <tt class="docutils literal"><span class="pre">TypeEngine</span></tt> for this column.  This can be any subclass of
 <tt class="docutils literal"><span class="pre">types.AbstractType</span></tt>, including the database-agnostic types
@@ -270,11 +272,13 @@ added as list values.</dd>
 <dd><p class="first">Keyword arguments include:</p>
 <dl class="last docutils">
 <dt>key</dt>
-<dd>Defaults to None: an optional <em>alias name</em> for this column.  The
-column will then be identified everywhere in an application,
+<dd><p class="first">Defaults to the column name: a Python-only <em>alias name</em> for this
+column.</p>
+<p class="last">The column will then be identified everywhere in an application,
 including the column list on its Table, by this key, and not the
 given name.  Generated SQL, however, will still reference the
-column by its actual name.</dd>
+column by its actual name.</p>
+</dd>
 <dt>primary_key</dt>
 <dd>Defaults to False: True if this column is a primary key column.
 Multiple columns can have this flag set to specify composite
@@ -1673,8 +1677,8 @@ raised.</dd>
 defined elsewhere in the application, disregard the rest of the
 constructor arguments.</dd>
 <dt>owner</dt>
-<dd>Defaults to None: optional owning user of this table.  useful for
-databases such as Oracle to aid in table reflection.</dd>
+<dd>Deprecated; this is an oracle-only argument - &quot;schema&quot; should
+be used in its place.</dd>
 <dt>quote</dt>
 <dd>Defaults to False: indicates that the Table identifier must be
 properly escaped and quoted before being sent to the

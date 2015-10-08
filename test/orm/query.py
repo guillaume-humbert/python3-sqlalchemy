@@ -64,6 +64,7 @@ class GetTest(QueryTest):
         """test that get()/load() does not use preexisting filter/etc. criterion"""
 
         s = create_session()
+        
         try:
             s.query(User).join('addresses').filter(Address.user_id==8).get(7)
             assert False
@@ -407,6 +408,22 @@ class FilterTest(QueryTest):
         # o2m
         self.assertEquals([User(id=10)], sess.query(User).filter(User.addresses==None).all())
         self.assertEquals([User(id=7),User(id=8),User(id=9)], sess.query(User).filter(User.addresses!=None).all())
+
+class FromSelfTest(QueryTest):
+    def test_filter(self):
+
+        assert [User(id=8), User(id=9)] == create_session().query(User).filter(User.id.in_([8,9]))._from_self().all()
+
+        assert [User(id=8), User(id=9)] == create_session().query(User)[1:3]._from_self().all()
+        assert [User(id=8)] == list(create_session().query(User).filter(User.id.in_([8,9]))._from_self()[0:1])
+    
+    def test_join(self):
+        assert [
+            (User(id=8), Address(id=2)),
+            (User(id=8), Address(id=3)),
+            (User(id=8), Address(id=4)),
+            (User(id=9), Address(id=5))
+        ] == create_session().query(User).filter(User.id.in_([8,9]))._from_self().join('addresses').add_entity(Address).order_by(User.id, Address.id).all()
         
 class AggregateTest(QueryTest):
     def test_sum(self):
@@ -575,7 +592,24 @@ class JoinTest(QueryTest):
     def test_overlapping_paths_outerjoin(self):
         result = create_session().query(User).outerjoin(['orders', 'items']).filter_by(id=3).outerjoin(['orders','address']).filter_by(id=1).all()
         assert [User(id=7, name='jack')] == result
+    
+    def test_from_joinpoint(self):
+        sess = create_session()
+        
+        for oalias,ialias in [(True, True), (False, False), (True, False), (False, True)]:
+            self.assertEquals(
+                sess.query(User).join('orders', aliased=oalias).join('items', from_joinpoint=True, aliased=ialias).filter(Item.description == 'item 4').all(),
+                [User(name='jack')]
+            )
 
+            # use middle criterion
+            self.assertEquals(
+                sess.query(User).join('orders', aliased=oalias).filter(Order.user_id==9).join('items', from_joinpoint=True, aliased=ialias).filter(Item.description=='item 4').all(),
+                []
+            )
+        
+        
+        
     def test_generative_join(self):
         # test that alised_ids is copied
         sess = create_session()
@@ -818,7 +852,7 @@ class InstancesTest(QueryTest):
 
         def decorate(row):
             d = {}
-            for c in addresses.columns:
+            for c in addresses.c:
                 d[c] = row[adalias.corresponding_column(c)]
             return d
 
@@ -848,7 +882,40 @@ class InstancesTest(QueryTest):
         self.assert_sql_count(testing.db, go, 1)
         sess.clear()
 
+    def test_columns(self):
+        sess = create_session()
 
+        sel = users.select(User.id.in_([7, 8])).alias()
+        q = sess.query(User)
+        q2 = q.select_from(sel)._values(User.name)
+        self.assertEquals(q2.all(), [(u'jack',), (u'ed',)])
+        
+        q = sess.query(User)
+        q2 = q._values(User.name, User.name + " " + cast(User.id, String)).order_by(User.id)
+        self.assertEquals(q2.all(), [(u'jack', u'jack 7'), (u'ed', u'ed 8'), (u'fred', u'fred 9'), (u'chuck', u'chuck 10')])
+        
+        q2 = q._values(User.name.like('%j%'), func.count(User.name.like('%j%'))).group_by([User.name.like('%j%')]).order_by(desc(User.name.like('%j%')))
+        self.assertEquals(q2.all(), [(True, 1), (False, 3)])
+        
+        q2 = q.join('addresses').filter(User.name.like('%e%')).order_by(User.id, Address.id)._values(User.name, Address.email_address)
+        self.assertEquals(q2.all(), [(u'ed', u'ed@wood.com'), (u'ed', u'ed@bettyboop.com'), (u'ed', u'ed@lala.com'), (u'fred', u'fred@fred.com')])
+        
+        q2 = q.join('addresses').filter(User.name.like('%e%'))._values(User.name, Address.email_address).order_by(desc(Address.email_address))[1:3]
+        self.assertEquals(q2.all(), [(u'ed', u'ed@wood.com'), (u'ed', u'ed@lala.com')])
+        
+        q2 = q.join('addresses', aliased=True).filter(User.name.like('%e%'))._values(User.name, Address.email_address)
+        self.assertEquals(q2.all(), [(u'ed', u'ed@wood.com'), (u'ed', u'ed@bettyboop.com'), (u'ed', u'ed@lala.com'), (u'fred', u'fred@fred.com')])
+        
+        q2 = q._values(func.count(User.name))
+        assert q2.one() == (4,)
+
+        u2 = users.alias()
+        q2 = q.select_from(sel).filter(u2.c.id>1)._values(users.c.name, sel.c.name, u2.c.name).order_by([users.c.id, sel.c.id, u2.c.id])
+        self.assertEquals(q2.all(), [(u'jack', u'jack', u'jack'), (u'jack', u'jack', u'ed'), (u'jack', u'jack', u'fred'), (u'jack', u'jack', u'chuck'), (u'ed', u'ed', u'jack'), (u'ed', u'ed', u'ed'), (u'ed', u'ed', u'fred'), (u'ed', u'ed', u'chuck')])
+        
+        q2 = q.select_from(sel).filter(users.c.id>1)._values(users.c.name, sel.c.name, User.name)
+        self.assertEquals(q2.all(), [(u'jack', u'jack', u'jack'), (u'ed', u'ed', u'ed')])
+        
     def test_multi_mappers(self):
 
         test_session = create_session()
@@ -929,12 +996,7 @@ class InstancesTest(QueryTest):
             assert sess.query(User).add_column(add_col).all() == expected
             sess.clear()
 
-        try:
-            sess.query(User).add_column(object()).all()
-            assert False
-        except exceptions.InvalidRequestError, e:
-            assert "Invalid column expression" in str(e)
-
+        self.assertRaises(exceptions.InvalidRequestError, sess.query(User).add_column, object())
 
     def test_multi_columns_2(self):
         """test aliased/nonalised joins with the usage of add_column()"""
@@ -1026,6 +1088,30 @@ class SelectFromTest(QueryTest):
             User(name='jack', addresses=[Address(id=1)])
         )
 
+    def test_join_mapper_order_by(self):
+        mapper(User, users, order_by=users.c.id)
+
+        sel = users.select(users.c.id.in_([7, 8]))
+        sess = create_session()
+
+        self.assertEquals(sess.query(User).select_from(sel).all(),
+            [
+                User(name='jack',id=7), User(name='ed',id=8)
+            ]
+        )
+
+    def test_join_no_order_by(self):
+        mapper(User, users)
+
+        sel = users.select(users.c.id.in_([7, 8]))
+        sess = create_session()
+
+        self.assertEquals(sess.query(User).select_from(sel).all(),
+            [
+                User(name='jack',id=7), User(name='ed',id=8)
+            ]
+        )
+
     def test_join(self):
         mapper(User, users, properties = {
             'addresses':relation(Address)
@@ -1052,6 +1138,7 @@ class SelectFromTest(QueryTest):
                 (User(name='ed',id=8), Address(user_id=8,email_address='ed@lala.com',id=4))
             ]
         )
+        
     
     def test_more_joins(self):
         mapper(User, users, properties={
@@ -1164,7 +1251,7 @@ class SelfReferentialTest(ORMTest):
     def define_tables(self, metadata):
         global nodes
         nodes = Table('nodes', metadata,
-            Column('id', Integer, primary_key=True),
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('parent_id', Integer, ForeignKey('nodes.id')),
             Column('data', String(30)))
     
@@ -1243,7 +1330,7 @@ class SelfReferentialM2MTest(ORMTest):
     def define_tables(self, metadata):
         global nodes, node_to_nodes
         nodes = Table('nodes', metadata,
-            Column('id', Integer, primary_key=True),
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('data', String(30)))
             
         node_to_nodes =Table('node_to_nodes', metadata,

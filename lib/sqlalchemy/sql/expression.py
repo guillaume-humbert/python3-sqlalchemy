@@ -392,7 +392,7 @@ def not_(clause):
     result.
     """
 
-    return operators.inv(clause)
+    return operators.inv(_literal_as_binds(clause))
 
 def distinct(expr):
     """Return a ``DISTINCT`` clause."""
@@ -416,19 +416,54 @@ def case(whens, value=None, else_=None):
     """Produce a ``CASE`` statement.
 
     whens
-      A sequence of pairs to be translated into "when / then" clauses.
+      A sequence of pairs, or alternatively a dict,
+      to be translated into "WHEN / THEN" clauses.
 
     value
-      Optional for simple case statements.
+      Optional for simple case statements, produces
+      a column expression as in "CASE <expr> WHEN ..."
 
     else\_
-      Optional as well, for case defaults.
-    """
+      Optional as well, for case defaults produces 
+      the "ELSE" portion of the "CASE" statement.
+    
+    The expressions used for THEN and ELSE,
+    when specified as strings, will be interpreted 
+    as bound values. To specify textual SQL expressions 
+    for these, use the text(<string>) construct.
+    
+    The expressions used for the WHEN criterion
+    may only be literal strings when "value" is 
+    present, i.e. CASE table.somecol WHEN "x" THEN "y".  
+    Otherwise, literal strings are not accepted 
+    in this position, and either the text(<string>)
+    or literal(<string>) constructs must be used to 
+    interpret raw string values.
+      
+    Usage examples::
 
-    whenlist = [ClauseList('WHEN', c, 'THEN', r, operator=None)
+      case([(orderline.c.qty > 100, item.c.specialprice),
+            (orderline.c.qty > 10, item.c.bulkprice)
+          ], else_=item.c.regularprice)
+      case(value=emp.c.type, whens={
+              'engineer': emp.c.salary * 1.1,
+              'manager':  emp.c.salary * 3,
+          })
+    """
+    try:
+        whens = util.dictlike_iteritems(whens)
+    except TypeError:
+        pass
+    
+    if value:
+        crit_filter = _literal_as_binds
+    else:
+        crit_filter = _no_literals
+        
+    whenlist = [ClauseList('WHEN', crit_filter(c), 'THEN', _literal_as_binds(r), operator=None)
                 for (c,r) in whens]
-    if not else_ is None:
-        whenlist.append(ClauseList('ELSE', else_, operator=None))
+    if else_ is not None:
+        whenlist.append(ClauseList('ELSE', _literal_as_binds(else_), operator=None))
     if whenlist:
         type = list(whenlist[-1])[-1].type
     else:
@@ -777,7 +812,7 @@ class _FunctionGenerator(object):
             except KeyError:
                 raise AttributeError(name)
 
-        elif name.startswith('_'):
+        elif name.endswith('_'):
             name = name[0:-1]
         f = _FunctionGenerator(**self.opts)
         f.__names = list(self.__names) + [name]
@@ -837,6 +872,14 @@ def _literal_as_binds(element, name=None, type_=None):
     else:
         return element
 
+def _no_literals(element):
+    if isinstance(element, Operators):
+        return element.expression_element()
+    elif _is_literal(element):
+        raise exceptions.ArgumentError("Ambiguous literal: %r.  Use the 'text()' function to indicate a SQL expression literal, or 'literal()' to indicate a bound value." % element)
+    else:
+        return element
+    
 def _corresponding_column_or_error(fromclause, column, require_embedded=False):
     c = fromclause.corresponding_column(column, require_embedded=require_embedded)
     if not c:
@@ -1137,23 +1180,23 @@ class ColumnOperators(Operators):
     def concat(self, other):
         return self.operate(operators.concat_op, other)
 
-    def like(self, other):
-        return self.operate(operators.like_op, other)
+    def like(self, other, escape=None):
+        return self.operate(operators.like_op, other, escape=escape)
 
-    def ilike(self, other):
-        return self.operate(operators.ilike_op, other)
+    def ilike(self, other, escape=None):
+        return self.operate(operators.ilike_op, other, escape=escape)
 
     def in_(self, *other):
         return self.operate(operators.in_op, other)
 
-    def startswith(self, other):
-        return self.operate(operators.startswith_op, other)
+    def startswith(self, other, **kwargs):
+        return self.operate(operators.startswith_op, other, **kwargs)
 
-    def endswith(self, other):
-        return self.operate(operators.endswith_op, other)
+    def endswith(self, other, **kwargs):
+        return self.operate(operators.endswith_op, other, **kwargs)
 
-    def contains(self, other):
-        return self.operate(operators.contains_op, other)
+    def contains(self, other, **kwargs):
+        return self.operate(operators.contains_op, other, **kwargs)
 
     def desc(self):
         return self.operate(operators.desc_op)
@@ -1200,7 +1243,7 @@ class ColumnOperators(Operators):
 class _CompareMixin(ColumnOperators):
     """Defines comparison and math operations for ``ClauseElement`` instances."""
 
-    def __compare(self, op, obj, negate=None, reverse=False):
+    def __compare(self, op, obj, negate=None, reverse=False, **kwargs):
         if obj is None or isinstance(obj, _Null):
             if op == operators.eq:
                 return _BinaryExpression(self.expression_element(), null(), operators.is_, negate=operators.isnot)
@@ -1212,9 +1255,9 @@ class _CompareMixin(ColumnOperators):
             obj = self._check_literal(obj)
 
         if reverse:
-            return _BinaryExpression(obj, self.expression_element(), op, type_=sqltypes.Boolean, negate=negate)
+            return _BinaryExpression(obj, self.expression_element(), op, type_=sqltypes.Boolean, negate=negate, modifiers=kwargs)
         else:
-            return _BinaryExpression(self.expression_element(), obj, op, type_=sqltypes.Boolean, negate=negate)
+            return _BinaryExpression(self.expression_element(), obj, op, type_=sqltypes.Boolean, negate=negate, modifiers=kwargs)
 
     def __operate(self, op, obj, reverse=False):
         obj = self._check_literal(obj)
@@ -1245,13 +1288,13 @@ class _CompareMixin(ColumnOperators):
         operators.ilike_op : (__compare, operators.notilike_op),
     }
 
-    def operate(self, op, *other):
+    def operate(self, op, *other, **kwargs):
         o = _CompareMixin.operators[op]
-        return o[0](self, op, other[0], *o[1:])
+        return o[0](self, op, other[0], *o[1:], **kwargs)
 
-    def reverse_operate(self, op, other):
+    def reverse_operate(self, op, other, **kwargs):
         o = _CompareMixin.operators[op]
-        return o[0](self, op, other, reverse=True, *o[1:])
+        return o[0](self, op, other, reverse=True, *o[1:], **kwargs)
 
     def in_(self, *other):
         return self._in_impl(operators.in_op, operators.notin_op, *other)
@@ -1283,21 +1326,21 @@ class _CompareMixin(ColumnOperators):
 
         return self.__compare(op, ClauseList(*args).self_group(against=op), negate=negate_op)
 
-    def startswith(self, other):
+    def startswith(self, other, escape=None):
         """Produce the clause ``LIKE '<other>%'``"""
 
         # use __radd__ to force string concat behavior
-        return self.__compare(operators.like_op, literal_column("'%'", type_=sqltypes.String).__radd__(self._check_literal(other)))
+        return self.__compare(operators.like_op, literal_column("'%'", type_=sqltypes.String).__radd__(self._check_literal(other)), escape=escape)
 
-    def endswith(self, other):
+    def endswith(self, other, escape=None):
         """Produce the clause ``LIKE '%<other>'``"""
 
-        return self.__compare(operators.like_op, literal_column("'%'", type_=sqltypes.String) + self._check_literal(other))
+        return self.__compare(operators.like_op, literal_column("'%'", type_=sqltypes.String) + self._check_literal(other), escape=escape)
 
-    def contains(self, other):
+    def contains(self, other, escape=None):
         """Produce the clause ``LIKE '%<other>%'``"""
 
-        return self.__compare(operators.like_op, literal_column("'%'", type_=sqltypes.String) + self._check_literal(other) + literal_column("'%'", type_=sqltypes.String))
+        return self.__compare(operators.like_op, literal_column("'%'", type_=sqltypes.String) + self._check_literal(other) + literal_column("'%'", type_=sqltypes.String), escape=escape)
 
     def label(self, name):
         """Produce a column label, i.e. ``<columnname> AS <name>``.
@@ -1620,6 +1663,15 @@ class FromClause(Selectable):
       if ClauseAdapter is None:
           from sqlalchemy.sql.util import ClauseAdapter
       return ClauseAdapter(alias).traverse(self, clone=True)
+
+    def correspond_on_equivalents(self, column, equivalents):
+        col = self.corresponding_column(column, require_embedded=True)
+        if col is None and col in equivalents:
+            for equiv in equivalents[col]:
+                nc = self.corresponding_column(equiv, require_embedded=True)
+                if nc:
+                    return nc
+        return col
 
     def corresponding_column(self, column, require_embedded=False):
         """Given a ``ColumnElement``, return the exported ``ColumnElement``
@@ -2114,13 +2166,17 @@ class _UnaryExpression(ColumnElement):
 class _BinaryExpression(ColumnElement):
     """Represent an expression that is ``LEFT <operator> RIGHT``."""
 
-    def __init__(self, left, right, operator, type_=None, negate=None):
+    def __init__(self, left, right, operator, type_=None, negate=None, modifiers=None):
         ColumnElement.__init__(self)
         self.left = _literal_as_text(left).self_group(against=operator)
         self.right = _literal_as_text(right).self_group(against=operator)
         self.operator = operator
         self.type = sqltypes.to_instance(type_)
         self.negate = negate
+        if modifiers is None:
+            self.modifiers = {}
+        else:
+            self.modifiers = modifiers
 
     def _get_from_objects(self, **modifiers):
         return self.left._get_from_objects(**modifiers) + self.right._get_from_objects(**modifiers)
@@ -2159,7 +2215,7 @@ class _BinaryExpression(ColumnElement):
 
     def _negate(self):
         if self.negate is not None:
-            return _BinaryExpression(self.left, self.right, self.negate, negate=self.operator, type_=self.type)
+            return _BinaryExpression(self.left, self.right, self.negate, negate=self.operator, type_=self.type, modifiers=self.modifiers)
         else:
             return super(_BinaryExpression, self)._negate()
 
@@ -2617,13 +2673,20 @@ class _ColumnClause(ColumnElement):
         # therefore no 'label' can be automatically generated
         if self.is_literal:
             return None
-        if self.__label is None:
-            if self.table is not None and self.table.named_with_column:
-                self.__label = self.table.name + "_" + self.name
-                counter = 1
-                while self.__label in self.table.c:
-                    self.__label = self.__label + "_%d" % counter
-                    counter += 1
+        if not self.__label:
+            if self.table and self.table.named_with_column:
+                if getattr(self.table, 'schema', None):
+                    self.__label = self.table.schema + "_" + self.table.name + "_" + self.name
+                else:
+                    self.__label = self.table.name + "_" + self.name
+                    
+                if self.__label in self.table.c:
+                    label = self.__label
+                    counter = 1
+                    while label in self.table.c:
+                        label = self.__label + "_" + str(counter)
+                        counter +=1
+                    self.__label = label
             else:
                 self.__label = self.name
         return self.__label
@@ -3080,18 +3143,16 @@ class Select(_SelectBaseMixin, FromClause):
 
         if self._froms:
             froms.update(self._froms)
+        
+        toremove = itertools.chain(*[f._hide_froms for f in froms])
+        froms.difference_update(toremove)
 
-        for f in froms:
-            froms.difference_update(f._hide_froms)
-
-        if len(froms) > 1:
+        if len(froms) > 1 or self.__correlate:
             if self.__correlate:
                 froms.difference_update(self.__correlate)
             if self._should_correlate and existing_froms is not None:
                 froms.difference_update(existing_froms)
 
-            if not froms:
-                raise exceptions.InvalidRequestError("Select statement '%s' is overcorrelated; returned no 'from' clauses" % str(self.__dont_correlate()))
         return froms
 
     froms = property(_get_display_froms, doc="""Return a list of all FromClause elements which will be applied to the FROM clause of the resulting statement.""")
@@ -3478,7 +3539,35 @@ class _UpdateBase(ClauseElement):
         self._bind = bind
     bind = property(bind, _set_bind)
 
-class Insert(_UpdateBase):
+class _ValuesBase(_UpdateBase):
+    def values(self, *args, **kwargs):
+        """specify the VALUES clause for an INSERT statement, or the SET clause for an UPDATE.
+
+            \**kwargs
+                key=<somevalue> arguments
+                
+            \*args
+                deprecated.  A single dictionary can be sent as the first positional argument.
+        """
+        
+        if args:
+            v = args[0]
+        else:
+            v = {}
+        if len(v) == 0 and len(kwargs) == 0:
+            return self
+        u = self._clone()
+        
+        if u.parameters is None:
+            u.parameters = u._process_colparams(v)
+            u.parameters.update(kwargs)
+        else:
+            u.parameters = self.parameters.copy()
+            u.parameters.update(u._process_colparams(v))
+            u.parameters.update(kwargs)
+        return u
+
+class Insert(_ValuesBase):
     def __init__(self, table, values=None, inline=False, bind=None, prefixes=None, **kwargs):
         self._bind = bind
         self.table = table
@@ -3502,17 +3591,6 @@ class Insert(_UpdateBase):
     def _copy_internals(self, clone=_clone):
         self.parameters = self.parameters.copy()
 
-    def values(self, v):
-        if len(v) == 0:
-            return self
-        u = self._clone()
-        if u.parameters is None:
-            u.parameters = u._process_colparams(v)
-        else:
-            u.parameters = self.parameters.copy()
-            u.parameters.update(u._process_colparams(v))
-        return u
-
     def prefix_with(self, clause):
         """Add a word or expression between INSERT and INTO. Generative.
 
@@ -3524,7 +3602,7 @@ class Insert(_UpdateBase):
         gen._prefixes = self._prefixes + [clause]
         return gen
 
-class Update(_UpdateBase):
+class Update(_ValuesBase):
     def __init__(self, table, whereclause, values=None, inline=False, bind=None, **kwargs):
         self._bind = bind
         self.table = table
@@ -3558,16 +3636,6 @@ class Update(_UpdateBase):
             s._whereclause = _literal_as_text(whereclause)
         return s
 
-    def values(self, v):
-        if len(v) == 0:
-            return self
-        u = self._clone()
-        if u.parameters is None:
-            u.parameters = u._process_colparams(v)
-        else:
-            u.parameters = self.parameters.copy()
-            u.parameters.update(u._process_colparams(v))
-        return u
 
 class Delete(_UpdateBase):
     def __init__(self, table, whereclause, bind=None):

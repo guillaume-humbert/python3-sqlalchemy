@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.4   Last Updated: 03/11/08 20:04:34</div>
+<div class="versionheader">Version: 0.4.5   Last Updated: 04/03/08 21:06:31</div>
 
 
 
@@ -465,7 +465,7 @@
 <span class="python_name">sess </span><span class="python_operator">= </span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">d </span><span class="python_operator">= </span><span class="python_name">Data</span><span class="python_enclosure">(</span><span class="python_name">value</span><span class="python_operator">=</span><span class="python_number">10</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">d</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">d2 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Data</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Data</span><span class="python_operator">.</span><span class="python_name">value</span><span class="python_operator">=</span><span class="python_number">15</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">one</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">d2 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Data</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Data</span><span class="python_operator">.</span><span class="python_name">value</span><span class="python_operator">==</span><span class="python_number">15</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">one</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_name">d2</span><span class="python_operator">.</span><span class="python_name">value </span><span class="python_operator">= </span><span class="python_number">19</span><span class="python_operator">
 </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>

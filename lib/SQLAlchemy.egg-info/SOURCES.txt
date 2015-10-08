@@ -298,6 +298,7 @@ test/profiling/zoomark.py
 test/sql/__init__.py
 test/sql/alltests.py
 test/sql/case_statement.py
+test/sql/columns.py
 test/sql/constraints.py
 test/sql/defaults.py
 test/sql/functions.py

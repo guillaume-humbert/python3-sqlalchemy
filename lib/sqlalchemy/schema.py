@@ -88,7 +88,7 @@ class _TableSingleton(expression._FigureVisitName):
     """A metaclass used by the ``Table`` object to provide singleton behavior."""
 
     def __call__(self, name, metadata, *args, **kwargs):
-        schema = kwargs.get('schema', None)
+        schema = kwargs.get('schema', kwargs.get('owner', None))
         useexisting = kwargs.pop('useexisting', False)
         mustexist = kwargs.pop('mustexist', False)
         key = _get_table_key(name, schema)
@@ -179,8 +179,8 @@ class Table(SchemaItem, expression.TableClause):
             constructor arguments.
 
           owner
-            Defaults to None: optional owning user of this table.  useful for
-            databases such as Oracle to aid in table reflection.
+            Deprecated; this is an oracle-only argument - "schema" should
+            be used in its place.
 
           quote
             Defaults to False: indicates that the Table identifier must be
@@ -195,8 +195,7 @@ class Table(SchemaItem, expression.TableClause):
 
         super(Table, self).__init__(name)
         self.metadata = metadata
-        self.schema = kwargs.pop('schema', None)
-        self.owner = kwargs.pop('owner', None)
+        self.schema = kwargs.pop('schema', kwargs.pop('owner', None))
         self.indexes = util.Set()
         self.constraints = util.Set()
         self._columns = expression.ColumnCollection()
@@ -214,6 +213,9 @@ class Table(SchemaItem, expression.TableClause):
         include_columns = kwargs.pop('include_columns', None)
 
         self._set_parent(metadata)
+
+	self.__extra_kwargs(**kwargs)
+
         # load column definitions from the database if 'autoload' is defined
         # we do it after the table is in the singleton dictionary to support
         # circular foreign keys
@@ -235,20 +237,14 @@ class Table(SchemaItem, expression.TableClause):
             raise exceptions.ArgumentError(
                 "Can't change schema of existing table from '%s' to '%s'",
                 (self.schema, schema))
-        owner = kwargs.pop('owner', None)
-        if owner:
-            if not self.owner:
-                self.owner = owner
-            elif owner != self.owner:
-                raise exceptions.ArgumentError(
-                    "Can't change owner of existing table from '%s' to '%s'",
-                    (self.owner, owner))
 
         include_columns = kwargs.pop('include_columns', None)
         if include_columns:
             for c in self.c:
                 if c.name not in include_columns:
                     self.c.remove(c)
+
+        self.__extra_kwargs(**kwargs)
         self.__post_init(*args, **kwargs)
 
     def _cant_override(self, *args, **kwargs):
@@ -261,7 +257,7 @@ class Table(SchemaItem, expression.TableClause):
         return bool(args) or bool(util.Set(kwargs).difference(
             ['autoload', 'autoload_with', 'schema', 'owner']))
 
-    def __post_init(self, *args, **kwargs):
+    def __extra_kwargs(self, **kwargs):
         self.quote = kwargs.pop('quote', False)
         self.quote_schema = kwargs.pop('quote_schema', False)
         if kwargs.get('info'):
@@ -272,6 +268,8 @@ class Table(SchemaItem, expression.TableClause):
             raise TypeError("Invalid argument(s) for Table: %s" % repr(kwargs.keys()))
         self.kwargs.update(kwargs)
 
+
+    def __post_init(self, *args, **kwargs):
         self._init_items(*args)
 
     def key(self):
@@ -405,14 +403,16 @@ class Column(SchemaItem, expression._ColumnClause):
     ``TableClause``/``Table``.
     """
 
-    def __init__(self, name, type_, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """Construct a new ``Column`` object.
 
         Arguments are:
 
         name
           The name of this column.  This should be the identical name as it
-          appears, or will appear, in the database.
+          appears, or will appear, in the database.  Name may be omitted at
+          construction time but must be assigned before adding a Column
+          instance to a Table.
 
         type\_
           The ``TypeEngine`` for this column.  This can be any subclass of
@@ -430,8 +430,10 @@ class Column(SchemaItem, expression._ColumnClause):
           Keyword arguments include:
 
           key
-            Defaults to None: an optional *alias name* for this column.  The
-            column will then be identified everywhere in an application,
+            Defaults to the column name: a Python-only *alias name* for this
+            column.
+
+            The column will then be identified everywhere in an application,
             including the column list on its Table, by this key, and not the
             given name.  Generated SQL, however, will still reference the
             column by its actual name.
@@ -497,6 +499,24 @@ class Column(SchemaItem, expression._ColumnClause):
             auto-detect conditions where quoting is required.
         """
 
+        name = kwargs.pop('name', None)
+        type_ = kwargs.pop('type_', None)
+        if args:
+            args = list(args)
+            if isinstance(args[0], basestring):
+                if name is not None:
+                    raise exceptions.ArgumentError(
+                        "May not pass name positionally and as a keyword.")
+                name = args.pop(0)
+        if args:
+            if (isinstance(args[0], types.AbstractType) or
+                (isinstance(args[0], type) and
+                 issubclass(args[0], types.AbstractType))):
+                if type_ is not None:
+                    raise exceptions.ArgumentError(
+                        "May not pass type_ positionally and as a keyword.")
+                type_ = args.pop(0)
+
         super(Column, self).__init__(name, None, type_)
         self.args = args
         self.key = kwargs.pop('key', name)
@@ -533,7 +553,7 @@ class Column(SchemaItem, expression._ColumnClause):
     def references(self, column):
         """Return True if this references the given column via a foreign key."""
         for fk in self.foreign_keys:
-            if fk.column is column:
+            if fk.references(column.table):
                 return True
         else:
             return False
@@ -561,6 +581,12 @@ class Column(SchemaItem, expression._ColumnClause):
             ["%s=%s" % (k, repr(getattr(self, k))) for k in kwarg])
 
     def _set_parent(self, table):
+        if self.name is None:
+            raise exceptions.ArgumentError(
+                "Column must be constructed with a name or assign .name "
+                "before adding to a Table.")
+        if self.key is None:
+            self.key = self.name
         self.metadata = table.metadata
         if getattr(self, 'table', None) is not None:
             raise exceptions.ArgumentError("this Column already has a table!")
@@ -1383,10 +1409,11 @@ class MetaData(SchemaItem):
         if URL is None:
             from sqlalchemy.engine.url import URL
         if isinstance(bind, (basestring, URL)):
-            self._bind = sqlalchemy.create_engine(bind, **kwargs)
+            from sqlalchemy import create_engine
+            self._bind = create_engine(bind, **kwargs)
         else:
             self._bind = bind
-    connect = util.deprecated(connect)
+    connect = util.deprecated()(connect)
 
     def bind(self):
         """An Engine or Connection to which this MetaData is bound.
@@ -1627,10 +1654,11 @@ class ThreadLocalMetaData(MetaData):
             try:
                 engine = self.__engines[bind]
             except KeyError:
-                engine = sqlalchemy.create_engine(bind, **kwargs)
+                from sqlalchemy import create_engine
+                engine = create_engine(bind, **kwargs)
             bind = engine
         self._bind_to(bind)
-    connect = util.deprecated(connect)
+    connect = util.deprecated()(connect)
 
     def bind(self):
         """The bound Engine or Connection for this thread.
@@ -1652,7 +1680,8 @@ class ThreadLocalMetaData(MetaData):
             try:
                 self.context._engine = self.__engines[bind]
             except KeyError:
-                e = sqlalchemy.create_engine(bind)
+                from sqlalchemy import create_engine
+                e = create_engine(bind)
                 self.__engines[bind] = e
                 self.context._engine = e
         else:

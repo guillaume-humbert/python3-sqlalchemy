@@ -495,14 +495,11 @@ class CollectionAttributeImpl(AttributeImpl):
         return [y for y in list(collections.collection_adapter(item))]
 
     def get_history(self, state, passive=False):
-        if self.key in state.dict:
-            return _create_history(self, state, state.dict[self.key])
+        current = self.get(state, passive=passive)
+        if current is PASSIVE_NORESULT:
+            return (None, None, None)
         else:
-            current = self.get(state, passive=passive)
-            if current is PASSIVE_NORESULT:
-                return (None, None, None)
-            else:
-                return _create_history(self, state, current)
+            return _create_history(self, state, current)
 
     def fire_append_event(self, state, value, initiator):
         if self.key not in state.committed_state and self.key in state.dict:
@@ -532,13 +529,6 @@ class CollectionAttributeImpl(AttributeImpl):
         instance = state.obj()
         for ext in self.extensions:
             ext.remove(instance, value, initiator or self)
-
-    def get_history(self, state, passive=False):
-        current = self.get(state, passive=passive)
-        if current is PASSIVE_NORESULT:
-            return (None, None, None)
-        else:
-            return _create_history(self, state, current)
 
     def delete(self, state):
         if self.key not in state.dict:
@@ -579,7 +569,7 @@ class CollectionAttributeImpl(AttributeImpl):
             self.fire_remove_event(state, value, initiator)
         else:
             collection.remove_with_event(value, initiator)
-
+    
     def set(self, state, value, initiator):
         """Set a value on the given object.
 
@@ -591,18 +581,33 @@ class CollectionAttributeImpl(AttributeImpl):
         if initiator is self:
             return
 
-        # we need a CollectionAdapter to adapt the incoming value to an
-        # assignable iterable.  pulling a new collection first so that
-        # an adaptation exception does not trigger a lazy load of the
-        # old collection.
+        self._set_iterable(
+            state, value,
+            lambda adapter, i: adapter.adapt_like_to_iterable(i))
+
+    def _set_iterable(self, state, iterable, adapter=None):
+        """Set a collection value from an iterable of state-bearers.
+
+        ``adapter`` is an optional callable invoked with a CollectionAdapter
+        and the iterable.  Should return an iterable of state-bearing
+        instances suitable for appending via a CollectionAdapter.  Can be used
+        for, e.g., adapting an incoming dictionary into an iterator of values
+        rather than keys.
+
+        """
+        # pulling a new collection first so that an adaptation exception does
+        # not trigger a lazy load of the old collection.
         new_collection, user_data = self._build_collection(state)
-        new_values = list(new_collection.adapt_like_to_iterable(value))
+        if adapter:
+            new_values = list(adapter(new_collection, iterable))
+        else:
+            new_values = list(iterable)
 
         old = self.get(state)
 
         # ignore re-assignment of the current collection, as happens
         # implicitly with in-place operators (foo.collection |= other)
-        if old is value:
+        if old is iterable:
             return
 
         if self.key not in state.committed_state:
@@ -610,25 +615,12 @@ class CollectionAttributeImpl(AttributeImpl):
 
         old_collection = self.get_collection(state, old)
 
-        idset = util.IdentitySet
-        constants = idset(old_collection or []).intersection(new_values or [])
-        additions = idset(new_values or []).difference(constants)
-        removals  = idset(old_collection or []).difference(constants)
-
-        for member in new_values or ():
-            if member in additions:
-                new_collection.append_with_event(member)
-            elif member in constants:
-                new_collection.append_without_event(member)
-
         state.dict[self.key] = user_data
         state.modified = True
 
-        # mark all the orphaned elements as detached from the parent
-        if old_collection:
-            for member in removals:
-                old_collection.remove_with_event(member)
-            old_collection.unlink(old)
+        collections.bulk_replace(new_values, old_collection, new_collection)
+        old_collection.unlink(old)
+
 
     def set_committed_value(self, state, value):
         """Set an attribute value on the given instance and 'commit' it.
@@ -1160,7 +1152,7 @@ def get_as_list(state, key, passive=False):
     if x is PASSIVE_NORESULT:
         return None
     elif hasattr(attr, 'get_collection'):
-        return attr.get_collection(state, x)
+        return attr.get_collection(state, x, passive=passive)
     elif isinstance(x, list):
         return x
     else:
@@ -1169,10 +1161,9 @@ def get_as_list(state, key, passive=False):
 def has_parent(class_, instance, key, optimistic=False):
     return getattr(class_, key).impl.hasparent(instance._state, optimistic=optimistic)
 
-def _create_prop(class_, key, uselist, callable_, typecallable, useobject, mutable_scalars, **kwargs):
-    if kwargs.pop('dynamic', False):
-        from sqlalchemy.orm import dynamic
-        return dynamic.DynamicAttributeImpl(class_, key, typecallable, **kwargs)
+def _create_prop(class_, key, uselist, callable_, typecallable, useobject, mutable_scalars, impl_class, **kwargs):
+    if impl_class:
+        return impl_class(class_, key, typecallable, **kwargs)
     elif uselist:
         return CollectionAttributeImpl(class_, key, callable_, typecallable, **kwargs)
     elif useobject:
@@ -1272,7 +1263,7 @@ def unregister_class(class_):
                 delattr(class_, attr.impl.key)
         delattr(class_, '_class_state')
 
-def register_attribute(class_, key, uselist, useobject, callable_=None, proxy_property=None, mutable_scalars=False, **kwargs):
+def register_attribute(class_, key, uselist, useobject, callable_=None, proxy_property=None, mutable_scalars=False, impl_class=None, **kwargs):
     _init_class_state(class_)
 
     typecallable = kwargs.pop('typecallable', None)
@@ -1291,7 +1282,7 @@ def register_attribute(class_, key, uselist, useobject, callable_=None, proxy_pr
         inst = proxy_type(key, proxy_property, comparator)
     else:
         inst = InstrumentedAttribute(_create_prop(class_, key, uselist, callable_, useobject=useobject,
-                                       typecallable=typecallable, mutable_scalars=mutable_scalars, **kwargs), comparator=comparator)
+                                       typecallable=typecallable, mutable_scalars=mutable_scalars, impl_class=impl_class, **kwargs), comparator=comparator)
 
     setattr(class_, key, inst)
     class_._class_state.attrs[key] = inst
