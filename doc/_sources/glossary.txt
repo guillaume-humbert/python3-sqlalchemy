@@ -95,6 +95,23 @@ Glossary
         class which each represent a particular database column
         or relationship to a related class.
 
+    identity map
+        A mapping between Python objects and their database identities.
+        The identity map is a collection that's associated with an
+        ORM :term:`session` object, and maintains a single instance
+        of every database object keyed to its identity.   The advantage
+        to this pattern is that all operations which occur for a particular
+        database identity are transparently coordinated onto a single
+        object instance.  When using an identity map in conjunction with
+        an :term:`isolated` transaction, having a reference
+        to an object that's known to have a particular primary key can
+        be considered from a practical standpoint to be a
+        proxy to the actual database row.
+
+        .. seealso::
+
+            Martin Fowler - Identity Map - http://martinfowler.com/eaaCatalog/identityMap.html
+
     lazy load
     lazy loads
         In object relational mapping, a "lazy load" refers to an
@@ -263,6 +280,16 @@ Glossary
 
             :doc:`orm/session`
 
+    Session
+        The container or scope for ORM database operations. Sessions
+        load instances from the database, track changes to mapped
+        instances and persist changes in a single unit of work when
+        flushed.
+
+        .. seealso::
+
+            :doc:`orm/session`
+
     columns clause
         The portion of the ``SELECT`` statement which enumerates the
         SQL expressions to be returned in the result set.  The expressions
@@ -411,3 +438,125 @@ Glossary
         query via its ``FROM``
         clause is not possible, because the correlation can only proceed once the
         original source rows from the enclosing statement's FROM clause are available.
+
+    ACID
+    ACID model
+        An acronym for "Atomicity, Consistency, Isolation,
+        Durability"; a set of properties that guarantee that
+        database transactions are processed reliably.
+        (via Wikipedia)
+
+        .. seealso::
+
+            :term:`atomicity`
+
+            :term:`consistency`
+
+            :term:`isolation`
+
+            :term:`durability`
+
+            http://en.wikipedia.org/wiki/ACID_Model
+
+    atomicity
+        Atomicity is one of the components of the :term:`ACID` model,
+        and requires that each transaction is "all or nothing":
+        if one part of the transaction fails, the entire transaction
+        fails, and the database state is left unchanged. An atomic
+        system must guarantee atomicity in each and every situation,
+        including power failures, errors, and crashes.
+        (via Wikipedia)
+
+        .. seealso::
+
+            :term:`ACID`
+
+            http://en.wikipedia.org/wiki/Atomicity_(database_systems)
+
+    consistency
+        Consistency is one of the compoments of the :term:`ACID` model,
+        and ensures that any transaction will
+        bring the database from one valid state to another. Any data
+        written to the database must be valid according to all defined
+        rules, including but not limited to :term:`constraints`, cascades,
+        triggers, and any combination thereof.
+        (via Wikipedia)
+
+        .. seealso::
+
+            :term:`ACID`
+
+            http://en.wikipedia.org/wiki/Consistency_(database_systems)
+
+    isolation
+    isolated
+        The isolation property of the :term:`ACID` model
+        ensures that the concurrent execution
+        of transactions results in a system state that would be
+        obtained if transactions were executed serially, i.e. one
+        after the other. Each transaction must execute in total
+        isolation i.e. if T1 and T2 execute concurrently then each
+        should remain independent of the other.
+        (via Wikipedia)
+
+        .. seealso::
+
+            :term:`ACID`
+
+            http://en.wikipedia.org/wiki/Isolation_(database_systems)
+
+    durability
+        Durability is a property of the :term:`ACID` model
+        which means that once a transaction has been committed,
+        it will remain so, even in the event of power loss, crashes,
+        or errors. In a relational database, for instance, once a
+        group of SQL statements execute, the results need to be stored
+        permanently (even if the database crashes immediately
+        thereafter).
+        (via Wikipedia)
+
+        .. seealso::
+
+            :term:`ACID`
+
+            http://en.wikipedia.org/wiki/Durability_(database_systems)
+
+    RETURNING
+        This is a non-SQL standard clause provided in various forms by
+        certain backends, which provides the service of returning a result
+        set upon execution of an INSERT, UPDATE or DELETE statement.  Any set
+        of columns from the matched rows can be returned, as though they were
+        produced from a SELECT statement.
+
+        The RETURNING clause provides both a dramatic performance boost to
+        common update/select scenarios, including retrieval of inline- or
+        default- generated primary key values and defaults at the moment they
+        were created, as well as a way to get at server-generated
+        default values in an atomic way.
+
+        An example of RETURNING, idiomatic to Postgresql, looks like::
+
+            INSERT INTO user_account (name) VALUES ('new name') RETURNING id, timestamp
+
+        Above, the INSERT statement will provide upon execution a result set
+        which includes the values of the columns ``user_account.id`` and
+        ``user_account.timestamp``, which above should have been generated as default
+        values as they are not included otherwise (but note any series of columns
+        or SQL expressions can be placed into RETURNING, not just default-value columns).
+
+        The backends that currently support
+        RETURNING or a similar construct are Postgresql, SQL Server, Oracle,
+        and Firebird.    The Postgresql and Firebird implementations are generally
+        full featured, whereas the implementations of SQL Server and Oracle
+        have caveats. On SQL Server, the clause is known as "OUTPUT INSERTED"
+        for INSERT and UPDATE statements and "OUTPUT DELETED" for DELETE statements;
+        the key caveat is that triggers are not supported in conjunction with this
+        keyword.  On Oracle, it is known as "RETURNING...INTO", and requires that the
+        value be placed into an OUT paramter, meaning not only is the syntax awkward,
+        but it can also only be used for one row at a time.
+
+        SQLAlchemy's :meth:`.UpdateBase.returning` system provides a layer of abstraction
+        on top of the RETURNING systems of these backends to provide a consistent
+        interface for returning columns.  The ORM also includes many optimizations
+        that make use of RETURNING when available.
+

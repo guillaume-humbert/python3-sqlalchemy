@@ -662,8 +662,12 @@ class SQLCompiler(engine.Compiled):
         if disp:
             return disp(binary, operator, **kw)
         else:
-            return self._generate_generic_binary(binary,
-                                OPERATORS[operator], **kw)
+            try:
+                opstring = OPERATORS[operator]
+            except KeyError:
+                raise exc.UnsupportedCompilationError(self, operator)
+            else:
+                return self._generate_generic_binary(binary, opstring, **kw)
 
     def visit_custom_op_binary(self, element, operator, **kw):
         return self._generate_generic_binary(element,
@@ -841,6 +845,13 @@ class SQLCompiler(engine.Compiled):
             return repr(value)
         elif isinstance(value, decimal.Decimal):
             return str(value)
+        elif isinstance(value, util.binary_type):
+            # only would occur on py3k b.c. on 2k the string_types
+            # directive above catches this.
+            # see #2838
+            value = value.decode(self.dialect.encoding).replace("'", "''")
+            return "'%s'" % value
+
         else:
             raise NotImplementedError(
                         "Don't know how to literal-quote value %r" % value)
@@ -909,7 +920,7 @@ class SQLCompiler(engine.Compiled):
             # we've generated a same-named CTE that we are enclosed in,
             # or this is the same CTE.  just return the name.
             if cte in existing_cte._restates or cte is existing_cte:
-                return cte_name
+                return self.preparer.format_alias(cte, cte_name)
             elif existing_cte in cte._restates:
                 # we've generated a same-named CTE that is
                 # enclosed in us - we take precedence, so
@@ -923,12 +934,17 @@ class SQLCompiler(engine.Compiled):
 
         self.ctes_by_name[cte_name] = cte
 
-        if cte.cte_alias:
-            if isinstance(cte.cte_alias, sql._truncated_label):
-                cte_alias = self._truncated_identifier("alias", cte.cte_alias)
-            else:
-                cte_alias = cte.cte_alias
-        if not cte.cte_alias and cte not in self.ctes:
+        if cte._cte_alias is not None:
+            orig_cte = cte._cte_alias
+            if orig_cte not in self.ctes:
+                self.visit_cte(orig_cte)
+            cte_alias_name = cte._cte_alias.name
+            if isinstance(cte_alias_name, sql._truncated_label):
+                cte_alias_name = self._truncated_identifier("alias", cte_alias_name)
+        else:
+            orig_cte = cte
+            cte_alias_name = None
+        if not cte_alias_name and cte not in self.ctes:
             if cte.recursive:
                 self.ctes_recursive = True
             text = self.preparer.format_alias(cte, cte_name)
@@ -951,9 +967,10 @@ class SQLCompiler(engine.Compiled):
                                 self, asfrom=True, **kwargs
                             )
             self.ctes[cte] = text
+
         if asfrom:
-            if cte.cte_alias:
-                text = self.preparer.format_alias(cte, cte_alias)
+            if cte_alias_name:
+                text = self.preparer.format_alias(cte, cte_alias_name)
                 text += " AS " + cte_name
             else:
                 return self.preparer.format_alias(cte, cte_name)
@@ -1401,7 +1418,9 @@ class SQLCompiler(engine.Compiled):
             if self.returning_precedes_values:
                 text += " " + returning_clause
 
-        if not colparams and supports_default_values:
+        if insert_stmt.select is not None:
+            text += " %s" % self.process(insert_stmt.select, **kw)
+        elif not colparams and supports_default_values:
             text += " DEFAULT VALUES"
         elif insert_stmt._has_multi_parameters:
             text += " VALUES %s" % (
@@ -1917,11 +1936,13 @@ class DDLCompiler(engine.Compiled):
         for create_column in create.columns:
             column = create_column.element
             try:
-                text += separator
-                separator = ", \n"
-                text += "\t" + self.process(create_column,
+                processed = self.process(create_column,
                                     first_pk=column.primary_key
                                     and not first_pk)
+                if processed is not None:
+                    text += separator
+                    separator = ", \n"
+                    text += "\t" + processed
                 if column.primary_key:
                     first_pk = True
             except exc.CompileError, ce:
@@ -1950,6 +1971,9 @@ class DDLCompiler(engine.Compiled):
 
     def visit_create_column(self, create, first_pk=False):
         column = create.element
+
+        if column.system:
+            return None
 
         text = self.get_column_specification(
                         column,
@@ -2014,7 +2038,7 @@ class DDLCompiler(engine.Compiled):
                                     use_schema=include_table_schema),
                        ', '.join(
                             self.sql_compiler.process(expr,
-                                include_table=False) for
+                                include_table=False, literal_binds=True) for
                                 expr in index.expressions)
                         )
         return text
@@ -2104,8 +2128,9 @@ class DDLCompiler(engine.Compiled):
         if constraint.name is not None:
             text += "CONSTRAINT %s " % \
                         self.preparer.format_constraint(constraint)
-        sqltext = sql_util.expression_as_ddl(constraint.sqltext)
-        text += "CHECK (%s)" % self.sql_compiler.process(sqltext)
+        text += "CHECK (%s)" % self.sql_compiler.process(constraint.sqltext,
+                                                            include_table=False,
+                                                            literal_binds=True)
         text += self.define_constraint_deferrability(constraint)
         return text
 

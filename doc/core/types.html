@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.2',
+          VERSION:     '0.8.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -33,9 +33,9 @@
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
-        <link rel="up" title="SQLAlchemy Core" href="index.html" />
-        <link rel="next" title="Events" href="event.html" />
-        <link rel="prev" title="Schema Definition Language" href="schema.html" />
+        <link rel="up" title="SQL Statements and Expressions API" href="expression_api.html" />
+        <link rel="next" title="Schema Definition Language" href="schema.html" />
+        <link rel="prev" title="SQL and Generic Functions" href="functions.html" />
 
     </head>
     <body>
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
+        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
 
 
     </div>
@@ -78,10 +78,10 @@
     <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
-            <a href="schema.html" title="previous chapter">Schema Definition Language</a>
+            <a href="functions.html" title="previous chapter">SQL and Generic Functions</a>
             </li>
             <li>Next:
-            <a href="event.html" title="next chapter">Events</a>
+            <a href="schema.html" title="next chapter">Schema Definition Language</a>
             </li>
 
         <li>
@@ -95,6 +95,7 @@
     <div id="docs-navigation-banner">
         <a href="../index.html">SQLAlchemy 0.8 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
+                » <a href="expression_api.html" title="SQL Statements and Expressions API">SQL Statements and Expressions API</a>
         » 
                 Column and Data Types
              
@@ -141,11 +142,11 @@
 
     <h4>Previous Topic</h4>
     <p>
-    <a href="schema.html" title="previous chapter">Schema Definition Language</a>
+    <a href="functions.html" title="previous chapter">SQL and Generic Functions</a>
     </p>
     <h4>Next Topic</h4>
     <p>
-    <a href="event.html" title="next chapter">Events</a>
+    <a href="schema.html" title="next chapter">Schema Definition Language</a>
     </p>
 
 
@@ -273,7 +274,7 @@ effect.</p>
 column is constrained towards.</p>
 <p>By default, uses the backend&#8217;s native ENUM type if available,
 else uses VARCHAR + a CHECK constraint.</p>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.ENUM" title="sqlalchemy.dialects.postgresql.ENUM"><tt class="xref py py-class docutils literal"><span class="pre">ENUM</span></tt></a> - PostgreSQL-specific type,
 which has additional functionality.</p>
@@ -319,7 +320,7 @@ present.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">The <tt class="docutils literal"><span class="pre">schema</span></tt> of the <a class="reference internal" href="#sqlalchemy.types.Enum" title="sqlalchemy.types.Enum"><tt class="xref py py-class docutils literal"><span class="pre">Enum</span></tt></a> type does not
 by default make use of the <tt class="docutils literal"><span class="pre">schema</span></tt> established on the
-owning <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.  If this behavior is desired,
+owning <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.  If this behavior is desired,
 set the <tt class="docutils literal"><span class="pre">inherit_schema</span></tt> flag to <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
 </div>
 </li>
@@ -328,12 +329,13 @@ left as the default of <cite>None</cite>, the usual schema-level &#8220;case
 sensitive&#8221;/&#8221;reserved name&#8221; rules are used to determine if this
 type&#8217;s name should be quoted.</li>
 <li><strong>inherit_schema</strong> &#8211; <p>When <tt class="docutils literal"><span class="pre">True</span></tt>, the &#8220;schema&#8221; from the owning
-<a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> will be copied to the &#8220;schema&#8221; attribute of this
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> will be copied to the &#8220;schema&#8221; attribute of this
 <a class="reference internal" href="#sqlalchemy.types.Enum" title="sqlalchemy.types.Enum"><tt class="xref py py-class docutils literal"><span class="pre">Enum</span></tt></a>, replacing whatever value was passed for the
 <tt class="docutils literal"><span class="pre">schema</span></tt> attribute.   This also takes effect when using the
-<a class="reference internal" href="schema.html#sqlalchemy.schema.Table.tometadata" title="sqlalchemy.schema.Table.tometadata"><tt class="xref py py-meth docutils literal"><span class="pre">Table.tometadata()</span></tt></a> operation.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8.</span></p>
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.Table.tometadata" title="sqlalchemy.schema.Table.tometadata"><tt class="xref py py-meth docutils literal"><span class="pre">Table.tometadata()</span></tt></a> operation.</p>
+<div class="versionadded">
+<p><span>New in version 0.8.</span></p>
+</div>
 </li>
 </ul>
 </td>
@@ -412,7 +414,7 @@ operations on platforms which do not support interval types natively. Such
 operations usually require transformation of both sides of the expression
 (such as, conversion of both sides into integer epoch values first) which
 currently is a manual procedure (such as via
-<a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-attr docutils literal"><span class="pre">func</span></tt></a>).</p>
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-attr docutils literal"><span class="pre">func</span></tt></a>).</p>
 <dl class="method">
 <dt id="sqlalchemy.types.Interval.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>native=True</em>, <em>second_precision=None</em>, <em>day_precision=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Interval.__init__" title="Permalink to this definition">¶</a></dt>
@@ -617,8 +619,8 @@ constraints, triggers, and other rules.</p>
 <a class="reference internal" href="events.html#sqlalchemy.events.DDLEvents.before_parent_attach" title="sqlalchemy.events.DDLEvents.before_parent_attach"><tt class="xref py py-meth docutils literal"><span class="pre">DDLEvents.before_parent_attach()</span></tt></a> and
 <a class="reference internal" href="events.html#sqlalchemy.events.DDLEvents.after_parent_attach" title="sqlalchemy.events.DDLEvents.after_parent_attach"><tt class="xref py py-meth docutils literal"><span class="pre">DDLEvents.after_parent_attach()</span></tt></a> events, where the events fire off
 surrounding the association of the type object with a parent
-<a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>.</p>
-<div class="admonition-see-also admonition seealso">
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>.</p>
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="#sqlalchemy.types.Enum" title="sqlalchemy.types.Enum"><tt class="xref py py-class docutils literal"><span class="pre">Enum</span></tt></a></p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.types.Boolean" title="sqlalchemy.types.Boolean"><tt class="xref py py-class docutils literal"><span class="pre">Boolean</span></tt></a></p>
@@ -696,9 +698,10 @@ E.g.:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">select</span><span class="p">([</span><span class="n">cast</span><span class="p">(</span><span class="s">&#39;some string&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="n">collation</span><span class="o">=</span><span class="s">&#39;utf8&#39;</span><span class="p">))])</span>
 <span class="go">SELECT CAST(:param_1 AS VARCHAR COLLATE utf8) AS anon_1</span></pre></div>
 </div>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8: </span>Added support for COLLATE to all
+<div class="versionadded">
+<p><span>New in version 0.8: </span>Added support for COLLATE to all
 string types.</p>
+</div>
 </li>
 <li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the
 <a class="reference internal" href="#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type will assume that
@@ -1008,7 +1011,7 @@ on all databases.</p>
 <div class="section" id="vendor-specific-types">
 <span id="types-vendor"></span><h2>Vendor-Specific Types<a class="headerlink" href="#vendor-specific-types" title="Permalink to this headline">¶</a></h2>
 <p>Database-specific types are also available for import from each
-database&#8217;s dialect module. See the <em class="xref std std-ref">sqlalchemy.dialects_toplevel</em>
+database&#8217;s dialect module. See the <a class="reference internal" href="../dialects/index.html"><em>Dialects</em></a>
 reference for the database you&#8217;re interested in.</p>
 <p>For example, MySQL has a <tt class="docutils literal"><span class="pre">BIGINT</span></tt> type and PostgreSQL has an
 <tt class="docutils literal"><span class="pre">INET</span></tt> type.  To use these, import them from the module explicitly:</p>
@@ -1201,7 +1204,7 @@ dialect.</p>
 <tt class="descname">bind_expression</tt><big>(</big><em>bindvalue</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeDecorator.bind_expression" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.types.TypeEngine.bind_expression" title="sqlalchemy.types.TypeEngine.bind_expression"><tt class="xref py py-meth docutils literal"><span class="pre">bind_expression()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a></div>
-<p>&#8220;Given a bind value (i.e. a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a> instance),
+<p>&#8220;Given a bind value (i.e. a <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a> instance),
 return a SQL expression in its place.</p>
 <p>This is typically a SQL function that wraps the existing bound
 parameter within the statement.  It is used for special data types
@@ -1505,7 +1508,7 @@ type when applied to the dialect of the given name.</p>
 <p>The construction of <a class="reference internal" href="#sqlalchemy.types.TypeEngine.with_variant" title="sqlalchemy.types.TypeEngine.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.with_variant()</span></tt></a> is always
 from the &#8220;fallback&#8221; type to that which is dialect specific.
 The returned type is an instance of <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a>, which
-itself provides a <a class="reference internal" href="#sqlalchemy.types.Variant.with_variant" title="sqlalchemy.types.Variant.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">with_variant()</span></tt></a>
+itself provides a <tt class="xref py py-meth docutils literal"><span class="pre">with_variant()</span></tt>
 that can be called repeatedly.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1522,8 +1525,9 @@ this type. (i.e. <tt class="docutils literal"><span class="pre">'postgresql'</sp
 </tr>
 </tbody>
 </table>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.7.2.</span></p>
+<div class="versionadded">
+<p><span>New in version 0.7.2.</span></p>
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -1583,7 +1587,7 @@ many decimal places.   Here&#8217;s a recipe that rounds them down:</p>
 </div>
 </div>
 <div class="section" id="backend-agnostic-guid-type">
-<h4>Backend-agnostic GUID Type<a class="headerlink" href="#backend-agnostic-guid-type" title="Permalink to this headline">¶</a></h4>
+<span id="custom-guid-type"></span><h4>Backend-agnostic GUID Type<a class="headerlink" href="#backend-agnostic-guid-type" title="Permalink to this headline">¶</a></h4>
 <p>Receives and returns Python uuid() objects.  Uses the PG UUID type
 when using Postgresql, CHAR(32) on other backends, storing them
 in stringified hex format.   Can be modified to store
@@ -1722,13 +1726,13 @@ data into particular formats.</p>
 <p>Any <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a>, <a class="reference internal" href="#sqlalchemy.types.UserDefinedType" title="sqlalchemy.types.UserDefinedType"><tt class="xref py py-class docutils literal"><span class="pre">UserDefinedType</span></tt></a> or <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a> subclass
 can include implementations of
 <a class="reference internal" href="#sqlalchemy.types.TypeEngine.bind_expression" title="sqlalchemy.types.TypeEngine.bind_expression"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.bind_expression()</span></tt></a> and/or <a class="reference internal" href="#sqlalchemy.types.TypeEngine.column_expression" title="sqlalchemy.types.TypeEngine.column_expression"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.column_expression()</span></tt></a>, which
-when defined to return a non-<tt class="docutils literal"><span class="pre">None</span></tt> value should return a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>
+when defined to return a non-<tt class="docutils literal"><span class="pre">None</span></tt> value should return a <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>
 expression to be injected into the SQL statement, either surrounding
 bound parameters or a column expression.  For example, to build a <tt class="docutils literal"><span class="pre">Geometry</span></tt>
 type which will apply the Postgis function <tt class="docutils literal"><span class="pre">ST_GeomFromText</span></tt> to all outgoing
 values and the function <tt class="docutils literal"><span class="pre">ST_AsText</span></tt> to all incoming data, we can create
 our own subclass of <a class="reference internal" href="#sqlalchemy.types.UserDefinedType" title="sqlalchemy.types.UserDefinedType"><tt class="xref py py-class docutils literal"><span class="pre">UserDefinedType</span></tt></a> which provides these methods
-in conjunction with <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a>:</p>
+in conjunction with <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">func</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.types</span> <span class="kn">import</span> <span class="n">UserDefinedType</span>
 
@@ -1742,8 +1746,8 @@ in conjunction with <a class="reference internal" href="expression_api.html#sqla
     <span class="k">def</span> <span class="nf">column_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">func</span><span class="o">.</span><span class="n">ST_AsText</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span></pre></div>
 </div>
-<p>We can apply the <tt class="docutils literal"><span class="pre">Geometry</span></tt> type into <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> metadata
-and use it in a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct:</p>
+<p>We can apply the <tt class="docutils literal"><span class="pre">Geometry</span></tt> type into <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> metadata
+and use it in a <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">geometry</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;geometry&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
               <span class="n">Column</span><span class="p">(</span><span class="s">&#39;geom_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
               <span class="n">Column</span><span class="p">(</span><span class="s">&#39;geom_data&#39;</span><span class="p">,</span> <span class="n">Geometry</span><span class="p">)</span>
@@ -1763,7 +1767,7 @@ WHERE geometry.geom_data = ST_GeomFromText(:geom_data_2)</pre>
 <p>The <a class="reference internal" href="#sqlalchemy.types.TypeEngine.column_expression" title="sqlalchemy.types.TypeEngine.column_expression"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.column_expression()</span></tt></a> method interacts with the
 mechanics of the compiler such that the SQL expression does not interfere
 with the labeling of the wrapped expression.   Such as, if we rendered
-a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> against a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.label" title="sqlalchemy.sql.expression.label"><tt class="xref py py-func docutils literal"><span class="pre">label()</span></tt></a> of our expression, the string
+a <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> against a <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.label" title="sqlalchemy.sql.expression.label"><tt class="xref py py-func docutils literal"><span class="pre">label()</span></tt></a> of our expression, the string
 label is moved to the outside of the wrapped expression:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">print</span> <span class="n">select</span><span class="p">([</span><span class="n">geometry</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">geom_data</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;my_data&#39;</span><span class="p">)])</span></pre></div>
 </div>
@@ -1826,9 +1830,10 @@ SELECT pgp_sym_decrypt(message.message, %(pgp_sym_decrypt_1)s) AS message_1
   WHERE message.username = %(username_1)s
   {'pgp_sym_decrypt_1': 'this is my passphrase', 'username_1': 'some user'}</pre>
 </div>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8: </span>Added the <a class="reference internal" href="#sqlalchemy.types.TypeEngine.bind_expression" title="sqlalchemy.types.TypeEngine.bind_expression"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.bind_expression()</span></tt></a> and
+<div class="versionadded">
+<p><span>New in version 0.8: </span>Added the <a class="reference internal" href="#sqlalchemy.types.TypeEngine.bind_expression" title="sqlalchemy.types.TypeEngine.bind_expression"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.bind_expression()</span></tt></a> and
 <a class="reference internal" href="#sqlalchemy.types.TypeEngine.column_expression" title="sqlalchemy.types.TypeEngine.column_expression"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.column_expression()</span></tt></a> methods.</p>
+</div>
 <p>See also:</p>
 <p><a class="reference internal" href="../orm/examples.html#examples-postgis"><em>PostGIS Integration</em></a></p>
 </div>
@@ -1837,11 +1842,11 @@ SELECT pgp_sym_decrypt(message.message, %(pgp_sym_decrypt_1)s) AS message_1
 <p>SQLAlchemy Core defines a fixed set of expression operators available to all column expressions.
 Some of these operations have the effect of overloading Python&#8217;s built in operators;
 examples of such operators include
-<a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.__eq__" title="sqlalchemy.sql.operators.ColumnOperators.__eq__"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.__eq__()</span></tt></a> (<tt class="docutils literal"><span class="pre">table.c.somecolumn</span> <span class="pre">==</span> <span class="pre">'foo'</span></tt>),
-<a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.__invert__" title="sqlalchemy.sql.operators.ColumnOperators.__invert__"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.__invert__()</span></tt></a> (<tt class="docutils literal"><span class="pre">~table.c.flag</span></tt>),
-and <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.__add__" title="sqlalchemy.sql.operators.ColumnOperators.__add__"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.__add__()</span></tt></a> (<tt class="docutils literal"><span class="pre">table.c.x</span> <span class="pre">+</span> <span class="pre">table.c.y</span></tt>).  Other operators are exposed as
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.__eq__" title="sqlalchemy.sql.operators.ColumnOperators.__eq__"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.__eq__()</span></tt></a> (<tt class="docutils literal"><span class="pre">table.c.somecolumn</span> <span class="pre">==</span> <span class="pre">'foo'</span></tt>),
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.__invert__" title="sqlalchemy.sql.operators.ColumnOperators.__invert__"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.__invert__()</span></tt></a> (<tt class="docutils literal"><span class="pre">~table.c.flag</span></tt>),
+and <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.__add__" title="sqlalchemy.sql.operators.ColumnOperators.__add__"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.__add__()</span></tt></a> (<tt class="docutils literal"><span class="pre">table.c.x</span> <span class="pre">+</span> <span class="pre">table.c.y</span></tt>).  Other operators are exposed as
 explicit methods on column expressions, such as
-<a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.in_" title="sqlalchemy.sql.operators.ColumnOperators.in_"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.in_()</span></tt></a> (<tt class="docutils literal"><span class="pre">table.c.value.in_(['x',</span> <span class="pre">'y'])</span></tt>) and <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.like()</span></tt></a>
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.in_" title="sqlalchemy.sql.operators.ColumnOperators.in_"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.in_()</span></tt></a> (<tt class="docutils literal"><span class="pre">table.c.value.in_(['x',</span> <span class="pre">'y'])</span></tt>) and <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.like()</span></tt></a>
 (<tt class="docutils literal"><span class="pre">table.c.value.like('%ed%')</span></tt>).</p>
 <p>The Core expression constructs in all cases consult the type of the expression in order to determine
 the behavior of existing operators, as well as to locate additional operators that aren&#8217;t part of
@@ -1849,7 +1854,7 @@ the built in set.   The <a class="reference internal" href="#sqlalchemy.types.Ty
 <a class="reference internal" href="#sqlalchemy.types.TypeEngine.Comparator" title="sqlalchemy.types.TypeEngine.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine.Comparator</span></tt></a>, and many specific types provide their own sub-implementations of this
 class.   User-defined <a class="reference internal" href="#sqlalchemy.types.TypeEngine.Comparator" title="sqlalchemy.types.TypeEngine.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine.Comparator</span></tt></a> implementations can be built directly into a
 simple subclass of a particular type in order to override or define new operations.  Below,
-we create a <a class="reference internal" href="#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">Integer</span></tt></a> subclass which overrides the <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.__add__" title="sqlalchemy.sql.operators.ColumnOperators.__add__"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.__add__()</span></tt></a> operator:</p>
+we create a <a class="reference internal" href="#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">Integer</span></tt></a> subclass which overrides the <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.__add__" title="sqlalchemy.sql.operators.ColumnOperators.__add__"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.__add__()</span></tt></a> operator:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Integer</span>
 
 <span class="k">class</span> <span class="nc">MyInt</span><span class="p">(</span><span class="n">Integer</span><span class="p">):</span>
@@ -1866,7 +1871,7 @@ associated with the <a class="reference internal" href="#sqlalchemy.types.Intege
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span> <span class="o">+</span> <span class="mi">5</span>
 <span class="go">sometable.data goofy :data_1</span></pre></div>
 </div>
-<p>The implementation for <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.__add__" title="sqlalchemy.sql.operators.ColumnOperators.__add__"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.__add__()</span></tt></a> is consulted
+<p>The implementation for <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.__add__" title="sqlalchemy.sql.operators.ColumnOperators.__add__"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.__add__()</span></tt></a> is consulted
 by an owning SQL expression, by instantiating the <a class="reference internal" href="#sqlalchemy.types.TypeEngine.Comparator" title="sqlalchemy.types.TypeEngine.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine.Comparator</span></tt></a> with
 itself as the <tt class="docutils literal"><span class="pre">expr</span></tt> attribute.   The mechanics of the expression
 system are such that operations continue recursively until an
@@ -1876,7 +1881,7 @@ of <tt class="docutils literal"><span class="pre">self.op(&quot;goofy&quot;)(oth
 <p>New methods added to a <a class="reference internal" href="#sqlalchemy.types.TypeEngine.Comparator" title="sqlalchemy.types.TypeEngine.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine.Comparator</span></tt></a> are exposed on an
 owning SQL expression
 using a <tt class="docutils literal"><span class="pre">__getattr__</span></tt> scheme, which exposes methods added to
-<a class="reference internal" href="#sqlalchemy.types.TypeEngine.Comparator" title="sqlalchemy.types.TypeEngine.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine.Comparator</span></tt></a> onto the owning <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>.
+<a class="reference internal" href="#sqlalchemy.types.TypeEngine.Comparator" title="sqlalchemy.types.TypeEngine.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine.Comparator</span></tt></a> onto the owning <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a>.
 For example, to add a <tt class="docutils literal"><span class="pre">log()</span></tt> function
 to integers:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">func</span>
@@ -1884,7 +1889,7 @@ to integers:</p>
 <span class="k">class</span> <span class="nc">MyInt</span><span class="p">(</span><span class="n">Integer</span><span class="p">):</span>
     <span class="k">class</span> <span class="nc">comparator_factory</span><span class="p">(</span><span class="n">Integer</span><span class="o">.</span><span class="n">Comparator</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">func</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span></pre></div>
+            <span class="k">return</span> <span class="n">func</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span></pre></div>
 </div>
 <p>Using the above type:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
@@ -1892,8 +1897,8 @@ to integers:</p>
 </div>
 <p>Unary operations
 are also possible.  For example, to add an implementation of the
-Postgresql factorial operator, we combine the <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.UnaryExpression" title="sqlalchemy.sql.expression.UnaryExpression"><tt class="xref py py-class docutils literal"><span class="pre">UnaryExpression</span></tt></a> construct
-along with a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.custom_op" title="sqlalchemy.sql.operators.custom_op"><tt class="xref py py-class docutils literal"><span class="pre">custom_op</span></tt></a> to produce the factorial expression:</p>
+Postgresql factorial operator, we combine the <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.UnaryExpression" title="sqlalchemy.sql.expression.UnaryExpression"><tt class="xref py py-class docutils literal"><span class="pre">UnaryExpression</span></tt></a> construct
+along with a <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.operators.custom_op" title="sqlalchemy.sql.operators.custom_op"><tt class="xref py py-class docutils literal"><span class="pre">custom_op</span></tt></a> to produce the factorial expression:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Integer</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.sql.expression</span> <span class="kn">import</span> <span class="n">UnaryExpression</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">operators</span>
@@ -1912,9 +1917,10 @@ along with a <a class="reference internal" href="expression_api.html#sqlalchemy.
 </div>
 <p>See also:</p>
 <p><a class="reference internal" href="#sqlalchemy.types.TypeEngine.comparator_factory" title="sqlalchemy.types.TypeEngine.comparator_factory"><tt class="xref py py-attr docutils literal"><span class="pre">TypeEngine.comparator_factory</span></tt></a></p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8: </span>The expression system was enhanced to support
+<div class="versionadded">
+<p><span>New in version 0.8: </span>The expression system was enhanced to support
 customization of operators on a per-type level.</p>
+</div>
 </div>
 <div class="section" id="creating-new-types">
 <h3>Creating New Types<a class="headerlink" href="#creating-new-types" title="Permalink to this headline">¶</a></h3>
@@ -1964,11 +1970,12 @@ same as that of <a class="reference internal" href="#sqlalchemy.types.TypeDecora
 <tt class="docutils literal"><span class="pre">self</span></tt>, assuming the compared value should be coerced into
 the same type as this one.  See
 <a class="reference internal" href="#sqlalchemy.types.TypeDecorator.coerce_compared_value" title="sqlalchemy.types.TypeDecorator.coerce_compared_value"><tt class="xref py py-meth docutils literal"><span class="pre">TypeDecorator.coerce_compared_value()</span></tt></a> for more detail.</p>
-<p class="versionchanged">
-<span class="versionmodified">Changed in version 0.8: </span><a class="reference internal" href="#sqlalchemy.types.UserDefinedType.coerce_compared_value" title="sqlalchemy.types.UserDefinedType.coerce_compared_value"><tt class="xref py py-meth docutils literal"><span class="pre">UserDefinedType.coerce_compared_value()</span></tt></a>
+<div class="versionchanged">
+<p><span>Changed in version 0.8: </span><a class="reference internal" href="#sqlalchemy.types.UserDefinedType.coerce_compared_value" title="sqlalchemy.types.UserDefinedType.coerce_compared_value"><tt class="xref py py-meth docutils literal"><span class="pre">UserDefinedType.coerce_compared_value()</span></tt></a>
 now returns <tt class="docutils literal"><span class="pre">self</span></tt> by default, rather than falling onto the
 more fundamental behavior of
 <a class="reference internal" href="#sqlalchemy.types.TypeEngine.coerce_compared_value" title="sqlalchemy.types.TypeEngine.coerce_compared_value"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.coerce_compared_value()</span></tt></a>.</p>
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -1997,7 +2004,7 @@ compatibility.</p>
 <p>Base class for custom comparison operations defined at the
 type level.  See <a class="reference internal" href="#sqlalchemy.types.TypeEngine.comparator_factory" title="sqlalchemy.types.TypeEngine.comparator_factory"><tt class="xref py py-attr docutils literal"><span class="pre">TypeEngine.comparator_factory</span></tt></a>.</p>
 <p>The public base class for <a class="reference internal" href="#sqlalchemy.types.TypeEngine.Comparator" title="sqlalchemy.types.TypeEngine.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine.Comparator</span></tt></a>
-is <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a>.</p>
+is <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2019,7 +2026,7 @@ dialect.</p>
 <dl class="method">
 <dt id="sqlalchemy.types.TypeEngine.bind_expression">
 <tt class="descclassname">TypeEngine.</tt><tt class="descname">bind_expression</tt><big>(</big><em>bindvalue</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.bind_expression" title="Permalink to this definition">¶</a></dt>
-<dd><p>&#8220;Given a bind value (i.e. a <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a> instance),
+<dd><p>&#8220;Given a bind value (i.e. a <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a> instance),
 return a SQL expression in its place.</p>
 <p>This is typically a SQL function that wraps the existing bound
 parameter within the statement.  It is used for special data types
@@ -2093,26 +2100,28 @@ to statement construction time.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.types.TypeEngine.comparator_factory">
 <tt class="descclassname">TypeEngine.</tt><tt class="descname">comparator_factory</tt><a class="headerlink" href="#sqlalchemy.types.TypeEngine.comparator_factory" title="Permalink to this definition">¶</a></dt>
-<dd><p>A <a class="reference internal" href="#sqlalchemy.types.TypeEngine.Comparator" title="sqlalchemy.types.TypeEngine.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine.Comparator</span></tt></a> class which will apply
-to operations performed by owning <a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> objects.</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression._DefaultColumnComparator</span></tt></p>
+<p>A <a class="reference internal" href="#sqlalchemy.types.TypeEngine.Comparator" title="sqlalchemy.types.TypeEngine.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine.Comparator</span></tt></a> class which will apply
+to operations performed by owning <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> objects.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.types.TypeEngine.comparator_factory" title="sqlalchemy.types.TypeEngine.comparator_factory"><tt class="xref py py-attr docutils literal"><span class="pre">comparator_factory</span></tt></a> attribute is a hook consulted by
 the core expression system when column and SQL expression operations
 are performed.   When a <a class="reference internal" href="#sqlalchemy.types.TypeEngine.Comparator" title="sqlalchemy.types.TypeEngine.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine.Comparator</span></tt></a> class is
 associated with this attribute, it allows custom re-definition of
 all existing operators, as well as definition of new operators.
 Existing operators include those provided by Python operator overloading
-such as <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.__add__" title="sqlalchemy.sql.operators.ColumnOperators.__add__"><tt class="xref py py-meth docutils literal"><span class="pre">operators.ColumnOperators.__add__()</span></tt></a> and
-<a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.__eq__" title="sqlalchemy.sql.operators.ColumnOperators.__eq__"><tt class="xref py py-meth docutils literal"><span class="pre">operators.ColumnOperators.__eq__()</span></tt></a>,
+such as <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.__add__" title="sqlalchemy.sql.operators.ColumnOperators.__add__"><tt class="xref py py-meth docutils literal"><span class="pre">operators.ColumnOperators.__add__()</span></tt></a> and
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.__eq__" title="sqlalchemy.sql.operators.ColumnOperators.__eq__"><tt class="xref py py-meth docutils literal"><span class="pre">operators.ColumnOperators.__eq__()</span></tt></a>,
 those provided as standard
-attributes of <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">operators.ColumnOperators</span></tt></a> such as
-<a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">operators.ColumnOperators.like()</span></tt></a>
-and <a class="reference internal" href="expression_api.html#sqlalchemy.sql.operators.ColumnOperators.in_" title="sqlalchemy.sql.operators.ColumnOperators.in_"><tt class="xref py py-meth docutils literal"><span class="pre">operators.ColumnOperators.in_()</span></tt></a>.</p>
+attributes of <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">operators.ColumnOperators</span></tt></a> such as
+<a class="reference internal" href="sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">operators.ColumnOperators.like()</span></tt></a>
+and <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.in_" title="sqlalchemy.sql.operators.ColumnOperators.in_"><tt class="xref py py-meth docutils literal"><span class="pre">operators.ColumnOperators.in_()</span></tt></a>.</p>
 <p>Rudimentary usage of this hook is allowed through simple subclassing
 of existing types, or alternatively by using <a class="reference internal" href="#sqlalchemy.types.TypeDecorator" title="sqlalchemy.types.TypeDecorator"><tt class="xref py py-class docutils literal"><span class="pre">TypeDecorator</span></tt></a>.
 See the documentation section <a class="reference internal" href="#types-operators"><em>Redefining and Creating New Operators</em></a> for examples.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8: </span>The expression system was enhanced to support
+<div class="versionadded">
+<p><span>New in version 0.8: </span>The expression system was enhanced to support
 customization of operators on a per-type level.</p>
+</div>
 <p>alias of <a class="reference internal" href="#sqlalchemy.types.TypeEngine.Comparator" title="sqlalchemy.types.TypeEngine.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">Comparator</span></tt></a></p>
 </dd></dl>
 
@@ -2150,7 +2159,8 @@ to produce a string result.</p>
 <tt class="descclassname">TypeEngine.</tt><tt class="descname">get_dbapi_type</tt><big>(</big><em>dbapi</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.get_dbapi_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the corresponding type object from the underlying DB-API, if
 any.</p>
-<p>This can be useful for calling <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt>, for example.</p>
+<blockquote>
+<div>This can be useful for calling <tt class="docutils literal"><span class="pre">setinputsizes()</span></tt>, for example.</div></blockquote>
 </dd></dl>
 
 <dl class="attribute">
@@ -2213,7 +2223,7 @@ type when applied to the dialect of the given name.</p>
 <p>The construction of <a class="reference internal" href="#sqlalchemy.types.TypeEngine.with_variant" title="sqlalchemy.types.TypeEngine.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.with_variant()</span></tt></a> is always
 from the &#8220;fallback&#8221; type to that which is dialect specific.
 The returned type is an instance of <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a>, which
-itself provides a <a class="reference internal" href="#sqlalchemy.types.Variant.with_variant" title="sqlalchemy.types.Variant.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">with_variant()</span></tt></a>
+itself provides a <tt class="xref py py-meth docutils literal"><span class="pre">with_variant()</span></tt>
 that can be called repeatedly.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2230,8 +2240,9 @@ this type. (i.e. <tt class="docutils literal"><span class="pre">'postgresql'</sp
 </tr>
 </tbody>
 </table>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.7.2.</span></p>
+<div class="versionadded">
+<p><span>New in version 0.7.2.</span></p>
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -2239,8 +2250,7 @@ this type. (i.e. <tt class="docutils literal"><span class="pre">'postgresql'</sp
 <dl class="class">
 <dt id="sqlalchemy.types.Concatenable">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Concatenable</tt><a class="headerlink" href="#sqlalchemy.types.Concatenable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>A mixin that marks a type as supporting &#8216;concatenation&#8217;,
+<dd><p>A mixin that marks a type as supporting &#8216;concatenation&#8217;,
 typically strings.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.types.Concatenable.__init__">
@@ -2274,50 +2284,17 @@ encountered during a <tt class="xref py py-meth docutils literal"><span class="p
 implementations based on dialect in use.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a> type is typically constructed
 using the <a class="reference internal" href="#sqlalchemy.types.TypeEngine.with_variant" title="sqlalchemy.types.TypeEngine.with_variant"><tt class="xref py py-meth docutils literal"><span class="pre">TypeEngine.with_variant()</span></tt></a> method.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.7.2.</span></p>
-<dl class="method">
-<dt id="sqlalchemy.types.Variant.with_variant">
-<tt class="descname">with_variant</tt><big>(</big><em>type_</em>, <em>dialect_name</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Variant.with_variant" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a new <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a> which adds the given
-type + dialect name to the mapping, in addition to the
-mapping present in this <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a>.</p>
+<div class="versionadded">
+<p><span>New in version 0.7.2.</span></p>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>type</strong> &#8211; a <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> that will be selected
-as a variant from the originating type, when a dialect
-of the given name is in use.</li>
-<li><strong>dialect_name</strong> &#8211; base name of the dialect which uses
-this type. (i.e. <tt class="docutils literal"><span class="pre">'postgresql'</span></tt>, <tt class="docutils literal"><span class="pre">'mysql'</span></tt>, etc.)</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Members :</th><td class="field-body">with_variant, __init__</td>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sqlalchemy.types.Variant.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>base</em>, <em>mapping</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Variant.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct a new <a class="reference internal" href="#sqlalchemy.types.Variant" title="sqlalchemy.types.Variant"><tt class="xref py py-class docutils literal"><span class="pre">Variant</span></tt></a>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>base</strong> &#8211; the base &#8216;fallback&#8217; type</li>
-<li><strong>mapping</strong> &#8211; dictionary of string dialect names to
-<a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> instances.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 </dd></dl>
 
 </div>
@@ -2329,13 +2306,13 @@ this type. (i.e. <tt class="docutils literal"><span class="pre">'postgresql'</sp
 
 <div id="docs-bottom-navigation" class="docs-navigation-links">
         Previous:
-        <a href="schema.html" title="previous chapter">Schema Definition Language</a>
+        <a href="functions.html" title="previous chapter">SQL and Generic Functions</a>
         Next:
-        <a href="event.html" title="next chapter">Events</a>
+        <a href="schema.html" title="next chapter">Schema Definition Language</a>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
 

@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.2',
+          VERSION:     '0.8.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -35,7 +35,7 @@
     <link rel="top" title="SQLAlchemy 0.8 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Core Events" href="events.html" />
-        <link rel="prev" title="Column and Data Types" href="types.html" />
+        <link rel="prev" title="Connection Pooling" href="pooling.html" />
 
     </head>
     <body>
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
+        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
 
 
     </div>
@@ -78,7 +78,7 @@
     <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
-            <a href="types.html" title="previous chapter">Column and Data Types</a>
+            <a href="pooling.html" title="previous chapter">Connection Pooling</a>
             </li>
             <li>Next:
             <a href="events.html" title="next chapter">Core Events</a>
@@ -126,7 +126,7 @@
 
     <h4>Previous Topic</h4>
     <p>
-    <a href="types.html" title="previous chapter">Column and Data Types</a>
+    <a href="pooling.html" title="previous chapter">Connection Pooling</a>
     </p>
     <h4>Next Topic</h4>
     <p>
@@ -151,9 +151,10 @@
 <span id="event-toplevel"></span><h1>Events<a class="headerlink" href="#events" title="Permalink to this headline">¶</a></h1>
 <p>SQLAlchemy includes an event API which publishes a wide variety of hooks into
 the internals of both SQLAlchemy Core and ORM.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.7: </span>The system supercedes the previous system of &#8220;extension&#8221;, &#8220;proxy&#8221;,
+<div class="versionadded">
+<p><span>New in version 0.7: </span>The system supercedes the previous system of &#8220;extension&#8221;, &#8220;proxy&#8221;,
 and &#8220;listener&#8221; classes.</p>
+</div>
 <div class="section" id="event-registration">
 <h2>Event Registration<a class="headerlink" href="#event-registration" title="Permalink to this headline">¶</a></h2>
 <p>Subscribing to an event occurs through a single API point, the <a class="reference internal" href="#sqlalchemy.event.listen" title="sqlalchemy.event.listen"><tt class="xref py py-func docutils literal"><span class="pre">listen()</span></tt></a> function.   This function
@@ -286,13 +287,13 @@ and per-instance persistence hooks.</li>
 
 <div id="docs-bottom-navigation" class="docs-navigation-links">
         Previous:
-        <a href="types.html" title="previous chapter">Column and Data Types</a>
+        <a href="pooling.html" title="previous chapter">Connection Pooling</a>
         Next:
         <a href="events.html" title="next chapter">Core Events</a>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
 

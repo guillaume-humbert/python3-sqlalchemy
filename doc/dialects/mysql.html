@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.2',
+          VERSION:     '0.8.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
+        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
 
 
     </div>
@@ -130,6 +130,7 @@
 <li><a class="reference internal" href="#index-types">Index Types</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#mysql-foreign-key-options">MySQL Foreign Key Options</a></li>
 <li><a class="reference internal" href="#mysql-data-types">MySQL Data Types</a></li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.mysql.mysqldb">MySQL-Python</a><ul>
 <li><a class="reference internal" href="#dialect-mysql-mysqldb-url">DBAPI</a></li>
@@ -233,7 +234,7 @@ example, they won&#8217;t work in SQLAlchemy either.</p>
 supported in any given server release.</p>
 </div>
 <div class="section" id="connection-timeouts">
-<h2>Connection Timeouts<a class="headerlink" href="#connection-timeouts" title="Permalink to this headline">¶</a></h2>
+<span id="mysql-connection-timeouts"></span><h2>Connection Timeouts<a class="headerlink" href="#connection-timeouts" title="Permalink to this headline">¶</a></h2>
 <p>MySQL features an automatic connection close behavior, for connections that have
 been idle for eight hours or more.   To circumvent having this issue, use the
 <tt class="docutils literal"><span class="pre">pool_recycle</span></tt> option which controls the maximum age of any connection:</p>
@@ -257,7 +258,7 @@ creation option can be specified in this syntax:</p>
       <span class="n">mysql_charset</span><span class="o">=</span><span class="s">&#39;utf8&#39;</span>
      <span class="p">)</span></pre></div>
 </div>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference external" href="http://dev.mysql.com/doc/refman/5.0/en/innodb-storage-engine.html">The InnoDB Storage Engine</a> -
 on the MySQL website.</p>
@@ -290,8 +291,9 @@ every new connection. Valid values for this parameter are
                 <span class="n">isolation_level</span><span class="o">=</span><span class="s">&quot;READ UNCOMMITTED&quot;</span>
             <span class="p">)</span></pre></div>
 </div>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.7.6.</span></p>
+<div class="versionadded">
+<p><span>New in version 0.7.6.</span></p>
+</div>
 </div>
 <div class="section" id="keys">
 <h2>Keys<a class="headerlink" href="#keys" title="Permalink to this headline">¶</a></h2>
@@ -335,9 +337,10 @@ established with a particular <a class="reference internal" href="../core/connec
 into play when rendering table and column names as well as when reflecting
 existing database structures.  The detection is entirely automatic and
 no special configuration is needed to use either quoting style.</p>
-<p class="versionchanged">
-<span class="versionmodified">Changed in version 0.6: </span>detection of ANSI quoting style is entirely automatic,
+<div class="versionchanged">
+<p><span>Changed in version 0.6: </span>detection of ANSI quoting style is entirely automatic,
 there&#8217;s no longer any end-user <tt class="docutils literal"><span class="pre">create_engine()</span></tt> options in this regard.</p>
+</div>
 </div>
 <div class="section" id="mysql-sql-extensions">
 <h2>MySQL SQL Extensions<a class="headerlink" href="#mysql-sql-extensions" title="Permalink to this headline">¶</a></h2>
@@ -377,7 +380,7 @@ OurSQL driver).</p>
 <div class="section" id="cast-support">
 <h2>CAST Support<a class="headerlink" href="#cast-support" title="Permalink to this headline">¶</a></h2>
 <p>MySQL documents the CAST operator as available in version 4.0.2.  When using the
-SQLAlchemy <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a> function, SQLAlchemy
+SQLAlchemy <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a> function, SQLAlchemy
 will not render the CAST token on MySQL before this version, based on server version
 detection, instead rendering the internal expression directly.</p>
 <p>CAST may still not be desirable on an early MySQL version post-4.0.2, as it didn&#8217;t
@@ -396,13 +399,13 @@ narrow area, the behavior of CAST can be controlled using the
 </div>
 <p>The above function, which only needs to be declared once
 within an application, overrides the compilation of the
-<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a> construct to check for version 4.1.0 before
+<a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a> construct to check for version 4.1.0 before
 fully rendering CAST; else the internal element of the
 construct is rendered directly.</p>
 </div>
 <div class="section" id="mysql-specific-index-options">
 <span id="mysql-indexes"></span><h2>MySQL Specific Index Options<a class="headerlink" href="#mysql-specific-index-options" title="Permalink to this headline">¶</a></h2>
-<p>MySQL-specific extensions to the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct are available.</p>
+<p>MySQL-specific extensions to the <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct are available.</p>
 <div class="section" id="index-length">
 <h3>Index Length<a class="headerlink" href="#index-length" title="Permalink to this headline">¶</a></h3>
 <p>MySQL provides an option to create index entries with a certain length, where
@@ -420,18 +423,19 @@ columns of the index) or a dict in which keys are column names and values are
 prefix length values for corresponding columns. MySQL only allows a length for
 a column of an index if it is for a CHAR, VARCHAR, TEXT, BINARY, VARBINARY and
 BLOB.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8.2: </span><tt class="docutils literal"><span class="pre">mysql_length</span></tt> may now be specified as a dictionary
+<div class="versionadded">
+<p><span>New in version 0.8.2: </span><tt class="docutils literal"><span class="pre">mysql_length</span></tt> may now be specified as a dictionary
 for use with composite indexes.</p>
+</div>
 </div>
 <div class="section" id="index-types">
 <h3>Index Types<a class="headerlink" href="#index-types" title="Permalink to this headline">¶</a></h3>
 <p>Some MySQL storage engines permit you to specify an index type when creating
 an index or primary key constraint. SQLAlchemy provides this feature via the
-<tt class="docutils literal"><span class="pre">mysql_using</span></tt> parameter on <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a>:</p>
+<tt class="docutils literal"><span class="pre">mysql_using</span></tt> parameter on <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Index</span><span class="p">(</span><span class="s">&#39;my_index&#39;</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">mysql_using</span><span class="o">=</span><span class="s">&#39;hash&#39;</span><span class="p">)</span></pre></div>
 </div>
-<p>As well as the <tt class="docutils literal"><span class="pre">mysql_using</span></tt> parameter on <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.PrimaryKeyConstraint" title="sqlalchemy.schema.PrimaryKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt></a>:</p>
+<p>As well as the <tt class="docutils literal"><span class="pre">mysql_using</span></tt> parameter on <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.PrimaryKeyConstraint" title="sqlalchemy.schema.PrimaryKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">PrimaryKeyConstraint</span><span class="p">(</span><span class="s">&quot;data&quot;</span><span class="p">,</span> <span class="n">mysql_using</span><span class="o">=</span><span class="s">&#39;hash&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>The value passed to the keyword argument will be simply passed through to the
@@ -440,6 +444,42 @@ type for your MySQL storage engine.</p>
 <p>More information can be found at:</p>
 <p><a class="reference external" href="http://dev.mysql.com/doc/refman/5.0/en/create-index.html">http://dev.mysql.com/doc/refman/5.0/en/create-index.html</a></p>
 <p><a class="reference external" href="http://dev.mysql.com/doc/refman/5.0/en/create-table.html">http://dev.mysql.com/doc/refman/5.0/en/create-table.html</a></p>
+</div>
+</div>
+<div class="section" id="mysql-foreign-key-options">
+<span id="mysql-foreign-keys"></span><h2>MySQL Foreign Key Options<a class="headerlink" href="#mysql-foreign-key-options" title="Permalink to this headline">¶</a></h2>
+<p>MySQL does not support the foreign key arguments &#8220;DEFERRABLE&#8221;, &#8220;INITIALLY&#8221;,
+or &#8220;MATCH&#8221;.  Using the <tt class="docutils literal"><span class="pre">deferrable</span></tt> or <tt class="docutils literal"><span class="pre">initially</span></tt> keyword argument with
+<a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> or <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> will have the effect of
+these keywords being ignored in a DDL expression along with a warning, however this behavior
+<strong>will change</strong> in a future release.</p>
+<p>In order to use these keywords on a foreign key while having them ignored
+on a MySQL backend, use a custom compile rule:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.compiler</span> <span class="kn">import</span> <span class="n">compiles</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.schema</span> <span class="kn">import</span> <span class="n">ForeignKeyConstraint</span>
+
+<span class="nd">@compiles</span><span class="p">(</span><span class="n">ForeignKeyConstraint</span><span class="p">,</span> <span class="s">&quot;mysql&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">compiler</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="n">element</span><span class="o">.</span><span class="n">deferrable</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">initially</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="n">compiler</span><span class="o">.</span><span class="n">visit_foreign_key_constraint</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span></pre></div>
+</div>
+<div class="versionchanged">
+<p><span>Changed in version 0.8.3: </span>- the MySQL backend will emit a warning when the
+the <tt class="docutils literal"><span class="pre">deferrable</span></tt> or <tt class="docutils literal"><span class="pre">initially</span></tt> keyword arguments of <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>
+and <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> are used.  The arguments will no longer be
+ignored in 0.9.</p>
+</div>
+<p>The &#8220;MATCH&#8221; keyword is in fact more insidious, and in a future release will be
+explicitly disallowed
+by SQLAlchemy in conjunction with the MySQL backend.  This argument is silently
+ignored by MySQL, but in addition has the effect of ON UPDATE and ON DELETE options
+also being ignored by the backend.   Therefore MATCH should never be used with the
+MySQL backend; as is the case with DEFERRABLE and INITIALLY, custom compilation
+rules can be used to correct a MySQL ForeignKeyConstraint at DDL definition time.</p>
+<div class="versionadded">
+<p><span>New in version 0.8.3: </span>- the MySQL backend will emit a warning when
+the <tt class="docutils literal"><span class="pre">match</span></tt> keyword is used with <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>
+or <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a>.  This will be a <tt class="xref py py-class docutils literal"><span class="pre">CompileError</span></tt> in 0.9.</p>
 </div>
 </div>
 <div class="section" id="mysql-data-types">
@@ -1200,9 +1240,10 @@ however.</li>
 </tr>
 </tbody>
 </table>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.8: </span>The MySQL-specific TIME
+<div class="versionadded">
+<p><span>New in version 0.8: </span>The MySQL-specific TIME
 type as well as fractional seconds support.</p>
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -1488,8 +1529,9 @@ the pymysql driver as well.</p>
 <span id="google-app-engine"></span><h2>Google App Engine<a class="headerlink" href="#module-sqlalchemy.dialects.mysql.gaerdbms" title="Permalink to this headline">¶</a></h2>
 <p>Support for the MySQL database via the Google Cloud SQL driver.<p>This dialect is based primarily on the <a class="reference internal" href="#module-sqlalchemy.dialects.mysql.mysqldb" title="sqlalchemy.dialects.mysql.mysqldb"><tt class="xref py py-mod docutils literal"><span class="pre">mysql.mysqldb</span></tt></a> dialect with minimal
 changes.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 0.7.8.</span></p>
+<div class="versionadded">
+<p><span>New in version 0.7.8.</span></p>
+</div>
 </p>
 <div class="section" id="dialect-mysql-gaerdbms-url">
 <h3>DBAPI<a class="headerlink" href="#dialect-mysql-gaerdbms-url" title="Permalink to this headline">¶</a></h3>
@@ -1569,7 +1611,7 @@ overriden via a <tt class="docutils literal"><span class="pre">create_engine</sp
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
 

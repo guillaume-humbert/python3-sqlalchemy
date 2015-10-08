@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.2',
+          VERSION:     '0.8.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
+        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
 
 
     </div>
@@ -362,7 +362,7 @@ the usual join-inspection heuristics:</p>
 </div>
 </li>
 </ul>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="../orm/relationships.html#relationship-configure-joins"><em>Configuring how Relationship Joins</em></a> - a newly revised section on <a class="reference internal" href="../orm/relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>
 detailing the latest techniques for customizing related attributes and collection
@@ -379,7 +379,7 @@ object relationships, plain attributes, and so forth,
 typically for the purpose of building data-marshalling
 systems, like JSON/XML conversion schemes and of course form
 libraries galore.</p>
-<p>Originally, the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> and <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> model were the
+<p>Originally, the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> and <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> model were the
 original inspection points, which have a well-documented
 system.  While SQLAlchemy ORM models are also fully
 introspectable, this has never been a fully stable and
@@ -393,7 +393,7 @@ system is the core-level <a class="reference internal" href="../core/inspection.
 In most cases, the object being inspected
 is one already part of SQLAlchemy&#8217;s system,
 such as <a class="reference internal" href="../orm/mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a>, <a class="reference internal" href="../orm/internals.html#sqlalchemy.orm.state.InstanceState" title="sqlalchemy.orm.state.InstanceState"><tt class="xref py py-class docutils literal"><span class="pre">InstanceState</span></tt></a>,
-<a class="reference internal" href="../core/schema.html#sqlalchemy.engine.reflection.Inspector" title="sqlalchemy.engine.reflection.Inspector"><tt class="xref py py-class docutils literal"><span class="pre">Inspector</span></tt></a>.  In some cases, new objects have been
+<a class="reference internal" href="../core/reflection.html#sqlalchemy.engine.reflection.Inspector" title="sqlalchemy.engine.reflection.Inspector"><tt class="xref py py-class docutils literal"><span class="pre">Inspector</span></tt></a>.  In some cases, new objects have been
 added with the job of providing the inspection API in
 certain contexts, such as <a class="reference internal" href="../orm/query.html#sqlalchemy.orm.util.AliasedInsp" title="sqlalchemy.orm.util.AliasedInsp"><tt class="xref py py-class docutils literal"><span class="pre">AliasedInsp</span></tt></a> and
 <a class="reference internal" href="../orm/internals.html#sqlalchemy.orm.state.AttributeState" title="sqlalchemy.orm.state.AttributeState"><tt class="xref py py-class docutils literal"><span class="pre">AttributeState</span></tt></a>.</p>
@@ -504,7 +504,7 @@ certain contexts, such as <a class="reference internal" href="../orm/query.html#
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">session</span>
 <span class="go">&lt;sqlalchemy.orm.session.Session object at 0x101701150&gt;</span></pre></div>
 </div>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="../core/inspection.html"><em>Runtime Inspection API</em></a></p>
 </div>
@@ -528,7 +528,7 @@ usable anywhere:</p>
             <span class="n">join</span><span class="p">(</span><span class="n">palias</span><span class="p">,</span> <span class="n">Company</span><span class="o">.</span><span class="n">employees</span><span class="p">)</span><span class="o">.</span>\
             <span class="nb">filter</span><span class="p">(</span><span class="n">or_</span><span class="p">(</span><span class="n">Engineer</span><span class="o">.</span><span class="n">language</span><span class="o">==</span><span class="s">&#39;java&#39;</span><span class="p">,</span> <span class="n">Manager</span><span class="o">.</span><span class="n">hair</span><span class="o">==</span><span class="s">&#39;pointy&#39;</span><span class="p">))</span></pre></div>
 </div>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="../orm/inheritance.html#with-polymorphic"><em>Basic Control of Which Tables are Queried</em></a> - newly updated documentation for polymorphic
 loading control.</p>
@@ -576,7 +576,7 @@ and <a class="reference internal" href="../orm/internals.html#sqlalchemy.orm.int
                     <span class="p">)</span>
                 <span class="p">)</span></pre></div>
 </div>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="../orm/inheritance.html#of-type"><em>Creating Joins to Specific Subtypes</em></a></p>
 </div>
@@ -655,7 +655,7 @@ in one step:</p>
 <span class="n">ReflectedOne</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">engine_one</span><span class="p">)</span>
 <span class="n">ReflectedTwo</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">engine_two</span><span class="p">)</span></pre></div>
 </div>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="../orm/extensions/declarative.html#sqlalchemy.ext.declarative.DeferredReflection" title="sqlalchemy.ext.declarative.DeferredReflection"><tt class="xref py py-class docutils literal"><span class="pre">DeferredReflection</span></tt></a></p>
 </div>
@@ -665,9 +665,9 @@ in one step:</p>
 <h3>ORM Classes Now Accepted by Core Constructs<a class="headerlink" href="#orm-classes-now-accepted-by-core-constructs" title="Permalink to this headline">¶</a></h3>
 <p>While the SQL expressions used with <a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-meth docutils literal"><span class="pre">Query.filter()</span></tt></a>,
 such as <tt class="docutils literal"><span class="pre">User.id</span> <span class="pre">==</span> <span class="pre">5</span></tt>, have always been compatible for
-use with core constructs such as <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>, the mapped
-class itself would not be recognized when passed to <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>,
-<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Select.select_from" title="sqlalchemy.sql.expression.Select.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">Select.select_from()</span></tt></a>, or <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Select.correlate" title="sqlalchemy.sql.expression.Select.correlate"><tt class="xref py py-meth docutils literal"><span class="pre">Select.correlate()</span></tt></a>.
+use with core constructs such as <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>, the mapped
+class itself would not be recognized when passed to <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>,
+<a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.select_from" title="sqlalchemy.sql.expression.Select.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">Select.select_from()</span></tt></a>, or <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.correlate" title="sqlalchemy.sql.expression.Select.correlate"><tt class="xref py py-meth docutils literal"><span class="pre">Select.correlate()</span></tt></a>.
 A new SQL registration system allows a mapped class to be
 accepted as a FROM clause within the core:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">select</span>
@@ -675,7 +675,7 @@ accepted as a FROM clause within the core:</p>
 <span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">User</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span></pre></div>
 </div>
 <p>Above, the mapped <tt class="docutils literal"><span class="pre">User</span></tt> class will expand into
-<a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> to which <tt class="xref py py-class docutils literal"><span class="pre">User</span></tt> is mapped.</p>
+<a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> to which <tt class="xref py py-class docutils literal"><span class="pre">User</span></tt> is mapped.</p>
 <p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2245">#2245</a></p>
 </div>
 <div class="section" id="query-update-supports-update-from">
@@ -739,7 +739,7 @@ this change is needed as illustrated in the Beaker example:</p>
              for cls in mapper.class_.__mro__:
                  if (cls, key) in self._relationship_options:</pre>
 </div>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="../orm/examples.html#module-dogpile_caching" title="dogpile_caching"><tt class="xref py py-mod docutils literal"><span class="pre">dogpile_caching</span></tt></a></p>
 </div>
@@ -752,7 +752,7 @@ this change is needed as illustrated in the Beaker example:</p>
 <h3>Fully extensible, type-level operator support in Core<a class="headerlink" href="#fully-extensible-type-level-operator-support-in-core" title="Permalink to this headline">¶</a></h3>
 <p>The Core has to date never had any system of adding support
 for new SQL operators to Column and other expression
-constructs, other than the <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators.op" title="sqlalchemy.sql.operators.ColumnOperators.op"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.op()</span></tt></a> method
+constructs, other than the <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.op" title="sqlalchemy.sql.operators.ColumnOperators.op"><tt class="xref py py-meth docutils literal"><span class="pre">ColumnOperators.op()</span></tt></a> method
 which is &#8220;just enough&#8221; to make things work. There has also
 never been any system in place for Core which allows the
 behavior of existing operators to be overridden.   Up until
@@ -769,7 +769,7 @@ not really a column, CAST operator, or SQL function that
 really drives what kinds of operations are present, it&#8217;s the
 <em>type</em> of the expression.   The implementation details are
 minimal - only a few extra methods are added to the core
-<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> type so that it consults it&#8217;s
+<a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> type so that it consults it&#8217;s
 <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> object for an optional set of operators.
 New or revised operations can be associated with any type,
 either via subclassing of an existing type, by using
@@ -801,7 +801,7 @@ operations associated with Postgresql&#8217;s ARRAY
 type.    It also paves the way for existing types to acquire
 lots more operators that are specific to those types, such
 as more string, integer and date operators.</p>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="../core/types.html#types-operators"><em>Redefining and Creating New Operators</em></a></p>
 <p class="last"><a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.HSTORE" title="sqlalchemy.dialects.postgresql.HSTORE"><tt class="xref py py-class docutils literal"><span class="pre">HSTORE</span></tt></a></p>
@@ -843,7 +843,7 @@ clause of a SELECT statement:</p>
 </div>
 <p>This feature is also used heavily by the new release of GeoAlchemy,
 to embed PostGIS expressions inline in SQL based on type rules.</p>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="../core/types.html#types-sql-value-processing"><em>Applying SQL-level Bind/Result Processing</em></a></p>
 </div>
@@ -853,7 +853,7 @@ to embed PostGIS expressions inline in SQL based on type rules.</p>
 <h3>Core Inspection System<a class="headerlink" href="#core-inspection-system" title="Permalink to this headline">¶</a></h3>
 <p>The <a class="reference internal" href="../core/inspection.html#sqlalchemy.inspection.inspect" title="sqlalchemy.inspection.inspect"><tt class="xref py py-func docutils literal"><span class="pre">inspect()</span></tt></a> function introduced in <a class="reference internal" href="#feature-orminspection-08"><em>New Class/Object Inspection System</em></a>
 also applies to the core.  Applied to an <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> it produces
-an <a class="reference internal" href="../core/schema.html#sqlalchemy.engine.reflection.Inspector" title="sqlalchemy.engine.reflection.Inspector"><tt class="xref py py-class docutils literal"><span class="pre">Inspector</span></tt></a> object:</p>
+an <a class="reference internal" href="../core/reflection.html#sqlalchemy.engine.reflection.Inspector" title="sqlalchemy.engine.reflection.Inspector"><tt class="xref py py-class docutils literal"><span class="pre">Inspector</span></tt></a> object:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">inspect</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span>
 
@@ -861,14 +861,14 @@ an <a class="reference internal" href="../core/schema.html#sqlalchemy.engine.ref
 <span class="n">insp</span> <span class="o">=</span> <span class="n">inspect</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
 <span class="k">print</span> <span class="n">insp</span><span class="o">.</span><span class="n">get_table_names</span><span class="p">()</span></pre></div>
 </div>
-<p>It can also be applied to any <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>, which returns
-the <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> itself, such as <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>,
-<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a>, etc.   This allows it to work fluently between Core
+<p>It can also be applied to any <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>, which returns
+the <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> itself, such as <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>,
+<a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a>, etc.   This allows it to work fluently between Core
 and ORM constructs.</p>
 </div>
 <div class="section" id="new-method-select-correlate-except">
-<h3>New Method <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Select.correlate_except" title="sqlalchemy.sql.expression.Select.correlate_except"><tt class="xref py py-meth docutils literal"><span class="pre">Select.correlate_except()</span></tt></a><a class="headerlink" href="#new-method-select-correlate-except" title="Permalink to this headline">¶</a></h3>
-<p><a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> now has a method <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Select.correlate_except" title="sqlalchemy.sql.expression.Select.correlate_except"><tt class="xref py py-meth docutils literal"><span class="pre">Select.correlate_except()</span></tt></a>
+<h3>New Method <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.correlate_except" title="sqlalchemy.sql.expression.Select.correlate_except"><tt class="xref py py-meth docutils literal"><span class="pre">Select.correlate_except()</span></tt></a><a class="headerlink" href="#new-method-select-correlate-except" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> now has a method <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.correlate_except" title="sqlalchemy.sql.expression.Select.correlate_except"><tt class="xref py py-meth docutils literal"><span class="pre">Select.correlate_except()</span></tt></a>
 which specifies &#8220;correlate on all FROM clauses except those
 specified&#8221;.  It can be used for mapping scenarios where
 a related subquery should correlate normally, except
@@ -892,9 +892,9 @@ against a particular target selectable:</p>
                         <span class="n">correlate_except</span><span class="p">(</span><span class="n">SnortEvent</span><span class="p">)</span>
                 <span class="p">)</span></pre></div>
 </div>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Select.correlate_except" title="sqlalchemy.sql.expression.Select.correlate_except"><tt class="xref py py-meth docutils literal"><span class="pre">Select.correlate_except()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.correlate_except" title="sqlalchemy.sql.expression.Select.correlate_except"><tt class="xref py py-meth docutils literal"><span class="pre">Select.correlate_except()</span></tt></a></p>
 </div>
 </div>
 <div class="section" id="postgresql-hstore-type">
@@ -922,7 +922,7 @@ and containment methods such as
     <span class="n">select</span><span class="p">([</span><span class="n">data</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">hstore_data</span><span class="o">.</span><span class="n">matrix</span><span class="p">()])</span>
 <span class="p">)</span><span class="o">.</span><span class="n">scalar</span><span class="p">()</span></pre></div>
 </div>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.HSTORE" title="sqlalchemy.dialects.postgresql.HSTORE"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.HSTORE</span></tt></a></p>
 <p class="last"><a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.hstore" title="sqlalchemy.dialects.postgresql.hstore"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.hstore</span></tt></a></p>
@@ -971,7 +971,7 @@ operator framework.  New operations include indexed access:</p>
 <p>array concatenation, where below, the right side <tt class="docutils literal"><span class="pre">[4,</span> <span class="pre">5,</span> <span class="pre">6]</span></tt> is coerced into an array literal:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">select</span><span class="p">([</span><span class="n">mytable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">arraycol</span> <span class="o">+</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]])</span></pre></div>
 </div>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.ARRAY" title="sqlalchemy.dialects.postgresql.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.ARRAY</span></tt></a></p>
 <p class="last"><a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.array" title="sqlalchemy.dialects.postgresql.array"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.array</span></tt></a></p>
@@ -1003,7 +1003,7 @@ everything else.</p>
             <span class="p">)</span></pre></div>
 </div>
 <p>Huge thanks to Nate Dub for the sprinting on this at Pycon 2012.</p>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="../dialects/sqlite.html#sqlalchemy.dialects.sqlite.DATETIME" title="sqlalchemy.dialects.sqlite.DATETIME"><tt class="xref py py-class docutils literal"><span class="pre">sqlite.DATETIME</span></tt></a></p>
 <p><a class="reference internal" href="../dialects/sqlite.html#sqlalchemy.dialects.sqlite.DATE" title="sqlalchemy.dialects.sqlite.DATE"><tt class="xref py py-class docutils literal"><span class="pre">sqlite.DATE</span></tt></a></p>
@@ -1015,20 +1015,20 @@ everything else.</p>
 <h3>&#8220;COLLATE&#8221; supported across all dialects; in particular MySQL, Postgresql, SQLite<a class="headerlink" href="#collate-supported-across-all-dialects-in-particular-mysql-postgresql-sqlite" title="Permalink to this headline">¶</a></h3>
 <p>The &#8220;collate&#8221; keyword, long accepted by the MySQL dialect, is now established
 on all <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> types and will render on any backend, including
-when features such as <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.MetaData.create_all" title="sqlalchemy.schema.MetaData.create_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.create_all()</span></tt></a> and <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a> is used:</p>
+when features such as <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.MetaData.create_all" title="sqlalchemy.schema.MetaData.create_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.create_all()</span></tt></a> and <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.cast" title="sqlalchemy.sql.expression.cast"><tt class="xref py py-func docutils literal"><span class="pre">cast()</span></tt></a> is used:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">cast</span><span class="p">(</span><span class="n">sometable</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">somechar</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="n">collation</span><span class="o">=</span><span class="s">&#39;utf8&#39;</span><span class="p">))])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">stmt</span>
 <span class="go">SELECT CAST(sometable.somechar AS VARCHAR(20) COLLATE &quot;utf8&quot;) AS anon_1</span>
 <span class="go">FROM sometable</span></pre></div>
 </div>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a></p>
 </div>
 <p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2276">#2276</a></p>
 </div>
 <div class="section" id="prefixes-now-supported-for-update-delete">
-<h3>&#8220;Prefixes&#8221; now supported for <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.update" title="sqlalchemy.sql.expression.update"><tt class="xref py py-func docutils literal"><span class="pre">update()</span></tt></a>, <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.delete" title="sqlalchemy.sql.expression.delete"><tt class="xref py py-func docutils literal"><span class="pre">delete()</span></tt></a><a class="headerlink" href="#prefixes-now-supported-for-update-delete" title="Permalink to this headline">¶</a></h3>
+<h3>&#8220;Prefixes&#8221; now supported for <a class="reference internal" href="../core/dml.html#sqlalchemy.sql.expression.update" title="sqlalchemy.sql.expression.update"><tt class="xref py py-func docutils literal"><span class="pre">update()</span></tt></a>, <a class="reference internal" href="../core/dml.html#sqlalchemy.sql.expression.delete" title="sqlalchemy.sql.expression.delete"><tt class="xref py py-func docutils literal"><span class="pre">delete()</span></tt></a><a class="headerlink" href="#prefixes-now-supported-for-update-delete" title="Permalink to this headline">¶</a></h3>
 <p>Geared towards MySQL, a &#8220;prefix&#8221; can be rendered within any of
 these constructs.   E.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span><span class="o">.</span><span class="n">prefix_with</span><span class="p">(</span><span class="s">&quot;LOW_PRIORITY&quot;</span><span class="p">,</span> <span class="n">dialect</span><span class="o">=</span><span class="s">&quot;mysql&quot;</span><span class="p">)</span>
@@ -1037,13 +1037,13 @@ these constructs.   E.g.:</p>
 <span class="n">stmt</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">update</span><span class="p">()</span><span class="o">.</span><span class="n">prefix_with</span><span class="p">(</span><span class="s">&quot;LOW_PRIORITY&quot;</span><span class="p">,</span> <span class="n">dialect</span><span class="o">=</span><span class="s">&quot;mysql&quot;</span><span class="p">)</span></pre></div>
 </div>
 <p>The method is new in addition to those which already existed
-on <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a>, <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> and <a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>.</p>
-<div class="admonition-see-also admonition seealso">
+on <a class="reference internal" href="../core/dml.html#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a>, <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> and <a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>.</p>
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p><a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Update.prefix_with" title="sqlalchemy.sql.expression.Update.prefix_with"><tt class="xref py py-meth docutils literal"><span class="pre">Update.prefix_with()</span></tt></a></p>
-<p><a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Delete.prefix_with" title="sqlalchemy.sql.expression.Delete.prefix_with"><tt class="xref py py-meth docutils literal"><span class="pre">Delete.prefix_with()</span></tt></a></p>
-<p><a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Insert.prefix_with" title="sqlalchemy.sql.expression.Insert.prefix_with"><tt class="xref py py-meth docutils literal"><span class="pre">Insert.prefix_with()</span></tt></a></p>
-<p><a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Select.prefix_with" title="sqlalchemy.sql.expression.Select.prefix_with"><tt class="xref py py-meth docutils literal"><span class="pre">Select.prefix_with()</span></tt></a></p>
+<p><a class="reference internal" href="../core/dml.html#sqlalchemy.sql.expression.Update.prefix_with" title="sqlalchemy.sql.expression.Update.prefix_with"><tt class="xref py py-meth docutils literal"><span class="pre">Update.prefix_with()</span></tt></a></p>
+<p><a class="reference internal" href="../core/dml.html#sqlalchemy.sql.expression.Delete.prefix_with" title="sqlalchemy.sql.expression.Delete.prefix_with"><tt class="xref py py-meth docutils literal"><span class="pre">Delete.prefix_with()</span></tt></a></p>
+<p><a class="reference internal" href="../core/dml.html#sqlalchemy.sql.expression.Insert.prefix_with" title="sqlalchemy.sql.expression.Insert.prefix_with"><tt class="xref py py-meth docutils literal"><span class="pre">Insert.prefix_with()</span></tt></a></p>
+<p><a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.prefix_with" title="sqlalchemy.sql.expression.Select.prefix_with"><tt class="xref py py-meth docutils literal"><span class="pre">Select.prefix_with()</span></tt></a></p>
 <p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.prefix_with" title="sqlalchemy.orm.query.Query.prefix_with"><tt class="xref py py-meth docutils literal"><span class="pre">Query.prefix_with()</span></tt></a></p>
 </div>
 <p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2431">#2431</a></p>
@@ -1208,7 +1208,7 @@ entity, <tt class="docutils literal"><span class="pre">query.correlate(someentit
 <div class="section" id="correlation-is-now-always-context-specific">
 <span id="correlation-context-specific"></span><h3>Correlation is now always context-specific<a class="headerlink" href="#correlation-is-now-always-context-specific" title="Permalink to this headline">¶</a></h3>
 <p>To allow a wider variety of correlation scenarios, the behavior of
-<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Select.correlate" title="sqlalchemy.sql.expression.Select.correlate"><tt class="xref py py-meth docutils literal"><span class="pre">Select.correlate()</span></tt></a> and <a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.correlate" title="sqlalchemy.orm.query.Query.correlate"><tt class="xref py py-meth docutils literal"><span class="pre">Query.correlate()</span></tt></a> has changed slightly
+<a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.correlate" title="sqlalchemy.sql.expression.Select.correlate"><tt class="xref py py-meth docutils literal"><span class="pre">Select.correlate()</span></tt></a> and <a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.correlate" title="sqlalchemy.orm.query.Query.correlate"><tt class="xref py py-meth docutils literal"><span class="pre">Query.correlate()</span></tt></a> has changed slightly
 such that the SELECT statement will omit the &#8220;correlated&#8221; target from the
 FROM clause only if the statement is actually used in that context.  Additionally,
 it&#8217;s no longer possible for a SELECT statement that&#8217;s placed as a FROM
@@ -1249,8 +1249,8 @@ SELECT used in a non-correlating context would see any change.</p>
 </div>
 <div class="section" id="create-all-and-drop-all-will-now-honor-an-empty-list-as-such">
 <span id="metadata-create-drop-tables"></span><h3>create_all() and drop_all() will now honor an empty list as such<a class="headerlink" href="#create-all-and-drop-all-will-now-honor-an-empty-list-as-such" title="Permalink to this headline">¶</a></h3>
-<p>The methods <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.MetaData.create_all" title="sqlalchemy.schema.MetaData.create_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.create_all()</span></tt></a> and <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.MetaData.drop_all" title="sqlalchemy.schema.MetaData.drop_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.drop_all()</span></tt></a>
-will now accept a list of <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects that is empty,
+<p>The methods <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.MetaData.create_all" title="sqlalchemy.schema.MetaData.create_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.create_all()</span></tt></a> and <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.MetaData.drop_all" title="sqlalchemy.schema.MetaData.drop_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.drop_all()</span></tt></a>
+will now accept a list of <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects that is empty,
 and will not emit any CREATE or DROP statements.  Previously,
 an empty list was interepreted the same as passing <tt class="docutils literal"><span class="pre">None</span></tt>
 for a collection, and CREATE/DROP would be emitted for all
@@ -1299,24 +1299,24 @@ would itself change the results.   In 0.8 the <tt class="docutils literal"><span
 argument will have no effect, and unloaded attributes will
 never be checked for history since by definition there can
 be no pending state change on an unloaded attribute.</p>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session.is_modified" title="sqlalchemy.orm.session.Session.is_modified"><tt class="xref py py-meth docutils literal"><span class="pre">Session.is_modified()</span></tt></a></p>
 </div>
 <p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2320">#2320</a></p>
 </div>
 <div class="section" id="column-key-is-honored-in-the-select-c-attribute-of-select-with-select-apply-labels">
-<h3><tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt> is honored in the <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Select.c" title="sqlalchemy.sql.expression.Select.c"><tt class="xref py py-attr docutils literal"><span class="pre">Select.c</span></tt></a> attribute of <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> with <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Select.apply_labels" title="sqlalchemy.sql.expression.Select.apply_labels"><tt class="xref py py-meth docutils literal"><span class="pre">Select.apply_labels()</span></tt></a><a class="headerlink" href="#column-key-is-honored-in-the-select-c-attribute-of-select-with-select-apply-labels" title="Permalink to this headline">¶</a></h3>
-<p>Users of the expression system know that <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Select.apply_labels" title="sqlalchemy.sql.expression.Select.apply_labels"><tt class="xref py py-meth docutils literal"><span class="pre">Select.apply_labels()</span></tt></a>
+<h3><tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt> is honored in the <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.c" title="sqlalchemy.sql.expression.Select.c"><tt class="xref py py-attr docutils literal"><span class="pre">Select.c</span></tt></a> attribute of <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> with <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.apply_labels" title="sqlalchemy.sql.expression.Select.apply_labels"><tt class="xref py py-meth docutils literal"><span class="pre">Select.apply_labels()</span></tt></a><a class="headerlink" href="#column-key-is-honored-in-the-select-c-attribute-of-select-with-select-apply-labels" title="Permalink to this headline">¶</a></h3>
+<p>Users of the expression system know that <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.apply_labels" title="sqlalchemy.sql.expression.Select.apply_labels"><tt class="xref py py-meth docutils literal"><span class="pre">Select.apply_labels()</span></tt></a>
 prepends the table name to each column name, affecting the
-names that are available from <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Select.c" title="sqlalchemy.sql.expression.Select.c"><tt class="xref py py-attr docutils literal"><span class="pre">Select.c</span></tt></a>:</p>
+names that are available from <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.c" title="sqlalchemy.sql.expression.Select.c"><tt class="xref py py-attr docutils literal"><span class="pre">Select.c</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">table1</span><span class="p">])</span><span class="o">.</span><span class="n">apply_labels</span><span class="p">()</span>
 <span class="n">s</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">table1_col1</span>
 <span class="n">s</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">table1_col2</span></pre></div>
 </div>
-<p>Before 0.8, if the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> had a different <tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt>, this
+<p>Before 0.8, if the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> had a different <tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt>, this
 key would be ignored, inconsistently versus when
-<a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Select.apply_labels" title="sqlalchemy.sql.expression.Select.apply_labels"><tt class="xref py py-meth docutils literal"><span class="pre">Select.apply_labels()</span></tt></a> were not used:</p>
+<a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.Select.apply_labels" title="sqlalchemy.sql.expression.Select.apply_labels"><tt class="xref py py-meth docutils literal"><span class="pre">Select.apply_labels()</span></tt></a> were not used:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># before 0.8</span>
 <span class="n">table1</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;t1&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col1&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s">&#39;column_one&#39;</span><span class="p">)</span>
@@ -1506,7 +1506,7 @@ taking it out entirely to eliminate any of that confusion.</p>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
 

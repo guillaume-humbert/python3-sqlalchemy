@@ -482,7 +482,7 @@ class Mapper(_InspectionAttr):
         being present."""
 
         # a set of all mappers which inherit from this one.
-        self._inheriting_mappers = util.WeakSet()
+        self._inheriting_mappers = util.WeakSequence()
 
         if self.inherits:
             if isinstance(self.inherits, type):
@@ -556,7 +556,7 @@ class Mapper(_InspectionAttr):
 
             self.polymorphic_map = self.inherits.polymorphic_map
             self.batch = self.inherits.batch
-            self.inherits._inheriting_mappers.add(self)
+            self.inherits._inheriting_mappers.append(self)
             self.base_mapper = self.inherits.base_mapper
             self.passive_updates = self.inherits.passive_updates
             self._all_tables = self.inherits._all_tables
@@ -623,7 +623,7 @@ class Mapper(_InspectionAttr):
         self.batch = self.inherits.batch
         for mp in self.self_and_descendants:
             mp.base_mapper = self.inherits.base_mapper
-        self.inherits._inheriting_mappers.add(self)
+        self.inherits._inheriting_mappers.append(self)
         self.passive_updates = self.inherits.passive_updates
         self._all_tables = self.inherits._all_tables
         for key, prop in mapper._props.iteritems():
@@ -1486,7 +1486,7 @@ class Mapper(_InspectionAttr):
 
         Normally, this is equivalent to :attr:`.mapped_table`, unless
         the ``with_polymorphic`` feature is in use, in which case the
-        full "polymoprhic" selectable is returned.
+        full "polymorphic" selectable is returned.
 
         """
         return self._with_polymorphic_selectable

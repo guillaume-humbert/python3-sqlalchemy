@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.2',
+          VERSION:     '0.8.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
+        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
 
 
     </div>
@@ -270,7 +270,7 @@ for new connections through the usage of events:</p>
     <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;PRAGMA foreign_keys=ON&quot;</span><span class="p">)</span>
     <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></pre></div>
 </div>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p><a class="reference external" href="http://www.sqlite.org/foreignkeys.html">SQLite Foreign Key Support</a> -
 on the SQLite web site.</p>
@@ -290,7 +290,8 @@ they originate from <a class="reference internal" href="../core/types.html#modul
 <span class="target" id="module-sqlalchemy.dialects.sqlite"></span><dl class="class">
 <dt id="sqlalchemy.dialects.sqlite.DATETIME">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.sqlite.</tt><tt class="descname">DATETIME</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.sqlite.DATETIME" title="Permalink to this definition">¶</a></dt>
-<dd><p>Represent a Python datetime object in SQLite using a string.</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.sqlite.base._DateTimeMixin</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.DateTime</span></tt></a></p>
+<p>Represent a Python datetime object in SQLite using a string.</p>
 <p>The default string storage format is:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="s">&quot;</span><span class="si">%(year)04d</span><span class="s">-</span><span class="si">%(month)02d</span><span class="s">-</span><span class="si">%(day)02d</span><span class="s"> </span><span class="si">%(hour)02d</span><span class="s">:</span><span class="si">%(min)02d</span><span class="s">:</span><span class="si">%(second)02d</span><span class="s">.</span><span class="si">%(microsecond)06d</span><span class="s">&quot;</span></pre></div>
 </div>
@@ -304,7 +305,7 @@ they originate from <a class="reference internal" href="../core/types.html#modul
 
 <span class="n">dt</span> <span class="o">=</span> <span class="n">DATETIME</span><span class="p">(</span>
     <span class="n">storage_format</span><span class="o">=</span><span class="s">&quot;</span><span class="si">%(year)04d</span><span class="s">/</span><span class="si">%(month)02d</span><span class="s">/</span><span class="si">%(day)02d</span><span class="s"> </span><span class="si">%(hour)02d</span><span class="s">:</span><span class="si">%(min)02d</span><span class="s">:</span><span class="si">%(second)02d</span><span class="s">&quot;</span><span class="p">,</span>
-    <span class="n">regexp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;(\d+)/(\d+)/(\d+) (\d+)-(\d+)-(\d+)&quot;</span><span class="p">)</span>
+    <span class="n">regexp</span><span class="o">=</span><span class="s">r&quot;(\d+)/(\d+)/(\d+) (\d+)-(\d+)-(\d+)&quot;</span>
 <span class="p">)</span></pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -330,7 +331,8 @@ the datetime() constructor is called with positional arguments via
 <dl class="class">
 <dt id="sqlalchemy.dialects.sqlite.DATE">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.sqlite.</tt><tt class="descname">DATE</tt><big>(</big><em>storage_format=None</em>, <em>regexp=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.sqlite.DATE" title="Permalink to this definition">¶</a></dt>
-<dd><p>Represent a Python date object in SQLite using a string.</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.sqlite.base._DateTimeMixin</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.Date" title="sqlalchemy.types.Date"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Date</span></tt></a></p>
+<p>Represent a Python date object in SQLite using a string.</p>
 <p>The default string storage format is:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="s">&quot;</span><span class="si">%(year)04d</span><span class="s">-</span><span class="si">%(month)02d</span><span class="s">-</span><span class="si">%(day)02d</span><span class="s">&quot;</span></pre></div>
 </div>
@@ -370,7 +372,8 @@ the date() constructor is called with positional arguments via
 <dl class="class">
 <dt id="sqlalchemy.dialects.sqlite.TIME">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.sqlite.</tt><tt class="descname">TIME</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.sqlite.TIME" title="Permalink to this definition">¶</a></dt>
-<dd><p>Represent a Python time object in SQLite using a string.</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.dialects.sqlite.base._DateTimeMixin</span></tt>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.Time" title="sqlalchemy.types.Time"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Time</span></tt></a></p>
+<p>Represent a Python time object in SQLite using a string.</p>
 <p>The default string storage format is:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="s">&quot;</span><span class="si">%(hour)02d</span><span class="s">:</span><span class="si">%(minute)02d</span><span class="s">:</span><span class="si">%(second)02d</span><span class="s">.</span><span class="si">%(microsecond)06d</span><span class="s">&quot;</span></pre></div>
 </div>
@@ -497,7 +500,7 @@ or result processing. Execution of &#8220;func.current_date()&#8221; will return
 SQLAlchemy, so this function still receives SQLAlchemy-level result processing.</p>
 </div>
 <div class="section" id="threading-pooling-behavior">
-<h3>Threading/Pooling Behavior<a class="headerlink" href="#threading-pooling-behavior" title="Permalink to this headline">¶</a></h3>
+<span id="pysqlite-threading-pooling"></span><h3>Threading/Pooling Behavior<a class="headerlink" href="#threading-pooling-behavior" title="Permalink to this headline">¶</a></h3>
 <p>Pysqlite&#8217;s default behavior is to prohibit the usage of a single connection
 in more than one thread.   This is originally intended to work with older
 versions of SQLite that did not support multithreaded operation under
@@ -526,10 +529,11 @@ discards connections which are returned to the pool immediately. SQLite
 file-based connections have extremely low overhead, so pooling is not
 necessary. The scheme also prevents a connection from being used again in
 a different thread and works best with SQLite&#8217;s coarse-grained file locking.</p>
-<p class="versionchanged">
-<span class="versionmodified">Changed in version 0.7: </span>Default selection of <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.NullPool" title="sqlalchemy.pool.NullPool"><tt class="xref py py-class docutils literal"><span class="pre">NullPool</span></tt></a> for SQLite file-based databases.
+<div class="versionchanged">
+<p><span>Changed in version 0.7: </span>Default selection of <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.NullPool" title="sqlalchemy.pool.NullPool"><tt class="xref py py-class docutils literal"><span class="pre">NullPool</span></tt></a> for SQLite file-based databases.
 Previous versions select <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.SingletonThreadPool" title="sqlalchemy.pool.SingletonThreadPool"><tt class="xref py py-class docutils literal"><span class="pre">SingletonThreadPool</span></tt></a> by
 default for all SQLite databases.</p>
+</div>
 </li>
 </ul>
 <div class="section" id="using-a-memory-database-in-multiple-threads">
@@ -621,7 +625,7 @@ a <a class="reference internal" href="../core/events.html#sqlalchemy.events.Conn
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
 

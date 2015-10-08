@@ -341,6 +341,23 @@ def relationship(argument, secondary=None, **kwargs):
       a class which extends :class:`.RelationshipProperty.Comparator` which
       provides custom SQL clause generation for comparison operations.
 
+    :param distinct_target_key=False:
+      Indicate if a "subquery" eager load should apply the DISTINCT
+      keyword to the innermost SELECT statement.  When set to ``None``,
+      the DISTINCT keyword will be applied in those cases when the target
+      columns do not comprise the full primary key of the target table.
+      When set to ``True``, the DISTINCT keyword is applied to the innermost
+      SELECT unconditionally.
+
+      This flag defaults as False in 0.8 but will default to None in 0.9.
+      It may be desirable to set this flag to False when the DISTINCT is
+      reducing performance of the innermost subquery beyond that of what
+      duplicate innermost rows may be causing.
+
+      .. versionadded:: 0.8.3 - distinct_target_key allows the
+         subquery eager loader to apply a DISTINCT modifier to the
+         innermost SELECT.
+
     :param doc:
       docstring which will be applied to the resulting descriptor.
 
@@ -946,6 +963,15 @@ def mapper(class_, local_table=None, *args, **params):
 
            See the section :ref:`concrete_inheritance` for an example.
 
+        :param eager_defaults: if True, the ORM will immediately fetch the
+          value of server-generated default values after an INSERT or UPDATE,
+          rather than leaving them as expired to be fetched on next access.
+          This can be used for event schemes where the server-generated values
+          are needed immediately before the flush completes.
+          This scheme will emit an individual ``SELECT`` statement per row
+          inserted or updated, which note can add significant performance
+          overhead.
+
         :param exclude_properties: A list or set of string column names to
           be excluded from mapping.
 
@@ -968,9 +994,9 @@ def mapper(class_, local_table=None, *args, **params):
           is passed automatically as a result of the natural class
           hierarchy of the declared classes.
 
-          See also:
+          .. seealso::
 
-          :ref:`inheritance_toplevel`
+            :ref:`inheritance_toplevel`
 
         :param inherit_condition: For joined table inheritance, a SQL
            expression which will
@@ -1037,10 +1063,10 @@ def mapper(class_, local_table=None, *args, **params):
            emit an UPDATE statement for the dependent columns during a
            primary key change.
 
-           See also:
+           .. seealso::
 
-           :ref:`passive_updates` - description of a similar feature as
-           used with :func:`.relationship`
+             :ref:`passive_updates` - description of a similar feature as
+             used with :func:`.relationship`
 
         :param polymorphic_on: Specifies the column, attribute, or
           SQL expression used to determine the target class for an
@@ -1129,9 +1155,9 @@ def mapper(class_, local_table=None, *args, **params):
           thus persisting the value to the ``discriminator`` column
           in the database.
 
-          See also:
+          .. seealso::
 
-          :ref:`inheritance_toplevel`
+            :ref:`inheritance_toplevel`
 
         :param polymorphic_identity: Specifies the value which
           identifies this particular class as returned by the
@@ -1157,34 +1183,33 @@ def mapper(class_, local_table=None, *args, **params):
            can be overridden here.
 
         :param version_id_col: A :class:`.Column`
-           that will be used to keep a running version id of mapped entities
-           in the database.  This is used during save operations to ensure that
-           no other thread or process has updated the instance during the
-           lifetime of the entity, else a
+           that will be used to keep a running version id of rows
+           in the table.  This is used to detect concurrent updates or
+           the presence of stale data in a flush.  The methodology is to
+           detect if an UPDATE statement does not match the last known
+           version id, a
            :class:`~sqlalchemy.orm.exc.StaleDataError` exception is
-           thrown.  By default the column must be of :class:`.Integer` type,
-           unless ``version_id_generator`` specifies a new generation
-           algorithm.
+           thrown.
+           By default, the column must be of :class:`.Integer` type,
+           unless ``version_id_generator`` specifies an alternative version
+           generator.
 
-        :param version_id_generator: A callable which defines the algorithm
-            used to generate new version ids. Defaults to an integer
-            generator. Can be replaced with one that generates timestamps,
-            uuids, etc. e.g.::
+           .. seealso::
 
-                import uuid
+              :ref:`mapper_version_counter` - discussion of version counting
+              and rationale.
 
-                class MyClass(Base):
-                    __tablename__ = 'mytable'
-                    id = Column(Integer, primary_key=True)
-                    version_uuid = Column(String(32))
+        :param version_id_generator: Define how new version ids should
+          be generated.  Defaults to ``None``, which indicates that
+          a simple integer counting scheme be employed.  To provide a custom
+          versioning scheme, provide a callable function of the form::
 
-                    __mapper_args__ = {
-                        'version_id_col':version_uuid,
-                        'version_id_generator':lambda version:uuid.uuid4().hex
-                    }
+              def generate_version(version):
+                  return next_version
 
-            The callable receives the current version identifier as its
-            single argument.
+          .. seealso::
+
+             :ref:`custom_version_counter`
 
         :param with_polymorphic: A tuple in the form ``(<classes>,
             <selectable>)`` indicating the default style of "polymorphic"
@@ -1196,13 +1221,9 @@ def mapper(class_, local_table=None, *args, **params):
             indicates a selectable that will be used to query for multiple
             classes.
 
-            See also:
+            .. seealso::
 
-            :ref:`concrete_inheritance` - typically uses ``with_polymorphic``
-            to specify a UNION statement to select from.
-
-            :ref:`with_polymorphic` - usage example of the related
-            :meth:`.Query.with_polymorphic` method
+              :ref:`with_polymorphic`
 
     """
     return Mapper(class_, local_table, *args, **params)

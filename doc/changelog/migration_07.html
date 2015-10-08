@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.2',
+          VERSION:     '0.8.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
+        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
 
 
     </div>
@@ -320,7 +320,7 @@ the introduction of a handful of new events, including
 attribute expiration and refresh operations, pickle
 loads/dumps operations, completed mapper construction
 operations.</p>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="../core/event.html"><em>Events</em></a></p>
 </div>
@@ -344,7 +344,7 @@ outwards, building on an approach that is similar to that of
 the hybrid extension, so that the core ORM
 mapper/query/property modules aren&#8217;t really aware of them
 otherwise.</p>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="../orm/extensions/hybrid.html"><em>Hybrid Attributes</em></a></p>
 </div>
@@ -420,7 +420,7 @@ that they no longer use the <tt class="docutils literal"><span class="pre">mutab
 detect in-place mutations.   Please use the <a class="reference external" href="http://www.sqlalchemy.org/docs/07/orm/extensions/mutable.html">Mutation
 Tracking</a> extension to establish in-place change events
 to existing composite usage.</p>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="../orm/mapper_config.html#mapper-composite"><em>Composite Column Types</em></a></p>
 <p class="last"><a class="reference internal" href="../orm/extensions/mutable.html"><em>Mutation Tracking</em></a></p>
@@ -467,7 +467,7 @@ those managed by <tt class="docutils literal"><span class="pre">PickleType</span
 other custom <tt class="docutils literal"><span class="pre">MutableType</span></tt> classes, as well as an approach
 for ORM &#8220;composites&#8221;, those configured using <a href="#id2"><span class="problematic" id="id3">:ref:`composite()
 &lt;mapper_composite&gt;`_</span></a>.</p>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="../orm/extensions/mutable.html"><em>Mutation Tracking</em></a></p>
 </div>
@@ -477,10 +477,10 @@ for ORM &#8220;composites&#8221;, those configured using <a href="#id2"><span cl
 <p>These are implemented as an extension to the <tt class="docutils literal"><span class="pre">asc()</span></tt> and
 <tt class="docutils literal"><span class="pre">desc()</span></tt> operators, called <tt class="docutils literal"><span class="pre">nullsfirst()</span></tt> and
 <tt class="docutils literal"><span class="pre">nullslast()</span></tt>.</p>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p><a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.nullsfirst" title="sqlalchemy.sql.expression.nullsfirst"><tt class="xref py py-func docutils literal"><span class="pre">nullsfirst()</span></tt></a></p>
-<p class="last"><a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.nullslast" title="sqlalchemy.sql.expression.nullslast"><tt class="xref py py-func docutils literal"><span class="pre">nullslast()</span></tt></a></p>
+<p><a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.nullsfirst" title="sqlalchemy.sql.expression.nullsfirst"><tt class="xref py py-func docutils literal"><span class="pre">nullsfirst()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.nullslast" title="sqlalchemy.sql.expression.nullslast"><tt class="xref py py-func docutils literal"><span class="pre">nullslast()</span></tt></a></p>
 </div>
 <p><a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/723">#723</a></p>
 </div>
@@ -1325,7 +1325,7 @@ for replicating its functionality are at
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
 

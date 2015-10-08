@@ -19,8 +19,8 @@
 
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-          URL_ROOT:    '#',
-          VERSION:     '0.8.2',
+          URL_ROOT:    './',
+          VERSION:     '0.8.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -65,7 +65,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.2</span> | Release Date: July 3, 2013
+        Release: <span class="version-num">0.8.3</span> | Release Date: October 26, 2013
 
 
     </div>
@@ -187,6 +187,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="orm/mapper_config.html#mapping-a-class-against-arbitrary-selects">Mapping a Class against Arbitrary Selects</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/mapper_config.html#multiple-mappers-for-one-class">Multiple Mappers for One Class</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/mapper_config.html#constructors-and-object-initialization">Constructors and Object Initialization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orm/mapper_config.html#configuring-a-version-counter">Configuring a Version Counter</a></li>
 <li class="toctree-l3"><a class="reference internal" href="orm/mapper_config.html#class-mapping-api">Class Mapping API</a></li>
 </ul>
 </li>
@@ -304,9 +305,19 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="core/expression_api.html">SQL Statements and Expressions API</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="core/expression_api.html#functions">Functions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="core/expression_api.html#classes">Classes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="core/expression_api.html#generic-functions">Generic Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core/sqlelement.html">Column Elements and Expressions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core/selectable.html">Selectables, Tables, FROM objects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core/dml.html">Insert, Updates, Deletes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core/functions.html">SQL and Generic Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core/types.html">Column and Data Types</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core/schema.html">Schema Definition Language</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core/metadata.html">Describing Databases with MetaData</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core/reflection.html">Reflecting Database Objects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core/defaults.html">Column Insert/Update Defaults</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core/constraints.html">Defining Constraints and Indexes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core/ddl.html">Customizing DDL</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="core/engines.html">Engine Configuration</a><ul>
@@ -337,22 +348,6 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="core/pooling.html#dealing-with-disconnects">Dealing with Disconnects</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/pooling.html#api-documentation-available-pool-implementations">API Documentation - Available Pool Implementations</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core/pooling.html#pooling-plain-db-api-connections">Pooling Plain DB-API Connections</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="core/schema.html">Schema Definition Language</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="core/schema.html#describing-databases-with-metadata">Describing Databases with MetaData</a></li>
-<li class="toctree-l3"><a class="reference internal" href="core/schema.html#reflecting-database-objects">Reflecting Database Objects</a></li>
-<li class="toctree-l3"><a class="reference internal" href="core/schema.html#column-insert-update-defaults">Column Insert/Update Defaults</a></li>
-<li class="toctree-l3"><a class="reference internal" href="core/schema.html#defining-constraints-and-indexes">Defining Constraints and Indexes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="core/schema.html#customizing-ddl">Customizing DDL</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="core/types.html">Column and Data Types</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="core/types.html#generic-types">Generic Types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="core/types.html#sql-standard-types">SQL Standard Types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="core/types.html#vendor-specific-types">Vendor-Specific Types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="core/types.html#custom-types">Custom Types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="core/types.html#base-type-api">Base Type API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="core/event.html">Events</a><ul>
@@ -407,7 +402,11 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 <li class="toctree-l3"><a class="reference internal" href="dialects/sybase.html">Sybase</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="dialects/index.html#external-dialects">External Dialects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dialects/index.html#external-dialects">External Dialects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dialects/index.html#production-ready">Production Ready</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dialects/index.html#experimental-incomplete">Experimental / Incomplete</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="changelog/index.html">Changes and Migration</a><ul>
@@ -456,7 +455,7 @@ documentation, see <a class="reference internal" href="index.html"><em>SQLAlchem
 
     <div id="docs-copyright">
         &copy; <a href="copyright.html">Copyright</a> 2007-2013, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
     </div>
 </div>
 
