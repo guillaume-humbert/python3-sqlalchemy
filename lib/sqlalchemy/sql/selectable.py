@@ -24,6 +24,7 @@ from .. import exc
 from operator import attrgetter
 from . import operators
 import operator
+import collections
 from .annotation import Annotated
 import itertools
 
@@ -136,6 +137,10 @@ class FromClause(Selectable):
     __visit_name__ = 'fromclause'
     named_with_column = False
     _hide_froms = []
+
+    _is_join = False
+    _is_select = False
+    _is_from_container = False
 
     _textual = False
     """a marker that allows us to easily distinguish a :class:`.TextAsFrom`
@@ -338,7 +343,7 @@ class FromClause(Selectable):
             return column
         col, intersect = None, None
         target_set = column.proxy_set
-        cols = self.c
+        cols = self.c._all_columns
         for c in cols:
             expanded_proxy_set = set(_expand_cloned(c.proxy_set))
             i = target_set.intersection(expanded_proxy_set)
@@ -503,6 +508,8 @@ class Join(FromClause):
 
     """
     __visit_name__ = 'join'
+
+    _is_join = True
 
     def __init__(self, left, right, onclause=None, isouter=False):
         """Construct a new :class:`.Join`.
@@ -676,8 +683,7 @@ class Join(FromClause):
         providing a "natural join".
 
         """
-        crit = []
-        constraints = set()
+        constraints = collections.defaultdict(list)
 
         for left in (a_subset, a):
             if left is None:
@@ -697,8 +703,7 @@ class Join(FromClause):
                         continue
 
                 if col is not None:
-                    crit.append(col == fk.parent)
-                    constraints.add(fk.constraint)
+                    constraints[fk.constraint].append((col, fk.parent))
             if left is not b:
                 for fk in sorted(
                             left.foreign_keys,
@@ -717,12 +722,36 @@ class Join(FromClause):
                             continue
 
                     if col is not None:
-                        crit.append(col == fk.parent)
-                        constraints.add(fk.constraint)
-            if crit:
+                        constraints[fk.constraint].append((col, fk.parent))
+            if constraints:
                 break
 
-        if len(crit) == 0:
+        if len(constraints) > 1:
+            # more than one constraint matched.  narrow down the list
+            # to include just those FKCs that match exactly to
+            # "consider_as_foreign_keys".
+            if consider_as_foreign_keys:
+                for const in list(constraints):
+                    if set(f.parent for f in const.elements) != set(consider_as_foreign_keys):
+                        del constraints[const]
+
+            # if still multiple constraints, but
+            # they all refer to the exact same end result, use it.
+            if len(constraints) > 1:
+                dedupe = set(tuple(crit) for crit in constraints.values())
+                if len(dedupe) == 1:
+                    key = list(constraints)[0]
+                    constraints = {key: constraints[key]}
+
+            if len(constraints) != 1:
+                raise exc.AmbiguousForeignKeysError(
+                    "Can't determine join between '%s' and '%s'; "
+                    "tables have more than one foreign key "
+                    "constraint relationship between them. "
+                    "Please specify the 'onclause' of this "
+                    "join explicitly." % (a.description, b.description))
+
+        if len(constraints) == 0:
             if isinstance(b, FromGrouping):
                 hint = " Perhaps you meant to convert the right side to a "\
                                     "subquery using alias()?"
@@ -731,14 +760,9 @@ class Join(FromClause):
             raise exc.NoForeignKeysError(
                 "Can't find any foreign key relationships "
                 "between '%s' and '%s'.%s" % (a.description, b.description, hint))
-        elif len(constraints) > 1:
-            raise exc.AmbiguousForeignKeysError(
-                "Can't determine join between '%s' and '%s'; "
-                "tables have more than one foreign key "
-                "constraint relationship between them. "
-                "Please specify the 'onclause' of this "
-                "join explicitly." % (a.description, b.description))
-        elif len(crit) == 1:
+
+        crit = [(x == y) for x, y in list(constraints.values())[0]]
+        if len(crit) == 1:
             return (crit[0])
         else:
             return and_(*crit)
@@ -910,6 +934,8 @@ class Alias(FromClause):
     __visit_name__ = 'alias'
     named_with_column = True
 
+    _is_from_container = True
+
     def __init__(self, selectable, name=None):
         baseselectable = selectable
         while isinstance(baseselectable, Alias):
@@ -925,6 +951,7 @@ class Alias(FromClause):
             name = _anonymous_label('%%(%d %s)s' % (id(self), name
                     or 'anon'))
         self.name = name
+
 
     @property
     def description(self):
@@ -946,7 +973,7 @@ class Alias(FromClause):
         return self.element.is_derived_from(fromclause)
 
     def _populate_column_collection(self):
-        for col in self.element.columns:
+        for col in self.element.columns._all_columns:
             col._make_proxy(self)
 
     def _refresh_for_new_column(self, column):
@@ -1716,6 +1743,8 @@ class CompoundSelect(GenerativeSelect):
     INTERSECT = util.symbol('INTERSECT')
     INTERSECT_ALL = util.symbol('INTERSECT ALL')
 
+    _is_from_container = True
+
     def __init__(self, keyword, *selects, **kwargs):
         self._auto_correlate = kwargs.pop('correlate', False)
         self.keyword = keyword
@@ -1728,13 +1757,13 @@ class CompoundSelect(GenerativeSelect):
             s = _clause_element_as_expr(s)
 
             if not numcols:
-                numcols = len(s.c)
-            elif len(s.c) != numcols:
+                numcols = len(s.c._all_columns)
+            elif len(s.c._all_columns) != numcols:
                 raise exc.ArgumentError('All selectables passed to '
                         'CompoundSelect must have identical numbers of '
                         'columns; select #%d has %d columns, select '
-                        '#%d has %d' % (1, len(self.selects[0].c), n
-                        + 1, len(s.c)))
+                        '#%d has %d' % (1, len(self.selects[0].c._all_columns), n
+                        + 1, len(s.c._all_columns)))
 
             self.selects.append(s.self_group(self))
 
@@ -1866,7 +1895,7 @@ class CompoundSelect(GenerativeSelect):
         return False
 
     def _populate_column_collection(self):
-        for cols in zip(*[s.c for s in self.selects]):
+        for cols in zip(*[s.c._all_columns for s in self.selects]):
 
             # this is a slightly hacky thing - the union exports a
             # column that resembles just that of the *first* selectable.
@@ -1982,6 +2011,7 @@ class Select(HasPrefixes, GenerativeSelect):
     _correlate = ()
     _correlate_except = None
     _memoized_property = SelectBase._memoized_property
+    _is_select = True
 
     def __init__(self,
                 columns=None,

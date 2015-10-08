@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.3',
+          VERSION:     '0.9.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
+        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
 
 
     </div>
@@ -847,11 +847,17 @@ WHERE users.name = ? AND users.fullname = ?
 </div>
 </li>
 <li><p class="first">IS NULL:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="bp">None</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="bp">None</span><span class="p">)</span>
+
+<span class="c"># alternatively, if pep8/linters are a concern</span>
+<span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">is_</span><span class="p">(</span><span class="bp">None</span><span class="p">))</span></pre></div>
 </div>
 </li>
 <li><p class="first">IS NOT NULL:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">)</span>
+
+<span class="c"># alternatively, if pep8/linters are a concern</span>
+<span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">isnot</span><span class="p">(</span><span class="bp">None</span><span class="p">))</span></pre></div>
 </div>
 </li>
 <li><p class="first">AND:</p>
@@ -948,7 +954,7 @@ but raise an application error when multiple results are found.</p>
 </li>
 <li><p class="first"><a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.scalar" title="sqlalchemy.orm.query.Query.scalar"><tt class="xref py py-meth docutils literal"><span class="pre">scalar()</span></tt></a> invokes the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.one" title="sqlalchemy.orm.query.Query.one"><tt class="xref py py-meth docutils literal"><span class="pre">one()</span></tt></a> method, and upon
 success returns the first column of the row:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">query</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%e</span><span class="s">d&#39;</span><span class="p">))</span><span class="o">.</span>\
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">query</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;ed&#39;</span><span class="p">)</span><span class="o">.</span>\
 <span class="o">...</span>    <span class="n">order_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
 <a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">query</span><span class="o">.</span><span class="n">scalar</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT users.id AS users_id
@@ -1027,7 +1033,7 @@ that part of the SQL construct being emitted, and has no ability to
 <p>For example, suppose we selected <tt class="docutils literal"><span class="pre">User</span></tt> objects and ordered by the <tt class="docutils literal"><span class="pre">name</span></tt>
 column, using a string to indicate <tt class="docutils literal"><span class="pre">name</span></tt>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">q</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-<a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">q</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">q</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT users.id AS users_id, users.name AS users_name
 FROM users ORDER BY name
 ()</div><span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="s">u&#39;ed&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s">u&#39;fred&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s">u&#39;mary&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s">u&#39;wendy&#39;</span><span class="p">)]</span></pre></div>
@@ -1130,7 +1136,7 @@ FROM users GROUP BY users.name
 ()</div><span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="s">u&#39;ed&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">u&#39;fred&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">u&#39;mary&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">u&#39;wendy&#39;</span><span class="p">)]</span></pre></div>
 </div>
 <p>To achieve our simple <tt class="docutils literal"><span class="pre">SELECT</span> <span class="pre">count(*)</span> <span class="pre">FROM</span> <span class="pre">table</span></tt>, we can apply it as:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;*&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">scalar</span><span class="p">()</span>
+<div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;*&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">scalar</span><span class="p">()</span> 
 <div class='popup_sql'>SELECT count(?) AS count_1
 FROM users
 ('*',)</div><span class="mi">4</span></pre></div>
@@ -1347,7 +1353,7 @@ using the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Qu
         users.password AS users_password
 FROM users JOIN addresses ON users.id = addresses.user_id
 WHERE addresses.email_address = ?
-('jack@google.com',)</div><span class="p">[</span><span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;jack&#39;</span><span class="p">,</span> <span class="n">fullname</span><span class="o">=</span><span class="s">&#39;Jack Bean&#39;</span><span class="p">,</span> <span class="n">email_address</span><span class="o">=</span><span class="s">&#39;gjffdd&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span></pre></div>
+('jack@google.com',)</div><span class="p">[</span><span class="o">&lt;</span><span class="n">User</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;jack&#39;</span><span class="p">,</span> <span class="n">fullname</span><span class="o">=</span><span class="s">&#39;Jack Bean&#39;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s">&#39;gjffdd&#39;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span></pre></div>
 </div>
 <p><a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a> knows how to join between <tt class="docutils literal"><span class="pre">User</span></tt>
 and <tt class="docutils literal"><span class="pre">Address</span></tt> because there&#8217;s only one foreign key between them. If there

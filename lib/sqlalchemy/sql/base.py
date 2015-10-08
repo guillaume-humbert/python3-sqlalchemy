@@ -44,11 +44,144 @@ def _generative(fn, *args, **kw):
     return self
 
 
-class DialectKWArgs(object):
-    """Establish the ability for a class to have dialect-specific arguments
-    with defaults and validation.
+class _DialectArgView(collections.MutableMapping):
+    """A dictionary view of dialect-level arguments in the form
+    <dialectname>_<argument_name>.
 
     """
+    def __init__(self, obj):
+        self.obj = obj
+
+    def _key(self, key):
+        try:
+            dialect, value_key = key.split("_", 1)
+        except ValueError:
+            raise KeyError(key)
+        else:
+            return dialect, value_key
+
+    def __getitem__(self, key):
+        dialect, value_key = self._key(key)
+
+        try:
+            opt = self.obj.dialect_options[dialect]
+        except exc.NoSuchModuleError:
+            raise KeyError(key)
+        else:
+            return opt[value_key]
+
+    def __setitem__(self, key, value):
+        try:
+            dialect, value_key = self._key(key)
+        except KeyError:
+            raise exc.ArgumentError(
+                            "Keys must be of the form <dialectname>_<argname>")
+        else:
+            self.obj.dialect_options[dialect][value_key] = value
+
+    def __delitem__(self, key):
+        dialect, value_key = self._key(key)
+        del self.obj.dialect_options[dialect][value_key]
+
+    def __len__(self):
+        return sum(len(args._non_defaults) for args in
+                            self.obj.dialect_options.values())
+
+    def __iter__(self):
+        return (
+            "%s_%s" % (dialect_name, value_name)
+            for dialect_name in self.obj.dialect_options
+            for value_name in self.obj.dialect_options[dialect_name]._non_defaults
+        )
+
+class _DialectArgDict(collections.MutableMapping):
+    """A dictionary view of dialect-level arguments for a specific
+    dialect.
+
+    Maintains a separate collection of user-specified arguments
+    and dialect-specified default arguments.
+
+    """
+    def __init__(self):
+        self._non_defaults = {}
+        self._defaults = {}
+
+    def __len__(self):
+        return len(set(self._non_defaults).union(self._defaults))
+
+    def __iter__(self):
+        return iter(set(self._non_defaults).union(self._defaults))
+
+    def __getitem__(self, key):
+        if key in self._non_defaults:
+            return self._non_defaults[key]
+        else:
+            return self._defaults[key]
+
+    def __setitem__(self, key, value):
+        self._non_defaults[key] = value
+
+    def __delitem__(self, key):
+        del self._non_defaults[key]
+
+
+class DialectKWArgs(object):
+    """Establish the ability for a class to have dialect-specific arguments
+    with defaults and constructor validation.
+
+    The :class:`.DialectKWArgs` interacts with the
+    :attr:`.DefaultDialect.construct_arguments` present on a dialect.
+
+    .. seealso::
+
+        :attr:`.DefaultDialect.construct_arguments`
+
+    """
+
+    @classmethod
+    def argument_for(cls, dialect_name, argument_name, default):
+        """Add a new kind of dialect-specific keyword argument for this class.
+
+        E.g.::
+
+            Index.argument_for("mydialect", "length", None)
+
+            some_index = Index('a', 'b', mydialect_length=5)
+
+        The :meth:`.DialectKWArgs.argument_for` method is a per-argument
+        way adding extra arguments to the :attr:`.DefaultDialect.construct_arguments`
+        dictionary. This dictionary provides a list of argument names accepted by
+        various schema-level constructs on behalf of a dialect.
+
+        New dialects should typically specify this dictionary all at once as a data
+        member of the dialect class.  The use case for ad-hoc addition of
+        argument names is typically for end-user code that is also using
+        a custom compilation scheme which consumes the additional arguments.
+
+        :param dialect_name: name of a dialect.  The dialect must be locatable,
+         else a :class:`.NoSuchModuleError` is raised.   The dialect must
+         also include an existing :attr:`.DefaultDialect.construct_arguments` collection,
+         indicating that it participates in the keyword-argument validation and
+         default system, else :class:`.ArgumentError` is raised.
+         If the dialect does not include this collection, then any keyword argument
+         can be specified on behalf of this dialect already.  All dialects
+         packaged within SQLAlchemy include this collection, however for third
+         party dialects, support may vary.
+
+        :param argument_name: name of the parameter.
+
+        :param default: default value of the parameter.
+
+        .. versionadded:: 0.9.4
+
+        """
+
+        construct_arg_dictionary = DialectKWArgs._kw_registry[dialect_name]
+        if construct_arg_dictionary is None:
+            raise exc.ArgumentError("Dialect '%s' does have keyword-argument "
+                        "validation and defaults enabled configured" %
+                        dialect_name)
+        construct_arg_dictionary[cls][argument_name] = default
 
     @util.memoized_property
     def dialect_kwargs(self):
@@ -60,19 +193,25 @@ class DialectKWArgs(object):
         unlike the :attr:`.DialectKWArgs.dialect_options` collection, which
         contains all options known by this dialect including defaults.
 
+        The collection is also writable; keys are accepted of the
+        form ``<dialect>_<kwarg>`` where the value will be assembled
+        into the list of options.
+
         .. versionadded:: 0.9.2
+
+        .. versionchanged:: 0.9.4 The :attr:`.DialectKWArgs.dialect_kwargs`
+           collection is now writable.
 
         .. seealso::
 
             :attr:`.DialectKWArgs.dialect_options` - nested dictionary form
 
         """
-
-        return util.immutabledict()
+        return _DialectArgView(self)
 
     @property
     def kwargs(self):
-        """Deprecated; see :attr:`.DialectKWArgs.dialect_kwargs"""
+        """A synonym for :attr:`.DialectKWArgs.dialect_kwargs`."""
         return self.dialect_kwargs
 
     @util.dependencies("sqlalchemy.dialects")
@@ -85,14 +224,15 @@ class DialectKWArgs(object):
 
     def _kw_reg_for_dialect_cls(self, dialect_name):
         construct_arg_dictionary = DialectKWArgs._kw_registry[dialect_name]
+        d = _DialectArgDict()
+
         if construct_arg_dictionary is None:
-            return {"*": None}
+            d._defaults.update({"*": None})
         else:
-            d = {}
             for cls in reversed(self.__class__.__mro__):
                 if cls in construct_arg_dictionary:
-                    d.update(construct_arg_dictionary[cls])
-            return d
+                    d._defaults.update(construct_arg_dictionary[cls])
+        return d
 
     @util.memoized_property
     def dialect_options(self):
@@ -123,11 +263,9 @@ class DialectKWArgs(object):
         if not kwargs:
             return
 
-        self.dialect_kwargs = self.dialect_kwargs.union(kwargs)
-
         for k in kwargs:
             m = re.match('^(.+?)_(.+)$', k)
-            if m is None:
+            if not m:
                 raise TypeError("Additional arguments should be "
                         "named <dialectname>_<argument>, got '%s'" % k)
             dialect_name, arg_name = m.group(1, 2)
@@ -139,9 +277,9 @@ class DialectKWArgs(object):
                         "Can't validate argument %r; can't "
                         "locate any SQLAlchemy dialect named %r" %
                         (k, dialect_name))
-                self.dialect_options[dialect_name] = {
-                                            "*": None,
-                                            arg_name: kwargs[k]}
+                self.dialect_options[dialect_name] = d = _DialectArgDict()
+                d._defaults.update({"*": None})
+                d._non_defaults[arg_name] = kwargs[k]
             else:
                 if "*" not in construct_arg_dictionary and \
                     arg_name not in construct_arg_dictionary:
@@ -297,10 +435,10 @@ class ColumnCollection(util.OrderedProperties):
 
     """
 
-    def __init__(self, *cols):
+    def __init__(self):
         super(ColumnCollection, self).__init__()
-        self._data.update((c.key, c) for c in cols)
-        self.__dict__['_all_cols'] = util.column_set(self)
+        self.__dict__['_all_col_set'] = util.column_set()
+        self.__dict__['_all_columns'] = []
 
     def __str__(self):
         return repr([str(c) for c in self])
@@ -321,15 +459,26 @@ class ColumnCollection(util.OrderedProperties):
            Used by schema.Column to override columns during table reflection.
 
         """
+        remove_col = None
         if column.name in self and column.key != column.name:
             other = self[column.name]
             if other.name == other.key:
-                del self._data[other.name]
-                self._all_cols.remove(other)
+                remove_col = other
+                self._all_col_set.remove(other)
+                del self._data[other.key]
+
         if column.key in self._data:
-            self._all_cols.remove(self._data[column.key])
-        self._all_cols.add(column)
+            remove_col = self._data[column.key]
+            self._all_col_set.remove(remove_col)
+
+        self._all_col_set.add(column)
         self._data[column.key] = column
+        if remove_col is not None:
+            self._all_columns[:] = [column if c is remove_col
+                                            else c for c in self._all_columns]
+        else:
+            self._all_columns.append(column)
+
 
     def add(self, column):
         """Add a column to this collection.
@@ -359,37 +508,43 @@ class ColumnCollection(util.OrderedProperties):
                           '%r, which has the same key.  Consider '
                           'use_labels for select() statements.' % (key,
                           getattr(existing, 'table', None), value))
-            self._all_cols.remove(existing)
+
             # pop out memoized proxy_set as this
             # operation may very well be occurring
             # in a _make_proxy operation
             util.memoized_property.reset(value, "proxy_set")
-        self._all_cols.add(value)
+
+        self._all_col_set.add(value)
+        self._all_columns.append(value)
         self._data[key] = value
 
     def clear(self):
-        self._data.clear()
-        self._all_cols.clear()
+        raise NotImplementedError()
 
     def remove(self, column):
         del self._data[column.key]
-        self._all_cols.remove(column)
+        self._all_col_set.remove(column)
+        self._all_columns[:] = [c for c in self._all_columns if c is not column]
 
-    def update(self, value):
-        self._data.update(value)
-        self._all_cols.clear()
-        self._all_cols.update(self._data.values())
+    def update(self, iter):
+        cols = list(iter)
+        self._all_columns.extend(c for label, c in cols if c not in self._all_col_set)
+        self._all_col_set.update(c for label, c in cols)
+        self._data.update((label, c) for label, c in cols)
 
     def extend(self, iter):
-        self.update((c.key, c) for c in iter)
+        cols = list(iter)
+        self._all_columns.extend(c for c in cols if c not in self._all_col_set)
+        self._all_col_set.update(cols)
+        self._data.update((c.key, c) for c in cols)
 
     __hash__ = None
 
     @util.dependencies("sqlalchemy.sql.elements")
     def __eq__(self, elements, other):
         l = []
-        for c in other:
-            for local in self:
+        for c in getattr(other, "_all_columns", other):
+            for local in self._all_columns:
                 if c.shares_lineage(local):
                     l.append(c == local)
         return elements.and_(*l)
@@ -399,22 +554,28 @@ class ColumnCollection(util.OrderedProperties):
             raise exc.ArgumentError("__contains__ requires a string argument")
         return util.OrderedProperties.__contains__(self, other)
 
+    def __getstate__(self):
+        return {'_data': self.__dict__['_data'],
+                '_all_columns': self.__dict__['_all_columns']}
+
     def __setstate__(self, state):
         self.__dict__['_data'] = state['_data']
-        self.__dict__['_all_cols'] = util.column_set(self._data.values())
+        self.__dict__['_all_columns'] = state['_all_columns']
+        self.__dict__['_all_col_set'] = util.column_set(state['_all_columns'])
 
     def contains_column(self, col):
         # this has to be done via set() membership
-        return col in self._all_cols
+        return col in self._all_col_set
 
     def as_immutable(self):
-        return ImmutableColumnCollection(self._data, self._all_cols)
+        return ImmutableColumnCollection(self._data, self._all_col_set, self._all_columns)
 
 
 class ImmutableColumnCollection(util.ImmutableProperties, ColumnCollection):
-    def __init__(self, data, colset):
+    def __init__(self, data, colset, all_columns):
         util.ImmutableProperties.__init__(self, data)
-        self.__dict__['_all_cols'] = colset
+        self.__dict__['_all_col_set'] = colset
+        self.__dict__['_all_columns'] = all_columns
 
     extend = remove = util.ImmutableProperties._immutable
 

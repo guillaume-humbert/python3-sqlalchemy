@@ -267,47 +267,20 @@ class RelationshipProperty(StrategizedProperty):
           a comma-separated list of cascade rules which determines how
           Session operations should be "cascaded" from parent to child.
           This defaults to ``False``, which means the default cascade
-          should be used.  The default value is ``"save-update, merge"``.
+          should be used - this default cascade is ``"save-update, merge"``.
 
-          Available cascades are:
-
-          * ``save-update`` - cascade the :meth:`.Session.add`
-            operation.  This cascade applies both to future and
-            past calls to :meth:`.Session.add`,
-            meaning new items added to a collection or scalar relationship
-            get placed into the same session as that of the parent, and
-            also applies to items which have been removed from this
-            relationship but are still part of unflushed history.
-
-          * ``merge`` - cascade the :meth:`.Session.merge`
-            operation
-
-          * ``expunge`` - cascade the :meth:`.Session.expunge`
-            operation
-
-          * ``delete`` - cascade the :meth:`.Session.delete`
-            operation
-
-          * ``delete-orphan`` - if an item of the child's type is
-            detached from its parent, mark it for deletion.
-
-            .. versionchanged:: 0.7
-                This option does not prevent
-                a new instance of the child object from being persisted
-                without a parent to start with; to constrain against
-                that case, ensure the child's foreign key column(s)
-                is configured as NOT NULL
-
-          * ``refresh-expire`` - cascade the :meth:`.Session.expire`
-            and :meth:`.Session.refresh` operations
-
-          * ``all`` - shorthand for "save-update,merge, refresh-expire,
-            expunge, delete"
+          The available cascades are ``save-update``, ``merge``,
+          ``expunge``, ``delete``, ``delete-orphan``, and ``refresh-expire``.
+          An additional option, ``all`` indicates shorthand for
+          ``"save-update, merge, refresh-expire,
+          expunge, delete"``, and is often used as in ``"all, delete-orphan"``
+          to indicate that related objects should follow along with the
+          parent object in all cases, and be deleted when de-associated.
 
           .. seealso::
 
-            :ref:`unitofwork_cascades` - Introductory documentation and
-            examples.
+            :ref:`unitofwork_cascades` - Full detail on each of the available
+            cascade options.
 
             :ref:`tutorial_delete_cascade` - Tutorial example describing
             a delete cascade.
@@ -315,33 +288,14 @@ class RelationshipProperty(StrategizedProperty):
         :param cascade_backrefs=True:
           a boolean value indicating if the ``save-update`` cascade should
           operate along an assignment event intercepted by a backref.
-          When set to ``False``,
-          the attribute managed by this relationship will not cascade
-          an incoming transient object into the session of a
+          When set to ``False``, the attribute managed by this relationship
+          will not cascade an incoming transient object into the session of a
           persistent parent, if the event is received via backref.
-
-          That is::
-
-            mapper(A, a_table, properties={
-                'bs':relationship(B, backref="a", cascade_backrefs=False)
-            })
-
-          If an ``A()`` is present in the session, assigning it to
-          the "a" attribute on a transient ``B()`` will not place
-          the ``B()`` into the session.   To set the flag in the other
-          direction, i.e. so that ``A().bs.append(B())`` won't add
-          a transient ``A()`` into the session for a persistent ``B()``::
-
-            mapper(A, a_table, properties={
-                'bs':relationship(B,
-                        backref=backref("a", cascade_backrefs=False)
-                    )
-            })
 
           .. seealso::
 
-            :ref:`backref_cascade` - Introductory documentation and
-            examples.
+            :ref:`backref_cascade` - Full discussion and examples on how
+            the :paramref:`~.relationship.cascade_backrefs` option is used.
 
         :param collection_class:
           a class or callable that returns a new list-holding object. will
@@ -488,10 +442,21 @@ class RelationshipProperty(StrategizedProperty):
           or when the reference is one-to-one or a collection that is guaranteed
           to have one or at least one entry.
 
+          If the joined-eager load is chained onto an existing LEFT OUTER JOIN,
+          ``innerjoin=True`` will be bypassed and the join will continue to
+          chain as LEFT OUTER JOIN so that the results don't change.  As an alternative,
+          specify the value ``"nested"``.  This will instead nest the join
+          on the right side, e.g. using the form "a LEFT OUTER JOIN (b JOIN c)".
+
+          .. versionadded:: 0.9.4 Added ``innerjoin="nested"`` option to support
+             nesting of eager "inner" joins.
+
           .. seealso::
 
             :ref:`what_kind_of_loading` - Discussion of some details of
             various loader options.
+
+            :paramref:`.joinedload.innerjoin` - loader option version
 
         :param join_depth:
           when non-``None``, an integer value indicating how many levels
@@ -522,8 +487,8 @@ class RelationshipProperty(StrategizedProperty):
 
           * ``joined`` - items should be loaded "eagerly" in the same query as
             that of the parent, using a JOIN or LEFT OUTER JOIN.  Whether
-            the join is "outer" or not is determined by the ``innerjoin``
-            parameter.
+            the join is "outer" or not is determined by the
+            :paramref:`~.relationship.innerjoin` parameter.
 
           * ``subquery`` - items should be loaded "eagerly" as the parents are
             loaded, using one additional SQL statement, which issues a JOIN to a
@@ -2622,6 +2587,7 @@ class JoinCondition(object):
         binds = util.column_dict()
         lookup = util.column_dict()
         equated_columns = util.column_dict()
+        being_replaced = set()
 
         if reverse_direction and self.secondaryjoin is None:
             for l, r in self.local_remote_pairs:
@@ -2629,16 +2595,22 @@ class JoinCondition(object):
                 _list.append((r, l))
                 equated_columns[l] = r
         else:
+            # replace all "local side" columns, which is
+            # anything that isn't marked "remote"
+            being_replaced.update(self.local_columns)
             for l, r in self.local_remote_pairs:
                 _list = lookup.setdefault(l, [])
                 _list.append((l, r))
                 equated_columns[r] = l
 
         def col_to_bind(col):
-            if col in lookup:
-                for tobind, equated in lookup[col]:
-                    if equated in binds:
-                        return None
+            if col in being_replaced or col in lookup:
+                if col in lookup:
+                    for tobind, equated in lookup[col]:
+                        if equated in binds:
+                            return None
+                else:
+                    assert not reverse_direction
                 if col not in binds:
                     binds[col] = sql.bindparam(
                         None, None, type_=col.type, unique=True)

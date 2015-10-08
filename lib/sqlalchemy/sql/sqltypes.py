@@ -1131,7 +1131,7 @@ class Enum(String, SchemaType):
                         _create_rule=util.portable_instancemethod(
                                         self._should_create_constraint)
                     )
-        table.append_constraint(e)
+        assert e.table is table
 
     def adapt(self, impltype, **kw):
         schema = kw.pop('schema', self.schema)
@@ -1268,11 +1268,20 @@ class Boolean(TypeEngine, SchemaType):
                         _create_rule=util.portable_instancemethod(
                                     self._should_create_constraint)
                     )
-        table.append_constraint(e)
+        assert e.table is table
 
     @property
     def python_type(self):
         return bool
+
+    def literal_processor(self, dialect):
+        if dialect.supports_native_boolean:
+            def process(value):
+                return "true" if value else "false"
+        else:
+            def process(value):
+                return str(1 if value else 0)
+        return process
 
     def bind_processor(self, dialect):
         if dialect.supports_native_boolean:

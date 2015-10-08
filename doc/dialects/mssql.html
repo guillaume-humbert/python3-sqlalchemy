@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.3',
+          VERSION:     '0.9.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
+        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
 
 
     </div>
@@ -167,7 +167,6 @@
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.mssql.pymssql">pymssql</a><ul>
 <li><a class="reference internal" href="#dialect-mssql-pymssql-url">DBAPI</a></li>
 <li><a class="reference internal" href="#dialect-mssql-pymssql-connect">Connecting</a></li>
-<li><a class="reference internal" href="#limitations">Limitations</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.mssql.zxjdbc">zxjdbc</a><ul>
@@ -1019,7 +1018,7 @@ of <tt class="docutils literal"><span class="pre">False</span></tt> will uncondi
 <div class="section" id="dialect-mssql-pymssql-url">
 <h3>DBAPI<a class="headerlink" href="#dialect-mssql-pymssql-url" title="Permalink to this headline">¶</a></h3>
 <p>Documentation and download information (if applicable) for pymssql is available at:
-<a class="reference external" href="http://pymssql.sourceforge.net/">http://pymssql.sourceforge.net/</a></p>
+<a class="reference external" href="http://pymssql.org/">http://pymssql.org/</a></p>
 </div>
 <div class="section" id="dialect-mssql-pymssql-connect">
 <h3>Connecting<a class="headerlink" href="#dialect-mssql-pymssql-connect" title="Permalink to this headline">¶</a></h3>
@@ -1027,17 +1026,9 @@ of <tt class="docutils literal"><span class="pre">False</span></tt> will uncondi
 </div>
 </p>
 </div>
-<div class="section" id="limitations">
-<h3>Limitations<a class="headerlink" href="#limitations" title="Permalink to this headline">¶</a></h3>
-<p>pymssql inherits a lot of limitations from FreeTDS, including:</p>
-<ul class="simple">
-<li>no support for multibyte schema identifiers</li>
-<li>poor support for large decimals</li>
-<li>poor support for binary fields</li>
-<li>poor support for VARCHAR/CHAR fields over 255 characters</li>
-</ul>
-<p>Please consult the pymssql documentation for further information.</p>
-</div>
+<p>pymssql is a Python module that provides a Python DBAPI interface around
+<a class="reference external" href="http://www.freetds.org/">FreeTDS</a>.  Compatible builds are available for
+Linux, MacOSX and Windows platforms.</p>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.mssql.zxjdbc">
 <span id="zxjdbc"></span><h2>zxjdbc<a class="headerlink" href="#module-sqlalchemy.dialects.mssql.zxjdbc" title="Permalink to this headline">¶</a></h2>

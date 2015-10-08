@@ -85,6 +85,8 @@ http://www.sqlalchemy.org/trac/wiki/UsageRecipes/WindowFunctionsByDefault
 which installs a select compiler that overrides the generation of limit/offset with
 a window function.
 
+.. _oracle_returning:
+
 RETURNING Support
 -----------------
 
@@ -155,9 +157,42 @@ Synonym/DBLINK Reflection
 
 When using reflection with Table objects, the dialect can optionally search for tables
 indicated by synonyms, either in local or remote schemas or accessed over DBLINK,
-by passing the flag oracle_resolve_synonyms=True as a
-keyword argument to the Table construct.   If synonyms are not in use
-this flag should be left off.
+by passing the flag ``oracle_resolve_synonyms=True`` as a
+keyword argument to the :class:`.Table` construct::
+
+    some_table = Table('some_table', autoload=True,
+                                autoload_with=some_engine,
+                                oracle_resolve_synonyms=True)
+
+When this flag is set, the given name (such as ``some_table`` above) will
+be searched not just in the ``ALL_TABLES`` view, but also within the
+``ALL_SYNONYMS`` view to see if this name is actually a synonym to another name.
+If the synonym is located and refers to a DBLINK, the oracle dialect knows
+how to locate the table's information using DBLINK syntax (e.g. ``@dblink``).
+
+``oracle_resolve_synonyms`` is accepted wherever reflection arguments are
+accepted, including methods such as :meth:`.MetaData.reflect` and
+:meth:`.Inspector.get_columns`.
+
+If synonyms are not in use, this flag should be left disabled.
+
+DateTime Compatibility
+----------------------
+
+Oracle has no datatype known as ``DATETIME``, it instead has only ``DATE``,
+which can actually store a date and time value.  For this reason, the Oracle
+dialect provides a type :class:`.oracle.DATE` which is a subclass of
+:class:`.DateTime`.   This type has no special behavior, and is only
+present as a "marker" for this type; additionally, when a database column
+is reflected and the type is reported as ``DATE``, the time-supporting
+:class:`.oracle.DATE` type is used.
+
+.. versionchanged:: 0.9.4 Added :class:`.oracle.DATE` to subclass
+   :class:`.DateTime`.  This is a change as previous versions
+   would reflect a ``DATE`` column as :class:`.types.DATE`, which subclasses
+   :class:`.Date`.   The only significance here is for schemes that are
+   examining the type of column for use in special Python translations or
+   for migrating schemas to other database backends.
 
 """
 
@@ -168,7 +203,7 @@ from sqlalchemy.engine import default, base, reflection
 from sqlalchemy.sql import compiler, visitors, expression
 from sqlalchemy.sql import operators as sql_operators, functions as sql_functions
 from sqlalchemy import types as sqltypes, schema as sa_schema
-from sqlalchemy.types import VARCHAR, NVARCHAR, CHAR, DATE, DATETIME, \
+from sqlalchemy.types import VARCHAR, NVARCHAR, CHAR, \
                 BLOB, CLOB, TIMESTAMP, FLOAT
 
 RESERVED_WORDS = \
@@ -241,6 +276,22 @@ class BFILE(sqltypes.LargeBinary):
 class LONG(sqltypes.Text):
     __visit_name__ = 'LONG'
 
+class DATE(sqltypes.DateTime):
+    """Provide the oracle DATE type.
+
+    This type has no special Python behavior, except that it subclasses
+    :class:`.types.DateTime`; this is to suit the fact that the Oracle
+    ``DATE`` type supports a time value.
+
+    .. versionadded:: 0.9.4
+
+    """
+    __visit_name__ = 'DATE'
+
+
+    def _compare_type_affinity(self, other):
+        return other._type_affinity in (sqltypes.DateTime, sqltypes.Date)
+
 
 class INTERVAL(sqltypes.TypeEngine):
     __visit_name__ = 'INTERVAL'
@@ -289,6 +340,7 @@ class _OracleBoolean(sqltypes.Boolean):
 colspecs = {
     sqltypes.Boolean: _OracleBoolean,
     sqltypes.Interval: INTERVAL,
+    sqltypes.DateTime: DATE
 }
 
 ischema_names = {

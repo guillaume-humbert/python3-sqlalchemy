@@ -91,13 +91,24 @@ attribute, so that the ordering is correct when first loaded.
 .. warning::
 
   :class:`.OrderingList` only provides limited functionality when a primary
-  key column or unique column is the target of the sort.  Since changing the
-  order of entries often means that two rows must trade values, this is not
-  possible when the value is constrained by a primary key or unique
-  constraint, since one of the rows would temporarily have to point to a
-  third available value so that the other row could take its old
-  value. :class:`.OrderingList` doesn't do any of this for you,
-  nor does SQLAlchemy itself.
+  key column or unique column is the target of the sort.  Operations
+  that are unsupported or are problematic include:
+
+    * two entries must trade values.  This is not supported directly in the
+      case of a primary key or unique constraint because it means at least
+      one row would need to be temporarily removed first, or changed to
+      a third, neutral value while the switch occurs.
+
+    * an entry must be deleted in order to make room for a new entry.
+      SQLAlchemy's unit of work performs all INSERTs before DELETEs within a
+      single flush.  In the case of a primary key, it will trade
+      an INSERT/DELETE of the same primary key for an UPDATE statement in order
+      to lessen the impact of this lmitation, however this does not take place
+      for a UNIQUE column.
+      A future feature will allow the "DELETE before INSERT" behavior to be
+      possible, allevating this limitation, though this feature will require
+      explicit configuration at the mapper level for sets of columns that
+      are to be handled in this way.
 
 :func:`.ordering_list` takes the name of the related object's ordering attribute as
 an argument.  By default, the zero-based integer index of the object's

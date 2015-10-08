@@ -5,7 +5,7 @@ from sqlalchemy.testing import assert_raises, assert_raises_message, fixtures
 from sqlalchemy.testing import eq_, is_, ne_, fails_if
 from sqlalchemy.testing.util import picklers, gc_collect
 from sqlalchemy.util import classproperty, WeakSequence, get_callable_argspec
-
+from sqlalchemy.sql import column
 
 class KeyedTupleTest():
 
@@ -297,6 +297,191 @@ class ColumnCollectionTest(fixtures.TestBase):
         cc3.add(c3)
         assert (cc1 == cc2).compare(c1 == c2)
         assert not (cc1 == cc3).compare(c2 == c3)
+
+    @testing.emits_warning("Column ")
+    def test_dupes_add(self):
+        cc = sql.ColumnCollection()
+
+        c1, c2a, c3, c2b = column('c1'), column('c2'), column('c3'), column('c2')
+
+        cc.add(c1)
+        cc.add(c2a)
+        cc.add(c3)
+        cc.add(c2b)
+
+        eq_(cc._all_columns, [c1, c2a, c3, c2b])
+
+        # for iter, c2a is replaced by c2b, ordering
+        # is maintained in that way.  ideally, iter would be
+        # the same as the "_all_columns" collection.
+        eq_(list(cc), [c1, c2b, c3])
+
+        assert cc.contains_column(c2a)
+        assert cc.contains_column(c2b)
+
+        ci = cc.as_immutable()
+        eq_(ci._all_columns, [c1, c2a, c3, c2b])
+        eq_(list(ci), [c1, c2b, c3])
+
+    def test_replace(self):
+        cc = sql.ColumnCollection()
+
+        c1, c2a, c3, c2b = column('c1'), column('c2'), column('c3'), column('c2')
+
+        cc.add(c1)
+        cc.add(c2a)
+        cc.add(c3)
+
+        cc.replace(c2b)
+
+        eq_(cc._all_columns, [c1, c2b, c3])
+        eq_(list(cc), [c1, c2b, c3])
+
+        assert not cc.contains_column(c2a)
+        assert cc.contains_column(c2b)
+
+        ci = cc.as_immutable()
+        eq_(ci._all_columns, [c1, c2b, c3])
+        eq_(list(ci), [c1, c2b, c3])
+
+    def test_replace_key_matches(self):
+        cc = sql.ColumnCollection()
+
+        c1, c2a, c3, c2b = column('c1'), column('c2'), column('c3'), column('X')
+        c2b.key = 'c2'
+
+        cc.add(c1)
+        cc.add(c2a)
+        cc.add(c3)
+
+        cc.replace(c2b)
+
+        assert not cc.contains_column(c2a)
+        assert cc.contains_column(c2b)
+
+        eq_(cc._all_columns, [c1, c2b, c3])
+        eq_(list(cc), [c1, c2b, c3])
+
+        ci = cc.as_immutable()
+        eq_(ci._all_columns, [c1, c2b, c3])
+        eq_(list(ci), [c1, c2b, c3])
+
+    def test_replace_name_matches(self):
+        cc = sql.ColumnCollection()
+
+        c1, c2a, c3, c2b = column('c1'), column('c2'), column('c3'), column('c2')
+        c2b.key = 'X'
+
+        cc.add(c1)
+        cc.add(c2a)
+        cc.add(c3)
+
+        cc.replace(c2b)
+
+        assert not cc.contains_column(c2a)
+        assert cc.contains_column(c2b)
+
+        eq_(cc._all_columns, [c1, c2b, c3])
+        eq_(list(cc), [c1, c3, c2b])
+
+        ci = cc.as_immutable()
+        eq_(ci._all_columns, [c1, c2b, c3])
+        eq_(list(ci), [c1, c3, c2b])
+
+    def test_replace_no_match(self):
+        cc = sql.ColumnCollection()
+
+        c1, c2, c3, c4 = column('c1'), column('c2'), column('c3'), column('c4')
+        c4.key = 'X'
+
+        cc.add(c1)
+        cc.add(c2)
+        cc.add(c3)
+
+        cc.replace(c4)
+
+        assert cc.contains_column(c2)
+        assert cc.contains_column(c4)
+
+        eq_(cc._all_columns, [c1, c2, c3, c4])
+        eq_(list(cc), [c1, c2, c3, c4])
+
+        ci = cc.as_immutable()
+        eq_(ci._all_columns, [c1, c2, c3, c4])
+        eq_(list(ci), [c1, c2, c3, c4])
+
+    def test_dupes_extend(self):
+        cc = sql.ColumnCollection()
+
+        c1, c2a, c3, c2b = column('c1'), column('c2'), column('c3'), column('c2')
+
+        cc.add(c1)
+        cc.add(c2a)
+
+        cc.extend([c3, c2b])
+
+        eq_(cc._all_columns, [c1, c2a, c3, c2b])
+
+        # for iter, c2a is replaced by c2b, ordering
+        # is maintained in that way.  ideally, iter would be
+        # the same as the "_all_columns" collection.
+        eq_(list(cc), [c1, c2b, c3])
+
+        assert cc.contains_column(c2a)
+        assert cc.contains_column(c2b)
+
+        ci = cc.as_immutable()
+        eq_(ci._all_columns, [c1, c2a, c3, c2b])
+        eq_(list(ci), [c1, c2b, c3])
+
+    def test_dupes_update(self):
+        cc = sql.ColumnCollection()
+
+        c1, c2a, c3, c2b = column('c1'), column('c2'), column('c3'), column('c2')
+
+        cc.add(c1)
+        cc.add(c2a)
+
+        cc.update([(c3.key, c3), (c2b.key, c2b)])
+
+        eq_(cc._all_columns, [c1, c2a, c3, c2b])
+
+        assert cc.contains_column(c2a)
+        assert cc.contains_column(c2b)
+
+        # for iter, c2a is replaced by c2b, ordering
+        # is maintained in that way.  ideally, iter would be
+        # the same as the "_all_columns" collection.
+        eq_(list(cc), [c1, c2b, c3])
+
+    def test_extend_existing(self):
+        cc = sql.ColumnCollection()
+
+        c1, c2, c3, c4, c5 = column('c1'), column('c2'), column('c3'), column('c4'), column('c5')
+
+        cc.extend([c1, c2])
+        eq_(cc._all_columns, [c1, c2])
+
+        cc.extend([c3])
+        eq_(cc._all_columns, [c1, c2, c3])
+        cc.extend([c4, c2, c5])
+
+        eq_(cc._all_columns, [c1, c2, c3, c4, c5])
+
+    def test_update_existing(self):
+        cc = sql.ColumnCollection()
+
+        c1, c2, c3, c4, c5 = column('c1'), column('c2'), column('c3'), column('c4'), column('c5')
+
+        cc.update([('c1', c1), ('c2', c2)])
+        eq_(cc._all_columns, [c1, c2])
+
+        cc.update([('c3', c3)])
+        eq_(cc._all_columns, [c1, c2, c3])
+        cc.update([('c4', c4), ('c2', c2), ('c5', c5)])
+
+        eq_(cc._all_columns, [c1, c2, c3, c4, c5])
+
 
 
 class LRUTest(fixtures.TestBase):
@@ -1192,6 +1377,37 @@ class ArgInspectionTest(fixtures.TestBase):
             (['x', 'y'], None, 'kw', None)
         )
 
+    def test_callable_argspec_fn_no_self(self):
+        def foo(x, y, **kw):
+            pass
+        eq_(
+            get_callable_argspec(foo, no_self=True),
+            (['x', 'y'], None, 'kw', None)
+        )
+
+    def test_callable_argspec_fn_no_self_but_self(self):
+        def foo(self, x, y, **kw):
+            pass
+        eq_(
+            get_callable_argspec(foo, no_self=True),
+            (['self', 'x', 'y'], None, 'kw', None)
+        )
+
+    @fails_if(lambda: util.pypy,  "pypy returns plain *arg, **kw")
+    def test_callable_argspec_py_builtin(self):
+        import datetime
+        assert_raises(
+            TypeError,
+            get_callable_argspec, datetime.datetime.now
+        )
+
+    @fails_if(lambda: util.pypy,  "pypy returns plain *arg, **kw")
+    def test_callable_argspec_obj_init(self):
+        assert_raises(
+            TypeError,
+            get_callable_argspec, object
+        )
+
     def test_callable_argspec_method(self):
         class Foo(object):
             def foo(self, x, y, **kw):
@@ -1201,6 +1417,63 @@ class ArgInspectionTest(fixtures.TestBase):
             (['self', 'x', 'y'], None, 'kw', None)
         )
 
+    def test_callable_argspec_instance_method_no_self(self):
+        class Foo(object):
+            def foo(self, x, y, **kw):
+                pass
+        eq_(
+            get_callable_argspec(Foo().foo, no_self=True),
+            (['x', 'y'], None, 'kw', None)
+        )
+
+    def test_callable_argspec_unbound_method_no_self(self):
+        class Foo(object):
+            def foo(self, x, y, **kw):
+                pass
+        eq_(
+            get_callable_argspec(Foo.foo, no_self=True),
+            (['self', 'x', 'y'], None, 'kw', None)
+        )
+
+    def test_callable_argspec_init(self):
+        class Foo(object):
+            def __init__(self, x, y):
+                pass
+
+        eq_(
+            get_callable_argspec(Foo),
+            (['self', 'x', 'y'], None, None, None)
+        )
+
+    def test_callable_argspec_init_no_self(self):
+        class Foo(object):
+            def __init__(self, x, y):
+                pass
+
+        eq_(
+            get_callable_argspec(Foo, no_self=True),
+            (['x', 'y'], None, None, None)
+        )
+
+    def test_callable_argspec_call(self):
+        class Foo(object):
+            def __call__(self, x, y):
+                pass
+        eq_(
+            get_callable_argspec(Foo()),
+            (['self', 'x', 'y'], None, None, None)
+        )
+
+    def test_callable_argspec_call_no_self(self):
+        class Foo(object):
+            def __call__(self, x, y):
+                pass
+        eq_(
+            get_callable_argspec(Foo(), no_self=True),
+            (['x', 'y'], None, None, None)
+        )
+
+    @fails_if(lambda: util.pypy,  "pypy returns plain *arg, **kw")
     def test_callable_argspec_partial(self):
         from functools import partial
         def foo(x, y, z, **kw):
@@ -1208,7 +1481,7 @@ class ArgInspectionTest(fixtures.TestBase):
         bar = partial(foo, 5)
 
         assert_raises(
-            ValueError,
+            TypeError,
             get_callable_argspec, bar
         )
 
@@ -1329,7 +1602,8 @@ class TestFormatArgspec(fixtures.TestBase):
             'apply_kw': 'a=a, b=b', 'apply_pos': 'a, b'},
            grouped=False)
 
-    @fails_if(lambda: util.pypy, "object.__init__ is introspectable")
+    @testing.fails_if(lambda: util.pypy,
+                "pypy doesn't report O.__init__ as object.__init__")
     def test_init_grouped(self):
         object_spec = {
             'args': '(self)', 'self_arg': 'self',
@@ -1345,7 +1619,8 @@ class TestFormatArgspec(fixtures.TestBase):
         self._test_init(None, object_spec, wrapper_spec, custom_spec)
         self._test_init(True, object_spec, wrapper_spec, custom_spec)
 
-    @fails_if(lambda: util.pypy,  "object.__init__ can be introspected")
+    @testing.fails_if(lambda: util.pypy,
+                "pypy doesn't report O.__init__ as object.__init__")
     def test_init_bare(self):
         object_spec = {
             'args': 'self', 'self_arg': 'self',

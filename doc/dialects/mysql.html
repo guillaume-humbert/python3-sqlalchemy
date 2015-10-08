@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.3',
+          VERSION:     '0.9.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
+        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
 
 
     </div>
@@ -1526,26 +1526,18 @@ only the collation of character data.</li>
 </div>
 <div class="section" id="unicode">
 <h3>Unicode<a class="headerlink" href="#unicode" title="Permalink to this headline">¶</a></h3>
-<p>MySQLdb will accommodate Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects if the
-<tt class="docutils literal"><span class="pre">use_unicode=1</span></tt> parameter, or the <tt class="docutils literal"><span class="pre">charset</span></tt> parameter,
-is passed as a connection argument.</p>
-<p>Without this setting, many MySQL server installations default to
-a <tt class="docutils literal"><span class="pre">latin1</span></tt> encoding for client connections, which has the effect
-of all data being converted into <tt class="docutils literal"><span class="pre">latin1</span></tt>, even if you have <tt class="docutils literal"><span class="pre">utf8</span></tt>
-or another character set configured on your tables
-and columns.  With versions 4.1 and higher, you can change the connection
-character set either through server configuration or by including the
-<tt class="docutils literal"><span class="pre">charset</span></tt> parameter.  The <tt class="docutils literal"><span class="pre">charset</span></tt>
-parameter as received by MySQL-Python also has the side-effect of
-enabling <tt class="docutils literal"><span class="pre">use_unicode=1</span></tt>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># set client encoding to utf8; all strings come back as unicode</span>
-<span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+mysqldb:///mydb?charset=utf8&#39;</span><span class="p">)</span></pre></div>
+<p>MySQLdb requires a &#8220;charset&#8221; parameter to be passed in order for it
+to handle non-ASCII characters correctly.   When this parameter is passed,
+MySQLdb will also implicitly set the &#8220;use_unicode&#8221; flag to true, which means
+that it will return Python unicode objects instead of bytestrings.
+However, SQLAlchemy&#8217;s decode process, when C extensions are enabled,
+is orders of magnitude faster than that of MySQLdb as it does not call into
+Python functions to do so.  Therefore, the <strong>recommended URL to use for
+unicode</strong> will include both charset and use_unicode=0:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;mysql+mysqldb://user:pass@host/dbname?charset=utf8&amp;use_unicode=0&quot;</span><span class="p">)</span></pre></div>
 </div>
-<p>Manually configuring <tt class="docutils literal"><span class="pre">use_unicode=0</span></tt> will cause MySQL-python to
-return encoded strings:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># set client encoding to utf8; all strings come back as utf8 str</span>
-<span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+mysqldb:///mydb?charset=utf8&amp;use_unicode=0&#39;</span><span class="p">)</span></pre></div>
-</div>
+<p>As of this writing, MySQLdb only runs on Python 2.   It is not known how
+MySQLdb behaves on Python 3 as far as unicode decoding.</p>
 </div>
 <div class="section" id="known-issues">
 <h3>Known Issues<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h3>

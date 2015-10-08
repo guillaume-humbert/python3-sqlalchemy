@@ -20,10 +20,12 @@ from sqlalchemy.engine import result as _result, default
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.testing import fixtures
 from sqlalchemy.testing.mock import Mock, call, patch
-
+from contextlib import contextmanager
 
 users, metadata, users_autoinc = None, None, None
 class ExecuteTest(fixtures.TestBase):
+    __backend__ = True
+
     @classmethod
     def setup_class(cls):
         global users, users_autoinc, metadata
@@ -283,6 +285,8 @@ class ExecuteTest(fixtures.TestBase):
                 "Older versions dont support cursor pickling, newer ones do")
     @testing.fails_on("mysql+oursql",
                 "Exception doesn't come back exactly the same from pickle")
+    @testing.fails_on("mysql+mysqlconnector",
+                "Exception doesn't come back exactly the same from pickle")
     @testing.fails_on("oracle+cx_oracle",
                         "cx_oracle exception seems to be having "
                         "some issue with pickling")
@@ -449,7 +453,21 @@ class ExecuteTest(fixtures.TestBase):
         assert eng.dialect.returns_unicode_strings in (True, False)
         eng.dispose()
 
+    def test_works_after_dispose(self):
+        eng = create_engine(testing.db.url)
+        for i in range(3):
+            eq_(eng.scalar(select([1])), 1)
+            eng.dispose()
+
+    def test_works_after_dispose_testing_engine(self):
+        eng = engines.testing_engine()
+        for i in range(3):
+            eq_(eng.scalar(select([1])), 1)
+            eng.dispose()
+
 class ConvenienceExecuteTest(fixtures.TablesTest):
+    __backend__ = True
+
     @classmethod
     def define_tables(cls, metadata):
         cls.table = Table('exec_test', metadata,
@@ -605,6 +623,8 @@ class ConvenienceExecuteTest(fixtures.TablesTest):
         self._assert_no_data()
 
 class CompiledCacheTest(fixtures.TestBase):
+    __backend__ = True
+
     @classmethod
     def setup_class(cls):
         global users, metadata
@@ -636,240 +656,6 @@ class CompiledCacheTest(fixtures.TestBase):
         assert len(cache) == 1
         eq_(conn.execute("select count(*) from users").scalar(), 3)
 
-class LogParamsTest(fixtures.TestBase):
-    __only_on__ = 'sqlite'
-    __requires__ = 'ad_hoc_engines',
-
-    def setup(self):
-        self.eng = engines.testing_engine(options={'echo':True})
-        self.eng.execute("create table foo (data string)")
-        self.buf = logging.handlers.BufferingHandler(100)
-        for log in [
-            logging.getLogger('sqlalchemy.engine'),
-            logging.getLogger('sqlalchemy.pool')
-        ]:
-            log.addHandler(self.buf)
-
-    def teardown(self):
-        self.eng.execute("drop table foo")
-        for log in [
-            logging.getLogger('sqlalchemy.engine'),
-            logging.getLogger('sqlalchemy.pool')
-        ]:
-            log.removeHandler(self.buf)
-
-    def test_log_large_dict(self):
-        self.eng.execute(
-            "INSERT INTO foo (data) values (:data)",
-            [{"data":str(i)} for i in range(100)]
-        )
-        eq_(
-            self.buf.buffer[1].message,
-            "[{'data': '0'}, {'data': '1'}, {'data': '2'}, {'data': '3'}, "
-            "{'data': '4'}, {'data': '5'}, {'data': '6'}, {'data': '7'}"
-            "  ... displaying 10 of 100 total bound "
-            "parameter sets ...  {'data': '98'}, {'data': '99'}]"
-        )
-
-    def test_log_large_list(self):
-        self.eng.execute(
-            "INSERT INTO foo (data) values (?)",
-            [(str(i), ) for i in range(100)]
-        )
-        eq_(
-            self.buf.buffer[1].message,
-            "[('0',), ('1',), ('2',), ('3',), ('4',), ('5',), "
-            "('6',), ('7',)  ... displaying 10 of 100 total "
-            "bound parameter sets ...  ('98',), ('99',)]"
-        )
-
-    def test_error_large_dict(self):
-        assert_raises_message(
-            tsa.exc.DBAPIError,
-            r".*'INSERT INTO nonexistent \(data\) values \(:data\)' "
-            "\[{'data': '0'}, {'data': '1'}, {'data': '2'}, "
-            "{'data': '3'}, {'data': '4'}, {'data': '5'}, "
-            "{'data': '6'}, {'data': '7'}  ... displaying 10 of "
-            "100 total bound parameter sets ...  {'data': '98'}, {'data': '99'}\]",
-            lambda: self.eng.execute(
-                "INSERT INTO nonexistent (data) values (:data)",
-                [{"data":str(i)} for i in range(100)]
-            )
-        )
-
-    def test_error_large_list(self):
-        assert_raises_message(
-            tsa.exc.DBAPIError,
-            r".*INSERT INTO nonexistent \(data\) values "
-            "\(\?\)' \[\('0',\), \('1',\), \('2',\), \('3',\), "
-            "\('4',\), \('5',\), \('6',\), \('7',\)  ... displaying "
-            "10 of 100 total bound parameter sets ...  "
-            "\('98',\), \('99',\)\]",
-            lambda: self.eng.execute(
-                "INSERT INTO nonexistent (data) values (?)",
-                [(str(i), ) for i in range(100)]
-            )
-        )
-
-class LoggingNameTest(fixtures.TestBase):
-    __requires__ = 'ad_hoc_engines',
-
-    def _assert_names_in_execute(self, eng, eng_name, pool_name):
-        eng.execute(select([1]))
-        assert self.buf.buffer
-        for name in [b.name for b in self.buf.buffer]:
-            assert name in (
-                'sqlalchemy.engine.base.Engine.%s' % eng_name,
-                'sqlalchemy.pool.%s.%s' %
-                    (eng.pool.__class__.__name__, pool_name)
-            )
-
-    def _assert_no_name_in_execute(self, eng):
-        eng.execute(select([1]))
-        assert self.buf.buffer
-        for name in [b.name for b in self.buf.buffer]:
-            assert name in (
-                'sqlalchemy.engine.base.Engine',
-                'sqlalchemy.pool.%s' % eng.pool.__class__.__name__
-            )
-
-    def _named_engine(self, **kw):
-        options = {
-            'logging_name':'myenginename',
-            'pool_logging_name':'mypoolname',
-            'echo':True
-        }
-        options.update(kw)
-        return engines.testing_engine(options=options)
-
-    def _unnamed_engine(self, **kw):
-        kw.update({'echo':True})
-        return engines.testing_engine(options=kw)
-
-    def setup(self):
-        self.buf = logging.handlers.BufferingHandler(100)
-        for log in [
-            logging.getLogger('sqlalchemy.engine'),
-            logging.getLogger('sqlalchemy.pool')
-        ]:
-            log.addHandler(self.buf)
-
-    def teardown(self):
-        for log in [
-            logging.getLogger('sqlalchemy.engine'),
-            logging.getLogger('sqlalchemy.pool')
-        ]:
-            log.removeHandler(self.buf)
-
-    def test_named_logger_names(self):
-        eng = self._named_engine()
-        eq_(eng.logging_name, "myenginename")
-        eq_(eng.pool.logging_name, "mypoolname")
-
-    def test_named_logger_names_after_dispose(self):
-        eng = self._named_engine()
-        eng.execute(select([1]))
-        eng.dispose()
-        eq_(eng.logging_name, "myenginename")
-        eq_(eng.pool.logging_name, "mypoolname")
-
-    def test_unnamed_logger_names(self):
-        eng = self._unnamed_engine()
-        eq_(eng.logging_name, None)
-        eq_(eng.pool.logging_name, None)
-
-    def test_named_logger_execute(self):
-        eng = self._named_engine()
-        self._assert_names_in_execute(eng, "myenginename", "mypoolname")
-
-    def test_named_logger_echoflags_execute(self):
-        eng = self._named_engine(echo='debug', echo_pool='debug')
-        self._assert_names_in_execute(eng, "myenginename", "mypoolname")
-
-    def test_named_logger_execute_after_dispose(self):
-        eng = self._named_engine()
-        eng.execute(select([1]))
-        eng.dispose()
-        self._assert_names_in_execute(eng, "myenginename", "mypoolname")
-
-    def test_unnamed_logger_execute(self):
-        eng = self._unnamed_engine()
-        self._assert_no_name_in_execute(eng)
-
-    def test_unnamed_logger_echoflags_execute(self):
-        eng = self._unnamed_engine(echo='debug', echo_pool='debug')
-        self._assert_no_name_in_execute(eng)
-
-class EchoTest(fixtures.TestBase):
-    __requires__ = 'ad_hoc_engines',
-
-    def setup(self):
-        self.level = logging.getLogger('sqlalchemy.engine').level
-        logging.getLogger('sqlalchemy.engine').setLevel(logging.WARN)
-        self.buf = logging.handlers.BufferingHandler(100)
-        logging.getLogger('sqlalchemy.engine').addHandler(self.buf)
-
-    def teardown(self):
-        logging.getLogger('sqlalchemy.engine').removeHandler(self.buf)
-        logging.getLogger('sqlalchemy.engine').setLevel(self.level)
-
-    def testing_engine(self):
-        e = engines.testing_engine()
-
-        # do an initial execute to clear out 'first connect'
-        # messages
-        e.execute(select([10])).close()
-        self.buf.flush()
-
-        return e
-
-    def test_levels(self):
-        e1 = engines.testing_engine()
-
-        eq_(e1._should_log_info(), False)
-        eq_(e1._should_log_debug(), False)
-        eq_(e1.logger.isEnabledFor(logging.INFO), False)
-        eq_(e1.logger.getEffectiveLevel(), logging.WARN)
-
-        e1.echo = True
-        eq_(e1._should_log_info(), True)
-        eq_(e1._should_log_debug(), False)
-        eq_(e1.logger.isEnabledFor(logging.INFO), True)
-        eq_(e1.logger.getEffectiveLevel(), logging.INFO)
-
-        e1.echo = 'debug'
-        eq_(e1._should_log_info(), True)
-        eq_(e1._should_log_debug(), True)
-        eq_(e1.logger.isEnabledFor(logging.DEBUG), True)
-        eq_(e1.logger.getEffectiveLevel(), logging.DEBUG)
-
-        e1.echo = False
-        eq_(e1._should_log_info(), False)
-        eq_(e1._should_log_debug(), False)
-        eq_(e1.logger.isEnabledFor(logging.INFO), False)
-        eq_(e1.logger.getEffectiveLevel(), logging.WARN)
-
-    def test_echo_flag_independence(self):
-        """test the echo flag's independence to a specific engine."""
-
-        e1 = self.testing_engine()
-        e2 = self.testing_engine()
-
-        e1.echo = True
-        e1.execute(select([1])).close()
-        e2.execute(select([2])).close()
-
-        e1.echo = False
-        e1.execute(select([3])).close()
-        e2.execute(select([4])).close()
-
-        e2.echo = True
-        e1.execute(select([5])).close()
-        e2.execute(select([6])).close()
-
-        assert self.buf.buffer[0].getMessage().startswith("SELECT 1")
-        assert self.buf.buffer[2].getMessage().startswith("SELECT 6")
-        assert len(self.buf.buffer) == 4
 
 class MockStrategyTest(fixtures.TestBase):
     def _engine_fixture(self):
@@ -900,6 +686,7 @@ class MockStrategyTest(fixtures.TestBase):
         )
 
 class ResultProxyTest(fixtures.TestBase):
+    __backend__ = True
 
     def test_nontuple_row(self):
         """ensure the C version of BaseRowProxy handles
@@ -1159,6 +946,7 @@ class AlternateResultProxyTest(fixtures.TestBase):
 
 class EngineEventsTest(fixtures.TestBase):
     __requires__ = 'ad_hoc_engines',
+    __backend__ = True
 
     def tearDown(self):
         Engine.dispatch._clear()
@@ -1196,6 +984,7 @@ class EngineEventsTest(fixtures.TestBase):
         e2.execute(s2)
         eq_([arg[1][1] for arg in canary.mock_calls], [s1, s1, s2])
 
+
     def test_per_engine_plus_global(self):
         canary = Mock()
         event.listen(Engine, "before_execute", canary.be1)
@@ -1209,14 +998,14 @@ class EngineEventsTest(fixtures.TestBase):
         e2.connect()
 
         e1.execute(select([1]))
-        canary.be1.assert_call_count(1)
-        canary.be2.assert_call_count(1)
+        eq_(canary.be1.call_count, 1)
+        eq_(canary.be2.call_count, 1)
 
         e2.execute(select([1]))
 
-        canary.be1.assert_call_count(2)
-        canary.be2.assert_call_count(1)
-        canary.be3.assert_call_count(2)
+        eq_(canary.be1.call_count, 2)
+        eq_(canary.be2.call_count, 1)
+        eq_(canary.be3.call_count, 2)
 
     def test_per_connection_plus_engine(self):
         canary = Mock()
@@ -1228,12 +1017,87 @@ class EngineEventsTest(fixtures.TestBase):
         event.listen(conn, "before_execute", canary.be2)
         conn.execute(select([1]))
 
-        canary.be1.assert_call_count(1)
-        canary.be2.assert_call_count(1)
+        eq_(canary.be1.call_count, 1)
+        eq_(canary.be2.call_count, 1)
 
         conn._branch().execute(select([1]))
-        canary.be1.assert_call_count(2)
-        canary.be2.assert_call_count(2)
+        eq_(canary.be1.call_count, 2)
+        eq_(canary.be2.call_count, 2)
+
+    def test_add_event_after_connect(self):
+        # new feature as of #2978
+        canary = Mock()
+        e1 = create_engine(config.db_url)
+        assert not e1._has_events
+
+        conn = e1.connect()
+
+        event.listen(e1, "before_execute", canary.be1)
+        conn.execute(select([1]))
+
+        eq_(canary.be1.call_count, 1)
+
+        conn._branch().execute(select([1]))
+        eq_(canary.be1.call_count, 2)
+
+    def test_force_conn_events_false(self):
+        canary = Mock()
+        e1 = create_engine(config.db_url)
+        assert not e1._has_events
+
+        event.listen(e1, "before_execute", canary.be1)
+
+        conn = e1._connection_cls(e1, connection=e1.raw_connection(),
+                            _has_events=False)
+
+        conn.execute(select([1]))
+
+        eq_(canary.be1.call_count, 0)
+
+        conn._branch().execute(select([1]))
+        eq_(canary.be1.call_count, 0)
+
+    def test_cursor_events_ctx_execute_scalar(self):
+        canary = Mock()
+        e1 = testing_engine(config.db_url)
+
+        event.listen(e1, "before_cursor_execute", canary.bce)
+        event.listen(e1, "after_cursor_execute", canary.ace)
+
+        stmt = str(select([1]).compile(dialect=e1.dialect))
+
+        with e1.connect() as conn:
+            dialect = conn.dialect
+
+            ctx = dialect.execution_ctx_cls._init_statement(
+                            dialect, conn, conn.connection, stmt, {})
+
+            ctx._execute_scalar(stmt, Integer())
+
+        eq_(canary.bce.mock_calls,
+                [call(conn, ctx.cursor, stmt, ctx.parameters[0], ctx, False)])
+        eq_(canary.ace.mock_calls,
+                [call(conn, ctx.cursor, stmt, ctx.parameters[0], ctx, False)])
+
+    def test_cursor_events_execute(self):
+        canary = Mock()
+        e1 = testing_engine(config.db_url)
+
+        event.listen(e1, "before_cursor_execute", canary.bce)
+        event.listen(e1, "after_cursor_execute", canary.ace)
+
+        stmt = str(select([1]).compile(dialect=e1.dialect))
+
+        with e1.connect() as conn:
+
+            result = conn.execute(stmt)
+
+        ctx = result.context
+        eq_(canary.bce.mock_calls,
+                [call(conn, ctx.cursor, stmt, ctx.parameters[0], ctx, False)])
+        eq_(canary.ace.mock_calls,
+                [call(conn, ctx.cursor, stmt, ctx.parameters[0], ctx, False)])
+
 
     def test_argument_format_execute(self):
         def before_execute(conn, clauseelement, multiparams, params):
@@ -1548,6 +1412,7 @@ class ProxyConnectionTest(fixtures.TestBase):
 
     """
     __requires__ = 'ad_hoc_engines',
+    __prefer_requires__ = 'two_phase_transactions',
 
     @testing.uses_deprecated(r'.*Use event.listen')
     @testing.fails_on('firebird', 'Data type unknown')
@@ -1729,4 +1594,121 @@ class ProxyConnectionTest(fixtures.TestBase):
                     'rollback', 'begin_twophase',
                        'prepare_twophase', 'commit_twophase']
         )
+
+class DialectEventTest(fixtures.TestBase):
+    @contextmanager
+    def _run_test(self, retval):
+        m1 = Mock()
+
+        m1.do_execute.return_value = retval
+        m1.do_executemany.return_value = retval
+        m1.do_execute_no_params.return_value = retval
+        e = engines.testing_engine(options={"_initialize": False})
+
+        event.listen(e, "do_execute", m1.do_execute)
+        event.listen(e, "do_executemany", m1.do_executemany)
+        event.listen(e, "do_execute_no_params", m1.do_execute_no_params)
+
+        e.dialect.do_execute = m1.real_do_execute
+        e.dialect.do_executemany = m1.real_do_executemany
+        e.dialect.do_execute_no_params = m1.real_do_execute_no_params
+
+        def mock_the_cursor(cursor, *arg):
+            arg[-1].get_result_proxy = Mock(return_value=Mock(context=arg[-1]))
+            return retval
+
+        m1.real_do_execute.side_effect = m1.do_execute.side_effect = mock_the_cursor
+        m1.real_do_executemany.side_effect = m1.do_executemany.side_effect = mock_the_cursor
+        m1.real_do_execute_no_params.side_effect = m1.do_execute_no_params.side_effect = mock_the_cursor
+
+        with e.connect() as conn:
+            yield conn, m1
+
+    def _assert(self, retval, m1, m2, mock_calls):
+        eq_(m1.mock_calls, mock_calls)
+        if retval:
+            eq_(m2.mock_calls, [])
+        else:
+            eq_(m2.mock_calls, mock_calls)
+
+    def _test_do_execute(self, retval):
+        with self._run_test(retval) as (conn, m1):
+            result = conn.execute("insert into table foo", {"foo": "bar"})
+        self._assert(
+            retval,
+            m1.do_execute, m1.real_do_execute,
+            [call(
+                    result.context.cursor,
+                    "insert into table foo",
+                    {"foo": "bar"}, result.context)]
+        )
+
+    def _test_do_executemany(self, retval):
+        with self._run_test(retval) as (conn, m1):
+            result = conn.execute("insert into table foo",
+                            [{"foo": "bar"}, {"foo": "bar"}])
+        self._assert(
+            retval,
+            m1.do_executemany, m1.real_do_executemany,
+            [call(
+                    result.context.cursor,
+                    "insert into table foo",
+                    [{"foo": "bar"}, {"foo": "bar"}], result.context)]
+        )
+
+    def _test_do_execute_no_params(self, retval):
+        with self._run_test(retval) as (conn, m1):
+            result = conn.execution_options(no_parameters=True).\
+                execute("insert into table foo")
+        self._assert(
+            retval,
+            m1.do_execute_no_params, m1.real_do_execute_no_params,
+            [call(
+                    result.context.cursor,
+                    "insert into table foo", result.context)]
+        )
+
+    def _test_cursor_execute(self, retval):
+        with self._run_test(retval) as (conn, m1):
+            dialect = conn.dialect
+
+            stmt = "insert into table foo"
+            params = {"foo": "bar"}
+            ctx = dialect.execution_ctx_cls._init_statement(
+                            dialect, conn, conn.connection, stmt, [params])
+
+            conn._cursor_execute(ctx.cursor, stmt, params, ctx)
+
+        self._assert(
+            retval,
+            m1.do_execute, m1.real_do_execute,
+            [call(
+                    ctx.cursor,
+                    "insert into table foo",
+                    {"foo": "bar"}, ctx)]
+        )
+
+    def test_do_execute_w_replace(self):
+        self._test_do_execute(True)
+
+    def test_do_execute_wo_replace(self):
+        self._test_do_execute(False)
+
+    def test_do_executemany_w_replace(self):
+        self._test_do_executemany(True)
+
+    def test_do_executemany_wo_replace(self):
+        self._test_do_executemany(False)
+
+    def test_do_execute_no_params_w_replace(self):
+        self._test_do_execute_no_params(True)
+
+    def test_do_execute_no_params_wo_replace(self):
+        self._test_do_execute_no_params(False)
+
+    def test_cursor_execute_w_replace(self):
+        self._test_cursor_execute(True)
+
+    def test_cursor_execute_wo_replace(self):
+        self._test_cursor_execute(False)
 

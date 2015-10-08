@@ -9,6 +9,7 @@ installs SQLAlchemy's testing plugin into the local environment.
 import sys
 import imp
 import nose
+import warnings
 
 
 from os import path

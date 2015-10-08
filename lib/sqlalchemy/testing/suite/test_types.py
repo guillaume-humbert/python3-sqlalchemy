@@ -5,7 +5,7 @@ from ..assertions import eq_
 from ..config import requirements
 from sqlalchemy import Integer, Unicode, UnicodeText, select
 from sqlalchemy import Date, DateTime, Time, MetaData, String, \
-            Text, Numeric, Float, literal
+            Text, Numeric, Float, literal, Boolean
 from ..schema import Table, Column
 from ... import testing
 import decimal
@@ -120,6 +120,7 @@ class _UnicodeFixture(_LiteralRoundTripFixture):
 
 class UnicodeVarcharTest(_UnicodeFixture, fixtures.TablesTest):
     __requires__ = 'unicode_data',
+    __backend__ = True
 
     datatype = Unicode(255)
 
@@ -130,6 +131,7 @@ class UnicodeVarcharTest(_UnicodeFixture, fixtures.TablesTest):
 
 class UnicodeTextTest(_UnicodeFixture, fixtures.TablesTest):
     __requires__ = 'unicode_data', 'text_type'
+    __backend__ = True
 
     datatype = UnicodeText()
 
@@ -138,6 +140,9 @@ class UnicodeTextTest(_UnicodeFixture, fixtures.TablesTest):
         self._test_empty_strings()
 
 class TextTest(_LiteralRoundTripFixture, fixtures.TablesTest):
+    __requires__ = 'text_type',
+    __backend__ = True
+
     @classmethod
     def define_tables(cls, metadata):
         Table('text_table', metadata,
@@ -182,6 +187,8 @@ class TextTest(_LiteralRoundTripFixture, fixtures.TablesTest):
         self._literal_round_trip(Text, [data], [data])
 
 class StringTest(_LiteralRoundTripFixture, fixtures.TestBase):
+    __backend__ = True
+
     @requirements.unbounded_varchar
     def test_nolength_string(self):
         metadata = MetaData()
@@ -258,36 +265,42 @@ class _DateFixture(_LiteralRoundTripFixture):
 
 class DateTimeTest(_DateFixture, fixtures.TablesTest):
     __requires__ = 'datetime',
+    __backend__ = True
     datatype = DateTime
     data = datetime.datetime(2012, 10, 15, 12, 57, 18)
 
 
 class DateTimeMicrosecondsTest(_DateFixture, fixtures.TablesTest):
     __requires__ = 'datetime_microseconds',
+    __backend__ = True
     datatype = DateTime
     data = datetime.datetime(2012, 10, 15, 12, 57, 18, 396)
 
 
 class TimeTest(_DateFixture, fixtures.TablesTest):
     __requires__ = 'time',
+    __backend__ = True
     datatype = Time
     data = datetime.time(12, 57, 18)
 
 
 class TimeMicrosecondsTest(_DateFixture, fixtures.TablesTest):
     __requires__ = 'time_microseconds',
+    __backend__ = True
     datatype = Time
     data = datetime.time(12, 57, 18, 396)
 
 
 class DateTest(_DateFixture, fixtures.TablesTest):
     __requires__ = 'date',
+    __backend__ = True
     datatype = Date
     data = datetime.date(2012, 10, 15)
 
 
 class DateTimeCoercedToDateTimeTest(_DateFixture, fixtures.TablesTest):
-    __requires__ = 'date',
+    __requires__ = 'date', 'date_coerces_from_datetime'
+    __backend__ = True
     datatype = Date
     data = datetime.datetime(2012, 10, 15, 12, 57, 18)
     compare = datetime.date(2012, 10, 15)
@@ -295,21 +308,25 @@ class DateTimeCoercedToDateTimeTest(_DateFixture, fixtures.TablesTest):
 
 class DateTimeHistoricTest(_DateFixture, fixtures.TablesTest):
     __requires__ = 'datetime_historic',
+    __backend__ = True
     datatype = DateTime
     data = datetime.datetime(1850, 11, 10, 11, 52, 35)
 
 
 class DateHistoricTest(_DateFixture, fixtures.TablesTest):
     __requires__ = 'date_historic',
+    __backend__ = True
     datatype = Date
     data = datetime.date(1727, 4, 1)
 
 
 class IntegerTest(_LiteralRoundTripFixture, fixtures.TestBase):
+    __backend__ = True
     def test_literal(self):
         self._literal_round_trip(Integer, [5], [5])
 
 class NumericTest(_LiteralRoundTripFixture, fixtures.TestBase):
+    __backend__ = True
 
     @testing.emits_warning(r".*does \*not\* support Decimal objects natively")
     @testing.provide_metadata
@@ -503,10 +520,79 @@ class NumericTest(_LiteralRoundTripFixture, fixtures.TestBase):
         )
 
 
+class BooleanTest(_LiteralRoundTripFixture, fixtures.TablesTest):
+    __backend__ = True
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('boolean_table', metadata,
+            Column('id', Integer, primary_key=True, autoincrement=False),
+            Column('value', Boolean),
+            Column('unconstrained_value', Boolean(create_constraint=False)),
+            )
+
+    def test_render_literal_bool(self):
+        self._literal_round_trip(
+            Boolean(),
+            [True, False],
+            [True, False]
+        )
+
+    def test_round_trip(self):
+        boolean_table = self.tables.boolean_table
+
+        config.db.execute(
+            boolean_table.insert(),
+            {
+                'id': 1,
+                'value': True,
+                'unconstrained_value': False
+            }
+        )
+
+        row = config.db.execute(
+                    select([
+                            boolean_table.c.value,
+                            boolean_table.c.unconstrained_value
+                    ])
+                ).first()
+
+        eq_(
+            row,
+            (True, False)
+        )
+        assert isinstance(row[0], bool)
+
+    def test_null(self):
+        boolean_table = self.tables.boolean_table
+
+        config.db.execute(
+            boolean_table.insert(),
+            {
+                'id': 1,
+                'value': None,
+                'unconstrained_value': None
+            }
+        )
+
+        row = config.db.execute(
+                    select([
+                            boolean_table.c.value,
+                            boolean_table.c.unconstrained_value
+                    ])
+                ).first()
+
+        eq_(
+            row,
+            (None, None)
+        )
+
+
+
 
 __all__ = ('UnicodeVarcharTest', 'UnicodeTextTest',
             'DateTest', 'DateTimeTest', 'TextTest',
             'NumericTest', 'IntegerTest',
             'DateTimeHistoricTest', 'DateTimeCoercedToDateTimeTest',
             'TimeMicrosecondsTest', 'TimeTest', 'DateTimeMicrosecondsTest',
-            'DateHistoricTest', 'StringTest')
+            'DateHistoricTest', 'StringTest', 'BooleanTest')

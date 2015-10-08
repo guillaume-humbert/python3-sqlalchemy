@@ -6,7 +6,7 @@ from sqlalchemy.testing.schema import Table, Column
 from sqlalchemy.orm import mapper, relationship, \
     create_session, class_mapper, \
     Mapper, column_property, \
-    Session, sessionmaker, attributes
+    Session, sessionmaker, attributes, configure_mappers
 from sqlalchemy.orm.instrumentation import ClassManager
 from sqlalchemy.orm import instrumentation, events
 from sqlalchemy.testing import eq_
@@ -137,6 +137,58 @@ class MapperEventsTest(_RemoveListeners, _fixtures.FixtureTest):
              'before_update', 'after_update', 'before_delete',
              'after_delete'])
 
+    def test_insert_before_configured(self):
+        users, User = self.tables.users, self.classes.User
+
+        mapper(User, users)
+
+        canary = Mock()
+
+        event.listen(mapper, "before_configured", canary.listen1)
+        event.listen(mapper, "before_configured", canary.listen2, insert=True)
+        event.listen(mapper, "before_configured", canary.listen3)
+        event.listen(mapper, "before_configured", canary.listen4, insert=True)
+
+        configure_mappers()
+
+        eq_(
+            canary.mock_calls,
+            [call.listen4(), call.listen2(), call.listen1(), call.listen3()]
+        )
+
+    def test_insert_flags(self):
+        users, User = self.tables.users, self.classes.User
+
+        m = mapper(User, users)
+
+        canary = Mock()
+
+        arg = Mock()
+
+        event.listen(m, "before_insert", canary.listen1, )
+        event.listen(m, "before_insert", canary.listen2, insert=True)
+        event.listen(m, "before_insert", canary.listen3, propagate=True, insert=True)
+        event.listen(m, "load", canary.listen4)
+        event.listen(m, "load", canary.listen5, insert=True)
+        event.listen(m, "load", canary.listen6, propagate=True, insert=True)
+
+        u1 = User()
+        state = u1._sa_instance_state
+        m.dispatch.before_insert(arg, arg, arg)
+        m.class_manager.dispatch.load(arg, arg)
+        eq_(
+            canary.mock_calls,
+            [
+                call.listen3(arg, arg, arg.obj()),
+                call.listen2(arg, arg, arg.obj()),
+                call.listen1(arg, arg, arg.obj()),
+                call.listen6(arg.obj(), arg),
+                call.listen5(arg.obj(), arg),
+                call.listen4(arg.obj(), arg)
+            ]
+        )
+
+
     def test_merge(self):
         users, User = self.tables.users, self.classes.User
 
@@ -156,7 +208,7 @@ class MapperEventsTest(_RemoveListeners, _fixtures.FixtureTest):
         s = Session()
         u2 = s.merge(User(name='u2'))
         s.commit()
-        s.query(User).first()
+        s.query(User).order_by(User.id).first()
         eq_(canary, ['load', 'load', 'load'])
 
     def test_inheritance(self):
@@ -283,6 +335,42 @@ class MapperEventsTest(_RemoveListeners, _fixtures.FixtureTest):
         eq_(canary1, ['before_update', 'after_update'])
         eq_(canary2, [])
 
+    def test_before_after_configured_warn_on_non_mapper(self):
+        User, users = self.classes.User, self.tables.users
+
+        m1 = Mock()
+
+        mapper(User, users)
+        assert_raises_message(
+            sa.exc.SAWarning,
+            "before_configured' and 'after_configured' ORM events only "
+            "invoke with the mapper\(\) function or Mapper class as the target.",
+            event.listen, User, 'before_configured', m1
+        )
+
+        assert_raises_message(
+            sa.exc.SAWarning,
+            "before_configured' and 'after_configured' ORM events only "
+            "invoke with the mapper\(\) function or Mapper class as the target.",
+            event.listen, User, 'after_configured', m1
+        )
+
+    def test_before_after_configured(self):
+        User, users = self.classes.User, self.tables.users
+
+        m1 = Mock()
+        m2 = Mock()
+
+        mapper(User, users)
+
+        event.listen(mapper, "before_configured", m1)
+        event.listen(mapper, "after_configured", m2)
+
+        s = Session()
+        s.query(User)
+
+        eq_(m1.mock_calls, [call()])
+        eq_(m2.mock_calls, [call()])
 
     def test_retval(self):
         User, users = self.classes.User, self.tables.users

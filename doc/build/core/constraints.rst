@@ -129,6 +129,8 @@ For example::
         )
     )
 
+.. _on_update_on_delete:
+
 ON UPDATE and ON DELETE
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -431,27 +433,35 @@ name as follows::
 Constraints API
 ---------------
 .. autoclass:: Constraint
-
+    :members:
 
 .. autoclass:: CheckConstraint
-
+    :members:
+    :inherited-members:
 
 .. autoclass:: ColumnCollectionConstraint
-
+    :members:
 
 .. autoclass:: ForeignKey
     :members:
+    :inherited-members:
 
 
 .. autoclass:: ForeignKeyConstraint
     :members:
+    :inherited-members:
 
 
 .. autoclass:: PrimaryKeyConstraint
+    :members:
+    :inherited-members:
 
 
 .. autoclass:: UniqueConstraint
+    :members:
+    :inherited-members:
 
+.. autofunction:: sqlalchemy.schema.conv
 
 .. _schema_indexes:
 
@@ -569,3 +579,4 @@ Index API
 
 .. autoclass:: Index
     :members:
+    :inherited-members:

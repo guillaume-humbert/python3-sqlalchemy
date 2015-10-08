@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.3',
+          VERSION:     '0.9.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
+        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
 
 
     </div>
@@ -340,8 +340,7 @@ scalar value.</p>
 <tt class="descname">construct_arguments</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.construct_arguments" title="Permalink to this definition">¶</a></dt>
 <dd><p>Optional set of argument specifiers for various SQLAlchemy
 constructs, typically schema items.</p>
-<p>To
-implement, establish as a series of tuples, as in:</p>
+<p>To implement, establish as a series of tuples, as in:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">construct_arguments</span> <span class="o">=</span> <span class="p">[</span>
     <span class="p">(</span><span class="n">schema</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="p">{</span>
         <span class="s">&quot;using&quot;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
@@ -351,13 +350,24 @@ implement, establish as a series of tuples, as in:</p>
 <span class="p">]</span></pre></div>
 </div>
 <p>If the above construct is established on the Postgresql dialect,
-the <tt class="docutils literal"><span class="pre">Index</span></tt> construct will now accept additional keyword arguments
-such as <tt class="docutils literal"><span class="pre">postgresql_using</span></tt>, <tt class="docutils literal"><span class="pre">postgresql_where</span></tt>, etc.  Any kind of
-<tt class="docutils literal"><span class="pre">postgresql_XYZ</span></tt> argument not corresponding to the above template will
-be rejected with an <a href="#id1"><span class="problematic" id="id2">``</span></a>ArgumentError`, for all those SQLAlchemy constructs
-which implement the <tt class="xref py py-class docutils literal"><span class="pre">DialectKWArgs</span></tt> class.</p>
-<p>The default is <tt class="docutils literal"><span class="pre">None</span></tt>; older dialects which don&#8217;t implement the argument
-will have the old behavior of un-validated kwargs to schema/SQL constructs.</p>
+the <a class="reference internal" href="constraints.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct will now accept the keyword arguments
+<tt class="docutils literal"><span class="pre">postgresql_using</span></tt>, <tt class="docutils literal"><span class="pre">postgresql_where</span></tt>, nad <tt class="docutils literal"><span class="pre">postgresql_ops</span></tt>.
+Any other argument specified to the constructor of <a class="reference internal" href="constraints.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a>
+which is prefixed with <tt class="docutils literal"><span class="pre">postgresql_</span></tt> will raise <tt class="xref py py-class docutils literal"><span class="pre">ArgumentError</span></tt>.</p>
+<p>A dialect which does not include a <tt class="docutils literal"><span class="pre">construct_arguments</span></tt> member will
+not participate in the argument validation system.  For such a dialect,
+any argument name is accepted by all participating constructs, within
+the namespace of arguments prefixed with that dialect name.  The rationale
+here is so that third-party dialects that haven&#8217;t yet implemented this
+feature continue to function in the old way.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.2.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="sqlelement.html#sqlalchemy.sql.base.DialectKWArgs" title="sqlalchemy.sql.base.DialectKWArgs"><tt class="xref py py-class docutils literal"><span class="pre">DialectKWArgs</span></tt></a> - implementing base class which consumes
+<a class="reference internal" href="#sqlalchemy.engine.default.DefaultDialect.construct_arguments" title="sqlalchemy.engine.default.DefaultDialect.construct_arguments"><tt class="xref py py-attr docutils literal"><span class="pre">DefaultDialect.construct_arguments</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">

@@ -203,7 +203,7 @@ class UpdateTest(_UpdateFromTestBase, fixtures.TablesTest, AssertsCompiledSQL):
         """
         table1 = self.tables.mytable
         expr = func.foo(table1.c.myid)
-        assert not hasattr(expr, 'key')
+        eq_(expr.key, None)
         self.assert_compile(table1.update().values({expr: 'bar'}),
             'UPDATE mytable SET foo(myid)=:param_1')
 
@@ -306,7 +306,7 @@ class UpdateFromCompileTest(_UpdateFromTestBase, fixtures.TablesTest,
                 where(users.c.id == addresses.c.user_id),
             "UPDATE users, addresses SET addresses.name=%s, "
                 "users.name=%s WHERE users.id = addresses.user_id",
-            checkparams={u'addresses_name': 'new address', 'name': 'newname'},
+            checkparams={'addresses_name': 'new address', 'name': 'newname'},
             dialect='mysql'
         )
 
@@ -405,6 +405,7 @@ class UpdateFromCompileTest(_UpdateFromTestBase, fixtures.TablesTest,
 
 
 class UpdateFromRoundTripTest(_UpdateFromTestBase, fixtures.TablesTest):
+    __backend__ = True
 
     @testing.requires.update_from
     def test_exec_two_table(self):
@@ -538,6 +539,8 @@ class UpdateFromRoundTripTest(_UpdateFromTestBase, fixtures.TablesTest):
 
 class UpdateFromMultiTableUpdateDefaultsTest(_UpdateFromTestBase,
                                              fixtures.TablesTest):
+    __backend__ = True
+
     @classmethod
     def define_tables(cls, metadata):
         Table('users', metadata,

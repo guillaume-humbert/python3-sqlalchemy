@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.3',
+          VERSION:     '0.9.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
+        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
 
 
     </div>
@@ -286,10 +286,10 @@ modified in several ways.</p>
 <span id="mapper-column-distinct-names"></span><h3>Naming Columns Distinctly from Attribute Names<a class="headerlink" href="#naming-columns-distinctly-from-attribute-names" title="Permalink to this headline">¶</a></h3>
 <p>A mapping by default shares the same name for a
 <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> as that of the mapped attribute - specifically
-it matches the <tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt> attribute on <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, which
+it matches the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column.key" title="sqlalchemy.schema.Column.key"><tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt></a> attribute on <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, which
 by default is the same as the <tt class="xref py py-attr docutils literal"><span class="pre">Column.name</span></tt>.</p>
 <p>The name assigned to the Python attribute which maps to
-<a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> can be different from either <tt class="xref py py-attr docutils literal"><span class="pre">Column.name</span></tt> or <tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt>
+<a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> can be different from either <tt class="xref py py-attr docutils literal"><span class="pre">Column.name</span></tt> or <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column.key" title="sqlalchemy.schema.Column.key"><tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt></a>
 just by assigning it that way, as we illustrate here in a Declarative mapping:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;user&#39;</span>
@@ -323,7 +323,7 @@ objects explicitly, and instead are automating the production of <a class="refer
 objects using reflection (e.g. as described in <a class="reference internal" href="../core/reflection.html"><em>Reflecting Database Objects</em></a>)?
 In this case we can make use of the <a class="reference internal" href="../core/events.html#sqlalchemy.events.DDLEvents.column_reflect" title="sqlalchemy.events.DDLEvents.column_reflect"><tt class="xref py py-meth docutils literal"><span class="pre">DDLEvents.column_reflect()</span></tt></a> event
 to intercept the production of <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects and provide them
-with the <tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt> of our choice:</p>
+with the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column.key" title="sqlalchemy.schema.Column.key"><tt class="xref py py-attr docutils literal"><span class="pre">Column.key</span></tt></a> of our choice:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">Table</span><span class="p">,</span> <span class="s">&quot;column_reflect&quot;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">column_reflect</span><span class="p">(</span><span class="n">inspector</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">column_info</span><span class="p">):</span>
     <span class="c"># set column.key = &quot;attr_&lt;lower_case_name&gt;&quot;</span>
@@ -2058,7 +2058,7 @@ issues:</p>
 <h2>Class Mapping API<a class="headerlink" href="#class-mapping-api" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="sqlalchemy.orm.mapper">
-<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">mapper</tt><big>(</big><em>class_</em>, <em>local_table=None</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>version_id_generator=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_partial_pks=True</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>eager_defaults=False</em>, <em>legacy_is_orphan=False</em>, <em>_compiled_cache_size=100</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">mapper</tt><big>(</big><em>class_</em>, <em>local_table=None</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>version_id_generator=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_partial_pks=True</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>confirm_deleted_rows=True</em>, <em>eager_defaults=False</em>, <em>legacy_is_orphan=False</em>, <em>_compiled_cache_size=100</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> object.</p>
 <p>This function is typically used behind the scenes
 via the Declarative extension.   When using Declarative,
@@ -2146,6 +2146,18 @@ column-based properties.</p>
 <li><span class="target" id="sqlalchemy.orm.mapper.params.concrete"></span><strong>concrete</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.mapper.params.concrete">¶</a> &#8211; <p>If True, indicates this mapper should use concrete
 table inheritance with its parent mapper.</p>
 <p>See the section <a class="reference internal" href="inheritance.html#concrete-inheritance"><em>Concrete Table Inheritance</em></a> for an example.</p>
+</li>
+<li><span class="target" id="sqlalchemy.orm.mapper.params.confirm_deleted_rows"></span><strong>confirm_deleted_rows</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.mapper.params.confirm_deleted_rows">¶</a> &#8211; <p>defaults to True; when a DELETE occurs
+of one more more rows based on specific primary keys, a warning is
+emitted when the number of rows matched does not equal the number
+of rows expected.  This parameter may be set to False to handle the case
+where database ON DELETE CASCADE rules may be deleting some of those
+rows automatically.  The warning may be changed to an exception
+in a future release.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.4: </span>- added <a class="reference internal" href="#sqlalchemy.orm.mapper.params.confirm_deleted_rows" title="sqlalchemy.orm.mapper"><tt class="xref py py-paramref docutils literal"><span class="pre">mapper.confirm_deleted_rows</span></tt></a>
+as well as conditional matched row checking on delete.</p>
+</div>
 </li>
 <li><span class="target" id="sqlalchemy.orm.mapper.params.eager_defaults"></span><strong>eager_defaults</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.mapper.params.eager_defaults">¶</a> &#8211; <p>if True, the ORM will immediately fetch the
 value of server-generated default values after an INSERT or UPDATE,
@@ -2583,7 +2595,7 @@ can be set to False.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.orm.mapper.Mapper">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.mapper.</tt><tt class="descname">Mapper</tt><big>(</big><em>class_</em>, <em>local_table=None</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>version_id_generator=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_partial_pks=True</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>eager_defaults=False</em>, <em>legacy_is_orphan=False</em>, <em>_compiled_cache_size=100</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.orm.mapper.</tt><tt class="descname">Mapper</tt><big>(</big><em>class_</em>, <em>local_table=None</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>version_id_generator=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_partial_pks=True</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>confirm_deleted_rows=True</em>, <em>eager_defaults=False</em>, <em>legacy_is_orphan=False</em>, <em>_compiled_cache_size=100</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.orm.base._InspectionAttr</span></tt></p>
 <p>Define the correlation of class attributes to database table
 columns.</p>
@@ -2610,7 +2622,7 @@ extension will also have its mapper available via the <tt class="docutils litera
 attribute.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.mapper.Mapper.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>class_</em>, <em>local_table=None</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>version_id_generator=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_partial_pks=True</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>eager_defaults=False</em>, <em>legacy_is_orphan=False</em>, <em>_compiled_cache_size=100</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>class_</em>, <em>local_table=None</em>, <em>properties=None</em>, <em>primary_key=None</em>, <em>non_primary=False</em>, <em>inherits=None</em>, <em>inherit_condition=None</em>, <em>inherit_foreign_keys=None</em>, <em>extension=None</em>, <em>order_by=False</em>, <em>always_refresh=False</em>, <em>version_id_col=None</em>, <em>version_id_generator=None</em>, <em>polymorphic_on=None</em>, <em>_polymorphic_map=None</em>, <em>polymorphic_identity=None</em>, <em>concrete=False</em>, <em>with_polymorphic=None</em>, <em>allow_partial_pks=True</em>, <em>batch=True</em>, <em>column_prefix=None</em>, <em>include_properties=None</em>, <em>exclude_properties=None</em>, <em>passive_updates=True</em>, <em>confirm_deleted_rows=True</em>, <em>eager_defaults=False</em>, <em>legacy_is_orphan=False</em>, <em>_compiled_cache_size=100</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.mapper.Mapper.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a new <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> object.</p>
 <p>This constructor is mirrored as a public API function; see <a class="reference internal" href="#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a> for a full usage and argument description.</p>
 </dd></dl>

@@ -15,7 +15,7 @@ import os
 import sys
 from .util import gc_collect, decorator
 from . import config
-from nose import SkipTest
+from .plugin.plugin_base import SkipTest
 import pstats
 import time
 import collections
@@ -111,7 +111,7 @@ class ProfileStatsFile(object):
             # etc.
             self._write()
 
-    @util.memoized_property
+    @property
     def platform_key(self):
 
         dbapi_key = config.db.name + "_" + config.db.driver

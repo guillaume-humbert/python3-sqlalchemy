@@ -10,23 +10,32 @@ import sys
 from distutils.command.build_ext import build_ext
 from distutils.errors import (CCompilerError, DistutilsExecError,
                               DistutilsPlatformError)
+
+has_feature = False
 try:
-    from setuptools import setup, Extension, Feature
-    has_setuptools = True
+    from setuptools import setup, Extension
+    try:
+        # see
+        # https://bitbucket.org/pypa/setuptools/issue/65/deprecate-and-remove-features,
+        # where they may remove Feature.
+        from setuptools import Feature
+        has_feature = True
+    except ImportError:
+        pass
 except ImportError:
-    has_setuptools = False
     from distutils.core import setup, Extension
-    Feature = None
+
+py3k = False
 
 cmdclass = {}
-pypy = hasattr(sys, 'pypy_version_info')
-jython = sys.platform.startswith('java')
-py3k = False
 extra = {}
 if sys.version_info < (2, 6):
     raise Exception("SQLAlchemy requires Python 2.6 or higher.")
 elif sys.version_info >= (3, 0):
     py3k = True
+
+import platform
+cpython = platform.python_implementation() == 'CPython'
 
 ext_modules = [
     Extension('sqlalchemy.cprocessors',
@@ -100,7 +109,7 @@ r_file.close()
 def run_setup(with_cext):
     kwargs = extra.copy()
     if with_cext:
-        if Feature:
+        if has_feature:
             kwargs['features'] = {'cextensions': Feature(
                     "optional C speed-enhancements",
                     standard=True,
@@ -119,8 +128,8 @@ def run_setup(with_cext):
         package_dir={'': 'lib'},
         license="MIT License",
         cmdclass=cmdclass,
-        tests_require=['nose >= 0.11', 'mock'],
-        test_suite="sqla_nose",
+        tests_require=['pytest >= 2.5.2', 'mock'],
+        test_suite="pytest.main",
         long_description=readme,
         classifiers=[
             "Development Status :: 5 - Production/Stable",
@@ -137,13 +146,20 @@ def run_setup(with_cext):
             **kwargs
           )
 
-if pypy or jython:
+if not cpython:
     run_setup(False)
     status_msgs(
         "WARNING: C extensions are not supported on " +
             "this Python platform, speedups are not enabled.",
         "Plain-Python build succeeded."
     )
+elif os.environ.get('DISABLE_SQLALCHEMY_CEXT'):
+    run_setup(False)
+    status_msgs(
+        "DISABLE_SQLALCHEMY_CEXT is set; not attempting to build C extensions.",
+        "Plain-Python build succeeded."
+    )
+
 else:
     try:
         run_setup(True)

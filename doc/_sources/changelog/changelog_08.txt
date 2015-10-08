@@ -9,6 +9,104 @@
         :start-line: 5
 
 .. changelog::
+    :version: 0.8.6
+    :released: March 28, 2014
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3006
+        :versions: 0.9.4
+
+        Fixed ORM bug where changing the primary key of an object, then marking
+        it for DELETE would fail to target the correct row for DELETE.
+        Note that we cannot currently check "number of rows matched" in general
+        for DELETE statements as we can't be sure that a self-referential
+        ON DELETE CASCADE has gotten there first.
+
+    .. change::
+        :tags: feature, postgresql
+        :versions: 0.9.4
+
+        Enabled "sane multi-row count" checking for the psycopg2 DBAPI, as
+        this seems to be supported as of psycopg2 2.0.9.
+
+    .. change::
+        :tags: bug, postgresql
+        :tickets: 3000
+        :versions: 0.9.4
+
+        Fixed regression caused by release 0.8.5 / 0.9.3's compatibility
+        enhancements where index reflection on Postgresql versions specific
+        to only the 8.1, 8.2 series again
+        broke, surrounding the ever problematic int2vector type.  While
+        int2vector supports array operations as of 8.1, apparently it only
+        supports CAST to a varchar as of 8.3.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2995,
+        :versions: 0.9.4
+
+        Fixed regression from 0.8.3 as a result of :ticket:`2818`
+        where :meth:`.Query.exists` wouldn't work on a query that only
+        had a :meth:`.Query.select_from` entry but no other entities.
+
+    .. change::
+        :tags: bug, general
+        :tickets: 2986
+        :versions: 0.9.4
+
+        Adjusted ``setup.py`` file to support the possible future
+        removal of the ``setuptools.Feature`` extension from setuptools.
+        If this keyword isn't present, the setup will still succeed
+        with setuptools rather than falling back to distutils.  C extension
+        building can be disabled now also by setting the
+        DISABLE_SQLALCHEMY_CEXT environment variable.  This variable works
+        whether or not setuptools is even available.
+
+    .. change::
+        :tags: bug, ext
+        :versions: 0.9.4
+        :tickets: 2997
+
+        Fixed bug in mutable extension as well as
+        :func:`.attributes.flag_modified` where the change event would not be
+        propagated if the attribute had been reassigned to itself.
+
+    .. change::
+        :tags: bug, orm
+        :versions: 0.9.4
+
+        Improved an error message which would occur if a query() were made
+        against a non-selectable, such as a :func:`.literal_column`, and then
+        an attempt was made to use :meth:`.Query.join` such that the "left"
+        side would be determined as ``None`` and then fail.  This condition
+        is now detected explicitly.
+
+    .. change::
+        :tags: bug, sql
+        :versions: 0.9.4
+        :tickets: 2977
+
+        Fixed bug in :func:`.tuple_` construct where the "type" of essentially
+        the first SQL expression would be applied as the "comparison type"
+        to a compared tuple value; this has the effect in some cases of an
+        inappropriate "type coersion" occurring, such as when a tuple that
+        has a mix of String and Binary values improperly coerces target
+        values to Binary even though that's not what they are on the left
+        side.  :func:`.tuple_` now expects heterogeneous types within its
+        list of values.
+
+    .. change::
+        :tags: orm, bug
+        :versions: 0.9.4
+        :tickets: 2975
+
+        Removed stale names from ``sqlalchemy.orm.interfaces.__all__`` and
+        refreshed with current names, so that an ``import *`` from this
+        module again works.
+
+.. changelog::
     :version: 0.8.5
     :released: February 19, 2014
 

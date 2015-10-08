@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.3',
+          VERSION:     '0.9.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
+        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
 
 
     </div>
@@ -714,7 +714,8 @@ both method-chained and standalone operation.</p>
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="#"><em>Relationship Loading Techniques</em></a></p>
 <p><a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">orm.joinedload()</span></tt></a></p>
-<p class="last"><a class="reference internal" href="#sqlalchemy.orm.lazyload" title="sqlalchemy.orm.lazyload"><tt class="xref py py-func docutils literal"><span class="pre">orm.lazyload()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.orm.lazyload" title="sqlalchemy.orm.lazyload"><tt class="xref py py-func docutils literal"><span class="pre">orm.lazyload()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.lazy" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.lazy</span></tt></a></p>
 </div>
 </dd></dl>
 
@@ -736,10 +737,27 @@ both method-chained and standalone operation.</p>
 <span class="c"># joined-load the keywords collection</span>
 <span class="n">query</span><span class="p">(</span><span class="n">Order</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">lazyload</span><span class="p">(</span><span class="n">Order</span><span class="o">.</span><span class="n">items</span><span class="p">)</span><span class="o">.</span><span class="n">joinedload</span><span class="p">(</span><span class="n">Item</span><span class="o">.</span><span class="n">keywords</span><span class="p">))</span></pre></div>
 </div>
-<p><a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">orm.joinedload()</span></tt></a> also accepts a keyword argument <cite>innerjoin=True</cite> which
-indicates using an inner join instead of an outer:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.orm.joinedload.params.innerjoin"></span><strong>innerjoin</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.joinedload.params.innerjoin">¶</a> &#8211; <p>if <tt class="docutils literal"><span class="pre">True</span></tt>, indicates that the joined eager load should
+use an inner join instead of the default of left outer join:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="p">(</span><span class="n">Order</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="n">Order</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">innerjoin</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span></pre></div>
 </div>
+<p>If the joined-eager load is chained onto an existing LEFT OUTER JOIN,
+<tt class="docutils literal"><span class="pre">innerjoin=True</span></tt> will be bypassed and the join will continue to
+chain as LEFT OUTER JOIN so that the results don&#8217;t change.  As an alternative,
+specify the value <tt class="docutils literal"><span class="pre">&quot;nested&quot;</span></tt>.  This will instead nest the join
+on the right side, e.g. using the form &#8220;a LEFT OUTER JOIN (b JOIN c)&#8221;.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.4: </span>Added <tt class="docutils literal"><span class="pre">innerjoin=&quot;nested&quot;</span></tt> option to support
+nesting of eager &#8220;inner&#8221; joins.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p>The joins produced by <a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">orm.joinedload()</span></tt></a> are <strong>anonymously aliased</strong>.
@@ -754,7 +772,10 @@ of collections, use <a class="reference internal" href="#sqlalchemy.orm.contains
 <p><a class="reference internal" href="#"><em>Relationship Loading Techniques</em></a></p>
 <p><a class="reference internal" href="#contains-eager"><em>Routing Explicit Joins/Statements into Eagerly Loaded Collections</em></a></p>
 <p><a class="reference internal" href="#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">orm.subqueryload()</span></tt></a></p>
-<p class="last"><a class="reference internal" href="#sqlalchemy.orm.lazyload" title="sqlalchemy.orm.lazyload"><tt class="xref py py-func docutils literal"><span class="pre">orm.lazyload()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.orm.lazyload" title="sqlalchemy.orm.lazyload"><tt class="xref py py-func docutils literal"><span class="pre">orm.lazyload()</span></tt></a></p>
+<p><a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.lazy" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.lazy</span></tt></a></p>
+<p class="last"><a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.innerjoin" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.innerjoin</span></tt></a> - <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>-level version
+of the <a class="reference internal" href="#sqlalchemy.orm.joinedload.params.innerjoin" title="sqlalchemy.orm.joinedload"><tt class="xref py py-paramref docutils literal"><span class="pre">joinedload.innerjoin</span></tt></a> option.</p>
 </div>
 </dd></dl>
 
@@ -778,6 +799,10 @@ of collections, use <a class="reference internal" href="#sqlalchemy.orm.contains
 loading.</p>
 <p>This function is part of the <a class="reference internal" href="query.html#sqlalchemy.orm.strategy_options.Load" title="sqlalchemy.orm.strategy_options.Load"><tt class="xref py py-class docutils literal"><span class="pre">Load</span></tt></a> interface and supports
 both method-chained and standalone operation.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.lazy" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.lazy</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -812,7 +837,8 @@ both method-chained and standalone operation.</p>
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="#"><em>Relationship Loading Techniques</em></a></p>
 <p><a class="reference internal" href="#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">orm.joinedload()</span></tt></a></p>
-<p class="last"><a class="reference internal" href="#sqlalchemy.orm.lazyload" title="sqlalchemy.orm.lazyload"><tt class="xref py py-func docutils literal"><span class="pre">orm.lazyload()</span></tt></a></p>
+<p><a class="reference internal" href="#sqlalchemy.orm.lazyload" title="sqlalchemy.orm.lazyload"><tt class="xref py py-func docutils literal"><span class="pre">orm.lazyload()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.lazy" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">relationship.lazy</span></tt></a></p>
 </div>
 </dd></dl>
 

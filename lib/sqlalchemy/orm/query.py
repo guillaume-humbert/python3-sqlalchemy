@@ -1843,6 +1843,12 @@ class Query(object):
             elif self._entities:
                 left = self._entities[0].entity_zero_or_selectable
 
+        if left is None:
+            raise sa_exc.InvalidRequestError(
+                            "Don't know how to join from %s; please use "
+                            "select_from() to establish the left "
+                            "entity/selectable of this join" % self._entities[0])
+
         if left is right and \
                 not create_aliases:
             raise sa_exc.InvalidRequestError(
@@ -2537,7 +2543,14 @@ class Query(object):
         .. versionadded:: 0.8.1
 
         """
-        return sql.exists(self.with_labels().statement.with_only_columns(['1']))
+
+        # .add_columns() for the case that we are a query().select_from(X),
+        # so that ".statement" can be produced (#2995) but also without
+        # omitting the FROM clause from a query(X) (#2818);
+        # .with_only_columns() after we have a core select() so that
+        # we get just "SELECT 1" without any entities.
+        return sql.exists(self.add_columns('1').with_labels().
+                                statement.with_only_columns(['1']))
 
     def count(self):
         """Return a count of rows this Query would return.
@@ -3352,8 +3365,7 @@ class _ColumnEntity(_QueryEntity):
                 if c is column:
                     break
                 _ColumnEntity(query, c, namespace=column)
-
-            if c is not column:
+            else:
                 return
         elif isinstance(column, Bundle):
             _BundleEntity(query, column)

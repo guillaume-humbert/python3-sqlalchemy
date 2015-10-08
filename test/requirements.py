@@ -13,10 +13,12 @@ from sqlalchemy.testing.exclusions import \
      only_if,\
      only_on,\
      fails_on_everything_except,\
+     fails_on,\
      fails_if,\
      succeeds_if,\
      SpecPredicate,\
-     against
+     against,\
+     LambdaPredicate
 
 def no_support(db, reason):
     return SpecPredicate(db, description=reason)
@@ -60,6 +62,13 @@ class DefaultRequirements(SuiteRequirements):
                     ['sqlite', 'oracle'],
                     'target backend does not support ON UPDATE CASCADE'
                 )
+
+    @property
+    def non_updating_cascade(self):
+        """target database must *not* support ON UPDATE..CASCADE behavior in
+        foreign keys."""
+
+        return fails_on_everything_except('sqlite', 'oracle', '+zxjdbc') + skip_if('mssql')
 
     @property
     def deferrable_fks(self):
@@ -397,30 +406,25 @@ class DefaultRequirements(SuiteRequirements):
             no_support('oracle', 'FIXME: no support in database?'),
             no_support('sybase', 'FIXME: guessing, needs confirmation'),
             no_support('mssql+pymssql', 'no FreeTDS support'),
+
             exclude('mysql', '<', (4, 1, 1), 'no unicode connection support'),
             ])
 
     @property
     def sane_rowcount(self):
         return skip_if(
-            lambda: not self.db.dialect.supports_sane_rowcount,
+            lambda config: not config.db.dialect.supports_sane_rowcount,
             "driver doesn't support 'sane' rowcount"
         )
 
-    @property
-    def cextensions(self):
-        return skip_if(
-                lambda: not self._has_cextensions(), "C extensions not installed"
-                )
 
     @property
     def emulated_lastrowid(self):
         """"target dialect retrieves cursor.lastrowid or an equivalent
         after an insert() construct executes.
         """
-        return fails_on_everything_except('mysql+mysqldb', 'mysql+oursql',
-                                      'sqlite+pysqlite', 'mysql+pymysql',
-                                      'mysql+cymysql',
+        return fails_on_everything_except('mysql',
+                                      'sqlite+pysqlite',
                                       'sybase', 'mssql')
 
     @property
@@ -436,14 +440,13 @@ class DefaultRequirements(SuiteRequirements):
 
         """
         return skip_if('mssql+pymssql', 'crashes on pymssql') + \
-                    fails_on_everything_except('mysql+mysqldb', 'mysql+oursql',
-                                       'sqlite+pysqlite', 'mysql+pymysql',
-                                       'mysql+cymysql')
+                    fails_on_everything_except('mysql',
+                                       'sqlite+pysqlite')
 
     @property
     def sane_multi_rowcount(self):
-        return skip_if(
-                    lambda: not self.db.dialect.supports_sane_multi_rowcount,
+        return fails_if(
+                    lambda config: not config.db.dialect.supports_sane_multi_rowcount,
                     "driver doesn't support 'sane' multi row count"
                 )
 
@@ -496,6 +499,13 @@ class DefaultRequirements(SuiteRequirements):
         datetime.date() objects."""
 
         return exclusions.open()
+
+    @property
+    def date_coerces_from_datetime(self):
+        """target dialect accepts a datetime object as the target
+        of a date column."""
+
+        return fails_on('mysql+mysqlconnector')
 
     @property
     def date_historic(self):
@@ -651,11 +661,11 @@ class DefaultRequirements(SuiteRequirements):
 
     @property
     def hstore(self):
-        def check_hstore():
-            if not against("postgresql"):
+        def check_hstore(config):
+            if not against(config, "postgresql"):
                 return False
             try:
-                self.db.execute("SELECT 'a=>1,a=>2'::hstore;")
+                config.db.execute("SELECT 'a=>1,a=>2'::hstore;")
                 return True
             except:
                 return False
@@ -664,11 +674,11 @@ class DefaultRequirements(SuiteRequirements):
 
     @property
     def range_types(self):
-        def check_range_types():
-            if not against("postgresql+psycopg2"):
+        def check_range_types(config):
+            if not against(config, "postgresql+psycopg2"):
                 return False
             try:
-                self.db.execute("select '[1,2)'::int4range;")
+                config.db.execute("select '[1,2)'::int4range;")
                 # only supported in psycopg 2.5+
                 from psycopg2.extras import NumericRange
                 return True
@@ -677,28 +687,34 @@ class DefaultRequirements(SuiteRequirements):
 
         return only_if(check_range_types)
 
-    @property
-    def sqlite(self):
-        return skip_if(lambda: not self._has_sqlite())
 
     @property
     def oracle_test_dblink(self):
         return skip_if(
-                    lambda: not self.config.file_config.has_option(
+                    lambda config: not config.file_config.has_option(
                         'sqla_testing', 'oracle_db_link'),
                     "oracle_db_link option not specified in config"
                 )
 
     @property
-    def ad_hoc_engines(self):
-        """Test environment must allow ad-hoc engine/connection creation.
+    def percent_schema_names(self):
+        return skip_if(
+                [
+                    ("+psycopg2", None, None,
+                            "psycopg2 2.4 no longer accepts % in bind placeholders"),
+                    ("mysql", None, None, "executemany() doesn't work here")
+                ]
+            )
 
-        DBs that scale poorly for many connections, even when closed, i.e.
-        Oracle, may use the "--low-connections" option which flags this requirement
-        as not present.
+    @property
+    def order_by_label_with_expression(self):
+        return fails_if([
+                    ('firebird', None, None, "kinterbasdb doesn't send full type information"),
+                    ('postgresql', None, None, 'only simple labels allowed'),
+                    ('sybase', None, None, 'only simple labels allowed'),
+                    ('mssql', None, None, 'only simple labels allowed')
+                ])
 
-        """
-        return skip_if(lambda: self.config.options.low_connections)
 
     @property
     def skip_mysql_on_windows(self):
@@ -715,8 +731,8 @@ class DefaultRequirements(SuiteRequirements):
 
         """
         return skip_if(
-                lambda: util.py3k and
-                    self.config.options.enable_plugin_coverage,
+                lambda config: util.py3k and
+                    config.options.has_coverage,
                 "Stability issues with coverage + py3k"
             )
 
@@ -725,26 +741,16 @@ class DefaultRequirements(SuiteRequirements):
         """target driver must support the literal statement 'select 1'"""
         return skip_if(["oracle", "firebird"], "non-standard SELECT scalar syntax")
 
-    def _has_cextensions(self):
-        try:
-            from sqlalchemy import cresultproxy, cprocessors
-            return True
-        except ImportError:
-            return False
 
-    def _has_sqlite(self):
-        from sqlalchemy import create_engine
-        try:
-            create_engine('sqlite://')
-            return True
-        except ImportError:
-            return False
+    @property
+    def mysql_fully_case_sensitive(self):
+        return only_if(self._has_mysql_fully_case_sensitive)
 
-    def _has_mysql_on_windows(self):
-        return against('mysql') and \
-                self.db.dialect._detect_casing(self.db) == 1
+    def _has_mysql_on_windows(self, config):
+        return against(config, 'mysql') and \
+                config.db.dialect._detect_casing(config.db) == 1
 
-    def _has_mysql_fully_case_sensitive(self):
-        return against('mysql') and \
-                self.db.dialect._detect_casing(self.db) == 0
+    def _has_mysql_fully_case_sensitive(self, config):
+        return against(config, 'mysql') and \
+                config.db.dialect._detect_casing(config.db) == 0
 

@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../../',
-          VERSION:     '0.9.3',
+          VERSION:     '0.9.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -85,7 +85,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
+        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
 
 
     </div>
@@ -159,14 +159,19 @@
     <span class="n">polymorphic_on</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="n">super_fks</span> <span class="o">=</span> <span class="p">[]</span>
 
+    <span class="k">def</span> <span class="nf">_col_copy</span><span class="p">(</span><span class="n">col</span><span class="p">):</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">col</span><span class="o">.</span><span class="n">unique</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">col</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">server_default</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="n">col</span>
+
     <span class="k">if</span> <span class="ow">not</span> <span class="n">super_mapper</span> <span class="ow">or</span> <span class="n">local_mapper</span><span class="o">.</span><span class="n">local_table</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">super_mapper</span><span class="o">.</span><span class="n">local_table</span><span class="p">:</span>
         <span class="n">cols</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">local_mapper</span><span class="o">.</span><span class="n">local_table</span><span class="o">.</span><span class="n">c</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">_is_versioning_col</span><span class="p">(</span><span class="n">column</span><span class="p">):</span>
                 <span class="k">continue</span>
 
-            <span class="n">col</span> <span class="o">=</span> <span class="n">column</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="n">col</span><span class="o">.</span><span class="n">unique</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="n">col</span> <span class="o">=</span> <span class="n">_col_copy</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">super_mapper</span> <span class="ow">and</span> <span class="n">col_references_table</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">super_mapper</span><span class="o">.</span><span class="n">local_table</span><span class="p">):</span>
                 <span class="n">super_fks</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">col</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">super_history_mapper</span><span class="o">.</span><span class="n">local_table</span><span class="o">.</span><span class="n">primary_key</span><span class="p">)[</span><span class="mi">0</span><span class="p">]))</span>
@@ -207,8 +212,7 @@
         <span class="c"># been added and add them to the history table.</span>
         <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">local_mapper</span><span class="o">.</span><span class="n">local_table</span><span class="o">.</span><span class="n">c</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">column</span><span class="o">.</span><span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">super_history_mapper</span><span class="o">.</span><span class="n">local_table</span><span class="o">.</span><span class="n">c</span><span class="p">:</span>
-                <span class="n">col</span> <span class="o">=</span> <span class="n">column</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-                <span class="n">col</span><span class="o">.</span><span class="n">unique</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="n">col</span> <span class="o">=</span> <span class="n">_col_copy</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
                 <span class="n">super_history_mapper</span><span class="o">.</span><span class="n">local_table</span><span class="o">.</span><span class="n">append_column</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
         <span class="n">table</span> <span class="o">=</span> <span class="bp">None</span>
 

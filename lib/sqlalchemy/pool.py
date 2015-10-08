@@ -210,6 +210,7 @@ class Pool(log.Identified):
         self._threadconns = threading.local()
         self._creator = creator
         self._recycle = recycle
+        self._invalidate_time = 0
         self._use_threadlocal = use_threadlocal
         if reset_on_return in ('rollback', True, reset_rollback):
             self._reset_on_return = reset_rollback
@@ -276,6 +277,24 @@ class Pool(log.Identified):
 
         return _ConnectionRecord(self)
 
+    def _invalidate(self, connection, exception=None):
+        """Mark all connections established within the generation
+        of the given connection as invalidated.
+
+        If this pool's last invalidate time is before when the given
+        connection was created, update the timestamp til now.  Otherwise,
+        no action is performed.
+
+        Connections with a start time prior to this pool's invalidation
+        time will be recycled upon next checkout.
+        """
+        rec = getattr(connection, "_connection_record", None)
+        if not rec or self._invalidate_time < rec.starttime:
+            self._invalidate_time = time.time()
+        if getattr(connection, 'is_valid', False):
+            connection.invalidate(exception)
+
+
     def recreate(self):
         """Return a new :class:`.Pool`, of the same class as this one
         and configured with identical creation arguments.
@@ -300,17 +319,6 @@ class Pool(log.Identified):
         """
 
         raise NotImplementedError()
-
-    def _replace(self):
-        """Dispose + recreate this pool.
-
-        Subclasses may employ special logic to
-        move threads waiting on this pool to the
-        new one.
-
-        """
-        self.dispose()
-        return self.recreate()
 
     def connect(self):
         """Return a DBAPI connection from the pool.
@@ -483,6 +491,7 @@ class _ConnectionRecord(object):
         self.connection = None
 
     def get_connection(self):
+        recycle = False
         if self.connection is None:
             self.connection = self.__connect()
             self.info.clear()
@@ -493,6 +502,15 @@ class _ConnectionRecord(object):
             self.__pool.logger.info(
                     "Connection %r exceeded timeout; recycling",
                     self.connection)
+            recycle = True
+        elif self.__pool._invalidate_time > self.starttime:
+            self.__pool.logger.info(
+                    "Connection %r invalidated due to pool invalidation; recycling",
+                    self.connection
+                    )
+            recycle = True
+
+        if recycle:
             self.__close()
             self.connection = self.__connect()
             self.info.clear()
@@ -717,7 +735,8 @@ class _ConnectionFairy(object):
         """
 
         if self.connection is None:
-            raise exc.InvalidRequestError("This connection is closed")
+            util.warn("Can't invalidate an already-closed connection.")
+            return
         if self._connection_record:
             self._connection_record.invalidate(e=e)
         self.connection = None
@@ -817,7 +836,7 @@ class SingletonThreadPool(Pool):
         self._all_conns.clear()
 
     def _cleanup(self):
-        while len(self._all_conns) > self.size:
+        while len(self._all_conns) >= self.size:
             c = self._all_conns.pop()
             c.close()
 
@@ -837,9 +856,9 @@ class SingletonThreadPool(Pool):
             pass
         c = self._create_connection()
         self._conn.current = weakref.ref(c)
-        self._all_conns.add(c)
-        if len(self._all_conns) > self.size:
+        if len(self._all_conns) >= self.size:
             self._cleanup()
+        self._all_conns.add(c)
         return c
 
 
@@ -911,8 +930,6 @@ class QueuePool(Pool):
         try:
             wait = use_overflow and self._overflow >= self._max_overflow
             return self._pool.get(wait, self._timeout)
-        except sqla_queue.SAAbort as aborted:
-            return aborted.context._do_get()
         except sqla_queue.Empty:
             if use_overflow and self._overflow >= self._max_overflow:
                 if not wait:
@@ -973,12 +990,6 @@ class QueuePool(Pool):
 
         self._overflow = 0 - self.size()
         self.logger.info("Pool disposed. %s", self.status())
-
-    def _replace(self):
-        self.dispose()
-        np = self.recreate()
-        self._pool.abort(np)
-        return np
 
     def status(self):
         return "Pool size: %d  Connections in pool: %d "\
