@@ -10,8 +10,9 @@ on a thread local basis.  Also provides a DBAPI2 transparency layer so that pool
 be managed automatically, based on module type and connect arguments,
  simply by calling regular DBAPI connect() methods."""
 
-import Queue, weakref, string, cPickle
-import util
+import weakref, string, cPickle
+from sqlalchemy import util, exceptions
+import sqlalchemy.queue as Queue
 
 try:
     import thread
@@ -90,20 +91,24 @@ class Pool(object):
             self._threadconns[thread.get_ident()] = agent
             return agent
 
-    def return_conn(self, agent):
+    def _purge_for_threadlocal(self):
         if self._use_threadlocal:
             try:
                 del self._threadconns[thread.get_ident()]
             except KeyError:
                 pass
+
+    def return_conn(self, agent):
+        self._purge_for_threadlocal()
         self.do_return_conn(agent.connection)
+
+    def return_invalid(self):
+        self._purge_for_threadlocal()
+        self.do_return_invalid()
         
     def get(self):
         return self.do_get()
     
-    def return_invalid(self):
-        self.do_return_invalid()
-            
     def do_get(self):
         raise NotImplementedError()
         
@@ -137,11 +142,10 @@ class ConnectionFairy(object):
     def invalidate(self):
         if self.pool.echo:
             self.pool.log("Invalidate connection %s" % repr(self.connection))
-        self.connection.rollback()
         self.connection = None
         self.pool.return_invalid()
-    def cursor(self):
-        return CursorFairy(self, self.connection.cursor())
+    def cursor(self, *args, **kwargs):
+        return CursorFairy(self, self.connection.cursor(*args, **kwargs))
     def __getattr__(self, key):
         return getattr(self.connection, key)
     def checkout(self):
@@ -207,6 +211,7 @@ class QueuePool(Pool):
         Pool.__init__(self, **params)
         self._creator = creator
         self._pool = Queue.Queue(pool_size)
+
         self._overflow = 0 - pool_size
         self._max_overflow = max_overflow
         self._timeout = timeout
@@ -218,13 +223,14 @@ class QueuePool(Pool):
             self._overflow -= 1
 
     def do_return_invalid(self):
-        if self._pool.full():
-            self._overflow -= 1
+        self._overflow -= 1
         
     def do_get(self):
         try:
             return self._pool.get(self._max_overflow > -1 and self._overflow >= self._max_overflow, self._timeout)
         except Queue.Empty:
+            if self._max_overflow > -1 and self._overflow >= self._max_overflow:
+                raise exceptions.TimeoutError("QueuePool limit of size %d overflow %d reached, connection timed out" % (self.size(), self.overflow()))
             self._overflow += 1
             return self._creator()
 

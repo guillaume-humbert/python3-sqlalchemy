@@ -412,6 +412,103 @@ class InheritTest6(testbase.AssertMixin):
         q = sess.query(Bar)
         self.assert_(len(q.selectfirst().lazy) == 1)
         self.assert_(len(q.selectfirst().eager) == 1)
-    
+
+
+class InheritTest7(testbase.AssertMixin):
+    """test dependency sorting among inheriting mappers"""
+    def setUpAll(self):
+        global users, roles, user_roles, admins, metadata
+        metadata=BoundMetaData(testbase.db)
+        users = Table('users', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('email', String(128)),
+            Column('password', String(16)),
+        )
+
+        roles = Table('role', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('description', String(32)) 
+        )
+
+        user_roles = Table('user_role', metadata,
+            Column('user_id', Integer, ForeignKey('users.id'), primary_key=True),
+            Column('role_id', Integer, ForeignKey('role.id'), primary_key=True)
+        )
+
+        admins = Table('admin', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('user_id', Integer, ForeignKey('users.id'))
+        )
+        metadata.create_all()
+    def tearDownAll(self):
+        metadata.drop_all()
+    def tearDown(self):
+        for t in metadata.table_iterator(reverse=True):
+            t.delete().execute()
+            
+    def testone(self):
+        class User(object):pass
+        class Role(object):pass
+        class Admin(User):pass
+        role_mapper = mapper(Role, roles)
+        user_mapper = mapper(User, users, properties = {
+                'roles' : relation(Role, secondary=user_roles, lazy=False, private=False) 
+            }
+        )
+        admin_mapper = mapper(Admin, admins, inherits=user_mapper)
+        sess = create_session()
+        adminrole = Role('admin')
+        sess.save(adminrole)
+        sess.flush()
+
+        # create an Admin, and append a Role.  the dependency processors
+        # corresponding to the "roles" attribute for the Admin mapper and the User mapper
+        # have to insure that two dependency processors dont fire off and insert the
+        # many to many row twice.
+        a = Admin()
+        a.roles.append(adminrole)
+        a.password = 'admin'
+        sess.save(a)
+        sess.flush()
+        
+        assert user_roles.count().scalar() == 1
+
+    def testtwo(self):
+        class User(object):
+            def __init__(self, email=None, password=None):
+                self.email = email
+                self.password = password
+
+        class Role(object):
+            def __init__(self, description=None):
+                self.description = description
+
+        class Admin(User):pass
+
+        role_mapper = mapper(Role, roles)
+        user_mapper = mapper(User, users, properties = {
+                'roles' : relation(Role, secondary=user_roles, lazy=False, private=False)
+            }
+        )
+
+        admin_mapper = mapper(Admin, admins, inherits=user_mapper) 
+
+        # create roles
+        adminrole = Role('admin')
+
+        sess = create_session()
+        sess.save(adminrole)
+        sess.flush()
+
+        # create admin user
+        a = Admin(email='tim', password='admin')
+        a.roles.append(adminrole)
+        sess.save(a)
+        sess.flush()
+
+        a.password = 'sadmin'
+        sess.flush()
+        assert user_roles.count().scalar() == 1
+        
 if __name__ == "__main__":    
     testbase.main()
