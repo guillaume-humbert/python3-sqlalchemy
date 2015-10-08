@@ -16,6 +16,164 @@
         :start-line: 5
 
 .. changelog::
+    :version: 1.0.5
+    :released: June 7, 2015
+
+    .. change::
+        :tags: feature, engine
+
+        Added new engine event :meth:`.ConnectionEvents.engine_disposed`.
+        Called after the :meth:`.Engine.dispose` method is called.
+
+    .. change::
+        :tags: bug, postgresql, pypy
+        :tickets: 3439
+
+        Repaired some typing and test issues related to the pypy
+        psycopg2cffi dialect, in particular that the current 2.7.0 version
+        does not have native support for the JSONB type.  The version detection
+        for psycopg2 features has been tuned into a specific sub-version
+        for psycopg2cffi.  Additionally, test coverage has been enabled
+        for the full series of psycopg2 features under psycopg2cffi.
+
+    .. change::
+        :tags: feature, ext
+        :pullreq: bitbucket:54
+
+        Added support for ``*args`` to be passed to the baked query
+        initial callable, in the same way that ``*args`` are supported
+        for the :meth:`.BakedQuery.add_criteria` and
+        :meth:`.BakedQuery.with_criteria` methods.  Initial PR courtesy
+        Naoki INADA.
+
+    .. change::
+        :tags: bug, engine
+        :tickets: 3435
+
+        Fixed bug where known boolean values used by
+        :func:`.engine_from_config` were not being parsed correctly;
+        these included ``pool_threadlocal`` and the psycopg2 argument
+        ``use_native_unicode``.
+
+    .. change::
+        :tags: bug, mssql
+        :tickets: 3424, 3430
+
+        Added a new dialect flag to the MSSQL dialect
+        ``legacy_schema_aliasing`` which when set to False will disable a
+        very old and obsolete behavior, that of the compiler's
+        attempt to turn all schema-qualified table names into alias names,
+        to work around old and no longer locatable issues where SQL
+        server could not parse a multi-part identifier name in all
+        circumstances.   The behavior prevented more
+        sophisticated statements from working correctly, including those which
+        use hints, as well as CRUD statements that embed correlated SELECT
+        statements.  Rather than continue to repair the feature to work
+        with more complex statements, it's better to just disable it
+        as it should no longer be needed for any modern SQL server
+        version.  The flag defaults to True for the 1.0.x series, leaving
+        current behavior unchanged for this version series.  In the 1.1
+        series, it will default to False.  For the 1.0 series,
+        when not set to either value explicitly, a warning is emitted
+        when a schema-qualified table is first used in a statement, which
+        suggests that the flag be set to False for all modern SQL Server
+        versions.
+
+        .. seealso::
+
+            :ref:`legacy_schema_rendering`
+
+    .. change::
+        :tags: feature, engine
+        :tickets: 3379
+
+        Adjustments to the engine plugin hook, such that the
+        :meth:`.URL.get_dialect` method will continue to return the
+        ultimate :class:`.Dialect` object when a dialect plugin is used,
+        without the need for the caller to be aware of the
+        :meth:`.Dialect.get_dialect_cls` method.
+
+
+    .. change::
+        :tags: bug, ext
+        :tickets: 3427
+
+        Fixed regression in the :mod:`sqlalchemy.ext.mutable` extension
+        as a result of the bugfix for :ticket:`3167`,
+        where attribute and validation events are no longer
+        called within the flush process.  The mutable
+        extension was relying upon this behavior in the case where a column
+        level Python-side default were responsible for generating the new value
+        on INSERT or UPDATE, or when a value were fetched from the RETURNING
+        clause for "eager defaults" mode.  The new value would not be subject
+        to any event when populated and the mutable extension could not
+        establish proper coercion or history listening.  A new event
+        :meth:`.InstanceEvents.refresh_flush` is added which the mutable
+        extension now makes use of for this use case.
+
+    .. change::
+        :tags: feature, orm
+        :tickets: 3427
+
+        Added new event :meth:`.InstanceEvents.refresh_flush`, invoked
+        when an INSERT or UPDATE level default value fetched via RETURNING
+        or Python-side default is invoked within the flush process.  This
+        is to provide a hook that is no longer present as a result of
+        :ticket:`3167`, where attribute and validation events are no longer
+        called within the flush process.
+
+    .. change::
+        :tags: feature, ext
+        :tickets: 3427
+
+        Added a new semi-public method to :class:`.MutableBase`
+        :meth:`.MutableBase._get_listen_keys`.  Overriding this method
+        is needed in the case where a :class:`.MutableBase` subclass needs
+        events to propagate for attribute keys other than the key to which
+        the mutable type is associated with, when intercepting the
+        :meth:`.InstanceEvents.refresh` or
+        :meth:`.InstanceEvents.refresh_flush` events.  The current example of
+        this is composites using :class:`.MutableComposite`.
+
+    .. change::
+        :tags: bug, engine
+        :tickets: 3421
+
+        Added support for the case of the misbehaving DBAPI that has
+        pep-249 exception names linked to exception classes of an entirely
+        different name, preventing SQLAlchemy's own exception wrapping from
+        wrapping the error appropriately.
+        The SQLAlchemy dialect in use needs to implement a new
+        accessor :attr:`.DefaultDialect.dbapi_exception_translation_map`
+        to support this feature; this is implemented now for the py-postgresql
+        dialect.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3420
+
+        The "lightweight named tuple" used when a :class:`.Query` returns
+        rows failed to implement ``__slots__`` correctly such that it still
+        had a ``__dict__``.    This is resolved, but in the extremely
+        unlikely case someone was assigning values to the returned tuples,
+        that will no longer work.
+
+    .. change::
+        :tags: bug, engine
+        :tickets: 3419
+
+        Fixed bug involving the case when pool checkout event handlers are used
+        and connection attempts are made in the handler itself which fail,
+        the owning connection record would not be freed until the stack trace
+        of the connect error itself were freed.   For the case where a test
+        pool of only a single connection were used, this means the pool would
+        be fully checked out until that stack trace were freed.  This mostly
+        impacts very specific debugging scenarios and is unlikely to have been
+        noticable in any production application.  The fix applies an
+        explicit checkin of the record before re-raising the caught exception.
+
+
+.. changelog::
     :version: 1.0.4
     :released: May 7, 2015
 
