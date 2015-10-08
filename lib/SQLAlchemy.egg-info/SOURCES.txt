@@ -63,6 +63,7 @@ examples/polymorph/single.py
 examples/vertical/vertical.py
 lib/SQLAlchemy.egg-info/PKG-INFO
 lib/SQLAlchemy.egg-info/SOURCES.txt
+lib/SQLAlchemy.egg-info/dependency_links.txt
 lib/SQLAlchemy.egg-info/top_level.txt
 lib/sqlalchemy/__init__.py
 lib/sqlalchemy/ansisql.py
@@ -132,7 +133,6 @@ test/ext/__init__.py
 test/ext/activemapper.py
 test/ext/alltests.py
 test/ext/legacy_objectstore.py
-test/ext/sqlsoup.py
 test/ext/wsgi_test.py
 test/orm/__init__.py
 test/orm/alltests.py
@@ -161,12 +161,14 @@ test/perf/masscreate.py
 test/perf/masscreate2.py
 test/perf/massload.py
 test/perf/massload2.py
+test/perf/poolload.py
 test/sql/__init__.py
 test/sql/alltests.py
 test/sql/case_statement.py
 test/sql/defaults.py
 test/sql/indexes.py
 test/sql/query.py
+test/sql/quote.py
 test/sql/select.py
 test/sql/selectable.py
 test/sql/testtypes.py

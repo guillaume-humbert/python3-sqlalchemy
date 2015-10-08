@@ -52,7 +52,21 @@ class OracleBinary(sqltypes.Binary):
         return "BLOB"
 class OracleBoolean(sqltypes.Boolean):
     def get_col_spec(self):
-        return "BOOLEAN"
+        return "SMALLINT"
+    def convert_result_value(self, value, dialect):
+        if value is None:
+            return None
+        return value and True or False
+    def convert_bind_param(self, value, dialect):
+        if value is True:
+            return 1
+        elif value is False:
+            return 0
+        elif value is None:
+            return None
+        else:
+            return value and True or False 	
+
         
 colspecs = {
     sqltypes.Integer : OracleInteger,
@@ -141,6 +155,7 @@ class OracleDialect(ansisql.ANSIDialect):
             dsn = dsn,
             threaded = self.threaded
             )
+        opts.update(url.query)
         return ([], opts)
         
     def type_descriptor(self, typeobj):
@@ -237,6 +252,7 @@ class OracleDialect(ansisql.ANSIDialect):
                    fk = ([], [])
                    fks[cons_name] = fk
                 refspec = ".".join([remote_table, remote_column])
+                schema.Table(remote_table, table.metadata, autoload=True, autoload_with=connection)
                 if local_column not in fk[0]:
                     fk[0].append(local_column)
                 if refspec not in fk[1]:

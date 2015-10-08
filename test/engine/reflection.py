@@ -5,6 +5,7 @@ import sqlalchemy.ansisql as ansisql
 
 from sqlalchemy import *
 from sqlalchemy.exceptions import NoSuchTableError
+import sqlalchemy.databases.mysql as mysql
 
 import unittest, re, StringIO
 
@@ -64,12 +65,14 @@ class ReflectionTest(PersistTest):
         addresses.create()
 
         # clear out table registry
-        users.deregister()
-        addresses.deregister()
+        meta.clear()
 
         try:
-            users = Table('engine_users', testbase.db, autoload = True)
-            addresses = Table('engine_email_addresses', testbase.db, autoload = True)
+            addresses = Table('engine_email_addresses', meta, autoload = True)
+            # reference the addresses foreign key col, which will require users to be 
+            # reflected at some point
+            print addresses.c.remote_user_id.foreign_key.column
+            users = Table('engine_users', meta, autoload = True)
         finally:
             addresses.drop()
             users.drop()
@@ -91,7 +94,30 @@ class ReflectionTest(PersistTest):
         finally:
             addresses.drop()
             users.drop()
-
+            
+    @testbase.supported('mysql')
+    def testmysqltypes(self):
+        meta1 = BoundMetaData(testbase.db)
+        table = Table(
+            'mysql_types', meta1,
+            Column('id', Integer, primary_key=True),
+            Column('num1', mysql.MSInteger(unsigned=True)),
+            Column('text1', mysql.MSLongText),
+            Column('text2', mysql.MSLongText())
+            )
+        try:
+            table.create(checkfirst=True)
+            meta2 = BoundMetaData(testbase.db)
+            t2 = Table('mysql_types', meta2, autoload=True)
+            assert isinstance(t2.c.num1.type, mysql.MSInteger)
+            assert t2.c.num1.type.unsigned
+            assert isinstance(t2.c.text1.type, mysql.MSLongText)
+            assert isinstance(t2.c.text2.type, mysql.MSLongText)
+            t2.drop()
+            t2.create()
+        finally:
+            table.drop(checkfirst=True)
+        
     def testmultipk(self):
         table = Table(
             'engine_multi', testbase.db, 
@@ -153,7 +179,8 @@ class ReflectionTest(PersistTest):
             self.assert_(and_(table.c.multi_id==table2.c.foo, table.c.multi_rev==table2.c.bar).compare(j.onclause))
 
         finally:
-            meta.drop_all()
+            pass
+#            meta.drop_all()
 
     def testcheckfirst(self):
         meta = BoundMetaData(testbase.db)
@@ -287,6 +314,7 @@ class CreateDropTest(PersistTest):
 
 class SchemaTest(PersistTest):
     # this test should really be in the sql tests somewhere, not engine
+    @testbase.unsupported('sqlite')
     def testiteration(self):
         metadata = MetaData()
         table1 = Table('table1', metadata, 

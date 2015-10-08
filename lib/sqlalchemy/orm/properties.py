@@ -148,7 +148,13 @@ class PropertyLoader(mapper.MapperProperty):
         self.order_by = order_by
         self.attributeext=attributeext
         if isinstance(backref, str):
-            self.backref = BackRef(backref)
+            # propigate explicitly sent primary/secondary join conditions to the BackRef object if
+            # just a string was sent
+            if secondary is not None:
+                # reverse primary/secondary in case of a many-to-many
+                self.backref = BackRef(backref, primaryjoin=secondaryjoin, secondaryjoin=primaryjoin)
+            else:
+                self.backref = BackRef(backref, primaryjoin=primaryjoin, secondaryjoin=secondaryjoin)
         else:
             self.backref = backref
         self.is_backref = is_backref
@@ -206,22 +212,24 @@ class PropertyLoader(mapper.MapperProperty):
             
         if self.association is not None:
             if isinstance(self.association, type):
-                self.association = mapper.class_mapper(self.association, compile=False)
+                self.association = mapper.class_mapper(self.association, compile=False)._check_compile()
         
         self.target = self.mapper.mapped_table
 
         if self.secondaryjoin is not None and self.secondary is None:
             raise exceptions.ArgumentError("Property '" + self.key + "' specified with secondary join condition but no secondary argument")
         # if join conditions were not specified, figure them out based on foreign keys
-        if self.secondary is not None:
-            if self.secondaryjoin is None:
-                self.secondaryjoin = sql.join(self.mapper.unjoined_table, self.secondary).onclause
-            if self.primaryjoin is None:
-                self.primaryjoin = sql.join(self.parent.unjoined_table, self.secondary).onclause
-        else:
-            if self.primaryjoin is None:
-                self.primaryjoin = sql.join(self.parent.unjoined_table, self.target).onclause
-
+        try:
+            if self.secondary is not None:
+                if self.secondaryjoin is None:
+                    self.secondaryjoin = sql.join(self.mapper.unjoined_table, self.secondary).onclause
+                if self.primaryjoin is None:
+                    self.primaryjoin = sql.join(self.parent.unjoined_table, self.secondary).onclause
+            else:
+                if self.primaryjoin is None:
+                    self.primaryjoin = sql.join(self.parent.unjoined_table, self.target).onclause
+        except exceptions.ArgumentError, e:
+            raise exceptions.ArgumentError("Error determining primary and/or secondary join for relationship '%s' between mappers '%s' and '%s'.  You should specify the 'primaryjoin' (and 'secondaryjoin', if there is an association table present) keyword arguments to the relation() function (or for backrefs, by specifying the backref using the backref() function with keyword arguments) to explicitly specify the join conditions.  Nested error is \"%s\"" % (self.key, self.localparent, self.mapper, str(e)))
         # if the foreign key wasnt specified and theres no assocaition table, try to figure
         # out who is dependent on who. we dont need all the foreign keys represented in the join,
         # just one of them.  
@@ -427,18 +435,20 @@ class LazyLoader(PropertyLoader):
 def create_lazy_clause(table, primaryjoin, secondaryjoin, foreignkey):
     binds = {}
     reverse = {}
+    def column_in_table(table, column):
+        return table.corresponding_column(column, raiseerr=False, keys_ok=False) is not None
+        
     def bind_label():
         return "lazy_" + hex(random.randint(0, 65535))[2:]
-    
     def visit_binary(binary):
         circular = isinstance(binary.left, schema.Column) and isinstance(binary.right, schema.Column) and binary.left.table is binary.right.table
-        if isinstance(binary.left, schema.Column) and isinstance(binary.right, schema.Column) and ((not circular and binary.left.table is table) or (circular and binary.right in foreignkey)):
+        if isinstance(binary.left, schema.Column) and isinstance(binary.right, schema.Column) and ((not circular and column_in_table(table, binary.left)) or (circular and binary.right in foreignkey)):
             col = binary.left
             binary.left = binds.setdefault(binary.left,
                     sql.BindParamClause(bind_label(), None, shortname=binary.left.name, type=binary.right.type))
             reverse[binary.right] = binds[col]
 
-        if isinstance(binary.right, schema.Column) and isinstance(binary.left, schema.Column) and ((not circular and binary.right.table is table) or (circular and binary.left in foreignkey)):
+        if isinstance(binary.right, schema.Column) and isinstance(binary.left, schema.Column) and ((not circular and column_in_table(table, binary.right)) or (circular and binary.left in foreignkey)):
             col = binary.right
             binary.right = binds.setdefault(binary.right,
                     sql.BindParamClause(bind_label(), None, shortname=binary.right.name, type=binary.left.type))
@@ -684,14 +694,15 @@ class BackRef(object):
         if not mapper.props.has_key(self.key):
             pj = self.kwargs.pop('primaryjoin', None)
             sj = self.kwargs.pop('secondaryjoin', None)
-            # TODO: we are going to have the newly backref'd property create its 
-            # primary/secondary join through normal means, and only override if they are
-            # specified to the constructor.  think about if this is really going to work
-            # all the way.
+            # the backref will compile its own primary/secondary join conditions.  if you have it
+            # use the pj/sj of the parent relation in all cases, a bunch of polymorphic unit tests
+            # fail (maybe we can look into that too).
+            # the PropertyLoader class is currently constructing BackRef objects using the explictly
+            # passed primary/secondary join conditions, if the backref was passed to it as just a string.
             #if pj is None:
             #    if prop.secondaryjoin is not None:
-            #        # if setting up a backref to a many-to-many, reverse the order
-            #        # of the "primary" and "secondary" joins
+                    # if setting up a backref to a many-to-many, reverse the order
+                    # of the "primary" and "secondary" joins
             #        pj = prop.secondaryjoin
             #        sj = prop.primaryjoin
             #    else:
@@ -706,6 +717,8 @@ class BackRef(object):
             parent = prop.parent.primary_mapper()
             relation = cls(parent, prop.secondary, pj, sj, backref=prop.key, is_backref=True, **self.kwargs)
             mapper._compile_property(self.key, relation);
+        elif not isinstance(mapper.props[self.key], PropertyLoader):
+            raise exceptions.ArgumentError("Cant create backref '%s' on mapper '%s'; an incompatible property of that name already exists" % (self.key, str(mapper)))
         else:
             # else set one of us as the "backreference"
             parent = prop.parent.primary_mapper()

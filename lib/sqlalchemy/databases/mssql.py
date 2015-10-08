@@ -92,6 +92,10 @@ class MSInteger(sqltypes.Integer):
     def get_col_spec(self):
         return "INTEGER"
 
+class MSTinyInteger(sqltypes.Integer): 
+    def get_col_spec(self):
+        return "TINYINT"
+
 class MSSmallInteger(sqltypes.Smallinteger):
     def get_col_spec(self):
         return "SMALLINT"
@@ -174,6 +178,7 @@ colspecs = {
 ischema_names = {
     'int' : MSInteger,
     'smallint' : MSSmallInteger,
+    'tinyint' : MSTinyInteger,
     'varchar' : MSString,
     'char' : MSChar,
     'text' : MSText,
@@ -236,15 +241,12 @@ class MSSQLExecutionContext(default.DefaultExecutionContext):
 class MSSQLDialect(ansisql.ANSIDialect):            
     def __init__(self, module = None, **params):
         self.module = module or dbmodule
-        self.opts = {}
         ansisql.ANSIDialect.__init__(self, **params)
 
     def create_connect_args(self, url):
-        self.opts = url.translate_connect_args(['host', 'database', 'user', 'password', 'port'])
-        return ([], self.opts)
-
-    def connect_args(self):
-        return make_connect_string(self.opts)
+        opts = url.translate_connect_args(['host', 'database', 'user', 'password', 'port'])
+        opts.update(url.query)
+        return make_connect_string(opts)
 
     def create_execution_context(self):
         return MSSQLExecutionContext(self)
@@ -269,6 +271,9 @@ class MSSQLDialect(ansisql.ANSIDialect):
 
     def defaultrunner(self, engine, proxy):
         return MSSQLDefaultRunner(engine, proxy)
+
+    def preparer(self):
+        return MSSQLIdentifierPreparer()
 
     def get_default_schema_name(self):
         return "dbo"
@@ -512,7 +517,7 @@ class MSSQLCompiler(ansisql.ANSICompiler):
         
 class MSSQLSchemaGenerator(ansisql.ANSISchemaGenerator):
     def get_column_specification(self, column, **kwargs):
-        colspec = column.name + " " + column.type.engine_impl(self.engine).get_col_spec()
+        colspec = self.preparer.format_column(column) + " " + column.type.engine_impl(self.engine).get_col_spec()
 
         # install a IDENTITY Sequence if we have an implicit IDENTITY column
         if column.primary_key and isinstance(column.type, sqltypes.Integer):
@@ -539,5 +544,15 @@ class MSSQLSchemaDropper(ansisql.ANSISchemaDropper):
 
 class MSSQLDefaultRunner(ansisql.ANSIDefaultRunner):
     pass
+
+class MSSQLIdentifierPreparer(ansisql.ANSIIdentifierPreparer):
+    def __init__(self):
+        super(MSSQLIdentifierPreparer, self).__init__(initial_quote='[', final_quote=']')
+    def _escape_identifier(self, value):
+        #TODO: determin MSSQL's escapeing rules
+        return value
+    def _fold_identifier_case(self, value):
+        #TODO: determin MSSQL's case folding rules
+        return value
 
 dialect = MSSQLDialect

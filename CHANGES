@@ -1,3 +1,61 @@
+0.2.7
+- quoting facilities set up so that database-specific quoting can be
+turned on for individual table, schema, and column identifiers when
+used in all queries/creates/drops.  Enabled via "quote=True" in 
+Table or Column, as well as "quote_schema=True" in Table.  Thanks to
+Aaron Spike for his excellent efforts.
+- assignmapper was setting is_primary=True, causing all sorts of mayhem
+by not raising an error when redundant mappers were set up, fixed
+- added allow_null_pks option to Mapper, allows rows where some
+primary key columns are null (i.e. when mapping to outer joins etc)
+- modifcation to unitofwork to not maintain ordering within the
+"new" list or within the UOWTask "objects" list; instead, new objects
+are tagged with an ordering identifier as they are registered as new
+with the session, and the INSERT statements are then sorted within the 
+mapper save_obj.  the INSERT ordering has basically been pushed all
+the way to the end of the flush cycle. that way the various sorts and 
+organizations occuring within UOWTask (particularly the circular task 
+sort) dont have to worry about maintaining order (which they werent anyway)
+- fixed reflection of foreign keys to autoload the referenced table
+if it was not loaded already
+- [ticket:256] - pass URL query string arguments to connect() function
+- [ticket:257] - oracle boolean type
+- custom primary/secondary join conditions in a relation *will* be propigated
+to backrefs by default.  specifying a backref() will override this behavior.
+- better check for ambiguous join conditions in sql.Join; propigates to a
+better error message in PropertyLoader (i.e. relation()/backref()) for when
+the join condition can't be reasonably determined.
+- sqlite creates ForeignKeyConstraint objects properly upon table 
+reflection.
+- adjustments to pool stemming from changes made for [ticket:224]. 
+overflow counter should only be decremented if the connection actually
+succeeded.  added a test script to attempt testing this.
+- fixed mysql reflection of default values to be PassiveDefault
+- added reflected 'tinyint', 'mediumint' type to MS-SQL [ticket:263], 
+[ticket:264]
+- SingletonThreadPool has a size and does a cleanup pass, so that 
+only a given number of thread-local connections stay around (needed
+for sqlite applications that dispose of threads en masse)
+- fixed small pickle bug(s) with lazy loaders [ticket:265] [ticket:267]
+- fixed possible error in mysql reflection where certain versions
+return an array instead of string for SHOW CREATE TABLE call
+- fix to lazy loads when mapping to joins [changeset:1770]
+- all create()/drop() calls have a keyword argument of "connectable".
+"engine" is deprecated.
+- fixed ms-sql connect() to work with adodbapi
+- added "nowait" flag to Select()
+- inheritance check uses issubclass() instead of direct __mro__ check
+to make sure class A inherits from B, allowing mapper inheritance to more 
+flexibly correspond to class inheritance [ticket:271]
+- SelectResults will use a subselect, when calling an aggregate (i.e.
+max, min, etc.) on a SelectResults that has an ORDER BY clause
+[ticket:252]
+- fixes to types so that database-specific types more easily used;
+fixes to mysql text types to work with this methodology
+[ticket:269] 
+- some fixes to sqlite date type organization
+- added MSTinyInteger to MS-SQL [ticket:263]
+
 0.2.6
 - big overhaul to schema to allow truly composite primary and foreign
 key constraints, via new ForeignKeyConstraint and PrimaryKeyConstraint

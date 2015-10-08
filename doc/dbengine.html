@@ -22,7 +22,7 @@
 <div class="docheader">
 
 <div class="docheadertext" >Database Engines</div>
-<div class="">Version: 0.2.6   Last Updated: 07/19/06 21:46:30</div>
+<div class="">Version: 0.2.7   Last Updated: 08/12/06 18:15:53</div>
 </div>
 
 
@@ -355,7 +355,7 @@ Next: <a href="metadata.html">Database Meta Data</a>
 <span class="python_operator"></span><span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'mysql'</span><span class="python_operator">, </span><span class="python_name">pool</span><span class="python_operator">=</span><span class="python_name">pool</span><span class="python_operator">.</span><span class="python_name">QueuePool</span><span class="python_enclosure">(</span><span class="python_name">getconn</span><span class="python_operator">, </span><span class="python_name">pool_size</span><span class="python_operator">=</span><span class="python_number">20</span><span class="python_operator">, </span><span class="python_name">max_overflow</span><span class="python_operator">=</span><span class="python_number">40</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
 <ul>
  <li>
-     pool_size=5 : the number of connections to keep open inside the connection pool.  This is only used with <code>QueuePool</code>.
+     pool_size=5 : the number of connections to keep open inside the connection pool.  This used with <code>QueuePool</code> as well as <code>SingletonThreadPool</code> as of 0.2.7.
  </li>
 
  <li>

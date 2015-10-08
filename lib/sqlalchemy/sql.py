@@ -435,11 +435,6 @@ class ClauseElement(object):
         new structure can then be restructured without affecting the original."""
         return self
 
-    def is_selectable(self):
-        """returns True if this ClauseElement is Selectable, i.e. it contains a list of Column
-        objects and can be used as the target of a select statement."""
-        return False
-
     def _find_engine(self):
         """default strategy for locating an engine within the clause element.
         relies upon a local engine property, or looks in the "from" objects which 
@@ -542,7 +537,7 @@ class CompareMixin(object):
     def in_(self, *other):
         if len(other) == 0:
             return self.__eq__(None)
-        elif len(other) == 1 and not isinstance(other[0], Selectable):
+        elif len(other) == 1 and not hasattr(other[0], '_selectable'):
             return self.__eq__(other[0])
         elif _is_literal(other[0]):
             return self._compare('IN', ClauseList(parens=True, *[self._bind_param(o) for o in other]))
@@ -611,10 +606,10 @@ class CompareMixin(object):
 class Selectable(ClauseElement):
     """represents a column list-holding object."""
 
+    def _selectable(self):
+        return self
     def accept_visitor(self, visitor):
         raise NotImplementedError(repr(self))
-    def is_selectable(self):
-        return True
     def select(self, whereclauses = None, **params):
         return select([self], whereclauses, **params)
     def _group_parenthesized(self):
@@ -748,11 +743,14 @@ class FromClause(Selectable):
         self._orig_cols = {}
         export = self._exportable_columns()
         for column in export:
-            if column.is_selectable():
-                for co in column.columns:
-                    cp = self._proxy_column(co)
-                    for ci in cp.orig_set:
-                        self._orig_cols[ci] = cp
+            try:
+                s = column._selectable()
+            except AttributeError:
+                continue
+            for co in s.columns:
+                cp = self._proxy_column(co)
+                for ci in cp.orig_set:
+                    self._orig_cols[ci] = cp
         if self.oid_column is not None:
             for ci in self.oid_column.orig_set:
                 self._orig_cols[ci] = self.oid_column
@@ -1014,9 +1012,9 @@ class BinaryClause(ClauseElement):
         self.operator = operator
         self.type = sqltypes.to_instance(type)
         self.parens = False
-        if isinstance(self.left, BinaryClause) or isinstance(self.left, Selectable):
+        if isinstance(self.left, BinaryClause) or hasattr(self.left, '_selectable'):
             self.left.parens = True
-        if isinstance(self.right, BinaryClause) or isinstance(self.right, Selectable):
+        if isinstance(self.right, BinaryClause) or hasattr(self.right, '_selectable'):
             self.right.parens = True
     def copy_container(self):
         return BinaryClause(self.left.copy_container(), self.right.copy_container(), self.operator)
@@ -1049,10 +1047,10 @@ class BinaryExpression(BinaryClause, ColumnElement):
         
 class Join(FromClause):
     def __init__(self, left, right, onclause=None, isouter = False):
-        self.left = left
-        self.right = right
+        self.left = left._selectable()
+        self.right = right._selectable()
         if onclause is None:
-            self.onclause = self._match_primaries(left, right)
+            self.onclause = self._match_primaries(self.left, self.right)
         else:
             self.onclause = onclause
         self.isouter = isouter
@@ -1072,17 +1070,22 @@ class Join(FromClause):
         return column
     def _match_primaries(self, primary, secondary):
         crit = []
+        constraints = util.Set()
         for fk in secondary.foreign_keys:
             if fk.references(primary):
                 crit.append(primary.corresponding_column(fk.column) == fk.parent)
+                constraints.add(fk.constraint)
                 self.foreignkey = fk.parent
         if primary is not secondary:
             for fk in primary.foreign_keys:
                 if fk.references(secondary):
                     crit.append(secondary.corresponding_column(fk.column) == fk.parent)
+                    constraints.add(fk.constraint)
                     self.foreignkey = fk.parent
         if len(crit) == 0:
             raise exceptions.ArgumentError("Cant find any foreign key relationships between '%s' and '%s'" % (primary.name, secondary.name))
+        elif len(constraints) > 1:
+            raise exceptions.ArgumentError("Cant determine join between '%s' and '%s'; tables have more than one foreign key constraint relationship between them.  Please specify the 'onclause' of this join explicitly." % (primary.name, secondary.name))
         elif len(crit) == 1:
             return (crit[0])
         else:
@@ -1182,7 +1185,8 @@ class Label(ColumnElement):
         return self.obj._get_from_objects()
     def _make_proxy(self, selectable, name = None):
         return self.obj._make_proxy(selectable, name=self.name)
-     
+
+legal_characters = util.Set(string.ascii_letters + string.digits + '_')     
 class ColumnClause(ColumnElement):
     """represents a textual column clause in a SQL statement.  May or may not
     be bound to an underlying Selectable."""
@@ -1200,6 +1204,7 @@ class ColumnClause(ColumnElement):
                     self.__label = self.__label[0:24] + "_" + hex(random.randint(0, 65535))[2:]
             else:
                 self.__label = self.name
+            self.__label = "".join([x for x in self.__label if x in legal_characters])
         return self.__label
     _label = property(_get_label)
     def accept_visitor(self, visitor): 
@@ -1334,6 +1339,7 @@ class CompoundSelect(SelectBaseMixin, FromClause):
         self.parens = kwargs.pop('parens', False)
         self.correlate = kwargs.pop('correlate', False)
         self.for_update = kwargs.pop('for_update', False)
+        self.nowait = kwargs.pop('nowait', False)
         for s in self.selects:
             s.group_by(None)
             s.order_by(None)
@@ -1383,7 +1389,7 @@ class CompoundSelect(SelectBaseMixin, FromClause):
 class Select(SelectBaseMixin, FromClause):
     """represents a SELECT statement, with appendable clauses, as well as 
     the ability to execute itself and return a result set."""
-    def __init__(self, columns=None, whereclause = None, from_obj = [], order_by = None, group_by=None, having=None, use_labels = False, distinct=False, for_update=False, engine=None, limit=None, offset=None, scalar=False, correlate=True):
+    def __init__(self, columns=None, whereclause = None, from_obj = [], order_by = None, group_by=None, having=None, use_labels = False, distinct=False, for_update=False, nowait=False, engine=None, limit=None, offset=None, scalar=False, correlate=True):
         SelectBaseMixin.__init__(self)
         self._froms = util.OrderedDict()
         self.use_labels = use_labels
@@ -1393,6 +1399,7 @@ class Select(SelectBaseMixin, FromClause):
         self.limit = limit
         self.offset = offset
         self.for_update = for_update
+        self.nowait = nowait
 
         # indicates that this select statement should not expand its columns
         # into the column clause of an enclosing select, and should instead
@@ -1584,7 +1591,7 @@ class UpdateBase(ClauseElement):
         return self.table.engine
 
 class Insert(UpdateBase):
-    def __init__(self, table, values=None, **params):
+    def __init__(self, table, values=None):
         self.table = table
         self.select = None
         self.parameters = self._process_colparams(values)
@@ -1596,7 +1603,7 @@ class Insert(UpdateBase):
         visitor.visit_insert(self)
 
 class Update(UpdateBase):
-    def __init__(self, table, whereclause, values=None, **params):
+    def __init__(self, table, whereclause, values=None):
         self.table = table
         self.whereclause = whereclause
         self.parameters = self._process_colparams(values)

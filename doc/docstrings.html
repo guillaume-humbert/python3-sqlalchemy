@@ -22,7 +22,7 @@
 <div class="docheader">
 
 <div class="docheadertext" >Modules and Classes</div>
-<div class="">Version: 0.2.6   Last Updated: 07/19/06 21:46:30</div>
+<div class="">Version: 0.2.7   Last Updated: 08/12/06 18:15:53</div>
 </div>
 
 
@@ -2115,24 +2115,6 @@ Previous: <a href="plugins.html">Plugins</a>
         <tr>
     <td>
         <div class="darkcell">
-        <A name="docstrings_sqlalchemy.sql_ClauseElement_is_selectable"></a>
-        <b>def is_selectable(<i>self</i>)</b>
-        <div class="docstring">
-    <p>
-    returns True if this ClauseElement is Selectable, i.e. it contains a list of Column
-        objects and can be used as the target of a select statement.
-</p>
-    </div>
-        </div>
-    </td>
-    </tr>
-
-
-    
-        
-        <tr>
-    <td>
-        <div class="darkcell">
         <A name="docstrings_sqlalchemy.sql_ClauseElement_scalar"></a>
         <b>def scalar(<i>self</i>, <i>*multiparams</i>, <i>**params</i>)</b>
         <div class="docstring">
@@ -2758,6 +2740,8 @@ method by which other methods operate upon the schema.  The SQL package extends 
         name. Pass a string to specify the index name. Multiple columns that
         specify the same index name will all be included in the index, in the
         order of their creation.</p>
+<p>quote=False : indicates that the Column identifier must be properly escaped and quoted before being sent 
+        to the database.</p>
 <p></p>
     </div>
         </div>
@@ -3329,7 +3313,7 @@ method by which other methods operate upon the schema.  The SQL package extends 
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.schema_Index_create"></a>
-        <b>def create(<i>self</i>, <i>engine=None</i>)</b>
+        <b>def create(<i>self</i>, <i>connectable=None</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -3345,7 +3329,7 @@ method by which other methods operate upon the schema.  The SQL package extends 
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.schema_Index_drop"></a>
-        <b>def drop(<i>self</i>, <i>engine=None</i>)</b>
+        <b>def drop(<i>self</i>, <i>connectable=None</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -3426,10 +3410,17 @@ method by which other methods operate upon the schema.  The SQL package extends 
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.schema_MetaData_create_all"></a>
-        <b>def create_all(<i>self</i>, <i>engine=None</i>, <i>tables=None</i>)</b>
+        <b>def create_all(<i>self</i>, <i>connectable=None</i>, <i>tables=None</i>, <i>engine=None</i>)</b>
         <div class="docstring">
-    <p></p>
-<p></p>
+    <p>
+    create all tables stored in this metadata.</p>
+<p>This will conditionally create tables depending on if they do not yet
+        exist in the database.</p>
+<p>connectable - a Connectable used to access the database; or use the engine
+        bound to this MetaData.</p>
+<p>tables - optional list of tables to create</p>
+<p>engine - deprecated argument.
+</p>
     </div>
         </div>
     </td>
@@ -3442,10 +3433,17 @@ method by which other methods operate upon the schema.  The SQL package extends 
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.schema_MetaData_drop_all"></a>
-        <b>def drop_all(<i>self</i>, <i>engine=None</i>, <i>tables=None</i>)</b>
+        <b>def drop_all(<i>self</i>, <i>connectable=None</i>, <i>tables=None</i>, <i>engine=None</i>)</b>
         <div class="docstring">
-    <p></p>
-<p></p>
+    <p>
+    drop all tables stored in this metadata.</p>
+<p>This will conditionally drop tables depending on if they currently 
+        exist in the database.</p>
+<p>connectable - a Connectable used to access the database; or use the engine
+        bound to this MetaData.</p>
+<p>tables - optional list of tables to drop</p>
+<p>engine - deprecated argument.
+</p>
     </div>
         </div>
     </td>
@@ -4109,6 +4107,10 @@ method by which other methods operate upon the schema.  The SQL package extends 
         the same table twice will result in an exception.</p>
 <p>owner=None : optional owning user of this table.  useful for databases such as Oracle to aid in table
         reflection.</p>
+<p>quote=False : indicates that the Table identifier must be properly escaped and quoted before being sent 
+        to the database.</p>
+<p>quote_schema=False : indicates that the Namespace identifier must be properly escaped and quoted before being sent 
+        to the database.</p>
 <p></p>
     </div>
         </div>
@@ -7077,7 +7079,7 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.orm_Mapper___init__"></a>
-        <b>def __init__(<i>self</i>, <i>class_</i>, <i>local_table</i>, <i>properties=None</i>, <i>primary_key=None</i>, <i>is_primary=False</i>, <i>non_primary=False</i>, <i>inherits=None</i>, <i>inherit_condition=None</i>, <i>extension=None</i>, <i>order_by=False</i>, <i>allow_column_override=False</i>, <i>entity_name=None</i>, <i>always_refresh=False</i>, <i>version_id_col=None</i>, <i>polymorphic_on=None</i>, <i>polymorphic_map=None</i>, <i>polymorphic_identity=None</i>, <i>concrete=False</i>, <i>select_table=None</i>)</b>
+        <b>def __init__(<i>self</i>, <i>class_</i>, <i>local_table</i>, <i>properties=None</i>, <i>primary_key=None</i>, <i>is_primary=False</i>, <i>non_primary=False</i>, <i>inherits=None</i>, <i>inherit_condition=None</i>, <i>extension=None</i>, <i>order_by=False</i>, <i>allow_column_override=False</i>, <i>entity_name=None</i>, <i>always_refresh=False</i>, <i>version_id_col=None</i>, <i>polymorphic_on=None</i>, <i>polymorphic_map=None</i>, <i>polymorphic_identity=None</i>, <i>concrete=False</i>, <i>select_table=None</i>, <i>allow_null_pks=False</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -7166,6 +7168,23 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <div class="docstring">
     <p></p>
 <p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.orm_Mapper_common_parent"></a>
+        <b>def common_parent(<i>self</i>, <i>other</i>)</b>
+        <div class="docstring">
+    <p>
+    return true if the given mapper shares a common inherited parent as this mapper
+</p>
     </div>
         </div>
     </td>
@@ -9870,7 +9889,7 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.pool_Pool_do_return_invalid"></a>
-        <b>def do_return_invalid(<i>self</i>)</b>
+        <b>def do_return_invalid(<i>self</i>, <i>conn</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -9934,7 +9953,7 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.pool_Pool_return_invalid"></a>
-        <b>def return_invalid(<i>self</i>)</b>
+        <b>def return_invalid(<i>self</i>, <i>agent</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -10111,7 +10130,7 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.pool_QueuePool_do_return_invalid"></a>
-        <b>def do_return_invalid(<i>self</i>)</b>
+        <b>def do_return_invalid(<i>self</i>, <i>conn</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -10209,7 +10228,23 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.pool_SingletonThreadPool___init__"></a>
-        <b>def __init__(<i>self</i>, <i>creator</i>, <i>**params</i>)</b>
+        <b>def __init__(<i>self</i>, <i>creator</i>, <i>pool_size=5</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_SingletonThreadPool_cleanup"></a>
+        <b>def cleanup(<i>self</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -10226,6 +10261,22 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.pool_SingletonThreadPool_dispose"></a>
         <b>def dispose(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_SingletonThreadPool_dispose_local"></a>
+        <b>def dispose_local(<i>self</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
@@ -10273,7 +10324,7 @@ this can be accomplished via a mod; see the sqlalchemy/mods package for details.
     <td>
         <div class="darkcell">
         <A name="docstrings_sqlalchemy.pool_SingletonThreadPool_do_return_invalid"></a>
-        <b>def do_return_invalid(<i>self</i>)</b>
+        <b>def do_return_invalid(<i>self</i>, <i>conn</i>)</b>
         <div class="docstring">
     <p></p>
 <p></p>
