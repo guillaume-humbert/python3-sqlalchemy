@@ -1,5 +1,5 @@
 # mssql/pymssql.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -51,7 +51,6 @@ class _MSNumeric_pymssql(sqltypes.Numeric):
 
 class MSDialect_pymssql(MSDialect):
     supports_sane_rowcount = False
-    max_identifier_length = 30
     driver = 'pymssql'
 
     colspecs = util.update_copy(

@@ -1,5 +1,5 @@
 # sql/util.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -152,13 +152,7 @@ def bind_values(clause):
 
     v = []
     def visit_bindparam(bind):
-        value = bind.value
-
-        # evaluate callables
-        if callable(value):
-            value = value()
-
-        v.append(value)
+        v.append(bind.effective_value)
 
     visitors.traverse(clause, {}, {'bindparam':visit_bindparam})
     return v

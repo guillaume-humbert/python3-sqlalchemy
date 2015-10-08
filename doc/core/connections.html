@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 Working with Engines and Connections
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -127,6 +136,7 @@
     <p>
     <a href="pooling.html" title="next chapter">Connection Pooling</a>
     </p>
+
 
     <h4>Quick Search</h4>
     <p>
@@ -523,7 +533,7 @@ method.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xid</strong> &#8211; the two phase transaction id.  If not supplied, a 
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xid</strong> &#8211; the two phase transaction id.  If not supplied, a 
 random id will be generated.</td>
 </tr>
 </tbody>
@@ -621,7 +631,7 @@ connection pool.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>object</strong> &#8211; <p>The statement to be executed.  May be 
 one of:</p>
 <ul>
@@ -702,7 +712,7 @@ it includes options that are applicable only to
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>autocommit</strong> &#8211; Available on: Connection, statement.
 When True, a COMMIT will be invoked after execution 
 when executed in &#8216;autocommit&#8217; mode, i.e. when an explicit
@@ -960,7 +970,7 @@ to provide contextual behavior.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>close_with_result</strong> &#8211; When True, the first <a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy" title="sqlalchemy.engine.base.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> created
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>close_with_result</strong> &#8211; When True, the first <a class="reference internal" href="#sqlalchemy.engine.base.ResultProxy" title="sqlalchemy.engine.base.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> created
 by the <a class="reference internal" href="#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> will call the <a class="reference internal" href="#sqlalchemy.engine.base.Connection.close" title="sqlalchemy.engine.base.Connection.close"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.close()</span></tt></a> method
 of that connection as soon as any pending result rows are exhausted.
 This is used to supply the &#8220;connectionless execution&#8221; behavior provided
@@ -1016,17 +1026,6 @@ this <tt class="docutils literal"><span class="pre">Engine</span></tt>.</p>
 <dd><p>Emit DROP statements for the given schema entity.</p>
 <p class="deprecated">
 <span class="versionmodified">Deprecated since version 0.7: </span>Use the drop() method on the given schema object directly, i.e. <a class="reference internal" href="schema.html#sqlalchemy.schema.Table.drop" title="sqlalchemy.schema.Table.drop"><tt class="xref py py-meth docutils literal"><span class="pre">Table.drop()</span></tt></a>, <a class="reference internal" href="schema.html#sqlalchemy.schema.Index.drop" title="sqlalchemy.schema.Index.drop"><tt class="xref py py-meth docutils literal"><span class="pre">Index.drop()</span></tt></a>, <a class="reference internal" href="schema.html#sqlalchemy.schema.MetaData.drop_all" title="sqlalchemy.schema.MetaData.drop_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.drop_all()</span></tt></a></p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sqlalchemy.engine.base.Engine.echo">
-<tt class="descname">echo</tt><a class="headerlink" href="#sqlalchemy.engine.base.Engine.echo" title="Permalink to this definition">¶</a></dt>
-<dd><p>When <tt class="xref docutils literal"><span class="pre">True</span></tt>, enable log output for this element.</p>
-<p>This has the effect of setting the Python logging level for the namespace
-of this element&#8217;s class and object reference.  A value of boolean <tt class="xref docutils literal"><span class="pre">True</span></tt>
-indicates that the loglevel <tt class="docutils literal"><span class="pre">logging.INFO</span></tt> will be set for the logger,
-whereas the string value <tt class="docutils literal"><span class="pre">debug</span></tt> will set the loglevel to
-<tt class="docutils literal"><span class="pre">logging.DEBUG</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1109,7 +1108,7 @@ which one is being dealt with.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>schema</strong> &#8211; Optional, retrieve names from a non-default schema.</li>
 <li><strong>connection</strong> &#8211; Optional, use a specified connection. Default is
 the <tt class="docutils literal"><span class="pre">contextual_connect</span></tt> for this <tt class="docutils literal"><span class="pre">Engine</span></tt>.</li>
@@ -1253,7 +1252,7 @@ server_default clause,
 or otherwise do not qualify as &#8220;autoincrement&#8221;
 columns (see the notes at <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>), and were
 generated using the database-side default, will
-appear in this list as <tt class="xref docutils literal"><span class="pre">None</span></tt> unless the backend 
+appear in this list as <tt class="docutils literal"><span class="pre">None</span></tt> unless the backend 
 supports &#8220;returning&#8221; and the insert statement executed
 with the &#8220;implicit returning&#8221; enabled.</p>
 </dd></dl>
@@ -1480,24 +1479,22 @@ with the addition of the <a class="reference internal" href="#sqlalchemy.engine.
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="engines.html" title="previous chapter">Engine Configuration</a>
+        Next:
+        <a href="pooling.html" title="next chapter">Connection Pooling</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="engines.html" title="previous chapter">Engine Configuration</a>
-            Next:
-            <a href="pooling.html" title="next chapter">Connection Pooling</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 

@@ -1,5 +1,5 @@
 # ext/declarative.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -185,6 +185,15 @@ the :class:`.MetaData` object used by the declarative base::
         id = Column(Integer, primary_key=True)
         keywords = relationship("Keyword", secondary=keywords)
 
+Like other :func:`.relationship` arguments, a string is accepted as well, 
+passing the string name of the table as defined in the ``Base.metadata.tables``
+collection::
+
+    class Author(Base):
+        __tablename__ = 'authors'
+        id = Column(Integer, primary_key=True)
+        keywords = relationship("Keyword", secondary="keywords")
+
 As with traditional mapping, its generally not a good idea to use 
 a :class:`.Table` as the "secondary" argument which is also mapped to
 a class, unless the :class:`.relationship` is declared with ``viewonly=True``.
@@ -255,7 +264,7 @@ to a table::
 ``__table__`` provides a more focused point of control for establishing
 table metadata, while still getting most of the benefits of using declarative.
 An application that uses reflection might want to load table metadata elsewhere
-and simply pass it to declarative classes::
+and pass it to declarative classes::
 
     from sqlalchemy.ext.declarative import declarative_base
 
@@ -303,6 +312,39 @@ a synonym for ``name``::
         @synonym_for("_name")
         def name(self):
             return "Name: %s" % _name
+
+Using Reflection with Declarative
+=================================
+
+It's easy to set up a :class:`.Table` that uses ``autoload=True``
+in conjunction with a mapped class::
+
+    class MyClass(Base):
+        __table__ = Table('mytable', Base.metadata, 
+                        autoload=True, autoload_with=some_engine)
+
+However, one improvement that can be made here is to not 
+require the :class:`.Engine` to be available when classes are 
+being first declared.   To achieve this, use the example
+described at :ref:`examples_declarative_reflection` to build a 
+declarative base that sets up mappings only after a special 
+``prepare(engine)`` step is called::
+
+    Base = declarative_base(cls=DeclarativeReflectedBase)
+
+    class Foo(Base):
+        __tablename__ = 'foo'
+        bars = relationship("Bar")
+
+    class Bar(Base):
+        __tablename__ = 'bar'
+
+        # illustrate overriding of "bar.foo_id" to have 
+        # a foreign key constraint otherwise not
+        # reflected, such as when using MySQL
+        foo_id = Column(Integer, ForeignKey('foo.id'))
+
+    Base.prepare(e)
 
         
 Mapper Configuration
@@ -897,6 +939,7 @@ has finished::
             ""
             # do something with mappings
 
+.. _declarative_abstract:
 
 ``__abstract__``
 ~~~~~~~~~~~~~~~~~~~
@@ -918,6 +961,26 @@ just from the special class::
 
     class MyMappedClass(SomeAbstractBase):
         ""
+        
+One possible use of ``__abstract__`` is to use a distinct :class:`.MetaData` for different
+bases::
+
+    Base = declarative_base()
+
+    class DefaultBase(Base):
+        __abstract__ = True
+        metadata = MetaData()
+
+    class OtherBase(Base):
+        __abstract__ = True
+        metadata = MetaData()
+
+Above, classes which inherit from ``DefaultBase`` will use one :class:`.MetaData` as the 
+registry of tables, and those which inherit from ``OtherBase`` will use a different one.  
+The tables themselves can then be created perhaps within distinct databases::
+
+    DefaultBase.metadata.create_all(some_engine)
+    OtherBase.metadata_create_all(some_other_engine)
 
 Class Constructor
 =================
@@ -1424,9 +1487,11 @@ class declared_attr(property):
     """Mark a class-level method as representing the definition of
     a mapped property or special declarative member name.
 
-    .. note:: @declared_attr is available as 
-      ``sqlalchemy.util.classproperty`` for SQLAlchemy versions
-      0.6.2, 0.6.3, 0.6.4.
+    .. note:: 
+    
+       @declared_attr is available as 
+       ``sqlalchemy.util.classproperty`` for SQLAlchemy versions
+       0.6.2, 0.6.3, 0.6.4.
 
     @declared_attr turns the attribute into a scalar-like
     property that can be invoked from the uninstantiated class.
@@ -1498,6 +1563,7 @@ _declarative_constructor.__name__ = '__init__'
 
 def declarative_base(bind=None, metadata=None, mapper=None, cls=object,
                      name='Base', constructor=_declarative_constructor,
+                     class_registry=None,
                      metaclass=DeclarativeMeta):
     """Construct a base class for declarative class definitions.
 
@@ -1541,6 +1607,13 @@ def declarative_base(bind=None, metadata=None, mapper=None, cls=object,
       no __init__ will be provided and construction will fall back to
       cls.__init__ by way of the normal Python semantics.
 
+    :param class_registry: optional dictionary that will serve as the 
+      registry of class names-> mapped classes when string names
+      are used to identify classes inside of :func:`.relationship` 
+      and others.  Allows two or more declarative base classes
+      to share the same registry of class names for simplified 
+      inter-base relationships.
+      
     :param metaclass:
       Defaults to :class:`.DeclarativeMeta`.  A metaclass or __metaclass__
       compatible callable to use as the meta type of the generated
@@ -1551,8 +1624,11 @@ def declarative_base(bind=None, metadata=None, mapper=None, cls=object,
     if bind:
         lcl_metadata.bind = bind
 
+    if class_registry is None:
+        class_registry = {}
+
     bases = not isinstance(cls, tuple) and (cls,) or cls
-    class_dict = dict(_decl_class_registry=dict(),
+    class_dict = dict(_decl_class_registry=class_registry,
                       metadata=lcl_metadata)
 
     if constructor:

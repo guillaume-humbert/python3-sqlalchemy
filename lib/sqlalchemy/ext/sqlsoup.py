@@ -1,13 +1,22 @@
 # ext/sqlsoup.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 """
 
-.. note:: SQLSoup will no longer be included with SQLAlchemy as of 0.8.
-   Look for a third party project replicating its functionality soon.
+.. note:: 
+
+   SQLSoup is now its own project.  Documentation
+   and project status are available at:
+   
+   http://pypi.python.org/pypi/sqlsoup
+
+   http://readthedocs.org/docs/sqlsoup
+   
+   SQLSoup will no longer be included with SQLAlchemy as of 
+   version 0.8.
 
 
 Introduction
@@ -157,7 +166,7 @@ construction rules apply here as to the select methods::
 You can similarly update multiple rows at once. This will change the
 book_id to 1 in all loans whose book_id is 2::
 
-    >>> db.loans.update(db.loans.book_id==2, book_id=1)
+    >>> db.loans.filter_by(db.loans.book_id==2).update({'book_id':1})
     >>> db.loans.filter_by(book_id=1).all()
     [MappedLoans(book_id=1,user_name=u'Joe Student',
         loan_date=datetime.datetime(2006, 7, 12, 0, 0))]
@@ -250,8 +259,10 @@ Advanced Use
 Sessions, Transations and Application Integration
 -------------------------------------------------
 
-**Note:** please read and understand this section thoroughly
-before using SqlSoup in any web application.
+.. note::
+
+   Please read and understand this section thoroughly
+   before using SqlSoup in any web application.
 
 SqlSoup uses a ScopedSession to provide thread-local sessions.
 You can get a reference to the current one like this::

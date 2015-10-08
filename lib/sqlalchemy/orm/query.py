@@ -1,5 +1,5 @@
 # orm/query.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -1066,33 +1066,67 @@ class Query(object):
         self._params.update(kwargs)
 
     @_generative(_no_statement_condition, _no_limit_offset)
-    def filter(self, criterion):
-        """apply the given filtering criterion to the query and return 
-        the newly resulting ``Query``
+    def filter(self, *criterion):
+        """apply the given filtering criterion to a copy
+        of this :class:`.Query`, using SQL expressions.
 
-        the criterion is any sql.ClauseElement applicable to the WHERE clause
-        of a select.
+        e.g.::
+        
+            session.query(MyClass).filter(MyClass.name == 'some name')
+        
+        Multiple criteria are joined together by AND (new in 0.7.5)::
+        
+            session.query(MyClass).\\
+                filter(MyClass.name == 'some name', MyClass.id > 5)
+        
+        The criterion is any SQL expression object applicable to the 
+        WHERE clause of a select.   String expressions are coerced
+        into SQL expression constructs via the :func:`.text` construct.
+
+        See also:
+        
+        :meth:`.Query.filter_by` - filter on keyword expressions.
 
         """
-        if isinstance(criterion, basestring):
-            criterion = sql.text(criterion)
+        for criterion in list(criterion):
+            if isinstance(criterion, basestring):
+                criterion = sql.text(criterion)
 
-        if criterion is not None and \
-                not isinstance(criterion, sql.ClauseElement):
-            raise sa_exc.ArgumentError(
-                        "filter() argument must be of type "
-                        "sqlalchemy.sql.ClauseElement or string")
+            if criterion is not None and \
+                    not isinstance(criterion, sql.ClauseElement):
+                raise sa_exc.ArgumentError(
+                            "filter() argument must be of type "
+                            "sqlalchemy.sql.ClauseElement or string")
 
-        criterion = self._adapt_clause(criterion, True, True)
+            criterion = self._adapt_clause(criterion, True, True)
 
-        if self._criterion is not None:
-            self._criterion = self._criterion & criterion
-        else:
-            self._criterion = criterion
+            if self._criterion is not None:
+                self._criterion = self._criterion & criterion
+            else:
+                self._criterion = criterion
 
     def filter_by(self, **kwargs):
-        """apply the given filtering criterion to the query and return 
-        the newly resulting ``Query``."""
+        """apply the given filtering criterion to a copy
+        of this :class:`.Query`, using keyword expressions.
+        
+        e.g.::
+        
+            session.query(MyClass).filter_by(name = 'some name')
+        
+        Multiple criteria are joined together by AND::
+        
+            session.query(MyClass).\\
+                filter_by(name = 'some name', id = 5)
+        
+        The keyword expressions are extracted from the primary 
+        entity of the query, or the last entity that was the 
+        target of a call to :meth:`.Query.join`.
+        
+        See also:
+        
+        :meth:`.Query.filter` - filter on SQL expressions.
+        
+        """
 
         clauses = [_entity_descriptor(self._joinpoint_zero(), key) == value
             for key, value in kwargs.iteritems()]
@@ -1360,7 +1394,9 @@ class Query(object):
         
             q = session.query(User).join(Address, User.id==Address.user_id)
         
-        .. note:: In SQLAlchemy 0.6 and earlier, the two argument form of 
+        .. note:: 
+        
+           In SQLAlchemy 0.6 and earlier, the two argument form of 
            :meth:`~.Query.join` requires the usage of a tuple::
            
                query(User).join((Address, User.id==Address.user_id))

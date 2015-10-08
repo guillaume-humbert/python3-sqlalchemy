@@ -259,6 +259,18 @@ class DefaultsTest(fixtures.TestBase, AssertsCompiledSQL):
         finally:
             db.execute("DROP TABLE r_defaults")
 
+    @testing.provide_metadata
+    def test_boolean_default(self):
+        t= Table("t", self.metadata, 
+                Column("x", Boolean, server_default=sql.false()))
+        t.create(testing.db)
+        testing.db.execute(t.insert())
+        testing.db.execute(t.insert().values(x=True))
+        eq_(
+            testing.db.execute(t.select().order_by(t.c.x)).fetchall(),
+            [(False,), (True,)]
+        )
+
 
 class DialectTest(fixtures.TestBase, AssertsExecutionResults):
 
@@ -439,6 +451,15 @@ class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
             self.assert_compile(select([extract(field, t.c.col1)]),
                                 "SELECT CAST(STRFTIME('%s', t.col1) AS "
                                 "INTEGER) AS anon_1 FROM t" % subst)
+
+    def test_true_false(self):
+        self.assert_compile(
+            sql.false(), "0"
+        )
+        self.assert_compile(
+            sql.true(), 
+            "1"
+        )
 
     def test_constraints_with_schemas(self):
         metadata = MetaData()
@@ -728,4 +749,47 @@ class ReflectHeadlessFKsTest(fixtures.TestBase):
 
         assert b.c.id.references(a.c.id)
 
+class ReflectFKConstraintTest(fixtures.TestBase):
+    __only_on__ = 'sqlite'
 
+    def setup(self):
+        testing.db.execute("CREATE TABLE a1 (id INTEGER PRIMARY KEY)")
+        testing.db.execute("CREATE TABLE a2 (id INTEGER PRIMARY KEY)")
+        testing.db.execute("CREATE TABLE b (id INTEGER PRIMARY KEY, "
+                            "FOREIGN KEY(id) REFERENCES a1(id),"
+                            "FOREIGN KEY(id) REFERENCES a2(id)"
+                            ")")
+        testing.db.execute("CREATE TABLE c (id INTEGER, "
+                            "CONSTRAINT bar PRIMARY KEY(id),"
+                            "CONSTRAINT foo1 FOREIGN KEY(id) REFERENCES a1(id),"
+                            "CONSTRAINT foo2 FOREIGN KEY(id) REFERENCES a2(id)"
+                            ")")
+
+    def teardown(self):
+        testing.db.execute("drop table c")
+        testing.db.execute("drop table b")
+        testing.db.execute("drop table a1")
+        testing.db.execute("drop table a2")
+
+    def test_name_is_none(self):
+        # and not "0"
+        meta = MetaData()
+        b = Table('b', meta, autoload=True, autoload_with=testing.db)
+        eq_(
+            [con.name for con in b.constraints],
+            [None, None, None]
+        )
+
+    def test_name_not_none(self):
+        # we don't have names for PK constraints,
+        # it appears we get back None in the pragma for 
+        # FKs also (also it doesn't even appear to be documented on sqlite's docs
+        # at http://www.sqlite.org/pragma.html#pragma_foreign_key_list
+        # how did we ever know that's the "name" field ??)
+
+        meta = MetaData()
+        c = Table('c', meta, autoload=True, autoload_with=testing.db)
+        eq_(
+            set([con.name for con in c.constraints]),
+            set([None, None])
+        )

@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 Engine Configuration
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -123,6 +132,7 @@
     <p>
     <a href="connections.html" title="next chapter">Working with Engines and Connections</a>
     </p>
+
 
     <h4>Quick Search</h4>
     <p>
@@ -196,7 +206,7 @@ information on current support.</li>
 <col width="11%" />
 </colgroup>
 <thead valign="bottom">
-<tr><th class="head">Driver</th>
+<tr class="row-odd"><th class="head">Driver</th>
 <th class="head">Connect string</th>
 <th class="head">Py2K</th>
 <th class="head">Py3K</th>
@@ -206,7 +216,7 @@ information on current support.</li>
 </tr>
 </thead>
 <tbody valign="top">
-<tr><td><strong>DB2/Informix IDS</strong></td>
+<tr class="row-even"><td><strong>DB2/Informix IDS</strong></td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -214,7 +224,7 @@ information on current support.</li>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
-<tr><td><a class="reference external" href="http://code.google.com/p/ibm-db/">ibm-db</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://code.google.com/p/ibm-db/">ibm-db</a></td>
 <td>thirdparty</td>
 <td>thirdparty</td>
 <td>thirdparty</td>
@@ -222,7 +232,7 @@ information on current support.</li>
 <td>thirdparty</td>
 <td>thirdparty</td>
 </tr>
-<tr><td><strong>Drizzle</strong></td>
+<tr class="row-even"><td><strong>Drizzle</strong></td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -230,7 +240,7 @@ information on current support.</li>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
-<tr><td><a class="reference external" href="http://sourceforge.net/projects/mysql-python">mysql-python</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://sourceforge.net/projects/mysql-python">mysql-python</a></td>
 <td><tt class="docutils literal"><span class="pre">drizzle+mysqldb</span></tt>*</td>
 <td>yes</td>
 <td>development</td>
@@ -238,7 +248,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><strong>Firebird / Interbase</strong></td>
+<tr class="row-even"><td><strong>Firebird / Interbase</strong></td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -246,7 +256,7 @@ information on current support.</li>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
-<tr><td><a class="reference external" href="http://firebirdsql.org/index.php?op=devel&amp;sub=python">kinterbasdb</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://firebirdsql.org/index.php?op=devel&amp;sub=python">kinterbasdb</a></td>
 <td><tt class="docutils literal"><span class="pre">firebird+kinterbasdb</span></tt>*</td>
 <td>yes</td>
 <td>development</td>
@@ -254,7 +264,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><strong>Informix</strong></td>
+<tr class="row-even"><td><strong>Informix</strong></td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -262,7 +272,7 @@ information on current support.</li>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
-<tr><td><a class="reference external" href="http://informixdb.sourceforge.net/">informixdb</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://informixdb.sourceforge.net/">informixdb</a></td>
 <td><tt class="docutils literal"><span class="pre">informix+informixdb</span></tt>*</td>
 <td>yes</td>
 <td>development</td>
@@ -270,7 +280,7 @@ information on current support.</li>
 <td>unknown</td>
 <td>unknown</td>
 </tr>
-<tr><td><strong>MaxDB</strong></td>
+<tr class="row-even"><td><strong>MaxDB</strong></td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -278,7 +288,7 @@ information on current support.</li>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
-<tr><td><a class="reference external" href="http://www.sapdb.org/sapdbapi.html">sapdb</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://www.sapdb.org/sapdbapi.html">sapdb</a></td>
 <td><tt class="docutils literal"><span class="pre">maxdb+sapdb</span></tt>*</td>
 <td>development</td>
 <td>development</td>
@@ -286,7 +296,7 @@ information on current support.</li>
 <td>yes</td>
 <td>unknown</td>
 </tr>
-<tr><td><strong>Microsoft Access</strong></td>
+<tr class="row-even"><td><strong>Microsoft Access</strong></td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -294,7 +304,7 @@ information on current support.</li>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
-<tr><td><a class="reference external" href="http://code.google.com/p/pyodbc/">pyodbc</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://code.google.com/p/pyodbc/">pyodbc</a></td>
 <td><tt class="docutils literal"><span class="pre">access+pyodbc</span></tt>*</td>
 <td>development</td>
 <td>development</td>
@@ -302,7 +312,7 @@ information on current support.</li>
 <td>unknown</td>
 <td>yes</td>
 </tr>
-<tr><td><strong>Microsoft SQL Server</strong></td>
+<tr class="row-even"><td><strong>Microsoft SQL Server</strong></td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -310,7 +320,7 @@ information on current support.</li>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
-<tr><td><a class="reference external" href="http://adodbapi.sourceforge.net/">adodbapi</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://adodbapi.sourceforge.net/">adodbapi</a></td>
 <td><tt class="docutils literal"><span class="pre">mssql+adodbapi</span></tt></td>
 <td>development</td>
 <td>development</td>
@@ -318,7 +328,7 @@ information on current support.</li>
 <td>no</td>
 <td>yes</td>
 </tr>
-<tr><td><a class="reference external" href="http://jtds.sourceforge.net/">jTDS JDBC Driver</a></td>
+<tr class="row-even"><td><a class="reference external" href="http://jtds.sourceforge.net/">jTDS JDBC Driver</a></td>
 <td><tt class="docutils literal"><span class="pre">mssql+zxjdbc</span></tt></td>
 <td>no</td>
 <td>no</td>
@@ -326,7 +336,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><a class="reference external" href="http://www.egenix.com/products/python/mxODBC/">mxodbc</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://www.egenix.com/products/python/mxODBC/">mxodbc</a></td>
 <td><tt class="docutils literal"><span class="pre">mssql+mxodbc</span></tt></td>
 <td>yes</td>
 <td>development</td>
@@ -334,7 +344,7 @@ information on current support.</li>
 <td>yes with <a class="reference external" href="http://www.freetds.org/">FreeTDS</a></td>
 <td>yes</td>
 </tr>
-<tr><td><a class="reference external" href="http://code.google.com/p/pyodbc/">pyodbc</a></td>
+<tr class="row-even"><td><a class="reference external" href="http://code.google.com/p/pyodbc/">pyodbc</a></td>
 <td><tt class="docutils literal"><span class="pre">mssql+pyodbc</span></tt>*</td>
 <td>yes</td>
 <td>development</td>
@@ -342,7 +352,7 @@ information on current support.</li>
 <td>yes with <a class="reference external" href="http://www.freetds.org/">FreeTDS</a></td>
 <td>yes</td>
 </tr>
-<tr><td><a class="reference external" href="http://code.google.com/p/pymssql/">pymssql</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://code.google.com/p/pymssql/">pymssql</a></td>
 <td><tt class="docutils literal"><span class="pre">mssql+pymssql</span></tt></td>
 <td>yes</td>
 <td>development</td>
@@ -350,7 +360,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><strong>MySQL</strong></td>
+<tr class="row-even"><td><strong>MySQL</strong></td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -358,7 +368,7 @@ information on current support.</li>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
-<tr><td><a class="reference external" href="http://dev.mysql.com/downloads/connector/j/">MySQL Connector/J</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://dev.mysql.com/downloads/connector/j/">MySQL Connector/J</a></td>
 <td><tt class="docutils literal"><span class="pre">mysql+zxjdbc</span></tt></td>
 <td>no</td>
 <td>no</td>
@@ -366,7 +376,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><a class="reference external" href="https://launchpad.net/myconnpy">MySQL Connector/Python</a></td>
+<tr class="row-even"><td><a class="reference external" href="https://launchpad.net/myconnpy">MySQL Connector/Python</a></td>
 <td><tt class="docutils literal"><span class="pre">mysql+mysqlconnector</span></tt></td>
 <td>yes</td>
 <td>yes</td>
@@ -374,7 +384,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><a class="reference external" href="http://sourceforge.net/projects/mysql-python">mysql-python</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://sourceforge.net/projects/mysql-python">mysql-python</a></td>
 <td><tt class="docutils literal"><span class="pre">mysql+mysqldb</span></tt>*</td>
 <td>yes</td>
 <td>development</td>
@@ -382,7 +392,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><a class="reference external" href="http://packages.python.org/oursql/">OurSQL</a></td>
+<tr class="row-even"><td><a class="reference external" href="http://packages.python.org/oursql/">OurSQL</a></td>
 <td><tt class="docutils literal"><span class="pre">mysql+oursql</span></tt></td>
 <td>yes</td>
 <td>yes</td>
@@ -390,7 +400,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><a class="reference external" href="http://code.google.com/p/pymysql/">pymysql</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://code.google.com/p/pymysql/">pymysql</a></td>
 <td><tt class="docutils literal"><span class="pre">mysql+pymysql</span></tt></td>
 <td>yes</td>
 <td>development</td>
@@ -398,7 +408,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><strong>Oracle</strong></td>
+<tr class="row-even"><td><strong>Oracle</strong></td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -406,7 +416,7 @@ information on current support.</li>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
-<tr><td><a class="reference external" href="http://cx-oracle.sourceforge.net/">cx_oracle</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://cx-oracle.sourceforge.net/">cx_oracle</a></td>
 <td><tt class="docutils literal"><span class="pre">oracle+cx_oracle</span></tt>*</td>
 <td>yes</td>
 <td>development</td>
@@ -414,7 +424,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><a class="reference external" href="http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/index.html">Oracle JDBC Driver</a></td>
+<tr class="row-even"><td><a class="reference external" href="http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/index.html">Oracle JDBC Driver</a></td>
 <td><tt class="docutils literal"><span class="pre">oracle+zxjdbc</span></tt></td>
 <td>no</td>
 <td>no</td>
@@ -422,7 +432,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><strong>Postgresql</strong></td>
+<tr class="row-odd"><td><strong>Postgresql</strong></td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -430,7 +440,7 @@ information on current support.</li>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
-<tr><td><a class="reference external" href="http://pybrary.net/pg8000/">pg8000</a></td>
+<tr class="row-even"><td><a class="reference external" href="http://pybrary.net/pg8000/">pg8000</a></td>
 <td><tt class="docutils literal"><span class="pre">postgresql+pg8000</span></tt></td>
 <td>yes</td>
 <td>yes</td>
@@ -438,7 +448,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><a class="reference external" href="http://jdbc.postgresql.org/">PostgreSQL JDBC Driver</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://jdbc.postgresql.org/">PostgreSQL JDBC Driver</a></td>
 <td><tt class="docutils literal"><span class="pre">postgresql+zxjdbc</span></tt></td>
 <td>no</td>
 <td>no</td>
@@ -446,7 +456,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><a class="reference external" href="http://www.initd.org/">psycopg2</a></td>
+<tr class="row-even"><td><a class="reference external" href="http://www.initd.org/">psycopg2</a></td>
 <td><tt class="docutils literal"><span class="pre">postgresql+psycopg2</span></tt>*</td>
 <td>yes</td>
 <td>yes</td>
@@ -454,7 +464,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><a class="reference external" href="http://python.projects.postgresql.org/">pypostgresql</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://python.projects.postgresql.org/">pypostgresql</a></td>
 <td><tt class="docutils literal"><span class="pre">postgresql+pypostgresql</span></tt></td>
 <td>no</td>
 <td>yes</td>
@@ -462,7 +472,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><strong>SQLite</strong></td>
+<tr class="row-even"><td><strong>SQLite</strong></td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -470,7 +480,7 @@ information on current support.</li>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
-<tr><td><a class="reference external" href="http://pypi.python.org/pypi/pysqlite/">pysqlite</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://pypi.python.org/pypi/pysqlite/">pysqlite</a></td>
 <td><tt class="docutils literal"><span class="pre">sqlite+pysqlite</span></tt>*</td>
 <td>yes</td>
 <td>yes</td>
@@ -478,7 +488,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><a class="reference external" href="http://docs.python.org/library/sqlite3.html">sqlite3</a></td>
+<tr class="row-even"><td><a class="reference external" href="http://docs.python.org/library/sqlite3.html">sqlite3</a></td>
 <td><tt class="docutils literal"><span class="pre">sqlite+pysqlite</span></tt>*</td>
 <td>yes</td>
 <td>yes</td>
@@ -486,7 +496,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><strong>Sybase ASE</strong></td>
+<tr class="row-odd"><td><strong>Sybase ASE</strong></td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -494,7 +504,7 @@ information on current support.</li>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
-<tr><td><a class="reference external" href="http://www.egenix.com/products/python/mxODBC/">mxodbc</a></td>
+<tr class="row-even"><td><a class="reference external" href="http://www.egenix.com/products/python/mxODBC/">mxodbc</a></td>
 <td><tt class="docutils literal"><span class="pre">sybase+mxodbc</span></tt></td>
 <td>development</td>
 <td>development</td>
@@ -502,7 +512,7 @@ information on current support.</li>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr><td><a class="reference external" href="http://code.google.com/p/pyodbc/">pyodbc</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://code.google.com/p/pyodbc/">pyodbc</a></td>
 <td><tt class="docutils literal"><span class="pre">sybase+pyodbc</span></tt>*</td>
 <td>partial</td>
 <td>development</td>
@@ -510,7 +520,7 @@ information on current support.</li>
 <td>unknown</td>
 <td>unknown</td>
 </tr>
-<tr><td><a class="reference external" href="http://python-sybase.sourceforge.net/">python-sybase</a></td>
+<tr class="row-even"><td><a class="reference external" href="http://python-sybase.sourceforge.net/">python-sybase</a></td>
 <td><tt class="docutils literal"><span class="pre">sybase+pysybase</span></tt></td>
 <td>yes <a class="footnote-reference" href="#id2" id="id1">[1]</a></td>
 <td>development</td>
@@ -571,7 +581,7 @@ establish any actual DBAPI connections directly.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>assert_unicode</strong> &#8211; Deprecated.  This flag
 sets an engine-wide default value for
 the <tt class="docutils literal"><span class="pre">assert_unicode</span></tt> flag on the 
@@ -583,8 +593,8 @@ additional keyword arguments.  See the example
 at <a class="reference internal" href="#custom-dbapi-args"><em>Custom DBAPI connect() arguments</em></a>.</li>
 <li><strong>convert_unicode=False</strong> &#8211; <p>if set to True, sets
 the default behavior of <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> on the
-<a class="reference internal" href="types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type to <tt class="xref docutils literal"><span class="pre">True</span></tt>, regardless
-of a setting of <tt class="xref docutils literal"><span class="pre">False</span></tt> on an individual 
+<a class="reference internal" href="types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type to <tt class="docutils literal"><span class="pre">True</span></tt>, regardless
+of a setting of <tt class="docutils literal"><span class="pre">False</span></tt> on an individual 
 <a class="reference internal" href="types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type, thus causing all <a class="reference internal" href="types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a>
 -based columns
 to accommodate Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects.  This flag
@@ -636,10 +646,10 @@ outside of the DBAPI include zero or more of:</p>
 <ul>
 <li>the values passed to bound parameters, corresponding to 
 the <a class="reference internal" href="types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> type or the <a class="reference internal" href="types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type
-when <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> is <tt class="xref docutils literal"><span class="pre">True</span></tt>;</li>
+when <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> is <tt class="docutils literal"><span class="pre">True</span></tt>;</li>
 <li>the values returned in result set columns corresponding 
 to the <a class="reference internal" href="types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> type or the <a class="reference internal" href="types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> 
-type when <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> is <tt class="xref docutils literal"><span class="pre">True</span></tt>;</li>
+type when <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> is <tt class="docutils literal"><span class="pre">True</span></tt>;</li>
 <li>the string SQL statement passed to the DBAPI&#8217;s 
 <tt class="docutils literal"><span class="pre">cursor.execute()</span></tt> method;</li>
 <li>the string names of the keys in the bound parameter 
@@ -659,18 +669,18 @@ completely inconsistent in their behavior.</p>
 <li><strong>execution_options</strong> &#8211; Dictionary execution options which will
 be applied to all connections.  See
 <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection.execution_options" title="sqlalchemy.engine.base.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">execution_options()</span></tt></a></li>
-<li><strong>implicit_returning=True</strong> &#8211; When <tt class="xref docutils literal"><span class="pre">True</span></tt>, a RETURNING-
+<li><strong>implicit_returning=True</strong> &#8211; When <tt class="docutils literal"><span class="pre">True</span></tt>, a RETURNING-
 compatible construct, if available, will be used to
 fetch newly generated primary key values when a single row
 INSERT statement is emitted with no existing returning() 
 clause.  This applies to those backends which support RETURNING 
 or a compatible construct, including Postgresql, Firebird, Oracle, 
-Microsoft SQL Server.   Set this to <tt class="xref docutils literal"><span class="pre">False</span></tt> to disable
+Microsoft SQL Server.   Set this to <tt class="docutils literal"><span class="pre">False</span></tt> to disable
 the automatic usage of RETURNING.</li>
 <li><strong>label_length=None</strong> &#8211; optional integer value which limits
 the size of dynamically generated column labels to that many
 characters. If less than 6, labels are generated as
-&#8220;_(counter)&#8221;. If <tt class="xref docutils literal"><span class="pre">None</span></tt>, the value of
+&#8220;_(counter)&#8221;. If <tt class="docutils literal"><span class="pre">None</span></tt>, the value of
 <tt class="docutils literal"><span class="pre">dialect.max_identifier_length</span></tt> is used instead.</li>
 <li><strong>listeners</strong> &#8211; A list of one or more 
 <a class="reference internal" href="interfaces.html#sqlalchemy.interfaces.PoolListener" title="sqlalchemy.interfaces.PoolListener"><tt class="xref py py-class docutils literal"><span class="pre">PoolListener</span></tt></a> objects which will 
@@ -834,7 +844,7 @@ format of the URL is an RFC-1738-style string.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>drivername</strong> &#8211; the name of the database backend.
 This name will correspond to a module in sqlalchemy/databases
 or a third party plug-in.</li>
@@ -869,7 +879,7 @@ from the final dictionary.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>**kw</strong> &#8211; Optional, alternate key names for url attributes.</li>
 <li><strong>names</strong> &#8211; Deprecated.  Same purpose as the keyword-based alternate names,
 but correlates the name to the original positionally.</li>
@@ -933,7 +943,7 @@ namespace of SA loggers that can be turned on is as follows:</p>
 application that has logging enabled otherwise.</p>
 <p>The <tt class="docutils literal"><span class="pre">echo</span></tt> flags present as keyword arguments to
 <a class="reference internal" href="#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> and others as well as the <tt class="docutils literal"><span class="pre">echo</span></tt> property
-on <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, when set to <tt class="xref docutils literal"><span class="pre">True</span></tt>, will first
+on <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, when set to <tt class="docutils literal"><span class="pre">True</span></tt>, will first
 attempt to ensure that logging is enabled. Unfortunately, the <tt class="docutils literal"><span class="pre">logging</span></tt>
 module provides no way of determining if output has already been configured
 (note we are referring to if a logging configuration has been set up, not just
@@ -968,24 +978,22 @@ after the current transaction ends and a new one begins).</p>
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="expression_api.html" title="previous chapter">SQL Statements and Expressions API</a>
+        Next:
+        <a href="connections.html" title="next chapter">Working with Engines and Connections</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="expression_api.html" title="previous chapter">SQL Statements and Expressions API</a>
-            Next:
-            <a href="connections.html" title="next chapter">Working with Engines and Connections</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 

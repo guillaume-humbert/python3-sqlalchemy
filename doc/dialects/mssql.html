@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 Microsoft SQL Server
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -151,6 +160,7 @@
     <a href="mysql.html" title="next chapter">MySQL</a>
     </p>
 
+
     <h4>Quick Search</h4>
     <p>
     <form class="search" action="../search.html" method="get">
@@ -240,7 +250,7 @@ other words the database&#8217;s configured default is used. This will
 render:</p>
 <div class="highlight-python"><pre>name VARCHAR(20)</pre>
 </div>
-<p>If <tt class="docutils literal"><span class="pre">nullable</span></tt> is <tt class="xref docutils literal"><span class="pre">True</span></tt> or <tt class="xref docutils literal"><span class="pre">False</span></tt> then the column will be
+<p>If <tt class="docutils literal"><span class="pre">nullable</span></tt> is <tt class="docutils literal"><span class="pre">True</span></tt> or <tt class="docutils literal"><span class="pre">False</span></tt> then the column will be
 <tt class="docutils literal"><span class="pre">NULL`</span> <span class="pre">or</span> <span class="pre">``NOT</span> <span class="pre">NULL</span></tt> respectively.</p>
 </div>
 <div class="section" id="date-time-handling">
@@ -370,7 +380,7 @@ of 8,000 characters.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>length</strong> &#8211; Optinal, maximum data length, in characters.</li>
 <li><strong>convert_unicode</strong> &#8211; <p>defaults to False.  If True, convert
 <tt class="docutils literal"><span class="pre">unicode</span></tt> data sent to the database to a <tt class="docutils literal"><span class="pre">str</span></tt>
@@ -417,7 +427,7 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
@@ -458,7 +468,7 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>length</strong> &#8211; Optional, Maximum data length, in characters.</li>
 <li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
 value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
@@ -485,7 +495,7 @@ characters.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>collation</strong> &#8211; Optional, a column-level collation for this string
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>collation</strong> &#8211; Optional, a column-level collation for this string
 value. Accepts a Windows Collation Name or a SQL Collation Name.</td>
 </tr>
 </tbody>
@@ -508,7 +518,7 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>length</strong> &#8211; Optional, Maximum data length, in characters.</li>
 <li><strong>collation</strong> &#8211; Optional, a column-level collation for this string
 value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
@@ -539,7 +549,7 @@ value. Accepts a Windows Collation Name or a SQL Collation Name.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>timezone</strong> &#8211; boolean.  If True, and supported by the</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>timezone</strong> &#8211; boolean.  If True, and supported by the</td>
 </tr>
 </tbody>
 </table>
@@ -587,7 +597,7 @@ effect.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>collation</strong> &#8211; Optional, a column-level collation for this string
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>collation</strong> &#8211; Optional, a column-level collation for this string
 value. Accepts a Windows Collation Name or a SQL Collation Name.</td>
 </tr>
 </tbody>
@@ -640,7 +650,7 @@ of 8,000 characters.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>length</strong> &#8211; Optinal, maximum data length, in characters.</li>
 <li><strong>convert_unicode</strong> &#8211; <p>defaults to False.  If True, convert
 <tt class="docutils literal"><span class="pre">unicode</span></tt> data sent to the database to a <tt class="docutils literal"><span class="pre">str</span></tt>
@@ -771,9 +781,9 @@ INSERT, UPDATE, and DELETE statements, and uses the escaped string mode for
 all other statements.</p>
 <p>This behavior can be controlled via
 <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Executable.execution_options" title="sqlalchemy.sql.expression.Executable.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">execution_options()</span></tt></a> using the
-<tt class="docutils literal"><span class="pre">native_odbc_execute</span></tt> flag with a value of <tt class="xref docutils literal"><span class="pre">True</span></tt> or <tt class="xref docutils literal"><span class="pre">False</span></tt>, where a
-value of <tt class="xref docutils literal"><span class="pre">True</span></tt> will unconditionally use native bind parameters and a value
-of <tt class="xref docutils literal"><span class="pre">False</span></tt> will uncondtionally use string-escaped parameters.</p>
+<tt class="docutils literal"><span class="pre">native_odbc_execute</span></tt> flag with a value of <tt class="docutils literal"><span class="pre">True</span></tt> or <tt class="docutils literal"><span class="pre">False</span></tt>, where a
+value of <tt class="docutils literal"><span class="pre">True</span></tt> will unconditionally use native bind parameters and a value
+of <tt class="docutils literal"><span class="pre">False</span></tt> will uncondtionally use string-escaped parameters.</p>
 </div>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.mssql.pymssql">
@@ -833,24 +843,22 @@ properties to the underlying JDBC driver.</p>
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="access.html" title="previous chapter">Microsoft Access</a>
+        Next:
+        <a href="mysql.html" title="next chapter">MySQL</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="access.html" title="previous chapter">Microsoft Access</a>
-            Next:
-            <a href="mysql.html" title="next chapter">MySQL</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 

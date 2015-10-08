@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 SQL Expression Language Tutorial
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -153,6 +162,7 @@
     <a href="expression_api.html" title="next chapter">SQL Statements and Expressions API</a>
     </p>
 
+
     <h4>Quick Search</h4>
     <p>
     <form class="search" action="../search.html" method="get">
@@ -223,7 +233,7 @@ anywhere. To connect we use <a class="reference internal" href="engines.html#sql
 <p>The <tt class="docutils literal"><span class="pre">echo</span></tt> flag is a shortcut to setting up SQLAlchemy logging, which is
 accomplished via Python&#8217;s standard <tt class="docutils literal"><span class="pre">logging</span></tt> module. With it enabled, we&#8217;ll
 see all the generated SQL produced. If you are working through this tutorial
-and want less output generated, set it to <tt class="xref docutils literal"><span class="pre">False</span></tt>. This tutorial will format
+and want less output generated, set it to <tt class="docutils literal"><span class="pre">False</span></tt>. This tutorial will format
 the SQL behind a popup window so it doesn&#8217;t get in our way; just click the
 &#8220;SQL&#8221; links to see what&#8217;s being generated.</p>
 </div>
@@ -613,12 +623,12 @@ statement, and our results were managed down so that the join of <tt class="docu
 <tt class="docutils literal"><span class="pre">addresses</span></tt> rows made sense. But let&#8217;s look at that expression? It&#8217;s using
 just a Python equality operator between two different
 <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects. It should be clear that something
-is up. Saying <tt class="docutils literal"><span class="pre">1==1</span></tt> produces <tt class="xref docutils literal"><span class="pre">True</span></tt>, and <tt class="docutils literal"><span class="pre">1==2</span></tt> produces <tt class="xref docutils literal"><span class="pre">False</span></tt>, not
+is up. Saying <tt class="docutils literal"><span class="pre">1==1</span></tt> produces <tt class="docutils literal"><span class="pre">True</span></tt>, and <tt class="docutils literal"><span class="pre">1==2</span></tt> produces <tt class="docutils literal"><span class="pre">False</span></tt>, not
 a WHERE clause. So lets see exactly what that expression is doing:</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span> 
 <span class="go">&lt;sqlalchemy.sql.expression._BinaryExpression object at 0x...&gt;</span></pre></div>
 </div>
-<p>Wow, surprise ! This is neither a <tt class="xref docutils literal"><span class="pre">True</span></tt> nor a <tt class="xref docutils literal"><span class="pre">False</span></tt>. Well what is it ?</p>
+<p>Wow, surprise ! This is neither a <tt class="docutils literal"><span class="pre">True</span></tt> nor a <tt class="docutils literal"><span class="pre">False</span></tt>. Well what is it ?</p>
 <div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">str</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="n">addresses</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
 <span class="go">&#39;users.id = addresses.user_id&#39;</span></pre></div>
 </div>
@@ -1453,24 +1463,22 @@ COMMIT</div><span class="go">&lt;sqlalchemy.engine.base.ResultProxy object at 0x
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="index.html" title="previous chapter">SQLAlchemy Core</a>
+        Next:
+        <a href="expression_api.html" title="next chapter">SQL Statements and Expressions API</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="index.html" title="previous chapter">SQLAlchemy Core</a>
-            Next:
-            <a href="expression_api.html" title="next chapter">SQL Statements and Expressions API</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 

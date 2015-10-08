@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 ORM Internals
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -116,6 +125,7 @@
     <p>
     <a href="../core/index.html" title="next chapter">SQLAlchemy Core</a>
     </p>
+
 
     <h4>Quick Search</h4>
     <p>
@@ -194,7 +204,7 @@ instance.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>*columns</strong> &#8211; The list of <cite>columns</cite> describes a single
 object property. If there are multiple tables joined
 together for the mapper, this list represents the equivalent
@@ -351,7 +361,7 @@ and a reference to another class produced by <a class="reference internal" href=
 represented in the mapping as an instance of <a class="reference internal" href="#sqlalchemy.orm.properties.RelationshipProperty" title="sqlalchemy.orm.properties.RelationshipProperty"><tt class="xref py py-class docutils literal"><span class="pre">RelationshipProperty</span></tt></a>.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.orm.interfaces.MapperProperty.cascade">
-<tt class="descname">cascade</tt><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperProperty.cascade" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">cascade</tt><em class="property"> = ()</em><a class="headerlink" href="#sqlalchemy.orm.interfaces.MapperProperty.cascade" title="Permalink to this definition">¶</a></dt>
 <dd><p>The set of &#8216;cascade&#8217; attribute names.</p>
 <p>This collection is checked before the &#8216;cascade_iterator&#8217; method is called.</p>
 </dd></dl>
@@ -486,7 +496,7 @@ given criterion.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>criterion</strong> &#8211; an optional ClauseElement formulated against the 
 member class&#8217; table or attributes.</li>
 <li><strong>**kwargs</strong> &#8211; key/value pairs corresponding to member class attribute 
@@ -510,7 +520,7 @@ given criterion.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>criterion</strong> &#8211; an optional ClauseElement formulated against the 
 member class&#8217; table or attributes.</li>
 <li><strong>**kwargs</strong> &#8211; key/value pairs corresponding to member class attribute 
@@ -537,7 +547,7 @@ evaluated.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>class_</strong> &#8211; a class or mapper indicating that criterion will be against
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>class_</strong> &#8211; a class or mapper indicating that criterion will be against
 this specific subclass.</td>
 </tr>
 </tbody>
@@ -593,7 +603,7 @@ explicit joins, outerjoins, or
 <a class="reference internal" href="#sqlalchemy.orm.properties.RelationshipProperty.Comparator.has" title="sqlalchemy.orm.properties.RelationshipProperty.Comparator.has"><tt class="xref py py-meth docutils literal"><span class="pre">has()</span></tt></a> for
 more comprehensive non-many-to-one scalar
 membership tests.</li>
-<li>Comparisons against <tt class="xref docutils literal"><span class="pre">None</span></tt> given in a one-to-many
+<li>Comparisons against <tt class="docutils literal"><span class="pre">None</span></tt> given in a one-to-many
 or many-to-many context produce a NOT EXISTS clause.</li>
 </ul>
 </dd></dl>
@@ -638,7 +648,7 @@ explicit joins, outerjoins, or
 conjunction with <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.not_" title="sqlalchemy.sql.expression.not_"><tt class="xref py py-func docutils literal"><span class="pre">not_()</span></tt></a> for
 more comprehensive non-many-to-one scalar
 membership tests.</li>
-<li>Comparisons against <tt class="xref docutils literal"><span class="pre">None</span></tt> given in a one-to-many
+<li>Comparisons against <tt class="docutils literal"><span class="pre">None</span></tt> given in a one-to-many
 or many-to-many context produce an EXISTS clause.</li>
 </ul>
 </dd></dl>
@@ -818,24 +828,22 @@ and <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.ou
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="exceptions.html" title="previous chapter">ORM Exceptions</a>
+        Next:
+        <a href="../core/index.html" title="next chapter">SQLAlchemy Core</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="exceptions.html" title="previous chapter">ORM Exceptions</a>
-            Next:
-            <a href="../core/index.html" title="next chapter">SQLAlchemy Core</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 

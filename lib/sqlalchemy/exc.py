@@ -1,5 +1,5 @@
 # sqlalchemy/exc.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -44,11 +44,18 @@ class CircularDependencyError(SQLAlchemyError):
       see :ref:`use_alter`.
       
     """
-    def __init__(self, message, cycles, edges):
-        message += " Cycles: %r all edges: %r" % (cycles, edges)
+    def __init__(self, message, cycles, edges, msg=None):
+        if msg is None:
+            message += " Cycles: %r all edges: %r" % (cycles, edges)
+        else:
+            message = msg
         SQLAlchemyError.__init__(self, message)
         self.cycles = cycles
         self.edges = edges
+
+    def __reduce__(self):
+        return self.__class__, (None, self.cycles, 
+                            self.edges, self.args[0])
 
 class CompileError(SQLAlchemyError):
     """Raised when an error occurs during SQL compilation"""
@@ -102,6 +109,9 @@ class NoReferencedTableError(NoReferenceError):
         NoReferenceError.__init__(self, message)
         self.table_name = tname
 
+    def __reduce__(self):
+        return self.__class__, (self.args[0], self.table_name)
+
 class NoReferencedColumnError(NoReferenceError):
     """Raised by ``ForeignKey`` when the referred ``Column`` cannot be located."""
 
@@ -109,6 +119,10 @@ class NoReferencedColumnError(NoReferenceError):
         NoReferenceError.__init__(self, message)
         self.table_name = tname
         self.column_name = cname
+
+    def __reduce__(self):
+        return self.__class__, (self.args[0], self.table_name, 
+                            self.column_name)
 
 class NoSuchTableError(InvalidRequestError):
     """Table does not exist or is not visible to a connection."""
@@ -164,6 +178,10 @@ class StatementError(SQLAlchemyError):
         self.params = params
         self.orig = orig
 
+    def __reduce__(self):
+        return self.__class__, (self.args[0], self.statement, 
+                                self.params, self.orig)
+
     def __str__(self):
         from sqlalchemy.sql import util
         params_repr = util._repr_params(self.params, 10)
@@ -218,6 +236,10 @@ class DBAPIError(StatementError):
                 cls = glob[name]
 
         return cls(statement, params, orig, connection_invalidated)
+
+    def __reduce__(self):
+        return self.__class__, (self.statement, self.params, 
+                    self.orig, self.connection_invalidated)
 
     def __init__(self, statement, params, orig, connection_invalidated=False):
         try:

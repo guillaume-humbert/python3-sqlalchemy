@@ -1,5 +1,5 @@
 # sql/compiler.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -23,6 +23,7 @@ To generate user-defined SQL strings, see
 """
 
 import re
+import sys
 from sqlalchemy import schema, engine, util, exc
 from sqlalchemy.sql import operators, functions, util as sql_util, \
     visitors
@@ -158,6 +159,10 @@ class _CompileLabel(visitors.Visitable):
         self.name = name
 
     @property
+    def proxy_set(self):
+        return self.element.proxy_set
+
+    @property
     def type(self):
         return self.element.type
 
@@ -285,7 +290,7 @@ class SQLCompiler(engine.Compiled):
     def sql_compiler(self):
         return self
 
-    def construct_params(self, params=None, _group_number=None):
+    def construct_params(self, params=None, _group_number=None, _check=True):
         """return a dictionary of bind parameter keys and values"""
 
         if params:
@@ -295,34 +300,40 @@ class SQLCompiler(engine.Compiled):
                     pd[name] = params[bindparam.key]
                 elif name in params:
                     pd[name] = params[name]
-                elif bindparam.required:
+                elif _check and bindparam.required:
                     if _group_number:
                         raise exc.InvalidRequestError(
-                                "A value is required for bind parameter %r, "
-                                "in parameter group %d" % 
-                                (bindparam.key, _group_number))
+                            "A value is required for bind parameter %r, "
+                            "in parameter group %d" % 
+                            (bindparam.key, _group_number))
                     else:
                         raise exc.InvalidRequestError(
-                                "A value is required for bind parameter %r" 
-                                % bindparam.key)
-                elif bindparam.callable:
-                    pd[name] = bindparam.callable()
+                            "A value is required for bind parameter %r" 
+                            % bindparam.key)
                 else:
-                    pd[name] = bindparam.value
+                    pd[name] = bindparam.effective_value
             return pd
         else:
             pd = {}
             for bindparam in self.bind_names:
-                if bindparam.callable:
-                    pd[self.bind_names[bindparam]] = bindparam.callable()
-                else:
-                    pd[self.bind_names[bindparam]] = bindparam.value
+                if _check and bindparam.required:
+                    if _group_number:
+                        raise exc.InvalidRequestError(
+                            "A value is required for bind parameter %r, "
+                            "in parameter group %d" % 
+                            (bindparam.key, _group_number))
+                    else:
+                        raise exc.InvalidRequestError(
+                            "A value is required for bind parameter %r" 
+                            % bindparam.key)
+                pd[self.bind_names[bindparam]] = bindparam.effective_value
             return pd
 
-    params = property(construct_params, doc="""
-        Return the bind params for this compiled object.
-
-    """)
+    @property
+    def params(self):
+        """Return the bind param dictionary embedded into this 
+        compiled object, for those values that are present."""
+        return self.construct_params(_check=False)
 
     def default_from(self):
         """Called when a SELECT statement has no froms, and no FROM clause is
@@ -1369,19 +1380,36 @@ class DDLCompiler(engine.Compiled):
         # if only one primary key, specify it along with the column
         first_pk = False
         for column in table.columns:
-            text += separator
-            separator = ", \n"
-            text += "\t" + self.get_column_specification(
-                                            column, 
-                                            first_pk=column.primary_key and \
-                                            not first_pk
-                                        )
-            if column.primary_key:
-                first_pk = True
-            const = " ".join(self.process(constraint) \
-                            for constraint in column.constraints)
-            if const:
-                text += " " + const
+            try:
+                text += separator
+                separator = ", \n"
+                text += "\t" + self.get_column_specification(
+                                                column, 
+                                                first_pk=column.primary_key and \
+                                                not first_pk
+                                            )
+                if column.primary_key:
+                    first_pk = True
+                const = " ".join(self.process(constraint) \
+                                for constraint in column.constraints)
+                if const:
+                    text += " " + const
+            except exc.CompileError, ce:
+                # Py3K
+                #raise exc.CompileError("(in table '%s', column '%s'): %s" 
+                #                             % (
+                #                                table.description, 
+                #                                column.name, 
+                #                                ce.args[0]
+                #                            )) from ce
+                # Py2K
+                raise exc.CompileError("(in table '%s', column '%s'): %s" 
+                                            % (
+                                                table.description, 
+                                                column.name,
+                                                ce.args[0]
+                                            )), None, sys.exc_info()[2]
+                # end Py2K
 
         const = self.create_table_constraints(table)
         if const:

@@ -10,7 +10,7 @@ from cStringIO import StringIO
 
 from test.bootstrap import config
 from test.lib import assertsql, util as testutil
-from sqlalchemy.util import py3k, decorator
+from sqlalchemy.util import decorator
 from engines import drop_all_tables
 
 from sqlalchemy import exc as sa_exc, util, types as sqltypes, schema, \
@@ -188,10 +188,7 @@ def _block_unconditionally(db, reason):
         if spec(config.db):
             msg = "'%s' unsupported on DB implementation '%s+%s': %s" % (
                 fn.__name__, config.db.name, config.db.driver, reason)
-            print msg
-            if carp:
-                print >> sys.stderr, msg
-            return True
+            raise SkipTest(msg)
         else:
             return fn(*args, **kw)
     return decorate
@@ -206,10 +203,7 @@ def only_on(dbs, reason):
         else:
             msg = "'%s' unsupported on DB implementation '%s+%s': %s" % (
                 fn.__name__, config.db.name, config.db.driver, reason)
-            print msg
-            if carp:
-                print >> sys.stderr, msg
-            return True
+            raise SkipTest(msg)
     return decorate
 
 def exclude(db, op, spec, reason):
@@ -231,10 +225,7 @@ def exclude(db, op, spec, reason):
         if _is_excluded(db, op, spec):
             msg = "'%s' unsupported on DB %s version '%s': %s" % (
                 fn.__name__, config.db.name, _server_version(), reason)
-            print msg
-            if carp:
-                print >> sys.stderr, msg
-            return True
+            raise SkipTest(msg)
         else:
             return fn(*args, **kw)
     return decorate
@@ -300,10 +291,7 @@ def skip_if(predicate, reason=None):
         if predicate():
             msg = "'%s' skipped on DB %s version '%s': %s" % (
                 fn.__name__, config.db.name, _server_version(), reason)
-            print msg
-            if carp:
-                print >> sys.stderr, msg
-            return True
+            raise SkipTest(msg)
         else:
             return fn(*args, **kw)
     return decorate
@@ -370,14 +358,18 @@ def emits_warning_on(db, *warnings):
 def assert_warnings(fn, warnings):
     """Assert that each of the given warnings are emitted by fn."""
 
+    canary = []
     orig_warn = util.warn
     def capture_warnings(*args, **kw):
         orig_warn(*args, **kw)
         popwarn = warnings.pop(0)
+        canary.append(popwarn)
         eq_(args[0], popwarn)
     util.warn = util.langhelpers.warn = capture_warnings
 
-    return emits_warning()(fn)()
+    result = emits_warning()(fn)()
+    assert canary, "No warning was emitted"
+    return result
 
 def uses_deprecated(*messages):
     """Mark a test as immune from fatal deprecation warnings.
@@ -530,8 +522,8 @@ def assert_raises_message(except_cls, msg, callable_, *args, **kwargs):
         callable_(*args, **kwargs)
         assert False, "Callable did not raise an exception"
     except except_cls, e:
-        assert re.search(msg, str(e)), "%r !~ %s" % (msg, e)
-        print str(e)
+        assert re.search(msg, unicode(e), re.UNICODE), u"%r !~ %s" % (msg, e)
+        print unicode(e).encode('utf-8')
 
 def fail(msg):
     assert False, msg

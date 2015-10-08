@@ -1,5 +1,5 @@
 # util/compat.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -8,9 +8,6 @@
 
 import sys
 
-# Py2K
-import __builtin__
-# end Py2K
 
 try:
     import threading
@@ -18,12 +15,12 @@ except ImportError:
     import dummy_threading as threading
 
 py32 = sys.version_info >= (3, 2)
-py3k = getattr(sys, 'py3kwarning', False) or sys.version_info >= (3, 0)
+py3k_warning = getattr(sys, 'py3kwarning', False) or sys.version_info >= (3, 0)
 jython = sys.platform.startswith('java')
 pypy = hasattr(sys, 'pypy_version_info')
 win32 = sys.platform.startswith('win')
 
-if py3k:
+if py3k_warning:
     set_types = set
 elif sys.version_info < (2, 6):
     import sets
@@ -43,7 +40,7 @@ else:
 
     set_types = set, sets.Set
 
-if py3k:
+if py3k_warning:
     import pickle
 else:
     try:
@@ -56,7 +53,7 @@ def buffer(x):
     return x 
 
 # Py2K
-buffer = getattr(__builtin__, 'buffer', buffer)
+buffer = buffer
 # end Py2K
 
 try:
@@ -89,12 +86,13 @@ if sys.version_info < (2, 6):
 else:
     from urlparse import parse_qsl
 
-if py3k:
-    from inspect import getfullargspec as inspect_getfullargspec
-else:
-    from inspect import getargspec as inspect_getfullargspec
+# Py3K
+#from inspect import getfullargspec as inspect_getfullargspec
+# Py2K
+from inspect import getargspec as inspect_getfullargspec
+# end Py2K
 
-if py3k:
+if py3k_warning:
     # they're bringing it back in 3.2.  brilliant !
     def callable(fn):
         return hasattr(fn, '__call__')
@@ -103,9 +101,9 @@ if py3k:
 
     from functools import reduce
 else:
-    callable = __builtin__.callable
-    cmp = __builtin__.cmp
-    reduce = __builtin__.reduce
+    callable = callable
+    cmp = cmp
+    reduce = reduce
 
 try:
     from collections import defaultdict
@@ -190,6 +188,16 @@ if win32 or jython:
     time_func = time.clock
 else:
     time_func = time.time 
+
+if sys.version_info >= (2, 5):
+    any = any
+else:
+    def any(iterator):
+        for item in iterator:
+            if bool(item):
+                return True
+        else:
+            return False
 
 if sys.version_info >= (2, 5):
     def decode_slice(slc):

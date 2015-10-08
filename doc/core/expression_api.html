@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 SQL Statements and Expressions API
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -122,6 +131,7 @@
     <a href="engines.html" title="next chapter">Engine Configuration</a>
     </p>
 
+
     <h4>Quick Search</h4>
     <p>
     <form class="search" action="../search.html" method="get">
@@ -168,11 +178,11 @@ object.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>selectable</strong> &#8211; any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> subclass,
 such as a table, select statement, etc.</li>
 <li><strong>name</strong> &#8211; string name to be assigned as the alias.
-If <tt class="xref docutils literal"><span class="pre">None</span></tt>, a name will be deterministically generated
+If <tt class="docutils literal"><span class="pre">None</span></tt>, a name will be deterministically generated
 at compile time.</li>
 </ul>
 </td>
@@ -220,7 +230,7 @@ similar functionality.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>key</strong> &#8211; the key for this bind param.  Will be used in the generated
 SQL statement for dialects that use named parameters.  This
 value may be modified when part of a compilation operation,
@@ -329,7 +339,7 @@ the <tt class="docutils literal"><span class="pre">sqlalchemy</span></tt> namesp
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>text</strong> &#8211; the name of the column.  Quoting rules will be applied 
 to the clause like any other column name. For textual column constructs
 that are not to be quoted, use the <a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> function.</li>
@@ -366,7 +376,7 @@ construct.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>table</strong> &#8211; The table to be updated.</li>
 <li><strong>whereclause</strong> &#8211; A <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> describing the <tt class="docutils literal"><span class="pre">WHERE</span></tt>
 condition of the <tt class="docutils literal"><span class="pre">UPDATE</span></tt> statement. Note that the
@@ -468,7 +478,7 @@ boolean equivalent for the target dialect.</p>
 
 <dl class="data">
 <dt id="sqlalchemy.sql.expression.func">
-<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.expression._FunctionGenerator object at 0x10176e850&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate SQL function expressions.</p>
 <p><tt class="docutils literal"><span class="pre">func</span></tt> is a special object instance which generates SQL functions based on name-based attributes, e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -528,7 +538,7 @@ construct.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>table</strong> &#8211; The table to be inserted into.</li>
 <li><strong>values</strong> &#8211; A dictionary which specifies the column specifications of
 the <tt class="docutils literal"><span class="pre">INSERT</span></tt>, and is optional. If left as None, the column
@@ -609,7 +619,7 @@ against the <tt class="docutils literal"><span class="pre">INSERT</span></tt> st
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>left</strong> &#8211; The left side of the join.</li>
 <li><strong>right</strong> &#8211; The right side of the join.</li>
 <li><strong>onclause</strong> &#8211; Optional criterion for the <tt class="docutils literal"><span class="pre">ON</span></tt> clause, is 
@@ -656,7 +666,7 @@ generation of a literal clause, which will be created as a
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>value</strong> &#8211; the value to be bound. Can be any Python object supported by
 the underlying DB-API, or is translatable via the given type argument.</li>
 <li><strong>type_</strong> &#8211; an optional <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> which
@@ -682,7 +692,7 @@ the type).</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>text</strong> &#8211; the text of the expression; can be any SQL expression.
 Quoting rules will not be applied. To specify a column-name expression
 which should be subject to quoting rules, use the <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a>
@@ -768,7 +778,7 @@ attribute, which returns a dictionary containing the values.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>left</strong> &#8211; The left side of the join.</li>
 <li><strong>right</strong> &#8211; The right side of the join.</li>
 <li><strong>onclause</strong> &#8211; Optional criterion for the <tt class="docutils literal"><span class="pre">ON</span></tt> clause, is 
@@ -799,7 +809,7 @@ for database backends that support window functions.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>func</strong> &#8211; a <a class="reference internal" href="#sqlalchemy.sql.expression.FunctionElement" title="sqlalchemy.sql.expression.FunctionElement"><tt class="xref py py-class docutils literal"><span class="pre">FunctionElement</span></tt></a> construct, typically
 generated by <tt class="xref py py-attr docutils literal"><span class="pre">func</span></tt>.</li>
 <li><strong>partition_by</strong> &#8211; a column element or string, or a list
@@ -834,7 +844,7 @@ either <a class="reference internal" href="#sqlalchemy.sql.expression.text" titl
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>columns</strong> &#8211; <p>A list of <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> objects, typically
 <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> objects or subclasses, which will form the
 columns clause of the resulting statement. For all members which are
@@ -873,7 +883,7 @@ instance within the &#8220;froms&#8221; collection of this <a class="reference i
 which is also present in the &#8220;froms&#8221; collection of an
 enclosing select will not be rendered in the <tt class="docutils literal"><span class="pre">FROM</span></tt> clause
 of this select statement.</li>
-<li><strong>distinct=False</strong> &#8211; <p>when <tt class="xref docutils literal"><span class="pre">True</span></tt>, applies a <tt class="docutils literal"><span class="pre">DISTINCT</span></tt> qualifier to the columns
+<li><strong>distinct=False</strong> &#8211; <p>when <tt class="docutils literal"><span class="pre">True</span></tt>, applies a <tt class="docutils literal"><span class="pre">DISTINCT</span></tt> qualifier to the columns
 clause of the resulting statement.</p>
 <p>The boolean argument may also be a column expression or list
 of column expressions - this is a special calling form which
@@ -888,7 +898,7 @@ argument for usage with MySQL is deprecated.  Use
 the <tt class="docutils literal"><span class="pre">prefixes</span></tt> argument or <a class="reference internal" href="#sqlalchemy.sql.expression.Select.prefix_with" title="sqlalchemy.sql.expression.Select.prefix_with"><tt class="xref py py-meth docutils literal"><span class="pre">prefix_with()</span></tt></a>.</p>
 </div>
 </li>
-<li><strong>for_update=False</strong> &#8211; when <tt class="xref docutils literal"><span class="pre">True</span></tt>, applies <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span></tt> to the end of the
+<li><strong>for_update=False</strong> &#8211; when <tt class="docutils literal"><span class="pre">True</span></tt>, applies <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span></tt> to the end of the
 resulting statement.  Certain database dialects also support
 alternate values for this parameter, for example mysql
 supports &#8220;read&#8221; which translates to <tt class="docutils literal"><span class="pre">LOCK</span> <span class="pre">IN</span> <span class="pre">SHARE</span> <span class="pre">MODE</span></tt>,
@@ -913,7 +923,7 @@ directly after the SELECT keyword in the generated statement,
 for dialect-specific query features.  <tt class="docutils literal"><span class="pre">prefixes</span></tt> is
 also available via the <a class="reference internal" href="#sqlalchemy.sql.expression.Select.prefix_with" title="sqlalchemy.sql.expression.Select.prefix_with"><tt class="xref py py-meth docutils literal"><span class="pre">prefix_with()</span></tt></a>
 generative method.</li>
-<li><strong>use_labels=False</strong> &#8211; <p>when <tt class="xref docutils literal"><span class="pre">True</span></tt>, the statement will be generated using labels
+<li><strong>use_labels=False</strong> &#8211; <p>when <tt class="docutils literal"><span class="pre">True</span></tt>, the statement will be generated using labels
 for each column in the columns clause, which qualify each
 column with its parent table&#8217;s (or aliases) name so that name
 conflicts between columns in different tables don&#8217;t occur.
@@ -960,7 +970,7 @@ the <tt class="docutils literal"><span class="pre">sqlalchemy</span></tt> namesp
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>name</strong> &#8211; Name of the table.</li>
 <li><strong>columns</strong> &#8211; A collection of <a class="reference internal" href="#sqlalchemy.sql.expression.column" title="sqlalchemy.sql.expression.column"><tt class="xref py py-func docutils literal"><span class="pre">column()</span></tt></a> constructs.</li>
 </ul>
@@ -1035,7 +1045,7 @@ be eligible for autocommit if no transaction is in progress.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>text</strong> &#8211; the text of the SQL statement to be created.  use <tt class="docutils literal"><span class="pre">:&lt;param&gt;</span></tt>
 to specify bind parameters; they will be compiled to their
 engine-specific format.</li>
@@ -1168,7 +1178,7 @@ construct.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>table</strong> &#8211; A <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object representing the database
 table to be updated.</li>
 <li><strong>whereclause</strong> &#8211; <p>Optional SQL expression describing the <tt class="docutils literal"><span class="pre">WHERE</span></tt>
@@ -1190,7 +1200,7 @@ subquery:</p>
 </div>
 </li>
 <li><strong>values</strong> &#8211; <p>Optional dictionary which specifies the <tt class="docutils literal"><span class="pre">SET</span></tt> conditions of the
-<tt class="docutils literal"><span class="pre">UPDATE</span></tt>.  If left as <tt class="xref docutils literal"><span class="pre">None</span></tt>, the <tt class="docutils literal"><span class="pre">SET</span></tt>
+<tt class="docutils literal"><span class="pre">UPDATE</span></tt>.  If left as <tt class="docutils literal"><span class="pre">None</span></tt>, the <tt class="docutils literal"><span class="pre">SET</span></tt>
 conditions are determined from those parameters passed to the 
 statement during the execution and/or compilation of the 
 statement.   When compiled standalone without any parameters,
@@ -1276,7 +1286,7 @@ function as well as the <a class="reference internal" href="#sqlalchemy.sql.expr
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>key</strong> &#8211; the key for this bind param.  Will be used in the generated
 SQL statement for dialects that use named parameters.  This
 value may be modified when part of a compilation operation,
@@ -1315,6 +1325,16 @@ already has been located within the containing
 clause.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="sqlalchemy.sql.expression._BindParamClause.effective_value">
+<tt class="descname">effective_value</tt><a class="headerlink" href="#sqlalchemy.sql.expression._BindParamClause.effective_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value of this bound parameter, 
+taking into account if the <tt class="docutils literal"><span class="pre">callable</span></tt> parameter
+was set.</p>
+<p>The <tt class="docutils literal"><span class="pre">callable</span></tt> value will be evaluated
+and returned if present, else <tt class="docutils literal"><span class="pre">value</span></tt>.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -1348,13 +1368,13 @@ using the <tt class="docutils literal"><span class="pre">params</span></tt> acce
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>bind</strong> &#8211; An <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt> from which a
 <tt class="docutils literal"><span class="pre">Compiled</span></tt> will be acquired. This argument takes precedence over
 this <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a>&#8216;s bound engine, if any.</li>
 <li><strong>column_keys</strong> &#8211; Used for INSERT and UPDATE statements, a list of
 column names which should be present in the VALUES clause of the
-compiled statement. If <tt class="xref docutils literal"><span class="pre">None</span></tt>, all columns from the target table
+compiled statement. If <tt class="docutils literal"><span class="pre">None</span></tt>, all columns from the target table
 object are rendered.</li>
 <li><strong>dialect</strong> &#8211; A <tt class="docutils literal"><span class="pre">Dialect</span></tt> instance frmo which a <tt class="docutils literal"><span class="pre">Compiled</span></tt>
 will be acquired. This argument takes precedence over the <cite>bind</cite>
@@ -1511,7 +1531,7 @@ more full fledged <a class="reference internal" href="schema.html#sqlalchemy.sch
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>text</strong> &#8211; the text of the element.</li>
 <li><strong>selectable</strong> &#8211; parent selectable.</li>
 <li><strong>type</strong> &#8211; <a class="reference internal" href="types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">types.TypeEngine</span></tt></a> object which can associate 
@@ -1604,7 +1624,7 @@ expressions and function calls.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>use_proxies</strong> &#8211; when True, consider two columns that
 share a common base column as equivalent (i.e. shares_lineage())</li>
 <li><strong>equivalents</strong> &#8211; a dictionary of columns as keys mapped to sets
@@ -1757,7 +1777,7 @@ on related objects and collections, see <a class="reference internal" href="../o
 <tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnOperators.__eq__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement the <tt class="docutils literal"><span class="pre">==</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">=</span> <span class="pre">b</span></tt>.
-If the target is <tt class="xref docutils literal"><span class="pre">None</span></tt>, produces <tt class="docutils literal"><span class="pre">a</span> <span class="pre">IS</span> <span class="pre">NULL</span></tt>.</p>
+If the target is <tt class="docutils literal"><span class="pre">None</span></tt>, produces <tt class="docutils literal"><span class="pre">a</span> <span class="pre">IS</span> <span class="pre">NULL</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1765,7 +1785,7 @@ If the target is <tt class="xref docutils literal"><span class="pre">None</span>
 <tt class="descname">__ne__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.ColumnOperators.__ne__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement the <tt class="docutils literal"><span class="pre">!=</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">!=</span> <span class="pre">b</span></tt>.
-If the target is <tt class="xref docutils literal"><span class="pre">None</span></tt>, produces <tt class="docutils literal"><span class="pre">a</span> <span class="pre">IS</span> <span class="pre">NOT</span> <span class="pre">NULL</span></tt>.</p>
+If the target is <tt class="docutils literal"><span class="pre">None</span></tt>, produces <tt class="docutils literal"><span class="pre">a</span> <span class="pre">IS</span> <span class="pre">NOT</span> <span class="pre">NULL</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1889,7 +1909,7 @@ see <tt class="xref py py-meth docutils literal"><span class="pre">concat()</spa
 <tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.operators.ColumnOperators.__eq__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement the <tt class="docutils literal"><span class="pre">==</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">=</span> <span class="pre">b</span></tt>.
-If the target is <tt class="xref docutils literal"><span class="pre">None</span></tt>, produces <tt class="docutils literal"><span class="pre">a</span> <span class="pre">IS</span> <span class="pre">NULL</span></tt>.</p>
+If the target is <tt class="docutils literal"><span class="pre">None</span></tt>, produces <tt class="docutils literal"><span class="pre">a</span> <span class="pre">IS</span> <span class="pre">NULL</span></tt>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1917,7 +1937,7 @@ If the target is <tt class="xref docutils literal"><span class="pre">None</span>
 <tt class="descname">__ne__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.operators.ColumnOperators.__ne__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement the <tt class="docutils literal"><span class="pre">!=</span></tt> operator.</p>
 <p>In a column context, produces the clause <tt class="docutils literal"><span class="pre">a</span> <span class="pre">!=</span> <span class="pre">b</span></tt>.
-If the target is <tt class="xref docutils literal"><span class="pre">None</span></tt>, produces <tt class="docutils literal"><span class="pre">a</span> <span class="pre">IS</span> <span class="pre">NOT</span> <span class="pre">NULL</span></tt>.</p>
+If the target is <tt class="docutils literal"><span class="pre">None</span></tt>, produces <tt class="docutils literal"><span class="pre">a</span> <span class="pre">IS</span> <span class="pre">NOT</span> <span class="pre">NULL</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2036,7 +2056,7 @@ parent object.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>operator</strong> &#8211; a string which will be output as the infix operator
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>operator</strong> &#8211; a string which will be output as the infix operator
 between this <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> and the expression passed to the
 generated function.</td>
 </tr>
@@ -2068,7 +2088,7 @@ side:</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>op</strong> &#8211; Operator callable.</li>
 <li><strong>*other</strong> &#8211; the &#8216;other&#8217; side of the operation. Will
 be a single scalar for most operations.</li>
@@ -2097,7 +2117,7 @@ operators such as <tt class="xref py py-meth docutils literal"><span class="pre"
 
 <dl class="attribute">
 <dt id="sqlalchemy.sql.operators.ColumnOperators.timetuple">
-<tt class="descname">timetuple</tt><a class="headerlink" href="#sqlalchemy.sql.operators.ColumnOperators.timetuple" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">timetuple</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.sql.operators.ColumnOperators.timetuple" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hack, allows datetime objects to be compared on the LHS.</p>
 </dd></dl>
 
@@ -2333,7 +2353,7 @@ column.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>column</strong> &#8211; the target <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></tt></a> to be matched</li>
 <li><strong>require_embedded</strong> &#8211; only return corresponding columns for</li>
 </ul>
@@ -2438,7 +2458,7 @@ clause for an UPDATE.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>**kwargs</strong> &#8211; <p>key value pairs representing the string key 
 of a <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> mapped to the value to be rendered into the
 VALUES or SET clause:</p>
@@ -2527,7 +2547,7 @@ function or the <a class="reference internal" href="#sqlalchemy.sql.expression.F
 method first so that a subquery against a 
 <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> construct is generated.
 the <tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt> construct also has the 
-<tt class="docutils literal"><span class="pre">correlate</span></tt> flag set to <tt class="xref docutils literal"><span class="pre">False</span></tt> and will not
+<tt class="docutils literal"><span class="pre">correlate</span></tt> flag set to <tt class="docutils literal"><span class="pre">False</span></tt> and will not
 auto-correlate inside an enclosing <tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt>
 construct.</p>
 <p>The equivalent long-hand form, given a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> object
@@ -2560,7 +2580,7 @@ aliases.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>whereclause</strong> &#8211; the WHERE criterion that will be sent to 
 the <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> function</li>
 <li><strong>fold_equivalents</strong> &#8211; based on the join criterion of this 
@@ -2660,7 +2680,7 @@ NOT operation, equivalent to
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>operator</strong> &#8211; a string which will be output as the infix operator
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>operator</strong> &#8211; a string which will be output as the infix operator
 between this <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> and the expression passed to the
 generated function.</td>
 </tr>
@@ -2692,7 +2712,7 @@ side:</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>op</strong> &#8211; Operator callable.</li>
 <li><strong>*other</strong> &#8211; the &#8216;other&#8217; side of the operation. Will
 be a single scalar for most operations.</li>
@@ -2808,7 +2828,7 @@ columns clause.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>*expr</strong> &#8211; optional column expressions.  When present,
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>*expr</strong> &#8211; optional column expressions.  When present,
 the Postgresql dialect will render a <tt class="docutils literal"><span class="pre">DISTINCT</span> <span class="pre">ON</span> <span class="pre">(&lt;expressions&gt;&gt;)</span></tt>
 construct.</td>
 </tr>
@@ -3256,7 +3276,7 @@ clause for an UPDATE.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>**kwargs</strong> &#8211; <p>key value pairs representing the string key 
 of a <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> mapped to the value to be rendered into the
 VALUES or SET clause:</p>
@@ -3355,7 +3375,7 @@ clause for an UPDATE.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>**kwargs</strong> &#8211; <p>key value pairs representing the string key 
 of a <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> mapped to the value to be rendered into the
 VALUES or SET clause:</p>
@@ -3502,6 +3522,16 @@ as it&#8217;s single argument.</p>
 <p>Compiles into the appropriate function on each backend,
 or will raise NotImplementedError if used on a backend
 that does not provide support for sequences.</p>
+<dl class="attribute">
+<dt id="sqlalchemy.sql.functions.next_value.name">
+<tt class="descname">name</tt><em class="property"> = 'next_value'</em><a class="headerlink" href="#sqlalchemy.sql.functions.next_value.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.functions.next_value.type">
+<tt class="descname">type</tt><em class="property"> = Integer()</em><a class="headerlink" href="#sqlalchemy.sql.functions.next_value.type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -3547,24 +3577,22 @@ that does not provide support for sequences.</p>
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="tutorial.html" title="previous chapter">SQL Expression Language Tutorial</a>
+        Next:
+        <a href="engines.html" title="next chapter">Engine Configuration</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="tutorial.html" title="previous chapter">SQL Expression Language Tutorial</a>
-            Next:
-            <a href="engines.html" title="next chapter">Engine Configuration</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 

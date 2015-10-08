@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 Relationship Configuration
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -146,6 +155,7 @@
     <p>
     <a href="collections.html" title="next chapter">Collection Configuration and Techniques</a>
     </p>
+
 
     <h4>Quick Search</h4>
     <p>
@@ -309,6 +319,15 @@ is complete:</p>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">children</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Child&quot;</span><span class="p">,</span>
                     <span class="n">secondary</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">association_table</span><span class="p">,</span>
+                    <span class="n">backref</span><span class="o">=</span><span class="s">&quot;parents&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>With the declarative extension in use, the traditional &#8220;string name of the table&#8221;
+is accepted as well, matching the name of the table as stored in <tt class="docutils literal"><span class="pre">Base.metadata.tables</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Parent</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;left&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">children</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Child&quot;</span><span class="p">,</span>
+                    <span class="n">secondary</span><span class="o">=</span><span class="s">&quot;association&quot;</span><span class="p">,</span>
                     <span class="n">backref</span><span class="o">=</span><span class="s">&quot;parents&quot;</span><span class="p">)</span></pre></div>
 </div>
 </div>
@@ -645,7 +664,7 @@ which have the behavior of &#8220;when an append or set event occurs here, set o
 onto the incoming attribute using this particular attribute name&#8221;.
 The behavior is illustrated as follows.   Start with a <tt class="docutils literal"><span class="pre">User</span></tt> and an <tt class="docutils literal"><span class="pre">Address</span></tt>
 instance.  The <tt class="docutils literal"><span class="pre">.addresses</span></tt> collection is empty, and the <tt class="docutils literal"><span class="pre">.user</span></tt> attribute
-is <tt class="xref docutils literal"><span class="pre">None</span></tt>:</p>
+is <tt class="docutils literal"><span class="pre">None</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">u1</span> <span class="o">=</span> <span class="n">User</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a1</span> <span class="o">=</span> <span class="n">Address</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">u1</span><span class="o">.</span><span class="n">addresses</span>
@@ -663,7 +682,7 @@ both the collection and the scalar attribute have been populated:</p>
 </div>
 <p>This behavior of course works in reverse for removal operations as well, as well
 as for equivalent operations on both sides.   Such as
-when <tt class="docutils literal"><span class="pre">.user</span></tt> is set again to <tt class="xref docutils literal"><span class="pre">None</span></tt>, the <tt class="docutils literal"><span class="pre">Address</span></tt> object is removed
+when <tt class="docutils literal"><span class="pre">.user</span></tt> is set again to <tt class="docutils literal"><span class="pre">None</span></tt>, the <tt class="docutils literal"><span class="pre">Address</span></tt> object is removed
 from the reverse collection:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a1</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">u1</span><span class="o">.</span><span class="n">addresses</span>
@@ -1235,12 +1254,12 @@ of sync for any moment.</p>
 <p>For databases that don&#8217;t support this, such as SQLite and
 MySQL without their referential integrity options turned
 on, the <tt class="docutils literal"><span class="pre">passive_updates</span></tt> flag can
-be set to <tt class="xref docutils literal"><span class="pre">False</span></tt>, most preferably on a one-to-many or
+be set to <tt class="docutils literal"><span class="pre">False</span></tt>, most preferably on a one-to-many or
 many-to-many <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>, which instructs
 SQLAlchemy to issue UPDATE statements individually for
 objects referenced in the collection, loading them into
 memory if not already locally present. The
-<tt class="docutils literal"><span class="pre">passive_updates</span></tt> flag can also be <tt class="xref docutils literal"><span class="pre">False</span></tt> in
+<tt class="docutils literal"><span class="pre">passive_updates</span></tt> flag can also be <tt class="docutils literal"><span class="pre">False</span></tt> in
 conjunction with ON UPDATE CASCADE functionality,
 although in that case the unit of work will be issuing
 extra SELECT and UPDATE statements unnecessarily.</p>
@@ -1263,7 +1282,7 @@ extra SELECT and UPDATE statements unnecessarily.</p>
                 <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;user.username&#39;</span><span class="p">,</span> <span class="n">onupdate</span><span class="o">=</span><span class="s">&quot;cascade&quot;</span><span class="p">)</span>
             <span class="p">)</span></pre></div>
 </div>
-<p><tt class="docutils literal"><span class="pre">passive_updates</span></tt> is set to <tt class="xref docutils literal"><span class="pre">True</span></tt> by default,
+<p><tt class="docutils literal"><span class="pre">passive_updates</span></tt> is set to <tt class="docutils literal"><span class="pre">True</span></tt> by default,
 indicating that ON UPDATE CASCADE is expected to be in
 place in the usual case for foreign keys that expect
 to have a mutating parent key.</p>
@@ -1329,7 +1348,7 @@ related classes at all into the local module space:</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>argument</strong> &#8211; <p>a mapped class, or actual <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> instance, representing the target of
 the relationship.</p>
 <p><tt class="docutils literal"><span class="pre">argument</span></tt> may also be passed as a callable function
@@ -1346,7 +1365,7 @@ conflicting persistence operations can occur.</p>
 also be passed as a callable function which is evaluated at 
 mapper initialization time.</p>
 </li>
-<li><strong>active_history=False</strong> &#8211; When <tt class="xref docutils literal"><span class="pre">True</span></tt>, indicates that the &#8220;previous&#8221; value for a
+<li><strong>active_history=False</strong> &#8211; When <tt class="docutils literal"><span class="pre">True</span></tt>, indicates that the &#8220;previous&#8221; value for a
 many-to-one reference should be loaded when replaced, if
 not already loaded. Normally, history tracking logic for
 simple many-to-ones only needs to be aware of the &#8220;new&#8221;
@@ -1368,7 +1387,7 @@ to this relationship to ensure proper functioning.</li>
 <li><strong>cascade</strong> &#8211; <blockquote>
 <div>a comma-separated list of cascade rules which determines how
 Session operations should be &#8220;cascaded&#8221; from parent to child.
-This defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>, which means the default cascade
+This defaults to <tt class="docutils literal"><span class="pre">False</span></tt>, which means the default cascade
 should be used.  The default value is <tt class="docutils literal"><span class="pre">&quot;save-update,</span> <span class="pre">merge&quot;</span></tt>.<p>Available cascades are:</p>
 <ul>
 <li><tt class="docutils literal"><span class="pre">save-update</span></tt> - cascade the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-meth docutils literal"><span class="pre">Session.add()</span></tt></a> 
@@ -1402,7 +1421,7 @@ on configuring cascades.</p>
 </li>
 <li><strong>cascade_backrefs=True</strong> &#8211; <p>a boolean value indicating if the <tt class="docutils literal"><span class="pre">save-update</span></tt> cascade should
 operate along an assignment event intercepted by a backref.   
-When set to <tt class="xref docutils literal"><span class="pre">False</span></tt>,
+When set to <tt class="docutils literal"><span class="pre">False</span></tt>,
 the attribute managed by this relationship will not cascade
 an incoming transient object into the session of a
 persistent parent, if the event is received via backref.</p>
@@ -1458,19 +1477,19 @@ should artificially not be considered as foreign.</p>
 which is evaluated at mapper initialization time, and may be passed as a 
 Python-evaluable string when using Declarative.</p>
 </li>
-<li><strong>innerjoin=False</strong> &#8211; when <tt class="xref docutils literal"><span class="pre">True</span></tt>, joined eager loads will use an inner join to join
+<li><strong>innerjoin=False</strong> &#8211; when <tt class="docutils literal"><span class="pre">True</span></tt>, joined eager loads will use an inner join to join
 against related tables instead of an outer join.  The purpose
 of this option is strictly one of performance, as inner joins
 generally perform better than outer joins.  This flag can
-be set to <tt class="xref docutils literal"><span class="pre">True</span></tt> when the relationship references an object
+be set to <tt class="docutils literal"><span class="pre">True</span></tt> when the relationship references an object
 via many-to-one using local foreign keys that are not nullable,
 or when the reference is one-to-one or a collection that is 
 guaranteed to have one or at least one entry.</li>
-<li><strong>join_depth</strong> &#8211; when non-<tt class="xref docutils literal"><span class="pre">None</span></tt>, an integer value indicating how many levels
+<li><strong>join_depth</strong> &#8211; when non-<tt class="docutils literal"><span class="pre">None</span></tt>, an integer value indicating how many levels
 deep &#8220;eager&#8221; loaders should join on a self-referring or cyclical 
 relationship.  The number counts how many times the same Mapper 
 shall be present in the loading condition along a particular join 
-branch.  When left at its default of <tt class="xref docutils literal"><span class="pre">None</span></tt>, eager loaders
+branch.  When left at its default of <tt class="docutils literal"><span class="pre">None</span></tt>, eager loaders
 will stop chaining when they encounter a the same target mapper 
 which is already higher up in the chain.  This option applies
 both to joined- and subquery- eager loaders.</li>
@@ -1507,7 +1526,7 @@ the section <a class="reference internal" href="collections.html#dynamic-relatio
 <p>Detailed discussion of loader strategies is at <a class="reference internal" href="loading.html"><em>Relationship Loading Techniques</em></a>.</p>
 </li>
 <li><strong>load_on_pending=False</strong> &#8211; <p>Indicates loading behavior for transient or pending parent objects.</p>
-<p>When set to <tt class="xref docutils literal"><span class="pre">True</span></tt>, causes the lazy-loader to
+<p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, causes the lazy-loader to
 issue a query for a parent object that is not persistent, meaning it has
 never been flushed.  This may take effect for a pending object when
 autoflush is disabled, or for a transient object that has been
@@ -1691,24 +1710,22 @@ on dynamic loading.</p>
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="mapper_config.html" title="previous chapter">Mapper Configuration</a>
+        Next:
+        <a href="collections.html" title="next chapter">Collection Configuration and Techniques</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="mapper_config.html" title="previous chapter">Mapper Configuration</a>
-            Next:
-            <a href="collections.html" title="next chapter">Collection Configuration and Techniques</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 

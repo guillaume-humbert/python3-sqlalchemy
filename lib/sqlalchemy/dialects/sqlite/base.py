@@ -1,5 +1,5 @@
 # sqlite/base.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -302,6 +302,12 @@ class SQLiteCompiler(compiler.SQLCompiler):
     def visit_now_func(self, fn, **kw):
         return "CURRENT_TIMESTAMP"
 
+    def visit_true(self, expr, **kw):
+        return '1'
+
+    def visit_false(self, expr, **kw):
+        return '0'
+
     def visit_char_length_func(self, fn, **kw):
         return "length%s" % self.function_argspec(fn)
 
@@ -316,7 +322,7 @@ class SQLiteCompiler(compiler.SQLCompiler):
             return "CAST(STRFTIME('%s', %s) AS INTEGER)" % (
                 self.extract_map[extract.field], self.process(extract.expr, **kw))
         except KeyError:
-            raise exc.ArgumentError(
+            raise exc.CompileError(
                 "%s is not a valid extract argument." % extract.field)
 
     def limit_clause(self, select):
@@ -550,7 +556,6 @@ class SQLiteDialect(default.DefaultDialect):
                      "WHERE type='table' ORDER BY name")
                 rs = connection.execute(s)
             except exc.DBAPIError:
-                raise
                 s = ("SELECT name FROM sqlite_master "
                      "WHERE type='table' ORDER BY name")
                 rs = connection.execute(s)
@@ -590,7 +595,6 @@ class SQLiteDialect(default.DefaultDialect):
                      "WHERE type='view' ORDER BY name")
                 rs = connection.execute(s)
             except exc.DBAPIError:
-                raise
                 s = ("SELECT name FROM sqlite_master "
                      "WHERE type='view' ORDER BY name")
                 rs = connection.execute(s)
@@ -615,7 +619,6 @@ class SQLiteDialect(default.DefaultDialect):
                      "AND type='view'") % view_name
                 rs = connection.execute(s)
             except exc.DBAPIError:
-                raise
                 s = ("SELECT sql FROM sqlite_master WHERE name = '%s' "
                      "AND type='view'") % view_name
                 rs = connection.execute(s)
@@ -696,7 +699,7 @@ class SQLiteDialect(default.DefaultDialect):
             row = c.fetchone()
             if row is None:
                 break
-            (constraint_name, rtbl, lcol, rcol) = (row[0], row[2], row[3], row[4])
+            (numerical_id, rtbl, lcol, rcol) = (row[0], row[2], row[3], row[4])
             # sqlite won't return rcol if the table
             # was created with REFERENCES <tablename>, no col
             if rcol is None:
@@ -705,17 +708,17 @@ class SQLiteDialect(default.DefaultDialect):
             lcol = re.sub(r'^\"|\"$', '', lcol)
             rcol = re.sub(r'^\"|\"$', '', rcol)
             try:
-                fk = fks[constraint_name]
+                fk = fks[numerical_id]
             except KeyError:
                 fk = {
-                    'name' : constraint_name,
+                    'name' : None,
                     'constrained_columns' : [],
                     'referred_schema' : None,
                     'referred_table' : rtbl,
                     'referred_columns' : []
                 }
                 fkeys.append(fk)
-                fks[constraint_name] = fk
+                fks[numerical_id] = fk
 
             # look up the table based on the given table's engine, not 'self',
             # since it could be a ProxyEngine

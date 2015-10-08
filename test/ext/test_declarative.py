@@ -1,6 +1,6 @@
 
 from test.lib.testing import eq_, assert_raises, \
-    assert_raises_message
+    assert_raises_message, is_
 from sqlalchemy.ext import declarative as decl
 from sqlalchemy import exc
 import sqlalchemy as sa
@@ -367,6 +367,23 @@ class DeclarativeTest(DeclarativeTestBase):
 
         assert class_mapper(User).get_property('props').secondary \
             is user_to_prop
+
+    def test_shared_class_registry(self):
+        reg = {}
+        Base1 = decl.declarative_base(testing.db, class_registry=reg)
+        Base2 = decl.declarative_base(testing.db, class_registry=reg)
+
+        class A(Base1):
+            __tablename__ = 'a'
+            id = Column(Integer, primary_key=True)
+
+        class B(Base2):
+            __tablename__ = 'b'
+            id = Column(Integer, primary_key=True)
+            aid = Column(Integer, ForeignKey(A.id))
+            as_ = relationship("A")
+
+        assert B.as_.property.mapper.class_ is A
 
     def test_uncompiled_attributes_in_relationship(self):
 
@@ -1837,6 +1854,23 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
             == 'cobol')).first(), c2)
         eq_(sess.query(Engineer).filter_by(primary_language='cobol'
             ).one(), Engineer(name='vlad', primary_language='cobol'))
+
+    def test_polymorphic_on_converted_from_inst(self):
+        class A(Base):
+            __tablename__ = 'A'
+            id = Column(Integer, primary_key=True)
+            discriminator = Column(String)
+
+            @declared_attr
+            def __mapper_args__(cls):
+                return {
+                    'polymorphic_identity': cls.__name__,
+                    'polymorphic_on': cls.discriminator
+                }
+
+        class B(A):
+            pass
+        is_(B.__mapper__.polymorphic_on, A.__table__.c.discriminator)
 
     def test_add_deferred(self):
 

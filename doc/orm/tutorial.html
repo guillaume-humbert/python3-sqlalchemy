@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 Object Relational Tutorial
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -155,6 +164,7 @@
     <a href="mapper_config.html" title="next chapter">Mapper Configuration</a>
     </p>
 
+
     <h4>Quick Search</h4>
     <p>
     <form class="search" action="../search.html" method="get">
@@ -216,7 +226,7 @@ use <a class="reference internal" href="../core/engines.html#sqlalchemy.create_e
 <p>The <tt class="docutils literal"><span class="pre">echo</span></tt> flag is a shortcut to setting up SQLAlchemy logging, which is
 accomplished via Python&#8217;s standard <tt class="docutils literal"><span class="pre">logging</span></tt> module. With it enabled, we&#8217;ll
 see all the generated SQL produced. If you are working through this tutorial
-and want less output generated, set it to <tt class="xref docutils literal"><span class="pre">False</span></tt>. This tutorial will format
+and want less output generated, set it to <tt class="docutils literal"><span class="pre">False</span></tt>. This tutorial will format
 the SQL behind a popup window so it doesn&#8217;t get in our way; just click the
 &#8220;SQL&#8221; links to see what&#8217;s being generated.</p>
 <p>The return value of <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> is an instance of <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>, and it represents
@@ -404,7 +414,7 @@ requirements.</p>
 <span class="go">&#39;None&#39;</span></pre></div>
 </div>
 <p>The <tt class="docutils literal"><span class="pre">id</span></tt> attribute, which while not defined by our <tt class="docutils literal"><span class="pre">__init__()</span></tt> method,
-exists with a value of <tt class="xref docutils literal"><span class="pre">None</span></tt> on our <tt class="docutils literal"><span class="pre">User</span></tt> instance due to the <tt class="docutils literal"><span class="pre">id</span></tt>
+exists with a value of <tt class="docutils literal"><span class="pre">None</span></tt> on our <tt class="docutils literal"><span class="pre">User</span></tt> instance due to the <tt class="docutils literal"><span class="pre">id</span></tt>
 column we declared in our mapping.  By
 default, the ORM creates class attributes for all columns present
 in the table being mapped.   These class attributes exist as
@@ -414,7 +424,7 @@ functionality of this instrumentation includes the ability to fire on change
 events, track modifications, and to automatically load new data from the database when
 needed.</p>
 <p>Since we have not yet told SQLAlchemy to persist <tt class="docutils literal"><span class="pre">Ed</span> <span class="pre">Jones</span></tt> within the
-database, its id is <tt class="xref docutils literal"><span class="pre">None</span></tt>. When we persist the object later, this attribute
+database, its id is <tt class="docutils literal"><span class="pre">None</span></tt>. When we persist the object later, this attribute
 will be populated with a newly generated value.</p>
 <div class="topic">
 <p class="topic-title first">The default <tt class="docutils literal"><span class="pre">__init__()</span></tt> method</p>
@@ -572,7 +582,7 @@ database, and commits the transaction. The connection resources referenced by
 the session are now returned to the connection pool. Subsequent operations
 with this session will occur in a <strong>new</strong> transaction, which will again
 re-acquire connection resources when first needed.</p>
-<p>If we look at Ed&#8217;s <tt class="docutils literal"><span class="pre">id</span></tt> attribute, which earlier was <tt class="xref docutils literal"><span class="pre">None</span></tt>, it now has a value:</p>
+<p>If we look at Ed&#8217;s <tt class="docutils literal"><span class="pre">id</span></tt> attribute, which earlier was <tt class="docutils literal"><span class="pre">None</span></tt>, it now has a value:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="o">&gt;&gt;&gt;</span> <span class="n">ed_user</span><span class="o">.</span><span class="n">id</span> 
 <div class='popup_sql'>BEGIN (implicit)
 SELECT users.id AS users_id,
@@ -1992,24 +2002,22 @@ WHERE ? = posts.user_id AND (EXISTS (SELECT 1
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="index.html" title="previous chapter">SQLAlchemy ORM</a>
+        Next:
+        <a href="mapper_config.html" title="next chapter">Mapper Configuration</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="index.html" title="previous chapter">SQLAlchemy ORM</a>
-            Next:
-            <a href="mapper_config.html" title="next chapter">Mapper Configuration</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 

@@ -1,5 +1,5 @@
 # sql/expression.py
-# Copyright (C) 2005-2011 the SQLAlchemy authors and contributors <see AUTHORS file>
+# Copyright (C) 2005-2012 the SQLAlchemy authors and contributors <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -236,9 +236,11 @@ def select(columns=None, whereclause=None, from_obj=[], **kwargs):
       ``distinct`` is also available via the :meth:`~.Select.distinct`
       generative method.
 
-      .. note:: The ``distinct`` keyword's acceptance of a string
-        argument for usage with MySQL is deprecated.  Use
-        the ``prefixes`` argument or :meth:`~.Select.prefix_with`.
+      .. note:: 
+      
+         The ``distinct`` keyword's acceptance of a string
+         argument for usage with MySQL is deprecated.  Use
+         the ``prefixes`` argument or :meth:`~.Select.prefix_with`.
 
     :param for_update=False:
       when ``True``, applies ``FOR UPDATE`` to the end of the
@@ -2085,6 +2087,13 @@ class ColumnElement(ClauseElement, _CompareMixin):
 
         return bool(self.proxy_set.intersection(othercolumn.proxy_set))
 
+    def _compare_name_for_result(self, other):
+        """Return True if the given column element compares to this one
+        when targeting within a result row."""
+
+        return hasattr(other, 'name') and hasattr(self, 'name') and \
+                other.name == self.name
+
     def _make_proxy(self, selectable, name=None):
         """Create a new :class:`.ColumnElement` representing this
         :class:`.ColumnElement` as it appears in the select list of a
@@ -2603,6 +2612,21 @@ class _BindParamClause(ColumnElement):
             self.type = type_()
         else:
             self.type = type_
+
+    @property
+    def effective_value(self):
+        """Return the value of this bound parameter, 
+        taking into account if the ``callable`` parameter
+        was set.  
+        
+        The ``callable`` value will be evaluated
+        and returned if present, else ``value``.
+        
+        """
+        if self.callable:
+            return self.callable()
+        else:
+            return self.value
 
     def _clone(self):
         c = ClauseElement._clone(self)
@@ -3902,6 +3926,13 @@ class ColumnClause(_Immutable, ColumnElement):
         self.type = sqltypes.to_instance(type_)
         self.is_literal = is_literal
 
+    def _compare_name_for_result(self, other):
+        if self.table is not None and hasattr(other, 'proxy_set'):
+            return other.proxy_set.intersection(self.proxy_set)
+        else:
+            return super(ColumnClause, self).\
+                    _compare_name_for_result(other)
+
     def _get_table(self):
         return self.__dict__['table']
     def _set_table(self, table):
@@ -4697,7 +4728,9 @@ class Select(_SelectBase):
         """Return a new :func:`.select` construct with its columns 
         clause replaced with the given columns.
         
-        .. note:: Due to a bug fix, this method has a slight 
+        .. note:: 
+        
+           Due to a bug fix, this method has a slight 
            behavioral change as of version 0.7.3.  
            Prior to version 0.7.3, the FROM clause of 
            a :func:`.select` was calculated upfront and as new columns

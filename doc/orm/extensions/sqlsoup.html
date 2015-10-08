@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 SqlSoup
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -136,6 +145,7 @@
     <a href="../examples.html" title="next chapter">Examples</a>
     </p>
 
+
     <h4>Quick Search</h4>
     <p>
     <form class="search" action="../../search.html" method="get">
@@ -153,8 +163,12 @@
 <span id="sqlsoup"></span><h1>SqlSoup<a class="headerlink" href="#module-sqlalchemy.ext.sqlsoup" title="Permalink to this headline">¶</a></h1>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">SQLSoup will no longer be included with SQLAlchemy as of 0.8.
-Look for a third party project replicating its functionality soon.</p>
+<p>SQLSoup is now its own project.  Documentation
+and project status are available at:</p>
+<p><a class="reference external" href="http://pypi.python.org/pypi/sqlsoup">http://pypi.python.org/pypi/sqlsoup</a></p>
+<p><a class="reference external" href="http://readthedocs.org/docs/sqlsoup">http://readthedocs.org/docs/sqlsoup</a></p>
+<p class="last">SQLSoup will no longer be included with SQLAlchemy as of 
+version 0.8.</p>
 </div>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
@@ -282,7 +296,7 @@ construction rules apply here as to the select methods:</p>
 </div>
 <p>You can similarly update multiple rows at once. This will change the
 book_id to 1 in all loans whose book_id is 2:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">book_id</span><span class="o">==</span><span class="mi">2</span><span class="p">,</span> <span class="n">book_id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">book_id</span><span class="o">==</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&#39;book_id&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">db</span><span class="o">.</span><span class="n">loans</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">book_id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 <span class="go">[MappedLoans(book_id=1,user_name=u&#39;Joe Student&#39;,</span>
 <span class="go">    loan_date=datetime.datetime(2006, 7, 12, 0, 0))]</span></pre></div>
@@ -364,8 +378,11 @@ accepts in normal mapper definition:</p>
 <h2>Advanced Use<a class="headerlink" href="#advanced-use" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="sessions-transations-and-application-integration">
 <h3>Sessions, Transations and Application Integration<a class="headerlink" href="#sessions-transations-and-application-integration" title="Permalink to this headline">¶</a></h3>
-<p><strong>Note:</strong> please read and understand this section thoroughly
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Please read and understand this section thoroughly
 before using SqlSoup in any web application.</p>
+</div>
 <p>SqlSoup uses a ScopedSession to provide thread-local sessions.
 You can get a reference to the current one like this:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">session</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span></pre></div>
@@ -477,7 +494,7 @@ specified, the default schema is used.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>engine_or_metadata</strong> &#8211; a string database URL, <a class="reference internal" href="../../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> 
 or <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object to associate with. If the
 argument is a <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>, it should be <em>bound</em>
@@ -486,7 +503,7 @@ to an <a class="reference internal" href="../../core/connections.html#sqlalchemy
 returned mapped classes.  Defaults to <tt class="docutils literal"><span class="pre">object</span></tt>.</li>
 <li><strong>session</strong> &#8211; a <a class="reference internal" href="../session.html#sqlalchemy.orm.scoping.ScopedSession" title="sqlalchemy.orm.scoping.ScopedSession"><tt class="xref py py-class docutils literal"><span class="pre">ScopedSession</span></tt></a> or <a class="reference internal" href="../session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> with
 which to associate ORM operations for this <a class="reference internal" href="#sqlalchemy.ext.sqlsoup.SqlSoup" title="sqlalchemy.ext.sqlsoup.SqlSoup"><tt class="xref py py-class docutils literal"><span class="pre">SqlSoup</span></tt></a> instance.
-If <tt class="xref docutils literal"><span class="pre">None</span></tt>, a <a class="reference internal" href="../session.html#sqlalchemy.orm.scoping.ScopedSession" title="sqlalchemy.orm.scoping.ScopedSession"><tt class="xref py py-class docutils literal"><span class="pre">ScopedSession</span></tt></a> that&#8217;s local to this 
+If <tt class="docutils literal"><span class="pre">None</span></tt>, a <a class="reference internal" href="../session.html#sqlalchemy.orm.scoping.ScopedSession" title="sqlalchemy.orm.scoping.ScopedSession"><tt class="xref py py-class docutils literal"><span class="pre">ScopedSession</span></tt></a> that&#8217;s local to this 
 module is used.</li>
 </ul>
 </td>
@@ -580,13 +597,13 @@ be discarded once dereferenced (as of 0.6.6).</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>left</strong> &#8211; a mapped class or table object.</li>
 <li><strong>right</strong> &#8211; a mapped class or table object.</li>
 <li><strong>onclause</strong> &#8211; optional &#8220;ON&#8221; clause construct..</li>
 <li><strong>isouter</strong> &#8211; if True, the join will be an OUTER join.</li>
 <li><strong>base</strong> &#8211; a Python class which will be used as the
-base for the mapped class. If <tt class="xref docutils literal"><span class="pre">None</span></tt>, the &#8220;base&#8221;
+base for the mapped class. If <tt class="docutils literal"><span class="pre">None</span></tt>, the &#8220;base&#8221;
 argument specified by this <a class="reference internal" href="#sqlalchemy.ext.sqlsoup.SqlSoup" title="sqlalchemy.ext.sqlsoup.SqlSoup"><tt class="xref py py-class docutils literal"><span class="pre">SqlSoup</span></tt></a>
 instance&#8217;s constructor will be used, which defaults to
 <tt class="docutils literal"><span class="pre">object</span></tt>.</li>
@@ -609,10 +626,10 @@ be discarded once dereferenced (as of 0.6.6).</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>selectable</strong> &#8211; an <a class="reference internal" href="../../core/expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">expression.select()</span></tt></a> construct.</li>
 <li><strong>base</strong> &#8211; a Python class which will be used as the
-base for the mapped class. If <tt class="xref docutils literal"><span class="pre">None</span></tt>, the &#8220;base&#8221;
+base for the mapped class. If <tt class="docutils literal"><span class="pre">None</span></tt>, the &#8220;base&#8221;
 argument specified by this <a class="reference internal" href="#sqlalchemy.ext.sqlsoup.SqlSoup" title="sqlalchemy.ext.sqlsoup.SqlSoup"><tt class="xref py py-class docutils literal"><span class="pre">SqlSoup</span></tt></a>
 instance&#8217;s constructor will be used, which defaults to
 <tt class="docutils literal"><span class="pre">object</span></tt>.</li>
@@ -636,12 +653,12 @@ configuration.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>attrname</strong> &#8211; String attribute name which will be
 established as an attribute on this :class:.`.SqlSoup`
 instance.</li>
 <li><strong>base</strong> &#8211; a Python class which will be used as the
-base for the mapped class. If <tt class="xref docutils literal"><span class="pre">None</span></tt>, the &#8220;base&#8221;
+base for the mapped class. If <tt class="docutils literal"><span class="pre">None</span></tt>, the &#8220;base&#8221;
 argument specified by this <a class="reference internal" href="#sqlalchemy.ext.sqlsoup.SqlSoup" title="sqlalchemy.ext.sqlsoup.SqlSoup"><tt class="xref py py-class docutils literal"><span class="pre">SqlSoup</span></tt></a>
 instance&#8217;s constructor will be used, which defaults to
 <tt class="docutils literal"><span class="pre">object</span></tt>.</li>
@@ -682,10 +699,10 @@ be discarded once dereferenced (as of 0.6.6).</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>selectable</strong> &#8211; an <a class="reference internal" href="../../core/expression_api.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">expression.select()</span></tt></a> construct.</li>
 <li><strong>base</strong> &#8211; a Python class which will be used as the
-base for the mapped class. If <tt class="xref docutils literal"><span class="pre">None</span></tt>, the &#8220;base&#8221;
+base for the mapped class. If <tt class="docutils literal"><span class="pre">None</span></tt>, the &#8220;base&#8221;
 argument specified by this <a class="reference internal" href="#sqlalchemy.ext.sqlsoup.SqlSoup" title="sqlalchemy.ext.sqlsoup.SqlSoup"><tt class="xref py py-class docutils literal"><span class="pre">SqlSoup</span></tt></a>
 instance&#8217;s constructor will be used, which defaults to
 <tt class="docutils literal"><span class="pre">object</span></tt>.</li>
@@ -707,24 +724,22 @@ be passed directly to <a class="reference internal" href="../mapper_config.html#
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="hybrid.html" title="previous chapter">Hybrid Attributes</a>
+        Next:
+        <a href="../examples.html" title="next chapter">Examples</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="hybrid.html" title="previous chapter">Hybrid Attributes</a>
-            Next:
-            <a href="../examples.html" title="next chapter">Examples</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 

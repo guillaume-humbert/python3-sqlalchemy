@@ -6,8 +6,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
+            
+    
                 Oracle
-             &mdash; SQLAlchemy 0.7 Documentation</title>
+             &mdash; 
+    SQLAlchemy 0.7 Documentation
+
+        </title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.4',
+          VERSION:     '0.7.5',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -41,6 +46,10 @@
 
 
 
+
+
+
+
 <div id="docs-container">
 
 
@@ -58,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
 
 
     </div>
@@ -141,6 +150,7 @@
     <a href="postgresql.html" title="next chapter">PostgreSQL</a>
     </p>
 
+
     <h4>Quick Search</h4>
     <p>
     <form class="search" action="../search.html" method="get">
@@ -166,9 +176,9 @@ for that driver.</p>
 affect the behavior of the dialect regardless of driver in use.</p>
 <ul class="simple">
 <li><em>use_ansi</em> - Use ANSI JOIN constructs (see the section on Oracle 8).  Defaults
-to <tt class="xref docutils literal"><span class="pre">True</span></tt>.  If <tt class="xref docutils literal"><span class="pre">False</span></tt>, Oracle-8 compatible constructs are used for joins.</li>
-<li><em>optimize_limits</em> - defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>. see the section on LIMIT/OFFSET.</li>
-<li><em>use_binds_for_limits</em> - defaults to <tt class="xref docutils literal"><span class="pre">True</span></tt>.  see the section on LIMIT/OFFSET.</li>
+to <tt class="docutils literal"><span class="pre">True</span></tt>.  If <tt class="docutils literal"><span class="pre">False</span></tt>, Oracle-8 compatible constructs are used for joins.</li>
+<li><em>optimize_limits</em> - defaults to <tt class="docutils literal"><span class="pre">False</span></tt>. see the section on LIMIT/OFFSET.</li>
+<li><em>use_binds_for_limits</em> - defaults to <tt class="docutils literal"><span class="pre">True</span></tt>.  see the section on LIMIT/OFFSET.</li>
 </ul>
 </div>
 <div class="section" id="auto-increment-behavior">
@@ -296,7 +306,7 @@ construction arguments, are as follows:</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
@@ -332,7 +342,7 @@ within available DBAPIs (cx_oracle and zxjdbc).</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>day_precision</strong> &#8211; the day precision value.  this is the number of digits
 to store for the day field.  Defaults to &#8220;2&#8221;</li>
 <li><strong>second_precision</strong> &#8211; the second precision value.  this is the number of digits
@@ -358,7 +368,7 @@ to store for the fractional seconds field.  Defaults to &#8220;6&#8221;.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
@@ -366,7 +376,7 @@ DDL statements.  May be safely omitted if no <tt class="docutils literal"><span 
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued if a <tt class="docutils literal"><span class="pre">VARCHAR</span></tt>
 with no length is included.  Whether the value is
 interpreted as bytes or characters is database specific.</li>
-<li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="xref docutils literal"><span class="pre">True</span></tt>, the 
+<li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the 
 <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type will assume that
 input is to be passed as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects,
 and results returned as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects.
@@ -434,7 +444,7 @@ strings from a column with varied or corrupted encodings.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
@@ -442,7 +452,7 @@ DDL statements.  May be safely omitted if no <tt class="docutils literal"><span 
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued if a <tt class="docutils literal"><span class="pre">VARCHAR</span></tt>
 with no length is included.  Whether the value is
 interpreted as bytes or characters is database specific.</li>
-<li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="xref docutils literal"><span class="pre">True</span></tt>, the 
+<li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the 
 <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type will assume that
 input is to be passed as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects,
 and results returned as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects.
@@ -520,17 +530,17 @@ host, port, and dbname tokens are converted to a TNS name using the cx_oracle
 <p>Additional arguments which may be specified either as query string arguments on the
 URL, or as keyword arguments to <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> are:</p>
 <ul class="simple">
-<li><em>allow_twophase</em> - enable two-phase transactions.  Defaults to <tt class="xref docutils literal"><span class="pre">True</span></tt>.</li>
+<li><em>allow_twophase</em> - enable two-phase transactions.  Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>.</li>
 <li><em>arraysize</em> - set the cx_oracle.arraysize value on cursors, in SQLAlchemy
 it defaults to 50.  See the section on &#8220;LOB Objects&#8221; below.</li>
 <li><em>auto_convert_lobs</em> - defaults to True, see the section on LOB objects.</li>
 <li><em>auto_setinputsizes</em> - the cx_oracle.setinputsizes() call is issued for all bind parameters.
 This is required for LOB datatypes but can be disabled to reduce overhead.  Defaults
-to <tt class="xref docutils literal"><span class="pre">True</span></tt>.</li>
+to <tt class="docutils literal"><span class="pre">True</span></tt>.</li>
 <li><em>mode</em> - This is given the string value of SYSDBA or SYSOPER, or alternatively an
 integer value.  This value is only available as a URL query string argument.</li>
 <li><em>threaded</em> - enable multithreaded access to cx_oracle connections.  Defaults
-to <tt class="xref docutils literal"><span class="pre">True</span></tt>.  Note that this is the opposite default of cx_oracle itself.</li>
+to <tt class="docutils literal"><span class="pre">True</span></tt>.  Note that this is the opposite default of cx_oracle itself.</li>
 </ul>
 </div>
 <div class="section" id="id1">
@@ -569,7 +579,7 @@ receives them as string values, instead of receiving a Python
 <tt class="docutils literal"><span class="pre">Decimal</span></tt> constructor.  The <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a> and
 <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a> types under the cx_oracle dialect are aware of
 this behavior, and will coerce the <tt class="docutils literal"><span class="pre">Decimal</span></tt> to <tt class="docutils literal"><span class="pre">float</span></tt> if
-the <tt class="docutils literal"><span class="pre">asdecimal</span></tt> flag is <tt class="xref docutils literal"><span class="pre">False</span></tt> (default on <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a>,
+the <tt class="docutils literal"><span class="pre">asdecimal</span></tt> flag is <tt class="docutils literal"><span class="pre">False</span></tt> (default on <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a>,
 optional on <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>).</p>
 <p>The handler attempts to use the &#8220;precision&#8221; and &#8220;scale&#8221;
 attributes of the result set column to best determine if
@@ -615,24 +625,22 @@ decimal character.</p>
 
 </div>
 
+<div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="mysql.html" title="previous chapter">MySQL</a>
+        Next:
+        <a href="postgresql.html" title="next chapter">PostgreSQL</a>
 
-    <div id="docs-bottom-navigation" class="docs-navigation-links">
-            Previous:
-            <a href="mysql.html" title="previous chapter">MySQL</a>
-            Next:
-            <a href="postgresql.html" title="next chapter">PostgreSQL</a>
-
-        <div id="docs-copyright">
-            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
-        </div>
+    <div id="docs-copyright">
+        &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
-
+</div>
 
 </div>
 
+        
     </body>
 </html>
-
 
 
