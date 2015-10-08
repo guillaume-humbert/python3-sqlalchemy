@@ -58,7 +58,7 @@ Available drivernames are `sqlite`, `mysql`, `postgres`, `oracle`, `mssql`, and 
     # oracle will feed host/port/SID into cx_oracle.makedsn
     oracle_db = create_engine('oracle://scott:tiger@127.0.0.1:1521/sidname')
 
-The `Engine` will create its first connection to the database when a SQL statement is executed.  As concurrent statements are executed, the underlying connection pool will grow to a default size of five connections, and will allow a default "overflow" of ten.   Since the `Engine` is essentially "home base" for the connection pool, it follows that you should keep a single `Engine` per database established within an application, rather than creating a new one for each connection.
+The `Engine` will ask the connection pool for a connection when a SQL statement is executed.  The default connection pool, `QueuePool` as well as the default SQLite connection pool `SingletonThreadPool`, will open connections to the database on an as-needed basis.  As concurrent statements are executed, `QueuePool` will grow its pool of connections to a default size of five, and will allow a default "overflow" of ten.   Since the `Engine` is essentially "home base" for the connection pool, it follows that you should keep a single `Engine` per database established within an application, rather than creating a new one for each connection.
 
 #### Custom DBAPI keyword arguments
 
@@ -87,30 +87,19 @@ The most customizable connection method of all is to pass a `creator` argument, 
 Keyword options can also be specified to `create_engine()`, following the string URL as follows:
 
     {python}
-    db = create_engine('postgres://...', encoding='latin1', echo=True, module=psycopg1)
+    db = create_engine('postgres://...', encoding='latin1', echo=True)
 
 A list of all standard options, as well as several that are used by particular database dialects, is as follows:
 
+* **connect_args** - a dictionary of options which will be passed directly to the DBAPI's `connect()` method as additional keyword arguments.
 * **convert_unicode=False** - if set to True, all String/character based types will convert Unicode values to raw byte values going into the database, and all raw byte values to Python Unicode coming out in result sets.  This is an engine-wide method to provide unicode conversion across the board.  For unicode conversion on a column-by-column level, use the `Unicode` column type instead, described in [types](rel:types).
+* **creator** - a callable which returns a DBAPI connection.  This creation function will be passed to the underlying connection pool and will be used to create all new database connections.  Usage of this function causes connection parameters specified in the URL argument to be bypassed.
 * **echo=False** - if True, the Engine will log all statements as well as a repr() of their parameter lists to the engines logger, which defaults to sys.stdout.  The `echo` attribute of `Engine` can be modified at any time to turn logging on and off.  If set to the string `"debug"`, result rows will be printed to the standard output as well.  This flag ultimately controls a Python logger; see [dbengine_logging](rel:dbengine_logging) for information on how to configure logging directly.
 * **echo_pool=False** - if True, the connection pool will log all checkouts/checkins to the logging stream, which defaults to sys.stdout.  This flag ultimately controls a Python logger; see [dbengine_logging](rel:dbengine_logging) for information on how to configure logging directly.
 * **encoding='utf-8'** - the encoding to use for all Unicode translations, both by engine-wide unicode conversion as well as the `Unicode` type object.
 * **module=None** - used by database implementations which support multiple DBAPI modules, this is a reference to a DBAPI2 module to be used instead of the engine's default module.  For Postgres, the default is psycopg2, or psycopg1 if 2 cannot be found.  For Oracle, its cx_Oracle.
-* **pool=None** - an actual pool instance.  Note that an already-constructed pool should already know how to create database connections, so this option supercedes any other connect options specified.  Typically, it is an instance of `sqlalchemy.pool.Pool` to be used as the underlying source for connections.  For more on connection pooling, see [pooling](rel:pooling).
-
-Example of a manual invocation of `pool.QueuePool` (which is the pool instance used for all databases except sqlite):
-
-    {python}
-    from sqlalchemy import *
-    import sqlalchemy.pool as pool
-    import MySQLdb
-    
-    def getconn():
-        return MySQLdb.connect(user='ed', dbname='mydb')
-    
-    engine = create_engine('mysql://', pool=pool.QueuePool(getconn, pool_size=20, max_overflow=40))
-
-* **poolclass=None** - a `sqlalchemy.pool.Pool` subclass that will be instantated in place of the default connection pool.
+* **pool=None** - an already-constructed instance of `sqlalchemy.pool.Pool`, such as a `QueuePool` instance.  If non-None, this pool will be used directly as the underlying connection pool for the engine, bypassing whatever connection parameters are present in the URL argument.  For information on constructing connection pools manually, see [pooling](rel:pooling).
+* **poolclass=None** - a `sqlalchemy.pool.Pool` subclass, which will be used to create a connection pool instance using the connection parameters given in the URL.  Note this differs from `pool` in that you don't actually instantiate the pool in this case, you just indicate what type of pool to be used.
 * **max_overflow=10** - the number of connections to allow in connection pool "overflow", that is connections that can be opened above and beyond the pool_size setting, which defaults to five.  this is only used with `QueuePool`.
 * **pool_size=5** - the number of connections to keep open inside the connection pool.  This used with `QueuePool` as well as `SingletonThreadPool`.
 * **pool_recycle=-1** - this setting causes the pool to recycle connections after the given number of seconds has passed.  It defaults to -1, or no timeout.  For example, setting to 3600 means connections will be recycled after one hour.  Note that MySQL in particular will disconnect automatically if no activity is detected on a connection for eight hours (although this is configurable with the MySQLDB connection itself and the  server configuration as well).
@@ -146,7 +135,7 @@ For example, to log SQL queries as well as unit of work debugging:
     
 By default, the log level is set to `logging.ERROR` within the entire `sqlalchemy` namespace so that no log operations occur, even within an application that has logging enabled otherwise.
 
-The `echo` flags present as keyword arguments to `create_engine()` and others as well as the `echo` property on `Engine`, when set to `True`, will first attempt to insure that logging is enabled.  Unfortunately, the `logging` module provides no way of determining if output has already been configured (note we are referring to if a logging configuration has been set up, not just that the logging level is set).  For this reason, any `echo=True` flags will result in a call to `logging.basicConfig()` using sys.stdout as the destination.  It also sets up a default format using the level name, timestamp, and logger name.  Note that this configuration has the affect of being configured **in addition** to any existing logger configurations.  Therefore, **when using Python logging, insure all echo flags are set to False at all times**, to avoid getting duplicate log lines.  
+The `echo` flags present as keyword arguments to `create_engine()` and others as well as the `echo` property on `Engine`, when set to `True`, will first attempt to ensure that logging is enabled.  Unfortunately, the `logging` module provides no way of determining if output has already been configured (note we are referring to if a logging configuration has been set up, not just that the logging level is set).  For this reason, any `echo=True` flags will result in a call to `logging.basicConfig()` using sys.stdout as the destination.  It also sets up a default format using the level name, timestamp, and logger name.  Note that this configuration has the affect of being configured **in addition** to any existing logger configurations.  Therefore, **when using Python logging, ensure all echo flags are set to False at all times**, to avoid getting duplicate log lines.  
 
 ### Using Connections {@name=connections}
 
@@ -326,19 +315,19 @@ Using the "threadlocal" strategy, all calls to `execute` within the same thread 
     # are returned to the pool.
     r2 = None
 
-To get at the actual `Connection` object which is used by implicit executions, call the `contextual_connection()` method on `Engine`:
+To get at the actual `Connection` object which is used by implicit executions, call the `contextual_connect()` method on `Engine`:
 
     {python title="Contextual Connection"}
     # threadlocal strategy
     db = create_engine('mysql://localhost/test', strategy='threadlocal')
     
-    conn1 = db.contextual_connection()
-    conn2 = db.contextual_connection()
+    conn1 = db.contextual_connect()
+    conn2 = db.contextual_connect()
 
     >>> conn1.connection is conn2.connection
     True
 
-When the `plain` strategy is used, the `contextual_connection()` method is synonymous with the `connect()` method; both return a distinct connection from the pool.
+When the `plain` strategy is used, the `contextual_connect()` method is synonymous with the `connect()` method; both return a distinct connection from the pool.
 
 One programming pattern that the `threadlocal` strategy supports is transparent connection and transaction sharing.
 
@@ -351,13 +340,13 @@ One programming pattern that the `threadlocal` strategy supports is transparent 
         
     def dosomethingelse():
         table2.execute("some sql")
-        conn = db.contextual_connection()
+        conn = db.contextual_connect()
         # do stuff with conn
         conn.execute("some other sql")
         conn.close()
     
     def dosomethingtransactional():
-        conn = db.contextual_connection()
+        conn = db.contextual_connect()
         trans = conn.begin()
          # do stuff
         trans.commit()
@@ -371,5 +360,5 @@ One programming pattern that the `threadlocal` strategy supports is transparent 
     except:
         db.rollback()
 
-In the above example, the program calls three functions `dosomethingimplicit()`, `dosomethingelse()` and `dosomethingtransactional()`.  In all three functions, either implicit execution is used, **or** an explicit `Connection` is used via the `contextual_connection()` method.  This indicates that they all will share the same underlying dbapi connection as well as the same parent `Transaction` instance, which is created in the main body of the program via the call to `db.create_transaction()`.  So while there are several calls that return "new" `Transaction` or `Connection` objects, in reality only one "real" connection is ever used, and there is only one transaction (i.e. one begin/commit pair) executed.
+In the above example, the program calls three functions `dosomethingimplicit()`, `dosomethingelse()` and `dosomethingtransactional()`.  In all three functions, either implicit execution is used, **or** an explicit `Connection` is used via the `contextual_connect()` method.  This indicates that they all will share the same underlying dbapi connection as well as the same parent `Transaction` instance, which is created in the main body of the program via the call to `db.create_transaction()`.  So while there are several calls that return "new" `Transaction` or `Connection` objects, in reality only one "real" connection is ever used, and there is only one transaction (i.e. one begin/commit pair) executed.
 

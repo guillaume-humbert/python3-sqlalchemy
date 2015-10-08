@@ -5,6 +5,7 @@ def suite():
     modules_to_test = (
 	'orm.attributes',
         'orm.mapper',
+        'orm.generative',
         'orm.lazytest1',
         'orm.eagertest1',
         'orm.eagertest2',
@@ -31,6 +32,7 @@ def suite():
         'orm.inheritance3',
         'orm.inheritance4',
         'orm.inheritance5',
+        'orm.abc_inheritance',
         'orm.single',
         'orm.polymorph'        
         )
@@ -44,4 +46,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    testbase.runTests(suite())
+    testbase.main(suite())

@@ -18,22 +18,25 @@ except:
 
 ORACLE_BINARY_TYPES = [getattr(cx_Oracle, k) for k in ["BFILE", "CLOB", "NCLOB", "BLOB", "LONG_BINARY", "LONG_STRING"] if hasattr(cx_Oracle, k)]
 
-        
 class OracleNumeric(sqltypes.Numeric):
     def get_col_spec(self):
         if self.precision is None:
             return "NUMERIC"
         else:
             return "NUMERIC(%(precision)s, %(length)s)" % {'precision': self.precision, 'length' : self.length}
+
 class OracleInteger(sqltypes.Integer):
     def get_col_spec(self):
         return "INTEGER"
+
 class OracleSmallInteger(sqltypes.Smallinteger):
     def get_col_spec(self):
         return "SMALLINT"
+
 class OracleDateTime(sqltypes.DateTime):
     def get_col_spec(self):
         return "DATE"
+
 # Note:
 # Oracle DATE == DATETIME
 # Oracle does not allow milliseconds in DATE
@@ -43,32 +46,45 @@ class OracleDateTime(sqltypes.DateTime):
 class OracleTimestamp(sqltypes.DateTime):
     def get_col_spec(self):
         return "TIMESTAMP"
+
     def get_dbapi_type(self, dialect):
         return dialect.TIMESTAMP
-        
+
 class OracleText(sqltypes.TEXT):
+    def get_dbapi_type(self, dbapi):
+        return dbapi.CLOB
+
     def get_col_spec(self):
         return "CLOB"
-class OracleString(sqltypes.String):
-    def get_col_spec(self):
-        return "VARCHAR(%(length)s)" % {'length' : self.length}
-class OracleRaw(sqltypes.Binary):
-    def get_col_spec(self):
-        return "RAW(%(length)s)" % {'length' : self.length}
-class OracleChar(sqltypes.CHAR):
-    def get_col_spec(self):
-        return "CHAR(%(length)s)" % {'length' : self.length}
-class OracleBinary(sqltypes.Binary):
-    def get_dbapi_type(self, dbapi):
-        return dbapi.BINARY
-    def get_col_spec(self):
-        return "BLOB"
-    def convert_bind_param(self, value, dialect):
+
+    def convert_result_value(self, value, dialect):
         if value is None:
             return None
         else:
-            # this is RAWTOHEX
-            return ''.join(["%.2X" % ord(c) for c in value])
+            return value.read()
+
+class OracleString(sqltypes.String):
+    def get_col_spec(self):
+        return "VARCHAR(%(length)s)" % {'length' : self.length}
+
+class OracleRaw(sqltypes.Binary):
+    def get_col_spec(self):
+        return "RAW(%(length)s)" % {'length' : self.length}
+
+class OracleChar(sqltypes.CHAR):
+    def get_col_spec(self):
+        return "CHAR(%(length)s)" % {'length' : self.length}
+
+class OracleBinary(sqltypes.Binary):
+    def get_dbapi_type(self, dbapi):
+        return dbapi.BLOB
+
+    def get_col_spec(self):
+        return "BLOB"
+
+    def convert_bind_param(self, value, dialect):
+        return value
+
     def convert_result_value(self, value, dialect):
         if value is None:
             return None
@@ -78,10 +94,12 @@ class OracleBinary(sqltypes.Binary):
 class OracleBoolean(sqltypes.Boolean):
     def get_col_spec(self):
         return "SMALLINT"
+
     def convert_result_value(self, value, dialect):
         if value is None:
             return None
         return value and True or False
+
     def convert_bind_param(self, value, dialect):
         if value is True:
             return 1
@@ -90,9 +108,8 @@ class OracleBoolean(sqltypes.Boolean):
         elif value is None:
             return None
         else:
-            return value and True or False 	
+            return value and True or False
 
-        
 colspecs = {
     sqltypes.Integer : OracleInteger,
     sqltypes.Smallinteger : OracleSmallInteger,
@@ -121,8 +138,6 @@ ischema_names = {
     'DOUBLE PRECISION' : OracleNumeric,
 }
 
-
-
 def descriptor():
     return {'name':'oracle',
     'description':'Oracle',
@@ -137,9 +152,9 @@ class OracleExecutionContext(default.DefaultExecutionContext):
         super(OracleExecutionContext, self).pre_exec(engine, proxy, compiled, parameters)
         if self.dialect.auto_setinputsizes:
                 self.set_input_sizes(proxy(), parameters)
-        
+
 class OracleDialect(ansisql.ANSIDialect):
-    def __init__(self, use_ansi=True, auto_setinputsizes=False, module=None, threaded=True, **kwargs):
+    def __init__(self, use_ansi=True, auto_setinputsizes=True, module=None, threaded=True, **kwargs):
         self.use_ansi = use_ansi
         self.threaded = threaded
         if module is None:
@@ -173,7 +188,7 @@ class OracleDialect(ansisql.ANSIDialect):
             )
         opts.update(url.query)
         return ([], opts)
-        
+
     def type_descriptor(self, typeobj):
         return sqltypes.adapt_type(typeobj, colspecs)
 
@@ -188,13 +203,15 @@ class OracleDialect(ansisql.ANSIDialect):
 
     def compiler(self, statement, bindparams, **kwargs):
         return OracleCompiler(self, statement, bindparams, **kwargs)
+
     def schemagenerator(self, *args, **kwargs):
         return OracleSchemaGenerator(*args, **kwargs)
+
     def schemadropper(self, *args, **kwargs):
         return OracleSchemaDropper(*args, **kwargs)
+
     def defaultrunner(self, engine, proxy):
         return OracleDefaultRunner(engine, proxy)
-
 
     def has_table(self, connection, table_name, schema=None):
         cursor = connection.execute("""select table_name from all_tables where table_name=:name""", {'name':table_name.upper()})
@@ -229,8 +246,12 @@ class OracleDialect(ansisql.ANSIDialect):
                         raise exceptions.AssertionError("There are multiple tables with name '%s' visible to the schema, you must specifiy owner" % name)
                     else:
                         return None
+
     def _resolve_table_owner(self, connection, name, table, dblink=''):
-        """locate the given table in the ALL_TAB_COLUMNS view, including searching for equivalent synonyms and dblinks"""
+        """Locate the given table in the ``ALL_TAB_COLUMNS`` view,
+        including searching for equivalent synonyms and dblinks.
+        """
+
         c = connection.execute ("select distinct OWNER from ALL_TAB_COLUMNS%(dblink)s where TABLE_NAME = :table_name" % {'dblink':dblink}, {'table_name':name})
         rows = c.fetchall()
         try:
@@ -239,10 +260,10 @@ class OracleDialect(ansisql.ANSIDialect):
         except exceptions.SQLAlchemyError:
             # locate synonyms
             c = connection.execute ("""select OWNER, TABLE_OWNER, TABLE_NAME, DB_LINK
-                                       from   ALL_SYNONYMS%(dblink)s 
+                                       from   ALL_SYNONYMS%(dblink)s
                                        where  SYNONYM_NAME = :synonym_name
-                                       and (DB_LINK IS NOT NULL 
-                                               or ((TABLE_NAME, TABLE_OWNER) in 
+                                       and (DB_LINK IS NOT NULL
+                                               or ((TABLE_NAME, TABLE_OWNER) in
                                                     (select TABLE_NAME, OWNER from ALL_TAB_COLUMNS%(dblink)s)))""" % {'dblink':dblink},
                                     {'synonym_name':name})
             rows = c.fetchall()
@@ -262,20 +283,19 @@ class OracleDialect(ansisql.ANSIDialect):
                 return name, owner, dblink
             raise
 
-        
     def reflecttable(self, connection, table):
         preparer = self.identifier_preparer
         if not preparer.should_quote(table):
             name = table.name.upper()
         else:
             name = table.name
-        
+
         # search for table, including across synonyms and dblinks.
         # locate the actual name of the table, the real owner, and any dblink clause needed.
         actual_name, owner, dblink = self._resolve_table_owner(connection, name, table)
-        
+
         c = connection.execute ("select COLUMN_NAME, DATA_TYPE, DATA_LENGTH, DATA_PRECISION, DATA_SCALE, NULLABLE, DATA_DEFAULT from ALL_TAB_COLUMNS%(dblink)s where TABLE_NAME = :table_name and OWNER = :owner" % {'dblink':dblink}, {'table_name':actual_name, 'owner':owner})
-        
+
         while True:
             row = c.fetchone()
             if row is None:
@@ -305,20 +325,20 @@ class OracleDialect(ansisql.ANSIDialect):
                     coltype = ischema_names[coltype]
                 except KeyError:
                     raise exceptions.AssertionError("Cant get coltype for type '%s' on colname '%s'" % (coltype, colname))
-               
+
             colargs = []
             if default is not None:
                 colargs.append(schema.PassiveDefault(sql.text(default)))
-          
-            # if name comes back as all upper, assume its case folded 
-            if (colname.upper() == colname): 
+
+            # if name comes back as all upper, assume its case folded
+            if (colname.upper() == colname):
                 colname = colname.lower()
-            
+
             table.append_column(schema.Column(colname, coltype, nullable=nullable, *colargs))
 
         if not len(table.columns):
            raise exceptions.AssertionError("Couldn't find any column information for table %s" % actual_name)
-           
+
         c = connection.execute("""SELECT
              ac.constraint_name,
              ac.constraint_type,
@@ -339,13 +359,13 @@ class OracleDialect(ansisql.ANSIDialect):
            -- order multiple primary keys correctly
            ORDER BY ac.constraint_name, loc.position, rem.position"""
          % {'dblink':dblink}, {'table_name' : actual_name, 'owner' : owner})
-         
+
         fks = {}
         while True:
             row = c.fetchone()
             if row is None:
                 break
-            #print "ROW:" , row                
+            #print "ROW:" , row
             (cons_name, cons_type, local_column, remote_table, remote_column, remote_owner) = row
             if cons_type == 'P':
                 table.primary_key.add(table.c[local_column])
@@ -358,6 +378,7 @@ class OracleDialect(ansisql.ANSIDialect):
                 if remote_table is None:
                     # ticket 363
                     self.logger.warn("Got 'None' querying 'table_name' from all_cons_columns%(dblink)s - does the user have proper rights to the table?" % {'dblink':dblink})
+                    continue
                 refspec = ".".join([remote_table, remote_column])
                 schema.Table(remote_table, table.metadata, autoload=True, autoload_with=connection, owner=remote_owner)
                 if local_column not in fk[0]:
@@ -389,12 +410,17 @@ class OracleDialect(ansisql.ANSIDialect):
 OracleDialect.logger = logging.class_logger(OracleDialect)
 
 class OracleCompiler(ansisql.ANSICompiler):
-    """oracle compiler modifies the lexical structure of Select statements to work under 
-    non-ANSI configured Oracle databases, if the use_ansi flag is False."""
-    
+    """Oracle compiler modifies the lexical structure of Select
+    statements to work under non-ANSI configured Oracle databases, if
+    the use_ansi flag is False.
+    """
+
     def default_from(self):
-        """called when a SELECT statement has no froms, and no FROM clause is to be appended.  
-        gives Oracle a chance to tack on a "FROM DUAL" to the string output. """
+        """Called when a ``SELECT`` statement has no froms, and no ``FROM`` clause is to be appended.
+
+        The Oracle compiler tacks a "FROM DUAL" to the statement.
+        """
+
         return " FROM DUAL"
 
     def apply_function_parens(self, func):
@@ -403,7 +429,7 @@ class OracleCompiler(ansisql.ANSICompiler):
     def visit_join(self, join):
         if self.dialect.use_ansi:
             return ansisql.ANSICompiler.visit_join(self, join)
-        
+
         self.froms[join] = self.get_from_text(join.left) + ", " + self.get_from_text(join.right)
         self.wheres[join] = sql.and_(self.wheres.get(join.left, None), join.onclause)
         self.strings[join] = self.froms[join]
@@ -414,58 +440,66 @@ class OracleCompiler(ansisql.ANSICompiler):
 
             # now re-visit the onclause, which will be used as a where clause
             # (the first visit occured via the Join object itself right before it called visit_join())
-            join.onclause.accept_visitor(self)
+            self.traverse(join.onclause)
 
             self._outertable = None
 
         self.visit_compound(self.wheres[join])
 
     def visit_insert_sequence(self, column, sequence, parameters):
-        """this is the 'sequence' equivalent to ANSICompiler's 'visit_insert_column_default' which ensures
-        that the column is present in the generated column list"""
+        """This is the `sequence` equivalent to ``ANSICompiler``'s
+        `visit_insert_column_default` which ensures that the column is
+        present in the generated column list.
+        """
+
         parameters.setdefault(column.key, None)
-       
+
     def visit_alias(self, alias):
-	"""oracle doesnt like 'FROM table AS alias'.  is the AS standard SQL??"""
+        """Oracle doesn't like ``FROM table AS alias``.  Is the AS standard SQL??"""
+
         self.froms[alias] = self.get_from_text(alias.original) + " " + alias.name
         self.strings[alias] = self.get_str(alias.original)
- 
+
     def visit_column(self, column):
         ansisql.ANSICompiler.visit_column(self, column)
         if not self.dialect.use_ansi and getattr(self, '_outertable', None) is not None and column.table is self._outertable:
             self.strings[column] = self.strings[column] + "(+)"
-       
+
     def visit_insert(self, insert):
-        """inserts are required to have the primary keys be explicitly present.
-         mapper will by default not put them in the insert statement to comply
-         with autoincrement fields that require they not be present.  so, 
-         put them all in for all primary key columns."""
+        """``INSERT`` s are required to have the primary keys be explicitly present.
+
+         Mapper will by default not put them in the insert statement
+         to comply with autoincrement fields that require they not be
+         present.  so, put them all in for all primary key columns.
+         """
+
         for c in insert.table.primary_key:
             if not self.parameters.has_key(c.key):
                 self.parameters[c.key] = None
         return ansisql.ANSICompiler.visit_insert(self, insert)
 
     def _TODO_visit_compound_select(self, select):
-        """need to determine how to get LIMIT/OFFSET into a UNION for oracle"""
+        """Need to determine how to get ``LIMIT``/``OFFSET`` into a ``UNION`` for Oracle."""
+
         if getattr(select, '_oracle_visit', False):
             # cancel out the compiled order_by on the select
             if hasattr(select, "order_by_clause"):
                 self.strings[select.order_by_clause] = ""
             ansisql.ANSICompiler.visit_compound_select(self, select)
             return
-            
+
         if select.limit is not None or select.offset is not None:
             select._oracle_visit = True
-            # to use ROW_NUMBER(), an ORDER BY is required. 
+            # to use ROW_NUMBER(), an ORDER BY is required.
             orderby = self.strings[select.order_by_clause]
             if not orderby:
                 orderby = select.oid_column
-                orderby.accept_visitor(self)
+                self.traverse(orderby)
                 orderby = self.strings[orderby]
-            class SelectVisitor(sql.ClauseVisitor):
+            class SelectVisitor(sql.NoColumnVisitor):
                 def visit_select(self, select):
                     select.append_column(sql.literal_column("ROW_NUMBER() OVER (ORDER BY %s)" % orderby).label("ora_rn"))
-            select.accept_visitor(SelectVisitor())
+            SelectVisitor().traverse(select)
             limitselect = sql.select([c for c in select.c if c.key!='ora_rn'])
             if select.offset is not None:
                 limitselect.append_whereclause("ora_rn>%d" % select.offset)
@@ -473,15 +507,17 @@ class OracleCompiler(ansisql.ANSICompiler):
                     limitselect.append_whereclause("ora_rn<=%d" % (select.limit + select.offset))
             else:
                 limitselect.append_whereclause("ora_rn<=%d" % select.limit)
-            limitselect.accept_visitor(self)
+            self.traverse(limitselect)
             self.strings[select] = self.strings[limitselect]
             self.froms[select] = self.froms[limitselect]
         else:
             ansisql.ANSICompiler.visit_compound_select(self, select)
-        
+
     def visit_select(self, select):
-        """looks for LIMIT and OFFSET in a select statement, and if so tries to wrap it in a 
-        subquery with row_number() criterion."""
+        """Look for ``LIMIT`` and OFFSET in a select statement, and if
+        so tries to wrap it in a subquery with ``row_number()`` criterion.
+        """
+
         # TODO: put a real copy-container on Select and copy, or somehow make this
         # not modify the Select statement
         if getattr(select, '_oracle_visit', False):
@@ -493,11 +529,11 @@ class OracleCompiler(ansisql.ANSICompiler):
 
         if select.limit is not None or select.offset is not None:
             select._oracle_visit = True
-            # to use ROW_NUMBER(), an ORDER BY is required. 
+            # to use ROW_NUMBER(), an ORDER BY is required.
             orderby = self.strings[select.order_by_clause]
             if not orderby:
                 orderby = select.oid_column
-                orderby.accept_visitor(self)
+                self.traverse(orderby)
                 orderby = self.strings[orderby]
             select.append_column(sql.literal_column("ROW_NUMBER() OVER (ORDER BY %s)" % orderby).label("ora_rn"))
             limitselect = sql.select([c for c in select.c if c.key!='ora_rn'])
@@ -507,12 +543,12 @@ class OracleCompiler(ansisql.ANSICompiler):
                     limitselect.append_whereclause("ora_rn<=%d" % (select.limit + select.offset))
             else:
                 limitselect.append_whereclause("ora_rn<=%d" % select.limit)
-            limitselect.accept_visitor(self)
+            self.traverse(limitselect)
             self.strings[select] = self.strings[limitselect]
             self.froms[select] = self.froms[limitselect]
         else:
             ansisql.ANSICompiler.visit_select(self, select)
-            
+
     def limit_clause(self, select):
         return ""
 
@@ -539,7 +575,6 @@ class OracleSchemaGenerator(ansisql.ANSISchemaGenerator):
             self.append("CREATE SEQUENCE %s" % self.preparer.format_sequence(sequence))
             self.execute()
 
-     
 class OracleSchemaDropper(ansisql.ANSISchemaDropper):
     def visit_sequence(self, sequence):
         if self.engine.dialect.has_sequence(self.connection, sequence.name):
@@ -550,7 +585,7 @@ class OracleDefaultRunner(ansisql.ANSIDefaultRunner):
     def exec_default_sql(self, default):
         c = sql.select([default.arg], from_obj=["DUAL"], engine=self.engine).compile()
         return self.proxy(str(c), c.get_params()).fetchone()[0]
-    
+
     def visit_sequence(self, seq):
         return self.proxy("SELECT " + seq.name + ".nextval FROM DUAL").fetchone()[0]
 
