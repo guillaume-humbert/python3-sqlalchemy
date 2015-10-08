@@ -7,7 +7,7 @@
         
         <title>
                 Core Events
-             &mdash; SQLAlchemy 0.7.0 Documentation</title>
+             &mdash; SQLAlchemy 0.7.1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.0',
+          VERSION:     '0.7.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.0 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Custom SQL Constructs and Compilation Extension" href="compiler.html" />
         <link rel="prev" title="Events" href="event.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.0 Documentation</h1>
+<h1>SQLAlchemy 0.7.1 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.0</span> Last Updated: 05/20/2011 17:59:22
+    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.0 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
         » 
                 Core Events
@@ -241,15 +241,12 @@ using the new connection.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>retval=False</strong> &#8211; Applies to the <a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.before_execute" title="sqlalchemy.events.ConnectionEvents.before_execute"><tt class="xref py py-meth docutils literal"><span class="pre">before_execute()</span></tt></a> and 
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>retval=False</strong> &#8211; Applies to the <a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.before_execute" title="sqlalchemy.events.ConnectionEvents.before_execute"><tt class="xref py py-meth docutils literal"><span class="pre">before_execute()</span></tt></a> and 
 <a class="reference internal" href="#sqlalchemy.events.ConnectionEvents.before_cursor_execute" title="sqlalchemy.events.ConnectionEvents.before_cursor_execute"><tt class="xref py py-meth docutils literal"><span class="pre">before_cursor_execute()</span></tt></a> events only.  When True, the
 user-defined event function must have a return value, which
 is a tuple of parameters that replace the given statement 
 and parameters.  See those methods for a description of
-specific return arguments.</li>
-</ul>
-</td>
+specific return arguments.</td>
 </tr>
 </tbody>
 </table>
@@ -386,11 +383,11 @@ as the names of members that are passed to listener
 functions.</p>
 <p>See also:</p>
 <blockquote>
-<p><a class="reference internal" href="event.html"><em>Events</em></a></p>
+<div><p><a class="reference internal" href="event.html"><em>Events</em></a></p>
 <p><a class="reference internal" href="schema.html#sqlalchemy.schema.DDLElement" title="sqlalchemy.schema.DDLElement"><tt class="xref py py-class docutils literal"><span class="pre">DDLElement</span></tt></a></p>
 <p><a class="reference internal" href="schema.html#sqlalchemy.schema.DDL" title="sqlalchemy.schema.DDL"><tt class="xref py py-class docutils literal"><span class="pre">DDL</span></tt></a></p>
 <p><a class="reference internal" href="schema.html#schema-ddl-sequences"><em>Controlling DDL Sequences</em></a></p>
-</blockquote>
+</div></blockquote>
 <dl class="method">
 <dt id="sqlalchemy.events.DDLEvents.after_create">
 <tt class="descname">after_create</tt><big>(</big><em>target</em>, <em>connection</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.DDLEvents.after_create" title="Permalink to this definition">¶</a></dt>
@@ -463,13 +460,10 @@ a parent <a class="reference internal" href="schema.html#sqlalchemy.schema.Schem
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>propagate=False</strong> &#8211; When True, the listener function will
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>propagate=False</strong> &#8211; When True, the listener function will
 be established for any copies made of the target object,
 i.e. those copies that are generated when
-<a class="reference internal" href="schema.html#sqlalchemy.schema.Table.tometadata" title="sqlalchemy.schema.Table.tometadata"><tt class="xref py py-meth docutils literal"><span class="pre">Table.tometadata()</span></tt></a> is used.</li>
-</ul>
-</td>
+<a class="reference internal" href="schema.html#sqlalchemy.schema.Table.tometadata" title="sqlalchemy.schema.Table.tometadata"><tt class="xref py py-meth docutils literal"><span class="pre">Table.tometadata()</span></tt></a> is used.</td>
 </tr>
 </tbody>
 </table>
@@ -547,13 +541,10 @@ a parent <a class="reference internal" href="schema.html#sqlalchemy.schema.Schem
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>propagate=False</strong> &#8211; When True, the listener function will
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>propagate=False</strong> &#8211; When True, the listener function will
 be established for any copies made of the target object,
 i.e. those copies that are generated when
-<a class="reference internal" href="schema.html#sqlalchemy.schema.Table.tometadata" title="sqlalchemy.schema.Table.tometadata"><tt class="xref py py-meth docutils literal"><span class="pre">Table.tometadata()</span></tt></a> is used.</li>
-</ul>
-</td>
+<a class="reference internal" href="schema.html#sqlalchemy.schema.Table.tometadata" title="sqlalchemy.schema.Table.tometadata"><tt class="xref py py-meth docutils literal"><span class="pre">Table.tometadata()</span></tt></a> is used.</td>
 </tr>
 </tbody>
 </table>
@@ -628,7 +619,7 @@ completes within the scope of the constructor for <a class="reference internal" 
             <a href="compiler.html" title="next chapter">Custom SQL Constructs and Compilation Extension</a>
         <div class="doc_copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 

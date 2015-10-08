@@ -588,17 +588,6 @@ class ScalarObjectAttributeImpl(ScalarAttributeImpl):
     uses_objects = True
     supports_population = True
 
-    def __init__(self, class_, key, callable_, dispatch,
-                    trackparent=False, extension=None, copy_function=None,
-                    **kwargs):
-        super(ScalarObjectAttributeImpl, self).__init__(
-                                            class_, 
-                                            key,
-                                            callable_, dispatch, 
-                                            trackparent=trackparent, 
-                                            extension=extension,
-                                            **kwargs)
-
     def delete(self, state, dict_):
         old = self.get(state, dict_)
         self.fire_remove_event(state, dict_, old, self)
@@ -1222,7 +1211,7 @@ def register_attribute_impl(class_, key,
     return manager[key]
 
 def register_descriptor(class_, key, comparator=None, 
-                                parententity=None, property_=None, doc=None):
+                                parententity=None, doc=None):
     manager = manager_of_class(class_)
 
     descriptor = InstrumentedAttribute(class_, key, comparator=comparator,

@@ -20,7 +20,7 @@ from itertools import chain
 
 from sqlalchemy import exc as sa_exc
 from sqlalchemy import util
-from sqlalchemy.sql import expression
+from sqlalchemy.sql import operators
 deque = util.importlater('collections').deque
 
 mapperutil = util.importlater('sqlalchemy.orm', 'util')
@@ -80,7 +80,7 @@ class MapperProperty(object):
 
         pass
 
-    def create_row_processor(self, selectcontext, path, reduced_path, 
+    def create_row_processor(self, context, path, reduced_path, 
                                             mapper, row, adapter):
         """Return a 3-tuple consisting of three row processing functions.
 
@@ -179,13 +179,13 @@ class MapperProperty(object):
 
         return operator(self.comparator, value)
 
-class PropComparator(expression.ColumnOperators):
+class PropComparator(operators.ColumnOperators):
     """Defines comparison operations for MapperProperty objects.
 
     User-defined subclasses of :class:`.PropComparator` may be created. The
     built-in Python comparison and math operator methods, such as
     ``__eq__()``, ``__lt__()``, ``__add__()``, can be overridden to provide
-    new operator behaivor. The custom :class:`.PropComparator` is passed to
+    new operator behavior. The custom :class:`.PropComparator` is passed to
     the mapper property via the ``comparator_factory`` argument. In each case,
     the appropriate subclass of :class:`.PropComparator` should be used::
 
@@ -313,7 +313,6 @@ class StrategizedProperty(MapperProperty):
 
     def __init_strategy(self, cls):
         self._strategies[cls] = strategy = cls(self)
-        strategy.init()
         return strategy
 
     def setup(self, context, entity, path, reduced_path, adapter, **kwargs):
@@ -623,15 +622,14 @@ class LoaderStrategy(object):
 
     * it processes the ``QueryContext`` at statement construction time,
       where it can modify the SQL statement that is being produced.
-      simple column attributes may add their represented column to the
+      Simple column attributes may add their represented column to the
       list of selected columns, *eager loading* properties may add
       ``LEFT OUTER JOIN`` clauses to the statement.
 
-    * it processes the ``SelectionContext`` at row-processing time.  This
-      includes straight population of attributes corresponding to rows,
-      setting instance-level lazyloader callables on newly
-      constructed instances, and appending child items to scalar/collection
-      attributes in response to eagerly-loaded relations.
+    * It produces "row processor" functions at result fetching time.
+      These "row processor" functions populate a particular attribute
+      on a particular mapped instance.
+
     """
 
     def __init__(self, parent):
@@ -639,6 +637,11 @@ class LoaderStrategy(object):
         self.is_class_level = False
         self.parent = self.parent_property.parent
         self.key = self.parent_property.key
+        # TODO: there's no particular reason we need
+        # the separate .init() method at this point.
+        # It's possible someone has written their
+        # own LS object.
+        self.init()
 
     def init(self):
         raise NotImplementedError("LoaderStrategy")
@@ -649,7 +652,7 @@ class LoaderStrategy(object):
     def setup_query(self, context, entity, path, reduced_path, adapter, **kwargs):
         pass
 
-    def create_row_processor(self, selectcontext, path, reduced_path, mapper, 
+    def create_row_processor(self, context, path, reduced_path, mapper, 
                                 row, adapter):
         """Return row processing functions which fulfill the contract
         specified by MapperProperty.create_row_processor.

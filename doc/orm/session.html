@@ -7,7 +7,7 @@
         
         <title>
                 Using the Session
-             &mdash; SQLAlchemy 0.7.0 Documentation</title>
+             &mdash; SQLAlchemy 0.7.1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.0',
+          VERSION:     '0.7.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.0 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Querying" href="query.html" />
         <link rel="prev" title="Mapping Class Inheritance Hierarchies" href="inheritance.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.0 Documentation</h1>
+<h1>SQLAlchemy 0.7.1 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.0</span> Last Updated: 05/20/2011 17:59:22
+    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.0 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Using the Session
@@ -149,7 +149,7 @@ Search:
         
 <div class="section" id="module-sqlalchemy.orm.session">
 <span id="using-the-session"></span><span id="session-toplevel"></span><h1>Using the Session<a class="headerlink" href="#module-sqlalchemy.orm.session" title="Permalink to this headline">¶</a></h1>
-<p>The <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">orm.mapper()</span></tt></a> function and <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> extensions
+<p>The <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">orm.mapper()</span></tt></a> function and <a class="reference internal" href="extensions/declarative.html#module-sqlalchemy.ext.declarative" title="sqlalchemy.ext.declarative"><tt class="xref py py-mod docutils literal"><span class="pre">declarative</span></tt></a> extensions
 are the primary configurational interface for the ORM. Once mappings are
 configured, the primary usage interface for persistence operations is the
 <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.</p>
@@ -282,7 +282,7 @@ at the same time).</p>
 <ul>
 <li><p class="first">When do I make a <a class="reference internal" href="#sqlalchemy.orm.session.sessionmaker" title="sqlalchemy.orm.session.sessionmaker"><tt class="xref py py-func docutils literal"><span class="pre">sessionmaker()</span></tt></a> ?</p>
 <blockquote>
-<p>Just one time, somewhere in your application&#8217;s global scope. It should be
+<div><p>Just one time, somewhere in your application&#8217;s global scope. It should be
 looked upon as part of your application&#8217;s configuration. If your
 application has three .py files in a package, you could, for example,
 place the <a class="reference internal" href="#sqlalchemy.orm.session.sessionmaker" title="sqlalchemy.orm.session.sessionmaker"><tt class="xref py py-func docutils literal"><span class="pre">sessionmaker()</span></tt></a> line in your <tt class="docutils literal"><span class="pre">__init__.py</span></tt> file; from
@@ -301,11 +301,11 @@ at the module level, and your individual
 <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session()</span></tt></a> calls would be sprinkled all
 throughout your app, such as in a web application within each controller
 method.</p>
-</blockquote>
+</div></blockquote>
 </li>
 <li><p class="first">When do I make a <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> ?</p>
 <blockquote>
-<p>You typically invoke <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> when you first need to talk to your
+<div><p>You typically invoke <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> when you first need to talk to your
 database, and want to save some objects or load some existing ones. It
 then remains in use for the lifespan of a particular database
 conversation, which includes not just the initial loading of objects but
@@ -337,11 +337,11 @@ thread-managed registry of <a class="reference internal" href="#sqlalchemy.orm.s
 in web applications so that a single global variable can be used to safely
 represent transactional sessions with sets of objects, localized to a
 single thread. More on this object is in <a class="reference internal" href="#unitofwork-contextual"><em>Contextual/Thread-local Sessions</em></a>.</p>
-</blockquote>
+</div></blockquote>
 </li>
 <li><p class="first">Is the Session a cache ?</p>
 <blockquote>
-<p>Yeee...no. It&#8217;s somewhat used as a cache, in that it implements the
+<div><p>Yeee...no. It&#8217;s somewhat used as a cache, in that it implements the
 identity map pattern, and stores objects keyed to their primary key.
 However, it doesn&#8217;t do any kind of query caching. This means, if you say
 <tt class="docutils literal"><span class="pre">session.query(Foo).filter_by(name='bar')</span></tt>, even if <tt class="docutils literal"><span class="pre">Foo(name='bar')</span></tt>
@@ -358,21 +358,21 @@ global object from which everyone consults as a &#8220;registry&#8221; of object
 That&#8217;s more the job of a <strong>second level cache</strong>.   SQLAlchemy provides
 a pattern for implementing second level caching using <a class="reference external" href="http://beaker.groovie.org/">Beaker</a>,
 via the <a class="reference internal" href="examples.html#examples-caching"><em>Beaker Caching</em></a> example.</p>
-</blockquote>
+</div></blockquote>
 </li>
 <li><p class="first">How can I get the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> for a certain object ?</p>
 <blockquote>
-<p>Use the <a class="reference internal" href="#sqlalchemy.orm.session.Session.object_session" title="sqlalchemy.orm.session.Session.object_session"><tt class="xref py py-func docutils literal"><span class="pre">object_session()</span></tt></a> classmethod
+<div><p>Use the <a class="reference internal" href="#sqlalchemy.orm.session.Session.object_session" title="sqlalchemy.orm.session.Session.object_session"><tt class="xref py py-func docutils literal"><span class="pre">object_session()</span></tt></a> classmethod
 available on <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="o">.</span><span class="n">object_session</span><span class="p">(</span><span class="n">someobject</span><span class="p">)</span></pre></div>
 </div>
-</blockquote>
+</div></blockquote>
 </li>
 </ul>
 <ul id="index-0">
 <li><p class="first">Is the session thread-safe?</p>
 <blockquote>
-<p>Nope. It has no thread synchronization of any kind built in, and
+<div><p>Nope. It has no thread synchronization of any kind built in, and
 particularly when you do a flush operation, it definitely is not open to
 concurrent threads accessing it, because it holds onto a single database
 connection at that point. If you use a session which is non-transactional
@@ -396,7 +396,7 @@ threads do not collide.</p>
 <p>A multithreaded application is usually going to want to make usage of
 <a class="reference internal" href="#sqlalchemy.orm.scoped_session" title="sqlalchemy.orm.scoped_session"><tt class="xref py py-func docutils literal"><span class="pre">scoped_session()</span></tt></a> to transparently manage sessions per thread.
 More on this at <a class="reference internal" href="#unitofwork-contextual"><em>Contextual/Thread-local Sessions</em></a>.</p>
-</blockquote>
+</div></blockquote>
 </li>
 </ul>
 </div>
@@ -714,9 +714,19 @@ transaction. It always issues <a class="reference internal" href="#sqlalchemy.or
 beforehand to flush any remaining state to the database; this is independent
 of the &#8220;autoflush&#8221; setting. If no transaction is present, it raises an error.
 Note that the default behavior of the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>
-is that a transaction is always present; this behavior can be disabled by
+is that a &#8220;transaction&#8221; is always present; this behavior can be disabled by
 setting <tt class="docutils literal"><span class="pre">autocommit=True</span></tt>. In autocommit mode, a transaction can be
 initiated by calling the <a class="reference internal" href="#sqlalchemy.orm.session.Session.begin" title="sqlalchemy.orm.session.Session.begin"><tt class="xref py py-func docutils literal"><span class="pre">begin()</span></tt></a> method.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The term &#8220;transaction&#8221; here refers to a transactional
+construct within the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> itself which may be
+maintaining zero or more actual database (DBAPI) transactions.  An individual
+DBAPI connection begins participation in the &#8220;transaction&#8221; as it is first
+used to execute a SQL statement, then remains present until the session-level
+&#8220;transaction&#8221; is completed.  See <a class="reference internal" href="#unitofwork-transaction"><em>Managing Transactions</em></a> for
+further detail.</p>
+</div>
 <p>Another behavior of <a class="reference internal" href="#sqlalchemy.orm.session.Session.commit" title="sqlalchemy.orm.session.Session.commit"><tt class="xref py py-func docutils literal"><span class="pre">commit()</span></tt></a> is that by
 default it expires the state of all instances present after the commit is
 complete. This is so that when the instances are next accessed, either through
@@ -738,7 +748,7 @@ transaction is present.</p>
 transaction. With a default configured session, the post-rollback state of the
 session is as follows:</p>
 <blockquote>
-<ul class="simple">
+<div><ul class="simple">
 <li>All transactions are rolled back and all connections returned to the
 connection pool, unless the Session was bound directly to a Connection, in
 which case the connection is still maintained (but still rolled back).</li>
@@ -753,7 +763,7 @@ first <em>pending</em> within the transaction, that operation takes precedence
 instead.</li>
 <li>All objects not expunged are fully expired.</li>
 </ul>
-</blockquote>
+</div></blockquote>
 <p>With that state understood, the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> may
 safely continue usage after a rollback occurs.</p>
 <p>When a <a class="reference internal" href="#sqlalchemy.orm.session.Session.flush" title="sqlalchemy.orm.session.Session.flush"><tt class="xref py py-func docutils literal"><span class="pre">flush()</span></tt></a> fails, typically for
@@ -965,7 +975,7 @@ place:</p>
 </div>
 <p>So above, the assignment of <tt class="docutils literal"><span class="pre">i1.order</span> <span class="pre">=</span> <span class="pre">o1</span></tt> will append <tt class="docutils literal"><span class="pre">i1</span></tt> to the <tt class="docutils literal"><span class="pre">orders</span></tt>
 collection of <tt class="docutils literal"><span class="pre">o1</span></tt>, but will not add <tt class="docutils literal"><span class="pre">i1</span></tt> to the session.   You can of
-course <a class="reference internal" href="#sqlalchemy.orm.session.Session.add" title="sqlalchemy.orm.session.Session.add"><tt class="xref py py-func docutils literal"><span class="pre">add()</span></tt></a> <tt class="docutils literal"><span class="pre">i1</span></tt> to the session at a later point.   This option
+course <tt class="xref py py-func docutils literal"><span class="pre">add()</span></tt> <tt class="docutils literal"><span class="pre">i1</span></tt> to the session at a later point.   This option
 may be helpful for situations where an object needs to be kept out of a
 session until it&#8217;s construction is completed, but still needs to be given
 associations to objects which are already persistent in the target session.</p>
@@ -1105,7 +1115,7 @@ of the transaction has been acounted for, unless the <a class="reference interna
 is called which cancels all transactional markers. For a full exposition on
 the rationale for this,
 please see &#8220;<a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/FAQ#ButwhyisnttheoneautomaticcalltoROLLBACKenoughWhymustIROLLBACKagain">But why isn&#8217;t the one automatic call to ROLLBACK
-enough ? Why must I ROLLBACK again?</a>&#8220;.
+enough ? Why must I ROLLBACK again?</a>&#8221;.
 The general theme is that if subtransactions are used as intended, that is, as a means to nest multiple
 begin/commit pairs, the appropriate rollback calls naturally occur in any case, and allow the session&#8217;s
 nesting of transactional pairs to function in a simple and predictable way
@@ -1449,11 +1459,6 @@ session:</p>
 <p>... use Session normally.</p>
 <p>The internal registry is accessible as well,
 and by default is an instance of <a class="reference internal" href="#sqlalchemy.util.ThreadLocalRegistry" title="sqlalchemy.util.ThreadLocalRegistry"><tt class="xref py py-class docutils literal"><span class="pre">ThreadLocalRegistry</span></tt></a>.</p>
-<dl class="method">
-<dt id="sqlalchemy.orm.scoping.ScopedSession.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>session_factory</em>, <em>scopefunc=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.scoping.ScopedSession.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="method">
 <dt id="sqlalchemy.orm.scoping.ScopedSession.configure">
 <tt class="descname">configure</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.scoping.ScopedSession.configure" title="Permalink to this definition">¶</a></dt>
@@ -2096,7 +2101,7 @@ foreign keys) that would result in an UPDATE for this instance upon
 flush.</p>
 <p>The <tt class="docutils literal"><span class="pre">passive</span></tt> flag indicates if unloaded attributes and collections
 should not be loaded in the course of performing this test.
-Allowed values include <a class="reference internal" href="#sqlalchemy.orm.attributes.PASSIVE_OFF" title="sqlalchemy.orm.attributes.PASSIVE_OFF"><tt class="xref py py-attr docutils literal"><span class="pre">PASSIVE_OFF</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.attributes.PASSIVE_NO_INITIALIZE" title="sqlalchemy.orm.attributes.PASSIVE_NO_INITIALIZE"><tt class="xref py py-attr docutils literal"><span class="pre">PASSIVE_NO_INITIALIZE</span></tt></a>.</p>
+Allowed values include <tt class="xref py py-attr docutils literal"><span class="pre">PASSIVE_OFF</span></tt>, <tt class="xref py py-attr docutils literal"><span class="pre">PASSIVE_NO_INITIALIZE</span></tt>.</p>
 <p>A few caveats to this method apply:</p>
 <ul>
 <li><p class="first">Instances present in the &#8216;dirty&#8217; collection may result in a value 
@@ -2300,9 +2305,9 @@ and attribute key.</p>
 attributes package.</li>
 <li><strong>key</strong> &#8211; string attribute name.</li>
 <li><strong>passive</strong> &#8211; indicates if the attribute should be
-loaded from the database if not already present (<a class="reference internal" href="#sqlalchemy.orm.attributes.PASSIVE_NO_FETCH" title="sqlalchemy.orm.attributes.PASSIVE_NO_FETCH"><tt class="xref py py-attr docutils literal"><span class="pre">PASSIVE_NO_FETCH</span></tt></a>), and
+loaded from the database if not already present (<tt class="xref py py-attr docutils literal"><span class="pre">PASSIVE_NO_FETCH</span></tt>), and
 if the attribute should be not initialized to a blank value otherwise
-(<a class="reference internal" href="#sqlalchemy.orm.attributes.PASSIVE_NO_INITIALIZE" title="sqlalchemy.orm.attributes.PASSIVE_NO_INITIALIZE"><tt class="xref py py-attr docutils literal"><span class="pre">PASSIVE_NO_INITIALIZE</span></tt></a>). Default is <a class="reference internal" href="#sqlalchemy.orm.attributes.PASSIVE_OFF" title="sqlalchemy.orm.attributes.PASSIVE_OFF"><tt class="xref py py-attr docutils literal"><span class="pre">PASSIVE_OFF</span></tt></a>.</li>
+(<tt class="xref py py-attr docutils literal"><span class="pre">PASSIVE_NO_INITIALIZE</span></tt>). Default is <a class="reference internal" href="#sqlalchemy.orm.attributes.PASSIVE_OFF" title="sqlalchemy.orm.attributes.PASSIVE_OFF"><tt class="xref py py-attr docutils literal"><span class="pre">PASSIVE_OFF</span></tt></a>.</li>
 </ul>
 </td>
 </tr>
@@ -2495,7 +2500,7 @@ normally.</p>
             <a href="query.html" title="next chapter">Querying</a>
         <div class="doc_copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 

@@ -7,7 +7,7 @@
         
         <title>
                 Hybrid Attributes
-             &mdash; SQLAlchemy 0.7.0 Documentation</title>
+             &mdash; SQLAlchemy 0.7.1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.7.0',
+          VERSION:     '0.7.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.0 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../../index.html" />
         <link rel="up" title="ORM Extensions" href="index.html" />
         <link rel="next" title="SqlSoup" href="sqlsoup.html" />
         <link rel="prev" title="Horizontal Sharding" href="horizontal_shard.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.0 Documentation</h1>
+<h1>SQLAlchemy 0.7.1 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.0</span> Last Updated: 05/20/2011 17:59:22
+    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../../index.html">SQLAlchemy 0.7.0 Documentation</a>
+        <a class="totoc" href="../../index.html">SQLAlchemy 0.7.1 Documentation</a>
                 » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
                 » <a href="index.html" title="ORM Extensions">ORM Extensions</a>
         » 
@@ -90,6 +90,7 @@ Search:
 <li><a class="reference internal" href="#defining-setters">Defining Setters</a></li>
 <li><a class="reference internal" href="#working-with-relationships">Working with Relationships</a></li>
 <li><a class="reference internal" href="#building-custom-comparators">Building Custom Comparators</a></li>
+<li><a class="reference internal" href="#hybrid-value-objects">Hybrid Value Objects</a></li>
 <li><a class="reference internal" href="#api-reference">API Reference</a></li>
 </ul>
 </li>
@@ -107,7 +108,7 @@ Search:
 <p>Define attributes on ORM-mapped classes that have &#8220;hybrid&#8221; behavior.</p>
 <p>&#8220;hybrid&#8221; means the attribute has distinct behaviors defined at the
 class level and at the instance level.</p>
-<p>The <a class="reference internal" href="#module-sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> extension provides a special form of method
+<p>The <a class="reference internal" href="#module-sqlalchemy.ext.hybrid" title="sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> extension provides a special form of method
 decorator, is around 50 lines of code and has almost no dependencies on the rest 
 of SQLAlchemy.  It can in theory work with any class-level expression generator.</p>
 <p>Consider a table <tt class="docutils literal"><span class="pre">interval</span></tt> as below:</p>
@@ -123,8 +124,8 @@ of SQLAlchemy.  It can in theory work with any class-level expression generator.
 </div>
 <p>We can define higher level functions on mapped classes that produce SQL
 expressions at the class level, and Python expression evaluation at the
-instance level.  Below, each function decorated with <a class="reference internal" href="#sqlalchemy.ext.hybrid.hybrid_method" title="sqlalchemy.ext.hybrid.hybrid_method"><tt class="xref py py-func docutils literal"><span class="pre">hybrid_method()</span></tt></a>
-or <a class="reference internal" href="#sqlalchemy.ext.hybrid.hybrid_property" title="sqlalchemy.ext.hybrid.hybrid_property"><tt class="xref py py-func docutils literal"><span class="pre">hybrid_property()</span></tt></a> may receive <tt class="docutils literal"><span class="pre">self</span></tt> as an instance of the class,
+instance level.  Below, each function decorated with <tt class="xref py py-func docutils literal"><span class="pre">hybrid_method()</span></tt>
+or <tt class="xref py py-func docutils literal"><span class="pre">hybrid_property()</span></tt> may receive <tt class="docutils literal"><span class="pre">self</span></tt> as an instance of the class,
 or as the class itself:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.hybrid</span> <span class="kn">import</span> <span class="n">hybrid_property</span><span class="p">,</span> <span class="n">hybrid_method</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">mapper</span><span class="p">,</span> <span class="n">Session</span><span class="p">,</span> <span class="n">aliased</span>
@@ -211,7 +212,7 @@ SQL expression-level boolean behavior:</p>
 <p>Our usage of the <tt class="docutils literal"><span class="pre">&amp;</span></tt> and <tt class="docutils literal"><span class="pre">|</span></tt> bitwise operators above was fortunate, considering
 our functions operated on two boolean values to return a new one.   In many cases, the construction
 of an in-Python function and a SQLAlchemy SQL expression have enough differences that two
-separate Python expressions should be defined.  The <a class="reference internal" href="#module-sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> decorators
+separate Python expressions should be defined.  The <a class="reference internal" href="#module-sqlalchemy.ext.hybrid" title="sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> decorators
 define the <a class="reference internal" href="#sqlalchemy.ext.hybrid.hybrid_property.expression" title="sqlalchemy.ext.hybrid.hybrid_property.expression"><tt class="xref py py-meth docutils literal"><span class="pre">hybrid_property.expression()</span></tt></a> modifier for this purpose.   As an example we&#8217;ll 
 define the radius of the interval, which requires the usage of the absolute value function:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">func</span>
@@ -228,7 +229,7 @@ define the radius of the interval, which requires the usage of the absolute valu
         <span class="k">return</span> <span class="n">func</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">length</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span></pre></div>
 </div>
 <p>Above the Python function <tt class="docutils literal"><span class="pre">abs()</span></tt> is used for instance-level operations, the SQL function
-<tt class="docutils literal"><span class="pre">ABS()</span></tt> is used via the <a class="reference internal" href="../../core/expression_api.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-attr docutils literal"><span class="pre">func</span></tt></a> object for class-level expressions:</p>
+<tt class="docutils literal"><span class="pre">ABS()</span></tt> is used via the <a class="reference internal" href="../../core/connections.html#sqlalchemy.engine.base.Engine.func" title="sqlalchemy.engine.base.Engine.func"><tt class="xref py py-attr docutils literal"><span class="pre">func</span></tt></a> object for class-level expressions:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">i1</span><span class="o">.</span><span class="n">radius</span>
 <span class="go">2</span>
 
@@ -337,7 +338,12 @@ operator individually.  They are useful when creating custom types that have
 some highly idiosyncratic behavior on the SQL side.</p>
 <p>The example class below allows case-insensitive comparisons on the attribute
 named <tt class="docutils literal"><span class="pre">word_insensitive</span></tt>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.hybrid</span> <span class="kn">import</span> <span class="n">Comparator</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.hybrid</span> <span class="kn">import</span> <span class="n">Comparator</span><span class="p">,</span> <span class="n">hybrid_property</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">func</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">String</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">Session</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
+
+<span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
 
 <span class="k">class</span> <span class="nc">CaseInsensitiveComparator</span><span class="p">(</span><span class="n">Comparator</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
@@ -363,6 +369,93 @@ SQL function to both sides:</p>
 <span class="go">FROM searchword </span>
 <span class="go">WHERE lower(searchword.word) = lower(:lower_1)</span></pre></div>
 </div>
+<p>The <tt class="docutils literal"><span class="pre">CaseInsensitiveComparator</span></tt> above implements part of the <a class="reference internal" href="../../core/expression_api.html#sqlalchemy.sql.operators.ColumnOperators" title="sqlalchemy.sql.operators.ColumnOperators"><tt class="xref py py-class docutils literal"><span class="pre">ColumnOperators</span></tt></a>
+interface.   A &#8220;coercion&#8221; operation like lowercasing can be applied to all comparison operations
+(i.e. <tt class="docutils literal"><span class="pre">eq</span></tt>, <tt class="docutils literal"><span class="pre">lt</span></tt>, <tt class="docutils literal"><span class="pre">gt</span></tt>, etc.) using <a class="reference internal" href="../../core/expression_api.html#sqlalchemy.sql.expression.Operators.operate" title="sqlalchemy.sql.expression.Operators.operate"><tt class="xref py py-meth docutils literal"><span class="pre">Operators.operate()</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">CaseInsensitiveComparator</span><span class="p">(</span><span class="n">Comparator</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">operate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">op</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">lower</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clause_element__</span><span class="p">()),</span> <span class="n">func</span><span class="o">.</span><span class="n">lower</span><span class="p">(</span><span class="n">other</span><span class="p">))</span></pre></div>
+</div>
+</div>
+<div class="section" id="hybrid-value-objects">
+<h2>Hybrid Value Objects<a class="headerlink" href="#hybrid-value-objects" title="Permalink to this headline">¶</a></h2>
+<p>Note in our previous example, if we were to compare the <tt class="docutils literal"><span class="pre">word_insensitive</span></tt> attribute of
+a <tt class="docutils literal"><span class="pre">SearchWord</span></tt> instance to a plain Python string, the plain Python string would not
+be coerced to lower case - the <tt class="docutils literal"><span class="pre">CaseInsensitiveComparator</span></tt> we built, being returned
+by <tt class="docutils literal"><span class="pre">&#64;word_insensitive.comparator</span></tt>, only applies to the SQL side.</p>
+<p>A more comprehensive form of the custom comparator is to construct a <em>Hybrid Value Object</em>.
+This technique applies the target value or expression to a value object which is then
+returned by the accessor in all cases.   The value object allows control
+of all operations upon the value as well as how compared values are treated, both 
+on the SQL expression side as well as the Python value side.   Replacing the
+previous <tt class="docutils literal"><span class="pre">CaseInsensitiveComparator</span></tt> class with a new <tt class="docutils literal"><span class="pre">CaseInsensitiveWord</span></tt> class:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">CaseInsensitiveWord</span><span class="p">(</span><span class="n">Comparator</span><span class="p">):</span>
+    <span class="s">&quot;Hybrid value representing a lower case representation of a word.&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">word</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">word</span> <span class="o">=</span> <span class="n">word</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">CaseInsensitiveWord</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">word</span> <span class="o">=</span> <span class="n">word</span><span class="o">.</span><span class="n">word</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">word</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">lower</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">operate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">CaseInsensitiveWord</span><span class="p">):</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">CaseInsensitiveWord</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">word</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">word</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__clause_element__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">word</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">word</span>
+
+    <span class="n">key</span> <span class="o">=</span> <span class="s">&#39;word&#39;</span>
+    <span class="s">&quot;Label to apply to Query tuple results&quot;</span></pre></div>
+</div>
+<p>Above, the <tt class="docutils literal"><span class="pre">CaseInsensitiveWord</span></tt> object represents <tt class="docutils literal"><span class="pre">self.word</span></tt>, which may be a SQL function,
+or may be a Python native.   By overriding <tt class="docutils literal"><span class="pre">operate()</span></tt> and <tt class="docutils literal"><span class="pre">__clause_element__()</span></tt>
+to work in terms of <tt class="docutils literal"><span class="pre">self.word</span></tt>, all comparison operations will work against the
+&#8220;converted&#8221; form of <tt class="docutils literal"><span class="pre">word</span></tt>, whether it be SQL side or Python side.   
+Our <tt class="docutils literal"><span class="pre">SearchWord</span></tt> class can now deliver the <tt class="docutils literal"><span class="pre">CaseInsensitiveWord</span></tt> object unconditionally 
+from a single hybrid call:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">SearchWord</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;searchword&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">word</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="nd">@hybrid_property</span>
+    <span class="k">def</span> <span class="nf">word_insensitive</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">CaseInsensitiveWord</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">word</span><span class="p">)</span></pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">word_insensitive</span></tt> attribute now has case-insensitive comparison behavior
+universally, including SQL expression vs. Python expression (note the Python value is 
+converted to lower case on the Python side here):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">Session</span><span class="p">()</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SearchWord</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">word_insensitive</span><span class="o">=</span><span class="s">&quot;Trucks&quot;</span><span class="p">)</span>
+<span class="go">SELECT searchword.id AS searchword_id, searchword.word AS searchword_word </span>
+<span class="go">FROM searchword </span>
+<span class="go">WHERE lower(searchword.word) = :lower_1</span></pre></div>
+</div>
+<p>SQL expression versus SQL expression:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">sw1</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">SearchWord</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sw2</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">SearchWord</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">Session</span><span class="p">()</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">sw1</span><span class="o">.</span><span class="n">word_insensitive</span><span class="p">,</span> <span class="n">sw2</span><span class="o">.</span><span class="n">word_insensitive</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">sw1</span><span class="o">.</span><span class="n">word_insensitive</span> <span class="o">&gt;</span> <span class="n">sw2</span><span class="o">.</span><span class="n">word_insensitive</span><span class="p">)</span>
+<span class="go">SELECT lower(searchword_1.word) AS lower_1, lower(searchword_2.word) AS lower_2 </span>
+<span class="go">FROM searchword AS searchword_1, searchword AS searchword_2 </span>
+<span class="go">WHERE lower(searchword_1.word) &gt; lower(searchword_2.word)</span></pre></div>
+</div>
+<p>Python only expression:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ws1</span> <span class="o">=</span> <span class="n">SearchWord</span><span class="p">(</span><span class="n">word</span><span class="o">=</span><span class="s">&quot;SomeWord&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ws1</span><span class="o">.</span><span class="n">word_insensitive</span> <span class="o">==</span> <span class="s">&quot;sOmEwOrD&quot;</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ws1</span><span class="o">.</span><span class="n">word_insensitive</span> <span class="o">==</span> <span class="s">&quot;XOmEwOrX&quot;</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">ws1</span><span class="o">.</span><span class="n">word_insensitive</span>
+<span class="go">someword</span></pre></div>
+</div>
+<p>The Hybrid Value pattern is very useful for any kind of value that may have multiple representations,
+such as timestamps, time deltas, units of measurement, currencies and encrypted passwords.</p>
 </div>
 <div class="section" id="api-reference">
 <h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
@@ -451,8 +544,8 @@ instance-level and class-level behavior.</p>
 <dl class="class">
 <dt id="sqlalchemy.ext.hybrid.Comparator">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.ext.hybrid.</tt><tt class="descname">Comparator</tt><big>(</big><em>expression</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.hybrid.Comparator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="../mapper_config.html#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.orm.interfaces.PropComparator</span></tt></a></p>
-<p>A helper class that allows easy construction of custom <a class="reference internal" href="../mapper_config.html#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a>
+<dd><p>Bases: <a class="reference internal" href="../internals.html#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.orm.interfaces.PropComparator</span></tt></a></p>
+<p>A helper class that allows easy construction of custom <a class="reference internal" href="../internals.html#sqlalchemy.orm.interfaces.PropComparator" title="sqlalchemy.orm.interfaces.PropComparator"><tt class="xref py py-class docutils literal"><span class="pre">PropComparator</span></tt></a>
 classes for usage with hybrids.</p>
 </dd></dl>
 
@@ -470,7 +563,7 @@ classes for usage with hybrids.</p>
             <a href="sqlsoup.html" title="next chapter">SqlSoup</a>
         <div class="doc_copyright">
             &copy; <a href="../../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 

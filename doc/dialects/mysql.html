@@ -7,7 +7,7 @@
         
         <title>
                 MySQL
-             &mdash; SQLAlchemy 0.7.0 Documentation</title>
+             &mdash; SQLAlchemy 0.7.1 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.0',
+          VERSION:     '0.7.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7.0 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7.1 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="Oracle" href="oracle.html" />
         <link rel="prev" title="Microsoft SQL Server" href="mssql.html" />
@@ -38,7 +38,7 @@
 
 
 
-<h1>SQLAlchemy 0.7.0 Documentation</h1>
+<h1>SQLAlchemy 0.7.1 Documentation</h1>
 
 <div id="search">
 Search:
@@ -50,7 +50,7 @@ Search:
 </div>
 
 <div class="versionheader">
-    Version: <span class="versionnum">0.7.0</span> Last Updated: 05/20/2011 17:59:22
+    Version: <span class="versionnum">0.7.1</span> Last Updated: 06/05/2011 13:13:59
 </div>
 <div class="clearboth"></div>
 
@@ -72,7 +72,7 @@ Search:
         </ul>
     </div>
     <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7.0 Documentation</a>
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7.1 Documentation</a>
                 » <a href="index.html" title="Dialects">Dialects</a>
         » 
                 MySQL
@@ -89,6 +89,7 @@ Search:
 <li><a class="reference internal" href="#connecting">Connecting</a></li>
 <li><a class="reference internal" href="#connection-timeouts">Connection Timeouts</a></li>
 <li><a class="reference internal" href="#storage-engines">Storage Engines</a></li>
+<li><a class="reference internal" href="#case-sensitivity-and-table-reflection">Case Sensitivity and Table Reflection</a></li>
 <li><a class="reference internal" href="#keys">Keys</a></li>
 <li><a class="reference internal" href="#sql-mode">SQL Mode</a></li>
 <li><a class="reference internal" href="#mysql-sql-extensions">MySQL SQL Extensions</a></li>
@@ -214,6 +215,20 @@ creation option can be specified in this syntax:</p>
      <span class="p">)</span></pre></div>
 </div>
 </div>
+<div class="section" id="case-sensitivity-and-table-reflection">
+<h2>Case Sensitivity and Table Reflection<a class="headerlink" href="#case-sensitivity-and-table-reflection" title="Permalink to this headline">¶</a></h2>
+<p>MySQL has inconsistent support for case-sensitive identifier
+names, basing support on specific details of the underlying
+operating system. However, it has been observed that no matter
+what case sensitivity behavior is present, the names of tables in
+foreign key declarations are <em>always</em> received from the database
+as all-lower case, making it impossible to accurately reflect a
+schema where inter-related tables use mixed-case identifier names.</p>
+<p>Therefore it is strongly advised that table names be declared as
+all lower case both within SQLAlchemy as well as on the MySQL
+database itself, especially if database reflection features are
+to be used.</p>
+</div>
 <div class="section" id="keys">
 <h2>Keys<a class="headerlink" href="#keys" title="Permalink to this headline">¶</a></h2>
 <p>Not all MySQL storage engines support foreign keys.  For <tt class="docutils literal"><span class="pre">MyISAM</span></tt> and
@@ -337,11 +352,6 @@ numeric.</li>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">BINARY</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.BINARY" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types._Binary</span></tt></p>
 <p>The SQL BINARY type.</p>
-<dl class="method">
-<dt id="sqlalchemy.dialects.mysql.BINARY.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.BINARY.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -360,10 +370,7 @@ type.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>length</strong> &#8211; Optional, number of bits.</li>
-</ul>
-</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; Optional, number of bits.</td>
 </tr>
 </tbody>
 </table>
@@ -384,17 +391,14 @@ type.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>length</strong> &#8211; optional, a length for the column for use in
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
 May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <em>length</em> for use in DDL, and will raise an exception when
-the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</li>
-</ul>
-</td>
+the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.</td>
 </tr>
 </tbody>
 </table>
@@ -477,11 +481,6 @@ compatible with the national character set.</li>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">DATETIME</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.DATETIME" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.DateTime</span></tt></a></p>
 <p>The SQL DATETIME type.</p>
-<dl class="method">
-<dt id="sqlalchemy.dialects.mysql.DATETIME.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.DATETIME.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -557,7 +556,7 @@ numeric.</li>
 <dd><p>Construct an ENUM.</p>
 <p>Example:</p>
 <blockquote>
-Column(&#8216;myenum&#8217;, MSEnum(&#8220;foo&#8221;, &#8220;bar&#8221;, &#8220;baz&#8221;))</blockquote>
+<div>Column(&#8216;myenum&#8217;, MSEnum(&#8220;foo&#8221;, &#8220;bar&#8221;, &#8220;baz&#8221;))</div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -668,11 +667,6 @@ numeric.</li>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">LONGBLOB</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.LONGBLOB" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types._Binary</span></tt></p>
 <p>MySQL LONGBLOB type, for binary data up to 2^32 bytes.</p>
-<dl class="method">
-<dt id="sqlalchemy.dialects.mysql.LONGBLOB.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.LONGBLOB.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -717,11 +711,6 @@ only the collation of character data.</li>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">MEDIUMBLOB</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.MEDIUMBLOB" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types._Binary</span></tt></p>
 <p>MySQL MEDIUMBLOB type, for binary data up to 2^24 bytes.</p>
-<dl class="method">
-<dt id="sqlalchemy.dialects.mysql.MEDIUMBLOB.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.MEDIUMBLOB.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -1031,11 +1020,6 @@ only the collation of character data.</li>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">TIME</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.TIME" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Time" title="sqlalchemy.types.Time"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Time</span></tt></a></p>
 <p>The SQL TIME type.</p>
-<dl class="method">
-<dt id="sqlalchemy.dialects.mysql.TIME.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.TIME.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -1043,11 +1027,6 @@ only the collation of character data.</li>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">TIMESTAMP</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.TIMESTAMP" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TIMESTAMP" title="sqlalchemy.types.TIMESTAMP"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TIMESTAMP</span></tt></a></p>
 <p>MySQL TIMESTAMP type.</p>
-<dl class="method">
-<dt id="sqlalchemy.dialects.mysql.TIMESTAMP.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>timezone=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.TIMESTAMP.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -1055,11 +1034,6 @@ only the collation of character data.</li>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">TINYBLOB</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.TINYBLOB" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types._Binary</span></tt></p>
 <p>MySQL TINYBLOB type, for binary data up to 2^8 bytes.</p>
-<dl class="method">
-<dt id="sqlalchemy.dialects.mysql.TINYBLOB.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.TINYBLOB.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -1136,11 +1110,6 @@ only the collation of character data.</li>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">VARBINARY</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.VARBINARY" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types._Binary</span></tt></p>
 <p>The SQL VARBINARY type.</p>
-<dl class="method">
-<dt id="sqlalchemy.dialects.mysql.VARBINARY.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.VARBINARY.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -1185,11 +1154,6 @@ only the collation of character data.</li>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.mysql.</tt><tt class="descname">YEAR</tt><big>(</big><em>display_width=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.YEAR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>MySQL YEAR type, for single byte storage of years 1901-2155.</p>
-<dl class="method">
-<dt id="sqlalchemy.dialects.mysql.YEAR.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>display_width=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.mysql.YEAR.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 </div>
@@ -1198,7 +1162,7 @@ only the collation of character data.</li>
 <p>Support for the MySQL database via the MySQL-python adapter.</p>
 <p>MySQL-Python is available at:</p>
 <blockquote>
-<a class="reference external" href="http://sourceforge.net/projects/mysql-python">http://sourceforge.net/projects/mysql-python</a></blockquote>
+<div><a class="reference external" href="http://sourceforge.net/projects/mysql-python">http://sourceforge.net/projects/mysql-python</a></div></blockquote>
 <p>At least version 1.2.1 or 1.2.2 should be used.</p>
 <div class="section" id="id1">
 <h3>Connecting<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
@@ -1239,7 +1203,7 @@ recommended connection form with SQLAlchemy is:</p>
 <p>Support for the MySQL database via the oursql adapter.</p>
 <p>OurSQL is available at:</p>
 <blockquote>
-<a class="reference external" href="http://packages.python.org/oursql/">http://packages.python.org/oursql/</a></blockquote>
+<div><a class="reference external" href="http://packages.python.org/oursql/">http://packages.python.org/oursql/</a></div></blockquote>
 <div class="section" id="id2">
 <h3>Connecting<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <p>Connect string format:</p>
@@ -1270,7 +1234,7 @@ defaults to, there is a separate parameter:</p>
 <p>Support for the MySQL database via the pymysql adapter.</p>
 <p>pymysql is available at:</p>
 <blockquote>
-<a class="reference external" href="http://code.google.com/p/pymysql/">http://code.google.com/p/pymysql/</a></blockquote>
+<div><a class="reference external" href="http://code.google.com/p/pymysql/">http://code.google.com/p/pymysql/</a></div></blockquote>
 <div class="section" id="id4">
 <h3>Connecting<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>Connect string:</p>
@@ -1289,7 +1253,7 @@ the pymysql driver as well.</p>
 <p>Support for the MySQL database via the MySQL Connector/Python adapter.</p>
 <p>MySQL Connector/Python is available at:</p>
 <blockquote>
-<a class="reference external" href="https://launchpad.net/myconnpy">https://launchpad.net/myconnpy</a></blockquote>
+<div><a class="reference external" href="https://launchpad.net/myconnpy">https://launchpad.net/myconnpy</a></div></blockquote>
 <div class="section" id="id5">
 <h3>Connecting<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <p>Connect string format:</p>
@@ -1302,7 +1266,7 @@ the pymysql driver as well.</p>
 <p>Support for the MySQL database via the pyodbc adapter.</p>
 <p>pyodbc is available at:</p>
 <blockquote>
-<a class="reference external" href="http://pypi.python.org/pypi/pyodbc/">http://pypi.python.org/pypi/pyodbc/</a></blockquote>
+<div><a class="reference external" href="http://pypi.python.org/pypi/pyodbc/">http://pypi.python.org/pypi/pyodbc/</a></div></blockquote>
 <div class="section" id="id6">
 <h3>Connecting<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <p>Connect string:</p>
@@ -1329,7 +1293,7 @@ of OurSQL, MySQLdb, or MySQL-connector/Python.</p>
 <h3>Connecting<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <p>Connect string format:</p>
 <blockquote>
-mysql+zxjdbc://&lt;user&gt;:&lt;password&gt;&#64;&lt;hostname&gt;[:&lt;port&gt;]/&lt;database&gt;</blockquote>
+<div>mysql+zxjdbc://&lt;user&gt;:&lt;password&gt;&#64;&lt;hostname&gt;[:&lt;port&gt;]/&lt;database&gt;</div></blockquote>
 </div>
 <div class="section" id="id8">
 <h3>Character Sets<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
@@ -1353,7 +1317,7 @@ overriden via a <tt class="docutils literal"><span class="pre">create_engine</sp
             <a href="oracle.html" title="next chapter">Oracle</a>
         <div class="doc_copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 
