@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.7',
+          VERSION:     '0.7.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
+        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
 
 
     </div>
@@ -245,7 +245,8 @@ on <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Tab
 to inspect the actual value using:</p>
 <div class="highlight-python"><pre>SHOW search_path;</pre>
 </div>
-<p>Prior to version 0.7.3, cross-schema foreign keys when the schemas
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7.3: </span>Prior to this version, cross-schema foreign keys when the schemas
 were also in the <tt class="docutils literal"><span class="pre">search_path</span></tt> could make an incorrect assumption
 if the schemas were explicitly stated on each <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</p>
 <p>Background on PG&#8217;s <tt class="docutils literal"><span class="pre">search_path</span></tt> is at: 
@@ -291,13 +292,15 @@ using the <tt class="docutils literal"><span class="pre">postgresql_where</span>
 <p>PostgreSQL allows the specification of an <em>operator class</em> for each column of
 an index (see <a class="reference external" href="http://www.postgresql.org/docs/8.3/interactive/indexes-opclass.html">http://www.postgresql.org/docs/8.3/interactive/indexes-opclass.html</a>).
 The <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct allows these to be specified via the <tt class="docutils literal"><span class="pre">postgresql_ops</span></tt>
-keyword argument (new as of SQLAlchemy 0.7.2):</p>
+keyword argument:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Index</span><span class="p">(</span><span class="s">&#39;my_index&#39;</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> 
                         <span class="n">postgresql_ops</span><span class="o">=</span><span class="p">{</span>
                             <span class="s">&#39;data&#39;</span><span class="p">:</span> <span class="s">&#39;text_pattern_ops&#39;</span><span class="p">,</span> 
                             <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;int4_ops&#39;</span>
                         <span class="p">})</span></pre></div>
 </div>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.2: </span><tt class="docutils literal"><span class="pre">postgresql_ops</span></tt> keyword argument to <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct.</p>
 <p>Note that the keys in the <tt class="docutils literal"><span class="pre">postgresql_ops</span></tt> dictionary are the &#8220;key&#8221; name of
 the <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, i.e. the name used to access it from the <tt class="docutils literal"><span class="pre">.c</span></tt> collection
 of <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, which can be configured to be different than the actual
@@ -359,21 +362,23 @@ the fly</li>
 class should be considered mutable - this enables 
 &#8220;mutable types&#8221; mode in the ORM.  Be sure to read the 
 notes for <a class="reference internal" href="../core/types.html#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">MutableType</span></tt></a> regarding ORM 
-performance implications (default changed from <tt class="docutils literal"><span class="pre">True</span></tt> in 
-0.7.0).</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This functionality is now superseded by the
+performance implications.</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7.0: </span>Default changed from <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7: </span>This functionality is now superseded by the
 <tt class="docutils literal"><span class="pre">sqlalchemy.ext.mutable</span></tt> extension described in 
 <a class="reference internal" href="../orm/extensions/mutable.html"><em>Mutation Tracking</em></a>.</p>
-</div>
 </li>
-<li><strong>as_tuple=False</strong> &#8211; Specify whether return results
+<li><strong>as_tuple=False</strong> &#8211; <p>Specify whether return results
 should be converted to tuples from lists. DBAPIs such
 as psycopg2 return lists by default. When tuples are
 returned, the results are hashable. This flag can only
 be set to <tt class="docutils literal"><span class="pre">True</span></tt> when <tt class="docutils literal"><span class="pre">mutable</span></tt> is set to
-<tt class="docutils literal"><span class="pre">False</span></tt>. (new in 0.6.5)</li>
+<tt class="docutils literal"><span class="pre">False</span></tt>.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.6.5.</span></p>
+</li>
 </ul>
 </td>
 </tr>
@@ -489,7 +494,7 @@ the following parameters.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>create_type</strong> &#8211; Defaults to True.  
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>create_type</strong> &#8211; <p>Defaults to True.  
 Indicates that <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TYPE</span></tt> should be 
 emitted, after optionally checking for the 
 presence of the type, when the parent 
@@ -506,8 +511,10 @@ when invoking a creation scheme to a SQL file
 without access to the actual database - 
 the <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ENUM.create" title="sqlalchemy.dialects.postgresql.ENUM.create"><tt class="xref py py-meth docutils literal"><span class="pre">create()</span></tt></a> and
 <a class="reference internal" href="#sqlalchemy.dialects.postgresql.ENUM.drop" title="sqlalchemy.dialects.postgresql.ENUM.drop"><tt class="xref py py-meth docutils literal"><span class="pre">drop()</span></tt></a> methods can
-be used to emit SQL to a target bind.
-(new in 0.7.4)</td>
+be used to emit SQL to a target bind.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.4.</span></p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -742,9 +749,9 @@ on all new connections based on the value passed to
 <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> using the <tt class="docutils literal"><span class="pre">client_encoding</span></tt> parameter:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;postgresql://user:pass@host/dbname&quot;</span><span class="p">,</span> <span class="n">client_encoding</span><span class="o">=</span><span class="s">&#39;utf8&#39;</span><span class="p">)</span></pre></div>
 </div>
-<p>This overrides the encoding specified in the Postgresql client configuration.
-The psycopg2-specific <tt class="docutils literal"><span class="pre">client_encoding</span></tt> parameter to <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> is new as of 
-SQLAlchemy 0.7.3.</p>
+<p>This overrides the encoding specified in the Postgresql client configuration.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.3: </span>The psycopg2-specific <tt class="docutils literal"><span class="pre">client_encoding</span></tt> parameter to <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>.</p>
 <p>SQLAlchemy can also be instructed to skip the usage of the psycopg2
 <tt class="docutils literal"><span class="pre">UNICODE</span></tt> extension and to instead utilize it&#8217;s own unicode encode/decode
 services, which are normally reserved only for those DBAPIs that don&#8217;t 
@@ -830,7 +837,7 @@ yet.</p>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>
 

@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.7',
+          VERSION:     '0.7.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
+        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
 
 
     </div>
@@ -117,6 +117,7 @@
 <li><a class="reference internal" href="#date-and-time-types">Date and Time Types</a></li>
 <li><a class="reference internal" href="#auto-incrementing-behavior">Auto Incrementing Behavior</a></li>
 <li><a class="reference internal" href="#transaction-isolation-level">Transaction Isolation Level</a></li>
+<li><a class="reference internal" href="#database-locking-behavior-concurrency">Database Locking Behavior / Concurrency</a></li>
 <li><a class="reference internal" href="#sqlite-data-types">SQLite Data Types</a></li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.sqlite.pysqlite">Pysqlite</a><ul>
 <li><a class="reference internal" href="#driver">Driver</a></li>
@@ -203,6 +204,34 @@ connection.   Valid values for this parameter are <tt class="docutils literal"><
 <tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt> corresponding to a value of 0 and 1, respectively.
 See the section <a class="reference internal" href="#pysqlite-serializable"><em>Serializable Transaction Isolation</em></a> for an important workaround
 when using serializable isolation with Pysqlite.</p>
+</div>
+<div class="section" id="database-locking-behavior-concurrency">
+<h2>Database Locking Behavior / Concurrency<a class="headerlink" href="#database-locking-behavior-concurrency" title="Permalink to this headline">¶</a></h2>
+<p>Note that SQLite is not designed for a high level of concurrency.   The database
+itself, being a file, is locked completely during write operations and within 
+transactions, meaning exactly one connection has exclusive access to the database
+during this period - all other connections will be blocked during this time.</p>
+<p>The Python DBAPI specification also calls for a connection model that is always
+in a transaction; there is no BEGIN method, only commit and rollback.  This implies
+that a SQLite DBAPI driver would technically allow only serialized access to a 
+particular database file at all times.   The pysqlite driver attempts to ameliorate this by
+deferring the actual BEGIN statement until the first DML (INSERT, UPDATE, or
+DELETE) is received within a transaction.  While this breaks serializable isolation,
+it at least delays the exclusive locking inherent in SQLite&#8217;s design.</p>
+<p>SQLAlchemy&#8217;s default mode of usage with the ORM is known 
+as &#8220;autocommit=False&#8221;, which means the moment the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> begins to be 
+used, a transaction is begun.   As the <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> is used, the autoflush
+feature, also on by default, will flush out pending changes to the database 
+before each query.  The effect of this is that a <a class="reference internal" href="../orm/session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> used in its
+default mode will often emit DML early on, long before the transaction is actually
+committed.  This again will have the effect of serializing access to the SQLite 
+database.   If highly concurrent reads are desired against the SQLite database,
+it is advised that the autoflush feature be disabled, and potentially even
+that autocommit be re-enabled, which has the effect of each SQL statement and
+flush committing changes immediately.</p>
+<p>For more information on SQLite&#8217;s lack of concurrency by design, please 
+see <a class="reference external" href="http://www.sqlite.org/whentouse.html">Situations Where Another RDBMS May Work Better - High Concurrency</a>
+near the bottom of the page.</p>
 </div>
 <div class="section" id="sqlite-data-types">
 <h2>SQLite Data Types<a class="headerlink" href="#sqlite-data-types" title="Permalink to this headline">¶</a></h2>
@@ -439,13 +468,10 @@ which are returned to the pool immediately. SQLite file-based connections
 have extremely low overhead, so pooling is not necessary. The scheme also
 prevents a connection from being used again in a different thread and works
 best with SQLite&#8217;s coarse-grained file locking.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The default selection of <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.NullPool" title="sqlalchemy.pool.NullPool"><tt class="xref py py-class docutils literal"><span class="pre">NullPool</span></tt></a> for SQLite file-based databases 
-is new in SQLAlchemy 0.7. Previous versions
-select <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.SingletonThreadPool" title="sqlalchemy.pool.SingletonThreadPool"><tt class="xref py py-class docutils literal"><span class="pre">SingletonThreadPool</span></tt></a> by
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.7: </span>Default selection of <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.NullPool" title="sqlalchemy.pool.NullPool"><tt class="xref py py-class docutils literal"><span class="pre">NullPool</span></tt></a> for SQLite file-based databases.
+Previous versions select <a class="reference internal" href="../core/pooling.html#sqlalchemy.pool.SingletonThreadPool" title="sqlalchemy.pool.SingletonThreadPool"><tt class="xref py py-class docutils literal"><span class="pre">SingletonThreadPool</span></tt></a> by
 default for all SQLite databases.</p>
-</div>
 </li>
 </ul>
 <p>Modern versions of SQLite no longer have the threading restrictions, and assuming
@@ -538,7 +564,7 @@ a <a class="reference internal" href="../core/events.html#sqlalchemy.events.Conn
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>
 

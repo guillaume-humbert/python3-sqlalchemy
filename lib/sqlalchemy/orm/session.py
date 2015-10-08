@@ -109,11 +109,12 @@ class SessionTransaction(object):
     instances behind the scenes, with one :class:`~.engine.base.Transaction`
     per :class:`~.engine.base.Engine` in use.
 
-    Direct usage of :class:`.SessionTransaction` is not typically 
-    necessary as of SQLAlchemy 0.4; use the :meth:`.Session.rollback` and 
-    :meth:`.Session.commit` methods on :class:`.Session` itself to 
-    control the transaction.
-    
+    .. versionchanged:: 0.4
+        Direct usage of :class:`.SessionTransaction` is not typically
+        necessary; use the :meth:`.Session.rollback` and 
+        :meth:`.Session.commit` methods on :class:`.Session` itself to 
+        control the transaction.
+
     The current instance of :class:`.SessionTransaction` for a given
     :class:`.Session` is available via the :attr:`.Session.transaction`
     attribute.
@@ -998,7 +999,7 @@ class Session(object):
         of objects which involve existing database queries,
         where the uncompleted object should not yet be flushed.
         
-        New in 0.7.6.
+        .. versionadded:: 0.7.6
 
         """
         autoflush = self.autoflush
@@ -1563,19 +1564,14 @@ class Session(object):
         will create a transaction on the fly that surrounds the entire set of
         operations int the flush.
 
-        objects
-          Optional; a list or tuple collection.  Restricts the flush operation
-          to only these objects, rather than all pending changes.
-          Deprecated - this flag prevents the session from properly maintaining
-          accounting among inter-object relations and can cause invalid results.
+        :param objects: Optional; restricts the flush operation to operate 
+          only on elements that are in the given collection.
+          
+          This feature is for an extremely narrow set of use cases where
+          particular objects may need to be operated upon before the 
+          full flush() occurs.  It is not intended for general use.
 
         """
-
-        if objects:
-            util.warn_deprecated(
-                "The 'objects' argument to session.flush() is deprecated; "
-                "Please do not add objects to the session which should not "
-                "yet be persisted.")
 
         if self._flushing:
             raise sa_exc.InvalidRequestError("Session is already flushing")
@@ -1694,19 +1690,18 @@ class Session(object):
         E.g.::
         
             return session.is_modified(someobject, passive=True)
-            
-        .. note:: 
-          
-           In SQLAlchemy 0.7 and earlier, the ``passive`` 
-           flag should **always** be explicitly set to ``True``. 
-           The current default value of :data:`.attributes.PASSIVE_OFF`
-           for this flag is incorrect, in that it loads unloaded
-           collections and attributes which by definition 
-           have no modified state, and furthermore trips off 
-           autoflush which then causes all subsequent, possibly
-           modified attributes to lose their modified state.   
-           The default value of the flag will be changed in 0.8.
-           
+
+        .. versionchanged:: 0.8
+            In SQLAlchemy 0.7 and earlier, the ``passive`` 
+            flag should **always** be explicitly set to ``True``. 
+            The current default value of :data:`.attributes.PASSIVE_OFF`
+            for this flag is incorrect, in that it loads unloaded
+            collections and attributes which by definition 
+            have no modified state, and furthermore trips off 
+            autoflush which then causes all subsequent, possibly
+            modified attributes to lose their modified state.   
+            The default value of the flag will be changed in 0.8.
+
         A few caveats to this method apply:
 
         * Instances present in the :attr:`.Session.dirty` collection may report 
@@ -1750,10 +1745,11 @@ class Session(object):
          is a bug, as unloaded attributes by definition have 
          no changes, and the load operation also triggers an
          autoflush which then cancels out subsequent changes.
-         This flag should **always be set to 
-         True**.  In 0.8 the flag will be deprecated and the default
-         set to ``True``.
+         This flag should **always be set to True**.
 
+         .. versionchanged:: 0.8
+             The flag will be deprecated and the default
+             set to ``True``.
 
         """
         try:

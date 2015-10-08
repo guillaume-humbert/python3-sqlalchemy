@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.7',
+          VERSION:     '0.7.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -34,7 +34,7 @@
         <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
-        <link rel="next" title="Deprecated ORM Event Interfaces" href="interfaces.html" />
+        <link rel="next" title="&lt;no title&gt;" href="interfaces.html" />
         <link rel="prev" title="SqlSoup" href="extensions/sqlsoup.html" />
 
     </head>
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
+        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
 
 
     </div>
@@ -81,7 +81,7 @@
             <a href="extensions/sqlsoup.html" title="previous chapter">SqlSoup</a>
             </li>
             <li>Next:
-            <a href="interfaces.html" title="next chapter">Deprecated ORM Event Interfaces</a>
+            <a href="interfaces.html" title="next chapter">&lt;no title&gt;</a>
             </li>
 
         <li>
@@ -142,7 +142,7 @@
     </p>
     <h4>Next Topic</h4>
     <p>
-    <a href="interfaces.html" title="next chapter">Deprecated ORM Event Interfaces</a>
+    <a href="interfaces.html" title="next chapter">&lt;no title&gt;</a>
     </p>
 
 
@@ -202,7 +202,7 @@ as values, which conceal the underlying mapped classes.</li>
 <span id="examples-instrumentation"></span><h2>Attribute Instrumentation<a class="headerlink" href="#attribute-instrumentation" title="Permalink to this headline">¶</a></h2>
 <p>Location: /examples/custom_attributes/</p>
 <span class="target" id="module-custom_attributes"></span><p>Two examples illustrating modifications to SQLAlchemy&#8217;s attribute management system.</p>
-<p><tt class="docutils literal"><span class="pre">listen_for_events.py</span></tt> illustrates the usage of <a class="reference internal" href="interfaces.html#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a> to intercept attribute events.  It additionally illustrates a way to automatically attach these listeners to all class attributes using a <a class="reference internal" href="events.html#sqlalchemy.orm.interfaces.InstrumentationManager" title="sqlalchemy.orm.interfaces.InstrumentationManager"><tt class="xref py py-class docutils literal"><span class="pre">InstrumentationManager</span></tt></a>.</p>
+<p><tt class="docutils literal"><span class="pre">listen_for_events.py</span></tt> illustrates the usage of <a class="reference internal" href="deprecated.html#sqlalchemy.orm.interfaces.AttributeExtension" title="sqlalchemy.orm.interfaces.AttributeExtension"><tt class="xref py py-class docutils literal"><span class="pre">AttributeExtension</span></tt></a> to intercept attribute events.  It additionally illustrates a way to automatically attach these listeners to all class attributes using a <a class="reference internal" href="events.html#sqlalchemy.orm.interfaces.InstrumentationManager" title="sqlalchemy.orm.interfaces.InstrumentationManager"><tt class="xref py py-class docutils literal"><span class="pre">InstrumentationManager</span></tt></a>.</p>
 <p><tt class="docutils literal"><span class="pre">custom_management.py</span></tt> illustrates much deeper usage of <a class="reference internal" href="events.html#sqlalchemy.orm.interfaces.InstrumentationManager" title="sqlalchemy.orm.interfaces.InstrumentationManager"><tt class="xref py py-class docutils literal"><span class="pre">InstrumentationManager</span></tt></a> as well as collection adaptation, to completely change the underlying method used to store state on an object.   This example was developed to illustrate techniques which would be used by other third party object instrumentation systems to interact with SQLAlchemy&#8217;s event system and is only intended for very intricate framework integrations.</p>
 </div>
 <div class="section" id="beaker-caching">
@@ -287,7 +287,8 @@ as they are established, without actually creating the mapping.
 Then, a second class-level method <tt class="docutils literal"><span class="pre">prepare()</span></tt> is used to iterate
 through all mapping configurations collected, reflect the tables
 named within and generate the actual mappers.</p>
-<p>The example is new in 0.7.5 and makes usage of the new
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.5: </span>This new example makes usage of the new
 <tt class="docutils literal"><span class="pre">autoload_replace</span></tt> flag on <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> to allow declared
 classes to override reflected columns.</p>
 <p>Usage example:</p>
@@ -562,11 +563,11 @@ the load in a non-recursive fashion and is much more efficient.</li>
         Previous:
         <a href="extensions/sqlsoup.html" title="previous chapter">SqlSoup</a>
         Next:
-        <a href="interfaces.html" title="next chapter">Deprecated ORM Event Interfaces</a>
+        <a href="interfaces.html" title="next chapter">&lt;no title&gt;</a>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>
 

@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.7.7',
+          VERSION:     '0.7.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
+        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
 
 
     </div>
@@ -161,15 +161,12 @@
         
 <div class="section" id="module-sqlalchemy.ext.sqlsoup">
 <span id="sqlsoup"></span><h1>SqlSoup<a class="headerlink" href="#module-sqlalchemy.ext.sqlsoup" title="Permalink to this headline">¶</a></h1>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p>SQLSoup is now its own project.  Documentation
-and project status are available at:</p>
-<p><a class="reference external" href="http://pypi.python.org/pypi/sqlsoup">http://pypi.python.org/pypi/sqlsoup</a></p>
-<p><a class="reference external" href="http://readthedocs.org/docs/sqlsoup">http://readthedocs.org/docs/sqlsoup</a></p>
-<p class="last">SQLSoup will no longer be included with SQLAlchemy as of 
-version 0.8.</p>
-</div>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.8: </span>SQLSoup is now its own project.  Documentation
+and project status are available at:
+<a class="reference external" href="http://pypi.python.org/pypi/sqlsoup">http://pypi.python.org/pypi/sqlsoup</a> and
+<a class="reference external" href="http://readthedocs.org/docs/sqlsoup">http://readthedocs.org/docs/sqlsoup</a>.
+SQLSoup will no longer be included with SQLAlchemy.</p>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>SqlSoup provides a convenient way to access existing database
@@ -591,8 +588,9 @@ construct.</p>
 <dt id="sqlalchemy.ext.sqlsoup.SqlSoup.join">
 <tt class="descname">join</tt><big>(</big><em>left</em>, <em>right</em>, <em>onclause=None</em>, <em>isouter=False</em>, <em>base=None</em>, <em>**mapper_args</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.join" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an <a class="reference internal" href="../../core/expression_api.html#sqlalchemy.sql.expression.join" title="sqlalchemy.sql.expression.join"><tt class="xref py py-func docutils literal"><span class="pre">expression.join()</span></tt></a> and map to it.</p>
-<p>The class and its mapping are not cached and will
-be discarded once dereferenced (as of 0.6.6).</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.6.6: </span>The class and its mapping are not cached and will
+be discarded once dereferenced.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -620,8 +618,9 @@ be passed directly to <a class="reference internal" href="../mapper_config.html#
 <dt id="sqlalchemy.ext.sqlsoup.SqlSoup.map">
 <tt class="descname">map</tt><big>(</big><em>selectable</em>, <em>base=None</em>, <em>**mapper_args</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.map" title="Permalink to this definition">¶</a></dt>
 <dd><p>Map a selectable directly.</p>
-<p>The class and its mapping are not cached and will
-be discarded once dereferenced (as of 0.6.6).</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.6.6: </span>The class and its mapping are not cached and will
+be discarded once dereferenced.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -648,7 +647,8 @@ be passed directly to <a class="reference internal" href="../mapper_config.html#
 <dd><p>Configure a mapping to the given attrname.</p>
 <p>This is the &#8220;master&#8221; method that can be used to create any 
 configuration.</p>
-<p>(new in 0.6.6)</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.6.6.</span></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -693,8 +693,9 @@ argument.</li>
 <tt class="descname">with_labels</tt><big>(</big><em>selectable</em>, <em>base=None</em>, <em>**mapper_args</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.sqlsoup.SqlSoup.with_labels" title="Permalink to this definition">¶</a></dt>
 <dd><p>Map a selectable directly, wrapping the 
 selectable in a subquery with labels.</p>
-<p>The class and its mapping are not cached and will
-be discarded once dereferenced (as of 0.6.6).</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 0.6.6: </span>The class and its mapping are not cached and will
+be discarded once dereferenced.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -732,7 +733,7 @@ be passed directly to <a class="reference internal" href="../mapper_config.html#
 
     <div id="docs-copyright">
         &copy; <a href="../../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>
 

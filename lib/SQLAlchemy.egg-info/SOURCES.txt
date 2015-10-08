@@ -322,6 +322,7 @@ lib/sqlalchemy/dialects/mssql/pyodbc.py
 lib/sqlalchemy/dialects/mssql/zxjdbc.py
 lib/sqlalchemy/dialects/mysql/__init__.py
 lib/sqlalchemy/dialects/mysql/base.py
+lib/sqlalchemy/dialects/mysql/gaerdbms.py
 lib/sqlalchemy/dialects/mysql/mysqlconnector.py
 lib/sqlalchemy/dialects/mysql/mysqldb.py
 lib/sqlalchemy/dialects/mysql/oursql.py

@@ -861,6 +861,18 @@ class LoadOnExistingTest(_fixtures.FixtureTest):
         self.assert_sql_count(testing.db, go, 1)
         assert 'addresses' not in u1.__dict__
 
+    def test_populate_existing_propagate(self):
+        User, Address, sess = self._eager_config_fixture()
+        u1 = sess.query(User).get(8)
+        u1.addresses[2].email_address = "foofoo"
+        del u1.addresses[1]
+        u1 = sess.query(User).populate_existing().filter_by(id=8).one()
+        # collection is reverted
+        eq_(len(u1.addresses), 3)
+
+        # attributes on related items reverted
+        eq_(u1.addresses[2].email_address, "ed@lala.com")
+
     def test_loads_second_level_collection_to_scalar(self):
         User, Address, Dingaling, sess = self._collection_to_scalar_fixture()
 
@@ -1184,4 +1196,84 @@ class SelfReferentialTest(fixtures.MappedTest):
             ], d)
         self.assert_sql_count(testing.db, go, 4)
 
+class InheritanceToRelatedTest(fixtures.MappedTest):
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('foo', metadata, 
+            Column("id", Integer, primary_key=True),
+            Column("type", String(50)),
+            Column("related_id", Integer, ForeignKey("related.id"))
+        )
+        Table("bar", metadata,
+            Column("id", Integer, ForeignKey('foo.id'), primary_key=True),
+        )
+        Table("baz", metadata,
+            Column("id", Integer, ForeignKey('foo.id'), primary_key=True),
+        )
+        Table("related", metadata,
+            Column("id", Integer, primary_key=True),
+        )
 
+    @classmethod
+    def setup_classes(cls):
+        class Foo(cls.Comparable):
+            pass
+        class Bar(Foo):
+            pass
+        class Baz(Foo):
+            pass
+        class Related(cls.Comparable):
+            pass
+
+    @classmethod
+    def fixtures(cls):
+        return dict(
+            foo = [
+                ('id', 'type', 'related_id'),
+                (1, 'bar', 1),
+                (2, 'bar', 2),
+                (3, 'baz', 1),
+                (4, 'baz', 2),
+            ],
+            bar = [
+                ('id', ),
+                (1,),
+                (2,)
+            ],
+            baz = [
+                ('id', ),
+                (3,),
+                (4,)
+            ],
+            related = [
+                ('id', ),
+                (1,),
+                (2,)
+            ]
+        )
+    @classmethod
+    def setup_mappers(cls):
+        mapper(cls.classes.Foo, cls.tables.foo, properties={
+            'related':relationship(cls.classes.Related)
+        }, polymorphic_on=cls.tables.foo.c.type)
+        mapper(cls.classes.Bar, cls.tables.bar, polymorphic_identity='bar', 
+                    inherits=cls.classes.Foo)
+        mapper(cls.classes.Baz, cls.tables.baz, polymorphic_identity='baz', 
+                    inherits=cls.classes.Foo)
+        mapper(cls.classes.Related, cls.tables.related)
+
+    def test_caches_query_per_base(self):
+        Foo, Bar, Baz, Related = self.classes.Foo, self.classes.Bar, \
+                        self.classes.Baz, self.classes.Related
+        s = Session(testing.db)
+        def go():
+            eq_(
+                s.query(Foo).with_polymorphic([Bar, Baz]).order_by(Foo.id).options(subqueryload(Foo.related)).all(),
+                [
+                    Bar(id=1,related=Related(id=1)),
+                    Bar(id=2,related=Related(id=2)),
+                    Baz(id=3,related=Related(id=1)),
+                    Baz(id=4,related=Related(id=2))
+                ]
+            )
+        self.assert_sql_count(testing.db, go, 2)

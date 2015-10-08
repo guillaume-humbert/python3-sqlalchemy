@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.7',
+          VERSION:     '0.7.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
+        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
 
 
     </div>
@@ -1121,9 +1121,19 @@ in all cases.</p>
 <tt class="descname">post_insert</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.post_insert" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultExecutionContext.postfetch_cols">
+<tt class="descname">postfetch_cols</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.postfetch_cols" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultExecutionContext.pre_exec">
 <tt class="descname">pre_exec</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.pre_exec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultExecutionContext.prefetch_cols">
+<tt class="descname">prefetch_cols</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.prefetch_cols" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -1231,12 +1241,9 @@ connection.cursor(), such as postgresql which may return a PG
 <dl class="method">
 <dt id="sqlalchemy.engine.base.ExecutionContext.get_rowcount">
 <tt class="descname">get_rowcount</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.ExecutionContext.get_rowcount" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the number of rows produced (by a SELECT query)
-or affected (by an INSERT/UPDATE/DELETE statement).</p>
-<p>Note that this row count may not be properly implemented 
-in some dialects; this is indicated by the 
-<tt class="docutils literal"><span class="pre">supports_sane_rowcount</span></tt> and <tt class="docutils literal"><span class="pre">supports_sane_multi_rowcount</span></tt>
-dialect attributes.</p>
+<dd><p>Return the DBAPI <tt class="docutils literal"><span class="pre">cursor.rowcount</span></tt> value, or in some
+cases an interpreted value.</p>
+<p>See <a class="reference internal" href="connections.html#sqlalchemy.engine.base.ResultProxy.rowcount" title="sqlalchemy.engine.base.ResultProxy.rowcount"><tt class="xref py py-attr docutils literal"><span class="pre">ResultProxy.rowcount</span></tt></a> for details on this.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1523,7 +1530,7 @@ in an UPDATE statement.</p>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>
 

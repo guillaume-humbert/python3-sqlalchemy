@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.7',
+          VERSION:     '0.7.8',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -35,7 +35,7 @@
     <link rel="top" title="SQLAlchemy 0.7 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="ORM Internals" href="internals.html" />
-        <link rel="prev" title="Deprecated ORM Event Interfaces" href="interfaces.html" />
+        <link rel="prev" title="&lt;no title&gt;" href="interfaces.html" />
 
     </head>
     <body>
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.7</span> | Release Date: May 5, 2012
+        Release: <span class="version-num">0.7.8</span> | Release Date: June 16, 2012
 
 
     </div>
@@ -78,7 +78,7 @@
     <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
-            <a href="interfaces.html" title="previous chapter">Deprecated ORM Event Interfaces</a>
+            <a href="interfaces.html" title="previous chapter">&lt;no title&gt;</a>
             </li>
             <li>Next:
             <a href="internals.html" title="next chapter">ORM Internals</a>
@@ -119,7 +119,7 @@
 
     <h4>Previous Topic</h4>
     <p>
-    <a href="interfaces.html" title="previous chapter">Deprecated ORM Event Interfaces</a>
+    <a href="interfaces.html" title="previous chapter">&lt;no title&gt;</a>
     </p>
     <h4>Next Topic</h4>
     <p>
@@ -217,21 +217,26 @@ object.</p>
 <dd><p>Bases: <a class="reference internal" href="../core/exceptions.html#sqlalchemy.exc.SQLAlchemyError" title="sqlalchemy.exc.SQLAlchemyError"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.exc.SQLAlchemyError</span></tt></a></p>
 <p>An operation encountered database state that is unaccounted for.</p>
 <p>Conditions which cause this to happen include:</p>
-<ul class="simple">
-<li>A flush may have attempted to update or delete rows
+<ul>
+<li><p class="first">A flush may have attempted to update or delete rows
 and an unexpected number of rows were matched during 
 the UPDATE or DELETE statement.   Note that when 
 version_id_col is used, rows in UPDATE or DELETE statements
 are also matched against the current known version
-identifier.</li>
-<li>A mapped object with version_id_col was refreshed, 
+identifier.</p>
+</li>
+<li><p class="first">A mapped object with version_id_col was refreshed, 
 and the version number coming back from the database does
-not match that of the object itself.</li>
-<li>A object is detached from its parent object, however
+not match that of the object itself.</p>
+</li>
+<li><p class="first">A object is detached from its parent object, however
 the object was previously attached to a different parent
 identity which was garbage collected, and a decision
 cannot be made if the new parent was really the most
-recent &#8220;parent&#8221; (new in 0.7.4).</li>
+recent &#8220;parent&#8221;.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.7.4.</span></p>
+</li>
 </ul>
 </dd></dl>
 
@@ -271,13 +276,13 @@ recent &#8220;parent&#8221; (new in 0.7.4).</li>
 
 <div id="docs-bottom-navigation" class="docs-navigation-links">
         Previous:
-        <a href="interfaces.html" title="previous chapter">Deprecated ORM Event Interfaces</a>
+        <a href="interfaces.html" title="previous chapter">&lt;no title&gt;</a>
         Next:
         <a href="internals.html" title="next chapter">ORM Internals</a>
 
     <div id="docs-copyright">
         &copy; <a href="../copyright.html">Copyright</a> 2007-2012, the SQLAlchemy authors and contributors.
-        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 </div>
 

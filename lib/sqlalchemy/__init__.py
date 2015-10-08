@@ -50,6 +50,8 @@ from sqlalchemy.sql import (
     )
 
 from sqlalchemy.types import (
+    BIGINT,
+    BINARY,
     BLOB,
     BOOLEAN,
     BigInteger,
@@ -87,6 +89,7 @@ from sqlalchemy.types import (
     TypeDecorator,
     Unicode,
     UnicodeText,
+    VARBINARY,
     VARCHAR,
     )
 
@@ -117,7 +120,7 @@ from sqlalchemy.engine import create_engine, engine_from_config
 __all__ = sorted(name for name, obj in locals().items()
                  if not (name.startswith('_') or inspect.ismodule(obj)))
 
-__version__ = '0.7.7'
+__version__ = '0.7.8'
 
 del inspect, sys
 
