@@ -532,8 +532,14 @@ class CollectionAttributeImpl(AttributeImpl):
         new_values = list(new_collection.adapt_like_to_iterable(value))
 
         old = self.get(state)
+
+        # ignore re-assignment of the current collection, as happens
+        # implicitly with in-place operators (foo.collection |= other)
+        if old is value:
+            return
+
         state.committed_state[self.key] = self.copy(old)
-        
+
         old_collection = self.get_collection(state, old)
 
         idset = util.IdentitySet
@@ -1116,7 +1122,8 @@ def register_class(class_, extra_init=None, on_exception=None, deferred_scalar_l
     doinit = False
 
     def init(instance, *args, **kwargs):
-        instance._state = InstanceState(instance)
+        if not hasattr(instance, '_state'):
+            instance._state = InstanceState(instance)
 
         if extra_init:
             extra_init(class_, oldinit, instance, args, kwargs)
