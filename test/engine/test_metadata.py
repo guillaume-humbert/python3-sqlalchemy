@@ -1,7 +1,8 @@
 from sqlalchemy.test.testing import assert_raises, assert_raises_message
 import pickle
 from sqlalchemy import MetaData
-from sqlalchemy import Integer, String, UniqueConstraint, CheckConstraint, ForeignKey
+from sqlalchemy import Integer, String, UniqueConstraint, CheckConstraint, ForeignKey, \
+                            Sequence, ColumnDefault
 from sqlalchemy.test.schema import Table
 from sqlalchemy.test.schema import Column
 import sqlalchemy as tsa
@@ -20,7 +21,24 @@ class MetaDataTest(TestBase, ComparesTables):
         finally:
             metadata.drop_all()
 
-
+    def test_uninitialized_column_copy(self):
+        for col in [
+            Column('foo', String(), nullable=False),
+            Column(Integer(), primary_key=True),
+            Column('bar', Integer(), Sequence('foo_seq'), primary_key=True, key='bar'),
+            Column(Integer(), ForeignKey('bat.blah')),
+            Column('bar', Integer(), ForeignKey('bat.blah'), primary_key=True, key='bar'),
+        ]:
+            c2 = col.copy()
+            for attr in ('name', 'type', 'nullable', 'primary_key', 'key'):
+                eq_(getattr(col, attr), getattr(c2, attr))
+            eq_(len(col.args), len(c2.args))
+            for a1, a2 in zip(col.args, c2.args):
+                if isinstance(a1, ForeignKey):
+                    assert a2._colspec == 'bat.blah'
+                elif isinstance(a1, Sequence):
+                    assert a2.name == 'foo_seq'
+            
     def test_dupe_tables(self):
         metadata = MetaData()
         t1 = Table('table1', metadata, Column('col1', Integer, primary_key=True),
@@ -44,7 +62,7 @@ class MetaDataTest(TestBase, ComparesTables):
         meta = MetaData()
 
         table = Table('mytable', meta,
-            Column('myid', Integer, primary_key=True),
+            Column('myid', Integer, Sequence('foo_id_seq'), primary_key=True),
             Column('name', String(40), nullable=True),
             Column('foo', String(40), nullable=False, server_default='x', server_onupdate='q'),
             Column('bar', String(40), nullable=False, default='y', onupdate='z'),
@@ -97,6 +115,7 @@ class MetaDataTest(TestBase, ComparesTables):
                 assert 'x' in str(table_c.c.foo.server_default.arg)
                 
                 if not reflect:
+                    assert isinstance(table_c.c.myid.default, Sequence)
                     assert str(table_c.c.foo.server_onupdate.arg) == 'q'
                     assert str(table_c.c.bar.default.arg) == 'y'
                     assert getattr(table_c.c.bar.onupdate.arg, 'arg', table_c.c.bar.onupdate.arg) == 'z'
@@ -182,6 +201,15 @@ class TableOptionsTest(TestBase):
             assert t.info['bar'] == 'zip'
 
 class ColumnOptionsTest(TestBase):
+    
+    def test_default_generators(self):
+        g1, g2 = Sequence('foo_id_seq'), ColumnDefault('f5')
+        assert Column(default=g1).default is g1
+        assert Column(onupdate=g1).onupdate is g1
+        assert Column(default=g2).default is g2
+        assert Column(onupdate=g2).onupdate is g2
+        
+        
     def test_column_info(self):
         
         c1 = Column('foo', info={'x':'y'})
