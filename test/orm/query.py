@@ -394,6 +394,10 @@ class FilterTest(QueryTest):
 
         assert [Order(id=4), Order(id=5)] == sess.query(Order).filter(~Order.items.contains(item)).all()
 
+        item2 = sess.query(Item).get(5)
+        assert [Order(id=3)] == sess.query(Order).filter(Order.items.contains(item)).filter(Order.items.contains(item2)).all()
+        
+
     def test_comparison(self):
         """test scalar comparison to an object instance"""
 
@@ -415,7 +419,7 @@ class FilterTest(QueryTest):
         # m2m
         self.assertEquals(sess.query(Item).filter(Item.keywords==None).all(), [Item(id=4), Item(id=5)])
         self.assertEquals(sess.query(Item).filter(Item.keywords!=None).all(), [Item(id=1),Item(id=2), Item(id=3)])
-        
+    
     def test_filter_by(self):
         sess = create_session()
         user = sess.query(User).get(8)
@@ -1076,17 +1080,17 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
             q = sess.query(User)
 
             q = q.add_entity(Address).outerjoin('addresses', aliased=aliased)
-            l = q.all()
-            assert l == expected
+            l = q.order_by(User.id).order_by(Address.id).all()
+            self.assertEquals(l, expected)
             sess.clear()
 
             q = sess.query(User).add_entity(Address)
             l = q.join('addresses', aliased=aliased).filter_by(email_address='ed@bettyboop.com').all()
-            assert l == [(user8, address3)]
+            self.assertEquals(l, [(user8, address3)])
             sess.clear()
 
             q = sess.query(User, Address).join('addresses', aliased=aliased).filter_by(email_address='ed@bettyboop.com')
-            assert q.all() == [(user8, address3)]
+            self.assertEquals(q.all(), [(user8, address3)])
             sess.clear()
 
             q = sess.query(User, Address).join('addresses', aliased=aliased).options(eagerload('addresses')).filter_by(email_address='ed@bettyboop.com')

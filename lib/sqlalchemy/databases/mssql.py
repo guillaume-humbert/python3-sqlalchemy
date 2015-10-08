@@ -115,7 +115,7 @@ class MSDateTime(sqltypes.DateTime):
 
 class MSSmallDate(sqltypes.Date):
     def __init__(self, *a, **kw):
-        super(MSDate, self).__init__(False)
+        super(MSSmallDate, self).__init__(False)
 
     def get_col_spec(self):
         return "SMALLDATETIME"
@@ -1030,7 +1030,7 @@ class MSSQLSchemaDropper(compiler.SchemaDropper):
     def visit_index(self, index):
         self.append("\nDROP INDEX %s.%s" % (
             self.preparer.quote_identifier(index.table.name),
-            self.preparer.quote_identifier(index.name)
+            self.preparer.quote(index, self._validate_identifier(index.name, False))
             ))
         self.execute()
 
