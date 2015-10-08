@@ -7,7 +7,7 @@
         
         <title>
     Column and Data Types
- &mdash; SQLAlchemy 0.6.2 Documentation</title>
+ &mdash; SQLAlchemy 0.6.3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.2',
+          VERSION:     '0.6.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.3 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy" href="index.html" />
         <link rel="next" title="Interfaces" href="interfaces.html" />
         <link rel="prev" title="Schema Introspection" href="inspector.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.2 Documentation</h1>
+        <h1>SQLAlchemy 0.6.3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.2</span> Last Updated: 07/06/2010 17:51:07
+            Version: <span class="versionnum">0.6.3</span> Last Updated: 07/15/2010 12:35:47
         </div>
         <div class="clearboth"></div>
 
@@ -129,6 +129,15 @@ database column type available on the target database when issuing a
 <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> statement.  For complete control over which column
 type is emitted in <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>, such as <tt class="docutils literal"><span class="pre">VARCHAR</span></tt> see <a class="reference external" href="#sql-standard-types">SQL
 Standard Types</a> and the other sections of this chapter.</p>
+<dl class="class">
+<dt id="sqlalchemy.types.BigInteger">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">BigInteger</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.BigInteger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Integer</span></tt></a></p>
+<p>A type for bigger <tt class="docutils literal"><span class="pre">int</span></tt> integers.</p>
+<p>Typically generates a <tt class="docutils literal"><span class="pre">BIGINT</span></tt> in DDL, and otherwise acts like
+a normal <a class="reference internal" href="#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">Integer</span></tt></a> on the Python side.</p>
+</dd></dl>
+
 <dl class="class">
 <dt id="sqlalchemy.types.Boolean">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Boolean</tt><big>(</big><em>create_constraint=True</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Boolean" title="Permalink to this definition">¶</a></dt>
@@ -686,6 +695,13 @@ interpreted as bytes or characters is database specific.</li>
 <p>The SQL standard types always create database column types of the same
 name when <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> is issued.  Some types may not be supported
 on all databases.</p>
+<dl class="class">
+<dt id="sqlalchemy.types.BIGINT">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">BIGINT</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.BIGINT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.BigInteger" title="sqlalchemy.types.BigInteger"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.BigInteger</span></tt></a></p>
+<p>The SQL BIGINT type.</p>
+</dd></dl>
+
 <dl class="class">
 <dt id="sqlalchemy.types.BINARY">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">BINARY</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.BINARY" title="Permalink to this definition">¶</a></dt>

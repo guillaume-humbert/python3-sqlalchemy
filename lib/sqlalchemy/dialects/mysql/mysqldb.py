@@ -156,10 +156,7 @@ class MySQLDialect_mysqldb(MySQLDialect):
         return tuple(version)
 
     def _extract_error_code(self, exception):
-        try:
-            return exception.orig.args[0]
-        except AttributeError:
-            return None
+        return exception.args[0]
 
     def _detect_charset(self, connection):
         """Sniff out the character set in use for connection results."""

@@ -7,7 +7,7 @@
         
         <title>
     Querying
- &mdash; SQLAlchemy 0.6.2 Documentation</title>
+ &mdash; SQLAlchemy 0.6.3 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.6.2',
+          VERSION:     '0.6.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="top" title="SQLAlchemy 0.6.2 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6.3 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Sessions" href="sessions.html" />
         <link rel="prev" title="Collection Mapping" href="collections.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.6.2 Documentation</h1>
+        <h1>SQLAlchemy 0.6.3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.6.2</span> Last Updated: 07/06/2010 17:51:07
+            Version: <span class="versionnum">0.6.3</span> Last Updated: 07/15/2010 12:35:47
         </div>
         <div class="clearboth"></div>
 
@@ -155,6 +155,42 @@ to be returned.</p>
 not autoflush, even if this flag is set to True at the
 Query level.  Therefore this flag is usually used only
 to disable autoflush for a specific Query.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.orm.query.Query.column_descriptions">
+<tt class="descname">column_descriptions</tt><a class="headerlink" href="#sqlalchemy.orm.query.Query.column_descriptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return metadata about the columns which would be 
+returned by this <tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt>.</p>
+<p>Format is a list of dictionaries:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">user_alias</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;user2&#39;</span><span class="p">)</span>
+<span class="n">q</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">user_alias</span><span class="p">)</span>
+
+<span class="c"># this expression:</span>
+<span class="n">q</span><span class="o">.</span><span class="n">columns</span>
+
+<span class="c"># would return:</span>
+<span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s">&#39;name&#39;</span><span class="p">:</span><span class="s">&#39;User&#39;</span><span class="p">,</span>
+        <span class="s">&#39;type&#39;</span><span class="p">:</span><span class="n">User</span><span class="p">,</span>
+        <span class="s">&#39;aliased&#39;</span><span class="p">:</span><span class="bp">False</span><span class="p">,</span>
+        <span class="s">&#39;expr&#39;</span><span class="p">:</span><span class="n">User</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s">&#39;name&#39;</span><span class="p">:</span><span class="s">&#39;id&#39;</span><span class="p">,</span>
+        <span class="s">&#39;type&#39;</span><span class="p">:</span><span class="n">Integer</span><span class="p">(),</span>
+        <span class="s">&#39;aliased&#39;</span><span class="p">:</span><span class="bp">False</span><span class="p">,</span>
+        <span class="s">&#39;expr&#39;</span><span class="p">:</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s">&#39;name&#39;</span><span class="p">:</span><span class="s">&#39;user2&#39;</span><span class="p">,</span>
+        <span class="s">&#39;type&#39;</span><span class="p">:</span><span class="n">User</span><span class="p">,</span>
+        <span class="s">&#39;aliased&#39;</span><span class="p">:</span><span class="bp">True</span><span class="p">,</span>
+        <span class="s">&#39;expr&#39;</span><span class="p">:</span><span class="n">user_alias</span>
+    <span class="p">}</span>
+<span class="p">]</span></pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -893,10 +929,10 @@ is used as is.</p>
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">outerjoin</tt><big>(</big><em>left</em>, <em>right</em>, <em>onclause=None</em>, <em>join_to_left=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.outerjoin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Produce a left outer join between left and right clauses.</p>
 <p>In addition to the interface provided by
-<a class="reference internal" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.outerjoin" title="sqlalchemy.sql.expression.outerjoin"><tt class="xref py py-func docutils literal"><span class="pre">outerjoin()</span></tt></a>, left and right may be mapped
-classes or AliasedClass instances. The onclause may be a
-string name of a relationship(), or a class-bound descriptor
-representing a relationship.</p>
+<a class="reference internal" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.outerjoin" title="sqlalchemy.sql.expression.outerjoin"><tt class="xref py py-func docutils literal"><span class="pre">outerjoin()</span></tt></a>, left and right may be
+mapped classes or AliasedClass instances. The onclause may be a string
+name of a relationship(), or a class-bound descriptor representing a
+relationship.</p>
 </dd></dl>
 
 </div>

@@ -3,6 +3,72 @@
 =======
 CHANGES
 =======
+0.6.3
+=====
+- orm
+  - Removed errant many-to-many load in unitofwork 
+    which triggered unnecessarily on expired/unloaded 
+    collections. This load now takes place only if 
+    passive_updates is False and the parent primary 
+    key has changed, or if passive_deletes is False 
+    and a delete of the parent has occurred.
+    [ticket:1845]
+
+  - Column-entities (i.e. query(Foo.id)) copy their 
+    state more fully when queries are derived from 
+    themselves + a selectable (i.e. from_self(), 
+    union(), etc.), so that join() and such have the 
+    correct state to work from.  [ticket:1853]
+    
+  - Fixed bug where Query.join() would fail if
+    querying a non-ORM column then joining without
+    an on clause when a FROM clause is already
+    present, now raises a checked exception the 
+    same way it does when the clause is not
+    present.  [ticket:1853]
+
+  - Improved the check for an "unmapped class", 
+    including the case where the superclass is mapped
+    but the subclass is not.  Any attempts to access
+    cls._sa_class_manager.mapper now raise 
+    UnmappedClassError().  [ticket:1142]
+    
+  - Added "column_descriptions" accessor to Query,
+    returns a list of dictionaries containing
+    naming/typing information about the entities
+    the Query will return.  Can be helpful for 
+    building GUIs on top of ORM queries.
+
+- mysql
+
+  - The _extract_error_code() method now works 
+    correctly with each MySQL dialect (
+    MySQL-python, OurSQL, MySQL-Connector-Python,
+    PyODBC).  Previously,
+    the reconnect logic would fail for OperationalError
+    conditions, however since MySQLdb and OurSQL
+    have their own reconnect feature, there was no 
+    symptom for these drivers here unless one 
+    watched the logs.  [ticket:1848]
+
+- oracle
+  - More tweaks to cx_oracle Decimal handling. 
+    "Ambiguous" numerics with no decimal place
+    are coerced to int at the connection handler 
+    level.  The advantage here is that ints
+    come back as ints without SQLA type 
+    objects being involved and without needless
+    conversion to Decimal first.
+    
+    Unfortunately, some exotic subquery cases 
+    can even see different types between 
+    individual result rows, so the Numeric 
+    handler, when instructed to return Decimal,
+    can't take full advantage of "native decimal"
+    mode and must run isinstance() on every value
+    to check if its Decimal already. Reopen of
+    [ticket:1840]
+    
 0.6.2
 =====
 - orm
