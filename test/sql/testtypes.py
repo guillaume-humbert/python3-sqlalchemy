@@ -6,7 +6,7 @@ import string,datetime, re, sys, os
 import sqlalchemy.engine.url as url
 
 import sqlalchemy.types
-from sqlalchemy.databases import mssql, oracle
+from sqlalchemy.databases import mssql, oracle, mysql
 
 db = testbase.db
 
@@ -67,7 +67,25 @@ class AdaptTest(PersistTest):
         col = Column('', MyDecoratedType)
         dialect_type = col.type.dialect_impl(dialect)
         assert isinstance(dialect_type.impl, oracle.OracleText), repr(dialect_type.impl)
-    
+
+
+    def testoracletimestamp(self):
+        dialect = oracle.OracleDialect()
+        t1 = oracle.OracleTimestamp
+        t2 = oracle.OracleTimestamp()
+        t3 = types.TIMESTAMP
+        assert isinstance(dialect.type_descriptor(t1), oracle.OracleTimestamp)
+        assert isinstance(dialect.type_descriptor(t2), oracle.OracleTimestamp)
+        assert isinstance(dialect.type_descriptor(t3), oracle.OracleTimestamp)
+
+    def testmysqlbinary(self):
+        dialect = mysql.MySQLDialect()
+        t1 = mysql.MSVarBinary
+        t2 = mysql.MSVarBinary()
+        assert isinstance(dialect.type_descriptor(t1), mysql.MSVarBinary)
+        assert isinstance(dialect.type_descriptor(t2), mysql.MSVarBinary)
+        
+        
 class OverrideTest(PersistTest):
     """tests user-defined types, including a full type as well as a TypeDecorator"""
 
@@ -141,28 +159,35 @@ class UnicodeTest(AssertMixin):
         global unicode_table
         unicode_table = Table('unicode_table', db, 
             Column('id', Integer, Sequence('uni_id_seq', optional=True), primary_key=True),
-            Column('unicode_data', Unicode(250)),
-            Column('plain_data', String(250))
+            Column('unicode_varchar', Unicode(250)),
+            Column('unicode_text', Unicode),
+            Column('plain_varchar', String(250))
             )
         unicode_table.create()
     def tearDownAll(self):
         unicode_table.drop()
+
     def testbasic(self):
-        assert unicode_table.c.unicode_data.type.length == 250
+        assert unicode_table.c.unicode_varchar.type.length == 250
         rawdata = 'Alors vous imaginez ma surprise, au lever du jour, quand une dr\xc3\xb4le de petit voix m\xe2\x80\x99a r\xc3\xa9veill\xc3\xa9. Elle disait: \xc2\xab S\xe2\x80\x99il vous pla\xc3\xaet\xe2\x80\xa6 dessine-moi un mouton! \xc2\xbb\n'
         unicodedata = rawdata.decode('utf-8')
-        unicode_table.insert().execute(unicode_data=unicodedata, plain_data=rawdata)
+        unicode_table.insert().execute(unicode_varchar=unicodedata,
+                                       unicode_text=unicodedata,
+                                       plain_varchar=rawdata)
         x = unicode_table.select().execute().fetchone()
-        self.echo(repr(x['unicode_data']))
-        self.echo(repr(x['plain_data']))
-        self.assert_(isinstance(x['unicode_data'], unicode) and x['unicode_data'] == unicodedata)
-        if isinstance(x['plain_data'], unicode):
+        self.echo(repr(x['unicode_varchar']))
+        self.echo(repr(x['unicode_text']))
+        self.echo(repr(x['plain_varchar']))
+        self.assert_(isinstance(x['unicode_varchar'], unicode) and x['unicode_varchar'] == unicodedata)
+        self.assert_(isinstance(x['unicode_text'], unicode) and x['unicode_text'] == unicodedata)
+        if isinstance(x['plain_varchar'], unicode):
             # SQLLite and MSSQL return non-unicode data as unicode
             self.assert_(db.name in ('sqlite', 'mssql'))
-            self.assert_(x['plain_data'] == unicodedata)
+            self.assert_(x['plain_varchar'] == unicodedata)
             self.echo("it's %s!" % db.name)
         else:
-            self.assert_(not isinstance(x['plain_data'], unicode) and x['plain_data'] == rawdata)
+            self.assert_(not isinstance(x['plain_varchar'], unicode) and x['plain_varchar'] == rawdata)
+
     def testengineparam(self):
         """tests engine-wide unicode conversion"""
         prev_unicode = db.engine.dialect.convert_unicode
@@ -170,17 +195,25 @@ class UnicodeTest(AssertMixin):
             db.engine.dialect.convert_unicode = True
             rawdata = 'Alors vous imaginez ma surprise, au lever du jour, quand une dr\xc3\xb4le de petit voix m\xe2\x80\x99a r\xc3\xa9veill\xc3\xa9. Elle disait: \xc2\xab S\xe2\x80\x99il vous pla\xc3\xaet\xe2\x80\xa6 dessine-moi un mouton! \xc2\xbb\n'
             unicodedata = rawdata.decode('utf-8')
-            unicode_table.insert().execute(unicode_data=unicodedata, plain_data=rawdata)
+            unicode_table.insert().execute(unicode_varchar=unicodedata,
+                                           unicode_text=unicodedata,
+                                           plain_varchar=rawdata)
             x = unicode_table.select().execute().fetchone()
-            self.echo(repr(x['unicode_data']))
-            self.echo(repr(x['plain_data']))
-            self.assert_(isinstance(x['unicode_data'], unicode) and x['unicode_data'] == unicodedata)
-            self.assert_(isinstance(x['plain_data'], unicode) and x['plain_data'] == unicodedata)
+            self.echo(repr(x['unicode_varchar']))
+            self.echo(repr(x['unicode_text']))
+            self.echo(repr(x['plain_varchar']))
+            self.assert_(isinstance(x['unicode_varchar'], unicode) and x['unicode_varchar'] == unicodedata)
+            self.assert_(isinstance(x['unicode_text'], unicode) and x['unicode_text'] == unicodedata)
+            self.assert_(isinstance(x['plain_varchar'], unicode) and x['plain_varchar'] == unicodedata)
         finally:
             db.engine.dialect.convert_unicode = prev_unicode
-    
 
-
+    @testbase.unsupported('oracle')
+    def testlength(self):
+        """checks the database correctly understands the length of a unicode string"""
+        teststr = u'aaa\x1234'
+        self.assert_(db.func.length(teststr).scalar() == len(teststr))
+  
 class BinaryTest(AssertMixin):
     def setUpAll(self):
         global binary_table
@@ -195,6 +228,10 @@ class BinaryTest(AssertMixin):
         Column('pickled', PickleType)
         )
         binary_table.create()
+
+    def tearDown(self):
+        binary_table.delete().execute()
+
     def tearDownAll(self):
         binary_table.drop()
 
@@ -207,7 +244,8 @@ class BinaryTest(AssertMixin):
         binary_table.insert().execute(primary_id=1, misc='binary_data_one.dat',    data=stream1, data_slice=stream1[0:100], pickled=testobj1)
         binary_table.insert().execute(primary_id=2, misc='binary_data_two.dat', data=stream2, data_slice=stream2[0:99], pickled=testobj2)
         binary_table.insert().execute(primary_id=3, misc='binary_data_two.dat', data=None, data_slice=stream2[0:99], pickled=None)
-        l = binary_table.select().execute().fetchall()
+        l = binary_table.select(order_by=binary_table.c.primary_id).execute().fetchall()
+        print type(stream1), type(l[0]['data']), type(l[0]['data_slice'])
         print len(stream1), len(l[0]['data']), len(l[0]['data_slice'])
         self.assert_(list(stream1) == list(l[0]['data']))
         self.assert_(list(stream1[0:100]) == list(l[0]['data_slice']))
@@ -219,39 +257,39 @@ class BinaryTest(AssertMixin):
         f = os.path.join(os.path.dirname(testbase.__file__), name)
         # put a number less than the typical MySQL default BLOB size
         return file(f).read(len)
-        
+    
+    @testbase.supported('oracle')
+    def test_oracle_autobinary(self):
+        stream1 =self.load_stream('binary_data_one.dat')
+        stream2 =self.load_stream('binary_data_two.dat')
+        binary_table.insert().execute(primary_id=1, misc='binary_data_one.dat',    data=stream1, data_slice=stream1[0:100])
+        binary_table.insert().execute(primary_id=2, misc='binary_data_two.dat', data=stream2, data_slice=stream2[0:99])
+        binary_table.insert().execute(primary_id=3, misc='binary_data_two.dat', data=None, data_slice=stream2[0:99], pickled=None)
+        result = testbase.db.connect().execute("select primary_id, misc, data, data_slice from binary_table")
+        l = result.fetchall()
+        l[0]['data']
+        self.assert_(list(stream1) == list(l[0]['data']))
+        self.assert_(list(stream1[0:100]) == list(l[0]['data_slice']))
+        self.assert_(list(stream2) == list(l[1]['data']))
+
+    
 class DateTest(AssertMixin):
     def setUpAll(self):
         global users_with_date, insert_data
 
         if db.engine.name == 'oracle':
-            # still trying to get oracle sub-second resolution to work
-            oracle_subsecond = False
-            if oracle_subsecond:
-                import sqlalchemy.databases.oracle as oracle
-                insert_data =  [
-                        [7, 'jack', datetime.datetime(2005, 11, 10, 0, 0), datetime.date(2005,11,10), datetime.datetime(2005, 11, 10, 0, 0, 0, 29384)],
-                        [8, 'roy', datetime.datetime(2005, 11, 10, 11, 52, 35), datetime.date(2005,10,10), datetime.datetime(2006, 5, 10, 15, 32, 47, 6754)],
-                        [9, 'foo', datetime.datetime(2005, 11, 10, 11, 52, 35, 54839), datetime.date(1970,4,1), datetime.datetime(2004, 9, 18, 4, 0, 52, 1043)],
-                        [10, 'colber', None, None, None]
-                ]
+            import sqlalchemy.databases.oracle as oracle
+            insert_data =  [
+                    [7, 'jack', datetime.datetime(2005, 11, 10, 0, 0), datetime.date(2005,11,10), datetime.datetime(2005, 11, 10, 0, 0, 0, 29384)],
+                    [8, 'roy', datetime.datetime(2005, 11, 10, 11, 52, 35), datetime.date(2005,10,10), datetime.datetime(2006, 5, 10, 15, 32, 47, 6754)],
+                    [9, 'foo', datetime.datetime(2006, 11, 10, 11, 52, 35), datetime.date(1970,4,1), datetime.datetime(2004, 9, 18, 4, 0, 52, 1043)],
+                    [10, 'colber', None, None, None]
+             ]
 
-                fnames = ['user_id', 'user_name', 'user_datetime', 'user_date', 'user_time']
+            fnames = ['user_id', 'user_name', 'user_datetime', 'user_date', 'user_time']
 
-                collist = [Column('user_id', INT, primary_key = True), Column('user_name', VARCHAR(20)), Column('user_datetime', DateTime),
-               Column('user_date', Date), Column('user_time', oracle.OracleTimestamp)]
-            else:
-                insert_data =  [
-                        [7, 'jack', datetime.datetime(2005, 11, 10, 0, 0), datetime.datetime(2005, 11, 10, 0, 0, 0)],
-                        [8, 'roy', datetime.datetime(2005, 11, 10, 11, 52, 35), datetime.datetime(2006, 5, 10, 15, 32, 47)],
-                        [9, 'foo', datetime.datetime(2005, 11, 10, 11, 52, 35), datetime.datetime(2004, 9, 18, 4, 0, 52)],
-                        [10, 'colber', None, None]
-                ]
-
-                fnames = ['user_id', 'user_name', 'user_datetime', 'user_date', 'user_time']
-
-                collist = [Column('user_id', INT, primary_key = True), Column('user_name', VARCHAR(20)), Column('user_datetime', DateTime),
-               Column('user_date', DateTime)]
+            collist = [Column('user_id', INT, primary_key = True), Column('user_name', VARCHAR(20)), Column('user_datetime', DateTime),
+               Column('user_date', Date), Column('user_time', TIMESTAMP)]
         elif db.engine.name == 'mysql' or db.engine.name == 'mssql':
             # these dont really support the TIME type at all
             insert_data =  [
@@ -304,54 +342,52 @@ class DateTest(AssertMixin):
         #x = db.text("select * from query_users_with_date where user_datetime=:date", bindparams=[bindparam('date', )]).execute(date=datetime.datetime(2005, 11, 10, 11, 52, 35)).fetchall()
         #print repr(x)
 
-class TimezoneTest(AssertMixin):
-    """test timezone-aware datetimes.  psycopg will return a datetime with a tzinfo attached to it,
-    if postgres returns it.  python then will not let you compare a datetime with a tzinfo to a datetime
-    that doesnt have one.  this test illustrates two ways to have datetime types with and without timezone
-    info. """
-    @testbase.supported('postgres')
+    def testdate2(self):
+        t = Table('testdate', testbase.metadata, Column('id', Integer, Sequence('datetest_id_seq', optional=True), primary_key=True),
+                Column('adate', Date), Column('adatetime', DateTime))
+        t.create()
+        try:
+            d1 = datetime.date(2007, 10, 30)
+            t.insert().execute(adate=d1, adatetime=d1)
+            d2 = datetime.datetime(2007, 10, 30)
+            t.insert().execute(adate=d2, adatetime=d2)
+
+            x = t.select().execute().fetchall()[0]
+            self.assert_(x.adate.__class__ == datetime.date)
+            self.assert_(x.adatetime.__class__ == datetime.datetime)
+
+        finally:
+            t.drop()
+
+class IntervalTest(AssertMixin):
     def setUpAll(self):
-        global tztable, notztable, metadata
-        metadata = BoundMetaData(testbase.db)
-        
-        # current_timestamp() in postgres is assumed to return TIMESTAMP WITH TIMEZONE
-        tztable = Table('tztable', metadata,
-            Column("id", Integer, primary_key=True),
-            Column("date", DateTime(timezone=True), onupdate=func.current_timestamp()),
-            Column("name", String(20)),
-        )
-        notztable = Table('notztable', metadata,
-            Column("id", Integer, primary_key=True),
-            Column("date", DateTime(timezone=False), onupdate=cast(func.current_timestamp(), DateTime(timezone=False))),
-            Column("name", String(20)),
-        )
+        global interval_table, metadata
+        metadata = MetaData(testbase.db)
+        interval_table = Table("intervaltable", metadata, 
+            Column("id", Integer, Sequence('interval_id_seq', optional=True), primary_key=True),
+            Column("interval", Interval),
+            )
         metadata.create_all()
-    @testbase.supported('postgres')
+    
+    def tearDown(self):
+        interval_table.delete().execute()
+            
     def tearDownAll(self):
         metadata.drop_all()
-    
-    @testbase.supported('postgres')
-    def testtz(self):
-        # get a date with a tzinfo
-        somedate = testbase.db.connect().scalar(func.current_timestamp().select())
-        tztable.insert().execute(id=1, name='row1', date=somedate)
-        c = tztable.update(tztable.c.id==1).execute(name='newname')
-        x = c.last_updated_params()
-        print x['date'] == somedate
         
-    @testbase.supported('postgres')
-    def testnotz(self):
-        # get a date without a tzinfo
-        somedate = datetime.datetime(2005, 10,20, 11, 52, 00)
-        notztable.insert().execute(id=1, name='row1', date=somedate)
-        c = notztable.update(notztable.c.id==1).execute(name='newname')
-        x = c.last_updated_params()
-        print x['date'] == somedate
+    def test_roundtrip(self):
+        delta = datetime.datetime(2006, 10, 5) - datetime.datetime(2005, 8, 17)
+        interval_table.insert().execute(interval=delta)
+        assert interval_table.select().execute().fetchone()['interval'] == delta
+
+    def test_null(self):
+        interval_table.insert().execute(id=1, inverval=None)
+        assert interval_table.select().execute().fetchone()['interval'] is None
         
 class BooleanTest(AssertMixin):
     def setUpAll(self):
         global bool_table
-        metadata = BoundMetaData(testbase.db)
+        metadata = MetaData(testbase.db)
         bool_table = Table('booltest', metadata, 
             Column('id', Integer, primary_key=True),
             Column('value', Boolean))

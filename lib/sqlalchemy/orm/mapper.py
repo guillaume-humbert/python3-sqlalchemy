@@ -8,8 +8,8 @@ from sqlalchemy import sql, schema, util, exceptions, logging
 from sqlalchemy import sql_util as sqlutil
 from sqlalchemy.orm import util as mapperutil
 from sqlalchemy.orm import sync
-from sqlalchemy.orm.interfaces import MapperProperty, MapperOption, OperationContext
-import weakref
+from sqlalchemy.orm.interfaces import MapperProperty, MapperOption, OperationContext, SynonymProperty
+import weakref, warnings
 
 __all__ = ['Mapper', 'MapperExtension', 'class_mapper', 'object_mapper', 'EXT_PASS', 'mapper_registry', 'ExtensionOption']
 
@@ -302,7 +302,26 @@ class Mapper(object):
         return self.__props
 
     props = property(_get_props, doc="compiles this mapper if needed, and returns the "
-                     "dictionary of MapperProperty objects associated with this mapper.")
+                     "dictionary of MapperProperty objects associated with this mapper."
+                     "(Deprecated; use get_property() and iterate_properties)")
+
+    def get_property(self, key, resolve_synonyms=False, raiseerr=True):
+        """return MapperProperty with the given key.
+
+        forwards compatible with 0.4.
+        """
+
+        self.compile()
+        prop = self.__props.get(key, None)
+        if resolve_synonyms:
+            while isinstance(prop, SynonymProperty):
+                prop = self.__props.get(prop.name, None)
+        if prop is None and raiseerr:
+            raise exceptions.InvalidRequestError("Mapper '%s' has no property '%s'" % (str(self), key))
+        return prop
+
+    iterate_properties = property(lambda self: self._get_props().itervalues(), doc="returns an iterator of all MapperProperty objects."
+                                    "  Forwards compatible with 0.4")
 
     def compile(self):
         """Compile this mapper into its final internal format.
@@ -555,7 +574,7 @@ class Mapper(object):
                 self.columns[column.key] = self.select_table.corresponding_column(column, keys_ok=True, raiseerr=True)
 
             column_key = (self.column_prefix or '') + column.key
-            prop = self.__props.get(column.key, None)
+            prop = self.__props.get(column_key, None)
             if prop is None:
                 prop = ColumnProperty(column)
                 self.__props[column_key] = prop
@@ -566,6 +585,8 @@ class Mapper(object):
                     prop = ColumnProperty(deferred=prop.deferred, group=prop.group, *prop.columns)
                     prop.set_parent(self)
                     self.__props[column_key] = prop
+                if column in self.primary_key and prop.columns[-1] in self.primary_key:
+                    warnings.warn(RuntimeWarning("On mapper %s, primary key column '%s' is being combined with distinct primary key column '%s' in attribute '%s'.  Use explicit properties to give each column its own mapped attribute name." % (str(self), str(column), str(prop.columns[-1]), column_key)))
                 prop.columns.append(column)
                 self.__log("appending to existing ColumnProperty %s" % (column_key))
             else:
@@ -670,13 +691,14 @@ class Mapper(object):
             if oldinit is not None:
                 try:
                     oldinit(self, *args, **kwargs)
-                except Exception, e:
-                    try:
+                except:
+                    def go():
                         if session is not None:
                             session.expunge(self)
-                    except:
-                        pass # raise original exception instead
-                    raise e
+                    # convert expunge() exceptions to warnings
+                    util.warn_exception(go)
+                    raise
+                    
         # override oldinit, insuring that its not already a Mapper-decorated init method
         if oldinit is None or not hasattr(oldinit, '_sa_mapper_init'):
             init._sa_mapper_init = True
@@ -687,7 +709,11 @@ class Mapper(object):
                 # cant set __name__ in py 2.3 !
                 pass
             self.class_.__init__ = init
-        mapper_registry[self.class_key] = self
+        _COMPILE_MUTEX.acquire()
+        try:
+            mapper_registry[self.class_key] = self
+        finally:
+            _COMPILE_MUTEX.release()
         if self.entity_name is None:
             self.class_.c = self.c
 
@@ -1293,7 +1319,7 @@ class Mapper(object):
                 statement = table.delete(clause)
                 c = connection.execute(statement, delete)
                 if c.supports_sane_rowcount() and c.rowcount != len(delete):
-                    raise exceptions.ConcurrentModificationError("Updated rowcount %d does not match number of objects updated %d" % (c.cursor.rowcount, len(delete)))
+                    raise exceptions.ConcurrentModificationError("Updated rowcount %d does not match number of objects updated %d" % (c.rowcount, len(delete)))
 
         for obj in deleted_objects:
             for mapper in object_mapper(obj).iterate_to_root():

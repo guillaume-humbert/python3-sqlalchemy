@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.8   Last Updated: 06/02/07 17:01:58</div>
+<div class="versionheader">Version: 0.3.9   Last Updated: 07/15/07 12:30:22</div>
 
 
 
@@ -119,6 +119,9 @@
     
     
     <div class="darkcell"><p>Encapsulates the object-fetching operations provided by Mappers.</p>
+<p>Note that this particular version of Query contains the 0.3 API as well as most of the
+0.4 API for forwards compatibility.  A large part of the API here is deprecated (but still present)
+in the 0.4 series.</p>
 </div>
     
 
@@ -148,8 +151,6 @@ limiting criterion to the query which can associate the primary entity
 of this Query along with the additional columns, if the column is based on a
 table or selectable that is not the primary mapped selectable.  The Query selects
 from all tables with no joining criterion by default.</p>
-<p>When tuple-based results are returned, the 'uniquing' of returned entities
-is disabled to maintain grouping.</p>
 <blockquote>
 <dl class="docutils">
 <dt>column</dt>
@@ -175,14 +176,24 @@ specified via add_column or add_entity.</p>
 limiting criterion to the query which can associate the primary entity
 of this Query along with the additional entities.  The Query selects
 from all tables with no joining criterion by default.</p>
-<p>When tuple-based results are returned, the 'uniquing' of returned entities
-is disabled to maintain grouping.</p>
 <blockquote>
 <dl class="docutils">
 <dt>entity</dt>
 <dd>a class or mapper which will be added to the results.</dd>
 </dl>
 </blockquote>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def all(<i>self</i>)</b>
+    <div class="docstring">
+    <p>Return the results represented by this <tt class="docutils literal"><span class="pre">Query</span></tt> as a list.</p>
+<p>This results in an execution of the underlying query.</p>
 
     </div>
     </div>
@@ -254,6 +265,7 @@ query and return the newly resulting <tt class="docutils literal"><span class="p
     <div class="docstring">
     <p>Given a WHERE criterion, produce a ClauseElement-based
 statement suitable for usage in the execute() method.</p>
+<p>the arguments to this function are deprecated and are removed in version 0.4.</p>
 
     </div>
     </div>
@@ -266,6 +278,7 @@ statement suitable for usage in the execute() method.</p>
     <div class="docstring">
     <p>Given a <tt class="docutils literal"><span class="pre">WHERE</span></tt> criterion, create a <tt class="docutils literal"><span class="pre">SELECT</span> <span class="pre">COUNT</span></tt>
 statement, execute and return the resulting count value.</p>
+<p>the additional arguments to this method are is deprecated in 0.4.</p>
 
     </div>
     </div>
@@ -280,6 +293,7 @@ statement, execute and return the resulting count value.</p>
 and key/value criterion.</p>
 <p>The criterion is constructed in the same way as the
 <tt class="docutils literal"><span class="pre">select_by()</span></tt> method.</p>
+<p>this method is deprecated in 0.4.</p>
 
     </div>
     </div>
@@ -305,10 +319,7 @@ and key/value criterion.</p>
     <p>Execute the given ClauseElement-based statement against
 this Query's session/mapper, return the resulting list of
 instances.</p>
-<p>After execution, close the ResultProxy and its underlying
-resources.  This method is one step above the <tt class="docutils literal"><span class="pre">instances()</span></tt>
-method, which takes the executed statement's ResultProxy
-directly.</p>
+<p>this method is deprecated in 0.4.  Use from_statement() instead.</p>
 
     </div>
     </div>
@@ -342,6 +353,31 @@ directly.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def first(<i>self</i>)</b>
+    <div class="docstring">
+    <p>Return the first result of this <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+<p>This results in an execution of the underlying query.</p>
+<p>this method is for forwards-compatibility with 0.4.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def from_statement(<i>self</i>, <i>statement</i>)</b>
+    <div class="docstring">
+    <p>execute a full select() statement, or literal textual string as a SELECT statement.</p>
+<p>this method is for forwards compatibility with 0.4.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def get(<i>self</i>, <i>ident</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Return an instance of the object based on the given
@@ -364,6 +400,7 @@ as a scalar, or None if no object found.
 Synonymous with <tt class="docutils literal"><span class="pre">selectfirst_by()</span></tt>.</p>
 <p>The criterion is constructed in the same way as the
 <tt class="docutils literal"><span class="pre">select_by()</span></tt> method.</p>
+<p>this method is deprecated in 0.4.</p>
 
     </div>
     </div>
@@ -433,6 +470,7 @@ clause that would normally be sent to <tt class="docutils literal"><span class="
 by <tt class="docutils literal"><span class="pre">select_by()</span></tt>.</p>
 <p>The criterion is constructed in the same way as the
 <tt class="docutils literal"><span class="pre">select_by()</span></tt> method.</p>
+<p>this method is deprecated in 0.4.</p>
 
     </div>
     </div>
@@ -448,6 +486,7 @@ through all child properties from this Query's mapper to
 locate the property, and will return a ClauseElement
 representing a join from this Query's mapper to the endmost
 mapper.</p>
+<p>this method is deprecated in 0.4.</p>
 
     </div>
     </div>
@@ -463,6 +502,7 @@ Query's mapper to a related mapper based on names of relations
 from one mapper to the next, return a ClauseElement
 representing a join from this Query's mapper to the endmost
 mapper.</p>
+<p>this method is deprecated in 0.4.</p>
 
     </div>
     </div>
@@ -487,6 +527,7 @@ mapper.</p>
     <div class="docstring">
     <p>Return the results represented by this <tt class="docutils literal"><span class="pre">Query</span></tt> as a list.</p>
 <p>This results in an execution of the underlying query.</p>
+<p>this method is deprecated in 0.4.  use all() instead.</p>
 
     </div>
     </div>
@@ -546,6 +587,19 @@ columns.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def one(<i>self</i>)</b>
+    <div class="docstring">
+    <p>Return the first result of this <tt class="docutils literal"><span class="pre">Query</span></tt>, raising an exception if more than one row exists.</p>
+<p>This results in an execution of the underlying query.</p>
+<p>this method is for forwards-compatibility with 0.4.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def options(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Return a new Query object, applying the given list of
@@ -577,6 +631,17 @@ to a relationship and return the newly resulting <tt class="docutils literal"><s
 in the same manner as keyword arguments in <tt class="docutils literal"><span class="pre">select_by</span></tt>, or
 it may be a list of strings in which case the property is located
 by direct traversal of each keyname (i.e. like join_via()).</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def params(<i>self</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    <p>add values for bind parameters which may have been specified in filter().</p>
 
     </div>
     </div>
@@ -638,6 +703,8 @@ to be released in 0.4.</p>
     <div class="docstring">
     <p>Return the first result of this <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
 <p>This results in an execution of the underlying query.</p>
+<p>this method will be deprecated in 0.4; first() is added for
+forwards-compatibility.</p>
 
     </div>
     </div>
@@ -657,6 +724,7 @@ to build new object instances.</p>
 <p>In this case, the developer must ensure that an adequate set
 of columns exists in the rowset with which to build new object
 instances.</p>
+<p>this method is deprecated in 0.4.</p>
 
     </div>
     </div>
@@ -674,7 +742,8 @@ clauses and key/value criterion.</p>
 <dd>a list of zero or more <tt class="docutils literal"><span class="pre">ClauseElements</span></tt> which will be
 connected by <tt class="docutils literal"><span class="pre">AND</span></tt> operators.</dd>
 <dt>**params</dt>
-<dd><p class="first">a set of zero or more key/value parameters which
+<dd><blockquote class="first">
+<p>a set of zero or more key/value parameters which
 are converted into <tt class="docutils literal"><span class="pre">ClauseElements</span></tt>.  the keys are mapped to
 property or column names mapped by this mapper's Table, and
 the values are coerced into a <tt class="docutils literal"><span class="pre">WHERE</span></tt> clause separated by
@@ -687,9 +756,11 @@ value should be a scalar with an appropriate type.  If the
 property is a relationship-bound property, the comparison value
 should be an instance of the related class.</p>
 <p>E.g.:</p>
-<pre class="last literal-block">
+<pre class="literal-block">
 result = usermapper.select_by(user_name = 'fred')
 </pre>
+</blockquote>
+<p class="last">this method is deprecated in 0.4.</p>
 </dd>
 </dl>
 
@@ -717,6 +788,7 @@ resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
     <div class="docstring">
     <p>Given a <tt class="docutils literal"><span class="pre">ClauseElement</span></tt>-based statement, execute and
 return the resulting instances.</p>
+<p>this method is deprecated in 0.4.</p>
 
     </div>
     </div>
@@ -729,6 +801,7 @@ return the resulting instances.</p>
     <div class="docstring">
     <p>Given a literal string-based statement, execute and return
 the resulting instances.</p>
+<p>this method is deprecated in 0.4.  use from_statement() instead.</p>
 
     </div>
     </div>
@@ -741,6 +814,7 @@ the resulting instances.</p>
     <div class="docstring">
     <p>Given a <tt class="docutils literal"><span class="pre">WHERE</span></tt> criterion, create a <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement,
 execute and return the resulting instances.</p>
+<p>this method is deprecated in 0.4.</p>
 
     </div>
     </div>
@@ -755,6 +829,7 @@ execute and return the resulting instances.</p>
 <p>Arguments are the same as <tt class="docutils literal"><span class="pre">select()</span></tt>. In the case that
 the given criterion represents <tt class="docutils literal"><span class="pre">WHERE</span></tt> criterion only,
 LIMIT 1 is applied to the fully generated statement.</p>
+<p>this method is deprecated in 0.4.</p>
 
     </div>
     </div>
@@ -770,6 +845,7 @@ as a scalar, or None if no object found.
 Synonymous with <tt class="docutils literal"><span class="pre">get_by()</span></tt>.</p>
 <p>The criterion is constructed in the same way as the
 <tt class="docutils literal"><span class="pre">select_by()</span></tt> method.</p>
+<p>this method is deprecated in 0.4.</p>
 
     </div>
     </div>
@@ -785,6 +861,7 @@ Synonymous with <tt class="docutils literal"><span class="pre">get_by()</span></
 row exists.  In the case that the given criterion represents
 <tt class="docutils literal"><span class="pre">WHERE</span></tt> criterion only, LIMIT 2 is applied to the fully
 generated statement.</p>
+<p>this method is deprecated in 0.4.</p>
 
     </div>
     </div>
@@ -799,6 +876,7 @@ generated statement.</p>
 exactly one result was returned.</p>
 <p>The criterion is constructed in the same way as the
 <tt class="docutils literal"><span class="pre">select_by()</span></tt> method.</p>
+<p>this method is deprecated in 0.4.</p>
 
     </div>
     </div>

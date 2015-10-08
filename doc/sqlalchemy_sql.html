@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.8   Last Updated: 06/02/07 17:01:58</div>
+<div class="versionheader">Version: 0.3.9   Last Updated: 07/15/07 12:30:22</div>
 
 
 
@@ -140,6 +140,13 @@
 
         
         <li><A style="" href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_modfunc_desc">desc()</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_modfunc_distinct">distinct()</a></li>
         
             
     <ul>
@@ -394,6 +401,13 @@
 
         
         <li><A style="" href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_ColumnElement">class ColumnElement(Selectable,_CompareMixin)</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_ColumnSet">class ColumnSet(OrderedSet)</a></li>
         
             
     <ul>
@@ -826,6 +840,17 @@ order_by = [desc(table1.mycol)]
                 
     <div class="darkcell">
     
+    <A name="docstrings_sqlalchemy.sql_modfunc_distinct"></a>
+    <b>def distinct(<i>expr</i>)</b>
+    <div class="docstring">
+    <p>return a <tt class="docutils literal"><span class="pre">DISTINCT</span></tt> clause.</p>
+
+    </div>
+    </div>
+
+                
+    <div class="darkcell">
+    
     <A name="docstrings_sqlalchemy.sql_modfunc_except_"></a>
     <b>def except_(<i>*selects</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
@@ -1228,11 +1253,13 @@ support alternate values for this parameter, for example
 mysql supports &quot;read&quot; which translates to <tt class="docutils literal"><span class="pre">LOCK</span> <span class="pre">IN</span> <span class="pre">SHARE</span> <span class="pre">MODE</span></tt>,
 and oracle supports &quot;nowait&quot; which translates to
 <tt class="docutils literal"><span class="pre">FOR</span> <span class="pre">UPDATE</span> <span class="pre">NOWAIT</span></tt>.</dd>
-<dt>engine=None</dt>
-<dd>an <tt class="docutils literal"><span class="pre">Engine</span></tt> instance to which the resulting <tt class="docutils literal"><span class="pre">Select</span></tt>
+<dt>bind=None</dt>
+<dd>an <tt class="docutils literal"><span class="pre">Engine</span></tt> or <tt class="docutils literal"><span class="pre">Connection</span></tt> instance to which the resulting <tt class="docutils literal"><span class="pre">Select</span></tt>
 object will be bound.  The <tt class="docutils literal"><span class="pre">Select</span></tt> object will otherwise
-automatically bind to whatever <tt class="docutils literal"><span class="pre">Engine</span></tt> instances can be located
+automatically bind to whatever <tt class="docutils literal"><span class="pre">Connectable</span></tt> instances can be located
 within its contained <tt class="docutils literal"><span class="pre">ClauseElement</span></tt> members.</dd>
+<dt>engine=None</dt>
+<dd>deprecated.  a synonym for &quot;bind&quot;.</dd>
 <dt>limit=None</dt>
 <dd>a numerical value which usually compiles to a <tt class="docutils literal"><span class="pre">LIMIT</span></tt> expression
 in the resulting select.  Databases that don't support <tt class="docutils literal"><span class="pre">LIMIT</span></tt>
@@ -1297,7 +1324,7 @@ is a subclass of this object.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.sql_modfunc_text"></a>
-    <b>def text(<i>text</i>, <i>engine=None</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <b>def text(<i>text</i>, <i>bind=None</i>, <i>engine=None</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Create literal text to be inserted into a query.</p>
 <p>When constructing a query from a <tt class="docutils literal"><span class="pre">select()</span></tt>, <tt class="docutils literal"><span class="pre">update()</span></tt>,
@@ -1312,8 +1339,10 @@ plain text is to be used.</p>
 <dd>The text of the SQL statement to be created.  use <tt class="docutils literal"><span class="pre">:&lt;param&gt;</span></tt>
 to specify bind parameters; they will be compiled to their
 engine-specific format.</dd>
+<dt>bind</dt>
+<dd>An optional connection or engine to be used for this text query.</dd>
 <dt>engine</dt>
-<dd>An optional engine to be used for this text query.</dd>
+<dd>deprecated.  a synonym for 'bind'.</dd>
 <dt>bindparams</dt>
 <dd>A list of <tt class="docutils literal"><span class="pre">bindparam()</span></tt> instances which can be used to define
 the types and/or initial values for the bind parameters within
@@ -1492,6 +1521,15 @@ subclasses.</p>
     
     </div>
     </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>bind = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
 
                     
          <div class="darkcell">
@@ -1920,6 +1958,16 @@ expression.</p>
     </div>
 
                     
+         <div class="darkcell">
+         <A name=""></a>
+         <b>bind = property()</b>
+         <div class="docstring">
+         <p>Returns the Engine or Connection to which this ClauseElement is bound, or None if none found.</p>
+
+         </div> 
+         </div>
+
+                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -1936,7 +1984,7 @@ straight identity comparison.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def compile(<i>self</i>, <i>engine=None</i>, <i>parameters=None</i>, <i>compiler=None</i>, <i>dialect=None</i>)</b>
+    <b>def compile(<i>self</i>, <i>bind=None</i>, <i>engine=None</i>, <i>parameters=None</i>, <i>compiler=None</i>, <i>dialect=None</i>)</b>
     <div class="docstring">
     <p>Compile this SQL expression.</p>
 <p>Uses the given <tt class="docutils literal"><span class="pre">Compiler</span></tt>, or the given <tt class="docutils literal"><span class="pre">AbstractDialect</span></tt>
@@ -1979,8 +2027,7 @@ then be restructured without affecting the original.</p>
          <A name=""></a>
          <b>engine = property()</b>
          <div class="docstring">
-         <p>Attempts to locate a Engine within this ClauseElement
-structure, or returns None if none found.</p>
+         <p>Returns the Engine or Connection to which this ClauseElement is bound, or None if none found.</p>
 
          </div> 
          </div>
@@ -2812,6 +2859,48 @@ ancestor to this <tt class="docutils literal"><span class="pre">ColumnElement</s
 
     
     
+    <A name="docstrings_sqlalchemy.sql_ColumnSet"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class ColumnSet(OrderedSet)</h3>
+    
+    
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def contains_column(<i>self</i>, <i>col</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def extend(<i>self</i>, <i>cols</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
     <A name="docstrings_sqlalchemy.sql__CompareMixin"></a>
     
     <div class="sectionL3">
@@ -2968,7 +3057,7 @@ defaults.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>dialect</i>, <i>statement</i>, <i>parameters</i>, <i>engine=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>dialect</i>, <i>statement</i>, <i>parameters</i>, <i>bind=None</i>, <i>engine=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">Compiled</span></tt> object.</p>
 <dl class="docutils">
@@ -2987,8 +3076,11 @@ key and will also affect the generated column list in an
 <tt class="docutils literal"><span class="pre">UPDATE</span></tt> statement.  The keys of the parameter dictionary
 can either be the string names of columns or
 <tt class="docutils literal"><span class="pre">_ColumnClause</span></tt> objects.</dd>
+<dt>bind</dt>
+<dd>optional engine or connection which will be bound to the
+compiled object.</dd>
 <dt>engine</dt>
-<dd>Optional Engine to compile this statement against.</dd>
+<dd>deprecated, a synonym for 'bind'</dd>
 </dl>
 
     </div>
@@ -3772,6 +3864,16 @@ off all <tt class="docutils literal"><span class="pre">FromClause</span></tt> su
          </div>
 
                     
+         <div class="darkcell">
+         <A name=""></a>
+         <b>folded_equivalents = property()</b>
+         <div class="docstring">
+         <p>Returns the column list of this Join with all equivalently-named, equated columns folded into one column, where 'equated' means they are equated to each other in the ON clause of this join.</p>
+
+         </div> 
+         </div>
+
+                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -3785,6 +3887,15 @@ off all <tt class="docutils literal"><span class="pre">FromClause</span></tt> su
          <div class="darkcell">
          <A name=""></a>
          <b>name = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>primary_key = property()</b>
          <div class="docstring">
          
          </div> 
@@ -4030,7 +4141,7 @@ well as the ability to execute itself and return a result set.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>columns=None</i>, <i>whereclause=None</i>, <i>from_obj=[]</i>, <i>order_by=None</i>, <i>group_by=None</i>, <i>having=None</i>, <i>use_labels=False</i>, <i>distinct=False</i>, <i>for_update=False</i>, <i>engine=None</i>, <i>limit=None</i>, <i>offset=None</i>, <i>scalar=False</i>, <i>correlate=True</i>)</b>
+    <b>def __init__(<i>self</i>, <i>columns=None</i>, <i>whereclause=None</i>, <i>from_obj=[]</i>, <i>order_by=None</i>, <i>group_by=None</i>, <i>having=None</i>, <i>use_labels=False</i>, <i>distinct=False</i>, <i>for_update=False</i>, <i>engine=None</i>, <i>bind=None</i>, <i>limit=None</i>, <i>offset=None</i>, <i>scalar=False</i>, <i>correlate=True</i>)</b>
     <div class="docstring">
     <p>construct a Select object.</p>
 <p>The public constructor for Select is the <a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_modfunc_select">select()</a> function;
@@ -4481,7 +4592,7 @@ does not provide schema-level functionality.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>text=''</i>, <i>engine=None</i>, <i>bindparams=None</i>, <i>typemap=None</i>)</b>
+    <b>def __init__(<i>self</i>, <i>text=''</i>, <i>bind=None</i>, <i>engine=None</i>, <i>bindparams=None</i>, <i>typemap=None</i>)</b>
     <div class="docstring">
     
     </div>
@@ -4648,6 +4759,16 @@ does not provide schema-level functionality.</p>
     
     <A name=""></a>
     <b>def get_children(<i>self</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def self_group(<i>self</i>, <i>against</i>)</b>
     <div class="docstring">
     
     </div>

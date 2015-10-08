@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.8   Last Updated: 06/02/07 17:01:58</div>
+<div class="versionheader">Version: 0.3.9   Last Updated: 07/15/07 12:30:22</div>
 
 
 
@@ -721,6 +721,18 @@ flush operation.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def get_property(<i>self</i>, <i>key</i>, <i>resolve_synonyms=False</i>, <i>raiseerr=True</i>)</b>
+    <div class="docstring">
+    <p>return MapperProperty with the given key.</p>
+<p>forwards compatible with 0.4.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def get_select_mapper(<i>self</i>)</b>
     <div class="docstring">
     <p>Return the mapper used for issuing selects.</p>
@@ -874,6 +886,16 @@ optional <cite>entity_name</cite> parameter as well.</p>
     </div>
 
                     
+         <div class="darkcell">
+         <A name=""></a>
+         <b>iterate_properties = property()</b>
+         <div class="docstring">
+         <p>returns an iterator of all MapperProperty objects.  Forwards compatible with 0.4</p>
+
+         </div> 
+         </div>
+
+                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -940,7 +962,7 @@ instance.</p>
          <A name=""></a>
          <b>props = property()</b>
          <div class="docstring">
-         <p>compiles this mapper if needed, and returns the dictionary of MapperProperty objects associated with this mapper.</p>
+         <p>compiles this mapper if needed, and returns the dictionary of MapperProperty objects associated with this mapper.(Deprecated; use get_property() and iterate_properties)</p>
 
          </div> 
          </div>

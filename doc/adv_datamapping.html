@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.8   Last Updated: 06/02/07 17:01:58</div>
+<div class="versionheader">Version: 0.3.9   Last Updated: 07/15/07 12:30:22</div>
 
 
 
@@ -130,7 +130,7 @@
     </ul>
 
         
-        <li><A style="" href="adv_datamapping.html#advdatamapping_limits">Limiting Rows</a></li>
+        <li><A style="" href="adv_datamapping.html#advdatamapping_limits">Limiting Rows Combined with Eager Loads</a></li>
         
             
     <ul>
@@ -156,7 +156,7 @@
     </ul>
 
         
-        <li><A style="" href="adv_datamapping.html#advdatamapping_inheritance_multiple">Multiple Table Inheritance</a></li>
+        <li><A style="" href="adv_datamapping.html#advdatamapping_inheritance_joined">Joined Table Inheritance</a></li>
         
             
     <ul>
@@ -193,12 +193,12 @@
     </ul>
 
         
-        <li><A style="" href="adv_datamapping.html#advdatamapping_resultset">Result-Set Mapping</a></li>
+        <li><A style="" href="adv_datamapping.html#advdatamapping_resultset">Statement and Result-Set ORM Queries</a></li>
         
             
     <ul>
         
-        <li><A style="" href="adv_datamapping.html#advdatamapping_resultset_combining">Combining Eager Loads with Result Set Mappings</a></li>
+        <li><A style="" href="adv_datamapping.html#advdatamapping_resultset_combining">Combining Eager Loads with Statement/Result Set Queries</a></li>
         
             
     <ul>
@@ -207,7 +207,7 @@
     </ul>
 
         
-        <li><A style="" href="adv_datamapping.html#advdatamapping_mapperoptions">Mapper Options</a></li>
+        <li><A style="" href="adv_datamapping.html#advdatamapping_mapperoptions">Mapper Keyword Arguments</a></li>
         
             
     <ul>
@@ -456,6 +456,8 @@
 </span><span class="python_name">myparent</span><span class="python_operator">.</span><span class="python_name">myclasses</span><span class="python_operator">.</span><span class="python_name">append</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">(</span><span class="python_literal">'this is myclass'</span><span class="python_enclosure">))</span><span class="python_operator">
 </span><span class="python_name">myclass </span><span class="python_operator">= </span><span class="python_name">myparent</span><span class="python_operator">.</span><span class="python_name">myclasses</span><span class="python_enclosure">[</span><span class="python_literal">'this is myclass'</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre>
     </div>
+<p>Note: SQLAlchemy 0.4 has an overhauled and much improved implementation for custom list classes, with some slight API changes.
+</p>
 
 
 
@@ -621,8 +623,8 @@
 
     <div class="sliding_code">
         <pre><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Book</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">defer</span><span class="python_enclosure">(</span><span class="python_literal">'summary'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">
-</span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">undefer</span><span class="python_enclosure">(</span><span class="python_literal">'excerpt'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
+</span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">defer</span><span class="python_enclosure">(</span><span class="python_literal">'summary'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">undefer</span><span class="python_enclosure">(</span><span class="python_literal">'excerpt'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
     </div>
 
 
@@ -745,11 +747,11 @@
     
     
 
-<p>Options which can be sent to the <code>relation()</code> function.  For arguments to <code>mapper()</code>, see <a href="adv_datamapping.html#advdatamapping_mapperoptions">Mapper Options</a>.
+<p>Options which can be sent to the <code>relation()</code> function.  For arguments to <code>mapper()</code>, see <a href="adv_datamapping.html#advdatamapping_mapperoptions">Mapper Keyword Arguments</a>.
 </p>
 <ul>
  <li>
-     <strong>association</strong> - Deprecated; as of version 0.3.0 the association keyword is synonomous with applying the "all, delete-orphan" cascade to a "one-to-many" relationship.  SA can now automatically reconcile a "delete" and "insert" operation of two objects with the same "identity" in a flush() operation into a single "update" statement, which is the pattern that "association" used to indicate.  See the updated example of association mappings in <a href="datamapping.html#datamapping_association">Association Object</a>.
+     <strong>association</strong> - Deprecated; as of version 0.3.0 the association keyword is synonomous with applying the "all, delete-orphan" cascade to a "one-to-many" relationship.  SA can now automatically reconcile a "delete" and "insert" operation of two objects with the same "identity" in a flush() operation into a single "update" statement, which is the pattern that "association" used to indicate.  See the updated example of association mappings in <b>datamapping_association</b>.
  </li>
 
  <li>
@@ -802,7 +804,7 @@
  </li>
 
  <li>
-     <strong>secondary</strong> - for a many-to-many relationship, specifies the intermediary table.  The <code>secondary</code> keyword argument should generally only be used for a table that is not otherwise expressed in any class mapping.  In particular, using the <a href="datamapping.html#datamapping_association">Association Object Pattern</a> is generally mutually exclusive against using the <code>secondary</code> keyword argument.
+     <strong>secondary</strong> - for a many-to-many relationship, specifies the intermediary table.  The <code>secondary</code> keyword argument should generally only be used for a table that is not otherwise expressed in any class mapping.  In particular, using the <b>Association Object Pattern</b> is generally mutually exclusive against using the <code>secondary</code> keyword argument.
  </li>
 
  <li>
@@ -814,7 +816,7 @@
  </li>
 
  <li>
-     <strong>viewonly=False</strong> - when set to True, the relation is used only for loading objects within the relationship, and has no effect on the unit-of-work flush process.  Relations with viewonly can specify any kind of join conditions to provide additional views of related objects onto a parent object.  Note that the functionality of a viewonly relationship has its limits - complicated join conditions may not compile into eager or lazy loaders properly.  If this is the case, use an alternative method, such as those described in <a href="adv_datamapping.html#advdatamapping_properties_working">Working with Large Collections</a>, <a href="adv_datamapping.html#advdatamapping_resultset">Result-Set Mapping</a>, or <a href="adv_datamapping.html#advdatamapping_selects">Mapping a Class against Arbitrary Selects</a>.
+     <strong>viewonly=False</strong> - when set to True, the relation is used only for loading objects within the relationship, and has no effect on the unit-of-work flush process.  Relations with viewonly can specify any kind of join conditions to provide additional views of related objects onto a parent object.  Note that the functionality of a viewonly relationship has its limits - complicated join conditions may not compile into eager or lazy loaders properly.  If this is the case, use an alternative method, such as those described in <a href="adv_datamapping.html#advdatamapping_properties_working">Working with Large Collections</a>, <a href="adv_datamapping.html#advdatamapping_resultset">Statement and Result-Set ORM Queries</a>, or <a href="adv_datamapping.html#advdatamapping_selects">Mapping a Class against Arbitrary Selects</a>.
  </li>
 </ul>
 
@@ -856,35 +858,33 @@
 <span class="python_comment"># order by multiple items
 </span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span><span class="python_name">desc</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_enclosure">)])</span><span class="python_operator"></span></pre>
     </div>
-<p>"order_by" can also be specified to an individual <code>select</code> method, overriding all other per-engine/per-mapper orderings:
+<p>"order_by" can also be specified with queries, overriding all other per-engine/per-mapper orderings:
 </p>
 
     
 
     <div class="sliding_code">
         <pre><span class="python_comment"># order by a column
-</span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'fred'</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'fred'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">order_by</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_comment"># order by multiple criterion
-</span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'fred'</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span><span class="python_name">desc</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_enclosure">)])</span><span class="python_operator"></span></pre>
+</span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'fred'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">order_by</span><span class="python_enclosure">([</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span><span class="python_name">desc</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_enclosure">)])</span><span class="python_operator"></span></pre>
     </div>
-<p>For relations, the "order_by" property can also be specified to all forms of relation:
+<p>The "order_by" property can also be specified on a <code>relation()</code> which will control the ordering of the collection:
 </p>
 
     
 
     <div class="sliding_code">
-        <pre><span class="python_comment"># order address objects by address id
-</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
-    <span class="python_literal">'addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">address_id</span><span class="python_enclosure">)</span>
-<span class="python_enclosure">})</span><span class="python_operator">
+        <pre><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_comment"># eager load with ordering - the ORDER BY clauses of parent/child will be organized properly
-</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
-    <span class="python_literal">'addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">desc</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span>
-<span class="python_enclosure">}</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+<span class="python_comment"># order address objects by address id
+</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
+    <span class="python_literal">'addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">address_id</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator"></span></pre>
     </div>
-
+<pre><code>
+</code></pre>
 
 
             <a href="#top">back to section top</a>
@@ -897,27 +897,11 @@
     
     <div class="sectionL2">
 
-    <h3>Limiting Rows</h3>
+    <h3>Limiting Rows Combined with Eager Loads</h3>
     
     
 
-<p>You can limit rows in a regular SQL query by specifying <code>limit</code> and <code>offset</code>.  A Mapper can handle the same concepts:
-</p>
-
-    
-
-    <div class="code">
-        <pre><span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
-    </span><span class="python_keyword">pass</span><span class="python_operator">
-</span>
-<span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_1', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">limit</span><span class="python_operator">=</span><span class="python_number">20</span><span class="python_operator">, </span><span class="python_name">offset</span><span class="python_operator">=</span><span class="python_number">10</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_1_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
-users.user_name AS users_user_name, users.password AS users_password <br/>
-FROM users ORDER BY users.oid <br/>
-LIMIT 20 OFFSET 10<br/>
-{}</div><pre><span class="python_operator"></span></pre>
-    </div>
-<p>However, things get tricky when dealing with eager relationships, since a straight LIMIT of rows does not represent the count of items when joining against other tables to load related items as well.  So here is what SQLAlchemy will do when you use limit or offset with an eager relationship:
+<p>As indicated in the docs on <code>Query</code>, you can limit rows using <code>limit()</code> and <code>offset()</code>.  However, things get tricky when dealing with eager relationships, since a straight LIMIT of rows will interfere with the eagerly-loaded rows.  So here is what SQLAlchemy will do when you use limit or offset with an eager relationship:
 </p>
 
     
@@ -930,19 +914,20 @@ LIMIT 20 OFFSET 10<br/>
     </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
     <span class="python_literal">'addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span>
 <span class="python_enclosure">})</span><span class="python_operator">
-</span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">.</span><span class="python_name">like</span><span class="python_enclosure">(</span><span class="python_literal">'F%'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">limit</span><span class="python_operator">=</span><span class="python_number">20</span><span class="python_operator">, </span><span class="python_name">offset</span><span class="python_operator">=</span><span class="python_number">10</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div class="codepop">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
-users.password AS users_password, addresses.address_id AS addresses_address_id, <br/>
-addresses.user_id AS addresses_user_id, addresses.street AS addresses_street, <br/>
-addresses.city AS addresses_city, addresses.state AS addresses_state, <br/>
-addresses.zip AS addresses_zip <br/>
-FROM <br/>
-(SELECT users.user_id FROM users WHERE users.user_name LIKE %(users_user_name)s<br/>
-ORDER BY users.oid LIMIT 20 OFFSET 10) AS rowcount, <br/>
- users LEFT OUTER JOIN addresses ON users.user_id = addresses.user_id <br/>
-WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
-{'users_user_name': 'F%'}</div><pre><span class="python_operator"></span></pre>
+</span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">.</span><span class="python_name">like</span><span class="python_enclosure">(</span><span class="python_literal">'F%'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">limit</span><span class="python_enclosure">(</span><span class="python_number">20</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">offset</span><span class="python_enclosure">(</span><span class="python_number">10</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_enclosure">{</span><span class="python_name">opensql</span><span class="python_enclosure">}</span><span class="python_name">SELECT users</span><span class="python_operator">.</span><span class="python_name">user_id AS users_user_id</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">user_name AS users_user_name</span><span class="python_operator">, 
+</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">password AS users_password</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">address_id AS addresses_address_id</span><span class="python_operator">, 
+</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">user_id AS addresses_user_id</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">street AS addresses_street</span><span class="python_operator">, 
+</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">city AS addresses_city</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">state AS addresses_state</span><span class="python_operator">, 
+</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">zip AS addresses_zip </span><span class="python_operator">
+</span><span class="python_name">FROM </span><span class="python_operator">
+</span><span class="python_enclosure">(</span><span class="python_name">SELECT users</span><span class="python_operator">.</span><span class="python_name">user_id FROM users WHERE users</span><span class="python_operator">.</span><span class="python_name">user_name LIKE </span><span class="python_operator">%</span><span class="python_enclosure">(</span><span class="python_name">users_user_name</span><span class="python_enclosure">)</span><span class="python_name">s</span>
+<span class="python_name">ORDER BY users</span><span class="python_operator">.</span><span class="python_name">oid LIMIT </span><span class="python_number">20 </span><span class="python_name">OFFSET </span><span class="python_number">10</span><span class="python_enclosure">) </span><span class="python_name">AS rowcount</span><span class="python_operator">, 
+ </span><span class="python_name">users LEFT OUTER JOIN addresses ON users</span><span class="python_operator">.</span><span class="python_name">user_id </span><span class="python_operator">= </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">user_id </span><span class="python_operator">
+</span><span class="python_name">WHERE rowcount</span><span class="python_operator">.</span><span class="python_name">user_id </span><span class="python_operator">= </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">user_id ORDER BY users</span><span class="python_operator">.</span><span class="python_name">oid</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">oid</span><span class="python_operator">
+</span><span class="python_enclosure">{</span><span class="python_literal">'users_user_name'</span><span class="python_operator">: </span><span class="python_literal">'F%'</span><span class="python_enclosure">}</span><span class="python_operator"></span></pre>
     </div>
-<p>The main WHERE clause as well as the limiting clauses are coerced into a subquery; this subquery represents the desired result of objects.  A containing query, which handles the eager relationships, is joined against the subquery to produce the result.
+<p>The main WHERE clause as well as the limiting clauses are coerced into a subquery; this subquery represents the desired result of objects.  A containing query, which handles the eager relationships, is joined against the subquery to produce the result.  This is something to keep in mind as it's a complex query which may be problematic on databases with poor support for LIMIT, such as Oracle which does not support it natively.
 </p>
 
 
@@ -961,13 +946,11 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
     
     
 
-<p>Feature Status: <a href='javascript:alphaImplementation()'>Alpha Implementation</a> 
+<p>Inheritance in databases comes in three forms:  <em>single table inheritance</em>, where several types of classes are stored in one table, <em>concrete table inheritance</em>, where each type of class is stored in its own table, and <em>joined table inheritance</em>, where the parent/child classes are stored in their own tables that are joined together in a select.
 </p>
-<p>Inheritance in databases comes in three forms:  <em>single table inheritance</em>, where several types of classes are stored in one table, <em>concrete table inheritance</em>, where each type of class is stored in its own table, and <em>multiple table inheritance</em>, where the parent/child classes are stored in their own tables that are joined together in a select.
+<p>There is also the ability to load "polymorphically", which is that a single query loads objects of multiple types at once.
 </p>
-<p>There is also a concept of <code>polymorphic</code> loading, which indicates if multiple kinds of classes can be loaded in one pass.
-</p>
-<p>SQLAlchemy supports all three kinds of inheritance.  Additionally, true <code>polymorphic</code> loading is supported in a straightfoward way for single table inheritance, and has some more manually-configured features that can make it happen for concrete and multiple table inheritance.
+<p>SQLAlchemy supports all three kinds of inheritance.  Additionally, true "polymorphic" loading is supported in a straightfoward way for single table inheritance, and has some more manually-configured features that can make it happen for concrete and multiple table inheritance. 
 </p>
 <p>Working examples of polymorphic inheritance come with the distribution in the directory <code>examples/polymorphic</code>.
 </p>
@@ -1083,8 +1066,6 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
 </span><span class="python_name">manager_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Manager</span><span class="python_operator">, </span><span class="python_name">managers_table</span><span class="python_operator">, </span><span class="python_name">inherits</span><span class="python_operator">=</span><span class="python_name">employee_mapper</span><span class="python_operator">, </span><span class="python_name">concrete</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_operator">, </span><span class="python_name">polymorphic_identity</span><span class="python_operator">=</span><span class="python_literal">'manager'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">engineer_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Engineer</span><span class="python_operator">, </span><span class="python_name">engineers_table</span><span class="python_operator">, </span><span class="python_name">inherits</span><span class="python_operator">=</span><span class="python_name">employee_mapper</span><span class="python_operator">, </span><span class="python_name">concrete</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_operator">, </span><span class="python_name">polymorphic_identity</span><span class="python_operator">=</span><span class="python_literal">'engineer'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
-<p>A future release of SQLALchemy might better merge the generated UNION into the mapper construction phase.    <br></br>
-</p>
 
 
 
@@ -1094,11 +1075,11 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
 
 
     
-    <A name="advdatamapping_inheritance_multiple"></a>
+    <A name="advdatamapping_inheritance_joined"></a>
     
     <div class="sectionL3">
 
-    <h3>Multiple Table Inheritance</h3>
+    <h3>Joined Table Inheritance</h3>
     
     
 
@@ -1128,25 +1109,22 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Engineer</span><span class="python_operator">, </span><span class="python_name">engineers</span><span class="python_operator">, </span><span class="python_name">inherits</span><span class="python_operator">=</span><span class="python_name">person_mapper</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Manager</span><span class="python_operator">, </span><span class="python_name">managers</span><span class="python_operator">, </span><span class="python_name">inherits</span><span class="python_operator">=</span><span class="python_name">person_mapper</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
-<p>Polymorphic:
+<p>Polymorphically, joined-table inheritance is easier than concrete, as a simple outer join can usually work:
 </p>
 
     
 
     <div class="sliding_code">
-            <div class="codetitle">Multiple Table Inheritance, Polymorphic</div>
-        <pre><span class="python_name">person_join </span><span class="python_operator">= </span><span class="python_name">polymorphic_union</span><span class="python_enclosure">(</span>
-    <span class="python_enclosure">{</span>
-        <span class="python_literal">'engineer'</span><span class="python_operator">:</span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">engineers</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-        <span class="python_literal">'manager'</span><span class="python_operator">:</span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">managers</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-        <span class="python_literal">'person'</span><span class="python_operator">:</span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">type</span><span class="python_operator">==</span><span class="python_literal">'person'</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-    <span class="python_enclosure">}</span><span class="python_operator">, </span><span class="python_name">None</span><span class="python_operator">, </span><span class="python_literal">'pjoin'</span><span class="python_enclosure">)</span><span class="python_operator">
+            <div class="codetitle">Joined Table Inheritance, Polymorphic</div>
+        <pre><span class="python_name">person_join </span><span class="python_operator">= </span><span class="python_name">people</span><span class="python_operator">.</span><span class="python_name">outerjoin</span><span class="python_enclosure">(</span><span class="python_name">engineers</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">outerjoin</span><span class="python_enclosure">(</span><span class="python_name">managers</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_name">person_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Employee</span><span class="python_operator">, </span><span class="python_name">employees</span><span class="python_operator">, </span><span class="python_name">select_table</span><span class="python_operator">=</span><span class="python_name">person_join</span><span class="python_operator">, </span><span class="python_name">polymorphic_on</span><span class="python_operator">=</span><span class="python_name">person_join</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">type</span><span class="python_operator">, </span><span class="python_name">polymorphic_identity</span><span class="python_operator">=</span><span class="python_literal">'person'</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_name">person_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Person</span><span class="python_operator">, </span><span class="python_name">people</span><span class="python_operator">, </span><span class="python_name">select_table</span><span class="python_operator">=</span><span class="python_name">person_join</span><span class="python_operator">,</span><span class="python_name">polymorphic_on</span><span class="python_operator">=</span><span class="python_name">people</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">type</span><span class="python_operator">, </span><span class="python_name">polymorphic_identity</span><span class="python_operator">=</span><span class="python_literal">'person'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Engineer</span><span class="python_operator">, </span><span class="python_name">engineers</span><span class="python_operator">, </span><span class="python_name">inherits</span><span class="python_operator">=</span><span class="python_name">person_mapper</span><span class="python_operator">, </span><span class="python_name">polymorphic_identity</span><span class="python_operator">=</span><span class="python_literal">'engineer'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Manager</span><span class="python_operator">, </span><span class="python_name">managers</span><span class="python_operator">, </span><span class="python_name">inherits</span><span class="python_operator">=</span><span class="python_name">person_mapper</span><span class="python_operator">, </span><span class="python_name">polymorphic_identity</span><span class="python_operator">=</span><span class="python_literal">'manager'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
-<p>The join condition in a multiple table inheritance relationship can be specified explicitly, using <code>inherit_condition</code>:
+<p>In SQLAlchemy 0.4, the above mapper setup can load polymorphically <em>without</em> the join as well, by issuing distinct queries for each subclasses' table.
+</p>
+<p>The join condition in a joined table inheritance structure can be specified explicitly, using <code>inherit_condition</code>:
 </p>
 
     
@@ -1428,11 +1406,11 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
     
     <div class="sectionL2">
 
-    <h3>Result-Set Mapping</h3>
+    <h3>Statement and Result-Set ORM Queries</h3>
     
     
 
-<p>Take any result set and feed it into a Query to produce objects.  Multiple mappers can be combined to retrieve unrelated objects from the same row in one step.  The <code>instances</code> method on Query takes a ResultProxy object, which is the result type generated from SQLEngine, and delivers object instances.  (note: this method has been moved off of Mapper, where it is deprecated).
+<p>Take any textual statement, constructed statement or result set and feed it into a Query to produce objects.  Below, we define two class/mapper combinations, issue a SELECT statement, and send the result object to the method <code>instances()</code> method on <code>Query</code>:
 </p>
 
     
@@ -1441,29 +1419,36 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
         <pre><span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_keyword">pass</span><span class="python_operator">
 </span>
-<span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># select users
-</span><span class="python_name">c </span><span class="python_operator">= </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator">
-</span>
-<span class="python_comment"># get objects
-</span><span class="python_name">userlist </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">c</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># define a second class/mapper
-</span><span class="python_keyword">class </span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+<span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_keyword">pass</span><span class="python_operator">
 </span>
-<span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># select users and addresses in one query
 # use_labels is so that the user_id column in both tables are distinguished
 </span><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span><span class="python_name">use_labels</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_comment"># execute it, and process the results with the User mapper, chained to the Address mapper
-</span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">s</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator">, </span><span class="python_name">class_mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">))</span><span class="python_operator">
+<span class="python_comment"># execute it, and process the results, asking for both User and Address objects
+</span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">s</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">())</span><span class="python_operator">
 </span>
-<span class="python_comment"># result rows are an array of objects, one for each mapper used
+<span class="python_comment"># result rows come back as tuples
 </span><span class="python_keyword">for </span><span class="python_name">entry </span><span class="python_keyword">in </span><span class="python_name">r</span><span class="python_operator">:
+    </span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">r</span><span class="python_enclosure">[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator">
+    </span><span class="python_name">address </span><span class="python_operator">= </span><span class="python_name">r</span><span class="python_enclosure">[</span><span class="python_number">1</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre>
+    </div>
+<p>Alternatively, the <code>from_statement()</code> method may be used with either a textual string or SQL construct:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span><span class="python_name">use_labels</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">from_statement</span><span class="python_enclosure">(</span><span class="python_name">s</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_keyword">for </span><span class="python_name">entry </span><span class="python_keyword">in </span><span class="python_name">r</span><span class="python_operator">:
     </span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">r</span><span class="python_enclosure">[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator">
     </span><span class="python_name">address </span><span class="python_operator">= </span><span class="python_name">r</span><span class="python_enclosure">[</span><span class="python_number">1</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre>
     </div>
@@ -1474,11 +1459,11 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
     
     <div class="sectionL3">
 
-    <h3>Combining Eager Loads with Result Set Mappings</h3>
+    <h3>Combining Eager Loads with Statement/Result Set Queries</h3>
     
     
 
-<p>When result-set mapping is used with a particular Mapper, SQLAlchemy has no access to the query being used and therefore has no way of tacking on its own <code>LEFT OUTER JOIN</code> conditions that are normally used to eager load relationships.  If the query being constructed is created in such a way that it returns rows not just from a parent table (or tables) but also returns rows from child tables, the result-set mapping can be notified as to which additional properties are contained within the result set.  This is done using the <code>contains_eager()</code> query option, which specifies the name of the relationship to be eagerly loaded, and optionally a <strong>decorator function</strong> that can translate aliased column names when results are received.
+<p>When full statement/result loads are used with <code>Query</code>, SQLAlchemy does not affect the SQL query itself, and therefore has no way of tacking on its own <code>LEFT [OUTER] JOIN</code> conditions that are normally used to eager load relationships.  If the query being constructed is created in such a way that it returns rows not just from a parent table (or tables) but also returns rows from child tables, the result-set mapping can be notified as to which additional properties are contained within the result set.  This is done using the <code>contains_eager()</code> query option, which specifies the name of the relationship to be eagerly loaded.
 </p>
 
     
@@ -1486,7 +1471,7 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
     <div class="sliding_code">
         <pre><span class="python_comment"># mapping is the users->addresses mapping
 </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
-    <span class="python_literal">'addresses'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span>
+    <span class="python_literal">'addresses'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span>
 <span class="python_enclosure">})</span><span class="python_operator">
 </span>
 <span class="python_comment"># define a query on USERS with an outer join to ADDRESSES
@@ -1498,7 +1483,7 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
 <span class="python_comment"># get results normally
 </span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">statement</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">())</span><span class="python_operator"></span></pre>
     </div>
-<p>It is often the case with large queries that some of the tables within the query need to be aliased in order to distinguish them from other occurences of the same table within the query.  A query that attempts to add eagerly loaded child items will often have this condition.  The <code>contains_eager()</code> function takes a keyword argument <code>alias</code> which can either be the string name of an alias, or an actual <code>Alias</code> construct used in constructing the query, which will target the eager loading towards the columns of that alias (new in version 0.3.5):
+<p>If the "eager" portion of the statement is "alisaed", the <code>alias</code> keyword argument to <code>contains_eager()</code> may be used to indicate it.  This is a string alias name or reference to an actual <code>Alias</code> object:
 </p>
 
     
@@ -1514,11 +1499,11 @@ WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
 </span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">contains_eager</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_operator">, </span><span class="python_name">alias</span><span class="python_operator">=</span><span class="python_name">adalias</span><span class="python_enclosure">))</span><span class="python_operator">
 </span>
 <span class="python_comment"># get results normally
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_2', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">statement</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">())</span><span class="python_operator"></span></pre><div id="popbox_2_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, adalias.address_id AS adalias_address_id, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_1', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">from_statement</span><span class="python_enclosure">(</span><span class="python_name">query</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_1_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, adalias.address_id AS adalias_address_id, <br/>
 adalias.user_id AS adalias_user_id, adalias.email_address AS adalias_email_address, (...other columns...)<br/>
 FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias.user_id</div><pre><span class="python_operator"></span></pre>
     </div>
-<p>In the case that the main table itself is also aliased, the <code>contains_alias()</code> option can be used (new in version 0.3.5):
+<p>In the case that the main table itself is also aliased, the <code>contains_alias()</code> option can be used:
 </p>
 
     
@@ -1555,11 +1540,11 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
     
     <div class="sectionL2">
 
-    <h3>Mapper Options</h3>
+    <h3>Mapper Keyword Arguments</h3>
     
     
 
-<p>Options which can be sent to the <code>mapper()</code> function.  For arguments to <code>relation()</code>, see <a href="adv_datamapping.html#advdatamapping_properties_relationoptions">Relation Options</a>.
+<p>Keyword arguments which can be used with the <code>mapper()</code> function.  For arguments to <code>relation()</code>, see <a href="adv_datamapping.html#advdatamapping_properties_relationoptions">Relation Options</a>.
 </p>
 <ul>
  <li>
@@ -1571,7 +1556,7 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
  </li>
 
  <li>
-     <strong>always_refresh=False</strong> - if True, all query operations for this mapped class will overwrite all data within object instances that already exist within the session, erasing any in-memory changes with whatever information was loaded from the database.
+     <strong>always_refresh=False</strong> - if True, all query operations for this mapped class will overwrite all data within object instances that already exist within the session, erasing any in-memory changes with whatever information was loaded from the database.  Note that this option bypasses the usage patterns for which the Session is designed - negative side effects should be expected, and usage issues involving this flag are not supported.  For a better way to refresh data, use <code>query.load()</code>, <code>session.refresh()</code>,  <code>session.expunge()</code>, or <code>session.clear()</code>.
  </li>
 
  <li>

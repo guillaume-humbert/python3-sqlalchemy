@@ -33,29 +33,44 @@ __all__ = ['AbstractDialect', 'Alias', 'ClauseElement', 'ClauseParameters',
            'ClauseVisitor', 'ColumnCollection', 'ColumnElement',
            'Compiled', 'CompoundSelect', 'Executor', 'FromClause', 'Join',
            'Select', 'Selectable', 'TableClause', 'alias', 'and_', 'asc',
-           'between_', 'bindparam', 'case', 'cast', 'column', 'delete',
-           'desc', 'except_', 'except_all', 'exists', 'extract', 'func', 'modifier',
+           'between_', 'between', 'bindparam', 'case', 'cast', 'column', 'delete',
+           'desc', 'distinct', 'except_', 'except_all', 'exists', 'extract', 'func', 'modifier',
            'insert', 'intersect', 'intersect_all', 'join', 'literal',
            'literal_column', 'not_', 'null', 'or_', 'outerjoin', 'select',
            'subquery', 'table', 'text', 'union', 'union_all', 'update',]
 
 # precedence ordering for common operators.  if an operator is not present in this list,
-# its precedence is assumed to be '0' which will cause it to be parenthesized when grouped against other operators
+# it will be parenthesized when grouped against other operators
 PRECEDENCE = {
     'FROM':15,
-    'AS':15,
-    'NOT':10,
+    '*':7,
+    '/':7,
+	'%':7,
+    '+':6,
+    '-':6,
+    'ILIKE':5,
+    'NOT ILIKE':5,
+    'LIKE':5,
+    'NOT LIKE':5,
+    'IN':5,
+    'NOT IN':5,
+    'IS':5,
+    'IS NOT':5,
+    '=':5,
+    '!=':5,
+    '>':5,
+    '<':5,
+    '>=':5,
+    '<=':5,
+    'BETWEEN':5,
+    'NOT':4,
     'AND':3,
-    'OR':3,
-    '=':7,
-    '!=':7,
-    '>':7,
-    '<':7,
-    '+':5,
-    '-':5,
-    '*':5,
-    '/':5,
-    ',':0
+    'OR':2,
+    ',':-1,
+    'AS':-1,
+    'EXISTS':0,
+    '_smallest': -1000,
+    '_largest': 1000
 }
 
 def desc(column):
@@ -203,12 +218,15 @@ def select(columns=None, whereclause = None, from_obj = [], **kwargs):
           and oracle supports "nowait" which translates to 
           ``FOR UPDATE NOWAIT``.
         
-        engine=None
-          an ``Engine`` instance to which the resulting ``Select`` 
+        bind=None
+          an ``Engine`` or ``Connection`` instance to which the resulting ``Select`` 
           object will be bound.  The ``Select`` object will otherwise
-          automatically bind to whatever ``Engine`` instances can be located
+          automatically bind to whatever ``Connectable`` instances can be located
           within its contained ``ClauseElement`` members.
-      
+        
+        engine=None
+          deprecated.  a synonym for "bind".
+          
         limit=None
           a numerical value which usually compiles to a ``LIMIT`` expression
           in the resulting select.  Databases that don't support ``LIMIT``
@@ -375,6 +393,11 @@ def not_(clause):
 
     return clause._negate()
 
+def distinct(expr):
+    """return a ``DISTINCT`` clause."""
+    
+    return _UnaryExpression(expr, operator="DISTINCT")
+
 def between(ctest, cleft, cright):
     """Return a ``BETWEEN`` predicate clause.
 
@@ -384,7 +407,7 @@ def between(ctest, cleft, cright):
     provides similar functionality.
     """
 
-    return _BinaryExpression(ctest, and_(_literals_as_binds(cleft, type=ctest.type), _literals_as_binds(cright, type=ctest.type)), 'BETWEEN')
+    return _BinaryExpression(ctest, ClauseList(_literals_as_binds(cleft, type=ctest.type), _literals_as_binds(cright, type=ctest.type), operator='AND', group=False), 'BETWEEN')
 
 def between_(*args, **kwargs):
     """synonym for [sqlalchemy.sql#between()] (deprecated)."""
@@ -688,7 +711,7 @@ def bindparam(key, value=None, type=None, shortname=None, unique=False):
     else:
         return _BindParamClause(key, value, type=type, shortname=shortname, unique=unique)
 
-def text(text, engine=None, *args, **kwargs):
+def text(text, bind=None, engine=None, *args, **kwargs):
     """Create literal text to be inserted into a query.
 
     When constructing a query from a ``select()``, ``update()``,
@@ -703,8 +726,11 @@ def text(text, engine=None, *args, **kwargs):
         to specify bind parameters; they will be compiled to their
         engine-specific format.
 
+      bind
+        An optional connection or engine to be used for this text query.
+        
       engine
-        An optional engine to be used for this text query.
+        deprecated.  a synonym for 'bind'.
 
       bindparams
         A list of ``bindparam()`` instances which can be used to define
@@ -722,7 +748,7 @@ def text(text, engine=None, *args, **kwargs):
 
     """
 
-    return _TextClause(text, engine=engine, *args, **kwargs)
+    return _TextClause(text, engine=engine, bind=bind, *args, **kwargs)
 
 def null():
     """Return a ``_Null`` object, which compiles to ``NULL`` in a sql statement."""
@@ -749,8 +775,11 @@ class _FunctionGenerator(object):
         return _Function(self.__names[-1], packagenames=self.__names[0:-1], *c, **o)
 
 func = _FunctionGenerator()
+
+# TODO: use UnaryExpression for this instead ?
 modifier = _FunctionGenerator(group=False)
 
+    
 def _compound_select(keyword, *selects, **kwargs):
     return CompoundSelect(keyword, *selects, **kwargs)
 
@@ -999,7 +1028,7 @@ class Compiled(ClauseVisitor):
     defaults.
     """
 
-    def __init__(self, dialect, statement, parameters, engine=None):
+    def __init__(self, dialect, statement, parameters, bind=None, engine=None):
         """Construct a new ``Compiled`` object.
 
         statement
@@ -1019,13 +1048,17 @@ class Compiled(ClauseVisitor):
           can either be the string names of columns or
           ``_ColumnClause`` objects.
 
+        bind
+          optional engine or connection which will be bound to the 
+          compiled object.
+          
         engine
-          Optional Engine to compile this statement against.
+          deprecated, a synonym for 'bind'
         """
         self.dialect = dialect
         self.statement = statement
         self.parameters = parameters
-        self.engine = engine
+        self.bind = bind or engine
         self.can_execute = statement.supports_execution()
 
     def compile(self):
@@ -1058,9 +1091,9 @@ class Compiled(ClauseVisitor):
     def execute(self, *multiparams, **params):
         """Execute this compiled object."""
 
-        e = self.engine
+        e = self.bind
         if e is None:
-            raise exceptions.InvalidRequestError("This Compiled object is not bound to any engine.")
+            raise exceptions.InvalidRequestError("This Compiled object is not bound to any Engine or Connection.")
         return e.execute_compiled(self, *multiparams, **params)
 
     def scalar(self, *multiparams, **params):
@@ -1148,22 +1181,21 @@ class ClauseElement(object):
         """
 
         try:
-            if self._engine is not None:
-                return self._engine
+            if self._bind is not None:
+                return self._bind
         except AttributeError:
             pass
         for f in self._get_from_objects():
             if f is self:
                 continue
-            engine = f.engine
+            engine = f.bind
             if engine is not None:
                 return engine
         else:
             return None
-
-    engine = property(lambda s: s._find_engine(),
-                      doc="""Attempts to locate a Engine within this ClauseElement
-                      structure, or returns None if none found.""")
+    
+    bind = property(lambda s:s._find_engine(), doc="""Returns the Engine or Connection to which this ClauseElement is bound, or None if none found.""")
+    engine = bind
 
     def execute(self, *multiparams, **params):
         """Compile and execute this ``ClauseElement``."""
@@ -1172,7 +1204,7 @@ class ClauseElement(object):
             compile_params = multiparams[0]
         else:
             compile_params = params
-        return self.compile(engine=self.engine, parameters=compile_params).execute(*multiparams, **params)
+        return self.compile(bind=self.bind, parameters=compile_params).execute(*multiparams, **params)
 
     def scalar(self, *multiparams, **params):
         """Compile and execute this ``ClauseElement``, returning the
@@ -1181,7 +1213,7 @@ class ClauseElement(object):
 
         return self.execute(*multiparams, **params).scalar()
 
-    def compile(self, engine=None, parameters=None, compiler=None, dialect=None):
+    def compile(self, bind=None, engine=None, parameters=None, compiler=None, dialect=None):
         """Compile this SQL expression.
 
         Uses the given ``Compiler``, or the given ``AbstractDialect``
@@ -1210,10 +1242,12 @@ class ClauseElement(object):
         if compiler is None:
             if dialect is not None:
                 compiler = dialect.compiler(self, parameters)
+            elif bind is not None:
+                compiler = bind.compiler(self, parameters)
             elif engine is not None:
                 compiler = engine.compiler(self, parameters)
-            elif self.engine is not None:
-                compiler = self.engine.compiler(self, parameters)
+            elif self.bind is not None:
+                compiler = self.bind.compiler(self, parameters)
 
         if compiler is None:
             import sqlalchemy.ansisql as ansisql
@@ -1278,7 +1312,7 @@ class _CompareMixin(object):
     def in_(self, *other):
         """produce an ``IN`` clause."""
         if len(other) == 0:
-            return self.__eq__(None)
+            return _Grouping(case([(self.__eq__(None), text('NULL'))], else_=text('0')).__eq__(text('1')))
         elif len(other) == 1:
             o = other[0]
             if _is_literal(o) or isinstance( o, _CompareMixin):
@@ -1329,7 +1363,7 @@ class _CompareMixin(object):
 
     def between(self, cleft, cright):
         """produce a BETWEEN clause, i.e. ``<column> BETWEEN <cleft> AND <cright>``"""
-        return _BinaryExpression(self, and_(self._check_literal(cleft), self._check_literal(cright)), 'BETWEEN')
+        return _BinaryExpression(self, ClauseList(self._check_literal(cleft), self._check_literal(cright), operator='AND', group=False), 'BETWEEN')
 
     def op(self, operator):
         """produce a generic operator function.
@@ -1519,7 +1553,7 @@ class ColumnElement(Selectable, _CompareMixin):
                 return True
         else:
             return False
-
+    
     def _make_proxy(self, selectable, name=None):
         """Create a new ``ColumnElement`` representing this
         ``ColumnElement`` as it appears in the select list of a
@@ -1558,6 +1592,13 @@ class ColumnCollection(util.OrderedProperties):
         The key attribute of the column will be used as the hash key
         for this dictionary.
         """
+
+        # Allow an aliased column to replace an unaliased column of the
+        # same name.
+        if self.has_key(column.name):
+            other = self[column.name]
+            if other.name == other.key:
+                del self[other.name]
         self[column.key] = column
     
     def remove(self, column):
@@ -1584,6 +1625,25 @@ class ColumnCollection(util.OrderedProperties):
         # "True" value (i.e. a BinaryClause...)
         return col in util.Set(self)
 
+class ColumnSet(util.OrderedSet):
+    def contains_column(self, col):
+        return col in self
+        
+    def extend(self, cols):
+        for col in cols:
+            self.add(col)
+
+    def __add__(self, other):
+        return list(self) + list(other)
+
+    def __eq__(self, other):
+        l = []
+        for c in other:
+            for local in self:
+                if c.shares_lineage(local):
+                    l.append(c==local)
+        return and_(*l)
+            
 class FromClause(Selectable):
     """Represent an element that can be used within the ``FROM``
     clause of a ``SELECT`` statement.
@@ -1670,7 +1730,9 @@ class FromClause(Selectable):
           it merely shares a common anscestor with one of
           the exported columns of this ``FromClause``.
         """
-
+        if column in self.c:
+            return column
+        
         if require_embedded and column not in util.Set(self._get_all_embedded_columns()):
             if not raiseerr:
                 return None
@@ -1709,7 +1771,7 @@ class FromClause(Selectable):
         """)
     oid_column = property(_get_oid_column)
 
-    def _export_columns(self):
+    def _export_columns(self, columns=None):
         """Initialize column collections.
 
         The collections include the primary key, foreign keys, list of
@@ -1722,17 +1784,24 @@ class FromClause(Selectable):
         its parent ``Selectable`` is this ``FromClause``.
         """
 
-        if hasattr(self, '_columns'):
+        if hasattr(self, '_columns') and columns is None:
             # TODO: put a mutex here ?  this is a key place for threading probs
             return
         self._columns = ColumnCollection()
-        self._primary_key = ColumnCollection()
+        self._primary_key = ColumnSet()
         self._foreign_keys = util.Set()
         self._orig_cols = {}
-        for co in self._adjusted_exportable_columns():
+        if columns is None:
+            columns = self._adjusted_exportable_columns()
+        for co in columns:
             cp = self._proxy_column(co)
             for ci in cp.orig_set:
-                self._orig_cols[ci] = cp
+                cx = self._orig_cols.get(ci)
+                # TODO: the '=' thing here relates to the order of columns as they are placed in the
+                # "columns" collection of a CompositeSelect, illustrated in test/sql/selectable.SelectableTest.testunion
+                # make this relationship less brittle
+                if cx is None or cp._distance <= cx._distance:
+                    self._orig_cols[ci] = cp
         if self.oid_column is not None:
             for ci in self.oid_column.orig_set:
                 self._orig_cols[ci] = self.oid_column
@@ -1847,8 +1916,8 @@ class _TextClause(ClauseElement):
     Public constructor is the ``text()`` function.
     """
 
-    def __init__(self, text = "", engine=None, bindparams=None, typemap=None):
-        self._engine = engine
+    def __init__(self, text = "", bind=None, engine=None, bindparams=None, typemap=None):
+        self._bind = bind or engine
         self.bindparams = {}
         self.typemap = typemap
         if typemap is not None:
@@ -1926,12 +1995,6 @@ class ClauseList(ClauseElement):
         clauses = [clause.copy_container() for clause in self.clauses]
         return ClauseList(operator=self.operator, *clauses)
 
-    def self_group(self, against=None):
-        if self.group:
-            return _Grouping(self)
-        else:
-            return self
-
     def append(self, clause):
         # TODO: not sure if i like the 'group_contents' flag.  need to define the difference between
         # a ClauseList of ClauseLists, and a "flattened" ClauseList of ClauseLists.  flatten() method ?
@@ -1953,7 +2016,7 @@ class ClauseList(ClauseElement):
         return f
 
     def self_group(self, against=None):
-        if PRECEDENCE.get(self.operator, 0) <= PRECEDENCE.get(against, 0):
+        if self.group and self.operator != against and PRECEDENCE.get(self.operator, PRECEDENCE['_smallest']) <= PRECEDENCE.get(against, PRECEDENCE['_largest']):
             return _Grouping(self)
         else:
             return self
@@ -1984,7 +2047,7 @@ class _CalculatedClause(ColumnElement):
     def __init__(self, name, *clauses, **kwargs):
         self.name = name
         self.type = sqltypes.to_instance(kwargs.get('type', None))
-        self._engine = kwargs.get('engine', None)
+        self._bind = kwargs.get('bind', kwargs.get('engine', None))
         self.group = kwargs.pop('group', True)
         self.clauses = ClauseList(operator=kwargs.get('operator', None), group_contents=kwargs.get('group_contents', True), *clauses)
         if self.group:
@@ -1996,7 +2059,7 @@ class _CalculatedClause(ColumnElement):
 
     def copy_container(self):
         clauses = [clause.copy_container() for clause in self.clauses]
-        return _CalculatedClause(type=self.type, engine=self._engine, *clauses)
+        return _CalculatedClause(type=self.type, bind=self._bind, *clauses)
 
     def get_children(self, **kwargs):
         return self.clause_expr,
@@ -2045,7 +2108,7 @@ class _Function(_CalculatedClause, FromClause):
 
     def copy_container(self):
         clauses = [clause.copy_container() for clause in self.clauses]
-        return _Function(self.name, type=self.type, packagenames=self.packagenames, engine=self._engine, *clauses)
+        return _Function(self.name, type=self.type, packagenames=self.packagenames, bind=self._bind, *clauses)
         
     def accept_visitor(self, visitor):
         visitor.visit_function(self)
@@ -2057,7 +2120,8 @@ class _Cast(ColumnElement):
         self.type = sqltypes.to_instance(totype)
         self.clause = clause
         self.typeclause = _TypeClause(self.type)
-
+        self._distance = 0
+        
     def get_children(self, **kwargs):
         return self.clause, self.typeclause
     def accept_visitor(self, visitor):
@@ -2069,6 +2133,7 @@ class _Cast(ColumnElement):
     def _make_proxy(self, selectable, name=None):
         if name is not None:
             co = _ColumnClause(name, selectable, type=self.type)
+            co._distance = self._distance + 1
             co.orig_set = self.orig_set
             selectable.columns[name]= co
             return co
@@ -2110,6 +2175,12 @@ class _UnaryExpression(ColumnElement):
             return _UnaryExpression(self.element, operator=self.negate, negate=self.operator, modifier=self.modifier, type=self.type)
         else:
             return super(_UnaryExpression, self)._negate()
+    
+    def self_group(self, against):
+        if self.operator and PRECEDENCE.get(self.operator, PRECEDENCE['_smallest']) <= PRECEDENCE.get(against, PRECEDENCE['_largest']):
+            return _Grouping(self)
+        else:
+            return self
 
 
 class _BinaryExpression(ColumnElement):
@@ -2143,7 +2214,8 @@ class _BinaryExpression(ColumnElement):
         )
         
     def self_group(self, against=None):
-        if PRECEDENCE.get(self.operator, 0) <= PRECEDENCE.get(against, 0):
+        # use small/large defaults for comparison so that unknown operators are always parenthesized
+        if self.operator != against and (PRECEDENCE.get(self.operator, PRECEDENCE['_smallest']) <= PRECEDENCE.get(against, PRECEDENCE['_largest'])):
             return _Grouping(self)
         else:
             return self
@@ -2187,15 +2259,38 @@ class Join(FromClause):
     encodedname = property(lambda s: s.name.encode('ascii', 'backslashreplace'))
 
     def _init_primary_key(self):
-        pkcol = util.OrderedSet()
-        for col in self._adjusted_exportable_columns():
-            if col.primary_key:
-                pkcol.add(col)
-        for col in list(pkcol):
-            for f in col.foreign_keys:
-                if f.column in pkcol:
-                    pkcol.remove(col)
-        self.primary_key.extend(pkcol)
+        pkcol = util.Set([c for c in self._adjusted_exportable_columns() if c.primary_key])
+    
+        equivs = {}
+        def add_equiv(a, b):
+            for x, y in ((a, b), (b, a)):
+                if x in equivs:
+                    equivs[x].add(y)
+                else:
+                    equivs[x] = util.Set([y])
+                    
+        class BinaryVisitor(ClauseVisitor):
+            def visit_binary(self, binary):
+                if binary.operator == '=':
+                    add_equiv(binary.left, binary.right)
+        BinaryVisitor().traverse(self.onclause)
+        
+        for col in pkcol:
+            for fk in col.foreign_keys:
+                if fk.column in pkcol:
+                    add_equiv(col, fk.column)
+                    
+        omit = util.Set()
+        for col in pkcol:
+            p = col
+            for c in equivs.get(col, util.Set()):
+                if p.references(c) or (c.primary_key and not p.primary_key):
+                    omit.add(p)
+                    p = c
+            
+        self.__primary_key = ColumnSet([c for c in self._adjusted_exportable_columns() if c.primary_key and c not in omit])
+
+    primary_key = property(lambda s:s.__primary_key)
         
     def _locate_oid_column(self):
         return self.left.oid_column
@@ -2270,7 +2365,11 @@ class Join(FromClause):
                 collist.append(c)
         self.__folded_equivalents = collist
         return self.__folded_equivalents
-        
+
+    folded_equivalents = property(_get_folded_equivalents, doc="Returns the column list of this Join with all equivalently-named, "
+                                                            "equated columns folded into one column, where 'equated' means they are "
+                                                            "equated to each other in the ON clause of this join.")    
+    
     def select(self, whereclause = None, fold_equivalents=False, **kwargs):
         """Create a ``Select`` from this ``Join``.
         
@@ -2290,7 +2389,7 @@ class Join(FromClause):
           
         """
         if fold_equivalents:
-            collist = self._get_folded_equivalents()
+            collist = self.folded_equivalents
         else:
             collist = [self.left, self.right]
             
@@ -2377,7 +2476,8 @@ class Alias(FromClause):
     def _group_parenthesized(self):
         return False
 
-    engine = property(lambda s: s.selectable.engine)
+    bind = property(lambda s: s.selectable.bind)
+    engine = bind
 
 class _Grouping(ColumnElement):
     def __init__(self, elem):
@@ -2399,6 +2499,8 @@ class _Grouping(ColumnElement):
         return self.elem._hide_froms()
     def _get_from_objects(self):
         return self.elem._get_from_objects()
+    def __getattr__(self, attr):
+        return getattr(self.elem, attr)
         
 class _Label(ColumnElement):
     """represent a label, as typically applied to any column-level element
@@ -2482,6 +2584,7 @@ class _ColumnClause(ColumnElement):
         self.table = selectable
         self.type = sqltypes.to_instance(type)
         self._is_oid = _is_oid
+        self._distance = 0
         self.__label = None
         self.case_sensitive = case_sensitive
         self.is_literal = is_literal
@@ -2541,6 +2644,7 @@ class _ColumnClause(ColumnElement):
         is_literal = self.is_literal and (name is None or name == self.name)
         c = _ColumnClause(name or self.name, selectable=selectable, _is_oid=self._is_oid, type=self.type, is_literal=is_literal)
         c.orig_set = self.orig_set
+        c._distance = self._distance + 1
         if not self._is_oid:
             selectable.columns[c.name] = c
         return c
@@ -2564,12 +2668,8 @@ class TableClause(FromClause):
         super(TableClause, self).__init__(name)
         self.name = self.fullname = name
         self.encodedname = self.name.encode('ascii', 'backslashreplace')
-        self._columns = ColumnCollection()
-        self._foreign_keys = util.OrderedSet()
-        self._primary_key = ColumnCollection()
-        for c in columns:
-            self.append_column(c)
         self._oid_column = _ColumnClause('oid', self, _is_oid=True)
+        self._export_columns(columns)
 
     def named_with_column(self):
         return True
@@ -2580,6 +2680,10 @@ class TableClause(FromClause):
 
     def _locate_oid_column(self):
         return self._oid_column
+
+    def _proxy_column(self, c):
+        self.append_column(c)
+        return c
 
     def _orig_columns(self):
         try:
@@ -2598,6 +2702,7 @@ class TableClause(FromClause):
             return [c for c in self.c]
         else:
             return []
+
     def accept_visitor(self, visitor):
         visitor.visit_table(self)
 
@@ -2682,8 +2787,10 @@ class CompoundSelect(_SelectBaseMixin, FromClause):
         self.is_compound = True
         self.is_where = False
         self.is_scalar = False
+        self.is_subquery = False
 
-        self.selects = selects
+        # unions group from left to right, so don't group first select
+        self.selects = [n and select.self_group(self) or select for n,select in enumerate(selects)]
 
         # some DBs do not like ORDER BY in the inner queries of a UNION, etc.
         for s in selects:
@@ -2745,7 +2852,7 @@ class Select(_SelectBaseMixin, FromClause):
     def __init__(self, columns=None, whereclause=None, from_obj=[],
                  order_by=None, group_by=None, having=None,
                  use_labels=False, distinct=False, for_update=False,
-                 engine=None, limit=None, offset=None, scalar=False,
+                 engine=None, bind=None, limit=None, offset=None, scalar=False,
                  correlate=True):
         """construct a Select object.
         
@@ -2758,7 +2865,7 @@ class Select(_SelectBaseMixin, FromClause):
         self.use_labels = use_labels
         self.whereclause = None
         self.having = None
-        self._engine = engine
+        self._bind = bind or engine
         self.limit = limit
         self.offset = offset
         self.for_update = for_update
@@ -2770,7 +2877,7 @@ class Select(_SelectBaseMixin, FromClause):
         self.is_scalar = scalar
         if scalar:
             # allow corresponding_column to return None
-            self.orig_set = []
+            self.orig_set = util.Set()
             
         # indicates if this select statement, as a subquery, should automatically correlate
         # its FROM clause to that of an enclosing select, update, or delete statement.
@@ -2916,6 +3023,8 @@ class Select(_SelectBaseMixin, FromClause):
             self.__hide_froms.add(f)
 
     def self_group(self, against=None):
+        if isinstance(against, CompoundSelect):
+            return self
         return _Grouping(self)
     
     def append_whereclause(self, whereclause):
@@ -2925,7 +3034,7 @@ class Select(_SelectBaseMixin, FromClause):
         self._append_condition('having', having)
 
     def _append_condition(self, attribute, condition):
-        if type(condition) == str:
+        if isinstance(condition, basestring):
             condition = _TextClause(condition)
         self.__wherecorrelator.traverse(condition)
         self._process_froms(condition, False)
@@ -2944,7 +3053,7 @@ class Select(_SelectBaseMixin, FromClause):
         self.__correlated[from_obj] = from_obj
 
     def append_from(self, fromclause):
-        if type(fromclause) == str:
+        if isinstance(fromclause, basestring):
             fromclause = FromClause(fromclause)
         self.__correlator.traverse(fromclause)
         self._process_froms(fromclause, True)
@@ -2991,14 +3100,14 @@ class Select(_SelectBaseMixin, FromClause):
         object, or searched within the from clauses for one.
         """
 
-        if self._engine is not None:
-            return self._engine
+        if self._bind is not None:
+            return self._bind
         for f in self.__froms:
             if f is self:
                 continue
-            e = f.engine
+            e = f.bind
             if e is not None:
-                self._engine = e
+                self._bind = e
                 return e
         # look through the columns (largely synomous with looking
         # through the FROMs except in the case of _CalculatedClause/_Function)
@@ -3006,9 +3115,9 @@ class Select(_SelectBaseMixin, FromClause):
             for c in cc.columns:
                 if getattr(c, 'table', None) is self:
                     continue
-                e = c.engine
+                e = c.bind
                 if e is not None:
-                    self._engine = e
+                    self._bind = e
                     return e
         return None
 
@@ -3065,7 +3174,7 @@ class _UpdateBase(ClauseElement):
         return parameters
 
     def _find_engine(self):
-        return self.table.engine
+        return self.table.bind
 
 class _Insert(_UpdateBase):
     def __init__(self, table, values=None):

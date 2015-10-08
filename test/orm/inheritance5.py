@@ -593,7 +593,7 @@ class GenerativeTest(testbase.AssertMixin):
         #   +--------------------------------------- has a ------+
 
         global metadata, status, people, engineers, managers, cars
-        metadata = BoundMetaData(testbase.db)
+        metadata = MetaData(testbase.db)
         # table definitions
         status = Table('status', metadata, 
            Column('status_id', Integer, primary_key=True),
@@ -843,9 +843,11 @@ class CustomPKTest(testbase.ORMTest):
             Column('id', Integer, primary_key=True),
             Column('type', String(30), nullable=False),
             Column('data', String(30)))
+        # note that the primary key column in t2 is named differently
         t2 = Table('t2', metadata,
             Column('t2id', Integer, ForeignKey('t1.id'), primary_key=True),
             Column('t2data', String(30)))
+            
     def test_custompk(self):
         """test that the primary_key attribute is propigated to the polymorphic mapper"""
         

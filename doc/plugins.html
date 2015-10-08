@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.8   Last Updated: 06/02/07 17:01:58</div>
+<div class="versionheader">Version: 0.3.9   Last Updated: 07/15/07 12:30:22</div>
 
 
 
@@ -562,7 +562,7 @@
 <p><strong>Author:</strong> Mike Bayer and Jason Kirtland<br></br>
    <strong>Version:</strong> 0.3.1 or greater
 </p>
-<p><code>associationproxy</code> is used to create a transparent proxy to the associated object in an association relationship, thereby decreasing the verbosity of the pattern in cases where explicit access to the association object is not required.  The association relationship pattern is a richer form of a many-to-many relationship, which is described in <a href="datamapping.html#datamapping_association">Association Object</a>.  It is strongly recommended to fully understand the association object pattern in its explicit form before using this extension; see the examples in the SQLAlchemy distribution under the directory <code>examples/association/</code>.
+<p><code>associationproxy</code> is used to create a transparent proxy to the associated object in an association relationship, thereby decreasing the verbosity of the pattern in cases where explicit access to the association object is not required.  The association relationship pattern is a richer form of a many-to-many relationship, which is described in <b>datamapping_association</b>.  It is strongly recommended to fully understand the association object pattern in its explicit form before using this extension; see the examples in the SQLAlchemy distribution under the directory <code>examples/association/</code>.
 </p>
 <p>When dealing with association relationships, the <strong>association object</strong> refers to the object that maps to a row in the association table (i.e. the many-to-many table), while the <strong>associated object</strong> refers to the "endpoint" of the association, i.e. the ultimate object referenced by the parent.  The proxy can return collections of objects attached to association objects, and can also create new association objects given only the associated object.  An example using the Keyword mapping described in the data mapping documentation is as follows:
 </p>
@@ -815,7 +815,7 @@ documentation</a> for more
         <pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">mods</span><span class="python_operator">.</span><span class="python_name">threadlocal</span><span class="python_operator">
 </span><span class="python_keyword">from </span><span class="python_name">sqlalchemy </span><span class="python_keyword">import </span><span class="python_operator">*
 </span>
-<span class="python_name">metadata </span><span class="python_operator">= </span><span class="python_name">BoundMetaData</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///'</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_name">metadata </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">user_table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'users'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span>
@@ -848,7 +848,7 @@ documentation</a> for more
         <pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">mods</span><span class="python_operator">.</span><span class="python_name">threadlocal</span><span class="python_operator">
 </span><span class="python_keyword">from </span><span class="python_name">sqlalchemy </span><span class="python_keyword">import </span><span class="python_operator">*
 </span>
-<span class="python_name">metadata </span><span class="python_operator">= </span><span class="python_name">BoundMetaData</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///'</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_name">metadata </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">user_table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'users'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span>
@@ -997,7 +997,7 @@ documentation</a> for more
 
 <p><strong>Author:</strong> Jason Pellerin
 </p>
-<p>The <code>ProxyEngine</code> is used to "wrap" an <code>Engine</code>, and via subclassing <code>ProxyEngine</code> one can instrument the functionality of an arbitrary <code>Engine</code> instance through the decorator pattern.  It also provides a <code>connect()</code> method which will send all <code>Engine</code> requests to different underlying engines.  Its functionality in that regard is largely superceded now by <code>DynamicMetaData</code> which is a better solution.
+<p>The <code>ProxyEngine</code> is used to "wrap" an <code>Engine</code>, and via subclassing <code>ProxyEngine</code> one can instrument the functionality of an arbitrary <code>Engine</code> instance through the decorator pattern.  It also provides a <code>connect()</code> method which will send all <code>Engine</code> requests to different underlying engines.  Its functionality in that regard is largely superceded now by <code>MetaData</code> which is a better solution.
 </p>
 
     

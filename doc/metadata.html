@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.8   Last Updated: 06/02/07 17:01:58</div>
+<div class="versionheader">Version: 0.3.9   Last Updated: 07/15/07 12:30:22</div>
 
 
 
@@ -65,14 +65,7 @@
             
     <ul>
         
-        <li><A style="" href="metadata.html#metadata_tables_binding">Binding MetaData to an Engine</a></li>
-        
-            
-    <ul>
-    </ul>
-
-        
-        <li><A style="" href="metadata.html#metadata_tables_using">Using the global Metadata object</a></li>
+        <li><A style="" href="metadata.html#metadata_tables_binding">Binding MetaData to an Engine or Connection</a></li>
         
             
     <ul>
@@ -101,13 +94,6 @@
 
         
         <li><A style="" href="metadata.html#metadata_tables_onupdate">ON UPDATE and ON DELETE</a></li>
-        
-            
-    <ul>
-    </ul>
-
-        
-        <li><A style="" href="metadata.html#metadata_tables_quoting">Enabling Table / Column Quoting</a></li>
         
             
     <ul>
@@ -239,9 +225,9 @@
     
     
 
-<p>The core of SQLAlchemy's query and object mapping operations is database metadata, which are Python objects that describe tables and other schema-level objects.  Metadata objects can be created by explicitly naming the various components and their properties, using the Table, Column, ForeignKey, Index, and Sequence objects imported from <code>sqlalchemy.schema</code>.  There is also support for <em>reflection</em>, which means you only specify the <em>name</em> of the entities and they are recreated from the database automatically.
+<p>The core of SQLAlchemy's query and object mapping operations are supported by <strong>database metadata</strong>, which is comprised of Python objects that describe tables and other schema-level objects.  These objects can be created by explicitly naming the various components and their properties, using the Table, Column, ForeignKey, Index, and Sequence objects imported from <code>sqlalchemy.schema</code>.  There is also support for <strong>reflection</strong> of some entities, which means you only specify the <em>name</em> of the entities and they are recreated from the database automatically.
 </p>
-<p>A collection of metadata entities is stored in an object aptly named <code>MetaData</code>.  This object takes an optional <code>name</code> parameter:
+<p>A collection of metadata entities is stored in an object aptly named <code>MetaData</code>:
 </p>
 
     
@@ -249,9 +235,9 @@
     <div class="sliding_code">
         <pre><span class="python_keyword">from </span><span class="python_name">sqlalchemy </span><span class="python_keyword">import </span><span class="python_operator">*
 </span>
-<span class="python_name">metadata </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'my metadata'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+<span class="python_name">metadata </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
     </div>
-<p>Then to construct a Table, use the <code>Table</code> class:
+<p>To represent a Table, use the <code>Table</code> class:
 </p>
 
     
@@ -344,8 +330,8 @@
 <span class="python_comment"># access the table's MetaData:
 </span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">metadata</span><span class="python_operator">
 </span>
-<span class="python_comment"># access the table's Engine, if its MetaData is bound:
-</span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">engine</span><span class="python_operator">
+<span class="python_comment"># access the table's bound Engine or Connection, if its MetaData is bound:
+</span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">bind</span><span class="python_operator">
 </span>
 <span class="python_comment"># access a column's name, type, nullable, primary key, foreign key
 </span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">employee_id</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">
@@ -372,13 +358,13 @@
     
     <div class="sectionL3">
 
-    <h3>Binding MetaData to an Engine</h3>
+    <h3>Binding MetaData to an Engine or Connection</h3>
     
     
 
-<p>A MetaData object can be associated with one or more Engine instances.  This allows the MetaData and the elements within it to perform operations automatically, using the connection resources of that Engine.  This includes being able to "reflect" the columns of tables, as well as to perform create and drop operations without needing to pass an <code>Engine</code> or <code>Connection</code> around.  It also allows SQL constructs to be created which know how to execute themselves (called "implicit execution").
+<p>A <code>MetaData</code> object can be associated with an <code>Engine</code> or an individual <code>Connection</code>; this process is called <strong>binding</strong>.  The term used to describe "an engine or a connection" is often referred to as a <strong>connectable</strong>.  Binding allows the <code>MetaData</code> and the elements which it contains to perform operations against the database directly, using the connection resources to which it's bound.   Common operations which are made more convenient through binding include being able to generate SQL constructs which know how to execute themselves, creating <code>Table</code> objects which query the database for their column and constraint information, and issuing CREATE or DROP statements.
 </p>
-<p>To bind <code>MetaData</code> to a single <code>Engine</code>, use <code>BoundMetaData</code>:
+<p>To bind <code>MetaData</code> to an <code>Engine</code>, use the <code>connect()</code> method:
 </p>
 
     
@@ -386,67 +372,39 @@
     <div class="sliding_code">
         <pre><span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite://'</span><span class="python_operator">, **</span><span class="python_name">kwargs</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_comment"># create BoundMetaData from an Engine
-</span><span class="python_name">meta </span><span class="python_operator">= </span><span class="python_name">BoundMetaData</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_comment"># create MetaData 
+</span><span class="python_name">meta </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
-<span class="python_comment"># create the Engine and MetaData in one step
-</span><span class="python_name">meta </span><span class="python_operator">= </span><span class="python_name">BoundMetaData</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://db/'</span><span class="python_operator">, **</span><span class="python_name">kwargs</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+<span class="python_comment"># bind to an engine
+</span><span class="python_name">meta</span><span class="python_operator">.</span><span class="python_name">bind </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator"></span></pre>
     </div>
-<p>Another form of <code>MetaData</code> exits which can connect to an engine within the current thread (or "on a per-thread basis"), allowing other threads to be connected to different engines simultaneously:
+<p>Once this is done, the <code>MetaData</code> and its contained <code>Table</code> objects can access the database directly:
 </p>
 
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">meta </span><span class="python_operator">= </span><span class="python_name">DynamicMetaData</span><span class="python_enclosure">()</span><span class="python_operator">
+        <pre><span class="python_name">meta</span><span class="python_operator">.</span><span class="python_name">create_all</span><span class="python_enclosure">()  </span><span class="python_comment"># issue CREATE statements for all tables</span><span class="python_operator">
 </span>
-<span class="python_comment"># In thread 1, connect to an existing Engine    
-</span><span class="python_name">meta</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_comment"># describe a table called 'users', query the database for its columns
+</span><span class="python_name">users_table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'users'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">, </span><span class="python_name">autoload</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_comment"># Meanwhile in thread 2, create a new Engine and connect
-</span><span class="python_name">meta</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_literal">'mysq://user@host/dsn'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+<span class="python_comment"># generate a SELECT statement and execute
+</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
     </div>
-<p><code>DynamicMetaData</code> is intended for applications that need to use the same set of <code>Tables</code> for many different database connections in the same process, such as a CherryPy web application which handles multiple application instances in one process.
-</p>
-
-
-
-            <a href="#top">back to section top</a>
-    </div>
-
-
-
-    
-    <A name="metadata_tables_using"></a>
-    
-    <div class="sectionL3">
-
-    <h3>Using the global Metadata object</h3>
-    
-    
-
-<p>Some users prefer to create <code>Table</code> objects without specifying a <code>MetaData</code> object, having Tables scoped on an application-wide basis.  For them the <code>default_metadata</code> object and the <code>global_connect()</code> function is supplied.  <code>default_metadata</code> is simply an instance of <code>DynamicMetaData</code> that exists within the <code>sqlalchemy</code> namespace, and <code>global_connect()</code> is a synonym for <code>default_metadata.connect()</code>.  Defining a <code>Table</code> that has no <code>MetaData</code> argument will automatically use this default metadata as follows:
+<p>Note that the feature of binding engines is <strong>completely optional</strong>.  All of the operations which take advantage of "bound" <code>MetaData</code> also can be given an <code>Engine</code> or <code>Connection</code> explicitly with which to perform the operation.   The equivalent "non-bound" of the above would be:
 </p>
 
     
 
     <div class="sliding_code">
-        <pre><span class="python_keyword">from </span><span class="python_name">sqlalchemy </span><span class="python_keyword">import </span><span class="python_operator">*
+        <pre><span class="python_name">meta</span><span class="python_operator">.</span><span class="python_name">create_all</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_enclosure">)  </span><span class="python_comment"># issue CREATE statements for all tables</span><span class="python_operator">
 </span>
-<span class="python_comment"># a Table with just a name and its Columns
-</span><span class="python_name">mytable </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'mytable'</span><span class="python_operator">, </span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'col1'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'col2'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">40</span><span class="python_enclosure">))</span>
-    <span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_comment"># describe a table called 'users',  query the database for its columns
+</span><span class="python_name">users_table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'users'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">, </span><span class="python_name">autoload</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_operator">, </span><span class="python_name">autoload_with</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_comment"># connect all the "anonymous" tables to a postgres uri in the current thread    
-</span><span class="python_name">global_connect</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://foo:bar@lala/test'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># create all tables in the default metadata
-</span><span class="python_name">default_metadata</span><span class="python_operator">.</span><span class="python_name">create_all</span><span class="python_enclosure">()</span><span class="python_operator">
-</span>
-<span class="python_comment"># the table is bound
-</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">insert</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">col1</span><span class="python_operator">=</span><span class="python_number">5</span><span class="python_operator">, </span><span class="python_name">col2</span><span class="python_operator">=</span><span class="python_literal">'some value'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+<span class="python_comment"># generate a SELECT statement and execute
+</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">())</span><span class="python_operator"></span></pre>
     </div>
 
 
@@ -465,52 +423,36 @@
     
     
 
-<p>Once you have a <code>BoundMetaData</code> or a connected <code>DynamicMetaData</code>, you can create <code>Table</code> objects without specifying their columns, just their names, using <code>autoload=True</code>:
+<p>A <code>Table</code> object can be created without specifying any of its contained attributes, using the argument <code>autoload=True</code> in conjunction with the table's name and possibly its schema (if not the databases "default" schema).  This will issue the appropriate queries to the database in order to locate all properties of the table required for SQLAlchemy to use it effectively, including its column names and datatypes, foreign and primary key constraints, and in some cases its default-value generating attributes.   To use <code>autoload=True</code>, the table's <code>MetaData</code> object need be bound to an <code>Engine</code> or <code>Connection</code>, or alternatively the <code>autoload_with=&lt;some connectable&gt;</code> argument can be passed.  Below we illustrate autoloading a table and then iterating through the names of its columns:
 </p>
 
     
 
     <div class="sliding_code">
-        <pre><span class="python_literal">>>> </span><span class="python_name">messages </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'messages'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">, </span><span class="python_name">autoload </span><span class="python_operator">= </span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+        <pre><span class="python_literal">>>> </span><span class="python_name">messages </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'messages'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">, </span><span class="python_name">autoload</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_enclosure">[</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name </span><span class="python_keyword">for </span><span class="python_name">c </span><span class="python_keyword">in </span><span class="python_name">messages</span><span class="python_operator">.</span><span class="python_name">columns</span><span class="python_enclosure">]</span><span class="python_operator">
 </span><span class="python_enclosure">[</span><span class="python_literal">'message_id'</span><span class="python_operator">, </span><span class="python_literal">'message_name'</span><span class="python_operator">, </span><span class="python_literal">'date'</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre>
     </div>
-<p>At the moment the Table is constructed, it will query the database for the columns and constraints of the <code>messages</code> table.
-</p>
-<p>Note that if a reflected table has a foreign key referencing another table, then the metadata for the related table will be loaded as well, even if it has not been defined by the application:              <br></br>
+<p>Note that if a reflected table has a foreign key referencing another table, the related <code>Table</code> object  will be automatically created within the <code>MetaData</code> object if it does not exist already.  Below, suppose table <code>shopping_cart_items</code> references a table <code>shopping_carts</code>.  After reflecting, the <code>shopping carts</code> table is present:
 </p>
 
     
 
     <div class="sliding_code">
-        <pre><span class="python_literal">>>> </span><span class="python_name">shopping_cart_items </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'shopping_cart_items'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">, </span><span class="python_name">autoload </span><span class="python_operator">= </span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_name">shopping_cart_items</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">cart_id</span><span class="python_operator">.</span><span class="python_name">table</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">
-</span><span class="python_name">shopping_carts</span><span class="python_operator"></span></pre>
-    </div>
-<p>To get direct access to 'shopping_carts', simply instantiate it via the Table constructor.  You'll get the same instance of the shopping cart Table as the one that is attached to shopping_cart_items:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre><span class="python_literal">>>> </span><span class="python_name">shopping_carts </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'shopping_carts'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal">>>> </span><span class="python_name">shopping_carts </span><span class="python_keyword">is </span><span class="python_name">shopping_cart_items</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">cart_id</span><span class="python_operator">.</span><span class="python_name">table</span><span class="python_operator">
+        <pre><span class="python_literal">>>> </span><span class="python_name">shopping_cart_items </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'shopping_cart_items'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">, </span><span class="python_name">autoload</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_literal">>>> 'shopping_carts' </span><span class="python_keyword">in </span><span class="python_name">meta</span><span class="python_operator">.</span><span class="python_name">tables</span><span class="python_operator">:
 </span><span class="python_name">True</span><span class="python_operator"></span></pre>
     </div>
-<p>This works because when the Table constructor is called for a particular name and <code>MetaData</code> object, if the table has already been created then the instance returned will be the same as the original.  This is a <b>singleton</b> constructor:
+<p>To get direct access to 'shopping_carts', simply instantiate it via the <code>Table</code> constructor.  <code>Table</code> uses a special contructor that will return the already created <code>Table</code> instance if its already present:
 </p>
 
     
 
     <div class="sliding_code">
-        <pre><span class="python_literal">>>> </span><span class="python_name">news_articles </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'news'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">, </span>
-<span class="python_operator">... </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'article_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key </span><span class="python_operator">= </span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-<span class="python_operator">... </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'url'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">250</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable </span><span class="python_operator">= </span><span class="python_name">False</span><span class="python_enclosure">)</span>
-<span class="python_operator">... </span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal">>>> </span><span class="python_name">othertable </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'news'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal">>>> </span><span class="python_name">othertable </span><span class="python_keyword">is </span><span class="python_name">news_articles</span><span class="python_operator">
-</span><span class="python_name">True</span><span class="python_operator"></span></pre>
+        <pre><span class="python_name">shopping_carts </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'shopping_carts'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
+<p>Of course, its a good idea to use <code>autoload=True</code> with the above table regardless.  This is so that if it hadn't been loaded already, the operation will load the table.  The autoload operation only occurs for the table if it hasn't already been loaded; once loaded, new calls to <code>Table</code> will not re-issue any reflection queries.
+</p>
 
     
     <A name="metadata_tables_reflecting_overriding"></a>
@@ -606,60 +548,6 @@
 
 
     
-    <A name="metadata_tables_quoting"></a>
-    
-    <div class="sectionL3">
-
-    <h3>Enabling Table / Column Quoting</h3>
-    
-    
-
-<p>Feature Status: <a href='javascript:alphaImplementation()'>Alpha Implementation</a> 
-</p>
-<p>Many table, schema, or column names require quoting to be enabled.  Reasons for this include names that are the same as a database reserved word, or for identifiers that use MixedCase, where the database would normally "fold" the case convention into lower or uppercase (such as Postgres).  SQLAlchemy will attempt to automatically determine when quoting should be used.  It will determine a value for every identifier name called <code>case_sensitive</code>, which defaults to <code>False</code> if the identifer name uses no uppercase letters, or <code>True</code> otherwise.  This flag may be explicitly set on any schema item as well (schema items include <code>Table</code>, <code>Column</code>, <code>MetaData</code>, <code>Sequence</code>, etc.) to override this default setting, where objects will inherit the setting from an enclosing object if not explicitly overridden.
-</p>
-<p>When <code>case_sensitive</code> is <code>True</code>, the dialect will do what it has to in order for the database to recognize the casing.  For Postgres and Oracle, this means using quoted identifiers.
-</p>
-<p>Identifiers that match known SQL reserved words (such as "asc", "union", etc.) will also be quoted according to the dialect's quoting convention regardless of the <code>case_sensitive</code> setting.
-</p>
-<p>To force quoting for an identifier, set the "quote=True" flag on <code>Column</code> or <code>Table</code>, as well as the <code>quote_schema=True</code> flag for <code>Table</code>. 
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre><span class="python_name">table2 </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'WorstCase2'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>
-    <span class="python_comment"># desc is a reserved word, which will be quoted.</span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'desc'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-
-    <span class="python_comment"># if using a reserved word which SQLAlchemy doesn't know about,</span>
-    <span class="python_comment"># specify quote=True</span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'some_reserved_word'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">quote</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-
-    <span class="python_comment"># MixedCase uses a mixed case convention. </span>
-    <span class="python_comment"># it will be automatically quoted since it is case sensitive</span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'MixedCase'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-
-    <span class="python_comment"># Union is both a reserved word and mixed case</span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'Union'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-
-    <span class="python_comment"># normal_column doesnt require quoting</span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'normal_column'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">30</span><span class="python_enclosure">)))</span><span class="python_operator">
-</span>
-<span class="python_comment"># to use tables where case_sensitive is False by default regardless
-# of idenfifier casings, set "case_sensitive" to false at any level
-# (or true to force case sensitive for lowercase identifiers as well)
-</span><span class="python_name">lowercase_metadata </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">(</span><span class="python_name">case_sensitive</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
-    </div>
-
-
-
-            <a href="#top">back to section top</a>
-    </div>
-
-
-
-    
     <A name="metadata_tables_options"></a>
     
     <div class="sectionL3">
@@ -703,14 +591,16 @@
     
     
 
-<p>Creating and dropping individual tables can be done via the <code>create()</code> and <code>drop()</code> methods of <code>Table</code>; these methods take an optional <code>connectable</code> parameter which references an <code>Engine</code> or a <code>Connection</code>.  If not supplied, the <code>Engine</code> bound to the <code>MetaData</code> will be used, else an error is raised:
+<p>Creating and dropping individual tables can be done via the <code>create()</code> and <code>drop()</code> methods of <code>Table</code>; these methods take an optional <code>bind</code> parameter which references an <code>Engine</code> or a <code>Connection</code>.  If not supplied, the <code>Engine</code> bound to the <code>MetaData</code> will be used, else an error is raised:
 </p>
 
     
 
     <div class="code">
-        <pre><span class="python_name">meta </span><span class="python_operator">= </span><span class="python_name">BoundMetaData</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///:memory:'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">employees </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'employees'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">, </span>
+        <pre><span class="python_name">meta </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">meta</span><span class="python_operator">.</span><span class="python_name">bind </span><span class="python_operator">= </span><span class="python_literal">'sqlite:///:memory:'</span><span class="python_operator">
+</span>
+<span class="python_name">employees </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'employees'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">, </span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'employee_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'employee_name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">60</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_operator">, </span><span class="python_name">key</span><span class="python_operator">=</span><span class="python_literal">'name'</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'employee_dept'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">"departments.department_id"</span><span class="python_enclosure">))</span>
@@ -728,7 +618,7 @@ employee_dept INTEGER REFERENCES departments(department_id)<br/>
     
 
     <div class="code">
-        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_2', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">drop</span><span class="python_enclosure">(</span><span class="python_name">connectable</span><span class="python_operator">=</span><span class="python_name">e</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_2_div" class="codepop" style="display:none;">DROP TABLE employees<br/>
+        <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_2', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">drop</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">e</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_2_div" class="codepop" style="display:none;">DROP TABLE employees<br/>
 {}</div><pre><span class="python_operator"></span></pre>
     </div>
 <p>The <code>create()</code> and <code>drop()</code> methods also support an optional keyword argument <code>checkfirst</code> which will issue the database's appropriate pragma statements to check if the table exists before creating or dropping:
@@ -737,10 +627,10 @@ employee_dept INTEGER REFERENCES departments(department_id)<br/>
     
 
     <div class="sliding_code">
-        <pre><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">create</span><span class="python_enclosure">(</span><span class="python_name">connectable</span><span class="python_operator">=</span><span class="python_name">e</span><span class="python_operator">, </span><span class="python_name">checkfirst</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+        <pre><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">create</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">e</span><span class="python_operator">, </span><span class="python_name">checkfirst</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">drop</span><span class="python_enclosure">(</span><span class="python_name">checkfirst</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
-<p>Entire groups of Tables can be created and dropped directly from the <code>MetaData</code> object with <code>create_all()</code> and <code>drop_all()</code>.  These methods always check for the existence of each table before creating or dropping.  Each method takes an optional <code>connectable</code> keyword argument which can reference an <code>Engine</code> or a <code>Connection</code>.  If no engine is specified, the underlying bound <code>Engine</code>,  if any, is used:
+<p>Entire groups of Tables can be created and dropped directly from the <code>MetaData</code> object with <code>create_all()</code> and <code>drop_all()</code>.  These methods always check for the existence of each table before creating or dropping.  Each method takes an optional <code>bind</code> keyword argument which can reference an <code>Engine</code> or a <code>Connection</code>.  If no engine is specified, the underlying bound <code>Engine</code>,  if any, is used:
 </p>
 
     
@@ -764,7 +654,7 @@ employee_dept INTEGER REFERENCES departments(department_id)<br/>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'pref_value'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">100</span><span class="python_enclosure">))</span>
 <span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_literal"><a href="javascript:togglePopbox('popbox_3', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">create_all</span><span class="python_enclosure">(</span><span class="python_name">connectable</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_3_div" class="codepop" style="display:none;">PRAGMA table_info(users){}<br/>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_3', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">metadata</span><span class="python_operator">.</span><span class="python_name">create_all</span><span class="python_enclosure">(</span><span class="python_name">bind</span><span class="python_operator">=</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_3_div" class="codepop" style="display:none;">PRAGMA table_info(users){}<br/>
 CREATE TABLE users(<br/>
         user_id INTEGER NOT NULL PRIMARY KEY, <br/>
         user_name VARCHAR(16) NOT NULL, <br/>
@@ -916,7 +806,7 @@ CREATE TABLE user_prefs(<br/>
 
     <div class="sliding_code">
         <pre><span class="python_name">t </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'test'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">, </span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'mycolumn'</span><span class="python_operator">, </span><span class="python_name">DateTime</span><span class="python_operator">, </span><span class="python_name">PassiveDefault</span><span class="python_enclosure">(</span><span class="python_name">text</span><span class="python_enclosure">(</span><span class="python_literal">"sysdate"</span><span class="python_enclosure">)))</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'mycolumn'</span><span class="python_operator">, </span><span class="python_name">DateTime</span><span class="python_operator">, </span><span class="python_name">PassiveDefault</span><span class="python_enclosure">(</span><span class="python_literal">"sysdate"</span><span class="python_enclosure">))</span>
 <span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
 <p>A create call for the above table will produce:
@@ -940,7 +830,7 @@ CREATE TABLE user_prefs(<br/>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'my_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
 
     <span class="python_comment"># an on-insert database-side default</span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'data1'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">PassiveDefault</span><span class="python_enclosure">(</span><span class="python_name">text</span><span class="python_enclosure">(</span><span class="python_literal">"d1_func()"</span><span class="python_enclosure">)))</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'data1'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">PassiveDefault</span><span class="python_enclosure">(</span><span class="python_literal">"d1_func()"</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
 <span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_comment"># insert a row
 </span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">insert</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'fred'</span><span class="python_enclosure">)</span><span class="python_operator">
@@ -999,9 +889,9 @@ CREATE TABLE user_prefs(<br/>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">"createdate"</span><span class="python_operator">, </span><span class="python_name">DateTime</span><span class="python_enclosure">())</span>
 <span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
-<p>The Sequence is used with Postgres or Oracle to indicate the name of a database sequence that will be used to create default values for a column.  When a table with a Sequence on a column is created in the database by SQLAlchemy, the database sequence object is also created.   Similarly, the database sequence is dropped when the table is dropped.  Sequences are typically used with primary key columns.  When using Postgres, if an integer primary key column defines no explicit Sequence or other default method, SQLAlchemy will create the column with the SERIAL keyword, and will pre-execute a sequence named "tablename_columnname_seq" in order to retrieve new primary key values, if they were not otherwise explicitly stated.   Oracle, which has no "auto-increment" keyword, requires that a Sequence be created for a table if automatic primary key generation is desired.
+<p>The Sequence is used with Postgres or Oracle to indicate the name of a database sequence that will be used to create default values for a column.  When a table with a Sequence on a column is created in the database by SQLAlchemy, the database sequence object is also created.   Similarly, the database sequence is dropped when the table is dropped.  Sequences are typically used with primary key columns.  When using Postgres, if an integer primary key column defines no explicit Sequence or other default method, SQLAlchemy will create the column with the SERIAL keyword, and will pre-execute a sequence named "tablename_columnname_seq" in order to retrieve new primary key values, if they were not otherwise explicitly stated.   Oracle, which has no "auto-increment" keyword, requires that a Sequence be specified for a table if automatic primary key generation is desired.
 </p>
-<p>A Sequence object can be defined on a Table that is then used for a non-sequence-supporting database.  In that case, the Sequence object is simply ignored.  Note that a Sequence object is <strong>entirely optional for all databases except Oracle</strong>, as other databases offer options for auto-creating primary key values, such as AUTOINCREMENT, SERIAL, etc.  SQLAlchemy will use these default methods for creating primary key values if no Sequence is present on the table metadata.
+<p>A Sequence object can be defined on a Table that is then also used with a non-sequence-supporting database.  In that case, the Sequence object is simply ignored.  Note that a Sequence object is <strong>entirely optional for all databases except Oracle</strong>, as other databases offer options for auto-creating primary key values, such as AUTOINCREMENT, SERIAL, etc.  SQLAlchemy will use these default methods for creating primary key values if no Sequence is present on the table metadata.
 </p>
 <p>A sequence can also be specified with <code>optional=True</code> which indicates the Sequence should only be used on a database that requires an explicit sequence, and not those that supply some other method of providing integer values.  At the moment, it essentially means "use this sequence only with Oracle and not Postgres".
 </p>
@@ -1153,7 +1043,7 @@ CREATE TABLE user_prefs(<br/>
 <span class="python_comment"># define an index
 </span><span class="python_name">i </span><span class="python_operator">= </span><span class="python_name">Index</span><span class="python_enclosure">(</span><span class="python_literal">'someindex'</span><span class="python_operator">, </span><span class="python_name">sometable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">col5</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_comment"># create the index, will use the table's connectable, or specify the connectable keyword argument
+<span class="python_comment"># create the index, will use the table's bound connectable if the `bind` keyword argument not specified
 </span><span class="python_name">i</span><span class="python_operator">.</span><span class="python_name">create</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
     </div>
 
@@ -1185,7 +1075,7 @@ CREATE TABLE user_prefs(<br/>
 
     <div class="sliding_code">
         <pre><span class="python_comment"># create two metadata
-</span><span class="python_name">meta1 </span><span class="python_operator">= </span><span class="python_name">BoundMetaData</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///querytest.db'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">meta1 </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///querytest.db'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">meta2 </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_comment"># load 'users' from the sqlite engine

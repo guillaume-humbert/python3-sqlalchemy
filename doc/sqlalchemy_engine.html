@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.8   Last Updated: 06/02/07 17:01:58</div>
+<div class="versionheader">Version: 0.3.9   Last Updated: 07/15/07 12:30:22</div>
 
 
 
@@ -1688,13 +1688,10 @@ methods will be called for compiled statements.</p>
     <div class="docstring">
     <p>Return the list of the primary key values for the last insert statement executed.</p>
 <p>This does not apply to straight textual clauses; only to
-<tt class="docutils literal"><span class="pre">sql.Insert</span></tt> objects compiled against a <tt class="docutils literal"><span class="pre">schema.Table</span></tt> object,
-which are executed via <cite>execute()</cite>.  The order of
+<tt class="docutils literal"><span class="pre">sql.Insert</span></tt> objects compiled against a <tt class="docutils literal"><span class="pre">schema.Table</span></tt> object.
+The order of
 items in the list is the same as that of the Table's
 'primary_key' attribute.</p>
-<p>In some cases, this method may invoke a query back to the
-database to retrieve the data, based on the &quot;lastrowid&quot; value
-in the cursor.</p>
 
     </div>
     </div>
@@ -1932,6 +1929,15 @@ are exhausted.</p>
 
     </div>
     </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>lastrowid = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
 
                     
          <div class="darkcell">

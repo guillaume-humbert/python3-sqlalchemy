@@ -13,7 +13,7 @@ class QueryTest(PersistTest):
     
     def setUpAll(self):
         global users, addresses, metadata
-        metadata = BoundMetaData(testbase.db)
+        metadata = MetaData(testbase.db)
         users = Table('query_users', metadata,
             Column('user_id', INT, primary_key = True),
             Column('user_name', VARCHAR(20)),
@@ -43,6 +43,85 @@ class QueryTest(PersistTest):
 
         self.users.update(self.users.c.user_id == 7).execute(user_name = 'fred')
         print repr(self.users.select().execute().fetchall())
+
+    def test_lastrow_accessor(self):
+        """test the last_inserted_ids() and lastrow_has_id() functions"""
+
+        def insert_values(table, values):
+            """insert a row into a table, return the full list of values INSERTed including defaults
+            that fired off on the DB side.  
+            
+            detects rows that had defaults and post-fetches.
+            """
+            
+            result = table.insert().execute(**values)
+            ret = values.copy()
+
+            for col, id in zip(table.primary_key, result.last_inserted_ids()):
+                ret[col.key] = id
+
+            if result.lastrow_has_defaults():
+                criterion = and_(*[col==id for col, id in zip(table.primary_key, result.last_inserted_ids())])
+                row = table.select(criterion).execute().fetchone()
+                ret.update(row)
+            return ret
+
+        for supported, table, values, assertvalues in [
+            (
+                {'unsupported':['sqlite']},
+                Table("t1", metadata, 
+                    Column('id', Integer, primary_key=True),
+                    Column('foo', String(30), primary_key=True)),
+                {'foo':'hi'},
+                {'id':1, 'foo':'hi'}
+            ),
+            (
+                {'unsupported':['sqlite']},
+                Table("t2", metadata, 
+                    Column('id', Integer, primary_key=True),
+                    Column('foo', String(30), primary_key=True),
+                    Column('bar', String(30), PassiveDefault('hi'))
+                ),
+                {'foo':'hi'},
+                {'id':1, 'foo':'hi', 'bar':'hi'}
+            ),
+            (
+                {'unsupported':[]},
+                Table("t3", metadata, 
+                    Column("id", String(40), primary_key=True),
+                    Column('foo', String(30), primary_key=True),
+                    Column("bar", String(30))
+                    ),
+                    {'id':'hi', 'foo':'thisisfoo', 'bar':"thisisbar"},
+                    {'id':'hi', 'foo':'thisisfoo', 'bar':"thisisbar"}
+            ),
+            (
+                {'unsupported':[]},
+                Table("t4", metadata, 
+                    Column('id', Integer, primary_key=True),
+                    Column('foo', String(30), primary_key=True),
+                    Column('bar', String(30), PassiveDefault('hi'))
+                ),
+                {'foo':'hi', 'id':1},
+                {'id':1, 'foo':'hi', 'bar':'hi'}
+            ),
+            (
+                {'unsupported':[]},
+                Table("t5", metadata, 
+                    Column('id', String(10), primary_key=True),
+                    Column('bar', String(30), PassiveDefault('hi'))
+                ),
+                {'id':'id1'},
+                {'id':'id1', 'bar':'hi'},
+            ),
+        ]:
+            if testbase.db.name in supported['unsupported']:
+                continue
+            try:
+                table.create()
+                assert insert_values(table, values) == assertvalues, repr(values) + " " + repr(assertvalues)
+            finally:
+                table.drop()
 
     def testrowiteration(self):
         self.users.insert().execute(user_id = 7, user_name = 'jack')
@@ -84,51 +163,6 @@ class QueryTest(PersistTest):
             default_metadata.drop_all()
             default_metadata.clear()
  
-    @testbase.supported('postgres')
-    def testpassiveoverride(self):
-        """primarily for postgres, tests that when we get a primary key column back 
-        from reflecting a table which has a default value on it, we pre-execute
-        that PassiveDefault upon insert, even though PassiveDefault says 
-        "let the database execute this", because in postgres we must have all the primary
-        key values in memory before insert; otherwise we cant locate the just inserted row."""
-        try:
-            meta = BoundMetaData(testbase.db)
-            testbase.db.execute("""
-             CREATE TABLE speedy_users
-             (
-                 speedy_user_id   SERIAL     PRIMARY KEY,
-            
-                 user_name        VARCHAR    NOT NULL,
-                 user_password    VARCHAR    NOT NULL
-             );
-            """, None)
-            
-            t = Table("speedy_users", meta, autoload=True)
-            t.insert().execute(user_name='user', user_password='lala')
-            l = t.select().execute().fetchall()
-            self.assert_(l == [(1, 'user', 'lala')])
-        finally:
-            testbase.db.execute("drop table speedy_users", None)
-
-    @testbase.supported('postgres')
-    def testschema(self):
-        meta1 = BoundMetaData(testbase.db)
-        test_table = Table('my_table', meta1,
-                    Column('id', Integer, primary_key=True),
-                    Column('data', String(20), nullable=False),
-                    schema='alt_schema'
-                 )
-        test_table.create()
-        try:
-            # plain insert
-            test_table.insert().execute(data='test')
-
-            meta2 = BoundMetaData(testbase.db)
-            test_table = Table('my_table', meta2, autoload=True, schema='alt_schema')
-            test_table.insert().execute(data='test')
-
-        finally:
-            test_table.drop()
 
     def test_repeated_bindparams(self):
         """test that a BindParam can be used more than once.  
@@ -219,7 +253,16 @@ class QueryTest(PersistTest):
         r = text("select * from query_users where user_id=2", engine=testbase.db).execute().fetchone()
         self.assert_(r.user_id == r['user_id'] == r[self.users.c.user_id] == 2)
         self.assert_(r.user_name == r['user_name'] == r[self.users.c.user_name] == 'jack')
-        
+    
+    def test_ambiguous_column(self):
+        self.users.insert().execute(user_id=1, user_name='john')
+        r = users.outerjoin(addresses).select().execute().fetchone()
+        try:
+            print r['user_id']
+            assert False
+        except exceptions.InvalidRequestError, e:
+            assert str(e) == "Ambiguous column name 'user_id' in result set! try 'use_labels' option on select statement."
+            
     def test_keys(self):
         self.users.insert().execute(user_id=1, user_name='foo')
         r = self.users.select().execute().fetchone()
@@ -267,7 +310,7 @@ class QueryTest(PersistTest):
     def test_update_functions(self):
         """test sending functions and SQL expressions to the VALUES and SET clauses of INSERT/UPDATE instances,
         and that column-level defaults get overridden"""
-        meta = BoundMetaData(testbase.db)
+        meta = MetaData(testbase.db)
         t = Table('t1', meta,
             Column('id', Integer, Sequence('t1idseq', optional=True), primary_key=True),
             Column('value', Integer)
@@ -316,6 +359,7 @@ class QueryTest(PersistTest):
             
     @testbase.supported('postgres')
     def test_functions_with_cols(self):
+        # TODO: shouldnt this work on oracle too ?
         x = testbase.db.func.current_date().execute().scalar()
         y = testbase.db.func.current_date().select().execute().scalar()
         z = testbase.db.func.current_date().scalar()
@@ -348,7 +392,7 @@ class QueryTest(PersistTest):
     
     @testbase.unsupported('oracle', 'firebird') 
     def test_column_accessor_shadow(self):
-        meta = BoundMetaData(testbase.db)
+        meta = MetaData(testbase.db)
         shadowed = Table('test_shadowed', meta,
                          Column('shadow_id', INT, primary_key = True),
                          Column('shadow_name', VARCHAR(20)),
@@ -378,7 +422,7 @@ class QueryTest(PersistTest):
     
     @testbase.supported('mssql')
     def test_fetchid_trigger(self):
-        meta = BoundMetaData(testbase.db)
+        meta = MetaData(testbase.db)
         t1 = Table('t1', meta,
                 Column('id', Integer, Sequence('fred', 100, 1), primary_key=True),
                 Column('descr', String(200)))
@@ -401,14 +445,76 @@ class QueryTest(PersistTest):
             tr.commit()
             con.execute("""drop trigger paj""")
             meta.drop_all()
-
+    
+    @testbase.supported('mssql')
+    def test_insertid_schema(self):
+        meta = MetaData(testbase.db)
+        con = testbase.db.connect()
+        con.execute('create schema paj')
+        tbl = Table('test', meta, Column('id', Integer, primary_key=True), schema='paj')
+        tbl.create()        
+        try:
+            tbl.insert().execute({'id':1})        
+        finally:
+            tbl.drop()
+            con.execute('drop schema paj')
+    
+    def test_in_filtering(self):
+        """test the 'shortname' field on BindParamClause."""
+        self.users.insert().execute(user_id = 7, user_name = 'jack')
+        self.users.insert().execute(user_id = 8, user_name = 'fred')
+        self.users.insert().execute(user_id = 9, user_name = None)
+        
+        s = self.users.select(self.users.c.user_name.in_())
+        r = s.execute().fetchall()
+        # No username is in empty set
+        assert len(r) == 0
+        
+        s = self.users.select(not_(self.users.c.user_name.in_()))
+        r = s.execute().fetchall()
+        # All usernames with a value are outside an empty set
+        assert len(r) == 2
+        
+        s = self.users.select(self.users.c.user_name.in_('jack','fred'))
+        r = s.execute().fetchall()
+        assert len(r) == 2
+        
+        s = self.users.select(not_(self.users.c.user_name.in_('jack','fred')))
+        r = s.execute().fetchall()
+        # Null values are not outside any set
+        assert len(r) == 0
+        
+        u = bindparam('search_key')
+        
+        s = self.users.select(u.in_())
+        r = s.execute(search_key='john').fetchall()
+        assert len(r) == 0
+        r = s.execute(search_key=None).fetchall()
+        assert len(r) == 0
+        
+        s = self.users.select(not_(u.in_()))
+        r = s.execute(search_key='john').fetchall()
+        assert len(r) == 3
+        r = s.execute(search_key=None).fetchall()
+        assert len(r) == 0
+        
+        s = self.users.select(self.users.c.user_name.in_() == True)
+        r = s.execute().fetchall()
+        assert len(r) == 0
+        s = self.users.select(self.users.c.user_name.in_() == False)
+        r = s.execute().fetchall()
+        assert len(r) == 2
+        s = self.users.select(self.users.c.user_name.in_() == None)
+        r = s.execute().fetchall()
+        assert len(r) == 1
+        
 
 class CompoundTest(PersistTest):
     """test compound statements like UNION, INTERSECT, particularly their ability to nest on
     different databases."""
     def setUpAll(self):
         global metadata, t1, t2, t3
-        metadata = BoundMetaData(testbase.db)
+        metadata = MetaData(testbase.db)
         t1 = Table('t1', metadata, 
             Column('col1', Integer, Sequence('t1pkseq'), primary_key=True),
             Column('col2', String(30)),
@@ -483,6 +589,29 @@ class CompoundTest(PersistTest):
         assert e.execute().fetchall() == [('aaa', 'aaa'), ('aaa', 'ccc'), ('bbb', 'aaa'), ('bbb', 'bbb'), ('ccc', 'bbb'), ('ccc', 'ccc')]
         assert e.alias('bar').select().execute().fetchall() == [('aaa', 'aaa'), ('aaa', 'ccc'), ('bbb', 'aaa'), ('bbb', 'bbb'), ('ccc', 'bbb'), ('ccc', 'ccc')]
 
+    @testbase.unsupported('sqlite', 'mysql', 'oracle')
+    def test_except_style3(self):
+        # aaa, bbb, ccc - (aaa, bbb, ccc - (ccc)) = ccc
+        e = except_(
+            select([t1.c.col3]), # aaa, bbb, ccc
+            except_(
+                select([t2.c.col3]), # aaa, bbb, ccc
+                select([t3.c.col3], t3.c.col3 == 'ccc'), #ccc
+            )
+        )
+        self.assertEquals(e.execute().fetchall(), [('ccc',)])
+
+    @testbase.unsupported('sqlite', 'mysql', 'oracle')
+    def test_union_union_all(self):
+        e = union_all(
+            select([t1.c.col3]),
+            union(
+                select([t1.c.col3]),
+                select([t1.c.col3]),
+            )
+        )
+        self.assertEquals(e.execute().fetchall(), [('aaa',),('bbb',),('ccc',),('aaa',),('bbb',),('ccc',)])
+
     @testbase.unsupported('mysql')
     def test_composite(self):
         u = intersect(
@@ -496,6 +625,30 @@ class CompoundTest(PersistTest):
         assert u.execute().fetchall() == [('aaa', 'bbb'), ('bbb', 'ccc'), ('ccc', 'aaa')]
         assert u.alias('foo').select().execute().fetchall() == [('aaa', 'bbb'), ('bbb', 'ccc'), ('ccc', 'aaa')]
 
+class OperatorTest(PersistTest):
+    def setUpAll(self):
+        global metadata, flds
+        metadata = MetaData(testbase.db)
+        flds = Table('flds', metadata, 
+            Column('idcol', Integer, Sequence('t1pkseq'), primary_key=True),
+            Column('intcol', Integer),
+            Column('strcol', String(50)),
+            )
+        metadata.create_all()
+        
+        flds.insert().execute([
+            dict(intcol=5, strcol='foo'),
+            dict(intcol=13, strcol='bar')
+        ])
+
+    def tearDownAll(self):
+        metadata.drop_all()
+        
+    def test_modulo(self):
+        self.assertEquals(
+            select([flds.c.intcol % 3], order_by=flds.c.idcol).execute().fetchall(),
+            [(2,),(1,)]
+        )
         
 if __name__ == "__main__":
     testbase.main()        

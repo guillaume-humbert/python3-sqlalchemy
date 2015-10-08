@@ -32,9 +32,6 @@ Known issues / TODO:
 
 * No support for more than one ``IDENTITY`` column per table
 
-* No support for table reflection of ``IDENTITY`` columns with
-  (seed,increment) values other than (1,1)
-
 * No support for ``GUID`` type columns (yet)
 
 * pymssql has problems with binary and unicode data that this module
@@ -99,14 +96,14 @@ class MSDateTime(sqltypes.DateTime):
     def get_col_spec(self):
         return "DATETIME"
 
-    def convert_bind_param(self, value, dialect):
-        if hasattr(value, "isoformat"):
-            #return value.isoformat(' ')
-            # isoformat() bings on apodbapi -- reported/suggested by Peter Buschman
-            return value.strftime('%Y-%m-%d %H:%M:%S')
-        else:
-            return value
+class MSDate(sqltypes.Date):
+    def __init__(self, *a, **kw):
+        super(MSDate, self).__init__(False)
 
+    def get_col_spec(self):
+        return "SMALLDATETIME"
+
+class MSDateTime_adodbapi(MSDateTime):
     def convert_result_value(self, value, dialect):
         # adodbapi will return datetimes with empty time values as datetime.date() objects.
         # Promote them back to full datetime.datetime()
@@ -114,23 +111,34 @@ class MSDateTime(sqltypes.DateTime):
             return datetime.datetime(value.year, value.month, value.day)
         return value
 
-class MSDate(sqltypes.Date):
-    def __init__(self, *a, **kw):
-        super(MSDate, self).__init__(False)
-
-    def get_col_spec(self):
-        return "SMALLDATETIME"
-    
+class MSDateTime_pyodbc(MSDateTime):
     def convert_bind_param(self, value, dialect):
-        if value and hasattr(value, "isoformat"):
-            return value.strftime('%Y-%m-%d %H:%M')
-        return value
+        if value and not hasattr(value, 'second'):
+            return datetime.datetime(value.year, value.month, value.day)
+        else:
+            return value
 
+class MSDate_pyodbc(MSDate):
+    def convert_bind_param(self, value, dialect):
+        if value and not hasattr(value, 'second'):
+            return datetime.datetime(value.year, value.month, value.day)
+        else:
+            return value
+
+    def convert_result_value(self, value, dialect):
+        # pyodbc returns SMALLDATETIME values as datetime.datetime(). truncate it back to datetime.date()
+        if value and hasattr(value, 'second'):
+            return value.date()
+        else:
+            return value
+
+class MSDate_pymssql(MSDate):
     def convert_result_value(self, value, dialect):
         # pymssql will return SMALLDATETIME values as datetime.datetime(), truncate it back to datetime.date()
         if value and hasattr(value, 'second'):
             return value.date()
-        return value
+        else:
+            return value
 
 class MSText(sqltypes.TEXT):
     def get_col_spec(self):
@@ -143,7 +151,7 @@ class MSString(sqltypes.String):
     def get_col_spec(self):
         return "VARCHAR(%(length)s)" % {'length' : self.length}
 
-class MSNVarchar(MSString):
+class MSNVarchar(sqltypes.Unicode):
     def get_col_spec(self):
         if self.length:
             return "NVARCHAR(%(length)s)" % {'length' : self.length}
@@ -190,6 +198,10 @@ class MSBoolean(sqltypes.Boolean):
             return None
         else:
             return value and True or False
+        
+class MSTimeStamp(sqltypes.TIMESTAMP):
+    def get_col_spec(self):
+        return "TIMESTAMP"
         
 def descriptor():
     return {'name':'mssql',
@@ -240,7 +252,7 @@ class MSSQLExecutionContext(default.DefaultExecutionContext):
 
             if self.IINSERT:
                 # TODO: quoting rules for table name here ?
-                self.cursor.execute("SET IDENTITY_INSERT %s ON" % self.compiled.statement.table.name)
+                self.cursor.execute("SET IDENTITY_INSERT %s ON" % self.compiled.statement.table.fullname)
 
         super(MSSQLExecutionContext, self).pre_exec()
 
@@ -253,16 +265,17 @@ class MSSQLExecutionContext(default.DefaultExecutionContext):
         if self.compiled.isinsert:
             if self.IINSERT:
                 # TODO: quoting rules for table name here ?
-                self.cursor.execute("SET IDENTITY_INSERT %s OFF" % self.compiled.statement.table.name)
+                self.cursor.execute("SET IDENTITY_INSERT %s OFF" % self.compiled.statement.table.fullname)
                 self.IINSERT = False
             elif self.HASIDENT:
-                if self.dialect.use_scope_identity:
-                    self.cursor.execute("SELECT scope_identity() AS lastrowid")
-                else:
-                    self.cursor.execute("SELECT @@identity AS lastrowid")
-                row = self.cursor.fetchone()
-                self._last_inserted_ids = [int(row[0])]
-                # print "LAST ROW ID", self._last_inserted_ids
+                if not len(self._last_inserted_ids) or self._last_inserted_ids[0] is None:
+                    if self.dialect.use_scope_identity:
+                        self.cursor.execute("SELECT scope_identity() AS lastrowid")
+                    else:
+                        self.cursor.execute("SELECT @@identity AS lastrowid")
+                    row = self.cursor.fetchone()
+                    self._last_inserted_ids = [int(row[0])] + self._last_inserted_ids[1:]
+                    # print "LAST ROW ID", self._last_inserted_ids
             self.HASIDENT = False
         super(MSSQLExecutionContext, self).post_exec()
 
@@ -277,6 +290,17 @@ class MSSQLExecutionContext_pyodbc (MSSQLExecutionContext):
             self.connection.pyodbc_done_nocount = True
             
         super(MSSQLExecutionContext_pyodbc, self).pre_exec()
+
+        # where appropriate, issue "select scope_identity()" in the same statement
+        if self.compiled.isinsert and self.HASIDENT and (not self.IINSERT) and self.dialect.use_scope_identity:
+            self.statement += "; select scope_identity()"
+
+    def post_exec(self):
+        if self.compiled.isinsert and self.HASIDENT and (not self.IINSERT) and self.dialect.use_scope_identity:
+            # do nothing - id was fetched in dialect.do_execute()
+            self.HASIDENT = False
+        else:
+            super(MSSQLExecutionContext_pyodbc, self).post_exec()
 
 
 class MSSQLDialect(ansisql.ANSIDialect):
@@ -294,6 +318,7 @@ class MSSQLDialect(ansisql.ANSIDialect):
         sqltypes.TEXT : MSText,
         sqltypes.CHAR: MSChar,
         sqltypes.NCHAR: MSNChar,
+        sqltypes.TIMESTAMP: MSTimeStamp,
     }
 
     ischema_names = {
@@ -314,7 +339,8 @@ class MSSQLDialect(ansisql.ANSIDialect):
         'binary' : MSBinary,
         'bit': MSBoolean,
         'real' : MSFloat,
-        'image' : MSBinary
+        'image' : MSBinary,
+        'timestamp': MSTimeStamp,
     }
 
     def __new__(cls, dbapi=None, *args, **kwargs):
@@ -330,7 +356,7 @@ class MSSQLDialect(ansisql.ANSIDialect):
         super(MSSQLDialect, self).__init__(**params)
         self.auto_identity_insert = auto_identity_insert
         self.text_as_varchar = False
-        self.use_scope_identity = True
+        self.use_scope_identity = False
         self.set_default_schema_name("dbo")
 
     def dbapi(cls, module_name=None):
@@ -506,10 +532,8 @@ class MSSQLDialect(ansisql.ANSIDialect):
             raise exceptions.NoSuchTableError(table.name)
 
         # We also run an sp_columns to check for identity columns:
-        # FIXME: note that this only fetches the existence of an identity column, not it's properties like (seed, increment)
-        #        also, add a check to make sure we specify the schema name of the table
-        # cursor = table.engine.execute("sp_columns " + table.name, {})
         cursor = connection.execute("sp_columns " + table.name)
+        ic = None
         while True:
             row = cursor.fetchone()
             if row is None:
@@ -519,6 +543,20 @@ class MSSQLDialect(ansisql.ANSIDialect):
                 ic = table.c[col_name]
                 # setup a psuedo-sequence to represent the identity attribute - we interpret this at table.create() time as the identity attribute
                 ic.sequence = schema.Sequence(ic.name + '_identity')
+                # MSSQL: only one identity per table allowed
+                cursor.close()
+                break
+        if not ic is None:
+            try:
+                cursor = connection.execute("select ident_seed(?), ident_incr(?)", table.fullname, table.fullname)
+                row = cursor.fetchone()
+                cursor.close()
+                if not row is None:
+                    ic.sequence.start=int(row[0])
+                    ic.sequence.increment=int(row[1])
+            except:
+                # ignoring it, works just like before
+                pass
 
         # Add constraints
         RR = self.uppercase_table(ischema.ref_constraints)    #information_schema.referential_constraints
@@ -570,8 +608,21 @@ class MSSQLDialect_pymssql(MSSQLDialect):
         return module
     import_dbapi = classmethod(import_dbapi)
     
+    colspecs = MSSQLDialect.colspecs.copy()
+    colspecs[sqltypes.Date] = MSDate_pymssql
+
+    ischema_names = MSSQLDialect.ischema_names.copy()
+    ischema_names['smalldatetime'] = MSDate_pymssql
+
+    def __init__(self, **params):
+        super(MSSQLDialect_pymssql, self).__init__(**params)
+        self.use_scope_identity = True
+
     def supports_sane_rowcount(self):
-        return True
+        return False
+
+    def max_identifier_length(self):
+        return 30
 
     def do_rollback(self, connection):
         # pymssql throws an error on repeated rollbacks. Ignore it.
@@ -638,15 +689,27 @@ class MSSQLDialect_pyodbc(MSSQLDialect):
     
     colspecs = MSSQLDialect.colspecs.copy()
     colspecs[sqltypes.Unicode] = AdoMSNVarchar
+    colspecs[sqltypes.Date] = MSDate_pyodbc
+    colspecs[sqltypes.DateTime] = MSDateTime_pyodbc
+
     ischema_names = MSSQLDialect.ischema_names.copy()
     ischema_names['nvarchar'] = AdoMSNVarchar
+    ischema_names['smalldatetime'] = MSDate_pyodbc
+    ischema_names['datetime'] = MSDateTime_pyodbc
 
     def supports_sane_rowcount(self):
         return False
 
+    def supports_unicode_statements(self):
+        """indicate whether the DBAPI can receive SQL statements as Python unicode strings"""
+        return True
+
     def make_connect_string(self, keys):
         connectors = ["Driver={SQL Server}"]
-        connectors.append("Server=%s" % keys.get("host"))
+        if 'port' in keys:
+            connectors.append('Server=%s,%d' % (keys.get('host'), keys.get('port')))
+        else:
+            connectors.append('Server=%s' % keys.get('host'))
         connectors.append("Database=%s" % keys.get("database"))
         user = keys.get("user")
         if user:
@@ -657,11 +720,24 @@ class MSSQLDialect_pyodbc(MSSQLDialect):
         return [[";".join (connectors)], {}]
 
     def is_disconnect(self, e):
-        return isinstance(e, self.dbapi.Error) and '[08S01]' in e.args[1]
+        return isinstance(e, self.dbapi.Error) and '[08S01]' in str(e)
 
     def create_execution_context(self, *args, **kwargs):
         return MSSQLExecutionContext_pyodbc(self, *args, **kwargs)
 
+    def do_execute(self, cursor, statement, parameters, context=None, **kwargs):
+        super(MSSQLDialect_pyodbc, self).do_execute(cursor, statement, parameters, context=context, **kwargs)
+        if context and context.HASIDENT and (not context.IINSERT) and context.dialect.use_scope_identity:
+            import pyodbc
+            # fetch the last inserted id from the manipulated statement (pre_exec).
+            try:
+                row = cursor.fetchone()
+            except pyodbc.Error, e:
+                # if nocount OFF fetchone throws an exception and we have to jump over
+                # the rowcount to the resultset
+                cursor.nextset()
+                row = cursor.fetchone()
+            context._last_inserted_ids = [int(row[0])]
 
 class MSSQLDialect_adodbapi(MSSQLDialect):
     def import_dbapi(cls):
@@ -671,10 +747,17 @@ class MSSQLDialect_adodbapi(MSSQLDialect):
 
     colspecs = MSSQLDialect.colspecs.copy()
     colspecs[sqltypes.Unicode] = AdoMSNVarchar
+    colspecs[sqltypes.DateTime] = MSDateTime_adodbapi
+
     ischema_names = MSSQLDialect.ischema_names.copy()
     ischema_names['nvarchar'] = AdoMSNVarchar
+    ischema_names['datetime'] = MSDateTime_adodbapi
 
     def supports_sane_rowcount(self):
+        return True
+
+    def supports_unicode_statements(self):
+        """indicate whether the DBAPI can receive SQL statements as Python unicode strings"""
         return True
 
     def make_connect_string(self, keys):
