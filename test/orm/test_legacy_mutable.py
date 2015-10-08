@@ -15,9 +15,10 @@ from test.lib.schema import Table, Column
 from sqlalchemy.orm import mapper, create_session, Session, attributes
 from test.lib.testing import eq_, ne_
 from test.lib.util import gc_collect
-from test.orm import _base, _fixtures
+from test.lib import fixtures
+from test.orm import _fixtures
 
-class MutableTypesTest(_base.MappedTest):
+class MutableTypesTest(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
@@ -29,16 +30,18 @@ class MutableTypesTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Foo(_base.BasicEntity):
+        class Foo(cls.Basic):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        mutable_t, Foo = cls.tables.mutable_t, cls.classes.Foo
+
         mapper(Foo, mutable_t)
 
-    @testing.resolve_artifact_names
     def test_modified_status(self):
+        Foo = self.classes.Foo
+
         f1 = Foo(data = pickleable.Bar(4,5))
 
         session = Session()
@@ -53,8 +56,9 @@ class MutableTypesTest(_base.MappedTest):
         assert f2 in session.dirty
         assert 'data' not in sa.orm.attributes.instance_state(f2).unmodified
 
-    @testing.resolve_artifact_names
     def test_mutations_persisted(self):
+        Foo = self.classes.Foo
+
         f1 = Foo(data = pickleable.Bar(4,5))
 
         session = Session()
@@ -73,8 +77,9 @@ class MutableTypesTest(_base.MappedTest):
         ne_(f3.data,f1.data)
         eq_(f3.data, pickleable.Bar(4, 19))
 
-    @testing.resolve_artifact_names
     def test_no_unnecessary_update(self):
+        Foo = self.classes.Foo
+
         f1 = Foo(data = pickleable.Bar(4,5), val = u'hi')
 
         session = Session()
@@ -96,8 +101,9 @@ class MutableTypesTest(_base.MappedTest):
              "WHERE mutable_t.id = :mutable_t_id",
              {'mutable_t_id': f1.id, 'val': u'hi', 'data':f1.data})])
 
-    @testing.resolve_artifact_names
     def test_mutated_state_resurrected(self):
+        Foo = self.classes.Foo
+
         f1 = Foo(data = pickleable.Bar(4,5), val = u'hi')
 
         session = Session()
@@ -114,13 +120,15 @@ class MutableTypesTest(_base.MappedTest):
 
         assert session.query(Foo).one().data == pickleable.Bar(4, 19)
 
-    @testing.resolve_artifact_names
     def test_mutated_plus_scalar_state_change_resurrected(self):
         """test that a non-mutable attribute event subsequent to
         a mutable event prevents the object from falling into
         resurrected state.
 
          """
+
+        Foo = self.classes.Foo
+
         f1 = Foo(data = pickleable.Bar(4, 5), val=u'some val')
         session = Session()
         session.add(f1)
@@ -138,8 +146,9 @@ class MutableTypesTest(_base.MappedTest):
             [('some new val', )]
         )
 
-    @testing.resolve_artifact_names
     def test_non_mutated_state_not_resurrected(self):
+        Foo = self.classes.Foo
+
         f1 = Foo(data = pickleable.Bar(4,5))
 
         session = Session()
@@ -155,12 +164,14 @@ class MutableTypesTest(_base.MappedTest):
         f1 = session.query(Foo).first()
         assert not attributes.instance_state(f1).modified
 
-    @testing.resolve_artifact_names
     def test_scalar_no_net_change_no_update(self):
         """Test that a no-net-change on a scalar attribute event
         doesn't cause an UPDATE for a mutable state.
 
          """
+
+        Foo = self.classes.Foo
+
 
         f1 = Foo(val=u'hi')
 
@@ -173,12 +184,14 @@ class MutableTypesTest(_base.MappedTest):
         f1.val = u'hi'
         self.sql_count_(0, session.commit)
 
-    @testing.resolve_artifact_names
     def test_expire_attribute_set(self):
         """test no SELECT emitted when assigning to an expired
         mutable attribute.
 
         """
+
+        Foo = self.classes.Foo
+
 
         f1 = Foo(data = pickleable.Bar(4, 5), val=u'some val')
         session = Session()
@@ -193,10 +206,12 @@ class MutableTypesTest(_base.MappedTest):
 
         eq_(f1.data.x, 10)
 
-    @testing.resolve_artifact_names
     def test_expire_mutate(self):
         """test mutations are detected on an expired mutable
         attribute."""
+
+        Foo = self.classes.Foo
+
 
         f1 = Foo(data = pickleable.Bar(4, 5), val=u'some val')
         session = Session()
@@ -211,12 +226,14 @@ class MutableTypesTest(_base.MappedTest):
 
         eq_(f1.data.x, 10)
 
-    @testing.resolve_artifact_names
     def test_deferred_attribute_set(self):
         """test no SELECT emitted when assigning to a deferred
         mutable attribute.
 
         """
+
+        mutable_t, Foo = self.tables.mutable_t, self.classes.Foo
+
         sa.orm.clear_mappers()
         mapper(Foo, mutable_t, properties={
             'data':sa.orm.deferred(mutable_t.c.data)
@@ -237,10 +254,12 @@ class MutableTypesTest(_base.MappedTest):
 
         eq_(f1.data.x, 10)
 
-    @testing.resolve_artifact_names
     def test_deferred_mutate(self):
         """test mutations are detected on a deferred mutable
         attribute."""
+
+        mutable_t, Foo = self.tables.mutable_t, self.classes.Foo
+
 
         sa.orm.clear_mappers()
         mapper(Foo, mutable_t, properties={
@@ -265,7 +284,7 @@ class MutableTypesTest(_base.MappedTest):
         self.sql_count_(1, go)
 
 
-class PickledDictsTest(_base.MappedTest):
+class PickledDictsTest(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
@@ -277,17 +296,20 @@ class PickledDictsTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Foo(_base.BasicEntity):
+        class Foo(cls.Basic):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        mutable_t, Foo = cls.tables.mutable_t, cls.classes.Foo
+
         mapper(Foo, mutable_t)
 
-    @testing.resolve_artifact_names
     def test_dicts(self):
         """Dictionaries may not pickle the same way twice."""
+
+        Foo = self.classes.Foo
+
 
         f1 = Foo()
         f1.data = [ {

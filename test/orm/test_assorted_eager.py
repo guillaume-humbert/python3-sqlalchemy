@@ -14,10 +14,10 @@ from sqlalchemy import Integer, String, ForeignKey
 from test.lib.schema import Table, Column
 from sqlalchemy.orm import mapper, relationship, backref, create_session
 from test.lib.testing import eq_
-from test.orm import _base
+from test.lib import fixtures
 
 
-class EagerTest(_base.MappedTest):
+class EagerTest(fixtures.MappedTest):
     run_deletes = None
     run_inserts = "once"
     run_setup_mappers = "once"
@@ -30,7 +30,7 @@ class EagerTest(_base.MappedTest):
         else:
             false = "0"
 
-        cls.other_artifacts['false'] = false
+        cls.other['false'] = false
 
         Table('owners', metadata ,
               Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
@@ -54,21 +54,29 @@ class EagerTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Owner(_base.BasicEntity):
+        class Owner(cls.Basic):
             pass
 
-        class Category(_base.BasicEntity):
+        class Category(cls.Basic):
             pass
 
-        class Thing(_base.BasicEntity):
+        class Thing(cls.Basic):
             pass
 
-        class Option(_base.BasicEntity):
+        class Option(cls.Basic):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        Category, owners, Option, tests, Thing, Owner, options, categories = (cls.classes.Category,
+                                cls.tables.owners,
+                                cls.classes.Option,
+                                cls.tables.tests,
+                                cls.classes.Thing,
+                                cls.classes.Owner,
+                                cls.tables.options,
+                                cls.tables.categories)
+
         mapper(Owner, owners)
 
         mapper(Category, categories)
@@ -87,8 +95,12 @@ class EagerTest(_base.MappedTest):
                 uselist=False)))
 
     @classmethod
-    @testing.resolve_artifact_names
     def insert_data(cls):
+        Owner, Category, Option, Thing = (cls.classes.Owner,
+                                cls.classes.Category,
+                                cls.classes.Option,
+                                cls.classes.Thing)
+
         session = create_session()
 
         o = Owner()
@@ -100,9 +112,13 @@ class EagerTest(_base.MappedTest):
 
         session.flush()
 
-    @testing.resolve_artifact_names
     def test_noorm(self):
         """test the control case"""
+
+        tests, options, categories = (self.tables.tests,
+                                self.tables.options,
+                                self.tables.categories)
+
         # I want to display a list of tests owned by owner 1
         # if someoption is false or he hasn't specified it yet (null)
         # but not if he set it to true (example someoption is for hiding)
@@ -126,8 +142,11 @@ class EagerTest(_base.MappedTest):
             ).execute().fetchall()
         eq_(result, [(1, u'Some Category'), (3, u'Some Category')])
 
-    @testing.resolve_artifact_names
     def test_withoutjoinedload(self):
+        Thing, tests, options = (self.classes.Thing,
+                                self.tables.tests,
+                                self.tables.options)
+
         s = create_session()
         l = (s.query(Thing).
              select_from(tests.outerjoin(options,
@@ -141,7 +160,6 @@ class EagerTest(_base.MappedTest):
         result = ["%d %s" % ( t.id,t.category.name ) for t in l]
         eq_(result, [u'1 Some Category', u'3 Some Category'])
 
-    @testing.resolve_artifact_names
     def test_withjoinedload(self):
         """
         Test that an joinedload locates the correct "from" clause with which to
@@ -149,6 +167,11 @@ class EagerTest(_base.MappedTest):
         from clause.
 
         """
+
+        Thing, tests, options = (self.classes.Thing,
+                                self.tables.tests,
+                                self.tables.options)
+
         s = create_session()
         q=s.query(Thing).options(sa.orm.joinedload('category'))
 
@@ -164,9 +187,13 @@ class EagerTest(_base.MappedTest):
         result = ["%d %s" % ( t.id,t.category.name ) for t in l]
         eq_(result, [u'1 Some Category', u'3 Some Category'])
 
-    @testing.resolve_artifact_names
     def test_dslish(self):
         """test the same as withjoinedload except using generative"""
+
+        Thing, tests, options = (self.classes.Thing,
+                                self.tables.tests,
+                                self.tables.options)
+
         s = create_session()
         q = s.query(Thing).options(sa.orm.joinedload('category'))
         l = q.filter (
@@ -179,8 +206,11 @@ class EagerTest(_base.MappedTest):
         eq_(result, [u'1 Some Category', u'3 Some Category'])
 
     @testing.crashes('sybase', 'FIXME: unknown, verify not fails_on')
-    @testing.resolve_artifact_names
     def test_without_outerjoin_literal(self):
+        Thing, tests, false = (self.classes.Thing,
+                                self.tables.tests,
+                                self.other.false)
+
         s = create_session()
         q = s.query(Thing).options(sa.orm.joinedload('category'))
         l = (q.filter(
@@ -191,8 +221,11 @@ class EagerTest(_base.MappedTest):
         result = ["%d %s" % ( t.id,t.category.name ) for t in l]
         eq_(result, [u'3 Some Category'])
 
-    @testing.resolve_artifact_names
     def test_withoutouterjoin(self):
+        Thing, tests, options = (self.classes.Thing,
+                                self.tables.tests,
+                                self.tables.options)
+
         s = create_session()
         q = s.query(Thing).options(sa.orm.joinedload('category'))
         l = q.filter(
@@ -204,7 +237,7 @@ class EagerTest(_base.MappedTest):
         eq_(result, [u'3 Some Category'])
 
 
-class EagerTest2(_base.MappedTest):
+class EagerTest2(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('left', metadata,
@@ -221,21 +254,27 @@ class EagerTest2(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Left(_base.BasicEntity):
+        class Left(cls.Basic):
             def __init__(self, data):
                 self.data = data
 
-        class Middle(_base.BasicEntity):
+        class Middle(cls.Basic):
             def __init__(self, data):
                 self.data = data
 
-        class Right(_base.BasicEntity):
+        class Right(cls.Basic):
             def __init__(self, data):
                 self.data = data
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        Right, Middle, middle, right, left, Left = (cls.classes.Right,
+                                cls.classes.Middle,
+                                cls.tables.middle,
+                                cls.tables.right,
+                                cls.tables.left,
+                                cls.classes.Left)
+
         # set up bi-directional eager loads
         mapper(Left, left)
         mapper(Right, right)
@@ -248,7 +287,6 @@ class EagerTest2(_base.MappedTest):
                            backref=backref('middle', lazy='joined')))),
 
     @testing.fails_on('maxdb', 'FIXME: unknown')
-    @testing.resolve_artifact_names
     def test_eager_terminate(self):
         """Eager query generation does not include the same mapper's table twice.
 
@@ -256,6 +294,11 @@ class EagerTest2(_base.MappedTest):
         query generation.
 
         """
+
+        Middle, Right, Left = (self.classes.Middle,
+                                self.classes.Right,
+                                self.classes.Left)
+
         p = Middle('m1')
         p.left.append(Left('l1'))
         p.right.append(Right('r1'))
@@ -267,7 +310,7 @@ class EagerTest2(_base.MappedTest):
         obj = session.query(Left).filter_by(data='l1').one()
 
 
-class EagerTest3(_base.MappedTest):
+class EagerTest3(fixtures.MappedTest):
     """Eager loading combined with nested SELECT statements, functions, and aggregates."""
 
     @classmethod
@@ -287,18 +330,24 @@ class EagerTest3(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Data(_base.BasicEntity):
+        class Data(cls.Basic):
             pass
 
-        class Foo(_base.BasicEntity):
+        class Foo(cls.Basic):
             pass
 
-        class Stat(_base.BasicEntity):
+        class Stat(cls.Basic):
             pass
 
     @testing.fails_on('maxdb', 'FIXME: unknown')
-    @testing.resolve_artifact_names
     def test_nesting_with_functions(self):
+        Stat, Foo, stats, foo, Data, datas = (self.classes.Stat,
+                                self.classes.Foo,
+                                self.tables.stats,
+                                self.tables.foo,
+                                self.classes.Data,
+                                self.tables.datas)
+
         mapper(Data, datas)
         mapper(Foo, foo, properties={
             'data': relationship(Data,backref=backref('foo',uselist=False))})
@@ -352,7 +401,7 @@ class EagerTest3(_base.MappedTest):
 
         eq_(verify_result, arb_result)
 
-class EagerTest4(_base.MappedTest):
+class EagerTest4(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
@@ -368,15 +417,19 @@ class EagerTest4(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Department(_base.BasicEntity):
+        class Department(cls.Basic):
             pass
 
-        class Employee(_base.BasicEntity):
+        class Employee(cls.Basic):
             pass
 
     @testing.fails_on('maxdb', 'FIXME: unknown')
-    @testing.resolve_artifact_names
     def test_basic(self):
+        Department, Employee, employees, departments = (self.classes.Department,
+                                self.classes.Employee,
+                                self.tables.employees,
+                                self.tables.departments)
+
         mapper(Employee, employees)
         mapper(Department, departments, properties=dict(
             employees=relationship(Employee,
@@ -405,7 +458,7 @@ class EagerTest4(_base.MappedTest):
         assert q[0] is d2
 
 
-class EagerTest5(_base.MappedTest):
+class EagerTest5(fixtures.MappedTest):
     """Construction of AliasedClauses for the same eager load property but different parent mappers, due to inheritance."""
 
     @classmethod
@@ -429,7 +482,7 @@ class EagerTest5(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Base(_base.BasicEntity):
+        class Base(cls.Basic):
             def __init__(self, uid, x):
                 self.uid = uid
                 self.x = x
@@ -446,13 +499,21 @@ class EagerTest5(_base.MappedTest):
                 self.x = x
                 self.z = z
 
-        class Comment(_base.BasicEntity):
+        class Comment(cls.Basic):
             def __init__(self, uid, comment):
                 self.uid = uid
                 self.comment = comment
 
-    @testing.resolve_artifact_names
     def test_basic(self):
+        Comment, Derived, derived, comments, DerivedII, Base, base, derivedII = (self.classes.Comment,
+                                self.classes.Derived,
+                                self.tables.derived,
+                                self.tables.comments,
+                                self.classes.DerivedII,
+                                self.classes.Base,
+                                self.tables.base,
+                                self.tables.derivedII)
+
         commentMapper = mapper(Comment, comments)
 
         baseMapper = mapper(Base, base, properties=dict(
@@ -491,7 +552,7 @@ class EagerTest5(_base.MappedTest):
         assert len([c for c in d2.comments]) == 1
 
 
-class EagerTest6(_base.MappedTest):
+class EagerTest6(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
@@ -516,20 +577,28 @@ class EagerTest6(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Part(_base.BasicEntity):
+        class Part(cls.Basic):
             pass
 
-        class Design(_base.BasicEntity):
+        class Design(cls.Basic):
             pass
 
-        class DesignType(_base.BasicEntity):
+        class DesignType(cls.Basic):
             pass
 
-        class InheritedPart(_base.BasicEntity):
+        class InheritedPart(cls.Basic):
             pass
 
-    @testing.resolve_artifact_names
     def test_one(self):
+        Part, inherited_part, design_types, DesignType, parts, design, Design, InheritedPart = (self.classes.Part,
+                                self.tables.inherited_part,
+                                self.tables.design_types,
+                                self.classes.DesignType,
+                                self.tables.parts,
+                                self.tables.design,
+                                self.classes.Design,
+                                self.classes.InheritedPart)
+
         p_m = mapper(Part, parts)
 
         mapper(InheritedPart, inherited_part, properties=dict(
@@ -560,7 +629,7 @@ class EagerTest6(_base.MappedTest):
         x.inheritedParts
 
 
-class EagerTest7(_base.MappedTest):
+class EagerTest7(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('companies', metadata,
@@ -585,19 +654,18 @@ class EagerTest7(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Company(_base.ComparableEntity):
+        class Company(cls.Comparable):
             pass
 
-        class Address(_base.ComparableEntity):
+        class Address(cls.Comparable):
             pass
 
-        class Phone(_base.ComparableEntity):
+        class Phone(cls.Comparable):
             pass
 
-        class Invoice(_base.ComparableEntity):
+        class Invoice(cls.Comparable):
             pass
 
-    @testing.resolve_artifact_names
     def test_load_m2o_attached_to_o2(self):
         """
         Tests eager load of a many-to-one attached to a one-to-many.  this
@@ -606,6 +674,14 @@ class EagerTest7(_base.MappedTest):
         the Company's second Address object.
 
         """
+
+        addresses, invoices, Company, companies, Invoice, Address = (self.tables.addresses,
+                                self.tables.invoices,
+                                self.classes.Company,
+                                self.tables.companies,
+                                self.classes.Invoice,
+                                self.classes.Address)
+
         mapper(Address, addresses)
 
         mapper(Company, companies, properties={
@@ -640,7 +716,7 @@ class EagerTest7(_base.MappedTest):
 
 
 
-class EagerTest8(_base.MappedTest):
+class EagerTest8(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
@@ -676,7 +752,6 @@ class EagerTest8(_base.MappedTest):
               Column('display_name', sa.Unicode(20)))
 
     @classmethod
-    @testing.resolve_artifact_names
     def fixtures(cls):
         return dict(
             prj=(('id',),
@@ -693,15 +768,21 @@ class EagerTest8(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Task_Type(_base.BasicEntity):
+        class Task_Type(cls.Comparable):
             pass
 
-        class Joined(_base.ComparableEntity):
+        class Joined(cls.Comparable):
             pass
 
     @testing.fails_on('maxdb', 'FIXME: unknown')
-    @testing.resolve_artifact_names
     def test_nested_joins(self):
+        task, Task_Type, Joined, prj, task_type, msg = (self.tables.task,
+                                self.classes.Task_Type,
+                                self.classes.Joined,
+                                self.tables.prj,
+                                self.tables.task_type,
+                                self.tables.msg)
+
         # this is testing some subtle column resolution stuff,
         # concerning corresponding_column() being extremely accurate
         # as well as how mapper sets up its column properties
@@ -726,7 +807,7 @@ class EagerTest8(_base.MappedTest):
             Joined(id=1, title=u'task 1', props_cnt=0))
 
 
-class EagerTest9(_base.MappedTest):
+class EagerTest9(fixtures.MappedTest):
     """Test the usage of query options to eagerly load specific paths.
 
     This relies upon the 'path' construct used by PropertyOption to relate
@@ -754,18 +835,24 @@ class EagerTest9(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Account(_base.BasicEntity):
+        class Account(cls.Basic):
             pass
 
-        class Transaction(_base.BasicEntity):
+        class Transaction(cls.Basic):
             pass
 
-        class Entry(_base.BasicEntity):
+        class Entry(cls.Basic):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        Account, Transaction, transactions, accounts, entries, Entry = (cls.classes.Account,
+                                cls.classes.Transaction,
+                                cls.tables.transactions,
+                                cls.tables.accounts,
+                                cls.tables.entries,
+                                cls.classes.Entry)
+
         mapper(Account, accounts)
 
         mapper(Transaction, transactions)
@@ -781,8 +868,11 @@ class EagerTest9(_base.MappedTest):
                                                  order_by=entries.c.entry_id))))
 
     @testing.fails_on('maxdb', 'FIXME: unknown')
-    @testing.resolve_artifact_names
     def test_joinedload_on_path(self):
+        Entry, Account, Transaction = (self.classes.Entry,
+                                self.classes.Account,
+                                self.classes.Transaction)
+
         session = create_session()
 
         tx1 = Transaction(name='tx1')

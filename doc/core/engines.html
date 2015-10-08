@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-    Engine Configuration
- &mdash; SQLAlchemy 0.7b3 Documentation</title>
+                Engine Configuration
+             &mdash; SQLAlchemy 0.7b4 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b3',
+          VERSION:     '0.7b4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,11 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b4 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Working with Engines and Connections" href="connections.html" />
         <link rel="prev" title="SQL Statements and Expressions API" href="expression_api.html" />
-    
 
     </head>
     <body>
@@ -39,52 +38,52 @@
 
 
 
+<h1>SQLAlchemy 0.7b4 Documentation</h1>
 
-        <h1>SQLAlchemy 0.7b3 Documentation</h1>
-
-        <div id="search">
-        Search:
-        <form class="search" action="../search.html" method="get">
-          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-          <input type="hidden" name="check_keywords" value="yes" />
-          <input type="hidden" name="area" value="default" />
-        </form>
-        </div>
-
-        <div class="versionheader">
-            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
-        </div>
-        <div class="clearboth"></div>
-
-        <div class="topnav">
-            <div id="pagecontrol">
-                <a href="../genindex.html">Index</a>
-
-                <div class="sourcelink">(<a href="../_sources/core/engines.txt">view source)</div>
-            </div>
-
-            <div class="navbanner">
-                <a class="totoc" href="../index.html">Table of Contents</a>
-                        » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
-                » 
-    Engine Configuration
- 
-
-                
-<div class="prevnext">
-        Previous:
-        <a href="expression_api.html" title="previous chapter">SQL Statements and Expressions API</a>
-        Next:
-        <a href="connections.html" title="next chapter">Working with Engines and Connections</a>
+<div id="search">
+Search:
+<form class="search" action="../search.html" method="get">
+  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
 </div>
 
-                <h2>
-                    
-    Engine Configuration
- 
-                </h2>
-            </div>
-                <ul>
+<div class="versionheader">
+    Version: <span class="versionnum">0.7b4</span> Last Updated: 04/17/2011 16:53:50
+</div>
+<div class="clearboth"></div>
+
+<div id="topnav">
+    <div id="pagecontrol">
+        <ul>
+            <li>Prev:
+            <a href="expression_api.html" title="previous chapter">SQL Statements and Expressions API</a>
+            </li>
+            <li>Next:
+            <a href="connections.html" title="next chapter">Working with Engines and Connections</a>
+            </li>
+
+        <li>
+            <a href="../contents.html">Table of Contents</a> |
+            <a href="../genindex.html">Index</a>
+            | <a href="../_sources/core/engines.txt">view source
+        </li>
+        </ul>
+    </div>
+    <div id="navbanner">
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7b4 Documentation</a>
+                » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
+        » 
+                Engine Configuration
+             
+
+        <h2>
+            
+                Engine Configuration
+            
+        </h2>
+        <ul>
 <li><a class="reference internal" href="#">Engine Configuration</a><ul>
 <li><a class="reference internal" href="#supported-databases">Supported Databases</a></li>
 <li><a class="reference internal" href="#engine-creation-api">Engine Creation API</a></li>
@@ -95,12 +94,13 @@
 </li>
 </ul>
 
-            <div class="clearboth"></div>
-        </div>
+    </div>
+    <div class="clearboth"></div>
+</div>
 
-        <div class="document">
-            <div class="body">
-                
+<div class="document">
+    <div class="body">
+        
 <div class="section" id="engine-configuration">
 <span id="engines-toplevel"></span><h1>Engine Configuration<a class="headerlink" href="#engine-configuration" title="Permalink to this headline">¶</a></h1>
 <p>The <strong>Engine</strong> is the starting point for any SQLAlchemy application. It&#8217;s
@@ -407,7 +407,7 @@ information on current support.</li>
 <tr><td><a class="reference external" href="http://www.initd.org/">psycopg2</a></td>
 <td><tt class="docutils literal"><span class="pre">postgresql+psycopg2</span></tt>*</td>
 <td>yes</td>
-<td>development</td>
+<td>yes</td>
 <td>no</td>
 <td>yes</td>
 <td>yes</td>
@@ -874,28 +874,20 @@ after the current transaction ends and a new one begins).</p>
 </div>
 </div>
 
-            </div>
-        </div>
-
-        
-        
-            <div class="bottomnav">
-                
-<div class="prevnext">
-        Previous:
-        <a href="expression_api.html" title="previous chapter">SQL Statements and Expressions API</a>
-        Next:
-        <a href="connections.html" title="next chapter">Working with Engines and Connections</a>
+    </div>
 </div>
 
-                <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
-                </div>
-            </div>
-        
 
-
+    <div class="bottomnav">
+            Previous:
+            <a href="expression_api.html" title="previous chapter">SQL Statements and Expressions API</a>
+            Next:
+            <a href="connections.html" title="next chapter">Working with Engines and Connections</a>
+        <div class="doc_copyright">
+            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+        </div>
+    </div>
 
 
 

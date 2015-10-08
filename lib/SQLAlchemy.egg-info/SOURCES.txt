@@ -1,5 +1,5 @@
 CHANGES
-CHANGES_PRE_05
+CHANGES_PRE_06
 LICENSE
 MANIFEST.in
 README
@@ -11,6 +11,7 @@ sa2to3.py
 setup.cfg
 setup.py
 sqla_nose.py
+doc/contents.html
 doc/copyright.html
 doc/genindex.html
 doc/index.html
@@ -19,6 +20,7 @@ doc/search.html
 doc/searchindex.js
 doc/_images/sqla_arch_small.png
 doc/_images/sqla_engine_arch.png
+doc/_sources/contents.txt
 doc/_sources/copyright.txt
 doc/_sources/index.txt
 doc/_sources/intro.txt
@@ -87,6 +89,7 @@ doc/_static/sidebar.js
 doc/_static/underscore.js
 doc/build/Makefile
 doc/build/conf.py
+doc/build/contents.rst
 doc/build/copyright.rst
 doc/build/index.rst
 doc/build/intro.rst
@@ -419,7 +422,6 @@ test/dialect/test_postgresql.py
 test/dialect/test_sqlite.py
 test/dialect/test_sybase.py
 test/engine/__init__.py
-test/engine/_base.py
 test/engine/test_bind.py
 test/engine/test_ddlevents.py
 test/engine/test_execute.py
@@ -444,6 +446,7 @@ test/lib/__init__.py
 test/lib/assertsql.py
 test/lib/engines.py
 test/lib/entities.py
+test/lib/fixtures.py
 test/lib/orm.py
 test/lib/pickleable.py
 test/lib/profiling.py
@@ -452,7 +455,6 @@ test/lib/schema.py
 test/lib/testing.py
 test/lib/util.py
 test/orm/__init__.py
-test/orm/_base.py
 test/orm/_fixtures.py
 test/orm/test_association.py
 test/orm/test_assorted_eager.py
@@ -496,6 +498,7 @@ test/orm/test_subquery_relations.py
 test/orm/test_transaction.py
 test/orm/test_unitofwork.py
 test/orm/test_unitofworkv2.py
+test/orm/test_update_delete.py
 test/orm/test_utils.py
 test/orm/test_versioning.py
 test/orm/inheritance/__init__.py
@@ -523,7 +526,6 @@ test/perf/stress_all.py
 test/perf/stresstest.py
 test/perf/threaded_compile.py
 test/sql/__init__.py
-test/sql/_base.py
 test/sql/test_case_statement.py
 test/sql/test_compiler.py
 test/sql/test_constraints.py

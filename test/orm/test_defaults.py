@@ -4,11 +4,11 @@ from sqlalchemy import Integer, String, ForeignKey, event
 from test.lib import testing
 from test.lib.schema import Table, Column
 from sqlalchemy.orm import mapper, relationship, create_session
-from test.orm import _base
+from test.lib import fixtures
 from test.lib.testing import eq_
 
 
-class TriggerDefaultsTest(_base.MappedTest):
+class TriggerDefaultsTest(fixtures.MappedTest):
     __requires__ = ('row_triggers',)
 
     @classmethod
@@ -78,16 +78,18 @@ class TriggerDefaultsTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Default(_base.BasicEntity):
+        class Default(cls.Comparable):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        Default, dt = cls.classes.Default, cls.tables.dt
+
         mapper(Default, dt)
 
-    @testing.resolve_artifact_names
     def test_insert(self):
+        Default = self.classes.Default
+
 
         d1 = Default(id=1)
 
@@ -106,8 +108,9 @@ class TriggerDefaultsTest(_base.MappedTest):
         # don't care which trigger fired
         assert d1.col4 in ('ins', 'up')
 
-    @testing.resolve_artifact_names
     def test_update(self):
+        Default = self.classes.Default
+
         d1 = Default(id=1)
 
         session = create_session()
@@ -121,7 +124,7 @@ class TriggerDefaultsTest(_base.MappedTest):
         eq_(d1.col3, 'up')
         eq_(d1.col4, 'up')
 
-class ExcludedDefaultsTest(_base.MappedTest):
+class ExcludedDefaultsTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         dt = Table('dt', metadata,
@@ -129,9 +132,10 @@ class ExcludedDefaultsTest(_base.MappedTest):
                    Column('col1', String(20), default="hello"),
         )
 
-    @testing.resolve_artifact_names
     def test_exclude(self):
-        class Foo(_base.ComparableEntity):
+        dt = self.tables.dt
+
+        class Foo(fixtures.BasicEntity):
             pass
         mapper(Foo, dt, exclude_properties=('col1',))
 

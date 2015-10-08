@@ -11,10 +11,11 @@ from sqlalchemy.orm import attributes, \
     composite, relationship, \
     Session
 from test.lib.testing import eq_
-from test.orm import _base, _fixtures
+from test.lib import fixtures
+from test.orm import _fixtures
 
 
-class PointTest(_base.MappedTest):
+class PointTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('graphs', metadata,
@@ -35,9 +36,10 @@ class PointTest(_base.MappedTest):
         )
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
-        class Point(_base.BasicEntity):
+        graphs, edges = cls.tables.graphs, cls.tables.edges
+
+        class Point(cls.Comparable):
             def __init__(self, x, y):
                 self.x = x
                 self.y = y
@@ -52,9 +54,9 @@ class PointTest(_base.MappedTest):
                 return not isinstance(other, Point) or \
                         not self.__eq__(other)
 
-        class Graph(_base.BasicEntity):
+        class Graph(cls.Comparable):
             pass
-        class Edge(_base.BasicEntity):
+        class Edge(cls.Comparable):
             def __init__(self, *args):
                 if args:
                     self.start, self.end = args
@@ -67,8 +69,11 @@ class PointTest(_base.MappedTest):
             'end': sa.orm.composite(Point, edges.c.x2, edges.c.y2)
         })
 
-    @testing.resolve_artifact_names
     def _fixture(self):
+        Graph, Edge, Point = (self.classes.Graph,
+                                self.classes.Edge,
+                                self.classes.Point)
+
         sess = Session()
         g = Graph(id=1, edges=[
             Edge(Point(3, 4), Point(5, 6)),
@@ -78,8 +83,9 @@ class PointTest(_base.MappedTest):
         sess.commit()
         return sess
 
-    @testing.resolve_artifact_names
     def test_round_trip(self):
+        Graph, Point = self.classes.Graph, self.classes.Point
+
 
         sess = self._fixture()
 
@@ -95,8 +101,11 @@ class PointTest(_base.MappedTest):
             ]
         )
 
-    @testing.resolve_artifact_names
     def test_detect_change(self):
+        Graph, Edge, Point = (self.classes.Graph,
+                                self.classes.Edge,
+                                self.classes.Point)
+
         sess = self._fixture()
 
         g = sess.query(Graph).first()
@@ -106,8 +115,9 @@ class PointTest(_base.MappedTest):
         e = sess.query(Edge).get(g.edges[1].id)
         eq_(e.end, Point(18, 4))
 
-    @testing.resolve_artifact_names
     def test_eager_load(self):
+        Graph, Point = self.classes.Graph, self.classes.Point
+
         sess = self._fixture()
 
         g = sess.query(Graph).first()
@@ -127,8 +137,11 @@ class PointTest(_base.MappedTest):
             )
         self.assert_sql_count(testing.db, go, 1)
 
-    @testing.resolve_artifact_names
     def test_comparator(self):
+        Graph, Edge, Point = (self.classes.Graph,
+                                self.classes.Edge,
+                                self.classes.Point)
+
         sess = self._fixture()
 
         g = sess.query(Graph).first()
@@ -146,8 +159,9 @@ class PointTest(_base.MappedTest):
             []
         )
 
-    @testing.resolve_artifact_names
     def test_query_cols(self):
+        Edge = self.classes.Edge
+
         sess = self._fixture()
 
         eq_(
@@ -155,8 +169,9 @@ class PointTest(_base.MappedTest):
             [(3, 4, 5, 6), (14, 5, 2, 7)]
         )
 
-    @testing.resolve_artifact_names
     def test_delete(self):
+        Graph, Edge = self.classes.Graph, self.classes.Edge
+
         sess = self._fixture()
         g = sess.query(Graph).first()
 
@@ -168,7 +183,6 @@ class PointTest(_base.MappedTest):
             [(3, 4, 5, 6), (14, 5, None, None)]
         )
 
-    @testing.resolve_artifact_names
     def test_save_null(self):
         """test saving a null composite value
 
@@ -176,6 +190,9 @@ class PointTest(_base.MappedTest):
         http://groups.google.com/group/sqlalchemy/browse_thread/thread/0c6580a1761b2c29
 
         """
+
+        Graph, Edge = self.classes.Graph, self.classes.Edge
+
         sess = Session()
         g = Graph(id=1)
         e = Edge(None, None)
@@ -188,8 +205,9 @@ class PointTest(_base.MappedTest):
         assert g2.edges[-1].start.x is None
         assert g2.edges[-1].start.y is None
 
-    @testing.resolve_artifact_names
     def test_expire(self):
+        Graph, Point = self.classes.Graph, self.classes.Point
+
         sess = self._fixture()
         g = sess.query(Graph).first()
         e = g.edges[0]
@@ -197,12 +215,13 @@ class PointTest(_base.MappedTest):
         assert 'start' not in e.__dict__
         assert e.start == Point(3, 4)
 
-    @testing.resolve_artifact_names
     def test_default_value(self):
+        Edge = self.classes.Edge
+
         e = Edge()
         eq_(e.start, None)
 
-class PrimaryKeyTest(_base.MappedTest):
+class PrimaryKeyTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('graphs', metadata,
@@ -213,9 +232,10 @@ class PrimaryKeyTest(_base.MappedTest):
             Column('name', String(30)))
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
-        class Version(_base.BasicEntity):
+        graphs = cls.tables.graphs
+
+        class Version(cls.Comparable):
             def __init__(self, id, version):
                 self.id = id
                 self.version = version
@@ -229,7 +249,7 @@ class PrimaryKeyTest(_base.MappedTest):
             def __ne__(self, other):
                 return not self.__eq__(other)
 
-        class Graph(_base.BasicEntity):
+        class Graph(cls.Comparable):
             def __init__(self, version):
                 self.version = version
 
@@ -238,16 +258,18 @@ class PrimaryKeyTest(_base.MappedTest):
                                        graphs.c.version_id)})
 
 
-    @testing.resolve_artifact_names
     def _fixture(self):
+        Graph, Version = self.classes.Graph, self.classes.Version
+
         sess = Session()
         g = Graph(Version(1, 1))
         sess.add(g)
         sess.commit()
         return sess
 
-    @testing.resolve_artifact_names
     def test_get_by_col(self):
+        Graph = self.classes.Graph
+
 
         sess = self._fixture()
         g = sess.query(Graph).first()
@@ -255,8 +277,9 @@ class PrimaryKeyTest(_base.MappedTest):
         g2 = sess.query(Graph).get([g.id, g.version_id])
         eq_(g.version, g2.version)
 
-    @testing.resolve_artifact_names
     def test_get_by_composite(self):
+        Graph, Version = self.classes.Graph, self.classes.Version
+
         sess = self._fixture()
         g = sess.query(Graph).first()
 
@@ -264,8 +287,9 @@ class PrimaryKeyTest(_base.MappedTest):
         eq_(g.version, g2.version)
 
     @testing.fails_on('mssql', 'Cannot update identity columns.')
-    @testing.resolve_artifact_names
     def test_pk_mutation(self):
+        Graph, Version = self.classes.Graph, self.classes.Version
+
         sess = self._fixture()
 
         g = sess.query(Graph).first()
@@ -276,8 +300,9 @@ class PrimaryKeyTest(_base.MappedTest):
         eq_(g.version, g2.version)
 
     @testing.fails_on_everything_except("sqlite")
-    @testing.resolve_artifact_names
     def test_null_pk(self):
+        Graph, Version = self.classes.Graph, self.classes.Version
+
         sess = Session()
 
         # test pk with one column NULL
@@ -288,7 +313,7 @@ class PrimaryKeyTest(_base.MappedTest):
         g2 = sess.query(Graph).filter_by(version=Version(2, None)).one()
         eq_(g.version, g2.version)
 
-class DefaultsTest(_base.MappedTest):
+class DefaultsTest(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
@@ -302,12 +327,13 @@ class DefaultsTest(_base.MappedTest):
         )
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
-        class Foobar(_base.BasicEntity):
+        foobars = cls.tables.foobars
+
+        class Foobar(cls.Comparable):
             pass
 
-        class FBComposite(_base.BasicEntity):
+        class FBComposite(cls.Comparable):
             def __init__(self, x1, x2, x3, x4):
                 self.x1 = x1
                 self.x2 = x2
@@ -332,8 +358,9 @@ class DefaultsTest(_base.MappedTest):
                                 foobars.c.x4)
         ))
 
-    @testing.resolve_artifact_names
     def test_attributes_with_defaults(self):
+        Foobar, FBComposite = self.classes.Foobar, self.classes.FBComposite
+
 
         sess = Session()
         f1 = Foobar()
@@ -348,8 +375,9 @@ class DefaultsTest(_base.MappedTest):
         sess.flush()
         assert f2.foob == FBComposite(2, None, 15, None)
 
-    @testing.resolve_artifact_names
     def test_set_composite_values(self):
+        Foobar, FBComposite = self.classes.Foobar, self.classes.FBComposite
+
         sess = Session()
         f1 = Foobar()
         f1.foob = FBComposite(None, 5, None, None)
@@ -358,7 +386,7 @@ class DefaultsTest(_base.MappedTest):
 
         assert f1.foob == FBComposite(2, 5, 15, None)
 
-class MappedSelectTest(_base.MappedTest):
+class MappedSelectTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('descriptions', metadata,
@@ -379,15 +407,16 @@ class MappedSelectTest(_base.MappedTest):
         )
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
-        class Descriptions(_base.BasicEntity):
+        values, descriptions = cls.tables.values, cls.tables.descriptions
+
+        class Descriptions(cls.Comparable):
             pass
 
-        class Values(_base.BasicEntity):
+        class Values(cls.Comparable):
             pass
 
-        class CustomValues(_base.BasicEntity, list):
+        class CustomValues(cls.Comparable, list):
             def __init__(self, *args):
                 self.extend(args)
 
@@ -415,8 +444,13 @@ class MappedSelectTest(_base.MappedTest):
 
         })
 
-    @testing.resolve_artifact_names
     def test_set_composite_attrs_via_selectable(self):
+        Values, CustomValues, values, Descriptions, descriptions = (self.classes.Values,
+                                self.classes.CustomValues,
+                                self.tables.values,
+                                self.classes.Descriptions,
+                                self.tables.descriptions)
+
         session = Session()
         d = Descriptions(
             custom_descriptions = CustomValues('Color', 'Number'),
@@ -437,7 +471,7 @@ class MappedSelectTest(_base.MappedTest):
             [(1, 1, u'Red', u'5'), (2, 1, u'Blue', u'1')]
         )
 
-class ManyToOneTest(_base.MappedTest):
+class ManyToOneTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('a', 
@@ -455,14 +489,15 @@ class ManyToOneTest(_base.MappedTest):
         )
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
-        class A(_base.ComparableEntity):
+        a, b = cls.tables.a, cls.tables.b
+
+        class A(cls.Comparable):
             pass
-        class B(_base.ComparableEntity):
+        class B(cls.Comparable):
             pass
 
-        class C(_base.BasicEntity):
+        class C(cls.Comparable):
             def __init__(self, b1, b2):
                 self.b1, self.b2 = b1, b2
 
@@ -481,8 +516,11 @@ class ManyToOneTest(_base.MappedTest):
         })
         mapper(B, b)
 
-    @testing.resolve_artifact_names
     def test_persist(self):
+        A, C, B = (self.classes.A,
+                                self.classes.C,
+                                self.classes.B)
+
         sess = Session()
         sess.add(A(c=C('b1', B(data='b2'))))
         sess.commit()
@@ -490,8 +528,11 @@ class ManyToOneTest(_base.MappedTest):
         a1 = sess.query(A).one()
         eq_(a1.c, C('b1', B(data='b2')))
 
-    @testing.resolve_artifact_names
     def test_query(self):
+        A, C, B = (self.classes.A,
+                                self.classes.C,
+                                self.classes.B)
+
         sess = Session()
         b1, b2 = B(data='b1'), B(data='b2')
         a1 = A(c=C('a1b1', b1))
@@ -504,7 +545,7 @@ class ManyToOneTest(_base.MappedTest):
             a2
         )
 
-class ConfigurationTest(_base.MappedTest):
+class ConfigurationTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('edge', metadata,
@@ -517,9 +558,8 @@ class ConfigurationTest(_base.MappedTest):
         )
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
-        class Point(_base.BasicEntity):
+        class Point(cls.Comparable):
             def __init__(self, x, y):
                 self.x = x
                 self.y = y
@@ -533,11 +573,12 @@ class ConfigurationTest(_base.MappedTest):
                 return not isinstance(other, Point) or \
                     not self.__eq__(other)
 
-        class Edge(_base.ComparableEntity):
+        class Edge(cls.Comparable):
             pass
 
-    @testing.resolve_artifact_names
     def _test_roundtrip(self):
+        Edge, Point = self.classes.Edge, self.classes.Point
+
         e1 = Edge(start=Point(3, 4), end=Point(5, 6))
         sess = Session()
         sess.add(e1)
@@ -548,8 +589,11 @@ class ConfigurationTest(_base.MappedTest):
             Edge(start=Point(3, 4), end=Point(5, 6))
         )
 
-    @testing.resolve_artifact_names
     def test_columns(self):
+        edge, Edge, Point = (self.tables.edge,
+                                self.classes.Edge,
+                                self.classes.Point)
+
         mapper(Edge, edge, properties={
             'start':sa.orm.composite(Point, edge.c.x1, edge.c.y1),
             'end': sa.orm.composite(Point, edge.c.x2, edge.c.y2)
@@ -557,16 +601,22 @@ class ConfigurationTest(_base.MappedTest):
 
         self._test_roundtrip()
 
-    @testing.resolve_artifact_names
     def test_attributes(self):
+        edge, Edge, Point = (self.tables.edge,
+                                self.classes.Edge,
+                                self.classes.Point)
+
         m = mapper(Edge, edge)
         m.add_property('start', sa.orm.composite(Point, Edge.x1, Edge.y1))
         m.add_property('end', sa.orm.composite(Point, Edge.x2, Edge.y2))
 
         self._test_roundtrip()
 
-    @testing.resolve_artifact_names
     def test_strings(self):
+        edge, Edge, Point = (self.tables.edge,
+                                self.classes.Edge,
+                                self.classes.Point)
+
         m = mapper(Edge, edge)
         m.add_property('start', sa.orm.composite(Point, 'x1', 'y1'))
         m.add_property('end', sa.orm.composite(Point, 'x2', 'y2'))

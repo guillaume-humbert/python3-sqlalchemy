@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-    PostgreSQL
- &mdash; SQLAlchemy 0.7b3 Documentation</title>
+                PostgreSQL
+             &mdash; SQLAlchemy 0.7b4 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b3',
+          VERSION:     '0.7b4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,11 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b4 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="SQLite" href="sqlite.html" />
         <link rel="prev" title="Oracle" href="oracle.html" />
-    
 
     </head>
     <body>
@@ -39,52 +38,52 @@
 
 
 
+<h1>SQLAlchemy 0.7b4 Documentation</h1>
 
-        <h1>SQLAlchemy 0.7b3 Documentation</h1>
-
-        <div id="search">
-        Search:
-        <form class="search" action="../search.html" method="get">
-          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-          <input type="hidden" name="check_keywords" value="yes" />
-          <input type="hidden" name="area" value="default" />
-        </form>
-        </div>
-
-        <div class="versionheader">
-            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
-        </div>
-        <div class="clearboth"></div>
-
-        <div class="topnav">
-            <div id="pagecontrol">
-                <a href="../genindex.html">Index</a>
-
-                <div class="sourcelink">(<a href="../_sources/dialects/postgresql.txt">view source)</div>
-            </div>
-
-            <div class="navbanner">
-                <a class="totoc" href="../index.html">Table of Contents</a>
-                        » <a href="index.html" title="Dialects">Dialects</a>
-                » 
-    PostgreSQL
- 
-
-                
-<div class="prevnext">
-        Previous:
-        <a href="oracle.html" title="previous chapter">Oracle</a>
-        Next:
-        <a href="sqlite.html" title="next chapter">SQLite</a>
+<div id="search">
+Search:
+<form class="search" action="../search.html" method="get">
+  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
 </div>
 
-                <h2>
-                    
-    PostgreSQL
- 
-                </h2>
-            </div>
-                <ul>
+<div class="versionheader">
+    Version: <span class="versionnum">0.7b4</span> Last Updated: 04/17/2011 16:53:50
+</div>
+<div class="clearboth"></div>
+
+<div id="topnav">
+    <div id="pagecontrol">
+        <ul>
+            <li>Prev:
+            <a href="oracle.html" title="previous chapter">Oracle</a>
+            </li>
+            <li>Next:
+            <a href="sqlite.html" title="next chapter">SQLite</a>
+            </li>
+
+        <li>
+            <a href="../contents.html">Table of Contents</a> |
+            <a href="../genindex.html">Index</a>
+            | <a href="../_sources/dialects/postgresql.txt">view source
+        </li>
+        </ul>
+    </div>
+    <div id="navbanner">
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7b4 Documentation</a>
+                » <a href="index.html" title="Dialects">Dialects</a>
+        » 
+                PostgreSQL
+             
+
+        <h2>
+            
+                PostgreSQL
+            
+        </h2>
+        <ul>
 <li><a class="reference internal" href="#">PostgreSQL</a><ul>
 <li><a class="reference internal" href="#sequences-serial">Sequences/SERIAL</a></li>
 <li><a class="reference internal" href="#transaction-isolation-level">Transaction Isolation Level</a></li>
@@ -93,12 +92,12 @@
 <li><a class="reference internal" href="#postgresql-data-types">PostgreSQL Data Types</a></li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.postgresql.psycopg2">psycopg2 Notes</a><ul>
 <li><a class="reference internal" href="#driver">Driver</a></li>
-<li><a class="reference internal" href="#unicode">Unicode</a></li>
 <li><a class="reference internal" href="#connecting">Connecting</a></li>
+<li><a class="reference internal" href="#per-statement-connection-execution-options">Per-Statement/Connection Execution Options</a></li>
+<li><a class="reference internal" href="#unicode">Unicode</a></li>
 <li><a class="reference internal" href="#transactions">Transactions</a></li>
 <li><a class="reference internal" href="#id1">Transaction Isolation Level</a></li>
 <li><a class="reference internal" href="#notice-logging">NOTICE logging</a></li>
-<li><a class="reference internal" href="#per-statement-connection-execution-options">Per-Statement/Connection Execution Options</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.postgresql.pypostgresql">py-postgresql Notes</a><ul>
@@ -119,12 +118,13 @@
 </li>
 </ul>
 
-            <div class="clearboth"></div>
-        </div>
+    </div>
+    <div class="clearboth"></div>
+</div>
 
-        <div class="document">
-            <div class="body">
-                
+<div class="document">
+    <div class="body">
+        
 <div class="section" id="module-sqlalchemy.dialects.postgresql.base">
 <span id="postgresql"></span><span id="postgresql-toplevel"></span><h1>PostgreSQL<a class="headerlink" href="#module-sqlalchemy.dialects.postgresql.base" title="Permalink to this headline">¶</a></h1>
 <p>Support for the PostgreSQL database.</p>
@@ -211,16 +211,16 @@ they originate from <a class="reference internal" href="../core/types.html#modul
 <p>Types which are specific to PostgreSQL, or have PostgreSQL-specific
 construction arguments, are as follows:</p>
 <dl class="class">
-<dt id="sqlalchemy.dialects.postgresql.base.ARRAY">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">ARRAY</tt><big>(</big><em>item_type</em>, <em>mutable=False</em>, <em>as_tuple=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.ARRAY" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.ARRAY">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">ARRAY</tt><big>(</big><em>item_type</em>, <em>mutable=False</em>, <em>as_tuple=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ARRAY" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.MutableType" title="sqlalchemy.types.MutableType"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.MutableType</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.Concatenable" title="sqlalchemy.types.Concatenable"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Concatenable</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Postgresql ARRAY type.</p>
 <p>Represents values as Python lists.</p>
 <p>The ARRAY type may not be supported on all DBAPIs.
 It is known to work on psycopg2 and not pg8000.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.postgresql.base.ARRAY.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>item_type</em>, <em>mutable=False</em>, <em>as_tuple=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.ARRAY.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.ARRAY.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>item_type</em>, <em>mutable=False</em>, <em>as_tuple=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ARRAY.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an ARRAY.</p>
 <p>E.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Column</span><span class="p">(</span><span class="s">&#39;myarray&#39;</span><span class="p">,</span> <span class="n">ARRAY</span><span class="p">(</span><span class="n">Integer</span><span class="p">))</span></pre></div>
@@ -265,23 +265,23 @@ be set to <tt class="xref docutils literal"><span class="pre">True</span></tt> w
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.postgresql.base.BIT">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">BIT</tt><big>(</big><em>length=None</em>, <em>varying=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.BIT" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.BIT">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">BIT</tt><big>(</big><em>length=None</em>, <em>varying=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.BIT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.postgresql.base.BIT.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>varying=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.BIT.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.BIT.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em>, <em>varying=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.BIT.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.postgresql.base.BYTEA">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">BYTEA</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.BYTEA" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.BYTEA">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">BYTEA</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.BYTEA" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.LargeBinary" title="sqlalchemy.types.LargeBinary"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.LargeBinary</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.postgresql.base.BYTEA.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.BYTEA.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.BYTEA.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>length=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.BYTEA.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a LargeBinary type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -306,23 +306,24 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.postgresql.base.CIDR">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">CIDR</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.CIDR" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.CIDR">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">CIDR</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.CIDR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.postgresql.base.CIDR.__init__">
-<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.CIDR.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="sqlalchemy.dialects.postgresql.CIDR.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.CIDR.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Support implementations that were passing arguments</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.postgresql.base.DOUBLE_PRECISION">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">DOUBLE_PRECISION</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.DOUBLE_PRECISION" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.DOUBLE_PRECISION">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">DOUBLE_PRECISION</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Float</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.postgresql.base.DOUBLE_PRECISION.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.DOUBLE_PRECISION.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a Float.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -344,12 +345,12 @@ results in floating point conversion.</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.postgresql.base.ENUM">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">ENUM</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.ENUM" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.ENUM">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">ENUM</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ENUM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Enum" title="sqlalchemy.types.Enum"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Enum</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.postgresql.base.ENUM.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.ENUM.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.ENUM.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>*enums</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ENUM.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an enum.</p>
 <p>Keyword arguments which don&#8217;t apply to a specific backend are ignored
 by that backend.</p>
@@ -398,48 +399,51 @@ type&#8217;s name should be quoted.</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.postgresql.base.INET">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">INET</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.INET" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.INET">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">INET</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.INET" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.postgresql.base.INET.__init__">
-<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.INET.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="sqlalchemy.dialects.postgresql.INET.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.INET.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Support implementations that were passing arguments</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.postgresql.base.INTERVAL">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">INTERVAL</tt><big>(</big><em>precision=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.INTERVAL" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.INTERVAL">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">INTERVAL</tt><big>(</big><em>precision=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.INTERVAL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Postgresql INTERVAL type.</p>
 <p>The INTERVAL type may not be supported on all DBAPIs.
 It is known to work on psycopg2 and not pg8000 or zxjdbc.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.postgresql.base.INTERVAL.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.INTERVAL.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.INTERVAL.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.INTERVAL.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.postgresql.base.MACADDR">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">MACADDR</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.MACADDR" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.MACADDR">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">MACADDR</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.MACADDR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.postgresql.base.MACADDR.__init__">
-<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.MACADDR.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="sqlalchemy.dialects.postgresql.MACADDR.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.MACADDR.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Support implementations that were passing arguments</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.postgresql.base.REAL">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">REAL</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.REAL" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.REAL">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">REAL</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.REAL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Float</span></tt></a></p>
+<p>The SQL REAL type.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.postgresql.base.REAL.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.REAL.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.REAL.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.REAL.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a Float.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -461,8 +465,8 @@ results in floating point conversion.</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="sqlalchemy.dialects.postgresql.base.UUID">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.base.</tt><tt class="descname">UUID</tt><big>(</big><em>as_uuid=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.UUID" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.UUID">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">UUID</tt><big>(</big><em>as_uuid=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.UUID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Postgresql UUID type.</p>
 <p>Represents the UUID column type, interpreting
@@ -471,8 +475,8 @@ or as Python uuid objects.</p>
 <p>The UUID type may not be supported on all DBAPIs.
 It is known to work on psycopg2 and not pg8000.</p>
 <dl class="method">
-<dt id="sqlalchemy.dialects.postgresql.base.UUID.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>as_uuid=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.base.UUID.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="sqlalchemy.dialects.postgresql.UUID.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>as_uuid=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.UUID.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a UUID type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -497,14 +501,50 @@ DBAPI.</li>
 <p>Support for the PostgreSQL database via the psycopg2 driver.</p>
 <div class="section" id="driver">
 <h3>Driver<a class="headerlink" href="#driver" title="Permalink to this headline">¶</a></h3>
-<p>The psycopg2 driver is supported, available at <a class="reference external" href="http://pypi.python.org/pypi/psycopg2/">http://pypi.python.org/pypi/psycopg2/</a> .
+<p>The psycopg2 driver is available at <a class="reference external" href="http://pypi.python.org/pypi/psycopg2/">http://pypi.python.org/pypi/psycopg2/</a> .
 The dialect has several behaviors  which are specifically tailored towards compatibility 
 with this module.</p>
 <p>Note that psycopg1 is <strong>not</strong> supported.</p>
 </div>
+<div class="section" id="connecting">
+<h3>Connecting<a class="headerlink" href="#connecting" title="Permalink to this headline">¶</a></h3>
+<p>URLs are of the form
+<tt class="docutils literal"><span class="pre">postgresql+psycopg2://user:password&#64;host:port/dbname[?key=value&amp;key=value...]</span></tt>.</p>
+<p>psycopg2-specific keyword arguments which are accepted by
+<a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> are:</p>
+<ul class="simple">
+<li><em>server_side_cursors</em> - Enable the usage of &#8220;server side cursors&#8221; for SQL
+statements which support this feature. What this essentially means from a
+psycopg2 point of view is that the cursor is created using a name, e.g.
+<tt class="docutils literal"><span class="pre">connection.cursor('some</span> <span class="pre">name')</span></tt>, which has the effect that result rows are
+not immediately pre-fetched and buffered after statement execution, but are
+instead left on the server and only retrieved as needed. SQLAlchemy&#8217;s
+<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.ResultProxy" title="sqlalchemy.engine.base.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> uses special row-buffering
+behavior when this feature is enabled, such that groups of 100 rows at a
+time are fetched over the wire to reduce conversational overhead.
+Note that the <tt class="docutils literal"><span class="pre">stream_results=True</span></tt> execution option is a more targeted
+way of enabling this mode on a per-execution basis.</li>
+<li><em>use_native_unicode</em> - Enable the usage of Psycopg2 &#8220;native unicode&#8221; mode
+per connection. True by default.</li>
+</ul>
+</div>
+<div class="section" id="per-statement-connection-execution-options">
+<h3>Per-Statement/Connection Execution Options<a class="headerlink" href="#per-statement-connection-execution-options" title="Permalink to this headline">¶</a></h3>
+<p>The following DBAPI-specific options are respected when used with 
+<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection.execution_options" title="sqlalchemy.engine.base.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a>, <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Executable.execution_options" title="sqlalchemy.sql.expression.Executable.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Executable.execution_options()</span></tt></a>,
+<a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a>, in addition to those not specific to DBAPIs:</p>
+<ul class="simple">
+<li>isolation_level - Set the transaction isolation level for the lifespan of a 
+<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> (can only be set on a connection, not a statement or query).
+This includes the options <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt>, <tt class="docutils literal"><span class="pre">READ</span> <span class="pre">COMMITTED</span></tt>,
+<tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt> and <tt class="docutils literal"><span class="pre">REPEATABLE</span> <span class="pre">READ</span></tt>.</li>
+<li>stream_results - Enable or disable usage of server side cursors.
+If <tt class="xref docutils literal"><span class="pre">None</span></tt> or not set, the <tt class="docutils literal"><span class="pre">server_side_cursors</span></tt> option of the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> is used.</li>
+</ul>
+</div>
 <div class="section" id="unicode">
 <h3>Unicode<a class="headerlink" href="#unicode" title="Permalink to this headline">¶</a></h3>
-<p>By default, the Psycopg2 driver uses the <tt class="docutils literal"><span class="pre">psycopg2.extensions.UNICODE</span></tt>
+<p>By default, the psycopg2 driver uses the <tt class="docutils literal"><span class="pre">psycopg2.extensions.UNICODE</span></tt>
 extension, such that the DBAPI receives and returns all strings as Python
 Unicode objects directly - SQLAlchemy passes these values through without
 change. Note that this setting requires that the PG client encoding be set to
@@ -519,26 +559,6 @@ also defaults to <tt class="docutils literal"><span class="pre">utf-8</span></tt
 slight performance penalty, as SQLAlchemy now must translate unicode strings
 to/from an encoding such as utf-8, a task that is handled more efficiently
 within the Psycopg2 driver natively.</p>
-</div>
-<div class="section" id="connecting">
-<h3>Connecting<a class="headerlink" href="#connecting" title="Permalink to this headline">¶</a></h3>
-<p>URLs are of the form
-<tt class="docutils literal"><span class="pre">postgresql+psycopg2://user:password&#64;host:port/dbname[?key=value&amp;key=value...]</span></tt>.</p>
-<p>psycopg2-specific keyword arguments which are accepted by
-<a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> are:</p>
-<ul class="simple">
-<li><em>server_side_cursors</em> - Enable the usage of &#8220;server side cursors&#8221; for SQL
-statements which support this feature. What this essentially means from a
-psycopg2 point of view is that the cursor is created using a name, e.g.
-<cite>connection.cursor(&#8216;some name&#8217;)</cite>, which has the effect that result rows are
-not immediately pre-fetched and buffered after statement execution, but are
-instead left on the server and only retrieved as needed. SQLAlchemy&#8217;s
-<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.ResultProxy" title="sqlalchemy.engine.base.ResultProxy"><tt class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></tt></a> uses special row-buffering
-behavior when this feature is enabled, such that groups of 100 rows at a
-time are fetched over the wire to reduce conversational overhead.</li>
-<li><em>use_native_unicode</em> - Enable the usage of Psycopg2 &#8220;native unicode&#8221; mode
-per connection. True by default.</li>
-</ul>
 </div>
 <div class="section" id="transactions">
 <h3>Transactions<a class="headerlink" href="#transactions" title="Permalink to this headline">¶</a></h3>
@@ -559,21 +579,6 @@ at the API level what level should be used.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;sqlalchemy.dialects.postgresql&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span></pre></div>
 </div>
-</div>
-<div class="section" id="per-statement-connection-execution-options">
-<h3>Per-Statement/Connection Execution Options<a class="headerlink" href="#per-statement-connection-execution-options" title="Permalink to this headline">¶</a></h3>
-<p>The following DBAPI-specific options are respected when used with 
-<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection.execution_options" title="sqlalchemy.engine.base.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a>, <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Executable.execution_options" title="sqlalchemy.sql.expression.Executable.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Executable.execution_options()</span></tt></a>,
-<a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a>, in addition to those not specific to DBAPIs:</p>
-<ul class="simple">
-<li>isolation_level - Set the transaction isolation level for the lifespan of a 
-<a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> (can only be set on a connection, not a statement or query).
-This includes the options <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt>, <tt class="docutils literal"><span class="pre">READ</span> <span class="pre">COMMITTED</span></tt>,
-<tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt> and <tt class="docutils literal"><span class="pre">REPEATABLE</span> <span class="pre">READ</span></tt>.</li>
-<li>stream_results - Enable or disable usage of server side cursors.
-If <tt class="xref docutils literal"><span class="pre">None</span></tt> or not set, the <tt class="docutils literal"><span class="pre">server_side_cursors</span></tt> option of the <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> is used. If
-auto-commit is enabled, the option is ignored.</li>
-</ul>
 </div>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.postgresql.pypostgresql">
@@ -615,28 +620,20 @@ yet.</p>
 </div>
 </div>
 
-            </div>
-        </div>
-
-        
-        
-            <div class="bottomnav">
-                
-<div class="prevnext">
-        Previous:
-        <a href="oracle.html" title="previous chapter">Oracle</a>
-        Next:
-        <a href="sqlite.html" title="next chapter">SQLite</a>
+    </div>
 </div>
 
-                <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
-                </div>
-            </div>
-        
 
-
+    <div class="bottomnav">
+            Previous:
+            <a href="oracle.html" title="previous chapter">Oracle</a>
+            Next:
+            <a href="sqlite.html" title="next chapter">SQLite</a>
+        <div class="doc_copyright">
+            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+        </div>
+    </div>
 
 
 

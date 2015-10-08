@@ -777,9 +777,12 @@ class Query(object):
 
     @_generative()
     def _from_selectable(self, fromclause):
-        for attr in ('_statement', '_criterion', '_order_by', '_group_by',
-                '_limit', '_offset', '_joinpath', '_joinpoint', 
-                '_distinct'
+        for attr in (
+                '_statement', '_criterion', 
+                '_order_by', '_group_by',
+                '_limit', '_offset', 
+                '_joinpath', '_joinpoint', 
+                '_distinct', '_having'
         ):
             self.__dict__.pop(attr, None)
         self._set_select_from(fromclause)
@@ -917,7 +920,7 @@ class Query(object):
         """ Set non-SQL options which take effect during execution.
 
         The options are the same as those accepted by 
-        :meth:`sqlalchemy.sql.expression.Executable.execution_options`.
+        :meth:`.Connection.execution_options`.
 
         Note that the ``stream_results`` execution option is enabled
         automatically if the :meth:`~sqlalchemy.orm.query.Query.yield_per()`
@@ -1746,10 +1749,14 @@ class Query(object):
         return self._execute_and_instances(context)
 
     def _execute_and_instances(self, querycontext):
-        result = self.session.connection(
+        conn = self.session.connection(
                         mapper = self._mapper_zero_or_none(),
                         clause = querycontext.statement,
-                        close_with_result=True).execute(querycontext.statement, self._params)
+                        close_with_result=True)
+        if self._execution_options:
+            conn = conn.execution_options(**self._execution_options)
+
+        result = conn.execute(querycontext.statement, self._params)
         return self.instances(result, querycontext)
 
     @property
@@ -2138,6 +2145,9 @@ class Query(object):
 
         session = self.session
 
+        if self._autoflush:
+            session._autoflush()
+
         if synchronize_session == 'evaluate':
             try:
                 evaluator_compiler = evaluator.EvaluatorCompiler()
@@ -2154,21 +2164,6 @@ class Query(object):
                     "Specify 'fetch' or False for the synchronize_session "
                     "parameter.")
 
-        delete_stmt = sql.delete(primary_table, context.whereclause)
-
-        if synchronize_session == 'fetch':
-            #TODO: use RETURNING when available
-            select_stmt = context.statement.with_only_columns(
-                                                primary_table.primary_key)
-            matched_rows = session.execute(
-                                        select_stmt,
-                                        params=self._params).fetchall()
-
-        if self._autoflush:
-            session._autoflush()
-        result = session.execute(delete_stmt, params=self._params)
-
-        if synchronize_session == 'evaluate':
             target_cls = self._mapper_zero().class_
 
             #TODO: detect when the where clause is a trivial primary key match
@@ -2177,6 +2172,20 @@ class Query(object):
                                 session.identity_map.iteritems()
                                 if issubclass(cls, target_cls) and
                                 eval_condition(obj)]
+
+        elif synchronize_session == 'fetch':
+            #TODO: use RETURNING when available
+            select_stmt = context.statement.with_only_columns(
+                                                primary_table.primary_key)
+            matched_rows = session.execute(
+                                        select_stmt,
+                                        params=self._params).fetchall()
+
+        delete_stmt = sql.delete(primary_table, context.whereclause)
+
+        result = session.execute(delete_stmt, params=self._params)
+
+        if synchronize_session == 'evaluate':
             for obj in objs_to_expunge:
                 session._remove_newly_deleted(attributes.instance_state(obj))
         elif synchronize_session == 'fetch':
@@ -2271,6 +2280,9 @@ class Query(object):
 
         session = self.session
 
+        if self._autoflush:
+            session._autoflush()
+
         if synchronize_session == 'evaluate':
             try:
                 evaluator_compiler = evaluator.EvaluatorCompiler()
@@ -2291,43 +2303,45 @@ class Query(object):
                         "Could not evaluate current criteria in Python. "
                         "Specify 'fetch' or False for the "
                         "synchronize_session parameter.")
+            target_cls = self._mapper_zero().class_
+            matched_objects = []
+            for (cls, pk),obj in session.identity_map.iteritems():
+                evaluated_keys = value_evaluators.keys()
 
-        update_stmt = sql.update(primary_table, context.whereclause, values)
+                if issubclass(cls, target_cls) and eval_condition(obj):
+                    matched_objects.append(obj)
 
-        if synchronize_session == 'fetch':
+        elif synchronize_session == 'fetch':
             select_stmt = context.statement.with_only_columns(
                                                 primary_table.primary_key)
             matched_rows = session.execute(
                                         select_stmt,
                                         params=self._params).fetchall()
 
-        if self._autoflush:
-            session._autoflush()
+        update_stmt = sql.update(primary_table, context.whereclause, values)
+
         result = session.execute(update_stmt, params=self._params)
 
         if synchronize_session == 'evaluate':
             target_cls = self._mapper_zero().class_
 
-            for (cls, pk),obj in session.identity_map.iteritems():
-                evaluated_keys = value_evaluators.keys()
+            for obj in matched_objects:
+                state, dict_ = attributes.instance_state(obj),\
+                                        attributes.instance_dict(obj)
 
-                if issubclass(cls, target_cls) and eval_condition(obj):
-                    state, dict_ = attributes.instance_state(obj),\
-                                            attributes.instance_dict(obj)
+                # only evaluate unmodified attributes
+                to_evaluate = state.unmodified.intersection(
+                                                        evaluated_keys)
+                for key in to_evaluate:
+                    dict_[key] = value_evaluators[key](obj)
 
-                    # only evaluate unmodified attributes
-                    to_evaluate = state.unmodified.intersection(
-                                                            evaluated_keys)
-                    for key in to_evaluate:
-                        dict_[key] = value_evaluators[key](obj)
+                state.commit(dict_, list(to_evaluate))
 
-                    state.commit(dict_, list(to_evaluate))
-
-                    # expire attributes with pending changes 
-                    # (there was no autoflush, so they are overwritten)
-                    state.expire_attributes(dict_,
-                                    set(evaluated_keys).
-                                        difference(to_evaluate))
+                # expire attributes with pending changes 
+                # (there was no autoflush, so they are overwritten)
+                state.expire_attributes(dict_,
+                                set(evaluated_keys).
+                                    difference(to_evaluate))
 
         elif synchronize_session == 'fetch':
             target_mapper = self._mapper_zero()
@@ -2438,10 +2452,6 @@ class Query(object):
                                 for_update=for_update, 
                                 use_labels=labels)
 
-            if self._execution_options:
-                statement = statement.execution_options(
-                                                **self._execution_options)
-
             from_clause = inner
             for eager_join in eager_joins:
                 # EagerLoader places a 'stop_on' attribute on the join,
@@ -2490,10 +2500,6 @@ class Query(object):
 
             for hint in self._with_hints:
                 statement = statement.with_hint(*hint)
-
-            if self._execution_options:
-                statement = statement.execution_options(
-                                            **self._execution_options)
 
             if self._correlate:
                 statement = statement.correlate(*self._correlate)

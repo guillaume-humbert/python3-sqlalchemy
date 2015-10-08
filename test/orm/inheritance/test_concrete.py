@@ -6,7 +6,7 @@ from sqlalchemy.orm import exc as orm_exc
 from test.lib import *
 import sqlalchemy as sa
 from test.lib import testing
-from test.orm import _base
+from test.lib import fixtures
 from sqlalchemy.orm import attributes
 from test.lib.testing import eq_
 from test.lib.schema import Table, Column
@@ -64,7 +64,7 @@ class Company(object):
     pass
 
 
-class ConcreteTest(_base.MappedTest):
+class ConcreteTest(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
@@ -372,7 +372,7 @@ class ConcreteTest(_base.MappedTest):
         self.assert_sql_count(testing.db, go, 1)
 
 
-class PropertyInheritanceTest(_base.MappedTest):
+class PropertyInheritanceTest(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
@@ -397,7 +397,7 @@ class PropertyInheritanceTest(_base.MappedTest):
     @classmethod
     def setup_classes(cls):
 
-        class A(_base.ComparableEntity):
+        class A(cls.Comparable):
             pass
 
         class B(A):
@@ -406,11 +406,17 @@ class PropertyInheritanceTest(_base.MappedTest):
         class C(A):
             pass
 
-        class Dest(_base.ComparableEntity):
+        class Dest(cls.Comparable):
             pass
 
-    @testing.resolve_artifact_names
     def test_noninherited_warning(self):
+        A, B, b_table, a_table, Dest, dest_table = (self.classes.A,
+                                self.classes.B,
+                                self.tables.b_table,
+                                self.tables.a_table,
+                                self.classes.Dest,
+                                self.tables.dest_table)
+
         mapper(A, a_table, properties={'some_dest': relationship(Dest)})
         mapper(B, b_table, inherits=A, concrete=True)
         mapper(Dest, dest_table)
@@ -430,8 +436,14 @@ class PropertyInheritanceTest(_base.MappedTest):
         mapper(B, b_table, inherits=A, concrete=True)
         mapper(Dest, dest_table)
 
-    @testing.resolve_artifact_names
     def test_inheriting(self):
+        A, B, b_table, a_table, Dest, dest_table = (self.classes.A,
+                                self.classes.B,
+                                self.tables.b_table,
+                                self.tables.a_table,
+                                self.classes.Dest,
+                                self.tables.dest_table)
+
         mapper(A, a_table, properties={
                 'some_dest': relationship(Dest,back_populates='many_a')
             })
@@ -464,10 +476,19 @@ class PropertyInheritanceTest(_base.MappedTest):
         assert dest1.many_b == [b1, b2]
         assert sess.query(B).filter(B.bname == 'b1').one() is b1
 
-    @testing.resolve_artifact_names
     def test_polymorphic_backref(self):
         """test multiple backrefs to the same polymorphically-loading
         attribute."""
+
+        A, C, B, c_table, b_table, a_table, Dest, dest_table = (self.classes.A,
+                                self.classes.C,
+                                self.classes.B,
+                                self.tables.c_table,
+                                self.tables.b_table,
+                                self.tables.a_table,
+                                self.classes.Dest,
+                                self.tables.dest_table)
+
 
         ajoin = polymorphic_union({'a': a_table, 'b': b_table, 'c':c_table}, 
                                 'type','ajoin')
@@ -543,8 +564,16 @@ class PropertyInheritanceTest(_base.MappedTest):
 
         self.assert_sql_count(testing.db, go, 1)
 
-    @testing.resolve_artifact_names
     def test_merge_w_relationship(self):
+        A, C, B, c_table, b_table, a_table, Dest, dest_table = (self.classes.A,
+                                self.classes.C,
+                                self.classes.B,
+                                self.tables.c_table,
+                                self.tables.b_table,
+                                self.tables.a_table,
+                                self.classes.Dest,
+                                self.tables.dest_table)
+
         ajoin = polymorphic_union({'a': a_table, 'b': b_table, 'c':c_table}, 
                                 'type','ajoin')
         mapper(
@@ -602,7 +631,7 @@ class PropertyInheritanceTest(_base.MappedTest):
         eq_(merged_c1.some_dest.name, 'd2')
         eq_(merged_c1.some_dest_id, c1.some_dest_id)
 
-class ManyToManyTest(_base.MappedTest):
+class ManyToManyTest(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
@@ -622,20 +651,27 @@ class ManyToManyTest(_base.MappedTest):
               primary_key=True, test_needs_autoincrement=True))
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_classes(cls):
-        class Base(_base.ComparableEntity):
+        class Base(cls.Comparable):
             pass
 
         class Sub(Base):
             pass
 
-        class Related(_base.ComparableEntity):
+        class Related(cls.Comparable):
             pass
 
 
-    @testing.resolve_artifact_names
     def test_selective_relationships(self):
+        sub, base_mtom, Related, Base, related, sub_mtom, base, Sub = (self.tables.sub,
+                                self.tables.base_mtom,
+                                self.classes.Related,
+                                self.classes.Base,
+                                self.tables.related,
+                                self.tables.sub_mtom,
+                                self.tables.base,
+                                self.classes.Sub)
+
         mapper(Base, base, properties={'related': relationship(Related,
                secondary=base_mtom, backref='bases',
                order_by=related.c.id)})
@@ -657,7 +693,7 @@ class ManyToManyTest(_base.MappedTest):
         eq_(b1.related, [r1, r2])
 
 
-class ColKeysTest(_base.MappedTest):
+class ColKeysTest(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):

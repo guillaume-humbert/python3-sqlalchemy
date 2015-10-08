@@ -14,7 +14,7 @@ dbapi_session = engines.ReplayableSession()
 metadata = None
 
 
-class ZooMarkTest(TestBase):
+class ZooMarkTest(fixtures.TestBase):
 
     """Runs the ZooMark and squawks if method counts vary from the norm.
 
@@ -334,11 +334,12 @@ class ZooMarkTest(TestBase):
     def test_profile_1_create_tables(self):
         self.test_baseline_1_create_tables()
 
-    @profiling.function_call_count(5786, {'2.7+cextension':5992, '2.6+cextension':5992})
+    @profiling.function_call_count(5786, {'2.7+cextension':5683, 
+                                            '2.6+cextension':5992})
     def test_profile_1a_populate(self):
         self.test_baseline_1a_populate()
 
-    @profiling.function_call_count(416)
+    @profiling.function_call_count(416, {'3.2':390})
     def test_profile_2_insert(self):
         self.test_baseline_2_insert()
 
@@ -349,6 +350,7 @@ class ZooMarkTest(TestBase):
         '2.7': 5922,
         '2.7+cextension': 5714,
         '2.6+cextension': 5714,
+        '3.2':5787,
         })
     def test_profile_3_properties(self):
         self.test_baseline_3_properties()

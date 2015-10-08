@@ -3,11 +3,11 @@ from test.lib import testing
 from sqlalchemy import Integer, String, ForeignKey
 from test.lib.schema import Table, Column
 from sqlalchemy.orm import mapper, relationship, create_session
-from test.orm import _base
+from test.lib import fixtures
 from test.lib.testing import eq_
 
 
-class AssociationTest(_base.MappedTest):
+class AssociationTest(fixtures.MappedTest):
     run_setup_classes = 'once'
     run_setup_mappers = 'once'
 
@@ -26,20 +26,20 @@ class AssociationTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Item(_base.BasicEntity):
+        class Item(cls.Basic):
             def __init__(self, name):
                 self.name = name
             def __repr__(self):
                 return "Item id=%d name=%s keywordassoc=%r" % (
                     self.item_id, self.name, self.keywords)
 
-        class Keyword(_base.BasicEntity):
+        class Keyword(cls.Basic):
             def __init__(self, name):
                 self.name = name
             def __repr__(self):
                 return "Keyword id=%d name=%s" % (self.keyword_id, self.name)
 
-        class KeywordAssociation(_base.BasicEntity):
+        class KeywordAssociation(cls.Basic):
             def __init__(self, keyword, data):
                 self.keyword = keyword
                 self.data = data
@@ -48,8 +48,11 @@ class AssociationTest(_base.MappedTest):
                     self.item_id, self.keyword, self.data)
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        KeywordAssociation, Item, Keyword = (cls.classes.KeywordAssociation,
+                                cls.classes.Item,
+                                cls.classes.Keyword)
+
         items, item_keywords, keywords = cls.tables.get_all(
             'items', 'item_keywords', 'keywords')
 
@@ -64,8 +67,11 @@ class AssociationTest(_base.MappedTest):
                                   cascade="all, delete-orphan")
         })
 
-    @testing.resolve_artifact_names
     def test_insert(self):
+        KeywordAssociation, Item, Keyword = (self.classes.KeywordAssociation,
+                                self.classes.Item,
+                                self.classes.Keyword)
+
         sess = create_session()
         item1 = Item('item1')
         item2 = Item('item2')
@@ -80,8 +86,11 @@ class AssociationTest(_base.MappedTest):
         loaded = repr(l)
         eq_(saved, loaded)
 
-    @testing.resolve_artifact_names
     def test_replace(self):
+        KeywordAssociation, Item, Keyword = (self.classes.KeywordAssociation,
+                                self.classes.Item,
+                                self.classes.Keyword)
+
         sess = create_session()
         item1 = Item('item1')
         item1.keywords.append(KeywordAssociation(Keyword('blue'), 'blue_assoc'))
@@ -99,8 +108,11 @@ class AssociationTest(_base.MappedTest):
         loaded = repr(l)
         eq_(saved, loaded)
 
-    @testing.resolve_artifact_names
     def test_modify(self):
+        KeywordAssociation, Item, Keyword = (self.classes.KeywordAssociation,
+                                self.classes.Item,
+                                self.classes.Keyword)
+
         sess = create_session()
         item1 = Item('item1')
         item2 = Item('item2')
@@ -126,8 +138,12 @@ class AssociationTest(_base.MappedTest):
         loaded = repr(l)
         eq_(saved, loaded)
 
-    @testing.resolve_artifact_names
     def test_delete(self):
+        KeywordAssociation, Item, item_keywords, Keyword = (self.classes.KeywordAssociation,
+                                self.classes.Item,
+                                self.tables.item_keywords,
+                                self.classes.Keyword)
+
         sess = create_session()
         item1 = Item('item1')
         item2 = Item('item2')

@@ -13,14 +13,8 @@ import sqlalchemy as sa
 from test.lib import testing, AssertsCompiledSQL, Column, engines
 
 from test.orm import _fixtures
-from test.orm._fixtures import keywords, addresses, Base, \
-            Keyword, FixtureTest, \
-           Dingaling, item_keywords, dingalings, User, items,\
-           orders, Address, users, nodes, \
-            order_items, Item, Order, Node, \
-            composite_pk_table, CompositePk
 
-from test.orm import _base
+from test.lib import fixtures
 
 from sqlalchemy.orm.util import join, outerjoin, with_parent
 
@@ -29,9 +23,21 @@ class QueryTest(_fixtures.FixtureTest):
     run_inserts = 'once'
     run_deletes = None
 
-
     @classmethod
     def setup_mappers(cls):
+        Node, composite_pk_table, users, Keyword, items, Dingaling, \
+            order_items, item_keywords, Item, User, dingalings, \
+            Address, keywords, CompositePk, nodes, Order, orders, \
+            addresses = cls.classes.Node, \
+            cls.tables.composite_pk_table, cls.tables.users, \
+            cls.classes.Keyword, cls.tables.items, \
+            cls.classes.Dingaling, cls.tables.order_items, \
+            cls.tables.item_keywords, cls.classes.Item, \
+            cls.classes.User, cls.tables.dingalings, \
+            cls.classes.Address, cls.tables.keywords, \
+            cls.classes.CompositePk, cls.tables.nodes, \
+            cls.classes.Order, cls.tables.orders, cls.tables.addresses
+
         mapper(User, users, properties={
             'addresses':relationship(Address, backref='user', order_by=addresses.c.id),
             'orders':relationship(Order, backref='user', order_by=orders.c.id), # o2m, m2o
@@ -67,6 +73,8 @@ class RawSelectTest(QueryTest, AssertsCompiledSQL):
 
     """
     def test_select(self):
+        addresses, users = self.tables.addresses, self.tables.users
+
         sess = create_session()
 
         self.assert_compile(sess.query(users).select_from(users.select()).with_labels().statement, 
@@ -103,60 +111,118 @@ class RawSelectTest(QueryTest, AssertsCompiledSQL):
 
 
 class FromSelfTest(QueryTest, AssertsCompiledSQL):
+    __dialect__ = 'default'
     def test_filter(self):
+        User = self.classes.User
 
-        assert [User(id=8), User(id=9)] == create_session().query(User).filter(User.id.in_([8,9])).from_self().all()
+        eq_(
+            [User(id=8), User(id=9)],
+            create_session().
+                query(User).
+                filter(User.id.in_([8,9])).
+                from_self().all()
+        )
 
-        assert [User(id=8), User(id=9)] == create_session().query(User).order_by(User.id).slice(1,3).from_self().all()
-        assert [User(id=8)] == list(create_session().query(User).filter(User.id.in_([8,9])).from_self().order_by(User.id)[0:1])
+        eq_(
+            [User(id=8), User(id=9)],
+            create_session().query(User).
+                order_by(User.id).slice(1,3).
+                from_self().all()
+        )
+        eq_(
+            [User(id=8)],
+            list(
+                create_session().
+                query(User).
+                filter(User.id.in_([8,9])).
+                from_self().order_by(User.id)[0:1]
+            )
+        )
 
     def test_join(self):
-        assert [
+        User, Address = self.classes.User, self.classes.Address
+
+        eq_(
+        [
             (User(id=8), Address(id=2)),
             (User(id=8), Address(id=3)),
             (User(id=8), Address(id=4)),
             (User(id=9), Address(id=5))
-        ] == create_session().query(User).filter(User.id.in_([8,9])).from_self().\
-            join('addresses').add_entity(Address).order_by(User.id, Address.id).all()
+        ],
+            create_session().
+                query(User).
+                filter(User.id.in_([8,9])).
+                from_self().
+                join('addresses').
+                add_entity(Address).
+                order_by(User.id, Address.id).all()
+        )
 
     def test_group_by(self):
+        Address = self.classes.Address
+
         eq_(
-            create_session().query(Address.user_id, func.count(Address.id).label('count')).\
-                            group_by(Address.user_id).order_by(Address.user_id).all(),
+            create_session().query(Address.user_id, 
+                            func.count(Address.id).label('count')).\
+                            group_by(Address.user_id).
+                            order_by(Address.user_id).all(),
             [(7, 1), (8, 3), (9, 1)]
         )
 
         eq_(
             create_session().query(Address.user_id, Address.id).\
-                            from_self(Address.user_id, func.count(Address.id)).\
-                            group_by(Address.user_id).order_by(Address.user_id).all(),
+                            from_self(Address.user_id, 
+                                func.count(Address.id)).\
+                            group_by(Address.user_id).
+                            order_by(Address.user_id).all(),
             [(7, 1), (8, 3), (9, 1)]
         )
 
-    def test_no_joinedload(self):
-        """test that joinedloads are pushed outwards and not rendered in subqueries."""
+    def test_having(self):
+        User = self.classes.User
 
         s = create_session()
 
-        oracle_as = not testing.against('oracle') and "AS " or ""
+        self.assert_compile(
+            s.query(User.id).group_by(User.id).having(User.id>5).
+                    from_self(),
+            "SELECT anon_1.users_id AS anon_1_users_id FROM "
+            "(SELECT users.id AS users_id FROM users GROUP "
+            "BY users.id HAVING users.id > :id_1) AS anon_1"
+        )
+
+    def test_no_joinedload(self):
+        """test that joinedloads are pushed outwards and not rendered in
+        subqueries."""
+
+        User = self.classes.User
+
+
+        s = create_session()
 
         self.assert_compile(
-            s.query(User).options(joinedload(User.addresses)).from_self().statement,
-            "SELECT anon_1.users_id, anon_1.users_name, addresses_1.id, addresses_1.user_id, "\
-            "addresses_1.email_address FROM (SELECT users.id AS users_id, users.name AS users_name FROM users) %(oracle_as)sanon_1 "\
-            "LEFT OUTER JOIN addresses %(oracle_as)saddresses_1 ON anon_1.users_id = addresses_1.user_id ORDER BY addresses_1.id" % {
-                'oracle_as':oracle_as
-            }
+            s.query(User).options(joinedload(User.addresses)).
+                from_self().statement,
+            "SELECT anon_1.users_id, anon_1.users_name, addresses_1.id, "
+            "addresses_1.user_id, addresses_1.email_address FROM "
+            "(SELECT users.id AS users_id, users.name AS "
+            "users_name FROM users) AS anon_1 LEFT OUTER JOIN "
+            "addresses AS addresses_1 ON anon_1.users_id = "
+            "addresses_1.user_id ORDER BY addresses_1.id"
         )
 
     def test_aliases(self):
         """test that aliased objects are accessible externally to a from_self() call."""
 
+        User, Address = self.classes.User, self.classes.Address
+
+
         s = create_session()
 
         ualias = aliased(User)
         eq_(
-            s.query(User, ualias).filter(User.id > ualias.id).from_self(User.name, ualias.name).
+            s.query(User, ualias).filter(User.id > ualias.id).
+                    from_self(User.name, ualias.name).
                     order_by(User.name, ualias.name).all(),
             [
                 (u'chuck', u'ed'), 
@@ -169,14 +235,20 @@ class FromSelfTest(QueryTest, AssertsCompiledSQL):
         )
 
         eq_(
-            s.query(User, ualias).filter(User.id > ualias.id).from_self(User.name, ualias.name).filter(ualias.name=='ed')\
+            s.query(User, ualias).
+                    filter(User.id > ualias.id).
+                    from_self(User.name, ualias.name).
+                    filter(ualias.name=='ed')\
                 .order_by(User.name, ualias.name).all(),
             [(u'chuck', u'ed'), (u'fred', u'ed')]
         )
 
         eq_(
-            s.query(User, ualias).filter(User.id > ualias.id).from_self(ualias.name, Address.email_address).
-                    join(ualias.addresses).order_by(ualias.name, Address.email_address).all(),
+            s.query(User, ualias).
+                    filter(User.id > ualias.id).
+                    from_self(ualias.name, Address.email_address).
+                    join(ualias.addresses).
+                    order_by(ualias.name, Address.email_address).all(),
             [
                 (u'ed', u'fred@fred.com'), 
                 (u'jack', u'ed@bettyboop.com'), 
@@ -187,6 +259,8 @@ class FromSelfTest(QueryTest, AssertsCompiledSQL):
 
 
     def test_multiple_entities(self):
+        User, Address = self.classes.User, self.classes.Address
+
         sess = create_session()
 
         eq_(
@@ -212,6 +286,8 @@ class FromSelfTest(QueryTest, AssertsCompiledSQL):
         )
 
     def test_multiple_with_column_entities(self):
+        User = self.classes.User
+
         sess = create_session()
 
         eq_(
@@ -226,7 +302,7 @@ class FromSelfTest(QueryTest, AssertsCompiledSQL):
 
         )
 
-class AddEntityEquivalenceTest(_base.MappedTest, AssertsCompiledSQL):
+class AddEntityEquivalenceTest(fixtures.MappedTest, AssertsCompiledSQL):
     run_setup_mappers = 'once'
 
     @classmethod
@@ -255,12 +331,16 @@ class AddEntityEquivalenceTest(_base.MappedTest, AssertsCompiledSQL):
         )
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_classes(cls):
-        class A(_fixtures.Base):
+        a, c, b, d = (cls.tables.a,
+                                cls.tables.c,
+                                cls.tables.b,
+                                cls.tables.d)
+
+        class A(cls.Comparable):
             pass
 
-        class B(_fixtures.Base):
+        class B(cls.Comparable):
             pass
 
         class C(B):
@@ -285,8 +365,11 @@ class AddEntityEquivalenceTest(_base.MappedTest, AssertsCompiledSQL):
         mapper(D, d, inherits=A, polymorphic_identity='d')
 
     @classmethod
-    @testing.resolve_artifact_names
     def insert_data(cls):
+        A, C, B = (cls.classes.A,
+                                cls.classes.C,
+                                cls.classes.B)
+
         sess = create_session()
         sess.add_all([
             B(name='b1'), 
@@ -296,8 +379,11 @@ class AddEntityEquivalenceTest(_base.MappedTest, AssertsCompiledSQL):
             ])
         sess.flush()
 
-    @testing.resolve_artifact_names
     def test_add_entity_equivalence(self):
+        A, C, B = (self.classes.A,
+                                self.classes.C,
+                                self.classes.B)
+
         sess = create_session()
 
         for q in [
@@ -329,6 +415,10 @@ class AddEntityEquivalenceTest(_base.MappedTest, AssertsCompiledSQL):
 class InstancesTest(QueryTest, AssertsCompiledSQL):
 
     def test_from_alias(self):
+        User, addresses, users = (self.classes.User,
+                                self.tables.addresses,
+                                self.tables.users)
+
 
         query = users.select(users.c.id==7).\
                     union(users.select(users.c.id>7)).\
@@ -379,6 +469,10 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
         self.assert_sql_count(testing.db, go, 1)
 
     def test_contains_eager(self):
+        users, addresses, User = (self.tables.users,
+                                self.tables.addresses,
+                                self.classes.User)
+
         sess = create_session()
 
         # test that contains_eager suppresses the normal outer join rendering
@@ -443,6 +537,10 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
         self.assert_sql_count(testing.db, go, 1)
 
     def test_contains_eager_string_alias(self):
+        addresses, users, User = (self.tables.addresses,
+                                self.tables.users,
+                                self.classes.User)
+
         sess = create_session()
         q = sess.query(User)
 
@@ -460,6 +558,10 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
         self.assert_sql_count(testing.db, go, 1)
 
     def test_contains_eager_aliased_instances(self):
+        addresses, users, User = (self.tables.addresses,
+                                self.tables.users,
+                                self.classes.User)
+
         sess = create_session()
         q = sess.query(User)
 
@@ -477,6 +579,8 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
         self.assert_sql_count(testing.db, go, 1)
 
     def test_contains_eager_aliased(self):
+        User, Address = self.classes.User, self.classes.Address
+
         sess = create_session()
         q = sess.query(User)
 
@@ -492,6 +596,12 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
         self.assert_sql_count(testing.db, go, 1)
 
     def test_contains_eager_multi_string_alias(self):
+        orders, items, users, order_items, User = (self.tables.orders,
+                                self.tables.items,
+                                self.tables.users,
+                                self.tables.order_items,
+                                self.classes.User)
+
         sess = create_session()
         q = sess.query(User)
 
@@ -513,6 +623,12 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
         self.assert_sql_count(testing.db, go, 1)
 
     def test_contains_eager_multi_alias(self):
+        orders, items, users, order_items, User = (self.tables.orders,
+                                self.tables.items,
+                                self.tables.users,
+                                self.tables.order_items,
+                                self.classes.User)
+
         sess = create_session()
         q = sess.query(User)
 
@@ -534,6 +650,10 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
         self.assert_sql_count(testing.db, go, 1)
 
     def test_contains_eager_multi_aliased(self):
+        Item, User, Order = (self.classes.Item,
+                                self.classes.User,
+                                self.classes.Order)
+
         sess = create_session()
         q = sess.query(User)
 
@@ -553,6 +673,11 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
 
     def test_contains_eager_chaining(self):
         """test that contains_eager() 'chains' by default."""
+
+        Dingaling, User, Address = (self.classes.Dingaling,
+                                self.classes.User,
+                                self.classes.Address)
+
 
         sess = create_session()
         q = sess.query(User).\
@@ -584,6 +709,11 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
         """test that contains_eager() 'chains' by default and supports
         an alias at the end."""
 
+        Dingaling, User, Address = (self.classes.Dingaling,
+                                self.classes.User,
+                                self.classes.Address)
+
+
         sess = create_session()
         da = aliased(Dingaling, name="foob")
         q = sess.query(User).\
@@ -612,6 +742,10 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
         self.assert_sql_count(testing.db, go, 1)
 
     def test_mixed_eager_contains_with_limit(self):
+        Order, User, Address = (self.classes.Order,
+                                self.classes.User,
+                                self.classes.Address)
+
         sess = create_session()
 
         q = sess.query(User)
@@ -663,6 +797,10 @@ class InstancesTest(QueryTest, AssertsCompiledSQL):
 class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
 
     def test_values(self):
+        Address, users, User = (self.classes.Address,
+                                self.tables.users,
+                                self.classes.User)
+
         sess = create_session()
 
         assert list(sess.query(User).values()) == list()
@@ -721,6 +859,8 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
         eq_(list(q2), [(u'ed', u'jack', u'jack')])
 
     def test_alias_naming(self):
+        User = self.classes.User
+
         sess = create_session()
 
         ua = aliased(User, name="foobar")
@@ -734,6 +874,8 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
 
     @testing.fails_on('mssql', 'FIXME: unknown')
     def test_values_specific_order_by(self):
+        users, User = self.tables.users, self.classes.User
+
         sess = create_session()
 
         assert list(sess.query(User).values()) == list()
@@ -763,6 +905,9 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
     def test_values_with_boolean_selects(self):
         """Tests a values clause that works with select boolean
         evaluations"""
+
+        User = self.classes.User
+
         sess = create_session()
 
         q = sess.query(User)
@@ -780,6 +925,11 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
         those entities to the outermost query.
 
         """
+
+        Address, users, User = (self.classes.Address,
+                                self.tables.users,
+                                self.classes.User)
+
         sess = create_session()
 
         subq = select([func.count()]).\
@@ -807,59 +957,12 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
             (User(id=9,name=u'fred'), 1)]
             )
 
-    def test_tuple_labeling(self):
-        sess = create_session()
-
-        # test pickle + all the protocols !
-        for pickled in False, -1, 0, 1, 2:
-            for row in sess.query(User, Address).join(User.addresses).all():
-                if pickled is not False:
-                    row = util.pickle.loads(util.pickle.dumps(row, pickled))
-
-                eq_(row.keys(), ['User', 'Address'])
-                eq_(row.User, row[0])
-                eq_(row.Address, row[1])
-
-            for row in sess.query(User.name, User.id.label('foobar')):
-                if pickled is not False:
-                    row = util.pickle.loads(util.pickle.dumps(row, pickled))
-                eq_(row.keys(), ['name', 'foobar'])
-                eq_(row.name, row[0])
-                eq_(row.foobar, row[1])
-
-            for row in sess.query(User).values(User.name, User.id.label('foobar')):
-                if pickled is not False:
-                    row = util.pickle.loads(util.pickle.dumps(row, pickled))
-                eq_(row.keys(), ['name', 'foobar'])
-                eq_(row.name, row[0])
-                eq_(row.foobar, row[1])
-
-            oalias = aliased(Order)
-            for row in sess.query(User, oalias).join(User.orders).all():
-                if pickled is not False:
-                    row = util.pickle.loads(util.pickle.dumps(row, pickled))
-                eq_(row.keys(), ['User'])
-                eq_(row.User, row[0])
-
-            oalias = aliased(Order, name='orders')
-            for row in sess.query(User, oalias).join(oalias, User.orders).all():
-                if pickled is not False:
-                    row = util.pickle.loads(util.pickle.dumps(row, pickled))
-                eq_(row.keys(), ['User', 'orders'])
-                eq_(row.User, row[0])
-                eq_(row.orders, row[1])
-
-            # test here that first col is not labeled, only
-            # one name in keys, matches correctly
-            for row in sess.query(User.name + 'hoho', User.name):
-                eq_(row.keys(), ['name'])
-                eq_(row[0], row.name + 'hoho')
-
-            if pickled is not False:
-                ret = sess.query(User, Address).join(User.addresses).all()
-                util.pickle.loads(util.pickle.dumps(ret, pickled))
 
     def test_column_queries(self):
+        Address, users, User = (self.classes.Address,
+                                self.tables.users,
+                                self.classes.User)
+
         sess = create_session()
 
         eq_(sess.query(User.name).all(), [(u'jack',), (u'ed',), (u'fred',), (u'chuck',)])
@@ -977,6 +1080,8 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
         )
 
     def test_column_from_limited_joinedload(self):
+        User = self.classes.User
+
         sess = create_session()
 
         def go():
@@ -988,6 +1093,8 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
 
     @testing.fails_on('postgresql+pg8000', "'type oid 705 not mapped to py type' (due to literal)")
     def test_self_referential(self):
+        Order = self.classes.Order
+
 
         sess = create_session()
         oalias = aliased(Order)
@@ -1052,6 +1159,11 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
 
 
     def test_multi_mappers(self):
+        Address, addresses, users, User = (self.classes.Address,
+                                self.tables.addresses,
+                                self.tables.users,
+                                self.classes.User)
+
 
         test_session = create_session()
 
@@ -1097,6 +1209,11 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
             sess.expunge_all()
 
     def test_aliased_multi_mappers(self):
+        User, addresses, users, Address = (self.classes.User,
+                                self.tables.addresses,
+                                self.tables.users,
+                                self.classes.Address)
+
         sess = create_session()
 
         (user7, user8, user9, user10) = sess.query(User).all()
@@ -1122,6 +1239,8 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
         assert l == [(user8, address3)]
 
     def test_with_entities(self):
+        User, Address = self.classes.User, self.classes.Address
+
         sess = create_session()
 
         q = sess.query(User).filter(User.id==7).order_by(User.name)
@@ -1140,6 +1259,8 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
 
 
     def test_multi_columns(self):
+        users, User = self.tables.users, self.classes.User
+
         sess = create_session()
 
         expected = [(u, u.name) for u in sess.query(User).all()]
@@ -1153,6 +1274,9 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
     def test_add_multi_columns(self):
         """test that add_column accepts a FROM clause."""
 
+        users, User = self.tables.users, self.classes.User
+
+
         sess = create_session()
 
         eq_(
@@ -1162,6 +1286,12 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
 
     def test_multi_columns_2(self):
         """test aliased/nonalised joins with the usage of add_column()"""
+
+        User, Address, addresses, users = (self.classes.User,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.tables.users)
+
         sess = create_session()
 
         (user7, user8, user9, user10) = sess.query(User).all()
@@ -1194,6 +1324,10 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
 
 
     def test_raw_columns(self):
+        addresses, users, User = (self.tables.addresses,
+                                self.tables.users,
+                                self.classes.User)
+
         sess = create_session()
         (user7, user8, user9, user10) = sess.query(User).all()
         expected = [
@@ -1246,6 +1380,11 @@ class SelectFromTest(QueryTest, AssertsCompiledSQL):
     run_setup_mappers = None
 
     def test_replace_with_select(self):
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
         mapper(User, users, properties = {
             'addresses':relationship(Address)
         })
@@ -1273,6 +1412,9 @@ class SelectFromTest(QueryTest, AssertsCompiledSQL):
     def test_join_mapper_order_by(self):
         """test that mapper-level order_by is adapted to a selectable."""
 
+        User, users = self.classes.User, self.tables.users
+
+
         mapper(User, users, order_by=users.c.id)
 
         sel = users.select(users.c.id.in_([7, 8]))
@@ -1286,6 +1428,9 @@ class SelectFromTest(QueryTest, AssertsCompiledSQL):
 
     def test_differentiate_self_external(self):
         """test some different combinations of joining a table to a subquery of itself."""
+
+        users, User = self.tables.users, self.classes.User
+
 
         mapper(User, users)
 
@@ -1343,6 +1488,8 @@ class SelectFromTest(QueryTest, AssertsCompiledSQL):
 
 
     def test_join_no_order_by(self):
+        User, users = self.classes.User, self.tables.users
+
         mapper(User, users)
 
         sel = users.select(users.c.id.in_([7, 8]))
@@ -1355,6 +1502,11 @@ class SelectFromTest(QueryTest, AssertsCompiledSQL):
         )
 
     def test_join(self):
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
         mapper(User, users, properties = {
             'addresses':relationship(Address)
         })
@@ -1386,6 +1538,17 @@ class SelectFromTest(QueryTest, AssertsCompiledSQL):
 
 
     def test_more_joins(self):
+        users, Keyword, orders, items, order_items, Order, Item, User, keywords, item_keywords = (self.tables.users,
+                                self.classes.Keyword,
+                                self.tables.orders,
+                                self.tables.items,
+                                self.tables.order_items,
+                                self.classes.Order,
+                                self.classes.Item,
+                                self.classes.User,
+                                self.tables.keywords,
+                                self.tables.item_keywords)
+
         mapper(User, users, properties={
             'orders':relationship(Order, backref='user'), # o2m, m2o
         })
@@ -1482,6 +1645,11 @@ class SelectFromTest(QueryTest, AssertsCompiledSQL):
 
 
     def test_replace_with_eager(self):
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
         mapper(User, users, properties = {
             'addresses':relationship(Address, order_by=addresses.c.id)
         })
@@ -1516,6 +1684,17 @@ class CustomJoinTest(QueryTest):
 
     def test_double_same_mappers(self):
         """test aliasing of joins with a custom join condition"""
+
+        addresses, items, order_items, orders, Item, User, Address, Order, users = (self.tables.addresses,
+                                self.tables.items,
+                                self.tables.order_items,
+                                self.tables.orders,
+                                self.classes.Item,
+                                self.classes.User,
+                                self.classes.Address,
+                                self.classes.Order,
+                                self.tables.users)
+
         mapper(Address, addresses)
         mapper(Order, orders, properties={
             'items':relationship(Item, secondary=order_items, lazy='select', order_by=items.c.id),
@@ -1540,6 +1719,8 @@ class ExternalColumnsTest(QueryTest):
     run_setup_mappers = None
 
     def test_external_columns_bad(self):
+        users, User = self.tables.users, self.classes.User
+
 
         assert_raises_message(sa_exc.ArgumentError, "not represented in the mapper's table", mapper, User, users, properties={
             'concat': (users.c.id * 2),
@@ -1548,6 +1729,12 @@ class ExternalColumnsTest(QueryTest):
 
     def test_external_columns(self):
         """test querying mappings that reference external columns or selectables."""
+
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
 
         mapper(User, users, properties={
             'concat': column_property((users.c.id * 2)),
@@ -1647,6 +1834,13 @@ class ExternalColumnsTest(QueryTest):
         )
 
     def test_external_columns_joinedload(self):
+        users, orders, User, Address, Order, addresses = (self.tables.users,
+                                self.tables.orders,
+                                self.classes.User,
+                                self.classes.Address,
+                                self.classes.Order,
+                                self.tables.addresses)
+
         # in this test, we have a subquery on User that accesses "addresses", underneath
         # an joinedload for "addresses".  So the "addresses" alias adapter needs to *not* hit 
         # the "addresses" table within the "user" subquery, but "user" still needs to be adapted.
@@ -1674,7 +1868,7 @@ class ExternalColumnsTest(QueryTest):
             eq_(o1.address.user.count, 1)
         self.assert_sql_count(testing.db, go, 1)
 
-class TestOverlyEagerEquivalentCols(_base.MappedTest):
+class TestOverlyEagerEquivalentCols(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         base = Table('base', metadata, 
@@ -1692,13 +1886,16 @@ class TestOverlyEagerEquivalentCols(_base.MappedTest):
             Column('data', String(50))
         )
 
-    @testing.resolve_artifact_names
     def test_equivs(self):
-        class Base(_base.ComparableEntity):
+        base, sub2, sub1 = (self.tables.base,
+                                self.tables.sub2,
+                                self.tables.sub1)
+
+        class Base(fixtures.ComparableEntity):
             pass
-        class Sub1(_base.ComparableEntity):
+        class Sub1(fixtures.ComparableEntity):
             pass
-        class Sub2(_base.ComparableEntity):
+        class Sub2(fixtures.ComparableEntity):
             pass
 
         mapper(Base, base, properties={

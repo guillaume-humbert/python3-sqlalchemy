@@ -1,9 +1,10 @@
 import threading, time
 from sqlalchemy import pool, interfaces, create_engine, select, event
 import sqlalchemy as tsa
-from test.lib import TestBase, testing
+from test.lib import testing
 from test.lib.util import gc_collect, lazy_gc
 from test.lib.testing import eq_, assert_raises
+from test.lib import fixtures
 
 mcid = 1
 class MockDBAPI(object):
@@ -33,7 +34,7 @@ class MockCursor(object):
     def close(self):
         pass
 
-class PoolTestBase(TestBase):
+class PoolTestBase(fixtures.TestBase):
     def setup(self):
         pool.clear_managers()
 
@@ -50,26 +51,27 @@ class PoolTestBase(TestBase):
         return dbapi, pool.QueuePool(creator=lambda: dbapi.connect('foo.db'), **kw)
 
 class PoolTest(PoolTestBase):
-    def testmanager(self):
+    def test_manager(self):
         manager = pool.manage(MockDBAPI(), use_threadlocal=True)
 
-        connection = manager.connect('foo.db')
-        connection2 = manager.connect('foo.db')
-        connection3 = manager.connect('bar.db')
+        c1 = manager.connect('foo.db')
+        c2 = manager.connect('foo.db')
+        c3 = manager.connect('bar.db')
+        c4 = manager.connect("foo.db", bar="bat")
+        c5 = manager.connect("foo.db", bar="hoho")
+        c6 = manager.connect("foo.db", bar="bat")
 
-        self.assert_(connection.cursor() is not None)
-        self.assert_(connection is connection2)
-        self.assert_(connection2 is not connection3)
+        assert c1.cursor() is not None
+        assert c1 is c2
+        assert c1 is not c3
+        assert c4 is c6
+        assert c4 is not c5
 
-    def testbadargs(self):
+    def test_bad_args(self):
         manager = pool.manage(MockDBAPI())
+        connection = manager.connect(None)
 
-        try:
-            connection = manager.connect(None)
-        except:
-            pass
-
-    def testnonthreadlocalmanager(self):
+    def test_non_thread_local_manager(self):
         manager = pool.manage(MockDBAPI(), use_threadlocal = False)
 
         connection = manager.connect('foo.db')
@@ -804,6 +806,32 @@ class QueuePoolTest(PoolTestBase):
         lazy_gc()
         assert not pool._refs
 
+    def test_overflow_no_gc_tlocal(self):
+        self._test_overflow_no_gc(True)
+
+    def test_overflow_no_gc(self):
+        self._test_overflow_no_gc(False)
+
+    def _test_overflow_no_gc(self, threadlocal):
+        p = self._queuepool_fixture(pool_size=2,
+                           max_overflow=2)
+
+        # disable weakref collection of the 
+        # underlying connections
+        strong_refs = set()
+        def _conn():
+            c = p.connect()
+            strong_refs.add(c.connection)
+            return c
+
+        for j in xrange(5):
+            conns = [_conn() for i in xrange(4)]
+            for c in conns:
+                c.close()
+
+        still_opened = len([c for c in strong_refs if not c.closed])
+        eq_(still_opened, 2)
+
     def test_weakref_kaboom(self):
         p = self._queuepool_fixture(pool_size=3,
                            max_overflow=-1, use_threadlocal=True)
@@ -916,6 +944,12 @@ class QueuePoolTest(PoolTestBase):
 class SingletonThreadPoolTest(PoolTestBase):
 
     def test_cleanup(self):
+        self._test_cleanup(False)
+
+    def test_cleanup_no_gc(self):
+        self._test_cleanup(True)
+
+    def _test_cleanup(self, strong_refs):
         """test that the pool's connections are OK after cleanup() has
         been called."""
 
@@ -923,9 +957,19 @@ class SingletonThreadPoolTest(PoolTestBase):
         p = pool.SingletonThreadPool(creator=dbapi.connect,
                 pool_size=3)
 
+        if strong_refs:
+            sr = set()
+            def _conn():
+                c = p.connect()
+                sr.add(c.connection)
+                return c
+        else:
+            def _conn():
+                return p.connect()
+
         def checkout():
             for x in xrange(10):
-                c = p.connect()
+                c = _conn()
                 assert c
                 c.cursor()
                 c.close()
@@ -939,6 +983,10 @@ class SingletonThreadPoolTest(PoolTestBase):
         for th in threads:
             th.join()
         assert len(p._all_conns) == 3
+
+        if strong_refs:
+            still_opened = len([c for c in sr if not c.closed])
+            eq_(still_opened, 3)
 
 class AssertionPoolTest(PoolTestBase):
     def test_connect_error(self):

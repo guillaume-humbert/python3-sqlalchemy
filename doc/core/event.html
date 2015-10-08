@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-    Events
- &mdash; SQLAlchemy 0.7b3 Documentation</title>
+                Events
+             &mdash; SQLAlchemy 0.7b4 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b3',
+          VERSION:     '0.7b4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,11 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b4 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Core Events" href="events.html" />
         <link rel="prev" title="Column and Data Types" href="types.html" />
-    
 
     </head>
     <body>
@@ -39,52 +38,52 @@
 
 
 
+<h1>SQLAlchemy 0.7b4 Documentation</h1>
 
-        <h1>SQLAlchemy 0.7b3 Documentation</h1>
-
-        <div id="search">
-        Search:
-        <form class="search" action="../search.html" method="get">
-          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-          <input type="hidden" name="check_keywords" value="yes" />
-          <input type="hidden" name="area" value="default" />
-        </form>
-        </div>
-
-        <div class="versionheader">
-            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
-        </div>
-        <div class="clearboth"></div>
-
-        <div class="topnav">
-            <div id="pagecontrol">
-                <a href="../genindex.html">Index</a>
-
-                <div class="sourcelink">(<a href="../_sources/core/event.txt">view source)</div>
-            </div>
-
-            <div class="navbanner">
-                <a class="totoc" href="../index.html">Table of Contents</a>
-                        » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
-                » 
-    Events
- 
-
-                
-<div class="prevnext">
-        Previous:
-        <a href="types.html" title="previous chapter">Column and Data Types</a>
-        Next:
-        <a href="events.html" title="next chapter">Core Events</a>
+<div id="search">
+Search:
+<form class="search" action="../search.html" method="get">
+  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
 </div>
 
-                <h2>
-                    
-    Events
- 
-                </h2>
-            </div>
-                <ul>
+<div class="versionheader">
+    Version: <span class="versionnum">0.7b4</span> Last Updated: 04/17/2011 16:53:50
+</div>
+<div class="clearboth"></div>
+
+<div id="topnav">
+    <div id="pagecontrol">
+        <ul>
+            <li>Prev:
+            <a href="types.html" title="previous chapter">Column and Data Types</a>
+            </li>
+            <li>Next:
+            <a href="events.html" title="next chapter">Core Events</a>
+            </li>
+
+        <li>
+            <a href="../contents.html">Table of Contents</a> |
+            <a href="../genindex.html">Index</a>
+            | <a href="../_sources/core/event.txt">view source
+        </li>
+        </ul>
+    </div>
+    <div id="navbanner">
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7b4 Documentation</a>
+                » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
+        » 
+                Events
+             
+
+        <h2>
+            
+                Events
+            
+        </h2>
+        <ul>
 <li><a class="reference internal" href="#">Events</a><ul>
 <li><a class="reference internal" href="#event-registration">Event Registration</a></li>
 <li><a class="reference internal" href="#targets">Targets</a></li>
@@ -95,12 +94,13 @@
 </li>
 </ul>
 
-            <div class="clearboth"></div>
-        </div>
+    </div>
+    <div class="clearboth"></div>
+</div>
 
-        <div class="document">
-            <div class="body">
-                
+<div class="document">
+    <div class="body">
+        
 <div class="section" id="events">
 <span id="event-toplevel"></span><h1>Events<a class="headerlink" href="#events" title="Permalink to this headline">¶</a></h1>
 <p>SQLAlchemy includes an event API which publishes a wide variety of hooks into
@@ -197,33 +197,56 @@ and per-instance persistence hooks.</li>
 <dt id="sqlalchemy.event.listen">
 <tt class="descclassname">sqlalchemy.event.</tt><tt class="descname">listen</tt><big>(</big><em>target</em>, <em>identifier</em>, <em>fn</em>, <em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.event.listen" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a listener function for the given target.</p>
+<p>e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.schema</span> <span class="kn">import</span> <span class="n">UniqueConstraint</span>
+
+<span class="k">def</span> <span class="nf">unique_constraint_name</span><span class="p">(</span><span class="n">const</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
+    <span class="n">const</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&quot;uq_</span><span class="si">%s</span><span class="s">_</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="nb">list</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">columns</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+    <span class="p">)</span>
+<span class="n">event</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span>
+        <span class="n">UniqueConstraint</span><span class="p">,</span> 
+        <span class="s">&quot;after_parent_attach&quot;</span><span class="p">,</span> 
+        <span class="n">unique_constraint_name</span><span class="p">)</span></pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="sqlalchemy.event.listens_for">
+<tt class="descclassname">sqlalchemy.event.</tt><tt class="descname">listens_for</tt><big>(</big><em>target</em>, <em>identifier</em>, <em>*args</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.event.listens_for" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorate a function as a listener for the given target + identifier.</p>
+<p>e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.schema</span> <span class="kn">import</span> <span class="n">UniqueConstraint</span>
+
+<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">UniqueConstraint</span><span class="p">,</span> <span class="s">&quot;after_parent_attach&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">unique_constraint_name</span><span class="p">(</span><span class="n">const</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
+    <span class="n">const</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&quot;uq_</span><span class="si">%s</span><span class="s">_</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="nb">list</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">columns</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+    <span class="p">)</span></pre></div>
+</div>
 </dd></dl>
 
 </div>
 </div>
 
-            </div>
-        </div>
-
-        
-        
-            <div class="bottomnav">
-                
-<div class="prevnext">
-        Previous:
-        <a href="types.html" title="previous chapter">Column and Data Types</a>
-        Next:
-        <a href="events.html" title="next chapter">Core Events</a>
+    </div>
 </div>
 
-                <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
-                </div>
-            </div>
-        
 
-
+    <div class="bottomnav">
+            Previous:
+            <a href="types.html" title="previous chapter">Column and Data Types</a>
+            Next:
+            <a href="events.html" title="next chapter">Core Events</a>
+        <div class="doc_copyright">
+            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+        </div>
+    </div>
 
 
 

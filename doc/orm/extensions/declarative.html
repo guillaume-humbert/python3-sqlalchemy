@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-    Declarative
- &mdash; SQLAlchemy 0.7b3 Documentation</title>
+                Declarative
+             &mdash; SQLAlchemy 0.7b4 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.7b3',
+          VERSION:     '0.7b4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,11 +27,10 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b4 Documentation" href="../../index.html" />
         <link rel="up" title="ORM Extensions" href="index.html" />
         <link rel="next" title="Mutation Tracking" href="mutable.html" />
         <link rel="prev" title="Association Proxy" href="associationproxy.html" />
-    
 
     </head>
     <body>
@@ -39,53 +38,53 @@
 
 
 
+<h1>SQLAlchemy 0.7b4 Documentation</h1>
 
-        <h1>SQLAlchemy 0.7b3 Documentation</h1>
-
-        <div id="search">
-        Search:
-        <form class="search" action="../../search.html" method="get">
-          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-          <input type="hidden" name="check_keywords" value="yes" />
-          <input type="hidden" name="area" value="default" />
-        </form>
-        </div>
-
-        <div class="versionheader">
-            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
-        </div>
-        <div class="clearboth"></div>
-
-        <div class="topnav">
-            <div id="pagecontrol">
-                <a href="../../genindex.html">Index</a>
-
-                <div class="sourcelink">(<a href="../../_sources/orm/extensions/declarative.txt">view source)</div>
-            </div>
-
-            <div class="navbanner">
-                <a class="totoc" href="../../index.html">Table of Contents</a>
-                        » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-                        » <a href="index.html" title="ORM Extensions">ORM Extensions</a>
-                » 
-    Declarative
- 
-
-                
-<div class="prevnext">
-        Previous:
-        <a href="associationproxy.html" title="previous chapter">Association Proxy</a>
-        Next:
-        <a href="mutable.html" title="next chapter">Mutation Tracking</a>
+<div id="search">
+Search:
+<form class="search" action="../../search.html" method="get">
+  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
 </div>
 
-                <h2>
-                    
-    Declarative
- 
-                </h2>
-            </div>
-                <ul>
+<div class="versionheader">
+    Version: <span class="versionnum">0.7b4</span> Last Updated: 04/17/2011 16:53:50
+</div>
+<div class="clearboth"></div>
+
+<div id="topnav">
+    <div id="pagecontrol">
+        <ul>
+            <li>Prev:
+            <a href="associationproxy.html" title="previous chapter">Association Proxy</a>
+            </li>
+            <li>Next:
+            <a href="mutable.html" title="next chapter">Mutation Tracking</a>
+            </li>
+
+        <li>
+            <a href="../../contents.html">Table of Contents</a> |
+            <a href="../../genindex.html">Index</a>
+            | <a href="../../_sources/orm/extensions/declarative.txt">view source
+        </li>
+        </ul>
+    </div>
+    <div id="navbanner">
+        <a class="totoc" href="../../index.html">SQLAlchemy 0.7b4 Documentation</a>
+                » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
+                » <a href="index.html" title="ORM Extensions">ORM Extensions</a>
+        » 
+                Declarative
+             
+
+        <h2>
+            
+                Declarative
+            
+        </h2>
+        <ul>
 <li><a class="reference internal" href="#">Declarative</a><ul>
 <li><a class="reference internal" href="#synopsis">Synopsis</a></li>
 <li><a class="reference internal" href="#defining-attributes">Defining Attributes</a></li>
@@ -118,12 +117,13 @@
 </li>
 </ul>
 
-            <div class="clearboth"></div>
-        </div>
+    </div>
+    <div class="clearboth"></div>
+</div>
 
-        <div class="document">
-            <div class="body">
-                
+<div class="document">
+    <div class="body">
+        
 <div class="section" id="module-sqlalchemy.ext.declarative">
 <span id="declarative"></span><span id="declarative-toplevel"></span><h1>Declarative<a class="headerlink" href="#module-sqlalchemy.ext.declarative" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="synopsis">
@@ -875,7 +875,7 @@ setup using <a class="reference internal" href="../session.html#sqlalchemy.orm.s
 <h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="sqlalchemy.ext.declarative.declarative_base">
-<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x3fda9b0&gt;</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.DeclarativeMeta'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x3a97d70&gt;</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.DeclarativeMeta'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a base class for declarative class definitions.</p>
 <p>The new base class will be given a metaclass that produces
 appropriate <a class="reference internal" href="../../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects and makes
@@ -1035,28 +1035,20 @@ MetaData object.</p>
 </div>
 </div>
 
-            </div>
-        </div>
-
-        
-        
-            <div class="bottomnav">
-                
-<div class="prevnext">
-        Previous:
-        <a href="associationproxy.html" title="previous chapter">Association Proxy</a>
-        Next:
-        <a href="mutable.html" title="next chapter">Mutation Tracking</a>
+    </div>
 </div>
 
-                <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
-                </div>
-            </div>
-        
 
-
+    <div class="bottomnav">
+            Previous:
+            <a href="associationproxy.html" title="previous chapter">Association Proxy</a>
+            Next:
+            <a href="mutable.html" title="next chapter">Mutation Tracking</a>
+        <div class="doc_copyright">
+            &copy; <a href="../../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+        </div>
+    </div>
 
 
 

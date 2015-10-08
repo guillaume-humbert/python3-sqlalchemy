@@ -6,8 +6,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-    Custom SQL Constructs and Compilation Extension
- &mdash; SQLAlchemy 0.7b3 Documentation</title>
+                Custom SQL Constructs and Compilation Extension
+             &mdash; SQLAlchemy 0.7b4 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b3',
+          VERSION:     '0.7b4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,11 +27,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b4 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Expression Serializer Extension" href="serializer.html" />
         <link rel="prev" title="Core Events" href="events.html" />
-    
 
     </head>
     <body>
@@ -39,52 +38,52 @@
 
 
 
+<h1>SQLAlchemy 0.7b4 Documentation</h1>
 
-        <h1>SQLAlchemy 0.7b3 Documentation</h1>
-
-        <div id="search">
-        Search:
-        <form class="search" action="../search.html" method="get">
-          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-          <input type="hidden" name="check_keywords" value="yes" />
-          <input type="hidden" name="area" value="default" />
-        </form>
-        </div>
-
-        <div class="versionheader">
-            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
-        </div>
-        <div class="clearboth"></div>
-
-        <div class="topnav">
-            <div id="pagecontrol">
-                <a href="../genindex.html">Index</a>
-
-                <div class="sourcelink">(<a href="../_sources/core/compiler.txt">view source)</div>
-            </div>
-
-            <div class="navbanner">
-                <a class="totoc" href="../index.html">Table of Contents</a>
-                        » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
-                » 
-    Custom SQL Constructs and Compilation Extension
- 
-
-                
-<div class="prevnext">
-        Previous:
-        <a href="events.html" title="previous chapter">Core Events</a>
-        Next:
-        <a href="serializer.html" title="next chapter">Expression Serializer Extension</a>
+<div id="search">
+Search:
+<form class="search" action="../search.html" method="get">
+  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
 </div>
 
-                <h2>
-                    
-    Custom SQL Constructs and Compilation Extension
- 
-                </h2>
-            </div>
-                <ul>
+<div class="versionheader">
+    Version: <span class="versionnum">0.7b4</span> Last Updated: 04/17/2011 16:53:50
+</div>
+<div class="clearboth"></div>
+
+<div id="topnav">
+    <div id="pagecontrol">
+        <ul>
+            <li>Prev:
+            <a href="events.html" title="previous chapter">Core Events</a>
+            </li>
+            <li>Next:
+            <a href="serializer.html" title="next chapter">Expression Serializer Extension</a>
+            </li>
+
+        <li>
+            <a href="../contents.html">Table of Contents</a> |
+            <a href="../genindex.html">Index</a>
+            | <a href="../_sources/core/compiler.txt">view source
+        </li>
+        </ul>
+    </div>
+    <div id="navbanner">
+        <a class="totoc" href="../index.html">SQLAlchemy 0.7b4 Documentation</a>
+                » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
+        » 
+                Custom SQL Constructs and Compilation Extension
+             
+
+        <h2>
+            
+                Custom SQL Constructs and Compilation Extension
+            
+        </h2>
+        <ul>
 <li><a class="reference internal" href="#">Custom SQL Constructs and Compilation Extension</a><ul>
 <li><a class="reference internal" href="#synopsis">Synopsis</a></li>
 <li><a class="reference internal" href="#dialect-specific-compilation-rules">Dialect-specific compilation rules</a></li>
@@ -95,16 +94,23 @@
 <li><a class="reference internal" href="#changing-the-default-compilation-of-existing-constructs">Changing the default compilation of existing constructs</a></li>
 <li><a class="reference internal" href="#changing-compilation-of-types">Changing Compilation of Types</a></li>
 <li><a class="reference internal" href="#subclassing-guidelines">Subclassing Guidelines</a></li>
+<li><a class="reference internal" href="#further-examples">Further Examples</a><ul>
+<li><a class="reference internal" href="#utc-timestamp-function">&#8220;UTC timestamp&#8221; function</a></li>
+<li><a class="reference internal" href="#greatest-function">&#8220;GREATEST&#8221; function</a></li>
+<li><a class="reference internal" href="#false-expression">&#8220;false&#8221; expression</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
 
-            <div class="clearboth"></div>
-        </div>
+    </div>
+    <div class="clearboth"></div>
+</div>
 
-        <div class="document">
-            <div class="body">
-                
+<div class="document">
+    <div class="body">
+        
 <div class="section" id="module-sqlalchemy.ext.compiler">
 <span id="custom-sql-constructs-and-compilation-extension"></span><span id="sqlalchemy-ext-compiler-toplevel"></span><h1>Custom SQL Constructs and Compilation Extension<a class="headerlink" href="#module-sqlalchemy.ext.compiler" title="Permalink to this headline">¶</a></h1>
 <p>Provides an API for creation of custom ClauseElements and compilers.</p>
@@ -234,7 +240,10 @@ overriding routine and cause an endless loop.   Such as, to add &#8220;prefix&#8
 </div>
 <div class="section" id="subclassing-guidelines">
 <h2>Subclassing Guidelines<a class="headerlink" href="#subclassing-guidelines" title="Permalink to this headline">¶</a></h2>
-<p>A big part of using the compiler extension is subclassing SQLAlchemy expression constructs.  To make this easier, the expression and schema packages feature a set of &#8220;bases&#8221; intended for common tasks.  A synopsis is as follows:</p>
+<p>A big part of using the compiler extension is subclassing SQLAlchemy
+expression constructs. To make this easier, the expression and
+schema packages feature a set of &#8220;bases&#8221; intended for common tasks.
+A synopsis is as follows:</p>
 <ul>
 <li><p class="first"><a class="reference internal" href="expression_api.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> - This is the root
 expression class. Any SQL expression can be derived from this base, and is
@@ -289,30 +298,128 @@ within <tt class="docutils literal"><span class="pre">DDLElement</span></tt> and
 </li>
 </ul>
 </div>
+<div class="section" id="further-examples">
+<h2>Further Examples<a class="headerlink" href="#further-examples" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="utc-timestamp-function">
+<h3>&#8220;UTC timestamp&#8221; function<a class="headerlink" href="#utc-timestamp-function" title="Permalink to this headline">¶</a></h3>
+<p>A function that works like &#8220;CURRENT_TIMESTAMP&#8221; except applies the appropriate conversions
+so that the time is in UTC time.   Timestamps are best stored in relational databases
+as UTC, without time zones.   UTC so that your database doesn&#8217;t think time has gone
+backwards in the hour when daylight savings ends, without timezones because timezones
+are like character encodings - they&#8217;re best applied only at the endpoints of an 
+application (i.e. convert to UTC upon user input, re-apply desired timezone upon display).</p>
+<p>For Postgresql and Microsoft SQL Server:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">expression</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.compiler</span> <span class="kn">import</span> <span class="n">compiles</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.types</span> <span class="kn">import</span> <span class="n">DateTime</span>
+
+<span class="k">class</span> <span class="nc">utcnow</span><span class="p">(</span><span class="n">expression</span><span class="o">.</span><span class="n">FunctionElement</span><span class="p">):</span>
+    <span class="nb">type</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">()</span>
+
+<span class="nd">@compiles</span><span class="p">(</span><span class="n">utcnow</span><span class="p">,</span> <span class="s">&#39;postgresql&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">pg_utcnow</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">compiler</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&quot;TIMEZONE(&#39;utc&#39;, CURRENT_TIMESTAMP)&quot;</span>
+
+<span class="nd">@compiles</span><span class="p">(</span><span class="n">utcnow</span><span class="p">,</span> <span class="s">&#39;mssql&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">ms_utcnow</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">compiler</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&quot;GETUTCDATE()&quot;</span></pre></div>
+</div>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span>
+            <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">DateTime</span><span class="p">,</span> <span class="n">MetaData</span>
+        <span class="p">)</span>
+<span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
+<span class="n">event</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&quot;event&quot;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&quot;description&quot;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&quot;timestamp&quot;</span><span class="p">,</span> <span class="n">DateTime</span><span class="p">,</span> <span class="n">server_default</span><span class="o">=</span><span class="n">utcnow</span><span class="p">())</span>
+<span class="p">)</span></pre></div>
+</div>
+</div>
+<div class="section" id="greatest-function">
+<h3>&#8220;GREATEST&#8221; function<a class="headerlink" href="#greatest-function" title="Permalink to this headline">¶</a></h3>
+<p>The &#8220;GREATEST&#8221; function is given any number of arguments and returns the one that is
+of the highest value - it&#8217;s equivalent to Python&#8217;s <tt class="docutils literal"><span class="pre">max</span></tt> function.  A SQL 
+standard version versus a CASE based version which only accommodates two 
+arguments:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">expression</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.compiler</span> <span class="kn">import</span> <span class="n">compiles</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.types</span> <span class="kn">import</span> <span class="n">Numeric</span>
+
+<span class="k">class</span> <span class="nc">greatest</span><span class="p">(</span><span class="n">expression</span><span class="o">.</span><span class="n">FunctionElement</span><span class="p">):</span>
+    <span class="nb">type</span> <span class="o">=</span> <span class="n">Numeric</span><span class="p">()</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;greatest&#39;</span>
+
+<span class="nd">@compiles</span><span class="p">(</span><span class="n">greatest</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">default_greatest</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">compiler</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">compiler</span><span class="o">.</span><span class="n">visit_function</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+
+<span class="nd">@compiles</span><span class="p">(</span><span class="n">greatest</span><span class="p">,</span> <span class="s">&#39;sqlite&#39;</span><span class="p">)</span>
+<span class="nd">@compiles</span><span class="p">(</span><span class="n">greatest</span><span class="p">,</span> <span class="s">&#39;mssql&#39;</span><span class="p">)</span>
+<span class="nd">@compiles</span><span class="p">(</span><span class="n">greatest</span><span class="p">,</span> <span class="s">&#39;oracle&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">case_greatest</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">compiler</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">clauses</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s">&quot;CASE WHEN </span><span class="si">%s</span><span class="s"> &gt; </span><span class="si">%s</span><span class="s"> THEN </span><span class="si">%s</span><span class="s"> ELSE </span><span class="si">%s</span><span class="s"> END&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">compiler</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">arg1</span><span class="p">),</span>
+        <span class="n">compiler</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">arg2</span><span class="p">),</span>
+        <span class="n">compiler</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">arg1</span><span class="p">),</span>
+        <span class="n">compiler</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">arg2</span><span class="p">),</span>
+    <span class="p">)</span></pre></div>
+</div>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Account</span><span class="p">)</span><span class="o">.</span>\
+        <span class="nb">filter</span><span class="p">(</span>
+            <span class="n">greatest</span><span class="p">(</span>
+                <span class="n">Account</span><span class="o">.</span><span class="n">checking_balance</span><span class="p">,</span> 
+                <span class="n">Account</span><span class="o">.</span><span class="n">savings_balance</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10000</span>
+        <span class="p">)</span></pre></div>
+</div>
+</div>
+<div class="section" id="false-expression">
+<h3>&#8220;false&#8221; expression<a class="headerlink" href="#false-expression" title="Permalink to this headline">¶</a></h3>
+<p>Render a &#8220;false&#8221; constant expression, rendering as &#8220;0&#8221; on platforms that don&#8217;t have a &#8220;false&#8221; constant:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">expression</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.compiler</span> <span class="kn">import</span> <span class="n">compiles</span>
+
+<span class="k">class</span> <span class="nc">sql_false</span><span class="p">(</span><span class="n">expression</span><span class="o">.</span><span class="n">ColumnElement</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="nd">@compiles</span><span class="p">(</span><span class="n">sql_false</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">default_false</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">compiler</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&quot;false&quot;</span>
+
+<span class="nd">@compiles</span><span class="p">(</span><span class="n">sql_false</span><span class="p">,</span> <span class="s">&#39;mssql&#39;</span><span class="p">)</span>
+<span class="nd">@compiles</span><span class="p">(</span><span class="n">sql_false</span><span class="p">,</span> <span class="s">&#39;mysql&#39;</span><span class="p">)</span>
+<span class="nd">@compiles</span><span class="p">(</span><span class="n">sql_false</span><span class="p">,</span> <span class="s">&#39;oracle&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">int_false</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">compiler</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&quot;0&quot;</span></pre></div>
+</div>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">select</span><span class="p">,</span> <span class="n">union_all</span>
+
+<span class="n">exp</span> <span class="o">=</span> <span class="n">union_all</span><span class="p">(</span>
+    <span class="n">select</span><span class="p">([</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">sql_false</span><span class="p">()</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&quot;enrolled&quot;</span><span class="p">)]),</span>
+    <span class="n">select</span><span class="p">([</span><span class="n">customers</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">customers</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">enrolled</span><span class="p">])</span>
+<span class="p">)</span></pre></div>
+</div>
+</div>
+</div>
 </div>
 
-            </div>
+    </div>
+</div>
+
+
+    <div class="bottomnav">
+            Previous:
+            <a href="events.html" title="previous chapter">Core Events</a>
+            Next:
+            <a href="serializer.html" title="next chapter">Expression Serializer Extension</a>
+        <div class="doc_copyright">
+            &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
+            Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
         </div>
-
-        
-        
-            <div class="bottomnav">
-                
-<div class="prevnext">
-        Previous:
-        <a href="events.html" title="previous chapter">Core Events</a>
-        Next:
-        <a href="serializer.html" title="next chapter">Expression Serializer Extension</a>
-</div>
-
-                <div class="doc_copyright">
-                    &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
-                </div>
-            </div>
-        
-
-
+    </div>
 
 
 

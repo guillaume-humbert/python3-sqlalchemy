@@ -7,10 +7,11 @@ from sqlalchemy.orm import exc as orm_exc, attributes
 from test.lib.assertsql import AllOf, CompiledSQL
 
 from test.lib import testing, engines
-from test.orm import _base, _fixtures
+from test.lib import fixtures
+from test.orm import _fixtures
 from test.lib.schema import Table, Column
 
-class O2MTest(_base.MappedTest):
+class O2MTest(fixtures.MappedTest):
     """deals with inheritance and one-to-many relationships"""
     @classmethod
     def define_tables(cls, metadata):
@@ -73,7 +74,7 @@ class O2MTest(_base.MappedTest):
         self.assert_(l[0].parent_foo.data == 'foo #1'
                      and l[1].parent_foo.data == 'foo #1')
 
-class PolymorphicOnNotLocalTest(_base.MappedTest):
+class PolymorphicOnNotLocalTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         t1 = Table('t1', metadata, 
@@ -85,8 +86,9 @@ class PolymorphicOnNotLocalTest(_base.MappedTest):
                 Column('y', String(10)), 
                 Column('xid', ForeignKey('t1.id')))
 
-    @testing.resolve_artifact_names
     def test_bad_polymorphic_on(self):
+        t2, t1 = self.tables.t2, self.tables.t1
+
         class InterfaceBase(object):
             pass
 
@@ -128,7 +130,7 @@ class PolymorphicOnNotLocalTest(_base.MappedTest):
         )
 
 
-class FalseDiscriminatorTest(_base.MappedTest):
+class FalseDiscriminatorTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         global t1
@@ -162,7 +164,7 @@ class FalseDiscriminatorTest(_base.MappedTest):
         sess.expunge_all()
         assert sess.query(Ding).one() is not None
 
-class PolymorphicSynonymTest(_base.MappedTest):
+class PolymorphicSynonymTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         global t1, t2
@@ -177,7 +179,7 @@ class PolymorphicSynonymTest(_base.MappedTest):
                    Column('data', String(10), nullable=False))
 
     def test_polymorphic_synonym(self):
-        class T1(_fixtures.Base):
+        class T1(fixtures.ComparableEntity):
             def info(self):
                 return "THE INFO IS:" + self._info
             def _set_info(self, x):
@@ -201,7 +203,7 @@ class PolymorphicSynonymTest(_base.MappedTest):
         eq_(sess.query(T2).filter(T2.info=='at2').one(), at2)
         eq_(at2.info, "THE INFO IS:at2")
 
-class PolymorphicAttributeManagementTest(_base.MappedTest):
+class PolymorphicAttributeManagementTest(fixtures.MappedTest):
     """Test polymorphic_on can be assigned, can be mirrored, etc."""
 
     run_setup_mappers = 'once'
@@ -224,9 +226,12 @@ class PolymorphicAttributeManagementTest(_base.MappedTest):
         )
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_classes(cls):
-        class A(_base.ComparableEntity):
+        table_b, table_c, table_a = (cls.tables.table_b,
+                                cls.tables.table_c,
+                                cls.tables.table_a)
+
+        class A(cls.Basic):
             pass
         class B(A):
             pass
@@ -242,8 +247,11 @@ class PolymorphicAttributeManagementTest(_base.MappedTest):
         mapper(C, table_c, inherits=B, 
                         polymorphic_identity='c')
 
-    @testing.resolve_artifact_names
     def test_poly_configured_immediate(self):
+        A, C, B = (self.classes.A,
+                                self.classes.C,
+                                self.classes.B)
+
         a = A()
         b = B()
         c = C()
@@ -251,8 +259,11 @@ class PolymorphicAttributeManagementTest(_base.MappedTest):
         eq_(b.class_name, 'b')
         eq_(c.class_name, 'c')
 
-    @testing.resolve_artifact_names
     def test_base_class(self):
+        A, C, B = (self.classes.A,
+                                self.classes.C,
+                                self.classes.B)
+
         sess = Session()
         c1 = C()
         sess.add(c1)
@@ -264,8 +275,9 @@ class PolymorphicAttributeManagementTest(_base.MappedTest):
 
         assert isinstance(sess.query(A).first(), C)
 
-    @testing.resolve_artifact_names
     def test_assignment(self):
+        C, B = self.classes.C, self.classes.B
+
         sess = Session()
         b1 = B()
         b1.class_name = 'c'
@@ -274,7 +286,7 @@ class PolymorphicAttributeManagementTest(_base.MappedTest):
         sess.close()
         assert isinstance(sess.query(B).first(), C)
 
-class CascadeTest(_base.MappedTest):
+class CascadeTest(fixtures.MappedTest):
     """that cascades on polymorphic relationships continue
     cascading along the path of the instance's mapper, not
     the base mapper."""
@@ -307,13 +319,13 @@ class CascadeTest(_base.MappedTest):
             Column('data', String(30)))
 
     def test_cascade(self):
-        class T1(_fixtures.Base):
+        class T1(fixtures.BasicEntity):
             pass
-        class T2(_fixtures.Base):
+        class T2(fixtures.BasicEntity):
             pass
         class T3(T2):
             pass
-        class T4(_fixtures.Base):
+        class T4(fixtures.BasicEntity):
             pass
 
         mapper(T1, t1, properties={
@@ -347,7 +359,7 @@ class CascadeTest(_base.MappedTest):
         assert t4_1 in sess.deleted
         sess.flush()
 
-class M2OUseGetTest(_base.MappedTest):
+class M2OUseGetTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('base', metadata,
@@ -362,10 +374,13 @@ class M2OUseGetTest(_base.MappedTest):
             Column('sub_id', Integer, ForeignKey('sub.id')),
         )
 
-    @testing.resolve_artifact_names
     def test_use_get(self):
+        base, sub, related = (self.tables.base,
+                                self.tables.sub,
+                                self.tables.related)
+
         # test [ticket:1186]
-        class Base(_base.BasicEntity):
+        class Base(fixtures.BasicEntity):
             pass
         class Sub(Base):
             pass
@@ -399,7 +414,7 @@ class M2OUseGetTest(_base.MappedTest):
         self.assert_sql_count(testing.db, go, 0)
 
 
-class GetTest(_base.MappedTest):
+class GetTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         global foo, bar, blub
@@ -420,7 +435,7 @@ class GetTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Foo(_base.BasicEntity):
+        class Foo(cls.Basic):
             pass
 
         class Bar(Foo):
@@ -435,8 +450,14 @@ class GetTest(_base.MappedTest):
     def test_get_nonpolymorphic(self):
         self._do_get_test(False)
 
-    @testing.resolve_artifact_names
     def _do_get_test(self, polymorphic):
+        foo, Bar, Blub, blub, bar, Foo = (self.tables.foo,
+                                self.classes.Bar,
+                                self.classes.Blub,
+                                self.tables.blub,
+                                self.tables.bar,
+                                self.classes.Foo)
+
         if polymorphic:
             mapper(Foo, foo, polymorphic_on=foo.c.type, polymorphic_identity='foo')
             mapper(Bar, bar, inherits=Foo, polymorphic_identity='bar')
@@ -495,7 +516,7 @@ class GetTest(_base.MappedTest):
             self.assert_sql_count(testing.db, go, 3)
 
 
-class EagerLazyTest(_base.MappedTest):
+class EagerLazyTest(fixtures.MappedTest):
     """tests eager load/lazy load of child items off inheritance mappers, tests that
     LazyLoader constructs the right query condition."""
 
@@ -541,7 +562,7 @@ class EagerLazyTest(_base.MappedTest):
         self.assert_(len(q.first().lazy) == 1)
         self.assert_(len(q.first().eager) == 1)
 
-class EagerTargetingTest(_base.MappedTest):
+class EagerTargetingTest(fixtures.MappedTest):
     """test a scenario where joined table inheritance might be 
     confused as an eagerly loaded joined table."""
 
@@ -559,9 +580,10 @@ class EagerTargetingTest(_base.MappedTest):
            Column('b_data', String(50)),
         )
 
-    @testing.resolve_artifact_names
     def test_adapt_stringency(self):
-        class A(_base.ComparableEntity):
+        b_table, a_table = self.tables.b_table, self.tables.a_table
+
+        class A(fixtures.ComparableEntity):
             pass
         class B(A):
             pass
@@ -597,7 +619,7 @@ class EagerTargetingTest(_base.MappedTest):
         eq_(node, B(id=1, name='b1',b_data='i'))
         eq_(node.children[0], B(id=2, name='b2',b_data='l'))
 
-class FlushTest(_base.MappedTest):
+class FlushTest(fixtures.MappedTest):
     """test dependency sorting among inheriting mappers"""
 
     @classmethod
@@ -623,8 +645,12 @@ class FlushTest(_base.MappedTest):
             Column('user_id', Integer, ForeignKey('users.id'))
         )
 
-    @testing.resolve_artifact_names
     def test_one(self):
+        admins, users, roles, user_roles = (self.tables.admins,
+                                self.tables.users,
+                                self.tables.roles,
+                                self.tables.user_roles)
+
         class User(object):pass
         class Role(object):pass
         class Admin(User):pass
@@ -651,8 +677,12 @@ class FlushTest(_base.MappedTest):
 
         assert user_roles.count().scalar() == 1
 
-    @testing.resolve_artifact_names
     def test_two(self):
+        admins, users, roles, user_roles = (self.tables.admins,
+                                self.tables.users,
+                                self.tables.roles,
+                                self.tables.user_roles)
+
         class User(object):
             def __init__(self, email=None, password=None):
                 self.email = email
@@ -689,7 +719,7 @@ class FlushTest(_base.MappedTest):
         sess.flush()
         assert user_roles.count().scalar() == 1
 
-class VersioningTest(_base.MappedTest):
+class VersioningTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('base', metadata,
@@ -709,9 +739,12 @@ class VersioningTest(_base.MappedTest):
 
     @testing.emits_warning(r".*updated rowcount")
     @engines.close_open_connections
-    @testing.resolve_artifact_names
     def test_save_update(self):
-        class Base(_fixtures.Base):
+        subtable, base, stuff = (self.tables.subtable,
+                                self.tables.base,
+                                self.tables.stuff)
+
+        class Base(fixtures.BasicEntity):
             pass
         class Sub(Base):
             pass
@@ -759,9 +792,10 @@ class VersioningTest(_base.MappedTest):
         sess2.flush()
 
     @testing.emits_warning(r".*updated rowcount")
-    @testing.resolve_artifact_names
     def test_delete(self):
-        class Base(_fixtures.Base):
+        subtable, base = self.tables.subtable, self.tables.base
+
+        class Base(fixtures.BasicEntity):
             pass
         class Sub(Base):
             pass
@@ -799,7 +833,7 @@ class VersioningTest(_base.MappedTest):
         else:
             sess.flush()
 
-class DistinctPKTest(_base.MappedTest):
+class DistinctPKTest(fixtures.MappedTest):
     """test the construction of mapper.primary_key when an inheriting relationship
     joins on a column other than primary key column."""
 
@@ -884,7 +918,7 @@ class DistinctPKTest(_base.MappedTest):
             assert alice1.name == alice2.name == 'alice'
             assert bob.name == 'bob'
 
-class SyncCompileTest(_base.MappedTest):
+class SyncCompileTest(fixtures.MappedTest):
     """test that syncrules compile properly on custom inherit conds"""
 
     @classmethod
@@ -953,7 +987,7 @@ class SyncCompileTest(_base.MappedTest):
         assert len(session.query(B).all()) == 2
         assert len(session.query(C).all()) == 1
 
-class OverrideColKeyTest(_base.MappedTest):
+class OverrideColKeyTest(fixtures.MappedTest):
     """test overriding of column attributes."""
 
     @classmethod
@@ -1173,7 +1207,7 @@ class OverrideColKeyTest(_base.MappedTest):
         assert sess.query(Base).get(b1.base_id).data == "this is base"
         assert sess.query(Sub).get(s1.base_id).data == "this is base"
 
-class OptimizedLoadTest(_base.MappedTest):
+class OptimizedLoadTest(fixtures.MappedTest):
     """tests for the "optimized load" routine."""
 
     @classmethod
@@ -1200,12 +1234,14 @@ class OptimizedLoadTest(_base.MappedTest):
             Column('b', String(10))
         )
 
-    @testing.resolve_artifact_names
     def test_optimized_passes(self):
         """"test that the 'optimized load' routine doesn't crash when 
         a column in the join condition is not available."""
 
-        class Base(_base.BasicEntity):
+        base, sub = self.tables.base, self.tables.sub
+
+
+        class Base(fixtures.ComparableEntity):
             pass
         class Sub(Base):
             pass
@@ -1230,9 +1266,10 @@ class OptimizedLoadTest(_base.MappedTest):
         s1 = sess.query(Base).first()
         assert s1.sub == 's1sub'
 
-    @testing.resolve_artifact_names
     def test_column_expression(self):
-        class Base(_base.BasicEntity):
+        base, sub = self.tables.base, self.tables.sub
+
+        class Base(fixtures.ComparableEntity):
             pass
         class Sub(Base):
             pass
@@ -1248,9 +1285,10 @@ class OptimizedLoadTest(_base.MappedTest):
         s1 = sess.query(Base).first()
         assert s1.concat == 's1sub|s1sub'
 
-    @testing.resolve_artifact_names
     def test_column_expression_joined(self):
-        class Base(_base.ComparableEntity):
+        base, sub = self.tables.base, self.tables.sub
+
+        class Base(fixtures.ComparableEntity):
             pass
         class Sub(Base):
             pass
@@ -1278,9 +1316,10 @@ class OptimizedLoadTest(_base.MappedTest):
             ]
         )
 
-    @testing.resolve_artifact_names
     def test_composite_column_joined(self):
-        class Base(_base.ComparableEntity):
+        base, with_comp = self.tables.base, self.tables.with_comp
+
+        class Base(fixtures.BasicEntity):
             pass
         class WithComp(Base):
             pass
@@ -1308,9 +1347,10 @@ class OptimizedLoadTest(_base.MappedTest):
         eq_(s1test.comp, Comp('ham', 'cheese'))
         eq_(s2test.comp, Comp('bacon', 'eggs'))
 
-    @testing.resolve_artifact_names
     def test_load_expired_on_pending(self):
-        class Base(_base.ComparableEntity):
+        base, sub = self.tables.base, self.tables.sub
+
+        class Base(fixtures.BasicEntity):
             pass
         class Sub(Base):
             pass
@@ -1344,9 +1384,10 @@ class OptimizedLoadTest(_base.MappedTest):
             ),
         )
 
-    @testing.resolve_artifact_names
     def test_dont_generate_on_none(self):
-        class Base(_base.ComparableEntity):
+        base, sub = self.tables.base, self.tables.sub
+
+        class Base(fixtures.BasicEntity):
             pass
         class Sub(Base):
             pass
@@ -1370,9 +1411,12 @@ class OptimizedLoadTest(_base.MappedTest):
         assert m._optimized_get_statement(attributes.instance_state(s1), 
                                 ['counter2']) is not None
 
-    @testing.resolve_artifact_names
     def test_load_expired_on_pending_twolevel(self):
-        class Base(_base.ComparableEntity):
+        base, sub, subsub = (self.tables.base,
+                                self.tables.sub,
+                                self.tables.subsub)
+
+        class Base(fixtures.BasicEntity):
             pass
         class Sub(Base):
             pass
@@ -1420,7 +1464,7 @@ class OptimizedLoadTest(_base.MappedTest):
             ),
         )
 
-class NoPKOnSubTableWarningTest(testing.TestBase):
+class NoPKOnSubTableWarningTest(fixtures.TestBase):
 
     def _fixture(self):
         metadata = MetaData()
@@ -1463,7 +1507,7 @@ class NoPKOnSubTableWarningTest(testing.TestBase):
         mc = mapper(C, child, inherits=P, primary_key=[parent.c.id])
         eq_(mc.primary_key, (parent.c.id,))
 
-class PKDiscriminatorTest(_base.MappedTest):
+class PKDiscriminatorTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         parents = Table('parents', metadata,
@@ -1477,8 +1521,9 @@ class PKDiscriminatorTest(_base.MappedTest):
                         Column('type', Integer,primary_key=True),
                         Column('name', String(60)))
 
-    @testing.resolve_artifact_names
     def test_pk_as_discriminator(self):
+        parents, children = self.tables.parents, self.tables.children
+
         class Parent(object):
                 def __init__(self, name=None):
                     self.name = name
@@ -1516,7 +1561,7 @@ class PKDiscriminatorTest(_base.MappedTest):
         assert a.name=='a1new'
         assert p.name=='p1new'
 
-class NoPolyIdentInMiddleTest(_base.MappedTest):
+class NoPolyIdentInMiddleTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('base', metadata,
@@ -1527,7 +1572,7 @@ class NoPolyIdentInMiddleTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class A(_base.ComparableEntity):
+        class A(cls.Comparable):
             pass
         class B(A):
             pass
@@ -1539,37 +1584,53 @@ class NoPolyIdentInMiddleTest(_base.MappedTest):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        A, C, B, E, D, base = (cls.classes.A,
+                                cls.classes.C,
+                                cls.classes.B,
+                                cls.classes.E,
+                                cls.classes.D,
+                                cls.tables.base)
+
         mapper(A, base, polymorphic_on=base.c.type)
         mapper(B, inherits=A, )
         mapper(C, inherits=B, polymorphic_identity='c')
         mapper(D, inherits=B, polymorphic_identity='d')
         mapper(E, inherits=A, polymorphic_identity='e')
 
-    @testing.resolve_artifact_names
     def test_load_from_middle(self):
+        C, B = self.classes.C, self.classes.B
+
         s = Session()
         s.add(C())
         o = s.query(B).first()
         eq_(o.type, 'c')
         assert isinstance(o, C)
 
-    @testing.resolve_artifact_names
     def test_load_from_base(self):
+        A, C = self.classes.A, self.classes.C
+
         s = Session()
         s.add(C())
         o = s.query(A).first()
         eq_(o.type, 'c')
         assert isinstance(o, C)
 
-    @testing.resolve_artifact_names
     def test_discriminator(self):
+        C, B, base = (self.classes.C,
+                                self.classes.B,
+                                self.tables.base)
+
         assert class_mapper(B).polymorphic_on is base.c.type
         assert class_mapper(C).polymorphic_on is base.c.type
 
-    @testing.resolve_artifact_names
     def test_load_multiple_from_middle(self):
+        C, B, E, D, base = (self.classes.C,
+                                self.classes.B,
+                                self.classes.E,
+                                self.classes.D,
+                                self.tables.base)
+
         s = Session()
         s.add_all([C(), D(), E()])
         eq_(
@@ -1577,7 +1638,7 @@ class NoPolyIdentInMiddleTest(_base.MappedTest):
             [C(), D()]
         )
 
-class DeleteOrphanTest(_base.MappedTest):
+class DeleteOrphanTest(fixtures.MappedTest):
     """Test the fairly obvious, that an error is raised
     when attempting to insert an orphan.
 
@@ -1602,13 +1663,13 @@ class DeleteOrphanTest(_base.MappedTest):
             )
 
     def test_orphan_message(self):
-        class Base(_fixtures.Base):
+        class Base(fixtures.BasicEntity):
             pass
 
         class SubClass(Base):
             pass
 
-        class Parent(_fixtures.Base):
+        class Parent(fixtures.BasicEntity):
             pass
 
         mapper(Base, single, polymorphic_on=single.c.type, polymorphic_identity='base')

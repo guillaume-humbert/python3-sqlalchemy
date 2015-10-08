@@ -28,6 +28,8 @@ Functions that accept a type (such as :func:`~sqlalchemy.Column`) will
 typically accept a type class or instance; ``Integer`` is equivalent
 to ``Integer()`` with no construction arguments in this case.
 
+.. _types_generic:
+
 Generic Types
 -------------
 
@@ -111,6 +113,8 @@ Standard Types`_ and the other sections of this chapter.
    :show-inheritance:
    :members:
 
+.. _types_sqlstandard:
+
 SQL Standard Types
 ------------------
 
@@ -163,6 +167,9 @@ on all databases.
 .. autoclass:: NUMERIC
   :show-inheritance:
 
+.. autoclass:: REAL
+  :show-inheritance:
+
 .. autoclass:: SMALLINT
   :show-inheritance:
 
@@ -181,6 +188,7 @@ on all databases.
 .. autoclass:: VARCHAR
   :show-inheritance:
 
+.. _types_vendor:
 
 Vendor-Specific Types
 ---------------------
@@ -236,6 +244,8 @@ such as `collation` and `charset`::
         Column('col2', TEXT(charset='latin1'))
     )
 
+.. _types_custom:
+
 Custom Types
 ------------
 
@@ -245,10 +255,29 @@ as well as to provide new ones.
 Overriding Type Compilation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The string produced by any type object, when rendered in a CREATE TABLE 
-statement or other SQL function like CAST, can be changed.  See the
-section :ref:`type_compilation_extension`, a subsection of 
-:ref:`sqlalchemy.ext.compiler_toplevel`, for a short example.
+A frequent need is to force the "string" version of a type, that is
+the one rendered in a CREATE TABLE statement or other SQL function 
+like CAST, to be changed.   For example, an application may want
+to force the rendering of ``BINARY`` for all platforms
+except for one, in which is wants ``BLOB`` to be rendered.  Usage 
+of an existing generic type, in this case :class:`.LargeBinary`, is
+preferred for most use cases.  But to control
+types more accurately, a compilation directive that is per-dialect
+can be associated with any type::
+
+    from sqlalchemy.ext.compiler import compiles
+    from sqlalchemy.types import BINARY
+
+    @compiles(BINARY, "sqlite")
+    def compile_binary_sqlite(type_, compiler, **kw):
+        return "BLOB"
+
+The above code allows the usage of :class:`.types.BINARY`, which
+will produce the string ``BINARY`` against all backends except SQLite, 
+in which case it will produce ``BLOB``.
+
+See the section :ref:`type_compilation_extension`, a subsection of 
+:ref:`sqlalchemy.ext.compiler_toplevel`, for additional examples.
 
 Augmenting Existing Types
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -389,6 +418,8 @@ for defining entirely new database types:
    :undoc-members:
    :inherited-members:
    :show-inheritance:
+
+.. _types_api:
 
 Base Type API
 --------------

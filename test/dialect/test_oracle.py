@@ -15,7 +15,7 @@ import datetime
 import os
 
 
-class OutParamTest(TestBase, AssertsExecutionResults):
+class OutParamTest(fixtures.TestBase, AssertsExecutionResults):
     __only_on__ = 'oracle+cx_oracle'
 
     @classmethod
@@ -48,7 +48,7 @@ create or replace procedure foo(x_in IN number, x_out OUT number, y_out OUT numb
          testing.db.execute("DROP PROCEDURE foo")
 
 
-class CompileTest(TestBase, AssertsCompiledSQL):
+class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
 
     __dialect__ = oracle.OracleDialect()
 
@@ -132,6 +132,49 @@ class CompileTest(TestBase, AssertsCompiledSQL):
                             ':ROWNUM_1) WHERE ora_rn > :ora_rn_1 FOR '
                             'UPDATE')
 
+    def test_use_binds_for_limits_disabled(self):
+        t = table('sometable', column('col1'), column('col2'))
+        dialect = oracle.OracleDialect(use_binds_for_limits = False)
+
+        self.assert_compile(select([t]).limit(10),
+                "SELECT col1, col2 FROM (SELECT sometable.col1 AS col1, "
+                "sometable.col2 AS col2 FROM sometable) WHERE ROWNUM <= 10",
+                dialect=dialect)
+
+        self.assert_compile(select([t]).offset(10),
+                "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM AS ora_rn "
+                "FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 "
+                "FROM sometable)) WHERE ora_rn > 10",
+                dialect=dialect)
+
+        self.assert_compile(select([t]).limit(10).offset(10),
+                "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM AS ora_rn "
+                "FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 "
+                "FROM sometable) WHERE ROWNUM <= 20) WHERE ora_rn > 10",
+                dialect=dialect)
+
+    def test_use_binds_for_limits_enabled(self):
+        t = table('sometable', column('col1'), column('col2'))
+        dialect = oracle.OracleDialect(use_binds_for_limits = True)
+
+        self.assert_compile(select([t]).limit(10),
+                "SELECT col1, col2 FROM (SELECT sometable.col1 AS col1, "
+                "sometable.col2 AS col2 FROM sometable) WHERE ROWNUM "
+                "<= :ROWNUM_1",
+                dialect=dialect)
+
+        self.assert_compile(select([t]).offset(10),
+                "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM AS ora_rn "
+                "FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 "
+                "FROM sometable)) WHERE ora_rn > :ora_rn_1",
+                dialect=dialect)
+
+        self.assert_compile(select([t]).limit(10).offset(10),
+                "SELECT col1, col2 FROM (SELECT col1, col2, ROWNUM AS ora_rn "
+                "FROM (SELECT sometable.col1 AS col1, sometable.col2 AS col2 "
+                "FROM sometable) WHERE ROWNUM <= :ROWNUM_1) WHERE ora_rn > "
+                ":ora_rn_1",
+                dialect=dialect)
 
     def test_long_labels(self):
         dialect = default.DefaultDialect()
@@ -373,7 +416,7 @@ class CompileTest(TestBase, AssertsCompiledSQL):
         ]:
             self.assert_compile(fn, expected)
 
-class CompatFlagsTest(TestBase, AssertsCompiledSQL):
+class CompatFlagsTest(fixtures.TestBase, AssertsCompiledSQL):
     __only_on__ = 'oracle'
 
     def test_ora8_flags(self):
@@ -406,6 +449,7 @@ class CompatFlagsTest(TestBase, AssertsCompiledSQL):
 
     def test_default_flags(self):
         """test with no initialization or server version info"""
+
         dialect = oracle.dialect(dbapi=testing.db.dialect.dbapi)
         assert dialect._supports_char_length
         assert dialect._supports_nchar
@@ -428,7 +472,7 @@ class CompatFlagsTest(TestBase, AssertsCompiledSQL):
         self.assert_compile(UnicodeText(),"NCLOB",dialect=dialect)
 
 
-class MultiSchemaTest(TestBase, AssertsCompiledSQL):
+class MultiSchemaTest(fixtures.TestBase, AssertsCompiledSQL):
     __only_on__ = 'oracle'
 
     @classmethod
@@ -586,7 +630,7 @@ drop synonym test_schema.ptable;
         select([parent,
                child]).select_from(parent.join(child)).execute().fetchall()
 
-class ConstraintTest(TestBase):
+class ConstraintTest(fixtures.TestBase):
 
     __only_on__ = 'oracle'
 
@@ -611,7 +655,7 @@ class ConstraintTest(TestBase):
                     onupdate='CASCADE'))
         assert_raises(exc.SAWarning, bat.create)
 
-class TypesTest(TestBase, AssertsCompiledSQL):
+class TypesTest(fixtures.TestBase, AssertsCompiledSQL):
     __only_on__ = 'oracle'
     __dialect__ = oracle.OracleDialect()
 
@@ -702,6 +746,7 @@ class TypesTest(TestBase, AssertsCompiledSQL):
 
     @testing.provide_metadata
     def test_rowid(self):
+        metadata = self.metadata
         t = Table('t1', metadata,
             Column('x', Integer)
         )
@@ -809,6 +854,8 @@ class TypesTest(TestBase, AssertsCompiledSQL):
         We convert to Decimal and let int()/float() processors take over.
 
         """
+
+        metadata = self.metadata
 
         # this test requires cx_oracle 5
 
@@ -1057,7 +1104,7 @@ class TypesTest(TestBase, AssertsCompiledSQL):
         finally:
             t.drop(engine)
 
-class EuroNumericTest(TestBase):
+class EuroNumericTest(fixtures.TestBase):
     """test the numeric output_type_handler when using non-US locale for NLS_LANG."""
 
     __only_on__ = 'oracle+cx_oracle'
@@ -1076,6 +1123,7 @@ class EuroNumericTest(TestBase):
 
     @testing.provide_metadata
     def test_output_type_handler(self):
+        metadata = self.metadata
         for stmt, exp, kw in [
             ("SELECT 0.1 FROM DUAL", decimal.Decimal("0.1"), {}),
             ("SELECT 15 FROM DUAL", 15, {}),
@@ -1091,7 +1139,7 @@ class EuroNumericTest(TestBase):
             assert type(test_exp) is type(exp)
 
 
-class DontReflectIOTTest(TestBase):
+class DontReflectIOTTest(fixtures.TestBase):
     """test that index overflow tables aren't included in
     table_names."""
 
@@ -1122,7 +1170,7 @@ class DontReflectIOTTest(TestBase):
             set(['admin_docindex'])
         )
 
-class BufferedColumnTest(TestBase, AssertsCompiledSQL):
+class BufferedColumnTest(fixtures.TestBase, AssertsCompiledSQL):
     __only_on__ = 'oracle'
 
     @classmethod
@@ -1156,7 +1204,7 @@ class BufferedColumnTest(TestBase, AssertsCompiledSQL):
         result = eng.execute(binary_table.select()).fetchall()
         eq_(result, [(i, stream) for i in range(1, 11)])
 
-class UnsupportedIndexReflectTest(TestBase):
+class UnsupportedIndexReflectTest(fixtures.TestBase):
     __only_on__ = 'oracle'
 
     def setup(self):
@@ -1176,7 +1224,7 @@ class UnsupportedIndexReflectTest(TestBase):
         m2 = MetaData(testing.db)
         t2 = Table('test_index_reflect', m2, autoload=True)
 
-class RoundTripIndexTest(TestBase):
+class RoundTripIndexTest(fixtures.TestBase):
     __only_on__ = 'oracle'
 
     def test_basic(self):
@@ -1250,7 +1298,7 @@ class RoundTripIndexTest(TestBase):
 
 
 
-class SequenceTest(TestBase, AssertsCompiledSQL):
+class SequenceTest(fixtures.TestBase, AssertsCompiledSQL):
 
     def test_basic(self):
         seq = Sequence('my_seq_no_schema')
@@ -1265,7 +1313,7 @@ class SequenceTest(TestBase, AssertsCompiledSQL):
             == '"Some_Schema"."My_Seq"'
 
 
-class ExecuteTest(TestBase):
+class ExecuteTest(fixtures.TestBase):
 
     __only_on__ = 'oracle'
 
@@ -1285,6 +1333,7 @@ class ExecuteTest(TestBase):
 
     @testing.provide_metadata
     def test_limit_offset_for_update(self):
+        metadata = self.metadata
         # oracle can't actually do the ROWNUM thing with FOR UPDATE
         # very well.
 
@@ -1315,5 +1364,41 @@ class ExecuteTest(TestBase):
             "ORA-02014",
             t.select(for_update=True).limit(2).offset(3).execute
         )
+
+
+class UnicodeSchemaTest(fixtures.TestBase):
+    __only_on__ = 'oracle'
+
+    @testing.provide_metadata
+    def test_quoted_column_non_unicode(self):
+        metadata = self.metadata
+        table=Table("atable", metadata,
+            Column("_underscorecolumn", Unicode(255), primary_key=True),
+        )
+        metadata.create_all()
+
+        table.insert().execute(
+            {'_underscorecolumn': u'’é'},
+        )
+        result = testing.db.execute(
+            table.select().where(table.c._underscorecolumn==u'’é')
+        ).scalar()
+        eq_(result, u'’é')
+
+    @testing.provide_metadata
+    def test_quoted_column_unicode(self):
+        metadata = self.metadata
+        table=Table("atable", metadata,
+            Column(u"méil", Unicode(255), primary_key=True),
+        )
+        metadata.create_all()
+
+        table.insert().execute(
+            {u'méil': u'’é'},
+        )
+        result = testing.db.execute(
+            table.select().where(table.c[u'méil']==u'’é')
+        ).scalar()
+        eq_(result, u'’é')
 
 

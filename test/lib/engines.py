@@ -42,9 +42,11 @@ class ConnectionKiller(object):
 
 testing_reaper = ConnectionKiller()
 
-def drop_all_tables(metadata):
+def drop_all_tables(metadata, bind):
     testing_reaper.close_all()
-    metadata.drop_all()
+    if hasattr(bind, 'close'):
+        bind.close()
+    metadata.drop_all(bind)
 
 @decorator
 def assert_conns_closed(fn, *args, **kw):
@@ -201,19 +203,25 @@ class ReplayableSession(object):
 
     Callable = object()
     NoAttribute = object()
+
+    # Py3K
+    #Natives = set([getattr(types, t)
+    #               for t in dir(types) if not t.startswith('_')]). \
+    #               union([type(t) if not isinstance(t, type) 
+    #                        else t for t in __builtins__.values()]).\
+    #               difference([getattr(types, t)
+    #                        for t in ('FunctionType', 'BuiltinFunctionType',
+    #                                  'MethodType', 'BuiltinMethodType',
+    #                                  'LambdaType', )])
+    # Py2K
     Natives = set([getattr(types, t)
                    for t in dir(types) if not t.startswith('_')]). \
                    difference([getattr(types, t)
-                            # Py3K
-                            #for t in ('FunctionType', 'BuiltinFunctionType',
-                            #          'MethodType', 'BuiltinMethodType',
-                            #          'LambdaType', )])
+                           for t in ('FunctionType', 'BuiltinFunctionType',
+                                     'MethodType', 'BuiltinMethodType',
+                                     'LambdaType', 'UnboundMethodType',)])
+    # end Py2K
 
-                            # Py2K
-                               for t in ('FunctionType', 'BuiltinFunctionType',
-                                         'MethodType', 'BuiltinMethodType',
-                                         'LambdaType', 'UnboundMethodType',)])
-                            # end Py2K
     def __init__(self):
         self.buffer = deque()
 

@@ -7,8 +7,9 @@ from sqlalchemy.orm import mapper, relationship, Session, \
     create_session, column_property, sessionmaker,\
     exc as orm_exc
 from test.lib.testing import eq_, ne_, assert_raises, assert_raises_message
-from test.orm import _base, _fixtures
-from test.engine import _base as engine_base
+from test.lib import fixtures
+from test.orm import _fixtures
+from test.lib import fixtures
 
 
 _uuids = [
@@ -32,7 +33,7 @@ def make_uuid():
     """generate uuids even on Python 2.4 which has no 'uuid'"""
     return _uuids.pop(0)
 
-class VersioningTest(_base.MappedTest):
+class VersioningTest(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
@@ -44,19 +45,21 @@ class VersioningTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Foo(_base.ComparableEntity):
+        class Foo(cls.Basic):
             pass
 
-    @testing.resolve_artifact_names
     def _fixture(self):
+        Foo, version_table = self.classes.Foo, self.tables.version_table
+
         mapper(Foo, version_table, 
                 version_id_col=version_table.c.version_id)
         s1 = Session()
         return s1
 
     @engines.close_open_connections
-    @testing.resolve_artifact_names
     def test_notsane_warning(self):
+        Foo = self.classes.Foo
+
         save = testing.db.dialect.supports_sane_rowcount
         testing.db.dialect.supports_sane_rowcount = False
         try:
@@ -72,8 +75,9 @@ class VersioningTest(_base.MappedTest):
             testing.db.dialect.supports_sane_rowcount = save
 
     @testing.emits_warning(r'.*does not support updated rowcount')
-    @testing.resolve_artifact_names
     def test_basic(self):
+        Foo = self.classes.Foo
+
         s1 = self._fixture()
         f1 = Foo(value='f1')
         f2 = Foo(value='f2')
@@ -121,7 +125,6 @@ class VersioningTest(_base.MappedTest):
             s1.commit()
 
     @testing.emits_warning(r'.*does not support updated rowcount')
-    @testing.resolve_artifact_names
     def test_bump_version(self):
         """test that version number can be bumped.
 
@@ -130,6 +133,9 @@ class VersioningTest(_base.MappedTest):
         state.
 
         """
+
+        Foo = self.classes.Foo
+
         s1 = self._fixture()
         f1 = Foo(value='f1')
         s1.add(f1)
@@ -153,9 +159,11 @@ class VersioningTest(_base.MappedTest):
 
     @testing.emits_warning(r'.*does not support updated rowcount')
     @engines.close_open_connections
-    @testing.resolve_artifact_names
     def test_versioncheck(self):
         """query.with_lockmode performs a 'version check' on an already loaded instance"""
+
+        Foo = self.classes.Foo
+
 
         s1 = self._fixture()
         f1s1 = Foo(value='f1 value')
@@ -189,9 +197,11 @@ class VersioningTest(_base.MappedTest):
     @testing.emits_warning(r'.*does not support updated rowcount')
     @engines.close_open_connections
     @testing.requires.update_nowait
-    @testing.resolve_artifact_names
     def test_versioncheck_for_update(self):
         """query.with_lockmode performs a 'version check' on an already loaded instance"""
+
+        Foo = self.classes.Foo
+
 
         s1 = self._fixture()
         f1s1 = Foo(value='f1 value')
@@ -215,9 +225,11 @@ class VersioningTest(_base.MappedTest):
 
     @testing.emits_warning(r'.*does not support updated rowcount')
     @engines.close_open_connections
-    @testing.resolve_artifact_names
     def test_noversioncheck(self):
         """test query.with_lockmode works when the mapper has no version id col"""
+
+        Foo, version_table = self.classes.Foo, self.tables.version_table
+
         s1 = create_session(autocommit=False)
         mapper(Foo, version_table)
         f1s1 = Foo(value="foo", version_id=0)
@@ -229,8 +241,9 @@ class VersioningTest(_base.MappedTest):
         assert f1s2.id == f1s1.id
         assert f1s2.value == f1s1.value
 
-    @testing.resolve_artifact_names
     def test_merge_no_version(self):
+        Foo = self.classes.Foo
+
         s1 = self._fixture()
         f1 = Foo(value='f1')
         s1.add(f1)
@@ -245,8 +258,9 @@ class VersioningTest(_base.MappedTest):
         s1.commit()
         eq_(f3.version_id, 3)
 
-    @testing.resolve_artifact_names
     def test_merge_correct_version(self):
+        Foo = self.classes.Foo
+
         s1 = self._fixture()
         f1 = Foo(value='f1')
         s1.add(f1)
@@ -261,8 +275,9 @@ class VersioningTest(_base.MappedTest):
         s1.commit()
         eq_(f3.version_id, 3)
 
-    @testing.resolve_artifact_names
     def test_merge_incorrect_version(self):
+        Foo = self.classes.Foo
+
         s1 = self._fixture()
         f1 = Foo(value='f1')
         s1.add(f1)
@@ -281,8 +296,9 @@ class VersioningTest(_base.MappedTest):
             s1.merge, f2
         )
 
-    @testing.resolve_artifact_names
     def test_merge_incorrect_version_not_in_session(self):
+        Foo = self.classes.Foo
+
         s1 = self._fixture()
         f1 = Foo(value='f1')
         s1.add(f1)
@@ -303,7 +319,7 @@ class VersioningTest(_base.MappedTest):
             s1.merge, f2
         )
 
-class RowSwitchTest(_base.MappedTest):
+class RowSwitchTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('p', metadata,
@@ -319,22 +335,27 @@ class RowSwitchTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class P(_base.ComparableEntity):
+        class P(cls.Basic):
             pass
-        class C(_base.ComparableEntity):
+        class C(cls.Basic):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        p, c, C, P = (cls.tables.p,
+                                cls.tables.c,
+                                cls.classes.C,
+                                cls.classes.P)
+
         mapper(P, p, version_id_col=p.c.version_id, 
             properties={
             'c':relationship(C, uselist=False, cascade='all, delete-orphan')
         })
         mapper(C, c, version_id_col=c.c.version_id)
 
-    @testing.resolve_artifact_names
     def test_row_switch(self):
+        P = self.classes.P
+
         session = sessionmaker()()
         session.add(P(id='P1', data='P version 1'))
         session.commit()
@@ -345,8 +366,9 @@ class RowSwitchTest(_base.MappedTest):
         session.add(P(id='P1', data="really a row-switch"))
         session.commit()
 
-    @testing.resolve_artifact_names
     def test_child_row_switch(self):
+        P, C = self.classes.P, self.classes.C
+
         assert P.c.property.strategy.use_get
 
         session = sessionmaker()()
@@ -362,7 +384,7 @@ class RowSwitchTest(_base.MappedTest):
         p.c = C(data='child row-switch')
         session.commit()
 
-class AlternateGeneratorTest(_base.MappedTest):
+class AlternateGeneratorTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('p', metadata,
@@ -378,14 +400,18 @@ class AlternateGeneratorTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class P(_base.ComparableEntity):
+        class P(cls.Basic):
             pass
-        class C(_base.ComparableEntity):
+        class C(cls.Basic):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        p, c, C, P = (cls.tables.p,
+                                cls.tables.c,
+                                cls.classes.C,
+                                cls.classes.P)
+
         mapper(P, p, version_id_col=p.c.version_id, 
             version_id_generator=lambda x:make_uuid(),
             properties={
@@ -395,8 +421,9 @@ class AlternateGeneratorTest(_base.MappedTest):
                     version_id_generator=lambda x:make_uuid(),
         )
 
-    @testing.resolve_artifact_names
     def test_row_switch(self):
+        P = self.classes.P
+
         session = sessionmaker()()
         session.add(P(id='P1', data='P version 1'))
         session.commit()
@@ -407,8 +434,9 @@ class AlternateGeneratorTest(_base.MappedTest):
         session.add(P(id='P1', data="really a row-switch"))
         session.commit()
 
-    @testing.resolve_artifact_names
     def test_child_row_switch_one(self):
+        P, C = self.classes.P, self.classes.C
+
         assert P.c.property.strategy.use_get
 
         session = sessionmaker()()
@@ -424,8 +452,9 @@ class AlternateGeneratorTest(_base.MappedTest):
         p.c = C(data='child row-switch')
         session.commit()
 
-    @testing.resolve_artifact_names
     def test_child_row_switch_two(self):
+        P = self.classes.P
+
         Session = sessionmaker()
 
         # TODO: not sure this test is 
@@ -457,7 +486,7 @@ class AlternateGeneratorTest(_base.MappedTest):
         )
 
 
-class InheritanceTwoVersionIdsTest(_base.MappedTest):
+class InheritanceTwoVersionIdsTest(fixtures.MappedTest):
     """Test versioning where both parent/child table have a
     versioning column.
 
@@ -477,13 +506,17 @@ class InheritanceTwoVersionIdsTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Base(_base.ComparableEntity):
+        class Base(cls.Basic):
             pass
         class Sub(Base):
             pass
 
-    @testing.resolve_artifact_names
     def test_base_both(self):
+        Base, sub, base, Sub = (self.classes.Base,
+                                self.tables.sub,
+                                self.tables.base,
+                                self.classes.Sub)
+
         mapper(Base, base, 
                 version_id_col=base.c.version_id)
         mapper(Sub, sub, inherits=Base)
@@ -496,8 +529,12 @@ class InheritanceTwoVersionIdsTest(_base.MappedTest):
         # base is populated
         eq_(select([base.c.version_id]).scalar(), 1)
 
-    @testing.resolve_artifact_names
     def test_sub_both(self):
+        Base, sub, base, Sub = (self.classes.Base,
+                                self.tables.sub,
+                                self.tables.base,
+                                self.classes.Sub)
+
         mapper(Base, base, 
                 version_id_col=base.c.version_id)
         mapper(Sub, sub, inherits=Base)
@@ -513,8 +550,12 @@ class InheritanceTwoVersionIdsTest(_base.MappedTest):
         # base is populated
         eq_(select([base.c.version_id]).scalar(), 1)
 
-    @testing.resolve_artifact_names
     def test_sub_only(self):
+        Base, sub, base, Sub = (self.classes.Base,
+                                self.tables.sub,
+                                self.tables.base,
+                                self.classes.Sub)
+
         mapper(Base, base)
         mapper(Sub, sub, inherits=Base, 
                 version_id_col=sub.c.version_id)
@@ -530,8 +571,12 @@ class InheritanceTwoVersionIdsTest(_base.MappedTest):
         # base is not
         eq_(select([base.c.version_id]).scalar(), None)
 
-    @testing.resolve_artifact_names
     def test_mismatch_version_col_warning(self):
+        Base, sub, base, Sub = (self.classes.Base,
+                                self.tables.sub,
+                                self.tables.base,
+                                self.classes.Sub)
+
         mapper(Base, base, 
                 version_id_col=base.c.version_id)
 

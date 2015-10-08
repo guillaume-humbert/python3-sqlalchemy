@@ -9,10 +9,10 @@ from sqlalchemy import MetaData, Integer, String, ForeignKey, Boolean, exc,\
 from sqlalchemy.types import TypeDecorator
 from test.lib.schema import Table, Column
 from test.lib.testing import eq_
-from test.sql import _base
 from sqlalchemy.dialects import sqlite
+from test.lib import fixtures
 
-class DefaultTest(testing.TestBase):
+class DefaultTest(fixtures.TestBase):
 
     @classmethod
     def setup_class(cls):
@@ -307,6 +307,7 @@ class DefaultTest(testing.TestBase):
         """Using a DefaultGenerator, Sequence, DefaultClause
         in the columns, where clause of a select, or in the values 
         clause of insert, update, raises an informative error"""
+
         for const in (
             sa.Sequence('y'),
             sa.ColumnDefault('y'),
@@ -393,7 +394,7 @@ class DefaultTest(testing.TestBase):
         eq_(55, l['col3'])
 
 
-class PKDefaultTest(_base.TablesTest):
+class PKDefaultTest(fixtures.TablesTest):
     __requires__ = ('subqueries',)
 
     @classmethod
@@ -413,8 +414,9 @@ class PKDefaultTest(_base.TablesTest):
     def test_regular(self):
         self._test(False)
 
-    @testing.resolve_artifact_names
     def _test(self, returning):
+        t2, t1 = self.tables.t2, self.tables.t1
+
         if not returning and not testing.db.dialect.implicit_returning:
             engine = testing.db
         else:
@@ -427,7 +429,7 @@ class PKDefaultTest(_base.TablesTest):
         r = engine.execute(t1.insert(), data='there')
         eq_([2], r.inserted_primary_key)
 
-class PKIncrementTest(_base.TablesTest):
+class PKIncrementTest(fixtures.TablesTest):
     run_define_tables = 'each'
 
     @classmethod
@@ -440,8 +442,9 @@ class PKIncrementTest(_base.TablesTest):
 
     # TODO: add coverage for increment on a secondary column in a key
     @testing.fails_on('firebird', 'Data type unknown')
-    @testing.resolve_artifact_names
     def _test_autoincrement(self, bind):
+        aitable = self.tables.aitable
+
         ids = set()
         rs = bind.execute(aitable.insert(), int1=1)
         last = rs.inserted_primary_key[0]
@@ -472,11 +475,9 @@ class PKIncrementTest(_base.TablesTest):
         eq_(list(bind.execute(aitable.select().order_by(aitable.c.id))),
             [(1, 1, None), (2, None, 'row 2'), (3, 3, 'row 3'), (4, 4, None)])
 
-    @testing.resolve_artifact_names
     def test_autoincrement_autocommit(self):
         self._test_autoincrement(testing.db)
 
-    @testing.resolve_artifact_names
     def test_autoincrement_transaction(self):
         con = testing.db.connect()
         tx = con.begin()
@@ -495,7 +496,7 @@ class PKIncrementTest(_base.TablesTest):
             con.close()
 
 
-class EmptyInsertTest(testing.TestBase):
+class EmptyInsertTest(fixtures.TestBase):
     @testing.exclude('sqlite', '<', (3, 3, 8), 'no empty insert support')
     @testing.fails_on('oracle', 'FIXME: unknown')
     def test_empty_insert(self):
@@ -511,7 +512,7 @@ class EmptyInsertTest(testing.TestBase):
         finally:
             metadata.drop_all()
 
-class AutoIncrementTest(_base.TablesTest):
+class AutoIncrementTest(fixtures.TablesTest):
     __requires__ = ('identity',)
     run_define_tables = 'each'
 
@@ -561,7 +562,7 @@ class AutoIncrementTest(_base.TablesTest):
 
         nonai.insert().execute(id=1, data='row 1')
 
-class SequenceDDLTest(testing.TestBase, testing.AssertsCompiledSQL):
+class SequenceDDLTest(fixtures.TestBase, testing.AssertsCompiledSQL):
     __dialect__ = 'default'
 
     def test_create_drop_ddl(self):
@@ -590,7 +591,7 @@ class SequenceDDLTest(testing.TestBase, testing.AssertsCompiledSQL):
             "DROP SEQUENCE foo_seq",
         )
 
-class SequenceExecTest(testing.TestBase):
+class SequenceExecTest(fixtures.TestBase):
     __requires__ = ('sequences',)
 
     @classmethod
@@ -604,6 +605,7 @@ class SequenceExecTest(testing.TestBase):
 
     def _assert_seq_result(self, ret):
         """asserts return of next_value is an int"""
+
         assert isinstance(ret, (int, long))
         assert ret > 0
 
@@ -652,6 +654,7 @@ class SequenceExecTest(testing.TestBase):
     def test_func_embedded_whereclause(self):
         """test can use next_value() in whereclause"""
 
+        metadata = self.metadata
         t1 = Table('t', metadata,
             Column('x', Integer)
         )
@@ -669,6 +672,7 @@ class SequenceExecTest(testing.TestBase):
     def test_func_embedded_valuesbase(self):
         """test can use next_value() in values() of _ValuesBase"""
 
+        metadata = self.metadata
         t1 = Table('t', metadata,
             Column('x', Integer)
         )
@@ -686,6 +690,7 @@ class SequenceExecTest(testing.TestBase):
         """test inserted_primary_key contains [None] when 
         pk_col=next_value(), implicit returning is not used."""
 
+        metadata = self.metadata
         e = engines.testing_engine(options={'implicit_returning':False})
         s = Sequence("my_sequence")
         metadata.bind = e
@@ -704,6 +709,7 @@ class SequenceExecTest(testing.TestBase):
         """test inserted_primary_key contains the result when 
         pk_col=next_value(), when implicit returning is used."""
 
+        metadata = self.metadata
         e = engines.testing_engine(options={'implicit_returning':True})
         s = Sequence("my_sequence")
         metadata.bind = e
@@ -716,7 +722,7 @@ class SequenceExecTest(testing.TestBase):
         )
         self._assert_seq_result(r.inserted_primary_key[0])
 
-class SequenceTest(testing.TestBase, testing.AssertsCompiledSQL):
+class SequenceTest(fixtures.TestBase, testing.AssertsCompiledSQL):
     __requires__ = ('sequences',)
 
     @testing.fails_on('firebird', 'no FB support for start/increment')
@@ -800,6 +806,7 @@ class SequenceTest(testing.TestBase, testing.AssertsCompiledSQL):
 
     @testing.provide_metadata
     def test_table_overrides_metadata_create(self):
+        metadata = self.metadata
         s1 = Sequence("s1", metadata=metadata)
         s2 = Sequence("s2", metadata=metadata)
         s3 = Sequence("s3")
@@ -828,7 +835,7 @@ class SequenceTest(testing.TestBase, testing.AssertsCompiledSQL):
         assert not self._has_sequence('s2')
 
 
-class TableBoundSequenceTest(testing.TestBase):
+class TableBoundSequenceTest(fixtures.TestBase):
     __requires__ = ('sequences',)
 
     @classmethod
@@ -889,7 +896,7 @@ class TableBoundSequenceTest(testing.TestBase):
              (4, "name4", 4)])
 
 
-class SpecialTypePKTest(testing.TestBase):
+class SpecialTypePKTest(fixtures.TestBase):
     """test process_result_value in conjunction with primary key columns.
 
     Also tests that "autoincrement" checks are against column.type._type_affinity,
@@ -915,6 +922,7 @@ class SpecialTypePKTest(testing.TestBase):
 
     @testing.provide_metadata
     def _run_test(self, *arg, **kw):
+        metadata = self.metadata
         implicit_returning = kw.pop('implicit_returning', True)
         kw['primary_key'] = True
         if kw.get('autoincrement', True):
@@ -972,7 +980,7 @@ class SpecialTypePKTest(testing.TestBase):
     def test_server_default_no_implicit_returning(self):
         self._run_test(server_default='1', autoincrement=False)
 
-class ServerDefaultsOnPKTest(testing.TestBase):
+class ServerDefaultsOnPKTest(fixtures.TestBase):
     @testing.provide_metadata
     def test_string_default_none_on_insert(self):
         """Test that without implicit returning, we return None for 
@@ -983,6 +991,8 @@ class ServerDefaultsOnPKTest(testing.TestBase):
         like this.   Testing that all backends do the same thing here.
 
         """
+
+        metadata = self.metadata
         t = Table('x', metadata, 
                 Column('y', String(10), server_default='key_one', primary_key=True),
                 Column('data', String(10)),
@@ -1000,6 +1010,8 @@ class ServerDefaultsOnPKTest(testing.TestBase):
     @testing.provide_metadata
     def test_string_default_on_insert_with_returning(self):
         """With implicit_returning, we get a string PK default back no problem."""
+
+        metadata = self.metadata
         t = Table('x', metadata, 
                 Column('y', String(10), server_default='key_one', primary_key=True),
                 Column('data', String(10))
@@ -1014,6 +1026,7 @@ class ServerDefaultsOnPKTest(testing.TestBase):
 
     @testing.provide_metadata
     def test_int_default_none_on_insert(self):
+        metadata = self.metadata
         t = Table('x', metadata, 
                 Column('y', Integer, 
                         server_default='5', primary_key=True),
@@ -1036,6 +1049,7 @@ class ServerDefaultsOnPKTest(testing.TestBase):
             )
     @testing.provide_metadata
     def test_autoincrement_reflected_from_server_default(self):
+        metadata = self.metadata
         t = Table('x', metadata, 
                 Column('y', Integer, 
                         server_default='5', primary_key=True),
@@ -1051,6 +1065,7 @@ class ServerDefaultsOnPKTest(testing.TestBase):
 
     @testing.provide_metadata
     def test_int_default_none_on_insert_reflected(self):
+        metadata = self.metadata
         t = Table('x', metadata, 
                 Column('y', Integer, 
                         server_default='5', primary_key=True),
@@ -1078,6 +1093,7 @@ class ServerDefaultsOnPKTest(testing.TestBase):
     @testing.requires.returning
     @testing.provide_metadata
     def test_int_default_on_insert_with_returning(self):
+        metadata = self.metadata
         t = Table('x', metadata, 
                 Column('y', Integer, 
                         server_default='5', primary_key=True),
@@ -1092,7 +1108,7 @@ class ServerDefaultsOnPKTest(testing.TestBase):
             [(5, 'data')]
         )
 
-class UnicodeDefaultsTest(testing.TestBase):
+class UnicodeDefaultsTest(fixtures.TestBase):
     def test_no_default(self):
         c = Column(Unicode(32))
 

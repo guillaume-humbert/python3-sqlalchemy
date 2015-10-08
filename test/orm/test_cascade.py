@@ -8,10 +8,11 @@ from sqlalchemy.orm import mapper, relationship, create_session, \
 from sqlalchemy.orm import attributes, exc as orm_exc
 from test.lib import testing
 from test.lib.testing import eq_
-from test.orm import _base, _fixtures
+from test.lib import fixtures
+from test.orm import _fixtures
 
 
-class O2MCascadeDeleteOrphanTest(_base.MappedTest):
+class O2MCascadeDeleteOrphanTest(fixtures.MappedTest):
     run_inserts = None
 
     @classmethod
@@ -38,18 +39,26 @@ class O2MCascadeDeleteOrphanTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class User(_base.ComparableEntity):
+        class User(cls.Comparable):
             pass
-        class Address(_base.ComparableEntity):
+        class Address(cls.Comparable):
             pass
-        class Order(_base.ComparableEntity):
+        class Order(cls.Comparable):
             pass
-        class Dingaling(_base.ComparableEntity):
+        class Dingaling(cls.Comparable):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        users, Dingaling, Order, User, dingalings, Address, orders, addresses = (cls.tables.users,
+                                cls.classes.Dingaling,
+                                cls.classes.Order,
+                                cls.classes.User,
+                                cls.tables.dingalings,
+                                cls.classes.Address,
+                                cls.tables.orders,
+                                cls.tables.addresses)
+
         mapper(Address, addresses)
         mapper(Order, orders)
         mapper(User, users, properties={
@@ -64,8 +73,9 @@ class O2MCascadeDeleteOrphanTest(_base.MappedTest):
             'address' : relationship(Address)
         })
 
-    @testing.resolve_artifact_names
     def test_list_assignment_new(self):
+        User, Order = self.classes.User, self.classes.Order
+
         sess = Session()
         u = User(name='jack', orders=[
                  Order(description='order 1'),
@@ -77,8 +87,9 @@ class O2MCascadeDeleteOrphanTest(_base.MappedTest):
                     orders=[Order(description='order 1'),
                             Order(description='order 2')]))
 
-    @testing.resolve_artifact_names
     def test_list_assignment_replace(self):
+        User, Order = self.classes.User, self.classes.Order
+
         sess = Session()
         u = User(name='jack', orders=[
                  Order(description='someorder'),
@@ -96,17 +107,20 @@ class O2MCascadeDeleteOrphanTest(_base.MappedTest):
         eq_(sess.query(Order).order_by(Order.id).all(),
             [Order(description="order 3"), Order(description="order 4")])
 
-    @testing.resolve_artifact_names
     def test_standalone_orphan(self):
+        Order = self.classes.Order
+
         sess = Session()
         o5 = Order(description="order 5")
         sess.add(o5)
         assert_raises(sa_exc.DBAPIError, sess.flush)
 
-    @testing.resolve_artifact_names
     def test_save_update_sends_pending(self):
         """test that newly added and deleted collection items are
         cascaded on save-update"""
+
+        Order, User = self.classes.Order, self.classes.User
+
 
         sess = sessionmaker(expire_on_commit=False)()
         o1, o2, o3 = Order(description='o1'), Order(description='o2'), \
@@ -123,8 +137,9 @@ class O2MCascadeDeleteOrphanTest(_base.MappedTest):
         assert o3 in sess
         sess.commit()
 
-    @testing.resolve_artifact_names
     def test_remove_pending_from_collection(self):
+        User, Order = self.classes.User, self.classes.Order
+
         sess = Session()
 
         u = User(name='jack')
@@ -138,8 +153,12 @@ class O2MCascadeDeleteOrphanTest(_base.MappedTest):
         assert o1 not in sess
 
 
-    @testing.resolve_artifact_names
     def test_delete(self):
+        User, users, orders, Order = (self.classes.User,
+                                self.tables.users,
+                                self.tables.orders,
+                                self.classes.Order)
+
         sess = create_session()
         u = User(name='jack',
                  orders=[Order(description='someorder'),
@@ -152,10 +171,15 @@ class O2MCascadeDeleteOrphanTest(_base.MappedTest):
         assert users.count().scalar() == 0
         assert orders.count().scalar() == 0
 
-    @testing.resolve_artifact_names
     def test_delete_unloaded_collections(self):
         """Unloaded collections are still included in a delete-cascade
         by default."""
+
+        User, addresses, users, Address = (self.classes.User,
+                                self.tables.addresses,
+                                self.tables.users,
+                                self.classes.Address)
+
         sess = create_session()
         u = User(name='jack',
                  addresses=[Address(email_address="address1"),
@@ -174,10 +198,15 @@ class O2MCascadeDeleteOrphanTest(_base.MappedTest):
         assert addresses.count().scalar() == 0
         assert users.count().scalar() == 0
 
-    @testing.resolve_artifact_names
     def test_cascades_onlycollection(self):
         """Cascade only reaches instances that are still part of the
         collection, not those that have been removed"""
+
+        User, Order, users, orders = (self.classes.User,
+                                self.classes.Order,
+                                self.tables.users,
+                                self.tables.orders)
+
 
         sess = create_session()
         u = User(name='jack',
@@ -203,10 +232,14 @@ class O2MCascadeDeleteOrphanTest(_base.MappedTest):
             [User(name='newuser',
                   orders=[Order(description='someorder')])])
 
-    @testing.resolve_artifact_names
     def test_cascade_nosideeffects(self):
         """test that cascade leaves the state of unloaded
         scalars/collections unchanged."""
+
+        Dingaling, User, Address = (self.classes.Dingaling,
+                                self.classes.User,
+                                self.classes.Address)
+
 
         sess = create_session()
         u = User(name='jack')
@@ -230,8 +263,12 @@ class O2MCascadeDeleteOrphanTest(_base.MappedTest):
         sess.flush()
         assert d.address is a
 
-    @testing.resolve_artifact_names
     def test_cascade_delete_plusorphans(self):
+        User, users, orders, Order = (self.classes.User,
+                                self.tables.users,
+                                self.tables.orders,
+                                self.classes.Order)
+
         sess = create_session()
         u = User(name='jack',
                  orders=[Order(description='someorder'),
@@ -247,8 +284,12 @@ class O2MCascadeDeleteOrphanTest(_base.MappedTest):
         assert users.count().scalar() == 0
         assert orders.count().scalar() == 0
 
-    @testing.resolve_artifact_names
     def test_collection_orphans(self):
+        User, users, orders, Order = (self.classes.User,
+                                self.tables.users,
+                                self.tables.orders,
+                                self.classes.Order)
+
         sess = create_session()
         u = User(name='jack',
                  orders=[Order(description='someorder'),
@@ -266,7 +307,7 @@ class O2MCascadeDeleteOrphanTest(_base.MappedTest):
         assert users.count().scalar() == 1
         assert orders.count().scalar() == 0
 
-class O2MCascadeDeleteNoOrphanTest(_base.MappedTest):
+class O2MCascadeDeleteNoOrphanTest(fixtures.MappedTest):
     run_inserts = None
 
     @classmethod
@@ -283,21 +324,29 @@ class O2MCascadeDeleteNoOrphanTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class User(_base.ComparableEntity):
+        class User(cls.Comparable):
             pass
-        class Order(_base.ComparableEntity):
+        class Order(cls.Comparable):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        User, Order, orders, users = (cls.classes.User,
+                                cls.classes.Order,
+                                cls.tables.orders,
+                                cls.tables.users)
+
         mapper(User, users, properties = dict(
             orders = relationship(
                 mapper(Order, orders), cascade="all")
         ))
 
-    @testing.resolve_artifact_names
     def test_cascade_delete_noorphans(self):
+        User, Order, orders, users = (self.classes.User,
+                                self.classes.Order,
+                                self.tables.orders,
+                                self.tables.users)
+
         sess = create_session()
         u = User(name='jack',
                  orders=[Order(description='someorder'),
@@ -317,15 +366,20 @@ class O2OSingleParentTest(_fixtures.FixtureTest):
     run_inserts = None
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        Address, addresses, users, User = (cls.classes.Address,
+                                cls.tables.addresses,
+                                cls.tables.users,
+                                cls.classes.User)
+
         mapper(Address, addresses)
         mapper(User, users, properties={'address'
                : relationship(Address, backref=backref('user',
                single_parent=True), uselist=False)})
 
-    @testing.resolve_artifact_names
     def test_single_parent_raise(self):
+        User, Address = self.classes.User, self.classes.Address
+
         a1 = Address(email_address='some address')
         u1 = User(name='u1', address=a1)
         assert_raises(sa_exc.InvalidRequestError, Address,
@@ -340,13 +394,17 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
 
     run_inserts = None
 
-    @testing.resolve_artifact_names
     def _one_to_many_fixture(self, o2m_cascade=True, 
                                     m2o_cascade=True, 
                                     o2m=False,
                                     m2o=False,
                                     o2m_cascade_backrefs=True,
                                     m2o_cascade_backrefs=True):
+
+        Address, addresses, users, User = (self.classes.Address,
+                                self.tables.addresses,
+                                self.tables.users,
+                                self.classes.User)
 
         if o2m:
             if m2o:
@@ -380,13 +438,18 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
         mapper(User, users, properties=addresses_rel)
         mapper(Address, addresses, properties=user_rel)
 
-    @testing.resolve_artifact_names
     def _many_to_many_fixture(self, fwd_cascade=True, 
                                     bkd_cascade=True, 
                                     fwd=False,
                                     bkd=False,
                                     fwd_cascade_backrefs=True,
                                     bkd_cascade_backrefs=True):
+
+        keywords, items, item_keywords, Keyword, Item = (self.tables.keywords,
+                                self.tables.items,
+                                self.tables.item_keywords,
+                                self.classes.Keyword,
+                                self.classes.Item)
 
         if fwd:
             if bkd:
@@ -423,8 +486,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
         mapper(Item, items, properties=keywords_rel)
         mapper(Keyword, keywords, properties=items_rel)
 
-    @testing.resolve_artifact_names
     def test_o2m_only_child_pending(self):
+        User, Address = self.classes.User, self.classes.Address
+
         self._one_to_many_fixture(o2m=True, m2o=False)
         sess = Session()
         u1 = User(name='u1')
@@ -435,8 +499,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
         assert a1 in sess
         sess.flush()
 
-    @testing.resolve_artifact_names
     def test_o2m_only_child_transient(self):
+        User, Address = self.classes.User, self.classes.Address
+
         self._one_to_many_fixture(o2m=True, m2o=False, o2m_cascade=False)
         sess = Session()
         u1 = User(name='u1')
@@ -449,8 +514,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
             sa_exc.SAWarning, "not in session", sess.flush
         )
 
-    @testing.resolve_artifact_names
     def test_o2m_only_child_persistent(self):
+        User, Address = self.classes.User, self.classes.Address
+
         self._one_to_many_fixture(o2m=True, m2o=False, o2m_cascade=False)
         sess = Session()
         u1 = User(name='u1')
@@ -468,8 +534,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
             sa_exc.SAWarning, "not in session", sess.flush
         )
 
-    @testing.resolve_artifact_names
     def test_o2m_backref_child_pending(self):
+        User, Address = self.classes.User, self.classes.Address
+
         self._one_to_many_fixture(o2m=True, m2o=True)
         sess = Session()
         u1 = User(name='u1')
@@ -480,8 +547,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
         assert a1 in sess
         sess.flush()
 
-    @testing.resolve_artifact_names
     def test_o2m_backref_child_transient(self):
+        User, Address = self.classes.User, self.classes.Address
+
         self._one_to_many_fixture(o2m=True, m2o=True, 
                                     o2m_cascade=False)
         sess = Session()
@@ -495,8 +563,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
             sa_exc.SAWarning, "not in session", sess.flush
         )
 
-    @testing.resolve_artifact_names
     def test_o2m_backref_child_transient_nochange(self):
+        User, Address = self.classes.User, self.classes.Address
+
         self._one_to_many_fixture(o2m=True, m2o=True, 
                                     o2m_cascade=False)
         sess = Session()
@@ -512,8 +581,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
         go()
         eq_(u1.addresses, [])
 
-    @testing.resolve_artifact_names
     def test_o2m_backref_child_expunged(self):
+        User, Address = self.classes.User, self.classes.Address
+
         self._one_to_many_fixture(o2m=True, m2o=True, 
                                     o2m_cascade=False)
         sess = Session()
@@ -531,8 +601,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
             sa_exc.SAWarning, "not in session", sess.flush
         )
 
-    @testing.resolve_artifact_names
     def test_o2m_backref_child_expunged_nochange(self):
+        User, Address = self.classes.User, self.classes.Address
+
         self._one_to_many_fixture(o2m=True, m2o=True, 
                                     o2m_cascade=False)
         sess = Session()
@@ -552,8 +623,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
         go()
         eq_(u1.addresses, [])
 
-    @testing.resolve_artifact_names
     def test_m2o_only_child_pending(self):
+        User, Address = self.classes.User, self.classes.Address
+
         self._one_to_many_fixture(o2m=False, m2o=True)
         sess = Session()
         u1 = User(name='u1')
@@ -564,8 +636,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
         assert a1 in sess
         sess.flush()
 
-    @testing.resolve_artifact_names
     def test_m2o_only_child_transient(self):
+        User, Address = self.classes.User, self.classes.Address
+
         self._one_to_many_fixture(o2m=False, m2o=True, m2o_cascade=False)
         sess = Session()
         u1 = User(name='u1')
@@ -578,8 +651,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
             sa_exc.SAWarning, "not in session", sess.flush
         )
 
-    @testing.resolve_artifact_names
     def test_m2o_only_child_expunged(self):
+        User, Address = self.classes.User, self.classes.Address
+
         self._one_to_many_fixture(o2m=False, m2o=True, m2o_cascade=False)
         sess = Session()
         u1 = User(name='u1')
@@ -596,8 +670,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
             sa_exc.SAWarning, "not in session", sess.flush
         )
 
-    @testing.resolve_artifact_names
     def test_m2o_backref_child_pending(self):
+        User, Address = self.classes.User, self.classes.Address
+
         self._one_to_many_fixture(o2m=True, m2o=True)
         sess = Session()
         u1 = User(name='u1')
@@ -608,8 +683,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
         assert a1 in sess
         sess.flush()
 
-    @testing.resolve_artifact_names
     def test_m2o_backref_child_transient(self):
+        User, Address = self.classes.User, self.classes.Address
+
         self._one_to_many_fixture(o2m=True, m2o=True, m2o_cascade=False)
         sess = Session()
         u1 = User(name='u1')
@@ -622,8 +698,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
             sa_exc.SAWarning, "not in session", sess.flush
         )
 
-    @testing.resolve_artifact_names
     def test_m2o_backref_child_expunged(self):
+        User, Address = self.classes.User, self.classes.Address
+
         self._one_to_many_fixture(o2m=True, m2o=True, m2o_cascade=False)
         sess = Session()
         u1 = User(name='u1')
@@ -640,8 +717,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
             sa_exc.SAWarning, "not in session", sess.flush
         )
 
-    @testing.resolve_artifact_names
     def test_m2o_backref_child_pending_nochange(self):
+        User, Address = self.classes.User, self.classes.Address
+
         self._one_to_many_fixture(o2m=True, m2o=True, m2o_cascade=False)
         sess = Session()
         u1 = User(name='u1')
@@ -658,8 +736,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
         # didn't get flushed
         assert a1.user is None
 
-    @testing.resolve_artifact_names
     def test_m2o_backref_child_expunged_nochange(self):
+        User, Address = self.classes.User, self.classes.Address
+
         self._one_to_many_fixture(o2m=True, m2o=True, m2o_cascade=False)
         sess = Session()
         u1 = User(name='u1')
@@ -679,8 +758,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
         # didn't get flushed
         assert a1.user is None
 
-    @testing.resolve_artifact_names
     def test_m2m_only_child_pending(self):
+        Item, Keyword = self.classes.Item, self.classes.Keyword
+
         self._many_to_many_fixture(fwd=True, bkd=False)
         sess = Session()
         i1 = Item(description='i1')
@@ -691,8 +771,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
         assert k1 in sess
         sess.flush()
 
-    @testing.resolve_artifact_names
     def test_m2m_only_child_transient(self):
+        Item, Keyword = self.classes.Item, self.classes.Keyword
+
         self._many_to_many_fixture(fwd=True, bkd=False, fwd_cascade=False)
         sess = Session()
         i1 = Item(description='i1')
@@ -705,8 +786,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
             sa_exc.SAWarning, "not in session", sess.flush
         )
 
-    @testing.resolve_artifact_names
     def test_m2m_only_child_persistent(self):
+        Item, Keyword = self.classes.Item, self.classes.Keyword
+
         self._many_to_many_fixture(fwd=True, bkd=False, fwd_cascade=False)
         sess = Session()
         i1 = Item(description='i1')
@@ -724,8 +806,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
             sa_exc.SAWarning, "not in session", sess.flush
         )
 
-    @testing.resolve_artifact_names
     def test_m2m_backref_child_pending(self):
+        Item, Keyword = self.classes.Item, self.classes.Keyword
+
         self._many_to_many_fixture(fwd=True, bkd=True)
         sess = Session()
         i1 = Item(description='i1')
@@ -736,8 +819,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
         assert k1 in sess
         sess.flush()
 
-    @testing.resolve_artifact_names
     def test_m2m_backref_child_transient(self):
+        Item, Keyword = self.classes.Item, self.classes.Keyword
+
         self._many_to_many_fixture(fwd=True, bkd=True, 
                                     fwd_cascade=False)
         sess = Session()
@@ -751,8 +835,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
             sa_exc.SAWarning, "not in session", sess.flush
         )
 
-    @testing.resolve_artifact_names
     def test_m2m_backref_child_transient_nochange(self):
+        Item, Keyword = self.classes.Item, self.classes.Keyword
+
         self._many_to_many_fixture(fwd=True, bkd=True, 
                                     fwd_cascade=False)
         sess = Session()
@@ -768,8 +853,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
         go()
         eq_(i1.keywords, [])
 
-    @testing.resolve_artifact_names
     def test_m2m_backref_child_expunged(self):
+        Item, Keyword = self.classes.Item, self.classes.Keyword
+
         self._many_to_many_fixture(fwd=True, bkd=True, 
                                     fwd_cascade=False)
         sess = Session()
@@ -787,8 +873,9 @@ class NoSaveCascadeFlushTest(_fixtures.FixtureTest):
             sa_exc.SAWarning, "not in session", sess.flush
         )
 
-    @testing.resolve_artifact_names
     def test_m2m_backref_child_expunged_nochange(self):
+        Item, Keyword = self.classes.Item, self.classes.Keyword
+
         self._many_to_many_fixture(fwd=True, bkd=True, 
                                     fwd_cascade=False)
         sess = Session()
@@ -812,8 +899,12 @@ class NoSaveCascadeBackrefTest(_fixtures.FixtureTest):
     """test that backrefs don't force save-update cascades to occur
     when the cascade initiated from the forwards side."""
 
-    @testing.resolve_artifact_names
     def test_unidirectional_cascade_o2m(self):
+        User, Order, users, orders = (self.classes.User,
+                                self.classes.Order,
+                                self.tables.users,
+                                self.tables.orders)
+
         mapper(Order, orders)
         mapper(User, users, properties = dict(
             orders = relationship(
@@ -836,8 +927,12 @@ class NoSaveCascadeBackrefTest(_fixtures.FixtureTest):
         assert u1 not in sess
         assert o1 in sess
 
-    @testing.resolve_artifact_names
     def test_unidirectional_cascade_m2o(self):
+        User, Order, users, orders = (self.classes.User,
+                                self.classes.Order,
+                                self.tables.users,
+                                self.tables.orders)
+
         mapper(Order, orders, properties={
             'user':relationship(User, backref=backref("orders", cascade=None))
         })
@@ -861,8 +956,13 @@ class NoSaveCascadeBackrefTest(_fixtures.FixtureTest):
         assert o1 not in sess
         assert u1 in sess
 
-    @testing.resolve_artifact_names
     def test_unidirectional_cascade_m2m(self):
+        keywords, items, item_keywords, Keyword, Item = (self.tables.keywords,
+                                self.tables.items,
+                                self.tables.item_keywords,
+                                self.classes.Keyword,
+                                self.classes.Item)
+
         mapper(Item, items, properties={'keywords'
                : relationship(Keyword, secondary=item_keywords,
                cascade='none', backref='items')})
@@ -887,7 +987,7 @@ class NoSaveCascadeBackrefTest(_fixtures.FixtureTest):
         assert k1 not in sess
 
 
-class M2OCascadeDeleteOrphanTestOne(_base.MappedTest):
+class M2OCascadeDeleteOrphanTestOne(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
@@ -912,18 +1012,26 @@ class M2OCascadeDeleteOrphanTestOne(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class User(_fixtures.Base):
+        class User(cls.Comparable):
             pass
-        class Pref(_fixtures.Base):
+        class Pref(cls.Comparable):
             pass
-        class Extra(_fixtures.Base):
+        class Extra(cls.Comparable):
             pass
-        class Foo(_fixtures.Base):
+        class Foo(cls.Comparable):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        extra, foo, users, Extra, Pref, User, prefs, Foo = (cls.tables.extra,
+                                cls.tables.foo,
+                                cls.tables.users,
+                                cls.classes.Extra,
+                                cls.classes.Pref,
+                                cls.classes.User,
+                                cls.tables.prefs,
+                                cls.classes.Foo)
+
         mapper(Extra, extra)
         mapper(Pref, prefs, properties=dict(extra=relationship(Extra,
                cascade='all, delete')))
@@ -933,8 +1041,11 @@ class M2OCascadeDeleteOrphanTestOne(_base.MappedTest):
         mapper(Foo, foo)
 
     @classmethod
-    @testing.resolve_artifact_names
     def insert_data(cls):
+        Pref, User, Extra = (cls.classes.Pref,
+                                cls.classes.User,
+                                cls.classes.Extra)
+
         u1 = User(name='ed', pref=Pref(data="pref 1", extra=[Extra()]))
         u2 = User(name='jack', pref=Pref(data="pref 2", extra=[Extra()]))
         u3 = User(name="foo", pref=Pref(data="pref 3", extra=[Extra()]))
@@ -944,8 +1055,11 @@ class M2OCascadeDeleteOrphanTestOne(_base.MappedTest):
         sess.close()
 
     @testing.fails_on('maxdb', 'FIXME: unknown')
-    @testing.resolve_artifact_names
     def test_orphan(self):
+        prefs, User, extra = (self.tables.prefs,
+                                self.classes.User,
+                                self.tables.extra)
+
         sess = create_session()
         assert prefs.count().scalar() == 3
         assert extra.count().scalar() == 3
@@ -955,9 +1069,11 @@ class M2OCascadeDeleteOrphanTestOne(_base.MappedTest):
         assert prefs.count().scalar() == 2
         assert extra.count().scalar() == 2
 
-    @testing.resolve_artifact_names
     def test_cascade_on_deleted(self):
         """test a bug introduced by r6711"""
+
+        Foo, User = self.classes.Foo, self.classes.User
+
 
         sess = sessionmaker(expire_on_commit=True)()
 
@@ -973,17 +1089,19 @@ class M2OCascadeDeleteOrphanTestOne(_base.MappedTest):
         assert User.foo.dispatch._active_history is False
         eq_(
             attributes.get_history(u1, 'foo'),
-            ([None], (), [attributes.PASSIVE_NO_RESULT])
+            ([None], (), ())
         )
 
         sess.add(u1)
         assert u1 in sess
         sess.commit()
 
-    @testing.resolve_artifact_names
     def test_save_update_sends_pending(self):
         """test that newly added and deleted scalar items are cascaded
         on save-update"""
+
+        Pref, User = self.classes.Pref, self.classes.User
+
 
         sess = sessionmaker(expire_on_commit=False)()
         p1, p2 = Pref(data='p1'), Pref(data='p2')
@@ -1002,8 +1120,11 @@ class M2OCascadeDeleteOrphanTestOne(_base.MappedTest):
         sess.commit()
 
     @testing.fails_on('maxdb', 'FIXME: unknown')
-    @testing.resolve_artifact_names
     def test_orphan_on_update(self):
+        prefs, User, extra = (self.tables.prefs,
+                                self.classes.User,
+                                self.tables.extra)
+
         sess = create_session()
         jack = sess.query(User).filter_by(name="jack").one()
         p = jack.pref
@@ -1020,8 +1141,9 @@ class M2OCascadeDeleteOrphanTestOne(_base.MappedTest):
         assert prefs.count().scalar() == 2
         assert extra.count().scalar() == 2
 
-    @testing.resolve_artifact_names
     def test_pending_expunge(self):
+        Pref, User = self.classes.Pref, self.classes.User
+
         sess = create_session()
         someuser = User(name='someuser')
         sess.add(someuser)
@@ -1034,9 +1156,11 @@ class M2OCascadeDeleteOrphanTestOne(_base.MappedTest):
         eq_(sess.query(Pref).with_parent(someuser).all(),
             [Pref(data="someotherpref")])
 
-    @testing.resolve_artifact_names
     def test_double_assignment(self):
         """Double assignment will not accidentally reset the 'parent' flag."""
+
+        Pref, User = self.classes.Pref, self.classes.User
+
 
         sess = create_session()
         jack = sess.query(User).filter_by(name="jack").one()
@@ -1048,7 +1172,7 @@ class M2OCascadeDeleteOrphanTestOne(_base.MappedTest):
         eq_(sess.query(Pref).order_by(Pref.id).all(),
             [Pref(data="pref 1"), Pref(data="pref 3"), Pref(data="newpref")])
 
-class M2OCascadeDeleteOrphanTestTwo(_base.MappedTest):
+class M2OCascadeDeleteOrphanTestTwo(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
@@ -1071,16 +1195,22 @@ class M2OCascadeDeleteOrphanTestTwo(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class T1(_fixtures.Base):
+        class T1(cls.Comparable):
             pass
-        class T2(_fixtures.Base):
+        class T2(cls.Comparable):
             pass
-        class T3(_fixtures.Base):
+        class T3(cls.Comparable):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        t2, T2, T3, t1, t3, T1 = (cls.tables.t2,
+                                cls.classes.T2,
+                                cls.classes.T3,
+                                cls.tables.t1,
+                                cls.tables.t3,
+                                cls.classes.T1)
+
         mapper(T1, t1, properties=dict(t2=relationship(T2,
                cascade='all, delete-orphan', single_parent=True)))
         mapper(T2, t2, properties=dict(t3=relationship(T3,
@@ -1088,8 +1218,11 @@ class M2OCascadeDeleteOrphanTestTwo(_base.MappedTest):
                backref=backref('t2', uselist=False))))
         mapper(T3, t3)
 
-    @testing.resolve_artifact_names
     def test_cascade_delete(self):
+        T2, T3, T1 = (self.classes.T2,
+                                self.classes.T3,
+                                self.classes.T1)
+
         sess = create_session()
         x = T1(data='t1a', t2=T2(data='t2a', t3=T3(data='t3a')))
         sess.add(x)
@@ -1101,8 +1234,11 @@ class M2OCascadeDeleteOrphanTestTwo(_base.MappedTest):
         eq_(sess.query(T2).all(), [])
         eq_(sess.query(T3).all(), [])
 
-    @testing.resolve_artifact_names
     def test_deletes_orphans_onelevel(self):
+        T2, T3, T1 = (self.classes.T2,
+                                self.classes.T3,
+                                self.classes.T1)
+
         sess = create_session()
         x2 = T1(data='t1b', t2=T2(data='t2b', t3=T3(data='t3b')))
         sess.add(x2)
@@ -1115,8 +1251,11 @@ class M2OCascadeDeleteOrphanTestTwo(_base.MappedTest):
         eq_(sess.query(T2).all(), [])
         eq_(sess.query(T3).all(), [])
 
-    @testing.resolve_artifact_names
     def test_deletes_orphans_twolevel(self):
+        T2, T3, T1 = (self.classes.T2,
+                                self.classes.T3,
+                                self.classes.T1)
+
         sess = create_session()
         x = T1(data='t1a', t2=T2(data='t2a', t3=T3(data='t3a')))
         sess.add(x)
@@ -1129,8 +1268,11 @@ class M2OCascadeDeleteOrphanTestTwo(_base.MappedTest):
         eq_(sess.query(T2).all(), [])
         eq_(sess.query(T3).all(), [])
 
-    @testing.resolve_artifact_names
     def test_finds_orphans_twolevel(self):
+        T2, T3, T1 = (self.classes.T2,
+                                self.classes.T3,
+                                self.classes.T1)
+
         sess = create_session()
         x = T1(data='t1a', t2=T2(data='t2a', t3=T3(data='t3a')))
         sess.add(x)
@@ -1142,8 +1284,9 @@ class M2OCascadeDeleteOrphanTestTwo(_base.MappedTest):
         eq_(sess.query(T2).all(), [T2()])
         eq_(sess.query(T3).all(), [])
 
-    @testing.resolve_artifact_names
     def test_single_parent_raise(self):
+        T2, T1 = self.classes.T2, self.classes.T1
+
 
         sess = create_session()
 
@@ -1151,8 +1294,9 @@ class M2OCascadeDeleteOrphanTestTwo(_base.MappedTest):
         x = T1(data='T1a', t2=y)
         assert_raises(sa_exc.InvalidRequestError, T1, data='T1b', t2=y)
 
-    @testing.resolve_artifact_names
     def test_single_parent_backref(self):
+        T2, T3 = self.classes.T2, self.classes.T3
+
 
         sess = create_session()
 
@@ -1170,7 +1314,7 @@ class M2OCascadeDeleteOrphanTestTwo(_base.MappedTest):
         assert z.t3 is y
         assert x.t3 is None
 
-class M2OCascadeDeleteNoOrphanTest(_base.MappedTest):
+class M2OCascadeDeleteNoOrphanTest(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
@@ -1192,22 +1336,31 @@ class M2OCascadeDeleteNoOrphanTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class T1(_fixtures.Base):
+        class T1(cls.Comparable):
             pass
-        class T2(_fixtures.Base):
+        class T2(cls.Comparable):
             pass
-        class T3(_fixtures.Base):
+        class T3(cls.Comparable):
             pass
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        t2, T2, T3, t1, t3, T1 = (cls.tables.t2,
+                                cls.classes.T2,
+                                cls.classes.T3,
+                                cls.tables.t1,
+                                cls.tables.t3,
+                                cls.classes.T1)
+
         mapper(T1, t1, properties={'t2': relationship(T2, cascade="all")})
         mapper(T2, t2, properties={'t3': relationship(T3, cascade="all")})
         mapper(T3, t3)
 
-    @testing.resolve_artifact_names
     def test_cascade_delete(self):
+        T2, T3, T1 = (self.classes.T2,
+                                self.classes.T3,
+                                self.classes.T1)
+
         sess = create_session()
         x = T1(data='t1a', t2=T2(data='t2a', t3=T3(data='t3a')))
         sess.add(x)
@@ -1219,8 +1372,11 @@ class M2OCascadeDeleteNoOrphanTest(_base.MappedTest):
         eq_(sess.query(T2).all(), [])
         eq_(sess.query(T3).all(), [])
 
-    @testing.resolve_artifact_names
     def test_cascade_delete_postappend_onelevel(self):
+        T2, T3, T1 = (self.classes.T2,
+                                self.classes.T3,
+                                self.classes.T1)
+
         sess = create_session()
         x1 = T1(data='t1', )
         x2 = T2(data='t2')
@@ -1236,8 +1392,11 @@ class M2OCascadeDeleteNoOrphanTest(_base.MappedTest):
         eq_(sess.query(T2).all(), [])
         eq_(sess.query(T3).all(), [])
 
-    @testing.resolve_artifact_names
     def test_cascade_delete_postappend_twolevel(self):
+        T2, T3, T1 = (self.classes.T2,
+                                self.classes.T3,
+                                self.classes.T1)
+
         sess = create_session()
         x1 = T1(data='t1', t2=T2(data='t2'))
         x3 = T3(data='t3')
@@ -1251,8 +1410,11 @@ class M2OCascadeDeleteNoOrphanTest(_base.MappedTest):
         eq_(sess.query(T2).all(), [])
         eq_(sess.query(T3).all(), [])
 
-    @testing.resolve_artifact_names
     def test_preserves_orphans_onelevel(self):
+        T2, T3, T1 = (self.classes.T2,
+                                self.classes.T3,
+                                self.classes.T1)
+
         sess = create_session()
         x2 = T1(data='t1b', t2=T2(data='t2b', t3=T3(data='t3b')))
         sess.add(x2)
@@ -1266,8 +1428,11 @@ class M2OCascadeDeleteNoOrphanTest(_base.MappedTest):
         eq_(sess.query(T3).all(), [T3()])
 
     @testing.future
-    @testing.resolve_artifact_names
     def test_preserves_orphans_onelevel_postremove(self):
+        T2, T3, T1 = (self.classes.T2,
+                                self.classes.T3,
+                                self.classes.T1)
+
         sess = create_session()
         x2 = T1(data='t1b', t2=T2(data='t2b', t3=T3(data='t3b')))
         sess.add(x2)
@@ -1280,8 +1445,11 @@ class M2OCascadeDeleteNoOrphanTest(_base.MappedTest):
         eq_(sess.query(T2).all(), [T2()])
         eq_(sess.query(T3).all(), [T3()])
 
-    @testing.resolve_artifact_names
     def test_preserves_orphans_twolevel(self):
+        T2, T3, T1 = (self.classes.T2,
+                                self.classes.T3,
+                                self.classes.T1)
+
         sess = create_session()
         x = T1(data='t1a', t2=T2(data='t2a', t3=T3(data='t3a')))
         sess.add(x)
@@ -1296,7 +1464,7 @@ class M2OCascadeDeleteNoOrphanTest(_base.MappedTest):
 
 
 
-class M2MCascadeTest(_base.MappedTest):
+class M2MCascadeTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('a', metadata,
@@ -1329,15 +1497,20 @@ class M2MCascadeTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class A(_fixtures.Base):
+        class A(cls.Comparable):
             pass
-        class B(_fixtures.Base):
+        class B(cls.Comparable):
             pass
-        class C(_fixtures.Base):
+        class C(cls.Comparable):
             pass
 
-    @testing.resolve_artifact_names
     def test_delete_orphan(self):
+        a, A, B, b, atob = (self.tables.a,
+                                self.classes.A,
+                                self.classes.B,
+                                self.tables.b,
+                                self.tables.atob)
+
 
         # if no backref here, delete-orphan failed until [ticket:427]
         # was fixed
@@ -1358,8 +1531,13 @@ class M2MCascadeTest(_base.MappedTest):
         assert b.count().scalar() == 0
         assert a.count().scalar() == 1
 
-    @testing.resolve_artifact_names
     def test_delete_orphan_dynamic(self):
+        a, A, B, b, atob = (self.tables.a,
+                                self.classes.A,
+                                self.classes.B,
+                                self.tables.b,
+                                self.tables.atob)
+
         mapper(A, a, properties={'bs': relationship(B, secondary=atob,
                cascade='all, delete-orphan', single_parent=True,
                lazy='dynamic')})  # if no backref here, delete-orphan
@@ -1378,8 +1556,15 @@ class M2MCascadeTest(_base.MappedTest):
         assert b.count().scalar() == 0
         assert a.count().scalar() == 1
 
-    @testing.resolve_artifact_names
     def test_delete_orphan_cascades(self):
+        a, A, c, b, C, B, atob = (self.tables.a,
+                                self.classes.A,
+                                self.tables.c,
+                                self.tables.b,
+                                self.classes.C,
+                                self.classes.B,
+                                self.tables.atob)
+
         mapper(A, a, properties={
             # if no backref here, delete-orphan failed until [ticket:427] was
             # fixed
@@ -1403,8 +1588,13 @@ class M2MCascadeTest(_base.MappedTest):
         assert a.count().scalar() == 1
         assert c.count().scalar() == 0
 
-    @testing.resolve_artifact_names
     def test_cascade_delete(self):
+        a, A, B, b, atob = (self.tables.a,
+                                self.classes.A,
+                                self.classes.B,
+                                self.tables.b,
+                                self.tables.atob)
+
         mapper(A, a, properties={
             'bs':relationship(B, secondary=atob, cascade="all, delete-orphan",
                                     single_parent=True)
@@ -1422,8 +1612,13 @@ class M2MCascadeTest(_base.MappedTest):
         assert b.count().scalar() == 0
         assert a.count().scalar() == 0
 
-    @testing.resolve_artifact_names
     def test_single_parent_raise(self):
+        a, A, B, b, atob = (self.tables.a,
+                                self.classes.A,
+                                self.classes.B,
+                                self.tables.b,
+                                self.tables.atob)
+
         mapper(A, a, properties={
             'bs':relationship(B, secondary=atob, cascade="all, delete-orphan",
                                     single_parent=True)
@@ -1438,9 +1633,15 @@ class M2MCascadeTest(_base.MappedTest):
                 A, data='a2', bs=[b1]
             )
 
-    @testing.resolve_artifact_names
     def test_single_parent_backref(self):
         """test that setting m2m via a uselist=False backref bypasses the single_parent raise"""
+
+        a, A, B, b, atob = (self.tables.a,
+                                self.classes.A,
+                                self.classes.B,
+                                self.tables.b,
+                                self.tables.atob)
+
 
         mapper(A, a, properties={
             'bs':relationship(B, 
@@ -1468,8 +1669,14 @@ class NoBackrefCascadeTest(_fixtures.FixtureTest):
     run_inserts = None
 
     @classmethod
-    @testing.resolve_artifact_names
     def setup_mappers(cls):
+        addresses, Dingaling, User, dingalings, Address, users = (cls.tables.addresses,
+                                cls.classes.Dingaling,
+                                cls.classes.User,
+                                cls.tables.dingalings,
+                                cls.classes.Address,
+                                cls.tables.users)
+
         mapper(Address, addresses)
         mapper(User, users, properties={
                 'addresses':relationship(Address, backref='user', 
@@ -1481,8 +1688,9 @@ class NoBackrefCascadeTest(_fixtures.FixtureTest):
                             cascade_backrefs=False)
         })
 
-    @testing.resolve_artifact_names
     def test_o2m_basic(self):
+        User, Address = self.classes.User, self.classes.Address
+
         sess = Session()
 
         u1 = User(name='u1')
@@ -1493,8 +1701,9 @@ class NoBackrefCascadeTest(_fixtures.FixtureTest):
         assert a1 not in sess
 
 
-    @testing.resolve_artifact_names
     def test_o2m_commit_warns(self):
+        User, Address = self.classes.User, self.classes.Address
+
         sess = Session()
 
         u1 = User(name='u1')
@@ -1512,8 +1721,9 @@ class NoBackrefCascadeTest(_fixtures.FixtureTest):
         assert a1 not in sess
 
 
-    @testing.resolve_artifact_names
     def test_o2m_flag_on_backref(self):
+        Dingaling, Address = self.classes.Dingaling, self.classes.Address
+
         sess = Session()
 
         a1 = Address(email_address='a1')
@@ -1526,8 +1736,9 @@ class NoBackrefCascadeTest(_fixtures.FixtureTest):
 
         sess.commit()
 
-    @testing.resolve_artifact_names
     def test_m2o_basic(self):
+        Dingaling, Address = self.classes.Dingaling, self.classes.Address
+
         sess = Session()
 
         a1 = Address(email_address='a1')
@@ -1537,8 +1748,9 @@ class NoBackrefCascadeTest(_fixtures.FixtureTest):
         a1.dingalings.append(d1)
         assert a1 not in sess
 
-    @testing.resolve_artifact_names
     def test_m2o_flag_on_backref(self):
+        User, Address = self.classes.User, self.classes.Address
+
         sess = Session()
 
         a1 = Address(email_address='a1')
@@ -1548,8 +1760,9 @@ class NoBackrefCascadeTest(_fixtures.FixtureTest):
         u1.addresses.append(a1)
         assert u1 in sess
 
-    @testing.resolve_artifact_names
     def test_m2o_commit_warns(self):
+        Dingaling, Address = self.classes.Dingaling, self.classes.Address
+
         sess = Session()
 
         a1 = Address(email_address='a1')
@@ -1565,7 +1778,7 @@ class NoBackrefCascadeTest(_fixtures.FixtureTest):
             sess.commit
         )
 
-class PendingOrphanTestSingleLevel(_base.MappedTest):
+class PendingOrphanTestSingleLevel(fixtures.MappedTest):
     """Pending entities that are orphans"""
 
     @classmethod
@@ -1586,14 +1799,13 @@ class PendingOrphanTestSingleLevel(_base.MappedTest):
         )
     @classmethod
     def setup_classes(cls):
-        class User(_fixtures.Base):
+        class User(cls.Comparable):
             pass
-        class Address(_fixtures.Base):
+        class Address(cls.Comparable):
             pass
-        class Order(_fixtures.Base):
+        class Order(cls.Comparable):
             pass
 
-    @testing.resolve_artifact_names
     def test_pending_standalone_orphan(self):
         """Standalone 'orphan' objects can now be persisted, if the underlying 
         constraints of the database allow it.
@@ -1602,6 +1814,14 @@ class PendingOrphanTestSingleLevel(_base.MappedTest):
         values alone.
 
         """
+
+        users, orders, User, Address, Order, addresses = (self.tables.users,
+                                self.tables.orders,
+                                self.classes.User,
+                                self.classes.Address,
+                                self.classes.Order,
+                                self.tables.addresses)
+
 
         mapper(Order, orders)
         mapper(Address, addresses)
@@ -1635,10 +1855,15 @@ class PendingOrphanTestSingleLevel(_base.MappedTest):
         assert o in s and o not in s.new
 
 
-    @testing.resolve_artifact_names
     def test_pending_collection_expunge(self):
         """Removing a pending item from a collection expunges it from
         the session."""
+
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
 
         mapper(Address, addresses)
         mapper(User, users, properties=dict(
@@ -1663,8 +1888,12 @@ class PendingOrphanTestSingleLevel(_base.MappedTest):
 
         assert a.address_id is None, "Error: address should not be persistent"
 
-    @testing.resolve_artifact_names
     def test_nonorphans_ok(self):
+        users, Address, addresses, User = (self.tables.users,
+                                self.classes.Address,
+                                self.tables.addresses,
+                                self.classes.User)
+
         mapper(Address, addresses)
         mapper(User, users, properties=dict(
             addresses=relationship(Address, cascade="all,delete",
@@ -1681,7 +1910,7 @@ class PendingOrphanTestSingleLevel(_base.MappedTest):
         eq_(s.query(Address).all(), [Address(email_address='ad1')])
 
 
-class PendingOrphanTestTwoLevel(_base.MappedTest):
+class PendingOrphanTestTwoLevel(fixtures.MappedTest):
     """test usages stated at
 
     http://article.gmane.org/gmane.comp.python.sqlalchemy.user/3085
@@ -1704,15 +1933,19 @@ class PendingOrphanTestTwoLevel(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Order(_base.ComparableEntity):
+        class Order(cls.Comparable):
             pass
-        class Item(_base.ComparableEntity):
+        class Item(cls.Comparable):
             pass
-        class Attribute(_base.ComparableEntity):
+        class Attribute(cls.Comparable):
             pass
 
-    @testing.resolve_artifact_names
     def test_singlelevel_remove(self):
+        item, Order, order, Item = (self.tables.item,
+                                self.classes.Order,
+                                self.tables.order,
+                                self.classes.Item)
+
         mapper(Order, order, properties={
             'items':relationship(Item, cascade="all, delete-orphan")
         })
@@ -1727,8 +1960,14 @@ class PendingOrphanTestTwoLevel(_base.MappedTest):
         s.commit()
         assert i1 not in o1.items
 
-    @testing.resolve_artifact_names
     def test_multilevel_remove(self):
+        Item, Attribute, order, item, attribute, Order = (self.classes.Item,
+                                self.classes.Attribute,
+                                self.tables.order,
+                                self.tables.item,
+                                self.tables.attribute,
+                                self.classes.Order)
+
         mapper(Order, order, properties={
             'items':relationship(Item, cascade="all, delete-orphan")
         })
@@ -1763,7 +2002,7 @@ class PendingOrphanTestTwoLevel(_base.MappedTest):
         assert i1 not in s
         assert a1 not in o1.items
 
-class DoubleParentO2MOrphanTest(_base.MappedTest):
+class DoubleParentO2MOrphanTest(fixtures.MappedTest):
     """Test orphan behavior on an entity that requires
     two parents via many-to-one (one-to-many collection.).
 
@@ -1789,16 +2028,20 @@ class DoubleParentO2MOrphanTest(_base.MappedTest):
             Column('account_id', Integer,
                    ForeignKey('accounts.account_id')))
 
-    @testing.resolve_artifact_names
     def test_double_parent_expunge_o2m(self):
         """test the delete-orphan uow event for multiple delete-orphan
         parent relationships."""
 
-        class Customer(_fixtures.Base):
+        sales_reps, customers, accounts = (self.tables.sales_reps,
+                                self.tables.customers,
+                                self.tables.accounts)
+
+
+        class Customer(fixtures.ComparableEntity):
             pass
-        class Account(_fixtures.Base):
+        class Account(fixtures.ComparableEntity):
             pass
-        class SalesRep(_fixtures.Base):
+        class SalesRep(fixtures.ComparableEntity):
             pass
 
         mapper(Customer, customers)
@@ -1830,16 +2073,20 @@ class DoubleParentO2MOrphanTest(_base.MappedTest):
         assert c not in s, \
             'Should expunge customer when both parents are gone'
 
-    @testing.resolve_artifact_names
     def test_double_parent_expunge_o2o(self):
         """test the delete-orphan uow event for multiple delete-orphan
         parent relationships."""
 
-        class Customer(_fixtures.Base):
+        sales_reps, customers, accounts = (self.tables.sales_reps,
+                                self.tables.customers,
+                                self.tables.accounts)
+
+
+        class Customer(fixtures.ComparableEntity):
             pass
-        class Account(_fixtures.Base):
+        class Account(fixtures.ComparableEntity):
             pass
-        class SalesRep(_fixtures.Base):
+        class SalesRep(fixtures.ComparableEntity):
             pass
 
         mapper(Customer, customers)
@@ -1872,7 +2119,7 @@ class DoubleParentO2MOrphanTest(_base.MappedTest):
             'Should expunge customer when both parents are gone'
 
 
-class DoubleParentM2OOrphanTest(_base.MappedTest):
+class DoubleParentM2OOrphanTest(fixtures.MappedTest):
     """Test orphan behavior on an entity that requires
     two parents via one-to-many (many-to-one reference to the orphan).
 
@@ -1902,16 +2149,20 @@ class DoubleParentM2OOrphanTest(_base.MappedTest):
                    nullable=False),
         )
 
-    @testing.resolve_artifact_names
     def test_non_orphan(self):
         """test that an entity can have two parent delete-orphan
         cascades, and persists normally."""
 
-        class Address(_fixtures.Base):
+        homes, businesses, addresses = (self.tables.homes,
+                                self.tables.businesses,
+                                self.tables.addresses)
+
+
+        class Address(fixtures.ComparableEntity):
             pass
-        class Home(_fixtures.Base):
+        class Home(fixtures.ComparableEntity):
             pass
-        class Business(_fixtures.Base):
+        class Business(fixtures.ComparableEntity):
             pass
 
         mapper(Address, addresses)
@@ -1936,19 +2187,23 @@ class DoubleParentM2OOrphanTest(_base.MappedTest):
             Business(description='business1',
             address=Address(street='address2')))
 
-    @testing.resolve_artifact_names
     def test_orphan(self):
         """test that an entity can have two parent delete-orphan
         cascades, and is detected as an orphan when saved without a
         parent."""
 
-        class Address(_fixtures.Base):
+        homes, businesses, addresses = (self.tables.homes,
+                                self.tables.businesses,
+                                self.tables.addresses)
+
+
+        class Address(fixtures.ComparableEntity):
             pass
 
-        class Home(_fixtures.Base):
+        class Home(fixtures.ComparableEntity):
             pass
 
-        class Business(_fixtures.Base):
+        class Business(fixtures.ComparableEntity):
             pass
 
         mapper(Address, addresses)
@@ -1963,7 +2218,7 @@ class DoubleParentM2OOrphanTest(_base.MappedTest):
         session.add(a1)
         session.flush()
 
-class CollectionAssignmentOrphanTest(_base.MappedTest):
+class CollectionAssignmentOrphanTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('table_a', metadata, 
@@ -1976,11 +2231,12 @@ class CollectionAssignmentOrphanTest(_base.MappedTest):
               Column('name', String(30)), 
               Column('a_id', Integer, ForeignKey('table_a.id')))
 
-    @testing.resolve_artifact_names
     def test_basic(self):
-        class A(_fixtures.Base):
+        table_b, table_a = self.tables.table_b, self.tables.table_a
+
+        class A(fixtures.ComparableEntity):
             pass
-        class B(_fixtures.Base):
+        class B(fixtures.ComparableEntity):
             pass
 
         mapper(A, table_a, properties={
@@ -2010,7 +2266,7 @@ class CollectionAssignmentOrphanTest(_base.MappedTest):
         eq_(sess.query(A).get(a1.id),
             A(name='a1', bs=[B(name='b1'), B(name='b2'), B(name='b3')]))
 
-class O2MConflictTest(_base.MappedTest):
+class O2MConflictTest(fixtures.MappedTest):
     """test that O2M dependency detects a change in parent, does the
     right thing, and updates the collection/attribute.
 
@@ -2031,13 +2287,14 @@ class O2MConflictTest(_base.MappedTest):
 
     @classmethod
     def setup_classes(cls):
-        class Parent(_base.ComparableEntity):
+        class Parent(cls.Comparable):
             pass
-        class Child(_base.ComparableEntity):
+        class Child(cls.Comparable):
             pass
 
-    @testing.resolve_artifact_names
     def _do_move_test(self, delete_old):
+        Parent, Child = self.classes.Parent, self.classes.Child
+
         sess = create_session()
 
         p1, p2, c1 = Parent(), Parent(), Child()
@@ -2060,8 +2317,12 @@ class O2MConflictTest(_base.MappedTest):
         sess.flush()
         eq_(sess.query(Child).filter(Child.parent_id==p2.id).all(), [c1])
 
-    @testing.resolve_artifact_names
     def test_o2o_delete_old(self):
+        Child, Parent, parent, child = (self.classes.Child,
+                                self.classes.Parent,
+                                self.tables.parent,
+                                self.tables.child)
+
         mapper(Parent, parent, properties={
             'child':relationship(Child, uselist=False)
         })
@@ -2069,8 +2330,12 @@ class O2MConflictTest(_base.MappedTest):
         self._do_move_test(True)
         self._do_move_test(False)
 
-    @testing.resolve_artifact_names
     def test_o2m_delete_old(self):
+        Child, Parent, parent, child = (self.classes.Child,
+                                self.classes.Parent,
+                                self.tables.parent,
+                                self.tables.child)
+
         mapper(Parent, parent, properties={
             'child':relationship(Child, uselist=True)
         })
@@ -2078,8 +2343,12 @@ class O2MConflictTest(_base.MappedTest):
         self._do_move_test(True)
         self._do_move_test(False)
 
-    @testing.resolve_artifact_names
     def test_o2o_backref_delete_old(self):
+        Child, Parent, parent, child = (self.classes.Child,
+                                self.classes.Parent,
+                                self.tables.parent,
+                                self.tables.child)
+
         mapper(Parent, parent, properties={
             'child':relationship(Child, uselist=False, backref='parent')
         })
@@ -2087,8 +2356,12 @@ class O2MConflictTest(_base.MappedTest):
         self._do_move_test(True)
         self._do_move_test(False)
 
-    @testing.resolve_artifact_names
     def test_o2o_delcascade_delete_old(self):
+        Child, Parent, parent, child = (self.classes.Child,
+                                self.classes.Parent,
+                                self.tables.parent,
+                                self.tables.child)
+
         mapper(Parent, parent, properties={
             'child':relationship(Child, uselist=False, cascade="all, delete")
         })
@@ -2096,8 +2369,12 @@ class O2MConflictTest(_base.MappedTest):
         self._do_move_test(True)
         self._do_move_test(False)
 
-    @testing.resolve_artifact_names
     def test_o2o_delorphan_delete_old(self):
+        Child, Parent, parent, child = (self.classes.Child,
+                                self.classes.Parent,
+                                self.tables.parent,
+                                self.tables.child)
+
         mapper(Parent, parent, properties={
             'child':relationship(Child, uselist=False, 
                                     cascade="all, delete, delete-orphan")
@@ -2106,8 +2383,12 @@ class O2MConflictTest(_base.MappedTest):
         self._do_move_test(True)
         self._do_move_test(False)
 
-    @testing.resolve_artifact_names
     def test_o2o_delorphan_backref_delete_old(self):
+        Child, Parent, parent, child = (self.classes.Child,
+                                self.classes.Parent,
+                                self.tables.parent,
+                                self.tables.child)
+
         mapper(Parent, parent, properties={
             'child':relationship(Child, uselist=False, 
                                         cascade="all, delete, delete-orphan", 
@@ -2117,8 +2398,12 @@ class O2MConflictTest(_base.MappedTest):
         self._do_move_test(True)
         self._do_move_test(False)
 
-    @testing.resolve_artifact_names
     def test_o2o_backref_delorphan_delete_old(self):
+        Child, Parent, parent, child = (self.classes.Child,
+                                self.classes.Parent,
+                                self.tables.parent,
+                                self.tables.child)
+
         mapper(Parent, parent)
         mapper(Child, child, properties = {
             'parent' : relationship(Parent, uselist=False, single_parent=True, 
@@ -2128,8 +2413,12 @@ class O2MConflictTest(_base.MappedTest):
         self._do_move_test(True)
         self._do_move_test(False)
 
-    @testing.resolve_artifact_names
     def test_o2m_backref_delorphan_delete_old(self):
+        Child, Parent, parent, child = (self.classes.Child,
+                                self.classes.Parent,
+                                self.tables.parent,
+                                self.tables.child)
+
         mapper(Parent, parent)
         mapper(Child, child, properties = {
             'parent' : relationship(Parent, uselist=False, single_parent=True, 
@@ -2140,7 +2429,7 @@ class O2MConflictTest(_base.MappedTest):
         self._do_move_test(False)
 
 
-class PartialFlushTest(_base.MappedTest):
+class PartialFlushTest(fixtures.MappedTest):
     """test cascade behavior as it relates to object lists passed to flush()."""
     @classmethod
     def define_tables(cls, metadata):
@@ -2165,11 +2454,12 @@ class PartialFlushTest(_base.MappedTest):
         )
 
     @testing.uses_deprecated()
-    @testing.resolve_artifact_names
     def test_o2m_m2o(self):
-        class Base(_base.ComparableEntity):
+        base, noninh_child = self.tables.base, self.tables.noninh_child
+
+        class Base(fixtures.ComparableEntity):
             pass
-        class Child(_base.ComparableEntity):
+        class Child(fixtures.ComparableEntity):
             pass
 
         mapper(Base, base, properties={
@@ -2215,11 +2505,15 @@ class PartialFlushTest(_base.MappedTest):
         assert b1 in sess and b1 in sess.new
 
     @testing.uses_deprecated()
-    @testing.resolve_artifact_names
     def test_circular_sort(self):
         """test ticket 1306"""
 
-        class Base(_base.ComparableEntity):
+        base, inh_child, parent = (self.tables.base,
+                                self.tables.inh_child,
+                                self.tables.parent)
+
+
+        class Base(fixtures.ComparableEntity):
             pass
         class Parent(Base):
             pass

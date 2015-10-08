@@ -3,10 +3,10 @@ from sqlalchemy import *
 from sqlalchemy.orm import *
 
 from test.lib import testing
-from test.orm import _base
+from test.lib import fixtures
 from test.lib.schema import Table, Column
 
-class InheritTest(_base.MappedTest):
+class InheritTest(fixtures.MappedTest):
     """tests some various inheritance round trips involving a particular set of polymorphic inheritance relationships"""
     @classmethod
     def define_tables(cls, metadata):
@@ -213,6 +213,7 @@ class InheritTest(_base.MappedTest):
     def testfour(self):
         """this tests the RasterDocument being attached to the Assembly, but *not* the Document.  this means only
         a "sub-class" task, i.e. corresponding to an inheriting mapper but not the base mapper, is created. """
+
         product_mapper = mapper(Product, products_table,
             polymorphic_on=products_table.c.product_type,
             polymorphic_identity='product')
