@@ -49,6 +49,7 @@ class Mapper(object):
                  non_primary = False,
                  inherits = None,
                  inherit_condition = None,
+                 inherit_foreign_keys = None,
                  extension = None,
                  order_by = False,
                  allow_column_override = False,
@@ -98,6 +99,7 @@ class Mapper(object):
         self.select_table = select_table
         self.local_table = local_table
         self.inherit_condition = inherit_condition
+        self.inherit_foreign_keys = inherit_foreign_keys
         self.extension = extension
         self.properties = properties or {}
         self.allow_column_override = allow_column_override
@@ -142,10 +144,6 @@ class Mapper(object):
 
         self.include_properties = include_properties
         self.exclude_properties = exclude_properties
-
-        # each time the options() method is called, the resulting Mapper is
-        # stored in this dictionary based on the given options for fast re-access
-        self._options = {}
 
         # a set of all mappers which inherit from this one.
         self._inheriting_mappers = util.Set()
@@ -346,7 +344,11 @@ class Mapper(object):
                     # stricter set of tables to create "sync rules" by,based on the immediate
                     # inherited table, rather than all inherited tables
                     self._synchronizer = sync.ClauseSynchronizer(self, self, sync.ONETOMANY)
-                    self._synchronizer.compile(self.mapped_table.onclause)
+                    if self.inherit_foreign_keys:
+                        fks = util.Set(self.inherit_foreign_keys)
+                    else:
+                        fks = None
+                    self._synchronizer.compile(self.mapped_table.onclause, foreign_keys=fks)
             else:
                 self._synchronizer = None
                 self.mapped_table = self.local_table
@@ -577,15 +579,15 @@ class Mapper(object):
 
         if self.inherits is not None:
             for key, prop in self.inherits.__props.iteritems():
-                if not self.__props.has_key(key):
+                if key not in self.__props:
                     self._adapt_inherited_property(key, prop)
 
         # load properties from the main table object,
         # not overriding those set up in the 'properties' argument
         for column in self.mapped_table.columns:
-            if self.columntoproperty.has_key(column):
+            if column in self.columntoproperty:
                 continue
-            if not self.columns.has_key(column.key):
+            if column.key not in self.columns:
                 self.columns[column.key] = self.select_table.corresponding_column(column, keys_ok=True, raiseerr=True)
 
             column_key = (self.column_prefix or '') + column.key
@@ -679,7 +681,7 @@ class Mapper(object):
         if self.non_primary:
             return
 
-        if not self.non_primary and (mapper_registry.has_key(self.class_key)):
+        if not self.non_primary and (self.class_key in mapper_registry):
              raise exceptions.ArgumentError("Class '%s' already has a primary mapper defined with entity name '%s'.  Use non_primary=True to create a non primary Mapper, or to create a new primary mapper, remove this mapper first via sqlalchemy.orm.clear_mapper(mapper), or preferably sqlalchemy.orm.clear_mappers() to clear all mappers." % (self.class_, self.entity_name))
 
         attribute_manager.reset_class_managed(self.class_)
@@ -1293,7 +1295,7 @@ class Mapper(object):
             if not pk:
                 return False
             for k in pk:
-                if not self.columntoproperty.has_key(k):
+                if k not in self.columntoproperty:
                     return False
             else:
                 return True
@@ -1414,12 +1416,12 @@ class Mapper(object):
                 raise exceptions.ConcurrentModificationError("Instance '%s' version of %s does not match %s" % (instance, self.get_attr_by_column(instance, self.version_id_col), row[self.version_id_col]))
 
             if populate_existing or context.session.is_expired(instance, unexpire=True):
-                if not context.identity_map.has_key(identitykey):
+                if identitykey not in context.identity_map:
                     context.identity_map[identitykey] = instance
                     isnew = True
-                if extension.populate_instance(self, context, row, instance, **{'instancekey':identitykey, 'isnew':isnew}) is EXT_CONTINUE:
-                    self.populate_instance(context, instance, row, **{'instancekey':identitykey, 'isnew':isnew})
-            if extension.append_result(self, context, row, instance, result, **{'instancekey':identitykey, 'isnew':isnew}) is EXT_CONTINUE:
+                if extension.populate_instance(self, context, row, instance, instancekey=identitykey, isnew=isnew) is EXT_CONTINUE:
+                    self.populate_instance(context, instance, row, instancekey=identitykey, isnew=isnew)
+            if extension.append_result(self, context, row, instance, result, instancekey=identitykey, isnew=isnew) is EXT_CONTINUE:
                 if result is not None:
                     result.append(instance)
             return instance
@@ -1471,10 +1473,6 @@ class Mapper(object):
         obj = self.class_.__new__(self.class_)
         obj._entity_name = self.entity_name
 
-        # this gets the AttributeManager to do some pre-initialization,
-        # in order to save on KeyErrors later on
-        attribute_manager.init_attr(obj)
-
         return obj
 
     def _deferred_inheritance_condition(self, needs_tables):
@@ -1506,7 +1504,7 @@ class Mapper(object):
         newrow = util.DictDecorator(row)
         for c in tomapper.mapped_table.c:
             c2 = self.mapped_table.corresponding_column(c, keys_ok=True, raiseerr=False)
-            if c2 and row.has_key(c2):
+            if c2 and c2 in row:
                 newrow[c] = row[c2]
         return newrow
 
@@ -1569,8 +1567,8 @@ class Mapper(object):
             params = {}
             for c in param_names:
                 params[c.name] = self.get_attr_by_column(instance, c)
-            row = selectcontext.session.connection(self).execute(statement, **params).fetchone()
-            self.populate_instance(selectcontext, instance, row, **{'isnew':False, 'instancekey':identitykey, 'ispostselect':True})
+            row = selectcontext.session.connection(self).execute(statement, params).fetchone()
+            self.populate_instance(selectcontext, instance, row, isnew=False, instancekey=identitykey, ispostselect=True)
 
         return post_execute
             

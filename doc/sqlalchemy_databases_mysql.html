@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/14/07 11:13:06</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/16/07 11:15:18</div>
 
 
 
@@ -401,7 +401,7 @@ will generate a BLOB.  This usage is deprecated.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def get_col_spec(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
@@ -411,7 +411,7 @@ will generate a BLOB.  This usage is deprecated.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_col_spec(<i>self</i>)</b>
+    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -459,10 +459,9 @@ type.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def get_col_spec(<i>self</i>)</b>
     <div class="docstring">
-    <p>Convert a MySQL's 64 bit, variable length binary string to a long.</p>
-
+    
     </div>
     </div>
 
@@ -470,9 +469,10 @@ type.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_col_spec(<i>self</i>)</b>
+    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
-    
+    <p>Convert a MySQL's 64 bit, variable length binary string to a long.</p>
+
     </div>
     </div>
 
@@ -521,7 +521,7 @@ subsitituting the smallest TEXT type sufficient to store
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def get_col_spec(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
@@ -531,7 +531,7 @@ subsitituting the smallest TEXT type sufficient to store
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_col_spec(<i>self</i>)</b>
+    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -565,17 +565,7 @@ subsitituting the smallest TEXT type sufficient to store
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -586,6 +576,16 @@ subsitituting the smallest TEXT type sufficient to store
     
     <A name=""></a>
     <b>def get_col_spec(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -902,7 +902,7 @@ collation of character data.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>engine</i>)</b>
+    <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -970,7 +970,7 @@ underlying database API, which continue to be numeric.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1410,17 +1410,7 @@ underlying database API, which continue to be numeric.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1431,6 +1421,16 @@ underlying database API, which continue to be numeric.</dd>
     
     <A name=""></a>
     <b>def get_col_spec(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1502,17 +1502,7 @@ collation of character data.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>engine</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1523,6 +1513,16 @@ collation of character data.</dd>
     
     <A name=""></a>
     <b>def get_col_spec(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1751,7 +1751,7 @@ collation of character data.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def get_col_spec(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1761,7 +1761,7 @@ collation of character data.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def get_col_spec(<i>self</i>)</b>
+    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>

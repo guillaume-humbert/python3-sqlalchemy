@@ -280,7 +280,7 @@ class OrderedProperties(object):
         return key in self._data
 
     def get(self, key, default=None):
-        if self.has_key(key):
+        if key in self:
             return self[key]
         else:
             return default
@@ -320,7 +320,7 @@ class OrderedDict(dict):
             self.update(kwargs)
 
     def setdefault(self, key, value):
-        if not self.has_key(key):
+        if key not in self:
             self.__setitem__(key, value)
             return value
         else:
@@ -348,7 +348,7 @@ class OrderedDict(dict):
         return iter(self.items())
 
     def __setitem__(self, key, object):
-        if not self.has_key(key):
+        if key not in self:
             self._list.append(key)
         dict.__setitem__(self, key, object)
 
@@ -366,26 +366,32 @@ class OrderedDict(dict):
         self._list.remove(item[0])
         return item
 
-class ThreadLocal(object):
-    """An object in which attribute access occurs only within the context of the current thread."""
+try:
+    from threading import local as ThreadLocal
+except ImportError:
+    try:
+        from dummy_threading import local as ThreadLocal
+    except ImportError:
+        class ThreadLocal(object):
+            """An object in which attribute access occurs only within the context of the current thread."""
 
-    def __init__(self):
-        self.__dict__['_tdict'] = {}
+            def __init__(self):
+                self.__dict__['_tdict'] = {}
 
-    def __delattr__(self, key):
-        try:
-            del self._tdict["%d_%s" % (thread.get_ident(), key)]
-        except KeyError:
-            raise AttributeError(key)
+            def __delattr__(self, key):
+                try:
+                    del self._tdict[(thread.get_ident(), key)]
+                except KeyError:
+                    raise AttributeError(key)
 
-    def __getattr__(self, key):
-        try:
-            return self._tdict["%d_%s" % (thread.get_ident(), key)]
-        except KeyError:
-            raise AttributeError(key)
+            def __getattr__(self, key):
+                try:
+                    return self._tdict[(thread.get_ident(), key)]
+                except KeyError:
+                    raise AttributeError(key)
 
-    def __setattr__(self, key, value):
-        self._tdict["%d_%s" % (thread.get_ident(), key)] = value
+            def __setattr__(self, key, value):
+                self._tdict[(thread.get_ident(), key)] = value
 
 class DictDecorator(dict):
     """A Dictionary that delegates items not found to a second wrapped dictionary."""

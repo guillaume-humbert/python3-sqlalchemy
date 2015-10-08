@@ -423,6 +423,11 @@ def mapper(class_, local_table=None, *args, **params):
         ``ClauseElement``) which will define how the two tables are
         joined; defaults to a natural join between the two tables.
 
+      inherit_foreign_keys
+        when inherit_condition is used and the condition contains no
+        ForeignKey columns, specify the "foreign" columns of the join 
+        condition in this list.  else leave as None.
+        
       order_by
         A single ``Column`` or list of ``Columns`` for which
         selection operations should use as the default ordering for
@@ -617,7 +622,7 @@ def contains_alias(alias):
             selectable = self.get_selectable(mapper)
             for c in mapper.mapped_table.c:
                 c2 = selectable.corresponding_column(c, keys_ok=True, raiseerr=False)
-                if c2 and row.has_key(c2):
+                if c2 and c2 in row:
                     newrow[c] = row[c2]
             return newrow
 

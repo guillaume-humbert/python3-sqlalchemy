@@ -243,11 +243,13 @@ test/orm/inheritance/poly_linked_list.py
 test/orm/inheritance/polymorph.py
 test/orm/inheritance/polymorph2.py
 test/orm/inheritance/productspec.py
+test/orm/inheritance/selects.py
 test/orm/inheritance/single.py
 test/orm/sharding/__init__.py
 test/orm/sharding/alltests.py
 test/orm/sharding/shard.py
 test/perf/cascade_speed.py
+test/perf/insertspeed.py
 test/perf/masscreate.py
 test/perf/masscreate2.py
 test/perf/masseagerload.py

@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/14/07 11:13:06</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/16/07 11:15:18</div>
 
 
 
@@ -2031,7 +2031,7 @@ col2 = row['col2']   # access via name
 col3 = row[mytable.c.mycol] # access via Column object.
 </pre>
 <p>ResultProxy also contains a map of TypeEngine objects and will
-invoke the appropriate <tt class="docutils literal"><span class="pre">convert_result_value()</span></tt> method before
+invoke the appropriate <tt class="docutils literal"><span class="pre">result_processor()</span></tt> method before
 returning columns, as well as the ExecutionContext corresponding
 to the statement execution.  It provides several methods for which
 to obtain information from the underlying ExecutionContext.</p>

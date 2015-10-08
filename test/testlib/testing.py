@@ -140,7 +140,7 @@ class ExecutionContextWrapper(object):
                 # asserting a dictionary of statements->parameters
                 # this is to specify query assertions where the queries can be in 
                 # multiple orderings
-                if not item.has_key('_converted'):
+                if '_converted' not in item:
                     for key in item.keys():
                         ckey = self.convert_statement(key)
                         item[ckey] = item[key]
@@ -221,7 +221,7 @@ class SQLCompileTest(PersistTest):
 
         if checkparams is not None:
             if isinstance(checkparams, list):
-                self.assert_(c.get_params().get_raw_list() == checkparams, "params dont match ")
+                self.assert_(c.get_params().get_raw_list({}) == checkparams, "params dont match ")
             else:
                 self.assert_(c.get_params().get_original_dict() == checkparams, "params dont match" + repr(c.get_params()))
 
@@ -293,14 +293,19 @@ _otest_metadata = None
 class ORMTest(AssertMixin):
     keep_mappers = False
     keep_data = False
-
+    metadata = None
+    
     def setUpAll(self):
         global MetaData, _otest_metadata
 
         if MetaData is None:
             from sqlalchemy import MetaData
         
-        _otest_metadata = MetaData(config.db)
+        if self.metadata is None:
+            _otest_metadata = MetaData(config.db)
+        else:
+            _otest_metadata = self.metadata
+            _otest_metadata.bind = config.db
         self.define_tables(_otest_metadata)
         _otest_metadata.create_all()
         self.insert_data()

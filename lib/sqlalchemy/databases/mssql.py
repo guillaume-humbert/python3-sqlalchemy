@@ -47,16 +47,18 @@ from sqlalchemy.engine import default
 import operator
     
 class MSNumeric(sqltypes.Numeric):
-    def convert_result_value(self, value, dialect):
-        return value
+    def result_processor(self, dialect):
+        return None
 
-    def convert_bind_param(self, value, dialect):
-        if value is None:
-            # Not sure that this exception is needed
-            return value
-        else:
-            return str(value) 
-
+    def bind_processor(self, dialect):
+        def process(value):
+            if value is None:
+                # Not sure that this exception is needed
+                return value
+            else:
+                return str(value) 
+        return process
+        
     def get_col_spec(self):
         if self.precision is None:
             return "NUMERIC"
@@ -67,12 +69,14 @@ class MSFloat(sqltypes.Float):
     def get_col_spec(self):
         return "FLOAT(%(precision)s)" % {'precision': self.precision}
 
-    def convert_bind_param(self, value, dialect):
-        """By converting to string, we can use Decimal types round-trip."""
-        if not value is None:
-            return str(value)
-        return None
-
+    def bind_processor(self, dialect):
+        def process(value):
+            """By converting to string, we can use Decimal types round-trip."""
+            if not value is None:
+                return str(value)
+            return None
+        return process
+        
 class MSInteger(sqltypes.Integer):
     def get_col_spec(self):
         return "INTEGER"
@@ -108,57 +112,71 @@ class MSTime(sqltypes.Time):
     def get_col_spec(self):
         return "DATETIME"
 
-    def convert_bind_param(self, value, dialect):
-        if isinstance(value, datetime.datetime):
-            value = datetime.datetime.combine(self.__zero_date, value.time())
-        elif isinstance(value, datetime.time):
-            value = datetime.datetime.combine(self.__zero_date, value)
-        return value
-
-    def convert_result_value(self, value, dialect):
-        if isinstance(value, datetime.datetime):
-            return value.time()
-        elif isinstance(value, datetime.date):
-            return datetime.time(0, 0, 0)
-        return value
-
+    def bind_processor(self, dialect):
+        def process(value):
+            if isinstance(value, datetime.datetime):
+                value = datetime.datetime.combine(self.__zero_date, value.time())
+            elif isinstance(value, datetime.time):
+                value = datetime.datetime.combine(self.__zero_date, value)
+            return value
+        return process
+    
+    def result_processor(self, dialect):
+        def process(value):
+            if isinstance(value, datetime.datetime):
+                return value.time()
+            elif isinstance(value, datetime.date):
+                return datetime.time(0, 0, 0)
+            return value
+        return process
+        
 class MSDateTime_adodbapi(MSDateTime):
-    def convert_result_value(self, value, dialect):
-        # adodbapi will return datetimes with empty time values as datetime.date() objects.
-        # Promote them back to full datetime.datetime()
-        if value and not hasattr(value, 'second'):
-            return datetime.datetime(value.year, value.month, value.day)
-        return value
-
+    def result_processor(self, dialect):
+        def process(value):
+            # adodbapi will return datetimes with empty time values as datetime.date() objects.
+            # Promote them back to full datetime.datetime()
+            if value and not hasattr(value, 'second'):
+                return datetime.datetime(value.year, value.month, value.day)
+            return value
+        return process
+        
 class MSDateTime_pyodbc(MSDateTime):
-    def convert_bind_param(self, value, dialect):
-        if value and not hasattr(value, 'second'):
-            return datetime.datetime(value.year, value.month, value.day)
-        else:
-            return value
-
+    def bind_processor(self, dialect):
+        def process(value):
+            if value and not hasattr(value, 'second'):
+                return datetime.datetime(value.year, value.month, value.day)
+            else:
+                return value
+        return process
+        
 class MSDate_pyodbc(MSDate):
-    def convert_bind_param(self, value, dialect):
-        if value and not hasattr(value, 'second'):
-            return datetime.datetime(value.year, value.month, value.day)
-        else:
-            return value
-
-    def convert_result_value(self, value, dialect):
-        # pyodbc returns SMALLDATETIME values as datetime.datetime(). truncate it back to datetime.date()
-        if value and hasattr(value, 'second'):
-            return value.date()
-        else:
-            return value
-
+    def bind_processor(self, dialect):
+        def process(value):
+            if value and not hasattr(value, 'second'):
+                return datetime.datetime(value.year, value.month, value.day)
+            else:
+                return value
+        return process
+    
+    def result_processor(self, dialect):
+        def process(value):
+            # pyodbc returns SMALLDATETIME values as datetime.datetime(). truncate it back to datetime.date()
+            if value and hasattr(value, 'second'):
+                return value.date()
+            else:
+                return value
+        return process
+        
 class MSDate_pymssql(MSDate):
-    def convert_result_value(self, value, dialect):
-        # pymssql will return SMALLDATETIME values as datetime.datetime(), truncate it back to datetime.date()
-        if value and hasattr(value, 'second'):
-            return value.date()
-        else:
-            return value
-
+    def result_processor(self, dialect):
+        def process(value):
+            # pymssql will return SMALLDATETIME values as datetime.datetime(), truncate it back to datetime.date()
+            if value and hasattr(value, 'second'):
+                return value.date()
+            else:
+                return value
+        return process
+        
 class MSText(sqltypes.TEXT):
     def get_col_spec(self):
         if self.dialect.text_as_varchar:
@@ -181,11 +199,11 @@ class MSNVarchar(sqltypes.Unicode):
 
 class AdoMSNVarchar(MSNVarchar):
     """overrides bindparam/result processing to not convert any unicode strings"""
-    def convert_bind_param(self, value, dialect):
-        return value
+    def bind_processor(self, dialect):
+        return None
 
-    def convert_result_value(self, value, dialect):
-        return value        
+    def result_processor(self, dialect):
+        return None
 
 class MSChar(sqltypes.CHAR):
     def get_col_spec(self):
@@ -203,20 +221,24 @@ class MSBoolean(sqltypes.Boolean):
     def get_col_spec(self):
         return "BIT"
 
-    def convert_result_value(self, value, dialect):
-        if value is None:
-            return None
-        return value and True or False
-
-    def convert_bind_param(self, value, dialect):
-        if value is True:
-            return 1
-        elif value is False:
-            return 0
-        elif value is None:
-            return None
-        else:
+    def result_processor(self, dialect):
+        def process(value):
+            if value is None:
+                return None
             return value and True or False
+        return process
+    
+    def bind_processor(self, dialect):
+        def process(value):
+            if value is True:
+                return 1
+            elif value is False:
+                return 0
+            elif value is None:
+                return None
+            else:
+                return value and True or False
+        return process
         
 class MSTimeStamp(sqltypes.TIMESTAMP):
     def get_col_spec(self):
@@ -403,13 +425,13 @@ class MSSQLDialect(ansisql.ANSIDialect):
     def create_connect_args(self, url):
         opts = url.translate_connect_args(['host', 'database', 'user', 'password', 'port'])
         opts.update(url.query)
-        if opts.has_key('auto_identity_insert'):
+        if 'auto_identity_insert' in opts:
             self.auto_identity_insert = bool(int(opts.pop('auto_identity_insert')))
-        if opts.has_key('query_timeout'):
+        if 'query_timeout' in opts:
             self.query_timeout = int(opts.pop('query_timeout'))
-        if opts.has_key('text_as_varchar'):
+        if 'text_as_varchar' in opts:
             self.text_as_varchar = bool(int(opts.pop('text_as_varchar')))
-        if opts.has_key('use_scope_identity'):
+        if 'use_scope_identity' in opts:
             self.use_scope_identity = bool(int(opts.pop('use_scope_identity')))
         return self.make_connect_string(opts)
 
@@ -848,7 +870,7 @@ class MSSQLCompiler(ansisql.ANSICompiler):
             
     def _schema_aliased_table(self, table):
         if getattr(table, 'schema', None) is not None:
-            if not self.tablealiases.has_key(table):
+            if table not in self.tablealiases:
                 self.tablealiases[table] = table.alias()
             return self.tablealiases[table]
         else:

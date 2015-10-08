@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 08/14/07 11:13:06</div>
+<div class="versionheader">Version: 0.4   Last Updated: 08/16/07 11:15:18</div>
 
 
 
@@ -274,7 +274,7 @@ does <strong>not</strong> work around</li>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -284,7 +284,7 @@ does <strong>not</strong> work around</li>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -348,17 +348,7 @@ does <strong>not</strong> work around</li>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -369,6 +359,16 @@ does <strong>not</strong> work around</li>
     
     <A name=""></a>
     <b>def get_col_spec(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -518,7 +518,7 @@ does <strong>not</strong> work around</li>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -550,7 +550,7 @@ does <strong>not</strong> work around</li>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -582,7 +582,7 @@ does <strong>not</strong> work around</li>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -614,7 +614,7 @@ does <strong>not</strong> work around</li>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -624,7 +624,7 @@ does <strong>not</strong> work around</li>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -656,10 +656,9 @@ does <strong>not</strong> work around</li>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
-    <p>By converting to string, we can use Decimal types round-trip.</p>
-
+    
     </div>
     </div>
 
@@ -795,17 +794,7 @@ does <strong>not</strong> work around</li>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -816,6 +805,16 @@ does <strong>not</strong> work around</li>
     
     <A name=""></a>
     <b>def get_col_spec(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1825,17 +1824,7 @@ workaround for multiple result set issues.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>dialect</i>)</b>
+    <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1846,6 +1835,16 @@ workaround for multiple result set issues.</p>
     
     <A name=""></a>
     <b>def get_col_spec(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def result_processor(<i>self</i>, <i>dialect</i>)</b>
     <div class="docstring">
     
     </div>
