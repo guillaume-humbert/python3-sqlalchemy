@@ -865,7 +865,8 @@ class Session(object):
                 for t in sql_util.find_tables(clause):
                     if t in self.__binds:
                         return self.__binds[t]
-        elif self.bind:
+
+        if self.bind:
             return self.bind
 
         if isinstance(clause, sql.expression.ClauseElement) and clause.bind:
@@ -959,7 +960,7 @@ class Session(object):
             # remove associations
             cascaded = list(_cascade_state_iterator('refresh-expire', state))
             _expire_state(state, None)
-            for (state, m) in cascaded:
+            for (state, m, o) in cascaded:
                 _expire_state(state, None)
 
     def prune(self):
@@ -990,7 +991,7 @@ class Session(object):
             raise sa_exc.InvalidRequestError(
                 "Instance %s is not present in this Session" %
                 mapperutil.state_str(state))
-        for s, m in [(state, None)] + list(_cascade_state_iterator('expunge', state)):
+        for s, m, o in [(state, None, None)] + list(_cascade_state_iterator('expunge', state)):
             self._expunge_state(s)
 
     def _expunge_state(self, state):
@@ -1119,8 +1120,12 @@ class Session(object):
             state = attributes.instance_state(instance)
         except exc.NO_STATE:
             raise exc.UnmappedInstanceError(instance)
-        self._delete_impl(state)
-        for state, m in _cascade_state_iterator('delete', state):
+        
+        # grab the full cascade list first, since lazyloads/autoflush
+        # may be triggered by this operation (delete cascade lazyloads by default)
+        cascade_states = list(_cascade_state_iterator('delete', state))
+        self._delete_impl(state)    
+        for state, m, o in cascade_states:
             self._delete_impl(state, ignore_transient=True)
 
     def merge(self, instance, entity_name=None, dont_load=False,
@@ -1433,7 +1438,13 @@ class Session(object):
             if added or deleted:
                 return True
         return False
-
+    
+    def is_active(self):
+        """return True if this Session has an active transaction."""
+        
+        return self.transaction and self.transaction.is_active
+    is_active = property(is_active)
+    
     def _dirty_states(self):
         """Return a set of all persistent states considered dirty.
 
@@ -1501,8 +1512,11 @@ _sessions = weakref.WeakValueDictionary()
 
 def _cascade_state_iterator(cascade, state, **kwargs):
     mapper = _state_mapper(state)
+    # yield the state, object, mapper.  yielding the object
+    # allows the iterator's results to be held in a list without
+    # states being garbage collected
     for (o, m) in mapper.cascade_iterator(cascade, state, **kwargs):
-        yield attributes.instance_state(o), m
+        yield attributes.instance_state(o), o, m
 
 def _cascade_unknown_state_iterator(cascade, state, **kwargs):
     mapper = _state_mapper(state)

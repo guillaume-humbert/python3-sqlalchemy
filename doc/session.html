@@ -27,7 +27,10 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
+<div class="versionheader">
+  Version: <span class="versionnum prerelease">0.5.0beta2</span>
+  Last Updated: 07/14/08 16:12:25
+</div>
 
 
 
@@ -231,7 +234,7 @@
 
 <p>In the most general sense, the <code>Session</code> establishes all conversations with the database and represents a "holding zone" for all the mapped instances which you've loaded or created during its lifespan.  It implements the <a href='http://martinfowler.com/eaaCatalog/unitOfWork.html'>Unit of Work</a> pattern, which means it keeps track of all changes which occur, and is capable of <strong>flushing</strong> those changes to the database as appropriate.   Another important facet of the <code>Session</code> is that it's also maintaining <strong>unique</strong> copies of each instance, where "unique" means "only one object with a particular primary key" - this pattern is called the <a href='http://martinfowler.com/eaaCatalog/identityMap.html'>Identity Map</a>.
 </p>
-<p>Beyond that, the <code>Session</code> implements an interface which let's you move objects in or out of the session in a variety of ways, it provides the entryway to a <code>Query</code> object which is used to query the database for data, and it also provides a transactional context for SQL operations which rides on top of the transactional capabilities of <code>Engine</code> and <code>Connection</code> objects.
+<p>Beyond that, the <code>Session</code> implements an interface which lets you move objects in or out of the session in a variety of ways, it provides the entryway to a <code>Query</code> object which is used to query the database for data, and it also provides a transactional context for SQL operations which rides on top of the transactional capabilities of <code>Engine</code> and <code>Connection</code> objects.
 </p>
 
 

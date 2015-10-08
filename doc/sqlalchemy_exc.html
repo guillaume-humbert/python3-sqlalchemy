@@ -30,7 +30,10 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
+<div class="versionheader">
+  Version: <span class="versionnum prerelease">0.5.0beta2</span>
+  Last Updated: 07/14/08 16:12:25
+</div>
 
 
 
@@ -91,6 +94,9 @@
 
         
         <li><a style="" href="sqlalchemy_exc.html#docstrings_sqlalchemy.exc_FlushError">class FlushError(SQLAlchemyError)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_exc.html#docstrings_sqlalchemy.exc_IdentifierError">class IdentifierError(SQLAlchemyError)</a></li>
 
         
         <li><a style="" href="sqlalchemy_exc.html#docstrings_sqlalchemy.exc_IntegrityError">class IntegrityError(DatabaseError)</a></li>
@@ -160,7 +166,7 @@
     <div class="darkcell"><p>Exceptions used with SQLAlchemy.</p>
 <p>The base exception class is SQLAlchemyError.  Exceptions which are raised as a
 result of DBAPI exceptions are all subclasses of
-<b>DBAPIError</b>.</p>
+<a href="sqlalchemy_exc.html#docstrings_sqlalchemy.exc_DBAPIError">DBAPIError</a>.</p>
 </div>
     
 
@@ -406,6 +412,30 @@ be raised by a <tt class="docutils literal"><span class="pre">PoolListener</span
     
     
     <div class="darkcell"><p>A invalid condition was detected during flush().</p>
+</div>
+    
+
+
+    
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.exc_IdentifierError"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class IdentifierError(<a href="sqlalchemy_exc.html#docstrings_sqlalchemy.exc_SQLAlchemyError">SQLAlchemyError</a>)</h3>
+    
+    
+    <div class="darkcell"><p>Raised when a schema name is beyond the max character limit</p>
 </div>
     
 

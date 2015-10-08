@@ -350,16 +350,6 @@ class SybaseUniqueIdentifier(sqltypes.TypeEngine):
     def get_col_spec(self):
         return "UNIQUEIDENTIFIER"
 
-def descriptor():
-    return {'name':'sybase',
-    'description':'SybaseSQL',
-    'arguments':[
-        ('user',"Database Username",None),
-        ('password',"Database Password",None),
-        ('db',"Database Name",None),
-        ('host',"Hostname", None),
-    ]}
-
 class SybaseSQLExecutionContext(default.DefaultExecutionContext):
     pass
 
@@ -460,6 +450,7 @@ class SybaseSQLDialect(default.DefaultDialect):
         'java serialization' : SybaseTypeError,
     }
 
+    name = 'sybase'
     # Sybase backend peculiarities
     supports_unicode_statements = False
     supports_sane_rowcount = False
@@ -844,7 +835,7 @@ class SybaseSQLSchemaDropper(compiler.SchemaDropper):
     def visit_index(self, index):
         self.append("\nDROP INDEX %s.%s" % (
             self.preparer.quote_identifier(index.table.name),
-            self.preparer.quote_identifier(index.name)
+            self.preparer.quote(self._validate_identifier(index.name, False), index.quote)
             ))
         self.execute()
 

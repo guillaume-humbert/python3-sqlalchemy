@@ -30,7 +30,10 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
+<div class="versionheader">
+  Version: <span class="versionnum prerelease">0.5.0beta2</span>
+  Last Updated: 07/14/08 16:12:25
+</div>
 
 
 
@@ -1974,11 +1977,12 @@ in the order of the table def's primary key columns.</p>
     <A name=""></a>
     <b>def instances(<i>self</i>, <i>cursor</i>, <i>_Query__context=None</i>)</b>
     <div class="docstring">
-    <p>Given a ResultProxy cursor as returned by connection.execute(), return an ORM result as a list.</p>
+    <p>Given a ResultProxy cursor as returned by connection.execute(), return an ORM result as an iterator.</p>
 <p>e.g.:</p>
 <pre class="literal-block">
 result = engine.execute(&quot;select * from users&quot;)
-users = session.query(User).instances(result)
+for u in session.query(User).instances(result):
+    print u
 </pre>
 
     </div>
@@ -1988,15 +1992,18 @@ users = session.query(User).instances(result)
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def iterate_instances(<i>self</i>, <i>cursor</i>, <i>_Query__context=None</i>)</b>
+    <b>def iterate_instances(<i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>Given a ResultProxy cursor as returned by connection.execute(), return an ORM result as an iterator.</p>
+    <p>Deprecated.
+Given a ResultProxy cursor as returned by connection.execute(), return an ORM result as an iterator.</p>
+<blockquote>
 <p>e.g.:</p>
 <pre class="literal-block">
 result = engine.execute(&quot;select * from users&quot;)
-for u in session.query(User).iterate_instances(result):
+for u in session.query(User).instances(result):
     print u
 </pre>
+</blockquote>
 
     </div>
     </div>

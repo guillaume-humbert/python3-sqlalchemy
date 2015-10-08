@@ -30,7 +30,10 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
+<div class="versionheader">
+  Version: <span class="versionnum prerelease">0.5.0beta2</span>
+  Last Updated: 07/14/08 16:12:25
+</div>
 
 
 
@@ -295,8 +298,8 @@ with <cite>with_labels</cite>, to disambiguate columns with their table name
 <p>SqlSoup uses a ScopedSession to provide thread-local sessions.  You
 can get a reference to the current one like this:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; from sqlalchemy.ext.sqlsoup import objectstore
-&gt;&gt;&gt; session = objectstore.current
+&gt;&gt;&gt; from sqlalchemy.ext.sqlsoup import Session
+&gt;&gt;&gt; session = Session()
 </pre>
 <p>Now you have access to all the standard session-based SA features,
 such as transactions.  (SqlSoup's <tt class="docutils literal"><span class="pre">flush()</span></tt> is normally

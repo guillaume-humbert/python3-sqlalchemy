@@ -188,15 +188,6 @@ ischema_names = {
     'LONG' : OracleText,
 }
 
-def descriptor():
-    return {'name':'oracle',
-    'description':'Oracle',
-    'arguments':[
-        ('dsn', 'Data Source Name', None),
-        ('user', 'Username', None),
-        ('password', 'Password', None)
-    ]}
-
 class OracleExecutionContext(default.DefaultExecutionContext):
     def pre_exec(self):
         super(OracleExecutionContext, self).pre_exec()
@@ -240,6 +231,7 @@ class OracleExecutionContext(default.DefaultExecutionContext):
         return base.ResultProxy(self)
 
 class OracleDialect(default.DefaultDialect):
+    name = 'oracle'
     supports_alter = True
     supports_unicode_statements = False
     max_identifier_length = 30
@@ -592,7 +584,8 @@ class OracleCompiler(compiler.DefaultCompiler):
     operators = compiler.DefaultCompiler.operators.copy()
     operators.update(
         {
-            sql_operators.mod : lambda x, y:"mod(%s, %s)" % (x, y)
+            sql_operators.mod : lambda x, y:"mod(%s, %s)" % (x, y),
+            sql_operators.match_op: lambda x, y: "CONTAINS (%s, %s)" % (x, y)
         }
     )
 

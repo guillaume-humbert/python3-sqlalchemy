@@ -30,7 +30,10 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
+<div class="versionheader">
+  Version: <span class="versionnum prerelease">0.5.0beta2</span>
+  Last Updated: 07/14/08 16:12:25
+</div>
 
 
 
@@ -1139,6 +1142,8 @@ database-specific object implementations including
 ExecutionContext, Compiled, DefaultGenerator, and TypeEngine.</p>
 <p>All Dialects implement the following attributes:</p>
 <dl class="docutils">
+<dt>name</dt>
+<dd>identifying name for the dialect (i.e. 'sqlite')</dd>
 <dt>positional</dt>
 <dd>True if the paramstyle for this Dialect is positional.</dd>
 <dt>paramstyle</dt>

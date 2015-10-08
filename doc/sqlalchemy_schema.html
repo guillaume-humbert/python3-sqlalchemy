@@ -30,7 +30,10 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
+<div class="versionheader">
+  Version: <span class="versionnum prerelease">0.5.0beta2</span>
+  Last Updated: 07/14/08 16:12:25
+</div>
 
 
 
@@ -1752,6 +1755,9 @@ must be a dictionary.</dd>
 <dd>Defaults to False: indicates that this Table must already have
 been defined elsewhere in the application, else an exception is
 raised.</dd>
+<dt>prefixes</dt>
+<dd>A list of strings to insert after CREATE in the CREATE TABLE
+statement.  They will be separated by spaces.</dd>
 <dt>useexisting</dt>
 <dd>Defaults to False: indicates that if this Table was already
 defined elsewhere in the application, disregard the rest of the
@@ -1759,17 +1765,14 @@ constructor arguments.</dd>
 <dt>owner</dt>
 <dd>Deprecated; this is an oracle-only argument - &quot;schema&quot; should
 be used in its place.</dd>
-</dl>
-</dd>
 <dt>quote</dt>
-<dd><p class="first">Force quoting of the identifier on or off, based on <cite>True</cite> or
+<dd>Force quoting of the identifier on or off, based on <cite>True</cite> or
 <cite>False</cite>.  Defaults to <cite>None</cite>.  This flag is rarely needed,
 as quoting is normally applied
 automatically for known reserved words, as well as for
 &quot;case sensitive&quot; identifiers.  An identifier is &quot;case sensitive&quot;
 if it contains non-lowercase letters, otherwise it's
-considered to be &quot;case insensitive&quot;.</p>
-<dl class="last docutils">
+considered to be &quot;case insensitive&quot;.</dd>
 <dt>quote_schema</dt>
 <dd>same as 'quote' but applies to the schema identifier.</dd>
 </dl>

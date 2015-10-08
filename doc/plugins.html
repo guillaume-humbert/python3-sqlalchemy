@@ -27,7 +27,10 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.5.0beta1   Last Updated: 06/12/08 16:43:00</div>
+<div class="versionheader">
+  Version: <span class="versionnum prerelease">0.5.0beta2</span>
+  Last Updated: 07/14/08 16:12:25
+</div>
 
 
 
@@ -311,7 +314,7 @@
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">.</span><span class="python_name">attr </span><span class="python_operator">== </span><span class="python_literal">'some other value'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator">
 </span></pre>
     </div>
-<p>The <code>synonyn_for</code> decorator can accomplish the same task:
+<p>The <code>synonym_for</code> decorator can accomplish the same task:
 </p>
 
     
@@ -323,7 +326,7 @@
 </span>
     <span class="python_name">_attr </span><span class="python_operator">= </span><span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'attr'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-    <span class="python_operator">@</span><span class="python_name">synonyn_for</span><span class="python_enclosure">(</span><span class="python_literal">'_attr'</span><span class="python_enclosure">)</span><span class="python_operator">
+    <span class="python_operator">@</span><span class="python_name">synonym_for</span><span class="python_enclosure">(</span><span class="python_literal">'_attr'</span><span class="python_enclosure">)</span><span class="python_operator">
     @</span><span class="python_name">property</span><span class="python_operator">
     </span><span class="python_keyword">def </span><span class="python_name">attr</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">_some_attr</span><span class="python_operator">
@@ -361,15 +364,30 @@
     <span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>This is the preferred approach when using reflected tables, as below:
+<p>Other table-based attributes include <code>__table_args__</code>, which is
+   either a dictionary as in:
 </p>
 
     
 
     <div class="sliding_code">
         <pre>
-<span class="python_keyword">class </span><span class="python_name">MyClass</span><span class="python_enclosure">(</span><span class="python_name">Base</span><span class="python_enclosure">)</span><span class="python_operator">:
-    </span><span class="python_name">__table__ </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'my_table'</span><span class="python_operator">, </span><span class="python_name">Base</span><span class="python_operator">.</span><span class="python_name">metadata</span><span class="python_operator">, </span><span class="python_name">autoload</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+<span class="python_keyword">class </span><span class="python_name">MyClass</span><span class="python_enclosure">(</span><span class="python_name">Base</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">__tablename__ </span><span class="python_operator">= </span><span class="python_literal">'sometable'</span><span class="python_operator">
+    </span><span class="python_name">__table_args__ </span><span class="python_operator">= </span><span class="python_enclosure">{</span><span class="python_literal">'mysql_engine'</span><span class="python_operator">:</span><span class="python_literal">'InnoDB'</span><span class="python_enclosure">}</span><span class="python_operator">
+</span></pre>
+    </div>
+<p>or a dictionary-containing tuple in the form 
+   <code>(arg1, arg2, ..., {kwarg1:value, ...})</code>, as in:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_keyword">class </span><span class="python_name">MyClass</span><span class="python_enclosure">(</span><span class="python_name">Base</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">__tablename__ </span><span class="python_operator">= </span><span class="python_literal">'sometable'</span><span class="python_operator">
+    </span><span class="python_name">__table_args__ </span><span class="python_operator">= </span><span class="python_enclosure">(</span><span class="python_name">ForeignKeyConstraint</span><span class="python_enclosure">([</span><span class="python_literal">'id'</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_enclosure">[</span><span class="python_literal">'remote_table.id'</span><span class="python_enclosure">])</span><span class="python_operator">, </span><span class="python_enclosure">{</span><span class="python_literal">'autoload'</span><span class="python_operator">:</span><span class="python_name">True</span><span class="python_enclosure">})</span><span class="python_operator">
 </span></pre>
     </div>
 <p>Mapper arguments are specified using the <code>__mapper_args__</code> class variable. Note that the column objects declared on the class are immediately
