@@ -3,9 +3,8 @@
 from sqlalchemy.test.testing import assert_raises, assert_raises_message
 import sqlalchemy as sa
 from sqlalchemy.test import testing, pickleable
-from sqlalchemy import MetaData, Integer, String, ForeignKey, func
-from sqlalchemy.test.schema import Table
-from sqlalchemy.test.schema import Column
+from sqlalchemy import MetaData, Integer, String, ForeignKey, func, util
+from sqlalchemy.test.schema import Table, Column
 from sqlalchemy.engine import default
 from sqlalchemy.orm import mapper, relation, backref, create_session, class_mapper, compile_mappers, reconstructor, validates, aliased
 from sqlalchemy.orm import defer, deferred, synonym, attributes, column_property, composite, relation, dynamic_loader, comparable_property,AttributeExtension
@@ -116,12 +115,9 @@ class MapperTest(_fixtures.FixtureTest):
         s = sa.select([users.c.name]).alias('foo')
         assert_raises(sa.exc.ArgumentError, mapper, User, s)
 
-    @testing.emits_warning(
-        'mapper Mapper|User|Select object creating an alias for '
-        'the given selectable - use Class attributes for queries')
     @testing.resolve_artifact_names
     def test_no_pks_2(self):
-        s = sa.select([users.c.name])
+        s = sa.select([users.c.name]).alias()
         assert_raises(sa.exc.ArgumentError, mapper, User, s)
 
     @testing.resolve_artifact_names
@@ -361,7 +357,7 @@ class MapperTest(_fixtures.FixtureTest):
     def test_replace_property(self):
         m = mapper(User, users)
         m.add_property('_name',users.c.name)
-        m.add_property('name', synonym('_name', proxy=True))
+        m.add_property('name', synonym('_name'))
 
         sess = create_session()
         u = sess.query(User).filter_by(name='jack').one()
@@ -418,7 +414,7 @@ class MapperTest(_fixtures.FixtureTest):
     @testing.resolve_artifact_names
     def test_self_ref_synonym(self):
         t = Table('nodes', MetaData(),
-            Column('id', Integer, primary_key=True),
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('parent_id', Integer, ForeignKey('nodes.id')))
 
         class Node(object):
@@ -460,7 +456,7 @@ class MapperTest(_fixtures.FixtureTest):
     @testing.resolve_artifact_names
     def test_prop_filters(self):
         t = Table('person', MetaData(),
-                  Column('id', Integer, primary_key=True),
+                  Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
                   Column('type', String(128)),
                   Column('name', String(128)),
                   Column('employee_number', Integer),
@@ -562,7 +558,6 @@ class MapperTest(_fixtures.FixtureTest):
 
 
         mapper(User, users.outerjoin(addresses),
-               allow_null_pks=True,
                primary_key=[users.c.id, addresses.c.id],
                properties=dict(
             address_id=addresses.c.id))
@@ -716,7 +711,7 @@ class MapperTest(_fixtures.FixtureTest):
         mapper(User, users, properties=dict(
             addresses = relation(mapper(Address, addresses), lazy=True),
             uname = synonym('name'),
-            adlist = synonym('addresses', proxy=True),
+            adlist = synonym('addresses'),
             adname = synonym('addresses')
         ))
         
@@ -811,6 +806,26 @@ class MapperTest(_fixtures.FixtureTest):
         eq_(assert_col, [('get', 'jack'), ('set', 'foo'), ('get', 'foo')])
 
     @testing.resolve_artifact_names
+    def test_synonym_map_column_conflict(self):
+        assert_raises(
+            sa.exc.ArgumentError,
+            mapper,
+            User, users, properties=util.OrderedDict([
+                ('_user_id', users.c.id),
+                ('id', synonym('_user_id', map_column=True)),
+            ])
+        )
+
+        assert_raises(
+            sa.exc.ArgumentError,
+            mapper,
+            User, users, properties=util.OrderedDict([
+                ('id', synonym('_user_id', map_column=True)),
+                ('_user_id', users.c.id),
+            ])
+        )
+
+    @testing.resolve_artifact_names
     def test_comparable(self):
         class extendedproperty(property):
             attribute = 123
@@ -898,6 +913,7 @@ class MapperTest(_fixtures.FixtureTest):
     @testing.resolve_artifact_names
     def test_comparable_column(self):
         class MyComparator(sa.orm.properties.ColumnProperty.Comparator):
+            __hash__ = None
             def __eq__(self, other):
                 # lower case comparison
                 return func.lower(self.__clause_element__()) == func.lower(other)
@@ -919,6 +935,31 @@ class MapperTest(_fixtures.FixtureTest):
         eq_(str((User.name.intersects('ed')).compile(dialect=sa.engine.default.DefaultDialect())), "users.name &= :name_1")
         
 
+    @testing.resolve_artifact_names
+    def test_reentrant_compile(self):
+        class MyFakeProperty(sa.orm.properties.ColumnProperty):
+            def post_instrument_class(self, mapper):
+                super(MyFakeProperty, self).post_instrument_class(mapper)
+                m2.compile()
+            
+        m1 = mapper(User, users, properties={
+            'name':MyFakeProperty(users.c.name)
+        })
+        m2 = mapper(Address, addresses)
+        compile_mappers()
+
+        sa.orm.clear_mappers()
+        class MyFakeProperty(sa.orm.properties.ColumnProperty):
+            def post_instrument_class(self, mapper):
+                super(MyFakeProperty, self).post_instrument_class(mapper)
+                m1.compile()
+            
+        m1 = mapper(User, users, properties={
+            'name':MyFakeProperty(users.c.name)
+        })
+        m2 = mapper(Address, addresses)
+        compile_mappers()
+        
     @testing.resolve_artifact_names
     def test_reconstructor(self):
         recon = []
@@ -1025,7 +1066,7 @@ class OptionsTest(_fixtures.FixtureTest):
         mapper(User, users, properties=dict(
             addresses = relation(mapper(Address, addresses), lazy=True,
                                  order_by=addresses.c.id),
-            adlist = synonym('addresses', proxy=True)))
+            adlist = synonym('addresses')))
 
 
         def go():
@@ -1501,12 +1542,12 @@ class DeferredTest(_fixtures.FixtureTest):
     @testing.resolve_artifact_names
     def test_group(self):
         """Deferred load with a group"""
-        mapper(Order, orders, properties={
-            'userident': deferred(orders.c.user_id, group='primary'),
-            'addrident': deferred(orders.c.address_id, group='primary'),
-            'description': deferred(orders.c.description, group='primary'),
-            'opened': deferred(orders.c.isopen, group='primary')
-        })
+        mapper(Order, orders, properties=util.OrderedDict([
+            ('userident', deferred(orders.c.user_id, group='primary')),
+            ('addrident', deferred(orders.c.address_id, group='primary')),
+            ('description', deferred(orders.c.description, group='primary')),
+            ('opened', deferred(orders.c.isopen, group='primary'))
+        ]))
 
         sess = create_session()
         q = sess.query(Order).order_by(Order.id)
@@ -1612,10 +1653,12 @@ class DeferredTest(_fixtures.FixtureTest):
 
     @testing.resolve_artifact_names
     def test_undefer_group(self):
-        mapper(Order, orders, properties={
-            'userident':deferred(orders.c.user_id, group='primary'),
-            'description':deferred(orders.c.description, group='primary'),
-            'opened':deferred(orders.c.isopen, group='primary')})
+        mapper(Order, orders, properties=util.OrderedDict([
+            ('userident',deferred(orders.c.user_id, group='primary')),
+            ('description',deferred(orders.c.description, group='primary')),
+            ('opened',deferred(orders.c.isopen, group='primary'))
+            ]
+            ))
 
         sess = create_session()
         q = sess.query(Order).order_by(Order.id)
@@ -1846,11 +1889,11 @@ class DeferredPopulationTest(_base.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table("thing", metadata,
-            Column("id", Integer, primary_key=True),
+            Column("id", Integer, primary_key=True, test_needs_autoincrement=True),
             Column("name", String(20)))
 
         Table("human", metadata,
-            Column("id", Integer, primary_key=True),
+            Column("id", Integer, primary_key=True, test_needs_autoincrement=True),
             Column("thing_id", Integer, ForeignKey("thing.id")),
             Column("name", String(20)))
 
@@ -1934,13 +1977,12 @@ class CompositeTypesTest(_base.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('graphs', metadata,
-            Column('id', Integer, primary_key=True),
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('version_id', Integer, primary_key=True, nullable=True),
             Column('name', String(30)))
 
         Table('edges', metadata,
-            Column('id', Integer, primary_key=True,
-                   test_needs_autoincrement=True),
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('graph_id', Integer, nullable=False),
             Column('graph_version_id', Integer, nullable=False),
             Column('x1', Integer),
@@ -1952,7 +1994,7 @@ class CompositeTypesTest(_base.MappedTest):
             ['graphs.id', 'graphs.version_id']))
 
         Table('foobars', metadata,
-            Column('id', Integer, primary_key=True),
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('x1', Integer, default=2),
             Column('x2', Integer),
             Column('x3', Integer, default=15),
@@ -2063,7 +2105,7 @@ class CompositeTypesTest(_base.MappedTest):
             def __init__(self, version):
                 self.version = version
 
-        mapper(Graph, graphs, allow_null_pks=True, properties={
+        mapper(Graph, graphs, properties={
             'version':sa.orm.composite(Version, graphs.c.id,
                                        graphs.c.version_id)})
 
@@ -2091,7 +2133,7 @@ class CompositeTypesTest(_base.MappedTest):
 
         # test pk with one column NULL
         # TODO: can't seem to get NULL in for a PK value
-        # in either mysql or postgres, autoincrement=False etc.
+        # in either mysql or postgresql, autoincrement=False etc.
         # notwithstanding
         @testing.fails_on_everything_except("sqlite")
         def go():
@@ -2525,33 +2567,26 @@ class RequirementsTest(_base.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('ht1', metadata,
-              Column('id', Integer, primary_key=True,
-                     test_needs_autoincrement=True),
+              Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
               Column('value', String(10)))
         Table('ht2', metadata,
-              Column('id', Integer, primary_key=True,
-                     test_needs_autoincrement=True),
+              Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
               Column('ht1_id', Integer, ForeignKey('ht1.id')),
               Column('value', String(10)))
         Table('ht3', metadata,
-              Column('id', Integer, primary_key=True,
-                     test_needs_autoincrement=True),
+              Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
               Column('value', String(10)))
         Table('ht4', metadata,
-              Column('ht1_id', Integer, ForeignKey('ht1.id'),
-                     primary_key=True),
-              Column('ht3_id', Integer, ForeignKey('ht3.id'),
-                     primary_key=True))
+              Column('ht1_id', Integer, ForeignKey('ht1.id'), primary_key=True),
+              Column('ht3_id', Integer, ForeignKey('ht3.id'), primary_key=True))
         Table('ht5', metadata,
-              Column('ht1_id', Integer, ForeignKey('ht1.id'),
-                     primary_key=True))
+              Column('ht1_id', Integer, ForeignKey('ht1.id'), primary_key=True))
         Table('ht6', metadata,
-              Column('ht1a_id', Integer, ForeignKey('ht1.id'),
-                     primary_key=True),
-              Column('ht1b_id', Integer, ForeignKey('ht1.id'),
-                     primary_key=True),
+              Column('ht1a_id', Integer, ForeignKey('ht1.id'), primary_key=True),
+              Column('ht1b_id', Integer, ForeignKey('ht1.id'), primary_key=True),
               Column('value', String(10)))
 
+    # Py2K
     @testing.resolve_artifact_names
     def test_baseclass(self):
         class OldStyle:
@@ -2566,7 +2601,8 @@ class RequirementsTest(_base.MappedTest):
 
         # TODO: is weakref support detectable without an instance?
         #self.assertRaises(sa.exc.ArgumentError, mapper, NoWeakrefSupport, t2)
-
+    # end Py2K
+    
     @testing.resolve_artifact_names
     def test_comparison_overrides(self):
         """Simple tests to ensure users can supply comparison __methods__.
@@ -2696,12 +2732,12 @@ class MagicNamesTest(_base.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('cartographers', metadata,
-              Column('id', Integer, primary_key=True),
+              Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
               Column('name', String(50)),
               Column('alias', String(50)),
               Column('quip', String(100)))
         Table('maps', metadata,
-              Column('id', Integer, primary_key=True),
+              Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
               Column('cart_id', Integer,
                      ForeignKey('cartographers.id')),
               Column('state', String(2)),
@@ -2743,7 +2779,7 @@ class MagicNamesTest(_base.MappedTest):
         for reserved in (sa.orm.attributes.ClassManager.STATE_ATTR,
                          sa.orm.attributes.ClassManager.MANAGER_ATTR):
             t = Table('t', sa.MetaData(),
-                      Column('id', Integer, primary_key=True),
+                      Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
                       Column(reserved, Integer))
             class T(object):
                 pass

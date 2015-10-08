@@ -132,9 +132,9 @@ class SelectableTest(TestBase, AssertsExecutionResults):
         u = union(select([table1.c.col1, table1.c.col2, table1.c.col3]), select([table1.c.col1, table1.c.col2, table1.c.col3]))
 
         u = union(select([table1.c.col1, table1.c.col2, table1.c.col3]))
-        assert u.c.col1
-        assert u.c.col2
-        assert u.c.col3
+        assert u.c.col1 is not None
+        assert u.c.col2 is not None
+        assert u.c.col3 is not None
         
     def test_alias_union(self):
         # same as testunion, except its an alias of the union
@@ -201,10 +201,10 @@ class SelectableTest(TestBase, AssertsExecutionResults):
         l1 = select([func.max(table1.c.col1)]).label('foo')
 
         s = select([l1])
-        assert s.corresponding_column(l1).name == s.c.foo
+        eq_(s.corresponding_column(l1), s.c.foo)
         
         s = select([table1.c.col1, l1])
-        assert s.corresponding_column(l1).name == s.c.foo
+        eq_(s.corresponding_column(l1), s.c.foo)
 
     def test_select_alias_labels(self):
         a = table2.select(use_labels=True).alias('a')
@@ -275,12 +275,12 @@ class PrimaryKeyTest(TestBase, AssertsExecutionResults):
         d = Table('d', meta, Column('id', Integer, ForeignKey('c.id'), primary_key=True), Column('x', Integer))
 
         print list(a.join(b, a.c.x==b.c.id).primary_key)
-        assert list(a.join(b, a.c.x==b.c.id).primary_key) == [b.c.id]
+        assert list(a.join(b, a.c.x==b.c.id).primary_key) == [a.c.id]
         assert list(b.join(c, b.c.x==c.c.id).primary_key) == [b.c.id]
         assert list(a.join(b).join(c, c.c.id==b.c.x).primary_key) == [a.c.id]
-        assert list(b.join(c, c.c.x==b.c.id).join(d).primary_key) == [c.c.id]
+        assert list(b.join(c, c.c.x==b.c.id).join(d).primary_key) == [b.c.id]
         assert list(b.join(c, c.c.id==b.c.x).join(d).primary_key) == [b.c.id]
-        assert list(d.join(b, d.c.id==b.c.id).join(c, b.c.id==c.c.x).primary_key) == [c.c.id]
+        assert list(d.join(b, d.c.id==b.c.id).join(c, b.c.id==c.c.x).primary_key) == [b.c.id]
         assert list(a.join(b).join(c, c.c.id==b.c.x).join(d).primary_key) == [a.c.id]
 
         assert list(a.join(b, and_(a.c.id==b.c.id, a.c.x==b.c.id)).primary_key) == [a.c.id]
@@ -429,7 +429,7 @@ class ReduceTest(TestBase, AssertsExecutionResults):
             Column('magazine_page_id', Integer, ForeignKey('magazine_page.page_id'), primary_key=True),
         )
         
-       # this is essentially the union formed by the ORM's polymorphic_union function.
+        # this is essentially the union formed by the ORM's polymorphic_union function.
         # we define two versions with different ordering of selects.
 
         # the first selectable has the "real" column classified_page.magazine_page_id
@@ -445,7 +445,6 @@ class ReduceTest(TestBase, AssertsExecutionResults):
                 magazine_page_table.c.page_id, 
                 cast(null(), Integer).label('magazine_page_id')
             ]).select_from(page_table.join(magazine_page_table)),
-            
         ).alias('pjoin')
 
         eq_(

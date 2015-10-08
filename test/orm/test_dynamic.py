@@ -1,18 +1,17 @@
-from sqlalchemy.test.testing import eq_
+from sqlalchemy.test.testing import eq_, ne_
 import operator
 from sqlalchemy.orm import dynamic_loader, backref
 from sqlalchemy.test import testing
 from sqlalchemy import Integer, String, ForeignKey, desc, select, func
-from sqlalchemy.test.schema import Table
-from sqlalchemy.test.schema import Column
+from sqlalchemy.test.schema import Table, Column
 from sqlalchemy.orm import mapper, relation, create_session, Query, attributes
 from sqlalchemy.orm.dynamic import AppenderMixin
-from sqlalchemy.test.testing import eq_
+from sqlalchemy.test.testing import eq_, AssertsCompiledSQL
 from sqlalchemy.util import function_named
 from test.orm import _base, _fixtures
 
 
-class DynamicTest(_fixtures.FixtureTest):
+class DynamicTest(_fixtures.FixtureTest, AssertsCompiledSQL):
     @testing.resolve_artifact_names
     def test_basic(self):
         mapper(User, users, properties={
@@ -28,13 +27,36 @@ class DynamicTest(_fixtures.FixtureTest):
         eq_(self.static.user_address_result, q.all())
 
     @testing.resolve_artifact_names
+    def test_statement(self):
+        """test that the .statement accessor returns the actual statement that
+        would render, without any _clones called."""
+        
+        mapper(User, users, properties={
+            'addresses':dynamic_loader(mapper(Address, addresses))
+        })
+        sess = create_session()
+        q = sess.query(User)
+
+        u = q.filter(User.id==7).first()
+        self.assert_compile(
+            u.addresses.statement, 
+            "SELECT addresses.id, addresses.user_id, addresses.email_address FROM "
+            "addresses WHERE :param_1 = addresses.user_id",
+            use_default_dialect=True
+        )
+        
+    @testing.resolve_artifact_names
     def test_order_by(self):
         mapper(User, users, properties={
             'addresses':dynamic_loader(mapper(Address, addresses))
         })
         sess = create_session()
         u = sess.query(User).get(8)
-        eq_(list(u.addresses.order_by(desc(Address.email_address))), [Address(email_address=u'ed@wood.com'), Address(email_address=u'ed@lala.com'), Address(email_address=u'ed@bettyboop.com')])
+        eq_(
+            list(u.addresses.order_by(desc(Address.email_address))),
+             [Address(email_address=u'ed@wood.com'), Address(email_address=u'ed@lala.com'), 
+              Address(email_address=u'ed@bettyboop.com')]
+            )
 
     @testing.resolve_artifact_names
     def test_configured_order_by(self):
@@ -77,7 +99,7 @@ class DynamicTest(_fixtures.FixtureTest):
         ad = sess.query(Address).get(1)
         def go():
             ad.user = None
-        self.assert_sql_count(testing.db, go, 1)
+        self.assert_sql_count(testing.db, go, 0)
         sess.flush()
         u = sess.query(User).get(7)
         assert ad not in u.addresses
@@ -119,6 +141,34 @@ class DynamicTest(_fixtures.FixtureTest):
         assert i1 in o1.items.all()
 
     @testing.resolve_artifact_names
+    def test_association_nonaliased(self):
+        mapper(Order, orders, properties={
+            'items':relation(Item, secondary=order_items, 
+                                lazy="dynamic", 
+                                order_by=order_items.c.item_id)
+        })
+        mapper(Item, items)
+
+        sess = create_session()
+        o = sess.query(Order).first()
+
+        self.assert_compile(
+            o.items,
+            "SELECT items.id AS items_id, items.description AS items_description FROM items,"
+            " order_items WHERE :param_1 = order_items.order_id AND items.id = order_items.item_id"
+            " ORDER BY order_items.item_id",
+            use_default_dialect=True
+        )
+
+        # filter criterion against the secondary table 
+        # works
+        eq_(
+            o.items.filter(order_items.c.item_id==2).all(),
+            [Item(id=2)]
+        )
+        
+        
+    @testing.resolve_artifact_names
     def test_transient_detached(self):
         mapper(User, users, properties={
             'addresses':dynamic_loader(mapper(Address, addresses))
@@ -126,8 +176,8 @@ class DynamicTest(_fixtures.FixtureTest):
         sess = create_session()
         u1 = User()
         u1.addresses.append(Address())
-        assert u1.addresses.count() == 1
-        assert u1.addresses[0] == Address()
+        eq_(u1.addresses.count(), 1)
+        eq_(u1.addresses[0], Address())
 
     @testing.resolve_artifact_names
     def test_custom_query(self):
@@ -146,13 +196,13 @@ class DynamicTest(_fixtures.FixtureTest):
         assert isinstance(col, Query)
         assert isinstance(col, MyQuery)
         assert hasattr(col, 'append')
-        assert type(col).__name__ == 'AppenderMyQuery'
+        eq_(type(col).__name__, 'AppenderMyQuery')
 
         q = col.limit(1)
         assert isinstance(q, Query)
         assert isinstance(q, MyQuery)
         assert not hasattr(q, 'append')
-        assert type(q).__name__ == 'MyQuery'
+        eq_(type(q).__name__, 'MyQuery')
 
     @testing.resolve_artifact_names
     def test_custom_query_with_custom_mixin(self):
@@ -183,14 +233,14 @@ class DynamicTest(_fixtures.FixtureTest):
         assert isinstance(col, MyQuery)
         assert hasattr(col, 'append')
         assert hasattr(col, 'add')
-        assert type(col).__name__ == 'MyAppenderQuery'
+        eq_(type(col).__name__, 'MyAppenderQuery')
 
         q = col.limit(1)
         assert isinstance(q, Query)
         assert isinstance(q, MyQuery)
         assert not hasattr(q, 'append')
         assert not hasattr(q, 'add')
-        assert type(q).__name__ == 'MyQuery'
+        eq_(type(q).__name__, 'MyQuery')
 
 
 class SessionTest(_fixtures.FixtureTest):
@@ -207,32 +257,29 @@ class SessionTest(_fixtures.FixtureTest):
         sess.add_all([u1, a1])
         sess.flush()
 
-        assert testing.db.scalar(select([func.count(1)]).where(addresses.c.user_id!=None)) == 0
+        eq_(testing.db.scalar(select([func.count(1)]).where(addresses.c.user_id!=None)), 0)
         u1 = sess.query(User).get(u1.id)
         u1.addresses.append(a1)
         sess.flush()
 
-        assert testing.db.execute(select([addresses]).where(addresses.c.user_id!=None)).fetchall() == [
-            (a1.id, u1.id, 'foo')
-        ]
+        eq_(testing.db.execute(select([addresses]).where(addresses.c.user_id!=None)).fetchall(),
+            [(a1.id, u1.id, 'foo')])
 
         u1.addresses.remove(a1)
         sess.flush()
-        assert testing.db.scalar(select([func.count(1)]).where(addresses.c.user_id!=None)) == 0
+        eq_(testing.db.scalar(select([func.count(1)]).where(addresses.c.user_id!=None)), 0)
 
         u1.addresses.append(a1)
         sess.flush()
-        assert testing.db.execute(select([addresses]).where(addresses.c.user_id!=None)).fetchall() == [
-            (a1.id, u1.id, 'foo')
-        ]
+        eq_(testing.db.execute(select([addresses]).where(addresses.c.user_id!=None)).fetchall(),
+            [(a1.id, u1.id, 'foo')])
 
-        a2= Address(email_address='bar')
+        a2 = Address(email_address='bar')
         u1.addresses.remove(a1)
         u1.addresses.append(a2)
         sess.flush()
-        assert testing.db.execute(select([addresses]).where(addresses.c.user_id!=None)).fetchall() == [
-            (a2.id, u1.id, 'bar')
-        ]
+        eq_(testing.db.execute(select([addresses]).where(addresses.c.user_id!=None)).fetchall(),
+            [(a2.id, u1.id, 'bar')])
 
 
     @testing.resolve_artifact_names
@@ -256,11 +303,11 @@ class SessionTest(_fixtures.FixtureTest):
         u1.addresses.append(a1)
         u1.addresses.append(a3)
         u1 = sess.merge(u1)
-        assert attributes.get_history(u1, 'addresses') == (
+        eq_(attributes.get_history(u1, 'addresses'), (
             [a1],
             [a3],
             [a2]
-        )
+        ))
 
         sess.flush()
 
@@ -283,18 +330,21 @@ class SessionTest(_fixtures.FixtureTest):
         sess.flush()
 
         from sqlalchemy.orm import attributes
-        eq_(attributes.get_history(attributes.instance_state(u1), 'addresses'), ([], [Address(email_address='lala@hoho.com')], []))
+        eq_(attributes.get_history(u1, 'addresses'), ([], [Address(email_address='lala@hoho.com')], []))
 
         sess.expunge_all()
 
         # test the test fixture a little bit
-        assert User(name='jack', addresses=[Address(email_address='wrong')]) != sess.query(User).first()
-        assert User(name='jack', addresses=[Address(email_address='lala@hoho.com')]) == sess.query(User).first()
+        ne_(User(name='jack', addresses=[Address(email_address='wrong')]),
+            sess.query(User).first())
+        eq_(User(name='jack', addresses=[Address(email_address='lala@hoho.com')]),
+            sess.query(User).first())
 
-        assert [
+        eq_([
             User(name='jack', addresses=[Address(email_address='lala@hoho.com')]),
             User(name='ed', addresses=[Address(email_address='foo@bar.com')])
-        ] == sess.query(User).all()
+            ],
+            sess.query(User).all())
 
     @testing.resolve_artifact_names
     def test_hasattr(self):
@@ -321,16 +371,13 @@ class SessionTest(_fixtures.FixtureTest):
 
         sess.add(u1)
         u1.addresses = [a1, a3]
-        assert list(u1.addresses) == [a1, a3]
+        eq_(list(u1.addresses), [a1, a3])
         u1.addresses = [a1, a2, a4]
-        assert list(u1.addresses) == [a1, a2, a4]
+        eq_(list(u1.addresses), [a1, a2, a4])
         u1.addresses = [a2, a3]
-        assert list(u1.addresses) == [a2, a3]
+        eq_(list(u1.addresses), [a2, a3])
         u1.addresses = []
-        assert list(u1.addresses) == []
-
-
-
+        eq_(list(u1.addresses), [])
 
     @testing.resolve_artifact_names
     def test_rollback(self):
@@ -344,7 +391,8 @@ class SessionTest(_fixtures.FixtureTest):
         sess.flush()
         sess.commit()
         u1.addresses.append(Address(email_address='foo@bar.com'))
-        eq_(u1.addresses.all(), [Address(email_address='lala@hoho.com'), Address(email_address='foo@bar.com')])
+        eq_(u1.addresses.order_by(Address.id).all(), 
+                 [Address(email_address='lala@hoho.com'), Address(email_address='foo@bar.com')])
         sess.rollback()
         eq_(u1.addresses.all(), [Address(email_address='lala@hoho.com')])
 
@@ -352,7 +400,8 @@ class SessionTest(_fixtures.FixtureTest):
     @testing.resolve_artifact_names
     def test_delete_nocascade(self):
         mapper(User, users, properties={
-            'addresses':dynamic_loader(mapper(Address, addresses), order_by=Address.id, backref='user')
+            'addresses':dynamic_loader(mapper(Address, addresses), order_by=Address.id,
+                                       backref='user')
         })
         sess = create_session(autoflush=True)
         u = User(name='ed')
@@ -364,11 +413,12 @@ class SessionTest(_fixtures.FixtureTest):
         u.addresses.append(Address(email_address='f'))
         sess.add(u)
 
-        assert Address(email_address='c') == u.addresses[2]
+        eq_(Address(email_address='c'), u.addresses[2])
         sess.delete(u.addresses[2])
         sess.delete(u.addresses[4])
         sess.delete(u.addresses[3])
-        assert [Address(email_address='a'), Address(email_address='b'), Address(email_address='d')] == list(u.addresses)
+        eq_([Address(email_address='a'), Address(email_address='b'), Address(email_address='d')],
+            list(u.addresses))
 
         sess.expunge_all()
         u = sess.query(User).get(u.id)
@@ -380,13 +430,14 @@ class SessionTest(_fixtures.FixtureTest):
         sess.flush()
         sess.close()
 
-        assert testing.db.scalar(addresses.count(addresses.c.user_id != None)) ==0
+        eq_(testing.db.scalar(addresses.count(addresses.c.user_id != None)), 0)
 
     @testing.fails_on('maxdb', 'FIXME: unknown')
     @testing.resolve_artifact_names
     def test_delete_cascade(self):
         mapper(User, users, properties={
-            'addresses':dynamic_loader(mapper(Address, addresses), order_by=Address.id, backref='user', cascade="all, delete-orphan")
+            'addresses':dynamic_loader(mapper(Address, addresses), order_by=Address.id,
+                                       backref='user', cascade="all, delete-orphan")
         })
         sess = create_session(autoflush=True)
         u = User(name='ed')
@@ -398,11 +449,12 @@ class SessionTest(_fixtures.FixtureTest):
         u.addresses.append(Address(email_address='f'))
         sess.add(u)
 
-        assert Address(email_address='c') == u.addresses[2]
+        eq_(Address(email_address='c'), u.addresses[2])
         sess.delete(u.addresses[2])
         sess.delete(u.addresses[4])
         sess.delete(u.addresses[3])
-        assert [Address(email_address='a'), Address(email_address='b'), Address(email_address='d')] == list(u.addresses)
+        eq_([Address(email_address='a'), Address(email_address='b'), Address(email_address='d')],
+            list(u.addresses))
 
         sess.expunge_all()
         u = sess.query(User).get(u.id)
@@ -414,13 +466,14 @@ class SessionTest(_fixtures.FixtureTest):
         sess.flush()
         sess.close()
 
-        assert testing.db.scalar(addresses.count()) ==0
+        eq_(testing.db.scalar(addresses.count()), 0)
 
     @testing.fails_on('maxdb', 'FIXME: unknown')
     @testing.resolve_artifact_names
     def test_remove_orphans(self):
         mapper(User, users, properties={
-            'addresses':dynamic_loader(mapper(Address, addresses), order_by=Address.id, cascade="all, delete-orphan", backref='user')
+            'addresses':dynamic_loader(mapper(Address, addresses), order_by=Address.id,
+                                       cascade="all, delete-orphan", backref='user')
         })
         sess = create_session(autoflush=True)
         u = User(name='ed')
@@ -432,10 +485,11 @@ class SessionTest(_fixtures.FixtureTest):
         u.addresses.append(Address(email_address='f'))
         sess.add(u)
 
-        assert [Address(email_address='a'), Address(email_address='b'), Address(email_address='c'),
-            Address(email_address='d'), Address(email_address='e'), Address(email_address='f')] == sess.query(Address).all()
+        eq_([Address(email_address='a'), Address(email_address='b'), Address(email_address='c'),
+             Address(email_address='d'), Address(email_address='e'), Address(email_address='f')],
+            sess.query(Address).all())
 
-        assert Address(email_address='c') == u.addresses[2]
+        eq_(Address(email_address='c'), u.addresses[2])
 
         try:
             del u.addresses[3]
@@ -446,18 +500,17 @@ class SessionTest(_fixtures.FixtureTest):
         for a in u.addresses.filter(Address.email_address.in_(['c', 'e', 'f'])):
             u.addresses.remove(a)
 
-        assert [Address(email_address='a'), Address(email_address='b'), Address(email_address='d')] == list(u.addresses)
+        eq_([Address(email_address='a'), Address(email_address='b'), Address(email_address='d')],
+            list(u.addresses))
 
-        assert [Address(email_address='a'), Address(email_address='b'), Address(email_address='d')] == sess.query(Address).all()
+        eq_([Address(email_address='a'), Address(email_address='b'), Address(email_address='d')],
+            sess.query(Address).all())
 
         sess.delete(u)
         sess.close()
 
-
-def _create_backref_test(autoflush, saveuser):
-
     @testing.resolve_artifact_names
-    def test_backref(self):
+    def _backref_test(self, autoflush, saveuser):
         mapper(User, users, properties={
             'addresses':dynamic_loader(mapper(Address, addresses), backref='user')
         })
@@ -479,36 +532,39 @@ def _create_backref_test(autoflush, saveuser):
         assert u in sess
         assert a in sess
 
-        self.assert_(list(u.addresses) == [a])
+        eq_(list(u.addresses), [a])
 
         a.user = None
         if not autoflush:
-            self.assert_(list(u.addresses) == [a])
+            eq_(list(u.addresses), [a])
 
         if not autoflush:
             sess.flush()
-        self.assert_(list(u.addresses) == [])
+        eq_(list(u.addresses), [])
 
-    test_backref = function_named(
-        test_backref, "test%s%s" % ((autoflush and "_autoflush" or ""),
-                                    (saveuser and "_saveuser" or "_savead")))
-    setattr(SessionTest, test_backref.__name__, test_backref)
+    def test_backref_autoflush_saveuser(self):
+        self._backref_test(True, True)
 
-for autoflush in (False, True):
-    for saveuser in (False, True):
-        _create_backref_test(autoflush, saveuser)
+    def test_backref_autoflush_savead(self):
+        self._backref_test(True, False)
+
+    def test_backref_saveuser(self):
+        self._backref_test(False, True)
+
+    def test_backref_savead(self):
+        self._backref_test(False, False)
 
 class DontDereferenceTest(_base.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('users', metadata,
-              Column('id', Integer, primary_key=True),
+              Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
               Column('name', String(40)),
               Column('fullname', String(100)),
               Column('password', String(15)))
 
         Table('addresses', metadata,
-              Column('id', Integer, primary_key=True),
+              Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
               Column('email_address', String(100), nullable=False),
               Column('user_id', Integer, ForeignKey('users.id')))
 

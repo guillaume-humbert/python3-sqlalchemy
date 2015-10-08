@@ -1,11 +1,13 @@
 # util.py
-# Copyright (C) 2005, 2006, 2007, 2008, 2009 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-import inspect, itertools, operator, sys, warnings, weakref
+import inspect, itertools, operator, sys, warnings, weakref, gc
+# Py2K
 import __builtin__
+# end Py2K
 types = __import__('types')
 
 from sqlalchemy import exc
@@ -16,6 +18,7 @@ except ImportError:
     import dummy_threading as threading
 
 py3k = getattr(sys, 'py3kwarning', False) or sys.version_info >= (3, 0)
+jython = sys.platform.startswith('java')
 
 if py3k:
     set_types = set
@@ -38,6 +41,8 @@ else:
 
 EMPTY_SET = frozenset()
 
+NoneType = type(None)
+
 if py3k:
     import pickle
 else:
@@ -46,11 +51,13 @@ else:
     except ImportError:
         import pickle
 
+# Py2K
 # a controversial feature, required by MySQLdb currently
 def buffer(x):
     return x 
     
 buffer = getattr(__builtin__, 'buffer', buffer)
+# end Py2K
         
 if sys.version_info >= (2, 5):
     class PopulateDict(dict):
@@ -84,12 +91,13 @@ else:
 if py3k:
     def callable(fn):
         return hasattr(fn, '__call__')
-else:
-    callable = __builtin__.callable
+    def cmp(a, b):
+        return (a > b) - (a < b)
 
-if py3k:
     from functools import reduce
 else:
+    callable = __builtin__.callable
+    cmp = __builtin__.cmp
     reduce = __builtin__.reduce
 
 try:
@@ -130,7 +138,36 @@ except ImportError:
             return 'defaultdict(%s, %s)' % (self.default_factory,
                                             dict.__repr__(self))
 
-        
+class frozendict(dict):
+    def _blocked_attribute(obj):
+        raise AttributeError, "A frozendict cannot be modified."
+    _blocked_attribute = property(_blocked_attribute)
+
+    __delitem__ = __setitem__ = clear = _blocked_attribute
+    pop = popitem = setdefault = update = _blocked_attribute
+
+    def __new__(cls, *args):
+        new = dict.__new__(cls)
+        dict.__init__(new, *args)
+        return new
+
+    def __init__(self, *args):
+        pass
+
+    def __reduce__(self):
+        return frozendict, (dict(self), )
+
+    def union(self, d):
+        if not self:
+            return frozendict(d)
+        else:
+            d2 = self.copy()
+            d2.update(d)
+            return frozendict(d2)
+            
+    def __repr__(self):
+        return "frozendict(%s)" % dict.__repr__(self)
+
 def to_list(x, default=None):
     if x is None:
         return default
@@ -262,6 +299,15 @@ else:
     def decode_slice(slc):
         return (slc.start, slc.stop, slc.step)
 
+def update_copy(d, _new=None, **kw):
+    """Copy the given dict and update with the given values."""
+    
+    d = d.copy()
+    if _new:
+        d.update(_new)
+    d.update(**kw)
+    return d
+    
 def flatten_iterator(x):
     """Given an iterator of which further sub-elements may also be
     iterators, flatten the sub-elements into a single iterator.
@@ -296,13 +342,14 @@ def get_cls_kwargs(cls):
         class_ = stack.pop()
         ctr = class_.__dict__.get('__init__', False)
         if not ctr or not isinstance(ctr, types.FunctionType):
+            stack.update(class_.__bases__)
             continue
         names, _, has_kw, _ = inspect.getargspec(ctr)
         args.update(names)
         if has_kw:
             stack.update(class_.__bases__)
     args.discard('self')
-    return list(args)
+    return args
 
 def get_func_kwargs(func):
     """Return the full set of legal kwargs for the given `func`."""
@@ -419,20 +466,32 @@ def class_hierarchy(cls):
     will not be descended.
 
     """
+    # Py2K
     if isinstance(cls, types.ClassType):
         return list()
+    # end Py2K
     hier = set([cls])
     process = list(cls.__mro__)
     while process:
         c = process.pop()
+        # Py2K
         if isinstance(c, types.ClassType):
             continue
         for b in (_ for _ in c.__bases__
                   if _ not in hier and not isinstance(_, types.ClassType)):
+        # end Py2K
+        # Py3K
+        #for b in (_ for _ in c.__bases__
+        #          if _ not in hier):
             process.append(b)
             hier.add(b)
+        # Py3K
+        #if c.__module__ == 'builtins' or not hasattr(c, '__subclasses__'):
+        #    continue
+        # Py2K
         if c.__module__ == '__builtin__' or not hasattr(c, '__subclasses__'):
             continue
+        # end Py2K
         for s in [_ for _ in c.__subclasses__() if _ not in hier]:
             process.append(s)
             hier.add(s)
@@ -510,10 +569,15 @@ def duck_type_collection(specimen, default=None):
 def dictlike_iteritems(dictlike):
     """Return a (key, value) iterator for almost any dict-like object."""
 
+    # Py3K
+    #if hasattr(dictlike, 'items'):
+    #    return dictlike.items()
+    # Py2K
     if hasattr(dictlike, 'iteritems'):
         return dictlike.iteritems()
     elif hasattr(dictlike, 'items'):
         return iter(dictlike.items())
+    # end Py2K
 
     getter = getattr(dictlike, '__getitem__', getattr(dictlike, 'get', None))
     if getter is None:
@@ -600,6 +664,24 @@ def monkeypatch_proxied_specials(into_cls, from_cls, skip=None, only=None,
             pass
         setattr(into_cls, method, env[method])
 
+class NamedTuple(tuple):
+    """tuple() subclass that adds labeled names.
+    
+    Is also pickleable.
+    
+    """
+
+    def __new__(cls, vals, labels=None):
+        vals = list(vals)
+        t = tuple.__new__(cls, vals)
+        if labels:
+            t.__dict__ = dict(itertools.izip(labels, vals))
+            t._labels = labels
+        return t
+
+    def keys(self):
+        return self._labels
+
 
 class OrderedProperties(object):
     """An object that maintains the order in which attributes are set upon it.
@@ -664,11 +746,10 @@ class OrderedProperties(object):
         return self._data.keys()
 
     def has_key(self, key):
-        return self._data.has_key(key)
+        return key in self._data
 
     def clear(self):
         self._data.clear()
-
 
 class OrderedDict(dict):
     """A dict that returns keys/values/items in the order they were added."""
@@ -735,7 +816,12 @@ class OrderedDict(dict):
 
     def __setitem__(self, key, object):
         if key not in self:
-            self._list.append(key)
+            try:
+                self._list.append(key)
+            except AttributeError:
+                # work around Python pickle loads() with 
+                # dict subclass (seems to ignore __setstate__?)
+                self._list = [key]
         dict.__setitem__(self, key, object)
 
     def __delitem__(self, key):
@@ -915,7 +1001,7 @@ class IdentitySet(object):
 
         if len(self) > len(other):
             return False
-        for m in itertools.ifilterfalse(other._members.has_key,
+        for m in itertools.ifilterfalse(other._members.__contains__,
                                         self._members.iterkeys()):
             return False
         return True
@@ -936,7 +1022,7 @@ class IdentitySet(object):
         if len(self) < len(other):
             return False
 
-        for m in itertools.ifilterfalse(self._members.has_key,
+        for m in itertools.ifilterfalse(self._members.__contains__,
                                         other._members.iterkeys()):
             return False
         return True
@@ -1409,8 +1495,11 @@ class WeakIdentityMapping(weakref.WeakKeyDictionary):
         return item
 
     def clear(self):
+        # Py2K
+        # in 3k, MutableMapping calls popitem()
         self._weakrefs.clear()
         self.by_id.clear()
+        # end Py2K
         weakref.WeakKeyDictionary.clear(self)
 
     def update(self, *a, **kw):
@@ -1437,17 +1526,17 @@ class WeakIdentityMapping(weakref.WeakKeyDictionary):
         return self._keyed_weakref(object, self._cleanup)
 
 
-def warn(msg):
+def warn(msg, stacklevel=3):
     if isinstance(msg, basestring):
-        warnings.warn(msg, exc.SAWarning, stacklevel=3)
+        warnings.warn(msg, exc.SAWarning, stacklevel=stacklevel)
     else:
-        warnings.warn(msg, stacklevel=3)
+        warnings.warn(msg, stacklevel=stacklevel)
 
-def warn_deprecated(msg):
-    warnings.warn(msg, exc.SADeprecationWarning, stacklevel=3)
+def warn_deprecated(msg, stacklevel=3):
+    warnings.warn(msg, exc.SADeprecationWarning, stacklevel=stacklevel)
 
-def warn_pending_deprecation(msg):
-    warnings.warn(msg, exc.SAPendingDeprecationWarning, stacklevel=3)
+def warn_pending_deprecation(msg, stacklevel=3):
+    warnings.warn(msg, exc.SAPendingDeprecationWarning, stacklevel=stacklevel)
 
 def deprecated(message=None, add_deprecation_to_docstring=True):
     """Decorates a function and issues a deprecation warning on use.

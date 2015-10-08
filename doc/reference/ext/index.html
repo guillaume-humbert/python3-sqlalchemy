@@ -7,7 +7,7 @@
         
         <title>
     sqlalchemy.ext
- &mdash; SQLAlchemy 0.5.8 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.8',
+          VERSION:     '0.6beta1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.8 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
         <link rel="up" title="API Reference" href="../index.html" />
         <link rel="next" title="declarative" href="declarative.html" />
         <link rel="prev" title="Sybase" href="../dialects/sybase.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.8 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.8</span> Last Updated: 01/16/2010 15:44:42
+            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
         </div>
         <div class="clearboth"></div>
 
@@ -134,20 +134,23 @@ core behavior.</p>
 <li class="toctree-l2"><a class="reference external" href="sqlsoup.html#joins">Joins</a></li>
 <li class="toctree-l2"><a class="reference external" href="sqlsoup.html#relations">Relations</a></li>
 <li class="toctree-l2"><a class="reference external" href="sqlsoup.html#advanced-use">Advanced Use</a><ul>
-<li class="toctree-l3"><a class="reference external" href="sqlsoup.html#accessing-the-session">Accessing the Session</a></li>
+<li class="toctree-l3"><a class="reference external" href="sqlsoup.html#sessions-transations-and-application-integration">Sessions, Transations and Application Integration</a></li>
 <li class="toctree-l3"><a class="reference external" href="sqlsoup.html#mapping-arbitrary-selectables">Mapping arbitrary Selectables</a></li>
 <li class="toctree-l3"><a class="reference external" href="sqlsoup.html#raw-sql">Raw SQL</a></li>
 <li class="toctree-l3"><a class="reference external" href="sqlsoup.html#dynamic-table-names">Dynamic table names</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference external" href="sqlsoup.html#extra-tests">Extra tests</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference external" href="compiler.html">compiler</a><ul>
 <li class="toctree-l2"><a class="reference external" href="compiler.html#synopsis">Synopsis</a></li>
 <li class="toctree-l2"><a class="reference external" href="compiler.html#dialect-specific-compilation-rules">Dialect-specific compilation rules</a></li>
-<li class="toctree-l2"><a class="reference external" href="compiler.html#compiling-sub-elements-of-a-custom-expression-construct">Compiling sub-elements of a custom expression construct</a></li>
+<li class="toctree-l2"><a class="reference external" href="compiler.html#compiling-sub-elements-of-a-custom-expression-construct">Compiling sub-elements of a custom expression construct</a><ul>
+<li class="toctree-l3"><a class="reference external" href="compiler.html#cross-compiling-between-sql-and-ddl-compilers">Cross Compiling between SQL and DDL compilers</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference external" href="compiler.html#changing-the-default-compilation-of-existing-constructs">Changing the default compilation of existing constructs</a></li>
+<li class="toctree-l2"><a class="reference external" href="compiler.html#subclassing-guidelines">Subclassing Guidelines</a></li>
 </ul>
 </li>
 </ul>
@@ -168,8 +171,8 @@ core behavior.</p>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
                 </div>
             </div>
         

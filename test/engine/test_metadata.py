@@ -1,12 +1,12 @@
 from sqlalchemy.test.testing import assert_raises, assert_raises_message
 import pickle
-from sqlalchemy import MetaData
-from sqlalchemy import Integer, String, UniqueConstraint, CheckConstraint, ForeignKey, \
-                            Sequence, ColumnDefault
-from sqlalchemy.test.schema import Table
-from sqlalchemy.test.schema import Column
+from sqlalchemy import Integer, String, UniqueConstraint, CheckConstraint,\
+                        ForeignKey, MetaData, Sequence, ForeignKeyConstraint,\
+                        ColumnDefault
+from sqlalchemy.test.schema import Table, Column
+from sqlalchemy import schema
 import sqlalchemy as tsa
-from sqlalchemy.test import TestBase, ComparesTables, testing, engines
+from sqlalchemy.test import TestBase, ComparesTables, AssertsCompiledSQL, testing, engines
 from sqlalchemy.test.testing import eq_
 
 class MetaDataTest(TestBase, ComparesTables):
@@ -21,6 +21,22 @@ class MetaDataTest(TestBase, ComparesTables):
         finally:
             metadata.drop_all()
 
+    def test_metadata_contains(self):
+        metadata = MetaData()
+        t1 = Table('t1', metadata, Column('x', Integer))
+        t2 = Table('t2', metadata, Column('x', Integer), schema='foo')
+        t3 = Table('t2', MetaData(), Column('x', Integer))
+        t4 = Table('t1', MetaData(), Column('x', Integer), schema='foo')
+        
+        assert "t1" in metadata
+        assert "foo.t2" in metadata
+        assert "t2" not in metadata
+        assert "foo.t1" not in metadata
+        assert t1 in metadata
+        assert t2 in metadata
+        assert t3 not in metadata
+        assert t4 not in metadata
+        
     def test_uninitialized_column_copy(self):
         for col in [
             Column('foo', String(), nullable=False),
@@ -32,12 +48,12 @@ class MetaDataTest(TestBase, ComparesTables):
             c2 = col.copy()
             for attr in ('name', 'type', 'nullable', 'primary_key', 'key'):
                 eq_(getattr(col, attr), getattr(c2, attr))
-            eq_(len(col.args), len(c2.args))
-            for a1, a2 in zip(col.args, c2.args):
-                if isinstance(a1, ForeignKey):
-                    assert a2._colspec == 'bat.blah'
-                elif isinstance(a1, Sequence):
-                    assert a2.name == 'foo_seq'
+            eq_(len(col.foreign_keys), len(c2.foreign_keys))
+            if col.default:
+                eq_(c2.default.name, 'foo_seq')
+            for a1, a2 in zip(col.foreign_keys, c2.foreign_keys):
+                assert a1 is not a2
+                eq_(a2._colspec, 'bat.blah')
             
     def test_dupe_tables(self):
         metadata = MetaData()
@@ -56,7 +72,29 @@ class MetaDataTest(TestBase, ComparesTables):
                 assert str(e) == "Table 'table1' is already defined for this MetaData instance.  Specify 'useexisting=True' to redefine options and columns on an existing Table object."
         finally:
             metadata.drop_all()
-
+    
+    def test_fk_copy(self):
+        c1 = Column('foo', Integer)
+        c2 = Column('bar', Integer)
+        m = MetaData()
+        t1 = Table('t', m, c1, c2)
+        
+        kw = dict(onupdate="X", 
+                        ondelete="Y", use_alter=True, name='f1',
+                        deferrable="Z", initially="Q", link_to_name=True)
+                        
+        fk1 = ForeignKey(c1, **kw) 
+        fk2 = ForeignKeyConstraint((c1,), (c2,), **kw)
+        
+        t1.append_constraint(fk2)
+        fk1c = fk1.copy()
+        fk2c = fk2.copy()
+        
+        for k in kw:
+            eq_(getattr(fk1c, k), kw[k])
+            eq_(getattr(fk2c, k), kw[k])
+        
+        
     @testing.exclude('mysql', '<', (4, 1, 1), 'early types are squirrely')
     def test_to_metadata(self):
         meta = MetaData()
@@ -72,8 +110,10 @@ class MetaDataTest(TestBase, ComparesTables):
         )
 
         table2 = Table('othertable', meta,
-            Column('id', Integer, primary_key=True),
-            Column('myid', Integer, ForeignKey('mytable.myid')),
+            Column('id', Integer, Sequence('foo_seq'), primary_key=True),
+            Column('myid', Integer, 
+                        ForeignKey('mytable.myid'),
+                    ),
             test_needs_fk=True,
             )
 
@@ -119,7 +159,8 @@ class MetaDataTest(TestBase, ComparesTables):
                     assert str(table_c.c.foo.server_onupdate.arg) == 'q'
                     assert str(table_c.c.bar.default.arg) == 'y'
                     assert getattr(table_c.c.bar.onupdate.arg, 'arg', table_c.c.bar.onupdate.arg) == 'z'
-                
+                    assert isinstance(table2_c.c.id.default, Sequence)
+                    
                 # constraints dont get reflected for any dialect right now
                 if has_constraints:
                     for c in table_c.c.description.constraints:
@@ -127,7 +168,7 @@ class MetaDataTest(TestBase, ComparesTables):
                             break
                     else:
                         assert False
-                    assert c.sqltext=="description='hi'"
+                    assert str(c.sqltext)=="description='hi'"
 
                     for c in table_c.constraints:
                         if isinstance(c, UniqueConstraint):
@@ -170,29 +211,30 @@ class MetaDataTest(TestBase, ComparesTables):
                           MetaData(testing.db), autoload=True)
 
 
-class TableOptionsTest(TestBase):
-    def setup(self):
-        self.engine = engines.mock_engine()
-        self.metadata = MetaData(self.engine)
-
+class TableOptionsTest(TestBase, AssertsCompiledSQL):
     def test_prefixes(self):
-        table1 = Table("temporary_table_1", self.metadata,
+        table1 = Table("temporary_table_1", MetaData(),
                       Column("col1", Integer),
                       prefixes = ["TEMPORARY"])
-        table1.create()
-        assert [str(x) for x in self.engine.mock if 'CREATE TEMPORARY TABLE' in str(x)]
-        del self.engine.mock[:]
-        table2 = Table("temporary_table_2", self.metadata,
+                      
+        self.assert_compile(
+            schema.CreateTable(table1), 
+            "CREATE TEMPORARY TABLE temporary_table_1 (col1 INTEGER)"
+        )
+
+        table2 = Table("temporary_table_2", MetaData(),
                       Column("col1", Integer),
                       prefixes = ["VIRTUAL"])
-        table2.create()
-        assert [str(x) for x in self.engine.mock if 'CREATE VIRTUAL TABLE' in str(x)]
+        self.assert_compile(
+          schema.CreateTable(table2), 
+          "CREATE VIRTUAL TABLE temporary_table_2 (col1 INTEGER)"
+        )
 
     def test_table_info(self):
-
-        t1 = Table('foo', self.metadata, info={'x':'y'})
-        t2 = Table('bar', self.metadata, info={})
-        t3 = Table('bat', self.metadata)
+        metadata = MetaData()
+        t1 = Table('foo', metadata, info={'x':'y'})
+        t2 = Table('bar', metadata, info={})
+        t3 = Table('bat', metadata)
         assert t1.info == {'x':'y'}
         assert t2.info == {}
         assert t3.info == {}

@@ -3,8 +3,8 @@
 from sqlalchemy.test.testing import eq_, assert_raises, assert_raises_message
 import datetime
 from sqlalchemy import *
-from sqlalchemy import exc, sql
-from sqlalchemy.databases import sqlite
+from sqlalchemy import exc, sql, schema
+from sqlalchemy.dialects.sqlite import base as sqlite, pysqlite as pysqlite_dialect
 from sqlalchemy.test import *
 
 
@@ -19,7 +19,7 @@ class TestTypes(TestBase, AssertsExecutionResults):
         meta = MetaData(testing.db)
         t = Table('bool_table', meta,
                   Column('id', Integer, primary_key=True),
-                  Column('boo', sqlite.SLBoolean))
+                  Column('boo', Boolean(create_constraint=False)))
 
         try:
             meta.create_all()
@@ -29,28 +29,29 @@ class TestTypes(TestBase, AssertsExecutionResults):
             testing.db.execute("INSERT INTO bool_table (id, boo) VALUES (4, '0');")
             testing.db.execute("INSERT INTO bool_table (id, boo) VALUES (5, 1);")
             testing.db.execute("INSERT INTO bool_table (id, boo) VALUES (6, 0);")
-            assert t.select(t.c.boo).order_by(t.c.id).execute().fetchall() == [(3, True,), (5, True,)]
+            eq_(
+                t.select(t.c.boo).order_by(t.c.id).execute().fetchall(),
+                [(3, True,), (5, True,)]
+            )
         finally:
             meta.drop_all()
 
     def test_string_dates_raise(self):
-        assert_raises(TypeError, testing.db.execute, select([1]).where(bindparam("date", type_=Date)), date=str(datetime.date(2007, 10, 30)))
+        assert_raises(TypeError, 
+                        testing.db.execute, 
+                        select([1]).where(bindparam("date", type_=Date)), 
+                        date=str(datetime.date(2007, 10, 30)))
     
     def test_time_microseconds(self):
         dt = datetime.datetime(2008, 6, 27, 12, 0, 0, 125)  # 125 usec
         eq_(str(dt), '2008-06-27 12:00:00.000125')
-        sldt = sqlite.SLDateTime()
+        sldt = sqlite.DATETIME()
         bp = sldt.bind_processor(None)
         eq_(bp(dt), '2008-06-27 12:00:00.000125')
         
-        rp = sldt.result_processor(None)
+        rp = sldt.result_processor(None, None)
         eq_(rp(bp(dt)), dt)
         
-        sldt.__legacy_microseconds__ = True
-        bp = sldt.bind_processor(None)
-        eq_(bp(dt), '2008-06-27 12:00:00.125')
-        eq_(rp(bp(dt)), dt)
-
     def test_no_convert_unicode(self):
         """test no utf-8 encoding occurs"""
         
@@ -68,60 +69,45 @@ class TestTypes(TestBase, AssertsExecutionResults):
 
             bindproc = t.dialect_impl(dialect).bind_processor(dialect)
             assert not bindproc or isinstance(bindproc(u"some string"), unicode)
-        
-    @testing.uses_deprecated('Using String type with no length')
+
     def test_type_reflection(self):
         # (ask_for, roundtripped_as_if_different)
-        specs = [( String(), sqlite.SLString(), ),
-                 ( String(1), sqlite.SLString(1), ),
-                 ( String(3), sqlite.SLString(3), ),
-                 ( Text(), sqlite.SLText(), ),
-                 ( Unicode(), sqlite.SLString(), ),
-                 ( Unicode(1), sqlite.SLString(1), ),
-                 ( Unicode(3), sqlite.SLString(3), ),
-                 ( UnicodeText(), sqlite.SLText(), ),
-                 ( CLOB, sqlite.SLText(), ),
-                 ( sqlite.SLChar(1), ),
-                 ( CHAR(3), sqlite.SLChar(3), ),
-                 ( NCHAR(2), sqlite.SLChar(2), ),
-                 ( SmallInteger(), sqlite.SLSmallInteger(), ),
-                 ( sqlite.SLSmallInteger(), ),
-                 ( Binary(3), sqlite.SLBinary(), ),
-                 ( Binary(), sqlite.SLBinary() ),
-                 ( sqlite.SLBinary(3), sqlite.SLBinary(), ),
-                 ( NUMERIC, sqlite.SLNumeric(), ),
-                 ( NUMERIC(10,2), sqlite.SLNumeric(10,2), ),
-                 ( Numeric, sqlite.SLNumeric(), ),
-                 ( Numeric(10, 2), sqlite.SLNumeric(10, 2), ),
-                 ( DECIMAL, sqlite.SLNumeric(), ),
-                 ( DECIMAL(10, 2), sqlite.SLNumeric(10, 2), ),
-                 ( Float, sqlite.SLFloat(), ),
-                 ( sqlite.SLNumeric(), ),
-                 ( INT, sqlite.SLInteger(), ),
-                 ( Integer, sqlite.SLInteger(), ),
-                 ( sqlite.SLInteger(), ),
-                 ( TIMESTAMP, sqlite.SLDateTime(), ),
-                 ( DATETIME, sqlite.SLDateTime(), ),
-                 ( DateTime, sqlite.SLDateTime(), ),
-                 ( sqlite.SLDateTime(), ),
-                 ( DATE, sqlite.SLDate(), ),
-                 ( Date, sqlite.SLDate(), ),
-                 ( sqlite.SLDate(), ),
-                 ( TIME, sqlite.SLTime(), ),
-                 ( Time, sqlite.SLTime(), ),
-                 ( sqlite.SLTime(), ),
-                 ( BOOLEAN, sqlite.SLBoolean(), ),
-                 ( Boolean, sqlite.SLBoolean(), ),
-                 ( sqlite.SLBoolean(), ),
+        specs = [( String(), String(), ),
+                 ( String(1), String(1), ),
+                 ( String(3), String(3), ),
+                 ( Text(), Text(), ),
+                 ( Unicode(), String(), ),
+                 ( Unicode(1), String(1), ),
+                 ( Unicode(3), String(3), ),
+                 ( UnicodeText(), Text(), ),
+                 ( CHAR(1), ),
+                 ( CHAR(3), CHAR(3), ),
+                 ( NUMERIC, NUMERIC(), ),
+                 ( NUMERIC(10,2), NUMERIC(10,2), ),
+                 ( Numeric, NUMERIC(), ),
+                 ( Numeric(10, 2), NUMERIC(10, 2), ),
+                 ( DECIMAL, DECIMAL(), ),
+                 ( DECIMAL(10, 2), DECIMAL(10, 2), ),
+                 ( Float, Float(), ),
+                 ( NUMERIC(), ),
+                 ( TIMESTAMP, TIMESTAMP(), ),
+                 ( DATETIME, DATETIME(), ),
+                 ( DateTime, DateTime(), ),
+                 ( DateTime(), ),
+                 ( DATE, DATE(), ),
+                 ( Date, Date(), ),
+                 ( TIME, TIME(), ),
+                 ( Time, Time(), ),
+                 ( BOOLEAN, BOOLEAN(), ),
+                 ( Boolean, Boolean(), ),
                  ]
         columns = [Column('c%i' % (i + 1), t[0]) for i, t in enumerate(specs)]
 
         db = testing.db
         m = MetaData(db)
         t_table = Table('types', m, *columns)
+        m.create_all()
         try:
-            m.create_all()
-
             m2 = MetaData(db)
             rt = Table('types', m2, autoload=True)
             try:
@@ -131,7 +117,7 @@ class TestTypes(TestBase, AssertsExecutionResults):
                 expected = [len(c) > 1 and c[1] or c[0] for c in specs]
                 for table in rt, rv:
                     for i, reflected in enumerate(table.c):
-                        assert isinstance(reflected.type, type(expected[i])), type(expected[i])
+                        assert isinstance(reflected.type, type(expected[i])), "%d: %r" % (i, type(expected[i]))
             finally:
                 db.execute('DROP VIEW types_v')
         finally:
@@ -163,7 +149,7 @@ class TestDefaults(TestBase, AssertsExecutionResults):
             rt = Table('t_defaults', m2, autoload=True)
             expected = [c[1] for c in specs]
             for i, reflected in enumerate(rt.c):
-                eq_(reflected.server_default.arg.text, expected[i])
+                eq_(str(reflected.server_default.arg), expected[i])
         finally:
             m.drop_all()
 
@@ -173,7 +159,7 @@ class TestDefaults(TestBase, AssertsExecutionResults):
         db = testing.db
         m = MetaData(db)
 
-        expected = ["'my_default'", '0']
+        expected = ["my_default", '0']
         table = """CREATE TABLE r_defaults (
             data VARCHAR(40) DEFAULT 'my_default',
             val INTEGER NOT NULL DEFAULT 0
@@ -184,7 +170,7 @@ class TestDefaults(TestBase, AssertsExecutionResults):
 
             rt = Table('r_defaults', m, autoload=True)
             for i, reflected in enumerate(rt.c):
-                eq_(reflected.server_default.arg.text, expected[i])
+                eq_(str(reflected.server_default.arg), expected[i])
         finally:
             db.execute("DROP TABLE r_defaults")
 
@@ -238,7 +224,7 @@ class DialectTest(TestBase, AssertsExecutionResults):
             table1 = Table("django_admin_log", meta, autoload=True)
             table2 = Table("django_content_type", meta, autoload=True)
             j = table1.join(table2)
-            assert j.onclause == table1.c.content_type_id==table2.c.id
+            assert j.onclause.compare(table1.c.content_type_id==table2.c.id)
         finally:
             testing.db.execute("drop table django_admin_log")
             testing.db.execute("drop table django_content_type")
@@ -247,24 +233,24 @@ class DialectTest(TestBase, AssertsExecutionResults):
     def test_attached_as_schema(self):
         cx = testing.db.connect()
         try:
-            cx.execute('ATTACH DATABASE ":memory:" AS  alt_schema')
+            cx.execute('ATTACH DATABASE ":memory:" AS  test_schema')
             dialect = cx.dialect
-            assert dialect.table_names(cx, 'alt_schema') == []
+            assert dialect.table_names(cx, 'test_schema') == []
 
             meta = MetaData(cx)
             Table('created', meta, Column('id', Integer),
-                  schema='alt_schema')
+                  schema='test_schema')
             alt_master = Table('sqlite_master', meta, autoload=True,
-                               schema='alt_schema')
+                               schema='test_schema')
             meta.create_all(cx)
 
-            eq_(dialect.table_names(cx, 'alt_schema'),
+            eq_(dialect.table_names(cx, 'test_schema'),
                               ['created'])
             assert len(alt_master.c) > 0
 
             meta.clear()
             reflected = Table('created', meta, autoload=True,
-                              schema='alt_schema')
+                              schema='test_schema')
             assert len(reflected.c) == 1
 
             cx.execute(reflected.insert(), dict(id=1))
@@ -282,9 +268,9 @@ class DialectTest(TestBase, AssertsExecutionResults):
             # note that sqlite_master is cleared, above
             meta.drop_all()
 
-            assert dialect.table_names(cx, 'alt_schema') == []
+            assert dialect.table_names(cx, 'test_schema') == []
         finally:
-            cx.execute('DETACH DATABASE alt_schema')
+            cx.execute('DETACH DATABASE test_schema')
 
     @testing.exclude('sqlite', '<', (2, 6), 'no database support')
     def test_temp_table_reflection(self):
@@ -304,6 +290,38 @@ class DialectTest(TestBase, AssertsExecutionResults):
             except exc.DBAPIError:
                 pass
             raise
+    
+    
+    def test_dont_reflect_autoindex(self):
+        meta = MetaData(testing.db)
+        t = Table('foo', meta, Column('bar', String, primary_key=True))
+        meta.create_all()
+        
+        from sqlalchemy.engine.reflection import Inspector
+        try:
+            inspector = Inspector(testing.db)
+            eq_(inspector.get_indexes('foo'), [])
+            eq_(
+                inspector.get_indexes('foo', include_auto_indexes=True), 
+                [{'unique': 1, 'name': u'sqlite_autoindex_foo_1', 'column_names': [u'bar']}]
+            )
+        finally:
+            meta.drop_all()
+        
+        
+    def test_set_isolation_level(self):
+        """Test setting the read uncommitted/serializable levels"""
+        eng = create_engine(testing.db.url)
+        eq_(eng.execute("PRAGMA read_uncommitted").scalar(), 0)
+
+        eng = create_engine(testing.db.url, isolation_level="READ UNCOMMITTED")
+        eq_(eng.execute("PRAGMA read_uncommitted").scalar(), 1)
+
+        eng = create_engine(testing.db.url, isolation_level="SERIALIZABLE")
+        eq_(eng.execute("PRAGMA read_uncommitted").scalar(), 0)
+
+        assert_raises(exc.ArgumentError, create_engine, testing.db.url,
+            isolation_level="FOO")
 
 
     def test_create_index_with_schema(self):
@@ -510,4 +528,26 @@ class MatchTest(TestBase, AssertsCompiledSQL):
                                            ).order_by(matchtable.c.id).execute().fetchall()
         eq_([1, 3], [r.id for r in results])
 
+class TestAutoIncrement(TestBase, AssertsCompiledSQL):
+
+    def test_sqlite_autoincrement(self):
+        table = Table('autoinctable', MetaData(),
+                      Column('id', Integer, primary_key=True),
+                      Column('x', Integer, default=None),
+                      sqlite_autoincrement=True)
+        self.assert_compile(
+            schema.CreateTable(table),
+            "CREATE TABLE autoinctable (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, x INTEGER)",
+            dialect=sqlite.dialect()
+        )
+
+    def test_sqlite_no_autoincrement(self):
+        table = Table('noautoinctable', MetaData(),
+                      Column('id', Integer, primary_key=True),
+                      Column('x', Integer, default=None))
+        self.assert_compile(
+            schema.CreateTable(table),
+            "CREATE TABLE noautoinctable (id INTEGER NOT NULL, x INTEGER, PRIMARY KEY (id))",
+            dialect=sqlite.dialect()
+        )
 

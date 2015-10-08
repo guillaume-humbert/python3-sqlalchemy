@@ -104,10 +104,10 @@ def determine_date_affinity(expr):
         left_affin, right_affin = \
             determine_date_affinity(expr.left), \
             determine_date_affinity(expr.right)
-        
+
         if left_affin is None or right_affin is None:
             return None
-            
+        
         if operators.is_commutative(expr.operator):
             key = tuple(sorted([left_affin, right_affin], key=lambda cls:cls.__name__))
         else:
@@ -169,11 +169,54 @@ def find_columns(clause):
     """locate Column objects within the given expression."""
     
     cols = util.column_set()
-    def visit_column(col):
-        cols.add(col)
-    visitors.traverse(clause, {}, {'column':visit_column})
+    visitors.traverse(clause, {}, {'column':cols.add})
     return cols
 
+def _quote_ddl_expr(element):
+    if isinstance(element, basestring):
+        element = element.replace("'", "''")
+        return "'%s'" % element
+    else:
+        return repr(element)
+    
+def expression_as_ddl(clause):
+    """Given a SQL expression, convert for usage in DDL, such as 
+     CREATE INDEX and CHECK CONSTRAINT.
+     
+     Converts bind params into quoted literals, column identifiers
+     into detached column constructs so that the parent table
+     identifier is not included.
+    
+    """
+    def repl(element):
+        if isinstance(element, expression._BindParamClause):
+            return expression.literal_column(_quote_ddl_expr(element.value))
+        elif isinstance(element, expression.ColumnClause) and \
+                element.table is not None:
+            return expression.column(element.name)
+        else:
+            return None
+        
+    return visitors.replacement_traverse(clause, {}, repl)
+    
+def adapt_criterion_to_null(crit, nulls):
+    """given criterion containing bind params, convert selected elements to IS NULL."""
+
+    def visit_binary(binary):
+        if isinstance(binary.left, expression._BindParamClause) and binary.left.key in nulls:
+            # reverse order if the NULL is on the left side
+            binary.left = binary.right
+            binary.right = expression.null()
+            binary.operator = operators.is_
+            binary.negate = operators.isnot
+        elif isinstance(binary.right, expression._BindParamClause) and binary.right.key in nulls:
+            binary.right = expression.null()
+            binary.operator = operators.is_
+            binary.negate = operators.isnot
+
+    return visitors.cloned_traverse(crit, {}, {'binary':visit_binary})
+    
+    
 def join_condition(a, b, ignore_nonexistent_tables=False):
     """create a join condition between two tables.
     
@@ -196,7 +239,7 @@ def join_condition(a, b, ignore_nonexistent_tables=False):
             else:
                 raise
                 
-        if col:
+        if col is not None:
             crit.append(col == fk.parent)
             constraints.add(fk.constraint)
     if a is not b:
@@ -209,7 +252,7 @@ def join_condition(a, b, ignore_nonexistent_tables=False):
                 else:
                     raise
 
-            if col:
+            if col is not None:
                 crit.append(col == fk.parent)
                 constraints.add(fk.constraint)
 
@@ -360,9 +403,9 @@ def splice_joins(left, right, stop_on=None):
             stack.append((right.left, right))
         else:
             right = adapter.traverse(right)
-        if prevright:
+        if prevright is not None:
             prevright.left = right
-        if not ret:
+        if ret is None:
             ret = right
 
     return ret
@@ -420,30 +463,43 @@ def reduce_columns(columns, *clauses, **kw):
 
     return expression.ColumnSet(columns.difference(omit))
 
-def criterion_as_pairs(expression, consider_as_foreign_keys=None, consider_as_referenced_keys=None, any_operator=False):
+def criterion_as_pairs(expression, consider_as_foreign_keys=None, 
+                        consider_as_referenced_keys=None, any_operator=False):
     """traverse an expression and locate binary criterion pairs."""
     
     if consider_as_foreign_keys and consider_as_referenced_keys:
-        raise exc.ArgumentError("Can only specify one of 'consider_as_foreign_keys' or 'consider_as_referenced_keys'")
+        raise exc.ArgumentError("Can only specify one of "
+                                "'consider_as_foreign_keys' or "
+                                "'consider_as_referenced_keys'")
         
     def visit_binary(binary):
         if not any_operator and binary.operator is not operators.eq:
             return
-        if not isinstance(binary.left, sql.ColumnElement) or not isinstance(binary.right, sql.ColumnElement):
+        if not isinstance(binary.left, sql.ColumnElement) or \
+                    not isinstance(binary.right, sql.ColumnElement):
             return
 
         if consider_as_foreign_keys:
-            if binary.left in consider_as_foreign_keys and (binary.right is binary.left or binary.right not in consider_as_foreign_keys):
+            if binary.left in consider_as_foreign_keys and \
+                        (binary.right is binary.left or 
+                        binary.right not in consider_as_foreign_keys):
                 pairs.append((binary.right, binary.left))
-            elif binary.right in consider_as_foreign_keys and (binary.left is binary.right or binary.left not in consider_as_foreign_keys):
+            elif binary.right in consider_as_foreign_keys and \
+                        (binary.left is binary.right or 
+                        binary.left not in consider_as_foreign_keys):
                 pairs.append((binary.left, binary.right))
         elif consider_as_referenced_keys:
-            if binary.left in consider_as_referenced_keys and (binary.right is binary.left or binary.right not in consider_as_referenced_keys):
+            if binary.left in consider_as_referenced_keys and \
+                        (binary.right is binary.left or 
+                        binary.right not in consider_as_referenced_keys):
                 pairs.append((binary.left, binary.right))
-            elif binary.right in consider_as_referenced_keys and (binary.left is binary.right or binary.left not in consider_as_referenced_keys):
+            elif binary.right in consider_as_referenced_keys and \
+                        (binary.left is binary.right or 
+                        binary.left not in consider_as_referenced_keys):
                 pairs.append((binary.right, binary.left))
         else:
-            if isinstance(binary.left, schema.Column) and isinstance(binary.right, schema.Column):
+            if isinstance(binary.left, schema.Column) and \
+                        isinstance(binary.right, schema.Column):
                 if binary.left.references(binary.right):
                     pairs.append((binary.right, binary.left))
                 elif binary.right.references(binary.left):
@@ -560,10 +616,10 @@ class ClauseAdapter(visitors.ReplacingCloningVisitor):
     def _corresponding_column(self, col, require_embedded, _seen=util.EMPTY_SET):
         newcol = self.selectable.corresponding_column(col, require_embedded=require_embedded)
 
-        if not newcol and col in self.equivalents and col not in _seen:
+        if newcol is None and col in self.equivalents and col not in _seen:
             for equiv in self.equivalents[col]:
                 newcol = self._corresponding_column(equiv, require_embedded=require_embedded, _seen=_seen.union([col]))
-                if newcol:
+                if newcol is not None:
                     return newcol
         return newcol
 
@@ -618,7 +674,7 @@ class ColumnAdapter(ClauseAdapter):
 
     def _locate_col(self, col):
         c = self._corresponding_column(col, False)
-        if not c:
+        if c is None:
             c = self.adapt_clause(col)
             
             # anonymize labels in case they have a hardcoded name

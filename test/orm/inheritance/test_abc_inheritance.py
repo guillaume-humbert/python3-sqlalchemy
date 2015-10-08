@@ -3,19 +3,24 @@ from sqlalchemy.orm import *
 from sqlalchemy.orm.interfaces import ONETOMANY, MANYTOONE
 
 from sqlalchemy.test import testing
+from sqlalchemy.test.schema import Table, Column
 from test.orm import _base
 
 
 def produce_test(parent, child, direction):
     """produce a testcase for A->B->C inheritance with a self-referential
     relationship between two of the classes, using either one-to-many or
-    many-to-one."""
+    many-to-one.
+    
+    the old "no discriminator column" pattern is used.
+    
+    """
     class ABCTest(_base.MappedTest):
         @classmethod
         def define_tables(cls, metadata):
             global ta, tb, tc
             ta = ["a", metadata]
-            ta.append(Column('id', Integer, primary_key=True)),
+            ta.append(Column('id', Integer, primary_key=True, test_needs_autoincrement=True)),
             ta.append(Column('a_data', String(30)))
             if "a"== parent and direction == MANYTOONE:
                 ta.append(Column('child_id', Integer, ForeignKey("%s.id" % child, use_alter=True, name="foo")))
@@ -54,6 +59,8 @@ def produce_test(parent, child, direction):
                 child_table.update(values={child_table.c.parent_id:None}).execute()
             super(ABCTest, self).teardown()
 
+
+        @testing.uses_deprecated("fold_equivalents is deprecated.")
         def test_roundtrip(self):
             parent_table = {"a":ta, "b":tb, "c": tc}[parent]
             child_table = {"a":ta, "b":tb, "c": tc}[child]

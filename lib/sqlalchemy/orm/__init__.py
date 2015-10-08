@@ -1,5 +1,5 @@
 # sqlalchemy/orm/__init__.py
-# Copyright (C) 2005, 2006, 2007, 2008, 2009 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -38,7 +38,6 @@ from sqlalchemy.orm.util import (
      with_parent,
      )
 from sqlalchemy.orm.properties import (
-     BackRef,
      ColumnProperty,
      ComparableProperty,
      CompositeProperty,
@@ -52,7 +51,7 @@ from sqlalchemy.orm import strategies
 from sqlalchemy.orm.query import AliasOption, Query
 from sqlalchemy.sql import util as sql_util
 from sqlalchemy.orm.session import Session as _Session
-from sqlalchemy.orm.session import object_session, sessionmaker
+from sqlalchemy.orm.session import object_session, sessionmaker, make_transient
 from sqlalchemy.orm.scoping import ScopedSession
 from sqlalchemy import util as sa_util
 
@@ -86,6 +85,7 @@ __all__ = (
     'join',
     'lazyload',
     'mapper',
+    'make_transient',
     'noload',
     'object_mapper',
     'object_session',
@@ -167,14 +167,6 @@ def create_session(bind=None, **kwargs):
     create_session().
 
     """
-    if 'transactional' in kwargs:
-        sa_util.warn_deprecated(
-            "The 'transactional' argument to sessionmaker() is deprecated; "
-            "use autocommit=True|False instead.")
-        if 'autocommit' in kwargs:
-            raise TypeError('Specify autocommit *or* transactional, not both.')
-        kwargs['autocommit'] = not kwargs.pop('transactional')
-
     kwargs.setdefault('autoflush', False)
     kwargs.setdefault('autocommit', True)
     kwargs.setdefault('expire_on_commit', False)
@@ -276,6 +268,16 @@ def relation(argument, secondary=None, **kwargs):
       ForeignKey's are present in the join condition, or to override
       the table-defined foreign keys.
 
+    :param innerjoin=False:
+      when ``True``, eager loads will use an inner join to join
+      against related tables instead of an outer join.  The purpose
+      of this option is strictly one of performance, as inner joins
+      generally perform better than outer joins.  This flag can
+      be set to ``True`` when the relation references an object
+      via many-to-one using local foreign keys that are not nullable,
+      or when the reference is one-to-one or a collection that is 
+      guaranteed to have one or at least one entry.
+      
     :param join_depth:
       when non-``None``, an integer value indicating how many levels
       deep eagerload joins should be constructed on a self-referring
@@ -356,6 +358,11 @@ def relation(argument, secondary=None, **kwargs):
       are expected and the database in use doesn't support CASCADE
       (i.e. SQLite, MySQL MyISAM tables).
 
+      Also see the passive_updates flag on ``mapper()``.
+      
+      A future SQLAlchemy release will provide a "detect" feature for
+      this flag.
+
     :param post_update:
       this indicates that the relationship should be handled by a
       second UPDATE statement after an INSERT or before a
@@ -375,11 +382,11 @@ def relation(argument, secondary=None, **kwargs):
       use ``post_update`` to "break" the cycle.
 
     :param primaryjoin:
-      a ClauseElement that will be used as the primary join of this
-      child object against the parent object, or in a many-to-many
-      relationship the join of the primary object to the association
-      table. By default, this value is computed based on the foreign
-      key relationships of the parent and child tables (or association
+      a ColumnElement (i.e. WHERE criterion) that will be used as the primary
+      join of this child object against the parent object, or in a
+      many-to-many relationship the join of the primary object to the
+      association table. By default, this value is computed based on the
+      foreign key relationships of the parent and child tables (or association
       table).
 
     :param remote_side:
@@ -387,9 +394,9 @@ def relation(argument, secondary=None, **kwargs):
       list of columns that form the "remote side" of the relationship.
 
     :param secondaryjoin:
-      a ClauseElement that will be used as the join of an association
-      table to the child object. By default, this value is computed
-      based on the foreign key relationships of the association and
+      a ColumnElement (i.e. WHERE criterion) that will be used as the join of
+      an association table to the child object. By default, this value is
+      computed based on the foreign key relationships of the association and
       child tables.
 
     :param single_parent=(True|False):
@@ -581,14 +588,14 @@ def composite(class_, *cols, **kwargs):
 
 
 def backref(name, **kwargs):
-    """Create a BackRef object with explicit arguments, which are the same
+    """Create a back reference with explicit arguments, which are the same
     arguments one can send to ``relation()``.
 
     Used with the `backref` keyword argument to ``relation()`` in
     place of a string argument.
 
     """
-    return BackRef(name, **kwargs)
+    return (name, kwargs)
 
 def deferred(*columns, **kwargs):
     """Return a ``DeferredColumnProperty``, which indicates this
@@ -619,10 +626,9 @@ def mapper(class_, local_table=None, *args, **params):
         :class:`~sqlalchemy.orm.query.Query`.
 
       allow_null_pks
-        Indicates that composite primary keys where one or more (but not all)
-        columns contain NULL is a valid primary key.  Primary keys which
-        contain NULL values usually indicate that a result row does not
-        contain an entity and should be skipped.
+        This flag is deprecated - allow_null_pks is now "on" in all cases.
+        Rows which contain NULL for some (but not all) of its primary key
+        columns will be considered to have a valid primary key.
 
       batch
         Indicates that save operations of multiple entities can be batched
@@ -671,6 +677,35 @@ def mapper(class_, local_table=None, *args, **params):
         instances, not their persistence.  Any number of non_primary mappers
         may be created for a particular class.
 
+      passive_updates
+        Indicates UPDATE behavior of foreign keys when a primary key changes 
+        on a joined-table inheritance or other joined table mapping.
+
+        When True, it is assumed that ON UPDATE CASCADE is configured on
+        the foreign key in the database, and that the database will
+        handle propagation of an UPDATE from a source column to
+        dependent rows.  Note that with databases which enforce
+        referential integrity (i.e. PostgreSQL, MySQL with InnoDB tables),
+        ON UPDATE CASCADE is required for this operation.  The
+        relation() will update the value of the attribute on related
+        items which are locally present in the session during a flush.
+
+        When False, it is assumed that the database does not enforce
+        referential integrity and will not be issuing its own CASCADE
+        operation for an update.  The relation() will issue the
+        appropriate UPDATE statements to the database in response to the
+        change of a referenced key, and items locally present in the
+        session during a flush will also be refreshed.
+
+        This flag should probably be set to False if primary key changes
+        are expected and the database in use doesn't support CASCADE
+        (i.e. SQLite, MySQL MyISAM tables).
+        
+        Also see the passive_updates flag on ``relation()``.
+
+        A future SQLAlchemy release will provide a "detect" feature for
+        this flag.
+
       polymorphic_on
         Used with mappers in an inheritance relationship, a ``Column`` which
         will identify the class/mapper combination to be used with a
@@ -688,10 +723,6 @@ def mapper(class_, local_table=None, *args, **params):
       polymorphic_identity
         A value which will be stored in the Column denoted by polymorphic_on,
         corresponding to the *class identity* of this mapper.
-
-      polymorphic_fetch
-        Deprecated. Unloaded columns load as deferred in all cases; loading
-        can be controlled using the "with_polymorphic" option.
 
       properties
         A dictionary mapping the string names of object attributes to
@@ -736,10 +767,6 @@ def mapper(class_, local_table=None, *args, **params):
         <selectable> argument is required, since it usually requires more
         complex UNION queries.
 
-      select_table
-        Deprecated.  Synonymous with
-        ``with_polymorphic=('*', <selectable>)``.
-
       version_id_col
         A ``Column`` which must have an integer type that will be used to keep
         a running *version id* of mapped entities in the database.  this is
@@ -750,7 +777,7 @@ def mapper(class_, local_table=None, *args, **params):
     """
     return Mapper(class_, local_table, *args, **params)
 
-def synonym(name, map_column=False, descriptor=None, comparator_factory=None, proxy=False):
+def synonym(name, map_column=False, descriptor=None, comparator_factory=None):
     """Set up `name` as a synonym to another mapped property.
 
     Used with the ``properties`` dictionary sent to  :func:`~sqlalchemy.orm.mapper`.
@@ -786,10 +813,6 @@ def synonym(name, map_column=False, descriptor=None, comparator_factory=None, pr
     The column named ``status`` will be mapped to the attribute named
     ``_status``, and the ``status`` attribute on ``MyClass`` will be used to
     proxy access to the column-based attribute.
-
-    The `proxy` keyword argument is deprecated and currently does nothing;
-    synonyms now always establish an attribute getter/setter function if one
-    is not already available.
 
     """
     return SynonymProperty(name, map_column=map_column, descriptor=descriptor, comparator_factory=comparator_factory)
@@ -849,8 +872,13 @@ def clear_mappers():
     """
     mapperlib._COMPILE_MUTEX.acquire()
     try:
-        for mapper in list(_mapper_registry):
-            mapper.dispose()
+        while _mapper_registry:
+            try:
+                # can't even reliably call list(weakdict) in jython
+                mapper, b = _mapper_registry.popitem()
+                mapper.dispose()
+            except KeyError:
+                pass
     finally:
         mapperlib._COMPILE_MUTEX.release()
 
@@ -864,34 +892,71 @@ def extension(ext):
     """
     return ExtensionOption(ext)
 
-@sa_util.accepts_a_list_as_starargs(list_deprecation='pending')
-def eagerload(*keys):
+@sa_util.accepts_a_list_as_starargs(list_deprecation='deprecated')
+def eagerload(*keys, **kw):
     """Return a ``MapperOption`` that will convert the property of the given
     name into an eager load.
 
     Used with ``query.options()``.
 
-    """
-    return strategies.EagerLazyOption(keys, lazy=False)
+    examples::
+    
+        # eagerload the "orders" colleciton on "User"
+        query(User).options(eagerload(User.orders))
+        
+        # eagerload the "keywords" collection on each "Item",
+        # but not the "items" collection on "Order" - those 
+        # remain lazily loaded.
+        query(Order).options(eagerload(Order.items, Item.keywords))
 
-@sa_util.accepts_a_list_as_starargs(list_deprecation='pending')
-def eagerload_all(*keys):
+        # to eagerload across both, use eagerload_all()
+        query(Order).options(eagerload_all(Order.items, Item.keywords))
+
+    The keyword arguments accept a flag `innerjoin=True|False` which will 
+    override the value of the `innerjoin` flag specified on the relation().
+    
+    """
+    innerjoin = kw.pop('innerjoin', None)
+    if innerjoin is not None:
+        return (
+             strategies.EagerLazyOption(keys, lazy=False), 
+             strategies.EagerJoinOption(keys, innerjoin)
+         )
+    else:
+        return strategies.EagerLazyOption(keys, lazy=False)
+
+@sa_util.accepts_a_list_as_starargs(list_deprecation='deprecated')
+def eagerload_all(*keys, **kw):
     """Return a ``MapperOption`` that will convert all properties along the
     given dot-separated path into an eager load.
 
-    For example, this::
+    Used with ``query.options()``.
+
+    For example::
 
         query.options(eagerload_all('orders.items.keywords'))...
 
     will set all of 'orders', 'orders.items', and 'orders.items.keywords' to
     load in one eager load.
 
-    Used with ``query.options()``.
+    Individual descriptors are accepted as arguments as well::
+    
+        query.options(eagerload_all(User.orders, Order.items, Item.keywords))
+
+    The keyword arguments accept a flag `innerjoin=True|False` which will 
+    override the value of the `innerjoin` flag specified on the relation().
 
     """
-    return strategies.EagerLazyOption(keys, lazy=False, chained=True)
+    innerjoin = kw.pop('innerjoin', None)
+    if innerjoin is not None:
+        return (
+            strategies.EagerLazyOption(keys, lazy=False, chained=True), 
+            strategies.EagerJoinOption(keys, innerjoin, chained=True)
+        )
+    else:
+        return strategies.EagerLazyOption(keys, lazy=False, chained=True)
 
-@sa_util.accepts_a_list_as_starargs(list_deprecation='pending')
+@sa_util.accepts_a_list_as_starargs(list_deprecation='deprecated')
 def lazyload(*keys):
     """Return a ``MapperOption`` that will convert the property of the given
     name into a lazy load.
@@ -920,7 +985,7 @@ def contains_alias(alias):
     """
     return AliasOption(alias)
 
-@sa_util.accepts_a_list_as_starargs(list_deprecation='pending')
+@sa_util.accepts_a_list_as_starargs(list_deprecation='deprecated')
 def contains_eager(*keys, **kwargs):
     """Return a ``MapperOption`` that will indicate to the query that
     the given attribute will be eagerly loaded.
@@ -940,7 +1005,7 @@ def contains_eager(*keys, **kwargs):
 
     return (strategies.EagerLazyOption(keys, lazy=False, propagate_to_loaders=False), strategies.LoadEagerFromAliasOption(keys, alias=alias))
 
-@sa_util.accepts_a_list_as_starargs(list_deprecation='pending')
+@sa_util.accepts_a_list_as_starargs(list_deprecation='deprecated')
 def defer(*keys):
     """Return a ``MapperOption`` that will convert the column property of the
     given name into a deferred load.
@@ -949,7 +1014,7 @@ def defer(*keys):
     """
     return strategies.DeferredOption(keys, defer=True)
 
-@sa_util.accepts_a_list_as_starargs(list_deprecation='pending')
+@sa_util.accepts_a_list_as_starargs(list_deprecation='deprecated')
 def undefer(*keys):
     """Return a ``MapperOption`` that will convert the column property of the
     given name into a non-deferred (regular column) load.

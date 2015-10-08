@@ -1,4 +1,4 @@
-.. _schema:
+.. _schema_api_toplevel:
 
 Database Schema
 ===============
@@ -12,7 +12,6 @@ Tables and Columns
 
 .. autoclass:: Column
     :members:
-    :inherited-members:
     :undoc-members:
     :show-inheritance:
 
@@ -23,7 +22,6 @@ Tables and Columns
 
 .. autoclass:: Table
     :members:
-    :inherited-members:
     :undoc-members:
     :show-inheritance:
 
@@ -102,10 +100,57 @@ Default Generators and Markers
     :undoc-members:
     :show-inheritance:
 
-DDL
----
+.. _schema_api_ddl:
+
+DDL Generation
+--------------
+
+.. autoclass:: DDLElement
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 .. autoclass:: DDL
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: CreateTable
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: DropTable
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: CreateSequence
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: DropSequence
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: CreateIndex
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: DropIndex
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: AddConstraint
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: DropConstraint
     :members:
     :undoc-members:
     :show-inheritance:

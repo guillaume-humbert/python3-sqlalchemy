@@ -7,7 +7,7 @@
         
         <title>
     SQLite
- &mdash; SQLAlchemy 0.5.8 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.8',
+          VERSION:     '0.6beta1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,10 +26,10 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.8 Documentation" href="../../index.html" />
-        <link rel="up" title="sqlalchemy.databases" href="index.html" />
-        <link rel="next" title="Sybase" href="sybase.html" />
-        <link rel="prev" title="PostgreSQL" href="postgres.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="../../index.html" />
+        <link rel="up" title="sqlalchemy.dialects" href="index.html" />
+        <link rel="next" title="Microsoft Access" href="access.html" />
+        <link rel="prev" title="PostgreSQL" href="postgresql.html" />
     
 
     </head>
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.8 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.8</span> Last Updated: 01/16/2010 15:44:42
+            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
         </div>
         <div class="clearboth"></div>
 
@@ -67,7 +67,7 @@
             <div class="navbanner">
                 <a class="totoc" href="../../index.html">Table of Contents</a>
                         » <a href="../index.html" title="API Reference">API Reference</a>
-                        » <a href="index.html" title="sqlalchemy.databases">sqlalchemy.databases</a>
+                        » <a href="index.html" title="sqlalchemy.dialects">sqlalchemy.dialects</a>
                 » 
     SQLite
  
@@ -75,9 +75,9 @@
                 
 <div class="prevnext">
         Previous:
-        <a href="postgres.html" title="previous chapter">PostgreSQL</a>
+        <a href="postgresql.html" title="previous chapter">PostgreSQL</a>
         Next:
-        <a href="sybase.html" title="next chapter">Sybase</a>
+        <a href="access.html" title="next chapter">Microsoft Access</a>
 </div>
 
                 <h2>
@@ -88,11 +88,15 @@
             </div>
                 <ul>
 <li><a class="reference external" href="">SQLite</a><ul>
+<li><a class="reference external" href="#date-and-time-types">Date and Time Types</a></li>
+<li><a class="reference external" href="#auto-incrementing-beahvior">Auto Incrementing Beahvior</a></li>
+<li><a class="reference external" href="#module-sqlalchemy.dialects.sqlite.pysqlite">Pysqlite</a><ul>
 <li><a class="reference external" href="#driver">Driver</a></li>
 <li><a class="reference external" href="#connect-strings">Connect Strings</a></li>
 <li><a class="reference external" href="#threading-behavior">Threading Behavior</a></li>
-<li><a class="reference external" href="#date-and-time-types">Date and Time Types</a></li>
 <li><a class="reference external" href="#unicode">Unicode</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -103,11 +107,49 @@
         <div class="document">
             <div class="body">
                 
-<div class="section" id="module-sqlalchemy.databases.sqlite">
-<h1>SQLite<a class="headerlink" href="#module-sqlalchemy.databases.sqlite" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-sqlalchemy.dialects.sqlite.base">
+<h1>SQLite<a class="headerlink" href="#module-sqlalchemy.dialects.sqlite.base" title="Permalink to this headline">¶</a></h1>
 <p>Support for the SQLite database.</p>
+<p>For information on connecting using a specific driver, see the documentation
+section regarding that driver.</p>
+<div class="section" id="date-and-time-types">
+<h2>Date and Time Types<a class="headerlink" href="#date-and-time-types" title="Permalink to this headline">¶</a></h2>
+<p>SQLite does not have built-in DATE, TIME, or DATETIME types, and pysqlite does not provide 
+out of the box functionality for translating values between Python <cite>datetime</cite> objects
+and a SQLite-supported format.  SQLAlchemy&#8217;s own <a title="sqlalchemy.types.DateTime" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.DateTime"><tt class="xref docutils literal"><span class="pre">DateTime</span></tt></a>
+and related types provide date formatting and parsing functionality when SQlite is used.
+The implementation classes are <tt class="xref docutils literal"><span class="pre">DATETIME</span></tt>, <tt class="xref docutils literal"><span class="pre">DATE</span></tt> and <tt class="xref docutils literal"><span class="pre">TIME</span></tt>.
+These types represent dates and times as ISO formatted strings, which also nicely
+support ordering.   There&#8217;s no reliance on typical &#8220;libc&#8221; internals for these functions
+so historical dates are fully supported.</p>
+</div>
+<div class="section" id="auto-incrementing-beahvior">
+<h2>Auto Incrementing Beahvior<a class="headerlink" href="#auto-incrementing-beahvior" title="Permalink to this headline">¶</a></h2>
+<p>Background on SQLite&#8217;s autoincrement is at: <a class="reference external" href="http://sqlite.org/autoinc.html">http://sqlite.org/autoinc.html</a></p>
+<p>Two things to note:</p>
+<ul class="simple">
+<li>The AUTOINCREMENT keyword is <strong>not</strong> required for SQLite tables to
+generate primary key values automatically. AUTOINCREMENT only means that
+the algorithm used to generate ROWID values should be slightly different.</li>
+<li>SQLite does <strong>not</strong> generate primary key (i.e. ROWID) values, even for
+one column, if the table has a composite (i.e. multi-column) primary key.
+This is regardless of the AUTOINCREMENT keyword being present or not.</li>
+</ul>
+<p>To specifically render the AUTOINCREMENT keyword on the primary key
+column when rendering DDL, add the flag <tt class="docutils literal"><span class="pre">sqlite_autoincrement=True</span></tt> 
+to the Table construct:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Table</span><span class="p">(</span><span class="s">&#39;sometable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> 
+        <span class="n">sqlite_autoincrement</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+</div>
+</div>
+<div class="section" id="module-sqlalchemy.dialects.sqlite.pysqlite">
+<h2>Pysqlite<a class="headerlink" href="#module-sqlalchemy.dialects.sqlite.pysqlite" title="Permalink to this headline">¶</a></h2>
+<p>Support for the SQLite database via pysqlite.</p>
+<p>Note that pysqlite is the same driver as the <tt class="docutils literal"><span class="pre">sqlite3</span></tt>
+module included with the Python distribution.</p>
 <div class="section" id="driver">
-<h2>Driver<a class="headerlink" href="#driver" title="Permalink to this headline">¶</a></h2>
+<h3>Driver<a class="headerlink" href="#driver" title="Permalink to this headline">¶</a></h3>
 <p>When using Python 2.5 and above, the built in <tt class="docutils literal"><span class="pre">sqlite3</span></tt> driver is 
 already installed and no additional installation is needed.  Otherwise,
 the <tt class="docutils literal"><span class="pre">pysqlite2</span></tt> driver needs to be present.  This is the same driver as
@@ -118,13 +160,13 @@ precedence over the built in one.   As with all dialects, a specific
 DBAPI module may be provided to <a title="sqlalchemy.create_engine" class="reference external" href="../sqlalchemy/connections.html#sqlalchemy.create_engine"><tt class="xref docutils literal"><span class="pre">create_engine()</span></tt></a> to control 
 this explicitly:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlite3</span> <span class="kn">import</span> <span class="n">dbapi2</span> <span class="k">as</span> <span class="n">sqlite</span>
-<span class="n">e</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:///file.db&#39;</span><span class="p">,</span> <span class="n">module</span><span class="o">=</span><span class="n">sqlite</span><span class="p">)</span></pre></div>
+<span class="n">e</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite+pysqlite:///file.db&#39;</span><span class="p">,</span> <span class="n">module</span><span class="o">=</span><span class="n">sqlite</span><span class="p">)</span></pre></div>
 </div>
 <p>Full documentation on pysqlite is available at:
 <a class="reference external" href="http://www.initd.org/pub/software/pysqlite/doc/usage-guide.html">http://www.initd.org/pub/software/pysqlite/doc/usage-guide.html</a></p>
 </div>
 <div class="section" id="connect-strings">
-<h2>Connect Strings<a class="headerlink" href="#connect-strings" title="Permalink to this headline">¶</a></h2>
+<h3>Connect Strings<a class="headerlink" href="#connect-strings" title="Permalink to this headline">¶</a></h3>
 <p>The file specification for the SQLite database is taken as the &#8220;database&#8221; portion of
 the URL.  Note that the format of a url is:</p>
 <div class="highlight-python"><pre>driver://user:pass@host/database</pre>
@@ -151,7 +193,7 @@ Double backslashes are probably needed:</p>
 </div>
 </div>
 <div class="section" id="threading-behavior">
-<h2>Threading Behavior<a class="headerlink" href="#threading-behavior" title="Permalink to this headline">¶</a></h2>
+<h3>Threading Behavior<a class="headerlink" href="#threading-behavior" title="Permalink to this headline">¶</a></h3>
 <p>Pysqlite connections do not support being moved between threads, unless
 the <tt class="docutils literal"><span class="pre">check_same_thread</span></tt> Pysqlite flag is set to <tt class="xref docutils literal"><span class="pre">False</span></tt>.  In addition,
 when using an in-memory SQLite database, the full database exists only within 
@@ -183,19 +225,8 @@ useless since the database would be lost as soon as the connection is &#8220;ret
 </ul>
 </blockquote>
 </div>
-<div class="section" id="date-and-time-types">
-<h2>Date and Time Types<a class="headerlink" href="#date-and-time-types" title="Permalink to this headline">¶</a></h2>
-<p>SQLite does not have built-in DATE, TIME, or DATETIME types, and pysqlite does not provide 
-out of the box functionality for translating values between Python <cite>datetime</cite> objects
-and a SQLite-supported format.  SQLAlchemy&#8217;s own <a title="sqlalchemy.types.DateTime" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.DateTime"><tt class="xref docutils literal"><span class="pre">DateTime</span></tt></a>
-and related types provide date formatting and parsing functionality when SQlite is used.
-The implementation classes are <tt class="xref docutils literal"><span class="pre">SLDateTime</span></tt>, <tt class="xref docutils literal"><span class="pre">SLDate</span></tt> and <tt class="xref docutils literal"><span class="pre">SLTime</span></tt>.
-These types represent dates and times as ISO formatted strings, which also nicely
-support ordering.   There&#8217;s no reliance on typical &#8220;libc&#8221; internals for these functions
-so historical dates are fully supported.</p>
-</div>
 <div class="section" id="unicode">
-<h2>Unicode<a class="headerlink" href="#unicode" title="Permalink to this headline">¶</a></h2>
+<h3>Unicode<a class="headerlink" href="#unicode" title="Permalink to this headline">¶</a></h3>
 <p>In contrast to SQLAlchemy&#8217;s active handling of date and time types for pysqlite, pysqlite&#8217;s 
 default behavior regarding Unicode is that all strings are returned as Python unicode objects
 in all cases.  So even if the <a title="sqlalchemy.types.Unicode" class="reference external" href="../sqlalchemy/types.html#sqlalchemy.types.Unicode"><tt class="xref docutils literal"><span class="pre">Unicode</span></tt></a> type is 
@@ -205,6 +236,7 @@ to represent strings, since it will raise a warning if a non-unicode Python stri
 passed from the user application.  Mixing the usage of non-unicode objects with returned unicode objects can
 quickly create confusion, particularly when using the ORM as internal data is not 
 always represented by an actual database result string.</p>
+</div>
 </div>
 </div>
 
@@ -217,14 +249,14 @@ always represented by an actual database result string.</p>
                 
 <div class="prevnext">
         Previous:
-        <a href="postgres.html" title="previous chapter">PostgreSQL</a>
+        <a href="postgresql.html" title="previous chapter">PostgreSQL</a>
         Next:
-        <a href="sybase.html" title="next chapter">Sybase</a>
+        <a href="access.html" title="next chapter">Microsoft Access</a>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
                 </div>
             </div>
         

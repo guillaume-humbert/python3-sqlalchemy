@@ -1,13 +1,16 @@
 from sqlalchemy.test.testing import eq_, assert_raises
 import copy
-import gc
 import pickle
 
 from sqlalchemy import *
 from sqlalchemy.orm import *
 from sqlalchemy.orm.collections import collection
 from sqlalchemy.ext.associationproxy import *
+from sqlalchemy.ext.associationproxy import _AssociationList
 from sqlalchemy.test import *
+from sqlalchemy.test.util import gc_collect
+from sqlalchemy.sql import not_
+from test.orm import _base
 
 
 class DictCollection(dict):
@@ -615,6 +618,56 @@ class CustomObjectTest(_CollectionOperations):
         except TypeError:
             pass
 
+class ProxyFactoryTest(ListTest):
+    def setup(self):
+        metadata = MetaData(testing.db)
+
+        parents_table = Table('Parent', metadata,
+                              Column('id', Integer, primary_key=True,
+                                     test_needs_autoincrement=True),
+                              Column('name', String(128)))
+        children_table = Table('Children', metadata,
+                               Column('id', Integer, primary_key=True,
+                                      test_needs_autoincrement=True),
+                               Column('parent_id', Integer,
+                                      ForeignKey('Parent.id')),
+                               Column('foo', String(128)),
+                               Column('name', String(128)))
+        
+        class CustomProxy(_AssociationList):
+            def __init__(self, lazy_collection, creator, value_attr, parent):
+                getter, setter = parent._default_getset(lazy_collection)
+                _AssociationList.__init__(self, lazy_collection, creator, getter, setter, parent)
+                
+        
+        class Parent(object):
+            children = association_proxy('_children', 'name', 
+                        proxy_factory=CustomProxy, 
+                        proxy_bulk_set=CustomProxy.extend
+                    )
+
+            def __init__(self, name):
+                self.name = name
+
+        class Child(object):
+            def __init__(self, name):
+                self.name = name
+
+        mapper(Parent, parents_table, properties={
+            '_children': relation(Child, lazy=False,
+                                  collection_class=list)})
+        mapper(Child, children_table)
+
+        metadata.create_all()
+
+        self.metadata = metadata
+        self.session = create_session()
+        self.Parent, self.Child = Parent, Child
+    
+    def test_sequence_ops(self):
+        self._test_sequence_ops()
+    
+    
 class ScalarTest(TestBase):
     def test_scalar_proxy(self):
         metadata = MetaData(testing.db)
@@ -880,7 +933,7 @@ class ReconstitutionTest(TestBase):
 
 
         add_child('p1', 'c1')
-        gc.collect()
+        gc_collect()
         add_child('p1', 'c2')
 
         session.flush()
@@ -895,7 +948,7 @@ class ReconstitutionTest(TestBase):
         p.kids.extend(['c1', 'c2'])
         p_copy = copy.copy(p)
         del p
-        gc.collect()
+        gc_collect()
 
         assert set(p_copy.kids) == set(['c1', 'c2']), p.kids
 
@@ -947,3 +1000,169 @@ class PickleKeyFunc(object):
     
     def __call__(self, obj):
         return getattr(obj, self.name)
+
+class ComparatorTest(_base.MappedTest):
+    run_inserts = 'once'
+    run_deletes = None
+    run_setup_mappers = 'once'
+    
+    @classmethod
+    def define_tables(cls, metadata):
+
+        Table(
+            'userkeywords', metadata,
+            Column('keyword_id', Integer, ForeignKey('keywords.id'),
+                   primary_key=True),
+            Column('user_id', Integer, ForeignKey('users.id')))
+
+        Table(
+            'users', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('name', String(64)))
+
+        Table(
+            'keywords', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('keyword', String(64)))
+
+    @classmethod
+    def setup_classes(cls):
+        class User(_base.ComparableEntity):
+            def __init__(self, name):
+                self.name = name
+            keywords = association_proxy('user_keywords', 'keyword',
+                                         creator=lambda k: UserKeyword(keyword=k))
+
+        class Keyword(_base.ComparableEntity):
+            def __init__(self, keyword):
+                self.keyword = keyword
+            user = association_proxy('user_keyword', 'user')
+
+        class UserKeyword(_base.ComparableEntity):
+            def __init__(self, user=None, keyword=None):
+                self.user = user
+                self.keyword = keyword
+
+    @classmethod
+    @testing.resolve_artifact_names
+    def setup_mappers(cls):
+        
+        mapper(User, users)
+        mapper(Keyword, keywords, properties={
+            'user_keyword': relation(UserKeyword, uselist=False)
+        })
+        mapper(UserKeyword, userkeywords, properties={
+            'user': relation(User, backref='user_keywords'),
+            'keyword': relation(Keyword),
+        })
+
+    @classmethod
+    @testing.resolve_artifact_names
+    def insert_data(cls):
+        session = sessionmaker()()
+        words = ('quick', 'brown', 'fox', 'jumped', 'over', 'the', 'lazy')
+        for ii in range(4):
+            user = User('user%d' % ii)
+            session.add(user)
+            for jj in words[ii:ii+3]:
+                user.keywords.append(Keyword(jj))
+
+        orphan = Keyword('orphan')
+        orphan.user_keyword = UserKeyword(keyword=orphan, user=None)
+        session.add(orphan)
+        session.commit()
+
+        cls.u = user
+        cls.kw = user.keywords[0]
+        cls.session = session
+
+    def _equivalent(self, q_proxy, q_direct):
+        eq_(q_proxy.all(), q_direct.all())
+
+    @testing.resolve_artifact_names
+    def test_filter_any_kwarg(self):
+        self._equivalent(
+            self.session.query(User).\
+                filter(User.keywords.any(keyword='jumped')),
+            self.session.query(User).\
+                filter(User.user_keywords.any(
+                    UserKeyword.keyword.has(keyword='jumped'))))
+
+    @testing.resolve_artifact_names
+    def test_filter_has_kwarg(self):
+        self._equivalent(
+            self.session.query(Keyword).\
+                filter(Keyword.user.has(name='user2')),
+            self.session.query(Keyword).\
+                filter(Keyword.user_keyword.has(
+                    UserKeyword.user.has(name='user2'))))
+
+    @testing.resolve_artifact_names
+    def test_filter_any_criterion(self):
+        self._equivalent(
+            self.session.query(User).\
+                filter(User.keywords.any(Keyword.keyword == 'jumped')),
+            self.session.query(User).\
+                filter(User.user_keywords.any(
+                    UserKeyword.keyword.has(Keyword.keyword == 'jumped'))))
+
+    @testing.resolve_artifact_names
+    def test_filter_has_criterion(self):
+        self._equivalent(
+            self.session.query(Keyword).\
+                filter(Keyword.user.has(User.name == 'user2')),
+            self.session.query(Keyword).\
+                filter(Keyword.user_keyword.has(
+                    UserKeyword.user.has(User.name == 'user2'))))
+    
+    @testing.resolve_artifact_names
+    def test_filter_contains(self):
+        self._equivalent(
+            self.session.query(User).\
+                filter(User.keywords.contains(self.kw)),
+            self.session.query(User).\
+                filter(User.user_keywords.any(keyword=self.kw)))
+    
+    @testing.resolve_artifact_names
+    def test_filter_eq(self):
+        self._equivalent(
+            self.session.query(Keyword).\
+                filter(Keyword.user == self.u),
+            self.session.query(Keyword).\
+                filter(Keyword.user_keyword.has(user=self.u)))
+    
+    @testing.resolve_artifact_names
+    def test_filter_ne(self):
+        self._equivalent(
+            self.session.query(Keyword).\
+                filter(Keyword.user != self.u),
+            self.session.query(Keyword).\
+                filter(not_(Keyword.user_keyword.has(user=self.u))))
+
+    @testing.resolve_artifact_names
+    def test_filter_eq_null(self):
+        self._equivalent(
+            self.session.query(Keyword).\
+                filter(Keyword.user == None),
+            self.session.query(Keyword).\
+                filter(Keyword.user_keyword.has(UserKeyword.user == None)))
+
+    @testing.resolve_artifact_names
+    def test_filter_scalar_contains_fails(self):
+        assert_raises(exceptions.InvalidRequestError, lambda: Keyword.user.contains(self.u))
+    
+    @testing.resolve_artifact_names
+    def test_filter_scalar_any_fails(self):
+        assert_raises(exceptions.InvalidRequestError, lambda: Keyword.user.any(name='user2'))
+
+    @testing.resolve_artifact_names
+    def test_filter_collection_has_fails(self):
+        assert_raises(exceptions.InvalidRequestError, lambda: User.keywords.has(keyword='quick'))
+
+    @testing.resolve_artifact_names
+    def test_filter_collection_eq_fails(self):
+        assert_raises(exceptions.InvalidRequestError, lambda: User.keywords == self.kw)
+
+    @testing.resolve_artifact_names
+    def test_filter_collection_ne_fails(self):
+        assert_raises(exceptions.InvalidRequestError, lambda: User.keywords != self.kw)

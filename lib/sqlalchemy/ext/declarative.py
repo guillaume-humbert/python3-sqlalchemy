@@ -396,7 +396,7 @@ only intended as an optional syntax for the regular usage of mappers and Table
 objects.  A typical application setup using :func:`~sqlalchemy.orm.scoped_session` might look
 like::
 
-    engine = create_engine('postgres://scott:tiger@localhost/test')
+    engine = create_engine('postgresql://scott:tiger@localhost/test')
     Session = scoped_session(sessionmaker(autocommit=False,
                                           autoflush=False,
                                           bind=engine))
@@ -511,14 +511,14 @@ def _as_declarative(cls, classname, dict_):
     else:
         mapper_cls = mapper
 
-    if not table and 'inherits' not in mapper_args:
+    if table is None and 'inherits' not in mapper_args:
         raise exceptions.InvalidRequestError("Class %r does not have a __table__ or __tablename__ "
                     "specified and does not inherit from an existing table-mapped class." % cls)
 
     elif 'inherits' in mapper_args and not mapper_args.get('concrete', False):
         inherited_mapper = class_mapper(mapper_args['inherits'], compile=False)
         inherited_table = inherited_mapper.local_table
-        if 'inherit_condition' not in mapper_args and table:
+        if 'inherit_condition' not in mapper_args and table is not None:
             # figure out the inherit condition with relaxed rules
             # about nonexistent tables, to allow for ForeignKeys to
             # not-yet-defined tables (since we know for sure that our
@@ -527,7 +527,7 @@ def _as_declarative(cls, classname, dict_):
                 mapper_args['inherits'].__table__, table,
                 ignore_nonexistent_tables=True)
 
-        if not table:
+        if table is None:
             # single table inheritance.
             # ensure no table args
             table_args = cls.__dict__.get('__table_args__')
@@ -585,14 +585,16 @@ class _GetColumns(object):
     def __init__(self, cls):
         self.cls = cls
     def __getattr__(self, key):
+        
         mapper = class_mapper(self.cls, compile=False)
-        if not mapper:
-            return getattr(self.cls, key)
-        else:
+        if mapper:
             prop = mapper.get_property(key)
             if not isinstance(prop, ColumnProperty):
-                raise exceptions.InvalidRequestError("Property %r is not an instance of ColumnProperty (i.e. does not correspnd directly to a Column)." % key)
-            return prop.columns[0]
+                raise exceptions.InvalidRequestError(
+                                        "Property %r is not an instance of"
+                                        " ColumnProperty (i.e. does not correspond"
+                                        " directly to a Column)." % key)
+        return getattr(self.cls, key)
 
 
 def _deferred_relation(cls, prop):
@@ -630,10 +632,11 @@ def _deferred_relation(cls, prop):
             if isinstance(v, basestring):
                 setattr(prop, attr, resolve_arg(v))
 
-        if prop.backref:
+        if prop.backref and isinstance(prop.backref, tuple):
+            key, kwargs = prop.backref
             for attr in ('primaryjoin', 'secondaryjoin', 'secondary', 'foreign_keys', 'remote_side', 'order_by'):
-               if attr in prop.backref.kwargs and isinstance(prop.backref.kwargs[attr], basestring):
-                   prop.backref.kwargs[attr] = resolve_arg(prop.backref.kwargs[attr])
+               if attr in kwargs and isinstance(kwargs[attr], basestring):
+                   kwargs[attr] = resolve_arg(kwargs[attr])
 
 
     return prop
@@ -699,7 +702,7 @@ _declarative_constructor.__name__ = '__init__'
 
 def declarative_base(bind=None, metadata=None, mapper=None, cls=object,
                      name='Base', constructor=_declarative_constructor,
-                     metaclass=DeclarativeMeta, engine=None):
+                     metaclass=DeclarativeMeta):
     """Construct a base class for declarative class definitions.
 
     The new base class will be given a metaclass that invokes
@@ -709,7 +712,7 @@ def declarative_base(bind=None, metadata=None, mapper=None, cls=object,
 
     :param bind: An optional :class:`~sqlalchemy.engine.base.Connectable`, will be assigned 
       the ``bind`` attribute on the :class:`~sqlalchemy.MetaData` instance.
-      The `engine` keyword argument is a deprecated synonym for `bind`.
+      
 
     :param metadata:
       An optional :class:`~sqlalchemy.MetaData` instance.  All :class:`~sqlalchemy.schema.Table` 
@@ -746,8 +749,8 @@ def declarative_base(bind=None, metadata=None, mapper=None, cls=object,
 
     """
     lcl_metadata = metadata or MetaData()
-    if bind or engine:
-        lcl_metadata.bind = bind or engine
+    if bind:
+        lcl_metadata.bind = bind
 
     bases = not isinstance(cls, tuple) and (cls,) or cls
     class_dict = dict(_decl_class_registry=dict(),

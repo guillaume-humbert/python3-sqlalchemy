@@ -7,7 +7,7 @@
         
         <title>
     Database Engines
- &mdash; SQLAlchemy 0.5.8 Documentation</title>
+ &mdash; SQLAlchemy 0.6beta1 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.8',
+          VERSION:     '0.6beta1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.8 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.6beta1 Documentation" href="index.html" />
         <link rel="next" title="Database Meta Data" href="metadata.html" />
         <link rel="prev" title="Using the Session" href="session.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.8 Documentation</h1>
+        <h1>SQLAlchemy 0.6beta1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.8</span> Last Updated: 01/16/2010 15:44:42
+            Version: <span class="versionnum">0.6beta1</span> Last Updated: 02/03/2010 12:04:11
         </div>
         <div class="clearboth"></div>
 
@@ -125,9 +125,9 @@ connect() &lt;--|   Engine    |---x                       x----| DBAPI  |---| da
 </div>
 <p>Where above, a <tt class="xref docutils literal"><span class="pre">Engine</span></tt> references both a  <tt class="xref docutils literal"><span class="pre">Dialect</span></tt> and <a title="sqlalchemy.pool.Pool" class="reference external" href="reference/sqlalchemy/pooling.html#sqlalchemy.pool.Pool"><tt class="xref docutils literal"><span class="pre">Pool</span></tt></a>, which together interpret the DBAPI&#8217;s module functions as well as the behavior of the database.</p>
 <p>Creating an engine is just a matter of issuing a single call, <tt class="xref docutils literal"><span class="pre">create_engine()</span></tt>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://scott:tiger@localhost:5432/mydatabase&#39;</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://scott:tiger@localhost:5432/mydatabase&#39;</span><span class="p">)</span></pre></div>
 </div>
-<p>The above engine invokes the <tt class="docutils literal"><span class="pre">postgres</span></tt> dialect and a connection pool which references <tt class="docutils literal"><span class="pre">localhost:5432</span></tt>.</p>
+<p>The above engine invokes the <tt class="docutils literal"><span class="pre">postgresql</span></tt> dialect and a connection pool which references <tt class="docutils literal"><span class="pre">localhost:5432</span></tt>.</p>
 <p>The engine can be used directly to issue SQL to the database.  The most generic way is to use connections, which you get via the <tt class="docutils literal"><span class="pre">connect()</span></tt> method:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">connection</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;select username from users&quot;</span><span class="p">)</span>
@@ -148,72 +148,70 @@ connect() &lt;--|   Engine    |---x                       x----| DBAPI  |---| da
 <p>The <tt class="docutils literal"><span class="pre">Engine</span></tt> and <tt class="docutils literal"><span class="pre">Connection</span></tt> can do a lot more than what we illustrated above; SQL strings are only its most rudimentary function.  Later chapters will describe how &#8220;constructed SQL&#8221; expressions can be used with engines; in many cases, you don&#8217;t have to deal with the <tt class="docutils literal"><span class="pre">Engine</span></tt> at all after it&#8217;s created.  The Object Relational Mapper (ORM), an optional feature of SQLAlchemy, also uses the <tt class="docutils literal"><span class="pre">Engine</span></tt> in order to get at connections; that&#8217;s also a case where you can often create the engine once, and then forget about it.</p>
 <div class="section" id="supported-databases">
 <span id="supported-dbapis"></span><h2>Supported Databases<a class="headerlink" href="#supported-databases" title="Permalink to this headline">¶</a></h2>
-<p>Recall that the <tt class="docutils literal"><span class="pre">Dialect</span></tt> is used to describe how to talk to a specific kind of database.  Dialects are included with SQLAlchemy for many different backends; these can be seen as a Python package within the <tt class="xref docutils literal"><span class="pre">databases</span></tt> package.  Each dialect requires the appropriate DBAPI drivers to be installed separately.</p>
+<p>Recall that the <tt class="docutils literal"><span class="pre">Dialect</span></tt> is used to describe how to talk to a specific kind of database.  Dialects are included with SQLAlchemy for many different backends; these can be seen as a Python package within the <tt class="xref docutils literal"><span class="pre">dialect</span></tt> package.  Each dialect requires the appropriate DBAPI drivers to be installed separately.</p>
 <p>Dialects included with SQLAlchemy fall under one of three categories: supported, experimental, and third party.  Supported drivers are those which work against the most common databases available in the open source world, including SQLite, PostgreSQL, MySQL, and Firebird.   Very popular commercial databases which provide easy access to test platforms are also supported, these currently include MSSQL and Oracle.   These dialects are tested frequently and the level of support should be close to 100% for each.</p>
-<p>The experimental category is for drivers against less common database platforms, or commercial platforms for which no freely available and easily usable test platform is provided.   These include Access, MaxDB, Informix, and Sybase at the time of this writing.  These are partially-functioning dialects for which the SQLAlchemy project is not able to provide regular test support.  If you&#8217;re interested in supporting one of these backends, contact the mailing list.</p>
+<p>The experimental category is for drivers against less common database platforms, or commercial platforms for which no freely available and easily usable test platform is provided.   These include Access, MaxDB, Informix, and Sybase at the time of this writing.  These are not-yet-functioning
+or partially-functioning dialects for which the SQLAlchemy project is not able to provide regular test support.  If you&#8217;re interested in supporting one of these backends, contact the mailing list.</p>
 <p>There are also third-party dialects available - currently IBM offers a DB2/Informix IDS dialect for SQLAlchemy.</p>
 <p>Downloads for each DBAPI at the time of this writing are as follows:</p>
 <ul class="simple">
-<li>Supported Dialects</li>
+<li>Supported Dialects
+- PostgreSQL:  <a class="reference external" href="http://www.initd.org/tracker/psycopg/wiki/PsycopgTwo">psycopg2</a> <a class="reference external" href="http://pybrary.net/pg8000/">pg8000</a>
+- PostgreSQL on Jython: <a class="reference external" href="http://jdbc.postgresql.org/">PostgreSQL JDBC Driver</a>
+- SQLite:  <a class="reference external" href="http://www.python.org/doc/2.5.2/lib/module-sqlite3.html">sqlite3</a> (included in Python 2.5 or greater) <a class="reference external" href="http://initd.org/tracker/pysqlite">pysqlite</a>
+- MySQL:   <a class="reference external" href="http://sourceforge.net/projects/mysql-python">MySQLdb (a.k.a. mysql-python)</a> <a class="reference external" href="https://launchpad.net/myconnpy">MySQL Connector/Python</a>
+- MySQL on Jython: <a class="reference external" href="http://dev.mysql.com/downloads/connector/j/">MySQL Connector/J JDBC driver</a>
+- Oracle:  <a class="reference external" href="http://cx-oracle.sourceforge.net/">cx_Oracle</a>
+- Oracle on Jython:  <a class="reference external" href="http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/index.html">Oracle JDBC Driver</a>
+- Firebird:  <a class="reference external" href="http://kinterbasdb.sourceforge.net/">kinterbasdb</a>
+- MS-SQL, MSAccess:  <a class="reference external" href="http://pyodbc.sourceforge.net/">pyodbc</a> (recommended) <a class="reference external" href="http://adodbapi.sourceforge.net/">adodbapi</a>  <a class="reference external" href="http://pymssql.sourceforge.net/">pymssql</a>
+- MS-SQL on Jython:  <a class="reference external" href="http://jtds.sourceforge.net/">jTDS JDBC Driver</a></li>
+<li>Experimental Dialects
+- MSAccess:  <a class="reference external" href="http://pyodbc.sourceforge.net/">pyodbc</a>
+- Informix:  <a class="reference external" href="http://informixdb.sourceforge.net/">informixdb</a>
+- Sybase:   TODO
+- MAXDB:    <a class="reference external" href="http://www.sapdb.org/sapdbapi.html">sapdb</a></li>
+<li>Third Party Dialects
+- DB2/Informix IDS: <a class="reference external" href="http://code.google.com/p/ibm-db/">ibm-db</a></li>
 </ul>
-<blockquote>
-<ul class="simple">
-<li>PostgreSQL:  <a class="reference external" href="http://www.initd.org/tracker/psycopg/wiki/PsycopgTwo">psycopg2</a></li>
-<li>SQLite:  <a class="reference external" href="http://www.python.org/doc/2.5.2/lib/module-sqlite3.html">sqlite3</a> (included in Python 2.5 or greater) <a class="reference external" href="http://initd.org/tracker/pysqlite">pysqlite</a></li>
-<li>MySQL:   <a class="reference external" href="http://sourceforge.net/projects/mysql-python">MySQLDB (a.k.a. mysql-python)</a></li>
-<li>Oracle:  <a class="reference external" href="http://cx-oracle.sourceforge.net/">cx_Oracle</a></li>
-<li>Firebird:  <a class="reference external" href="http://kinterbasdb.sourceforge.net/">kinterbasdb</a></li>
-<li>MS-SQL, MSAccess:  <a class="reference external" href="http://pyodbc.sourceforge.net/">pyodbc</a> (recommended) <a class="reference external" href="http://adodbapi.sourceforge.net/">adodbapi</a>  <a class="reference external" href="http://pymssql.sourceforge.net/">pymssql</a></li>
-</ul>
-</blockquote>
-<ul class="simple">
-<li>Experimental Dialects</li>
-</ul>
-<blockquote>
-<ul class="simple">
-<li>MSAccess:  <a class="reference external" href="http://pyodbc.sourceforge.net/">pyodbc</a></li>
-<li>Informix:  <a class="reference external" href="http://informixdb.sourceforge.net/">informixdb</a></li>
-<li>Sybase:   TODO</li>
-<li>MAXDB:    TODO</li>
-</ul>
-</blockquote>
-<ul class="simple">
-<li>Third Party Dialects</li>
-</ul>
-<blockquote>
-<ul class="simple">
-<li>DB2/Informix IDS: <a class="reference external" href="http://code.google.com/p/ibm-db/">ibm-db</a></li>
-</ul>
-</blockquote>
 <p>The SQLAlchemy Wiki contains a page of database notes, describing whatever quirks and behaviors have been observed.  Its a good place to check for issues with specific databases.  <a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/DatabaseNotes">Database Notes</a></p>
 </div>
 <div class="section" id="create-engine-url-arguments">
 <h2>create_engine() URL Arguments<a class="headerlink" href="#create-engine-url-arguments" title="Permalink to this headline">¶</a></h2>
 <p>SQLAlchemy indicates the source of an Engine strictly via <a class="reference external" href="http://rfc.net/rfc1738.html">RFC-1738</a> style URLs, combined with optional keyword arguments to specify options for the Engine.  The form of the URL is:</p>
 <blockquote>
-driver://username:password&#64;host:port/database</blockquote>
-<p>Dialect names include the identifying name of the SQLAlchemy dialect which include <tt class="docutils literal"><span class="pre">sqlite</span></tt>, <tt class="docutils literal"><span class="pre">mysql</span></tt>, <tt class="docutils literal"><span class="pre">postgres</span></tt>, <tt class="docutils literal"><span class="pre">oracle</span></tt>, <tt class="docutils literal"><span class="pre">mssql</span></tt>, and <tt class="docutils literal"><span class="pre">firebird</span></tt>.  In SQLAlchemy 0.5 and earlier, the DBAPI implementation is automatically selected if more than one are available - currently this includes only MSSQL (pyodbc is the default, then adodbapi, then pymssql) and SQLite (sqlite3 is the default, or pysqlite if sqlite3 is not availble).   When using MSSQL, <tt class="docutils literal"><span class="pre">create_engine()</span></tt> accepts a <tt class="docutils literal"><span class="pre">module</span></tt> argument which specifies the name of the desired DBAPI to be used, overriding the default behavior.</p>
-<blockquote>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="c"># postgresql</span>
-<span class="n">pg_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
+dialect+driver://username:password&#64;host:port/database</blockquote>
+<p>Dialect names include the identifying name of the SQLAlchemy dialect which include <tt class="docutils literal"><span class="pre">sqlite</span></tt>, <tt class="docutils literal"><span class="pre">mysql</span></tt>, <tt class="docutils literal"><span class="pre">postgresql</span></tt>, <tt class="docutils literal"><span class="pre">oracle</span></tt>, <tt class="docutils literal"><span class="pre">mssql</span></tt>, and <tt class="docutils literal"><span class="pre">firebird</span></tt>.  The drivername is the name of the DBAPI to be used to connect to the database using all lowercase letters.   If not specified, a &#8220;default&#8221; DBAPI will be imported if available - this default is typically the most widely known driver available for that backend (i.e. cx_oracle, pysqlite/sqlite3, psycopg2, mysqldb).   For Jython connections, specify the <cite>zxjdbc</cite> driver, which is the JDBC-DBAPI bridge included with Jython.</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="c"># postgresql - psycopg2 is the default driver.</span>
+<span class="n">pg_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
+<span class="n">pg_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql+psycopg2://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
+<span class="n">pg_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql+pg8000://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
 
-<span class="c"># mysql</span>
-<span class="n">mysql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
+<span class="c"># postgresql on Jython</span>
+<span class="n">pg_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql+zxjdbc://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
 
-<span class="c"># oracle</span>
+<span class="c"># mysql - MySQLdb (mysql-python) is the default driver</span>
+<span class="n">mysql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql://scott:tiger@localhost/foo&#39;</span><span class="p">)</span>
+<span class="n">mysql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+mysqldb://scott:tiger@localhost/foo&#39;</span><span class="p">)</span>
+
+<span class="c"># mysql on Jython</span>
+<span class="n">mysql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+zxjdbc://localhost/foo&#39;</span><span class="p">)</span>
+
+<span class="c"># mysql with pyodbc (buggy)</span>
+<span class="n">mysql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+pyodbc://scott:tiger@some_dsn&#39;</span><span class="p">)</span>
+
+<span class="c"># oracle - cx_oracle is the default driver</span>
 <span class="n">oracle_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle://scott:tiger@127.0.0.1:1521/sidname&#39;</span><span class="p">)</span>
 
 <span class="c"># oracle via TNS name</span>
-<span class="n">oracle_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle://scott:tiger@tnsname&#39;</span><span class="p">)</span>
+<span class="n">oracle_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle+cx_oracle://scott:tiger@tnsname&#39;</span><span class="p">)</span>
 
 <span class="c"># mssql using ODBC datasource names.  PyODBC is the default driver.</span>
 <span class="n">mssql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql://mydsn&#39;</span><span class="p">)</span>
-<span class="n">mssql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql://scott:tiger@mydsn&#39;</span><span class="p">)</span>
-
-<span class="c"># firebird</span>
-<span class="n">firebird_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;firebird://scott:tiger@localhost/sometest.gdm&#39;</span><span class="p">)</span></pre></div>
+<span class="n">mssql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql+pyodbc://mydsn&#39;</span><span class="p">)</span>
+<span class="n">mssql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql+adodbapi://mydsn&#39;</span><span class="p">)</span>
+<span class="n">mssql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql+pyodbc://username:password@mydsn&#39;</span><span class="p">)</span></pre></div>
 </div>
-</blockquote>
 <p>SQLite connects to file based databases.   The same URL format is used, omitting the hostname, and using the &#8220;file&#8221; portion as the filename of the database.   This has the effect of four slashes being present for an absolute file path:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># sqlite://&lt;nohostname&gt;/&lt;path&gt;</span>
 <span class="c"># where &lt;path&gt; is relative:</span>
@@ -229,24 +227,24 @@ driver://username:password&#64;host:port/database</blockquote>
 <div class="section" id="custom-dbapi-connect-arguments">
 <h3>Custom DBAPI connect() arguments<a class="headerlink" href="#custom-dbapi-connect-arguments" title="Permalink to this headline">¶</a></h3>
 <p>Custom arguments used when issuing the <tt class="docutils literal"><span class="pre">connect()</span></tt> call to the underlying DBAPI may be issued in three distinct ways.  String-based arguments can be passed directly from the URL string as query arguments:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://scott:tiger@localhost/test?argument1=foo&amp;argument2=bar&#39;</span><span class="p">)</span></pre></div>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://scott:tiger@localhost/test?argument1=foo&amp;argument2=bar&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>If SQLAlchemy&#8217;s database connector is aware of a particular query argument, it may convert its type from string to its proper type.</p>
 <p><tt class="docutils literal"><span class="pre">create_engine</span></tt> also takes an argument <tt class="docutils literal"><span class="pre">connect_args</span></tt> which is an additional dictionary that will be passed to <tt class="docutils literal"><span class="pre">connect()</span></tt>.  This can be used when arguments of a type other than string are required, and SQLAlchemy&#8217;s database connector has no type conversion logic present for that parameter:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://scott:tiger@localhost/test&#39;</span><span class="p">,</span> <span class="n">connect_args</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;argument1&#39;</span><span class="p">:</span><span class="mf">17</span><span class="p">,</span> <span class="s">&#39;argument2&#39;</span><span class="p">:</span><span class="s">&#39;bar&#39;</span><span class="p">})</span></pre></div>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://scott:tiger@localhost/test&#39;</span><span class="p">,</span> <span class="n">connect_args</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;argument1&#39;</span><span class="p">:</span><span class="mf">17</span><span class="p">,</span> <span class="s">&#39;argument2&#39;</span><span class="p">:</span><span class="s">&#39;bar&#39;</span><span class="p">})</span></pre></div>
 </div>
 <p>The most customizable connection method of all is to pass a <tt class="docutils literal"><span class="pre">creator</span></tt> argument, which specifies a callable that returns a DBAPI connection:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="k">def</span> <span class="nf">connect</span><span class="p">():</span>
     <span class="k">return</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="s">&#39;scott&#39;</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s">&#39;localhost&#39;</span><span class="p">)</span>
 
-<span class="n">db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://&#39;</span><span class="p">,</span> <span class="n">creator</span><span class="o">=</span><span class="n">connect</span><span class="p">)</span></pre></div>
+<span class="n">db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://&#39;</span><span class="p">,</span> <span class="n">creator</span><span class="o">=</span><span class="n">connect</span><span class="p">)</span></pre></div>
 </div>
 </div>
 </div>
 <div class="section" id="database-engine-options">
 <span id="create-engine-args"></span><h2>Database Engine Options<a class="headerlink" href="#database-engine-options" title="Permalink to this headline">¶</a></h2>
 <p>Keyword options can also be specified to <tt class="docutils literal"><span class="pre">create_engine()</span></tt>, following the string URL as follows:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgres://...&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;latin1&#39;</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://...&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;latin1&#39;</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
 </div>
 <p>Options common to all database dialects are described at <a title="sqlalchemy.create_engine" class="reference external" href="reference/sqlalchemy/connections.html#sqlalchemy.create_engine"><tt class="xref docutils literal"><span class="pre">create_engine()</span></tt></a>.</p>
 </div>
@@ -261,7 +259,7 @@ driver://username:password&#64;host:port/database</blockquote>
 <span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></pre></div>
 </div>
 <p>The above SQL construct is known as a <tt class="docutils literal"><span class="pre">select()</span></tt>.  The full range of SQL constructs available are described in <a class="reference external" href="sqlexpression.html"><em>SQL Expression Language Tutorial</em></a>.</p>
-<p>Both <tt class="docutils literal"><span class="pre">Connection</span></tt> and <tt class="docutils literal"><span class="pre">Engine</span></tt> fulfill an interface known as <tt class="docutils literal"><span class="pre">Connectable</span></tt> which specifies common functionality between the two objects, namely being able to call <tt class="docutils literal"><span class="pre">connect()</span></tt> to return a <tt class="docutils literal"><span class="pre">Connection</span></tt> object (<tt class="docutils literal"><span class="pre">Connection</span></tt> just returns itself), and being able to call <tt class="docutils literal"><span class="pre">execute()</span></tt> to get a result set.   Following this, most SQLAlchemy functions and objects which accept an <tt class="docutils literal"><span class="pre">Engine</span></tt> as a parameter or attribute with which to execute SQL will also accept a <tt class="docutils literal"><span class="pre">Connection</span></tt>.  As of SQLAlchemy 0.3.9, this argument is named <tt class="docutils literal"><span class="pre">bind</span></tt>:</p>
+<p>Both <tt class="docutils literal"><span class="pre">Connection</span></tt> and <tt class="docutils literal"><span class="pre">Engine</span></tt> fulfill an interface known as <tt class="docutils literal"><span class="pre">Connectable</span></tt> which specifies common functionality between the two objects, namely being able to call <tt class="docutils literal"><span class="pre">connect()</span></tt> to return a <tt class="docutils literal"><span class="pre">Connection</span></tt> object (<tt class="docutils literal"><span class="pre">Connection</span></tt> just returns itself), and being able to call <tt class="docutils literal"><span class="pre">execute()</span></tt> to get a result set.   Following this, most SQLAlchemy functions and objects which accept an <tt class="docutils literal"><span class="pre">Engine</span></tt> as a parameter or attribute with which to execute SQL will also accept a <tt class="docutils literal"><span class="pre">Connection</span></tt>.  This argument is named <tt class="docutils literal"><span class="pre">bind</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:///:memory:&#39;</span><span class="p">)</span>
 
 <span class="c"># specify some Table metadata</span>
@@ -325,7 +323,6 @@ driver://username:password&#64;host:port/database</blockquote>
 <p id="index-1">Transaction Facts:</p>
 <ul class="simple">
 <li>the Transaction object, just like its parent Connection, is <strong>not thread-safe</strong>.</li>
-<li>SQLAlchemy 0.4 will feature transactions with two-phase commit capability as well as SAVEPOINT capability.</li>
 </ul>
 <div class="section" id="understanding-autocommit">
 <h3>Understanding Autocommit<a class="headerlink" href="#understanding-autocommit" title="Permalink to this headline">¶</a></h3>
@@ -485,8 +482,8 @@ driver://username:password&#64;host:port/database</blockquote>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+                    &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, 2010, the SQLAlchemy authors and contributors.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.1.
                 </div>
             </div>
         

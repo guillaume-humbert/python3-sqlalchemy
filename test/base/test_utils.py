@@ -3,6 +3,7 @@ import copy, threading
 from sqlalchemy import util, sql, exc
 from sqlalchemy.test import TestBase
 from sqlalchemy.test.testing import eq_, is_, ne_
+from sqlalchemy.test.util import gc_collect
 
 class OrderedDictTest(TestBase):
     def test_odict(self):
@@ -76,6 +77,26 @@ class OrderedSetTest(TestBase):
         eq_(o.intersection(iter([3,4, 6])), util.OrderedSet([3, 4]))
         eq_(o.union(iter([3,4, 6])), util.OrderedSet([2, 3, 4, 5, 6]))
 
+class FrozenDictTest(TestBase):
+    def test_serialize(self):
+        
+        picklers = set()
+        try:
+            import cPickle
+            picklers.add(cPickle)
+        except ImportError:
+            pass
+        import pickle
+        picklers.add(pickle)
+        
+        d = util.frozendict({1:2, 3:4})
+        
+        # yes, this thing needs this much testing
+        for pickle in picklers:
+            for protocol in -1, 0, 1, 2:
+                print pickle.loads(pickle.dumps(d, protocol))
+        
+        
 class ColumnCollectionTest(TestBase):
     def test_in(self):
         cc = sql.ColumnCollection()
@@ -260,7 +281,7 @@ class IdentitySetTest(TestBase):
         except TypeError:
             assert True
 
-        assert_raises(TypeError, cmp, ids)
+        assert_raises(TypeError, util.cmp, ids)
         assert_raises(TypeError, hash, ids)
 
     def test_difference(self):
@@ -325,19 +346,23 @@ class DictlikeIteritemsTest(TestBase):
         d = subdict(a=1,b=2,c=3)
         self._ok(d)
 
+    # Py2K
     def test_UserDict(self):
         import UserDict
         d = UserDict.UserDict(a=1,b=2,c=3)
         self._ok(d)
-
+    # end Py2K
+    
     def test_object(self):
         self._notok(object())
 
+    # Py2K
     def test_duck_1(self):
         class duck1(object):
             def iteritems(duck):
                 return iter(self.baseline)
         self._ok(duck1())
+    # end Py2K
 
     def test_duck_2(self):
         class duck2(object):
@@ -345,6 +370,7 @@ class DictlikeIteritemsTest(TestBase):
                 return list(self.baseline)
         self._ok(duck2())
 
+    # Py2K
     def test_duck_3(self):
         class duck3(object):
             def iterkeys(duck):
@@ -352,6 +378,7 @@ class DictlikeIteritemsTest(TestBase):
             def __getitem__(duck, key):
                 return dict(a=1,b=2,c=3).get(key)
         self._ok(duck3())
+    # end Py2K
 
     def test_duck_4(self):
         class duck4(object):
@@ -376,16 +403,20 @@ class DictlikeIteritemsTest(TestBase):
 
 class DuckTypeCollectionTest(TestBase):
     def test_sets(self):
+        # Py2K
         import sets
+        # end Py2K
         class SetLike(object):
             def add(self):
                 pass
 
         class ForcedSet(list):
             __emulates__ = set
-
+        
         for type_ in (set,
+                      # Py2K
                       sets.Set,
+                      # end Py2K
                       SetLike,
                       ForcedSet):
             eq_(util.duck_type_collection(type_), set)
@@ -393,11 +424,13 @@ class DuckTypeCollectionTest(TestBase):
             eq_(util.duck_type_collection(instance), set)
 
         for type_ in (frozenset,
-                      sets.ImmutableSet):
+                      # Py2K
+                      sets.ImmutableSet
+                      # end Py2K
+                      ):
             is_(util.duck_type_collection(type_), None)
             instance = type_()
             is_(util.duck_type_collection(instance), None)
-
 
 class ArgInspectionTest(TestBase):
     def test_get_cls_kwargs(self):
@@ -646,6 +679,8 @@ class WeakIdentityMappingTest(TestBase):
         assert len(data) == len(wim) == len(wim.by_id)
 
         del data[:]
+        gc_collect()
+
         eq_(wim, {})
         eq_(wim.by_id, {})
         eq_(wim._weakrefs, {})
@@ -657,6 +692,7 @@ class WeakIdentityMappingTest(TestBase):
 
         oid = id(data[0])
         del data[0]
+        gc_collect()
 
         assert len(data) == len(wim) == len(wim.by_id)
         assert oid not in wim.by_id
@@ -679,6 +715,7 @@ class WeakIdentityMappingTest(TestBase):
         th.start()
         cv.wait()
         cv.release()
+        gc_collect()
 
         eq_(wim, {})
         eq_(wim.by_id, {})
@@ -939,7 +976,8 @@ class TestClassHierarchy(TestBase):
 
         eq_(set(util.class_hierarchy(A)), set((A, B, C, object)))
         eq_(set(util.class_hierarchy(B)), set((A, B, C, object)))
-
+    
+    # Py2K
     def test_oldstyle_mixin(self):
         class A(object):
             pass
@@ -953,5 +991,5 @@ class TestClassHierarchy(TestBase):
         eq_(set(util.class_hierarchy(B)), set((A, B, object)))
         eq_(set(util.class_hierarchy(Mixin)), set())
         eq_(set(util.class_hierarchy(A)), set((A, B, object)))
-
+    # end Py2K
         

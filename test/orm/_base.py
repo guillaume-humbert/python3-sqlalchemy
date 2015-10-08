@@ -1,96 +1,15 @@
-import gc
 import inspect
 import sys
 import types
 import sqlalchemy as sa
+import sqlalchemy.exceptions as sa_exc
 from sqlalchemy.test import config, testing
 from sqlalchemy.test.testing import resolve_artifact_names, adict
+from sqlalchemy.test.engines import drop_all_tables
 from sqlalchemy.util import function_named
-
-
-_repr_stack = set()
-class BasicEntity(object):
-    def __init__(self, **kw):
-        for key, value in kw.iteritems():
-            setattr(self, key, value)
-
-    def __repr__(self):
-        if id(self) in _repr_stack:
-            return object.__repr__(self)
-        _repr_stack.add(id(self))
-        try:
-            return "%s(%s)" % (
-                (self.__class__.__name__),
-                ', '.join(["%s=%r" % (key, getattr(self, key))
-                           for key in sorted(self.__dict__.keys())
-                           if not key.startswith('_')]))
-        finally:
-            _repr_stack.remove(id(self))
+from sqlalchemy.test.entities import BasicEntity, ComparableEntity
 
 Entity = BasicEntity
-
-_recursion_stack = set()
-class ComparableEntity(BasicEntity):
-    def __hash__(self):
-        return hash(self.__class__)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __eq__(self, other):
-        """'Deep, sparse compare.
-
-        Deeply compare two entities, following the non-None attributes of the
-        non-persisted object, if possible.
-
-        """
-        if other is self:
-            return True
-        elif not self.__class__ == other.__class__:
-            return False
-
-        if id(self) in _recursion_stack:
-            return True
-        _recursion_stack.add(id(self))
-
-        try:
-            # pick the entity thats not SA persisted as the source
-            try:
-                self_key = sa.orm.attributes.instance_state(self).key
-            except sa.orm.exc.NO_STATE:
-                self_key = None
-                
-            if other is None:
-                a = self
-                b = other
-            elif self_key is not None:
-                a = other
-                b = self
-            else:
-                a = self
-                b = other
-
-            for attr in a.__dict__.keys():
-                if attr.startswith('_'):
-                    continue
-                value = getattr(a, attr)
-                if (hasattr(value, '__iter__') and
-                    not isinstance(value, basestring)):
-                    try:
-                        # catch AttributeError so that lazy loaders trigger
-                        battr = getattr(b, attr)
-                    except AttributeError:
-                        return False
-
-                    if list(value) != list(battr):
-                        return False
-                else:
-                    if value is not None:
-                        if value != getattr(b, attr, None):
-                            return False
-            return True
-        finally:
-            _recursion_stack.remove(id(self))
 
 
 class ORMTest(testing.TestBase, testing.AssertsExecutionResults):
@@ -173,7 +92,7 @@ class MappedTest(ORMTest):
     def setup(self):
         if self.run_define_tables == 'each':
             self.tables.clear()
-            self.metadata.drop_all()
+            drop_all_tables(self.metadata)
             self.metadata.clear()
             self.define_tables(self.metadata)
             self.metadata.create_all()
@@ -217,7 +136,7 @@ class MappedTest(ORMTest):
         for cl in cls.classes.values():
             cls.unregister_class(cl)
         ORMTest.teardown_class()
-        cls.metadata.drop_all()
+        drop_all_tables(cls.metadata)
         cls.metadata.bind = None
 
     @classmethod

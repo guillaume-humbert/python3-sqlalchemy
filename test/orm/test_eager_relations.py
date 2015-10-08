@@ -1,19 +1,19 @@
 """basic tests of eager loaded attributes"""
 
-from sqlalchemy.test.testing import eq_
+from sqlalchemy.test.testing import eq_, is_, is_not_
 import sqlalchemy as sa
 from sqlalchemy.test import testing
-from sqlalchemy.orm import eagerload, deferred, undefer
+from sqlalchemy.orm import eagerload, deferred, undefer, eagerload_all, backref
 from sqlalchemy import Integer, String, Date, ForeignKey, and_, select, func
-from sqlalchemy.test.schema import Table
-from sqlalchemy.test.schema import Column
+from sqlalchemy.test.schema import Table, Column
 from sqlalchemy.orm import mapper, relation, create_session, lazyload, aliased
-from sqlalchemy.test.testing import eq_
+from sqlalchemy.test.testing import eq_, assert_raises
 from sqlalchemy.test.assertsql import CompiledSQL
 from test.orm import _base, _fixtures
+from sqlalchemy.util import OrderedDict as odict
 import datetime
 
-class EagerTest(_fixtures.FixtureTest):
+class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
     run_inserts = 'once'
     run_deletes = None
 
@@ -25,7 +25,8 @@ class EagerTest(_fixtures.FixtureTest):
         sess = create_session()
         q = sess.query(User)
 
-        assert [User(id=7, addresses=[Address(id=1, email_address='jack@bean.com')])] == q.filter(User.id==7).all()
+        eq_([User(id=7, addresses=[Address(id=1, email_address='jack@bean.com')])],
+            q.filter(User.id==7).all())
         eq_(self.static.user_address_result, q.order_by(User.id).all())
 
     @testing.resolve_artifact_names
@@ -63,7 +64,7 @@ class EagerTest(_fixtures.FixtureTest):
             'addresses':relation(mapper(Address, addresses), lazy=False, order_by=addresses.c.email_address),
         })
         q = create_session().query(User)
-        assert [
+        eq_([
             User(id=7, addresses=[
                 Address(id=1)
             ]),
@@ -76,7 +77,7 @@ class EagerTest(_fixtures.FixtureTest):
                 Address(id=5)
             ]),
             User(id=10, addresses=[])
-        ] == q.order_by(User.id).all()
+        ], q.order_by(User.id).all())
 
     @testing.resolve_artifact_names
     def test_orderby_multi(self):
@@ -84,7 +85,7 @@ class EagerTest(_fixtures.FixtureTest):
             'addresses':relation(mapper(Address, addresses), lazy=False, order_by=[addresses.c.email_address, addresses.c.id]),
         })
         q = create_session().query(User)
-        assert [
+        eq_([
             User(id=7, addresses=[
                 Address(id=1)
             ]),
@@ -97,7 +98,7 @@ class EagerTest(_fixtures.FixtureTest):
                 Address(id=5)
             ]),
             User(id=10, addresses=[])
-        ] == q.order_by(User.id).all()
+        ], q.order_by(User.id).all())
 
     @testing.resolve_artifact_names
     def test_orderby_related(self):
@@ -110,7 +111,7 @@ class EagerTest(_fixtures.FixtureTest):
         q = create_session().query(User)
         l = q.filter(User.id==Address.user_id).order_by(Address.email_address).all()
 
-        assert [
+        eq_([
             User(id=8, addresses=[
                 Address(id=2, email_address='ed@wood.com'),
                 Address(id=3, email_address='ed@bettyboop.com'),
@@ -122,7 +123,7 @@ class EagerTest(_fixtures.FixtureTest):
             User(id=7, addresses=[
                 Address(id=1)
             ]),
-        ] == l
+        ], l)
 
     @testing.resolve_artifact_names
     def test_orderby_desc(self):
@@ -132,7 +133,7 @@ class EagerTest(_fixtures.FixtureTest):
                                  order_by=[sa.desc(addresses.c.email_address)]),
         ))
         sess = create_session()
-        assert [
+        eq_([
             User(id=7, addresses=[
                 Address(id=1)
             ]),
@@ -145,7 +146,7 @@ class EagerTest(_fixtures.FixtureTest):
                 Address(id=5)
             ]),
             User(id=10, addresses=[])
-        ] == sess.query(User).order_by(User.id).all()
+        ], sess.query(User).order_by(User.id).all())
 
     @testing.resolve_artifact_names
     def test_deferred_fk_col(self):
@@ -173,6 +174,15 @@ class EagerTest(_fixtures.FixtureTest):
                  Address(id=5, user=User(id=9))]
             )
 
+        sess.expunge_all()
+        a = sess.query(Address).filter(Address.id==1).all()[0]
+        def go():
+            eq_(a.user_id, 7)
+        # assert that the eager loader added 'user_id' to the row and deferred
+        # loading of that col was disabled
+        self.assert_sql_count(testing.db, go, 0)
+
+        sess.expunge_all()
         a = sess.query(Address).filter(Address.id==1).first()
         def go():
             eq_(a.user_id, 7)
@@ -204,7 +214,7 @@ class EagerTest(_fixtures.FixtureTest):
         sess.expunge_all()
         u = sess.query(User).get(7)
         def go():
-            assert u.addresses[0].user_id==7
+            eq_(u.addresses[0].user_id, 7)
         # assert that the eager loader didn't have to affect 'user_id' here
         # and that its still deferred
         self.assert_sql_count(testing.db, go, 1)
@@ -241,7 +251,7 @@ class EagerTest(_fixtures.FixtureTest):
 
         q = create_session().query(Item).order_by(Item.id)
         def go():
-            assert self.static.item_keyword_result == q.all()
+            eq_(self.static.item_keyword_result, q.all())
         self.assert_sql_count(testing.db, go, 1)
 
         def go():
@@ -286,8 +296,8 @@ class EagerTest(_fixtures.FixtureTest):
             addresses = relation(Address, lazy=False,
                                  backref=sa.orm.backref('user', lazy=False), order_by=Address.id)
         ))
-        assert sa.orm.class_mapper(User).get_property('addresses').lazy is False
-        assert sa.orm.class_mapper(Address).get_property('user').lazy is False
+        is_(sa.orm.class_mapper(User).get_property('addresses').lazy, False)
+        is_(sa.orm.class_mapper(Address).get_property('user').lazy, False)
 
         sess = create_session()
         eq_(self.static.user_address_result, sess.query(User).order_by(User.id).all())
@@ -325,7 +335,7 @@ class EagerTest(_fixtures.FixtureTest):
         q = create_session().query(User).order_by(User.id)
 
         def go():
-            assert [
+            eq_([
                 User(
                     id=7,
                     addresses=[Address(id=1)],
@@ -346,7 +356,7 @@ class EagerTest(_fixtures.FixtureTest):
                 ),
                 User(id=10)
 
-            ] == q.all()
+            ], q.all())
         self.assert_sql_count(testing.db, go, 1)
 
     @testing.resolve_artifact_names
@@ -377,7 +387,7 @@ class EagerTest(_fixtures.FixtureTest):
         q = create_session().query(User).order_by(User.id)
 
         def go():
-            assert [
+            eq_([
                 User(id=7,
                      addresses=[
                        Address(id=1)],
@@ -416,7 +426,7 @@ class EagerTest(_fixtures.FixtureTest):
                                Item(id=2),
                                Item(id=3)])]),
                 User(id=10)
-            ] == q.all()
+            ], q.all())
         self.assert_sql_count(testing.db, go, 1)
 
     @testing.resolve_artifact_names
@@ -459,20 +469,14 @@ class EagerTest(_fixtures.FixtureTest):
         })
         mapper(User, users, properties={
             'addresses':relation(mapper(Address, addresses), lazy=False, order_by=addresses.c.id),
-            'orders':relation(Order, lazy=True)
+            'orders':relation(Order, lazy=True, order_by=orders.c.id)
         })
 
         sess = create_session()
         q = sess.query(User)
 
-        if testing.against('mysql'):
-            l = q.limit(2).all()
-            assert self.static.user_all_result[:2] == l
-        else:
-            l = q.order_by(User.id).limit(2).offset(1).all()
-            print self.static.user_all_result[1:3]
-            print l
-            assert self.static.user_all_result[1:3] == l
+        l = q.order_by(User.id).limit(2).offset(1).all()
+        eq_(self.static.user_all_result[1:3], l)
 
     @testing.resolve_artifact_names
     def test_distinct(self):
@@ -507,7 +511,7 @@ class EagerTest(_fixtures.FixtureTest):
         l = q.filter((Item.description=='item 2') | (Item.description=='item 5') | (Item.description=='item 3')).\
             order_by(Item.id).limit(2).all()
 
-        assert self.static.item_keyword_result[1:3] == l
+        eq_(self.static.item_keyword_result[1:3], l)
 
     @testing.fails_on('maxdb', 'FIXME: unknown')
     @testing.resolve_artifact_names
@@ -531,7 +535,7 @@ class EagerTest(_fixtures.FixtureTest):
 
         if not testing.against('maxdb', 'mssql'):
             l = q.join('orders').order_by(Order.user_id.desc()).limit(2).offset(1)
-            assert [
+            eq_([
                 User(id=9,
                     orders=[Order(id=2), Order(id=4)],
                     addresses=[Address(id=5)]
@@ -540,20 +544,21 @@ class EagerTest(_fixtures.FixtureTest):
                     orders=[Order(id=1), Order(id=3), Order(id=5)],
                     addresses=[Address(id=1)]
                 )
-            ] == l.all()
+            ], l.all())
 
         l = q.join('addresses').order_by(Address.email_address.desc()).limit(1).offset(0)
-        assert [
+        eq_([
             User(id=7,
                 orders=[Order(id=1), Order(id=3), Order(id=5)],
                 addresses=[Address(id=1)]
             )
-        ] == l.all()
+        ], l.all())
 
     @testing.resolve_artifact_names
     def test_limit_4(self):
         # tests the LIMIT/OFFSET aliasing on a mapper against a select.   original issue from ticket #904
-        sel = sa.select([users, addresses.c.email_address], users.c.id==addresses.c.user_id).alias('useralias')
+        sel = sa.select([users, addresses.c.email_address],
+                        users.c.id==addresses.c.user_id).alias('useralias')
         mapper(User, sel, properties={
             'orders':relation(Order, primaryjoin=sel.c.id==orders.c.user_id, lazy=False)
         })
@@ -569,6 +574,93 @@ class EagerTest(_fixtures.FixtureTest):
         )
 
     @testing.resolve_artifact_names
+    def test_manytoone_limit(self):
+        """test that the subquery wrapping only occurs with limit/offset and m2m or o2m joins present."""
+        
+        mapper(User, users, properties=odict(
+            orders=relation(Order, backref='user')
+        ))
+        mapper(Order, orders, properties=odict(
+            items=relation(Item, secondary=order_items, backref='orders'),
+            address=relation(Address)
+        ))
+        mapper(Address, addresses)
+        mapper(Item, items)
+        
+        sess = create_session()
+
+        self.assert_compile(
+            sess.query(User).options(eagerload(User.orders)).limit(10),
+            "SELECT anon_1.users_id AS anon_1_users_id, anon_1.users_name AS anon_1_users_name, "
+            "orders_1.id AS orders_1_id, orders_1.user_id AS orders_1_user_id, orders_1.address_id AS "
+            "orders_1_address_id, orders_1.description AS orders_1_description, orders_1.isopen AS orders_1_isopen "
+            "FROM (SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users "
+            " LIMIT 10) AS anon_1 LEFT OUTER JOIN orders AS orders_1 ON anon_1.users_id = orders_1.user_id"
+            ,use_default_dialect=True
+        )
+
+        self.assert_compile(
+            sess.query(Order).options(eagerload(Order.user)).limit(10),
+            "SELECT orders.id AS orders_id, orders.user_id AS orders_user_id, orders.address_id AS "
+            "orders_address_id, orders.description AS orders_description, orders.isopen AS orders_isopen, "
+            "users_1.id AS users_1_id, users_1.name AS users_1_name FROM orders LEFT OUTER JOIN users AS "
+            "users_1 ON users_1.id = orders.user_id  LIMIT 10"
+            ,use_default_dialect=True
+        )
+
+        self.assert_compile(
+            sess.query(Order).options(eagerload(Order.user, innerjoin=True)).limit(10),
+            "SELECT orders.id AS orders_id, orders.user_id AS orders_user_id, orders.address_id AS "
+            "orders_address_id, orders.description AS orders_description, orders.isopen AS orders_isopen, "
+            "users_1.id AS users_1_id, users_1.name AS users_1_name FROM orders JOIN users AS "
+            "users_1 ON users_1.id = orders.user_id  LIMIT 10"
+            ,use_default_dialect=True
+        )
+
+        self.assert_compile(
+            sess.query(User).options(eagerload_all("orders.address")).limit(10),
+            "SELECT anon_1.users_id AS anon_1_users_id, anon_1.users_name AS anon_1_users_name, "
+            "addresses_1.id AS addresses_1_id, addresses_1.user_id AS addresses_1_user_id, "
+            "addresses_1.email_address AS addresses_1_email_address, orders_1.id AS orders_1_id, "
+            "orders_1.user_id AS orders_1_user_id, orders_1.address_id AS orders_1_address_id, "
+            "orders_1.description AS orders_1_description, orders_1.isopen AS orders_1_isopen FROM "
+            "(SELECT users.id AS users_id, users.name AS users_name FROM users  LIMIT 10) AS anon_1 "
+            "LEFT OUTER JOIN orders AS orders_1 ON anon_1.users_id = orders_1.user_id LEFT OUTER JOIN "
+            "addresses AS addresses_1 ON addresses_1.id = orders_1.address_id"
+            ,use_default_dialect=True
+        )
+
+        self.assert_compile(
+            sess.query(User).options(eagerload_all("orders.items"), eagerload("orders.address")),
+            "SELECT users.id AS users_id, users.name AS users_name, items_1.id AS items_1_id, "
+            "items_1.description AS items_1_description, addresses_1.id AS addresses_1_id, "
+            "addresses_1.user_id AS addresses_1_user_id, addresses_1.email_address AS "
+            "addresses_1_email_address, orders_1.id AS orders_1_id, orders_1.user_id AS "
+            "orders_1_user_id, orders_1.address_id AS orders_1_address_id, orders_1.description "
+            "AS orders_1_description, orders_1.isopen AS orders_1_isopen FROM users LEFT OUTER JOIN "
+            "orders AS orders_1 ON users.id = orders_1.user_id LEFT OUTER JOIN order_items AS "
+            "order_items_1 ON orders_1.id = order_items_1.order_id LEFT OUTER JOIN items AS "
+            "items_1 ON items_1.id = order_items_1.item_id LEFT OUTER JOIN addresses AS "
+            "addresses_1 ON addresses_1.id = orders_1.address_id"
+            ,use_default_dialect=True
+        )
+
+        self.assert_compile(
+            sess.query(User).options(eagerload("orders"), eagerload("orders.address", innerjoin=True)).limit(10),
+            "SELECT anon_1.users_id AS anon_1_users_id, anon_1.users_name AS anon_1_users_name, "
+            "addresses_1.id AS addresses_1_id, addresses_1.user_id AS addresses_1_user_id, "
+            "addresses_1.email_address AS addresses_1_email_address, orders_1.id AS orders_1_id, "
+            "orders_1.user_id AS orders_1_user_id, orders_1.address_id AS orders_1_address_id, "
+            "orders_1.description AS orders_1_description, orders_1.isopen AS orders_1_isopen "
+            "FROM (SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users "
+            " LIMIT 10) AS anon_1 LEFT OUTER JOIN orders AS orders_1 ON anon_1.users_id = "
+            "orders_1.user_id JOIN addresses AS addresses_1 ON addresses_1.id = orders_1.address_id"
+            ,use_default_dialect=True
+        )
+        
+    @testing.resolve_artifact_names
     def test_one_to_many_scalar(self):
         mapper(User, users, properties = dict(
             address = relation(mapper(Address, addresses), lazy=False, uselist=False)
@@ -577,7 +669,7 @@ class EagerTest(_fixtures.FixtureTest):
 
         def go():
             l = q.filter(users.c.id == 7).all()
-            assert [User(id=7, address=Address(id=1))] == l
+            eq_([User(id=7, address=Address(id=1))], l)
         self.assert_sql_count(testing.db, go, 1)
 
     @testing.fails_on('maxdb', 'FIXME: unknown')
@@ -591,9 +683,9 @@ class EagerTest(_fixtures.FixtureTest):
 
         def go():
             a = q.filter(addresses.c.id==1).one()
-            assert a.user is not None
+            is_not_(a.user, None)
             u1 = sess.query(User).get(7)
-            assert a.user is u1
+            is_(a.user, u1)
         self.assert_sql_count(testing.db, go, 1)
 
     @testing.resolve_artifact_names
@@ -645,24 +737,28 @@ class EagerTest(_fixtures.FixtureTest):
         l = q.filter("users.id in (7, 8, 9)").order_by("users.id")
 
         def go():
-            assert self.static.user_order_result[0:3] == l.all()
+            eq_(self.static.user_order_result[0:3], l.all())
         self.assert_sql_count(testing.db, go, 1)
 
     @testing.resolve_artifact_names
     def test_double_with_aggregate(self):
-        max_orders_by_user = sa.select([sa.func.max(orders.c.id).label('order_id')], group_by=[orders.c.user_id]).alias('max_orders_by_user')
+        max_orders_by_user = sa.select([sa.func.max(orders.c.id).label('order_id')],
+                                       group_by=[orders.c.user_id]).alias('max_orders_by_user')
 
         max_orders = orders.select(orders.c.id==max_orders_by_user.c.order_id).alias('max_orders')
 
         mapper(Order, orders)
         mapper(User, users, properties={
-               'orders':relation(Order, backref='user', lazy=False),
-               'max_order':relation(mapper(Order, max_orders, non_primary=True), lazy=False, uselist=False)
+               'orders':relation(Order, backref='user', lazy=False, order_by=orders.c.id),
+               'max_order':relation(
+                                mapper(Order, max_orders, non_primary=True), 
+                                lazy=False, uselist=False)
                })
+
         q = create_session().query(User)
 
         def go():
-            assert [
+            eq_([
                 User(id=7, orders=[
                         Order(id=1),
                         Order(id=3),
@@ -675,12 +771,24 @@ class EagerTest(_fixtures.FixtureTest):
                     max_order=Order(id=4)
                 ),
                 User(id=10),
-            ] == q.all()
+            ], q.order_by(User.id).all())
         self.assert_sql_count(testing.db, go, 1)
 
+    @testing.resolve_artifact_names 
+    def test_uselist_false_warning(self):
+        """test that multiple rows received by a uselist=False raises a warning."""
+        
+        mapper(User, users, properties={
+            'order':relation(Order, uselist=False)
+        })
+        mapper(Order, orders)
+        s = create_session()
+        assert_raises(sa.exc.SAWarning, s.query(User).options(eagerload(User.order)).all)
+        
     @testing.resolve_artifact_names
     def test_wide(self):
-        mapper(Order, orders, properties={'items':relation(Item, secondary=order_items, lazy=False, order_by=items.c.id)})
+        mapper(Order, orders, properties={'items':relation(Item, secondary=order_items, lazy=False,
+                                                           order_by=items.c.id)})
         mapper(Item, items)
         mapper(User, users, properties = dict(
             addresses = relation(mapper(Address, addresses), lazy = False, order_by=addresses.c.id),
@@ -688,7 +796,7 @@ class EagerTest(_fixtures.FixtureTest):
         ))
         q = create_session().query(User)
         l = q.all()
-        assert self.static.user_all_result == q.order_by(User.id).all()
+        eq_(self.static.user_all_result, q.order_by(User.id).all())
 
     @testing.resolve_artifact_names
     def test_against_select(self):
@@ -703,15 +811,15 @@ class EagerTest(_fixtures.FixtureTest):
         mapper(Item, items)
 
         q = create_session().query(Order)
-        assert [
+        eq_([
             Order(id=3, user=User(id=7)),
             Order(id=4, user=User(id=9))
-        ] == q.all()
+        ], q.all())
 
         q = q.select_from(s.join(order_items).join(items)).filter(~Item.id.in_([1, 2, 5]))
-        assert [
+        eq_([
             Order(id=3, user=User(id=7)),
-        ] == q.all()
+        ], q.all())
 
     @testing.resolve_artifact_names
     def test_aliasing(self):
@@ -721,9 +829,89 @@ class EagerTest(_fixtures.FixtureTest):
             addresses = relation(mapper(Address, addresses), lazy=False, order_by=addresses.c.id)
         ))
         q = create_session().query(User)
-        l = q.filter(addresses.c.email_address == 'ed@lala.com').filter(Address.user_id==User.id).order_by(User.id)
-        assert self.static.user_address_result[1:2] == l.all()
+        l = q.filter(addresses.c.email_address == 'ed@lala.com').filter(
+            Address.user_id==User.id).order_by(User.id)
+        eq_(self.static.user_address_result[1:2], l.all())
 
+    @testing.resolve_artifact_names
+    def test_inner_join(self):
+        mapper(User, users, properties = dict(
+            addresses = relation(mapper(Address, addresses), lazy=False, innerjoin=True, order_by=addresses.c.id)
+        ))
+        sess = create_session()
+        eq_(
+            [User(id=7, addresses=[ Address(id=1) ]),
+            User(id=8, 
+                addresses=[ Address(id=2, email_address='ed@wood.com'), 
+                            Address(id=3, email_address='ed@bettyboop.com'), 
+                            Address(id=4, email_address='ed@lala.com'), ]),
+            User(id=9, addresses=[ Address(id=5) ])]
+            ,sess.query(User).all()
+        )
+        self.assert_compile(sess.query(User), 
+                "SELECT users.id AS users_id, users.name AS users_name, "
+                "addresses_1.id AS addresses_1_id, addresses_1.user_id AS addresses_1_user_id, "
+                "addresses_1.email_address AS addresses_1_email_address FROM users JOIN "
+                "addresses AS addresses_1 ON users.id = addresses_1.user_id ORDER BY addresses_1.id"
+        , use_default_dialect=True)
+
+    @testing.resolve_artifact_names
+    def test_inner_join_options(self):
+        mapper(User, users, properties = dict(
+            orders =relation(Order, backref=backref('user', innerjoin=True), order_by=orders.c.id)
+        ))
+        mapper(Order, orders, properties=dict(
+            items=relation(Item, secondary=order_items, order_by=items.c.id)
+        ))
+        mapper(Item, items)
+        sess = create_session()
+        self.assert_compile(sess.query(User).options(eagerload(User.orders, innerjoin=True)), 
+            "SELECT users.id AS users_id, users.name AS users_name, orders_1.id AS orders_1_id, "
+            "orders_1.user_id AS orders_1_user_id, orders_1.address_id AS orders_1_address_id, "
+            "orders_1.description AS orders_1_description, orders_1.isopen AS orders_1_isopen "
+            "FROM users JOIN orders AS orders_1 ON users.id = orders_1.user_id ORDER BY orders_1.id"
+        , use_default_dialect=True)
+
+        self.assert_compile(sess.query(User).options(eagerload_all(User.orders, Order.items, innerjoin=True)), 
+            "SELECT users.id AS users_id, users.name AS users_name, items_1.id AS items_1_id, "
+            "items_1.description AS items_1_description, orders_1.id AS orders_1_id, "
+            "orders_1.user_id AS orders_1_user_id, orders_1.address_id AS orders_1_address_id, "
+            "orders_1.description AS orders_1_description, orders_1.isopen AS orders_1_isopen "
+            "FROM users JOIN orders AS orders_1 ON users.id = orders_1.user_id JOIN order_items AS "
+            "order_items_1 ON orders_1.id = order_items_1.order_id JOIN items AS items_1 ON "
+            "items_1.id = order_items_1.item_id ORDER BY orders_1.id, items_1.id"
+        , use_default_dialect=True)
+        
+        def go():
+            eq_(
+                sess.query(User).options(
+                    eagerload(User.orders, innerjoin=True), 
+                    eagerload(User.orders, Order.items, innerjoin=True)).
+                    order_by(User.id).all(),
+                    
+                [User(id=7, 
+                    orders=[ 
+                        Order(id=1, items=[ Item(id=1), Item(id=2), Item(id=3)]), 
+                        Order(id=3, items=[ Item(id=3), Item(id=4), Item(id=5)]), 
+                        Order(id=5, items=[Item(id=5)])]),
+                User(id=9, orders=[
+                    Order(id=2, items=[ Item(id=1), Item(id=2), Item(id=3)]), 
+                    Order(id=4, items=[ Item(id=1), Item(id=5)])])
+                ]
+            )
+        self.assert_sql_count(testing.db, go, 1)
+        
+        # test that default innerjoin setting is used for options
+        self.assert_compile(
+            sess.query(Order).options(eagerload(Order.user)).filter(Order.description == 'foo'),
+            "SELECT orders.id AS orders_id, orders.user_id AS orders_user_id, orders.address_id AS "
+            "orders_address_id, orders.description AS orders_description, orders.isopen AS "
+            "orders_isopen, users_1.id AS users_1_id, users_1.name AS users_1_name "
+            "FROM orders JOIN users AS users_1 ON users_1.id = orders.user_id "
+            "WHERE orders.description = :description_1",
+            use_default_dialect=True
+        )
+        
 class AddEntityTest(_fixtures.FixtureTest):
     run_inserts = 'once'
     run_deletes = None
@@ -789,7 +977,8 @@ class AddEntityTest(_fixtures.FixtureTest):
         sess = create_session()
         oalias = sa.orm.aliased(Order)
         def go():
-            ret = sess.query(User, oalias).join(('orders', oalias)).order_by(User.id, oalias.id).all()
+            ret = sess.query(User, oalias).join(('orders', oalias)).order_by(User.id,
+                                                                             oalias.id).all()
             eq_(ret, self._assert_result())
         self.assert_sql_count(testing.db, go, 1)
 
@@ -809,13 +998,16 @@ class AddEntityTest(_fixtures.FixtureTest):
 
         oalias = sa.orm.aliased(Order)
         def go():
-            ret = sess.query(User, oalias).options(eagerload('addresses')).join(('orders', oalias)).order_by(User.id, oalias.id).all()
+            ret = sess.query(User, oalias).options(eagerload('addresses')).join(
+                ('orders', oalias)).order_by(User.id, oalias.id).all()
             eq_(ret, self._assert_result())
         self.assert_sql_count(testing.db, go, 6)
 
         sess.expunge_all()
         def go():
-            ret = sess.query(User, oalias).options(eagerload('addresses'), eagerload(oalias.items)).join(('orders', oalias)).order_by(User.id, oalias.id).all()
+            ret = sess.query(User, oalias).options(eagerload('addresses'),
+                                                   eagerload(oalias.items)).join(
+                ('orders', oalias)).order_by(User.id, oalias.id).all()
             eq_(ret, self._assert_result())
         self.assert_sql_count(testing.db, go, 1)
 
@@ -823,15 +1015,15 @@ class OrderBySecondaryTest(_base.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('m2m', metadata,
-              Column('id', Integer, primary_key=True),
+              Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
               Column('aid', Integer, ForeignKey('a.id')),
               Column('bid', Integer, ForeignKey('b.id')))
 
         Table('a', metadata,
-              Column('id', Integer, primary_key=True),
+              Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
               Column('data', String(50)))
         Table('b', metadata,
-              Column('id', Integer, primary_key=True),
+              Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
               Column('data', String(50)))
 
     @classmethod
@@ -866,15 +1058,15 @@ class OrderBySecondaryTest(_base.MappedTest):
         mapper(B, b)
 
         sess = create_session()
-        eq_(sess.query(A).all(), [A(data='a1', bs=[B(data='b3'), B(data='b1'), B(data='b2')]), A(bs=[B(data='b4'), B(data='b3'), B(data='b2')])])
+        eq_(sess.query(A).all(), [A(data='a1', bs=[B(data='b3'), B(data='b1'), B(data='b2')]),
+                                  A(bs=[B(data='b4'), B(data='b3'), B(data='b2')])])
 
 
 class SelfReferentialEagerTest(_base.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('nodes', metadata,
-              Column('id', Integer, sa.Sequence('node_id_seq', optional=True),
-                     primary_key=True),
+              Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('parent_id', Integer, ForeignKey('nodes.id')),
             Column('data', String(30)))
 
@@ -901,7 +1093,7 @@ class SelfReferentialEagerTest(_base.MappedTest):
         sess.expunge_all()
         def go():
             d = sess.query(Node).filter_by(data='n1').all()[0]
-            assert Node(data='n1', children=[
+            eq_(Node(data='n1', children=[
                 Node(data='n11'),
                 Node(data='n12', children=[
                     Node(data='n121'),
@@ -909,13 +1101,13 @@ class SelfReferentialEagerTest(_base.MappedTest):
                     Node(data='n123')
                 ]),
                 Node(data='n13')
-            ]) == d
+            ]), d)
         self.assert_sql_count(testing.db, go, 1)
 
         sess.expunge_all()
         def go():
             d = sess.query(Node).filter_by(data='n1').first()
-            assert Node(data='n1', children=[
+            eq_(Node(data='n1', children=[
                 Node(data='n11'),
                 Node(data='n12', children=[
                     Node(data='n121'),
@@ -923,7 +1115,7 @@ class SelfReferentialEagerTest(_base.MappedTest):
                     Node(data='n123')
                 ]),
                 Node(data='n13')
-            ]) == d
+            ]), d)
         self.assert_sql_count(testing.db, go, 1)
 
 
@@ -959,12 +1151,12 @@ class SelfReferentialEagerTest(_base.MappedTest):
         def go():
             allnodes = sess.query(Node).order_by(Node.data).all()
             n12 = allnodes[2]
-            assert n12.data == 'n12'
-            assert [
+            eq_(n12.data, 'n12')
+            eq_([
                 Node(data='n121'),
                 Node(data='n122'),
                 Node(data='n123')
-            ] == list(n12.children)
+            ], list(n12.children))
         self.assert_sql_count(testing.db, go, 1)
 
     @testing.resolve_artifact_names
@@ -995,13 +1187,15 @@ class SelfReferentialEagerTest(_base.MappedTest):
         sess.expunge_all()
 
         def go():
-            assert Node(data='n1', children=[Node(data='n11'), Node(data='n12')]) == sess.query(Node).options(undefer('data')).order_by(Node.id).first()
+            eq_(Node(data='n1', children=[Node(data='n11'), Node(data='n12')]),
+                sess.query(Node).options(undefer('data')).order_by(Node.id).first())
         self.assert_sql_count(testing.db, go, 3)
 
         sess.expunge_all()
 
         def go():
-            assert Node(data='n1', children=[Node(data='n11'), Node(data='n12')]) == sess.query(Node).options(undefer('data'), undefer('children.data')).first()
+            eq_(Node(data='n1', children=[Node(data='n11'), Node(data='n12')]),
+                sess.query(Node).options(undefer('data'), undefer('children.data')).first())
         self.assert_sql_count(testing.db, go, 1)
 
 
@@ -1027,7 +1221,7 @@ class SelfReferentialEagerTest(_base.MappedTest):
         sess.expunge_all()
         def go():
             d = sess.query(Node).filter_by(data='n1').options(eagerload('children.children')).first()
-            assert Node(data='n1', children=[
+            eq_(Node(data='n1', children=[
                 Node(data='n11'),
                 Node(data='n12', children=[
                     Node(data='n121'),
@@ -1035,7 +1229,7 @@ class SelfReferentialEagerTest(_base.MappedTest):
                     Node(data='n123')
                 ]),
                 Node(data='n13')
-            ]) == d
+            ]), d)
         self.assert_sql_count(testing.db, go, 2)
 
         def go():
@@ -1073,7 +1267,7 @@ class SelfReferentialEagerTest(_base.MappedTest):
         sess.expunge_all()
         def go():
             d = sess.query(Node).filter_by(data='n1').first()
-            assert Node(data='n1', children=[
+            eq_(Node(data='n1', children=[
                 Node(data='n11'),
                 Node(data='n12', children=[
                     Node(data='n121'),
@@ -1081,18 +1275,18 @@ class SelfReferentialEagerTest(_base.MappedTest):
                     Node(data='n123')
                 ]),
                 Node(data='n13')
-            ]) == d
+            ]), d)
         self.assert_sql_count(testing.db, go, 3)
 
 class MixedSelfReferentialEagerTest(_base.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('a_table', metadata,
-                       Column('id', Integer, primary_key=True)
+                       Column('id', Integer, primary_key=True, test_needs_autoincrement=True)
                        )
 
         Table('b_table', metadata,
-                       Column('id', Integer, primary_key=True),
+                       Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
                        Column('parent_b1_id', Integer, ForeignKey('b_table.id')),
                        Column('parent_a_id', Integer, ForeignKey('a_table.id')),
                        Column('parent_b2_id', Integer, ForeignKey('b_table.id')))
@@ -1161,7 +1355,7 @@ class SelfReferentialM2MEagerTest(_base.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('widget', metadata,
-            Column('id', Integer, primary_key=True),
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('name', sa.Unicode(40), nullable=False, unique=True),
         )
 
@@ -1192,7 +1386,8 @@ class SelfReferentialM2MEagerTest(_base.MappedTest):
         sess.flush()
         sess.expunge_all()
 
-        assert [Widget(name='w1', children=[Widget(name='w2')])] == sess.query(Widget).filter(Widget.name==u'w1').all()
+        eq_([Widget(name='w1', children=[Widget(name='w2')])],
+            sess.query(Widget).filter(Widget.name==u'w1').all())
 
 class MixedEntitiesTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
     run_setup_mappers = 'once'
@@ -1244,7 +1439,7 @@ class MixedEntitiesTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
             )
         self.assert_sql_count(testing.db, go, 1)
 
-    @testing.exclude('sqlite', '>', (0, 0, 0), "sqlite flat out blows it on the multiple JOINs")
+    @testing.exclude('sqlite', '>', (0, ), "sqlite flat out blows it on the multiple JOINs")
     @testing.resolve_artifact_names
     def test_two_entities_with_joins(self):
         sess = create_session()
@@ -1337,13 +1532,13 @@ class CyclicalInheritingEagerTest(_base.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('t1', metadata,
-            Column('c1', Integer, primary_key=True),
+            Column('c1', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('c2', String(30)),
             Column('type', String(30))
             )
 
         Table('t2', metadata,
-            Column('c1', Integer, primary_key=True),
+            Column('c1', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('c2', String(30)),
             Column('type', String(30)),
             Column('t1.id', Integer, ForeignKey('t1.c1')))
@@ -1376,12 +1571,12 @@ class SubqueryTest(_base.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('users_table', metadata,
-            Column('id', Integer, primary_key=True),
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('name', String(16))
         )
 
         Table('tags_table', metadata,
-            Column('id', Integer, primary_key=True),
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('user_id', Integer, ForeignKey("users_table.id")),
             Column('score1', sa.Float),
             Column('score2', sa.Float),
@@ -1461,16 +1656,20 @@ class CorrelatedSubqueryTest(_base.MappedTest):
     Exercises a variety of ways to configure this.
     
     """
+
+    # another argument for eagerload learning about inner joins
+    
+    __requires__ = ('correlated_outer_joins', )
     
     @classmethod
     def define_tables(cls, metadata):
         users = Table('users', metadata,
-            Column('id', Integer, primary_key=True),
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('name', String(50))
             )
 
         stuff = Table('stuff', metadata,
-            Column('id', Integer, primary_key=True),
+            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('date', Date),
             Column('user_id', Integer, ForeignKey('users.id')))
     
@@ -1549,11 +1748,13 @@ class CorrelatedSubqueryTest(_base.MappedTest):
 
         if ondate:
             # the more 'relational' way to do this, join on the max date
-            stuff_view = select([func.max(salias.c.date).label('max_date')]).where(salias.c.user_id==users.c.id).correlate(users)
+            stuff_view = select([func.max(salias.c.date).label('max_date')]).\
+                                where(salias.c.user_id==users.c.id).correlate(users)
         else:
             # a common method with the MySQL crowd, which actually might perform better in some
             # cases - subquery does a limit with order by DESC, join on the id
-            stuff_view = select([salias.c.id]).where(salias.c.user_id==users.c.id).correlate(users).order_by(salias.c.date.desc()).limit(1)
+            stuff_view = select([salias.c.id]).where(salias.c.user_id==users.c.id).\
+                                    correlate(users).order_by(salias.c.date.desc()).limit(1)
 
         if labeled == 'label':
             stuff_view = stuff_view.label('foo')

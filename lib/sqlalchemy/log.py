@@ -1,5 +1,5 @@
 # log.py - adapt python logging module to SQLAlchemy
-# Copyright (C) 2006, 2007, 2008, 2009 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2006, 2007, 2008, 2009, 2010 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -46,6 +46,7 @@ def default_logging(name):
             '%(asctime)s %(levelname)s %(name)s %(message)s'))
         rootlogger.addHandler(handler)
 
+_logged_classes = set()
 def class_logger(cls, enable=False):
     logger = logging.getLogger(cls.__module__ + "." + cls.__name__)
     if enable == 'debug':
@@ -55,7 +56,14 @@ def class_logger(cls, enable=False):
     cls._should_log_debug = logger.isEnabledFor(logging.DEBUG)
     cls._should_log_info = logger.isEnabledFor(logging.INFO)
     cls.logger = logger
-
+    _logged_classes.add(cls)
+    
+def _refresh_class_loggers():
+    for cls in _logged_classes:
+        logger = logging.getLogger(cls.__module__ + "." + cls.__name__)
+        cls._should_log_debug = logger.isEnabledFor(logging.DEBUG)
+        cls._should_log_info = logger.isEnabledFor(logging.INFO)
+        
 def instance_logger(instance, echoflag=None):
     """create a logger for an instance.
     
@@ -82,7 +90,7 @@ def instance_logger(instance, echoflag=None):
             default_logging(name)
             l.setLevel(logging.INFO)
         elif echoflag is False:
-            l.setLevel(logging.NOTSET)
+            l.setLevel(logging.WARN)
     else:
         l = logging.getLogger(name)
     instance._should_log_debug = l.isEnabledFor(logging.DEBUG)
