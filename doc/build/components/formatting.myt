@@ -218,13 +218,14 @@
 <%method member_doc>
        <%args>
                name = ""
+               link = ""
                type = None
        </%args>
        <tr>
        <td>
            <div class="darkcell">
-           <A name="<% m.comp('doclib.myt:current').path %>_<% name %>"></a>
-           <b><% name %></b></td>
+           <A name="<% m.comp('doclib.myt:current').path %>_<% link %>"></a>
+           <b><% name %></b>
            <div class="docstring"><% m.content() %></div>
            </div>
        </td>
@@ -235,6 +236,7 @@
 <%method function_doc>
     <%args>
         name = ""
+        link = ""
         alt = None
         arglist = []
         rettype = None
@@ -242,7 +244,7 @@
     <tr>
     <td>
         <div class="darkcell">
-        <A name="<% m.comp('doclib.myt:current').path %>_<% name %>"></a>
+        <A name="<% m.comp('doclib.myt:current').path %>_<% link %>"></a>
         <b><% name %>(<% string.join(map(lambda k: "<i>%s</i>" % k, arglist), ", ")%>)</b>
         <div class="docstring"><% m.content() %></div>
         </div>
@@ -259,6 +261,7 @@
     title = None
     syntaxtype = 'python'
     html_escape = False
+    use_sliders = False
 </%args>
 
 <%init>
@@ -286,9 +289,8 @@
     def hlight(match):
         return "<pre>" + highlight.highlight(fix_indent(match.group(1)), html_escape = html_escape, syntaxtype = syntaxtype) + "</pre>"
     content = p.sub(hlight, "<pre>" + m.content() + "</pre>")
-
 </%init>
-<div class="code">
+<div class="<% use_sliders and "sliding_code" or "code" %>">
 % if title is not None:
     <div class="codetitle"><% title %></div>
 %

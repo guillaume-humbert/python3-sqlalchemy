@@ -1,7 +1,7 @@
 <html>
 <head>
 	<title>
-    The Types System - SQLAlchemy Documentation
+    The Types System - SQLAlchemy 0.2 Documentation
 </title>
 </head>
 <body>
@@ -22,7 +22,7 @@
 <div class="docheader">
 
 <div class="docheadertext" >The Types System</div>
-<div class="">Version: 0.1.4   Last Updated: 03/13/06 12:39:29</div>
+<div class="">Version: 0.2.3   Last Updated: 06/16/06 21:59:41</div>
 </div>
 
 
@@ -50,7 +50,7 @@ Previous: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 &nbsp; | &nbsp;
 
 
-Next: <a href="docstrings.html">Modules and Classes</a>
+Next: <a href="pooling.html">Connection Pooling</a>
 
 </div>
 </div>
@@ -99,11 +99,12 @@ Next: <a href="docstrings.html">Modules and Classes</a>
     <div class="sectiontext">
 
 
-<p>The package <span class="codeline">sqlalchemy.types</span> defines the datatype identifiers which may be used when defining <a href="metadata.html#metadata" >table metadata</a>.  This package includes a set of generic types, a set of SQL-specific subclasses of those types, and a small extension system used by specific database connectors to adapt these generic types into database-specific type objects.
+
+<p>The package <code>sqlalchemy.types</code> defines the datatype identifiers which may be used when defining <b>metadata</b>.  This package includes a set of generic types, a set of SQL-specific subclasses of those types, and a small extension system used by specific database connectors to adapt these generic types into database-specific type objects.
 </p>
 
-			
 
+			
 
 			
 
@@ -122,40 +123,55 @@ Next: <a href="docstrings.html">Modules and Classes</a>
 
 
 
-<p>SQLAlchemy comes with a set of standard generic datatypes, which are defined as classes.  They are specified to table meta data using either the class itself, or an instance of the class.  Creating an instance of the class allows you to specify parameters for the type, such as string length, numerical precision, etc. 
+<p>SQLAlchemy comes with a set of standard generic datatypes, which are defined as classes.   <br /> 
 </p>
-<p>The standard set of generic types are:</p>
+<p>The standard set of generic types are:
+</p>
 
 
-<div class="code">
-<pre><span class="python_comment"># sqlalchemy.types package:
-</span><span class="python_keyword">class </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">:
+<div class="sliding_code">
+    <div class="codetitle">package sqlalchemy.types</div>
+<pre><span class="python_keyword">class </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">length</span><span class="python_operator">=</span><span class="python_name">None</span><span class="python_enclosure">)</span><span class="python_operator">
-    </span>
+</span>
 <span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">Integer</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">
-    </span>
+</span>
+<span class="python_keyword">class </span><span class="python_name">SmallInteger</span><span class="python_enclosure">(</span><span class="python_name">Integer</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
 <span class="python_keyword">class </span><span class="python_name">Numeric</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">: 
     </span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">precision</span><span class="python_operator">=</span><span class="python_number">10</span><span class="python_operator">, </span><span class="python_name">length</span><span class="python_operator">=</span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">
-    </span>
-<span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">Float</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">:
+</span>
+<span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">Float</span><span class="python_enclosure">(</span><span class="python_name">Numeric</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">precision</span><span class="python_operator">=</span><span class="python_number">10</span><span class="python_enclosure">)</span><span class="python_operator">
-    </span>
-<span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">DateTime</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">
-    </span>
+</span>
+<span class="python_comment"># DateTime, Date and Time types deal with datetime objects from the Python datetime module
+</span><span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">DateTime</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_keyword">class </span><span class="python_name">Date</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_keyword">class </span><span class="python_name">Time</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
 <span class="python_keyword">class </span><span class="python_name">Binary</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">: 
     </span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">length</span><span class="python_operator">=</span><span class="python_name">None</span><span class="python_enclosure">)</span><span class="python_operator">
-    </span>
+</span>
 <span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">Boolean</span><span class="python_enclosure">(</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># converts unicode strings to raw bytes
 # as bind params, raw bytes to unicode as 
-# rowset values
-</span><span class="python_keyword">class </span><span class="python_name">Unicode</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+# rowset values, using the unicode encoding 
+# setting on the engine (defaults to 'utf-8')
+</span><span class="python_keyword">class </span><span class="python_name">Unicode</span><span class="python_enclosure">(</span><span class="python_name">TypeDecorator</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_name">impl </span><span class="python_operator">= </span><span class="python_name">String</span><span class="python_operator">
+</span>
+<span class="python_comment"># uses the pickle protocol to serialize data
+# in/out of Binary columns
+</span><span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">PickleType</span><span class="python_enclosure">(</span><span class="python_name">TypeDecorator</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_name">impl </span><span class="python_operator">= </span><span class="python_name">Binary</span><span class="python_operator"></span></pre></div>
+<p>More specific subclasses of these types are available, which various database engines may choose to implement specifically, allowing finer grained control over types:
+</p>
 
-<p>More specific subclasses of these types are available, to allow finer grained control over types:</p>
 
-
-<div class="code">
+<div class="sliding_code">
 <pre><span class="python_keyword">class </span><span class="python_name">FLOAT</span><span class="python_enclosure">(</span><span class="python_name">Numeric</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_keyword">class </span><span class="python_name">TEXT</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_keyword">class </span><span class="python_name">DECIMAL</span><span class="python_enclosure">(</span><span class="python_name">Numeric</span><span class="python_enclosure">)</span><span class="python_operator">
@@ -168,8 +184,22 @@ Next: <a href="docstrings.html">Modules and Classes</a>
 </span><span class="python_keyword">class </span><span class="python_name">CHAR</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_keyword">class </span><span class="python_name">BLOB</span><span class="python_enclosure">(</span><span class="python_name">Binary</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_keyword">class </span><span class="python_name">BOOLEAN</span><span class="python_enclosure">(</span><span class="python_name">Boolean</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+<p>When using a specific database engine, these types are adapted even further via a set of database-specific subclasses defined by the database engine.
+   There may eventually be more type objects that are defined for specific databases.  An example of this would be Postgres' Array type.
+</p>
+<p>Type objects are specified to table meta data using either the class itself, or an instance of the class.  Creating an instance of the class allows you to specify parameters for the type, such as string length, numerical precision, etc.:
+</p>
 
-<p>When using a specific database engine, these types are adapted even further via a set of database-specific subclasses defined by the database engine.</p>
+
+<div class="sliding_code">
+<pre><span class="python_name">mytable </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'mytable'</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_operator">, </span>
+    <span class="python_comment"># define type using a class</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'my_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">, </span>
+
+    <span class="python_comment"># define type using an object instance</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'value'</span><span class="python_operator">, </span><span class="python_name">Number</span><span class="python_enclosure">(</span><span class="python_number">7</span><span class="python_operator">,</span><span class="python_number">4</span><span class="python_enclosure">)) </span>
+<span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
 
     </div>
 
@@ -192,24 +222,29 @@ Next: <a href="docstrings.html">Modules and Classes</a>
     <div class="sectiontext">
 
 
-<p>Types also support pre-processing of query parameters as well as post-processing of result set data.  You can make your own classes to perform these operations.  They are specified by subclassing the desired type class as well as the special mixin TypeDecorator, which manages the adaptation of the underlying type to a database-specific type:</p>
+
+<p>User-defined types can be created, to support either database-specific types, or customized pre-processing of query parameters as well as post-processing of result set data.  You can make your own classes to perform these operations.  To augment the behavior of a <code>TypeEngine</code> type, such as <code>String</code>, the <code>TypeDecorator</code> class is used:
+</p>
 
 
-<div class="code">
+<div class="sliding_code">
 <pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">types as types</span><span class="python_operator">
 </span>
-<span class="python_keyword">class </span><span class="python_name">MyType</span><span class="python_enclosure">(</span><span class="python_name">types</span><span class="python_operator">.</span><span class="python_name">TypeDecorator</span><span class="python_operator">, </span><span class="python_name">types</span><span class="python_operator">.</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">:
+<span class="python_keyword">class </span><span class="python_name">MyType</span><span class="python_enclosure">(</span><span class="python_name">types</span><span class="python_operator">.</span><span class="python_name">TypeDecorator</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_literal">"""basic type that decorates String, prefixes values with "PREFIX:" on 
     the way in and strips it off on the way out."""</span><span class="python_operator">
+    </span><span class="python_name">impl </span><span class="python_operator">= </span><span class="python_name">types</span><span class="python_operator">.</span><span class="python_name">String</span><span class="python_operator">
     </span><span class="python_keyword">def </span><span class="python_name">convert_bind_param</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_literal">"PREFIX:" </span><span class="python_operator">+ </span><span class="python_name">value</span><span class="python_operator">
     </span><span class="python_keyword">def </span><span class="python_name">convert_result_value</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_enclosure">[</span><span class="python_number">7</span><span class="python_operator">:</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre></div>
+<p>The <code>Unicode</code> and <code>PickleType</code> classes are instances of <code>TypeDecorator</code> already and can be subclassed directly.
+</p>
+<p>To build a type object from scratch, which will not have a corresponding database-specific implementation, subclass <code>TypeEngine</code>:
+</p>
 
-<p>Another example, which illustrates a fully defined datatype.  This just overrides the base type class TypeEngine:</p>
 
-
-<div class="code">
+<div class="sliding_code">
 <pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">types as types</span><span class="python_operator">
 </span>
 <span class="python_keyword">class </span><span class="python_name">MyType</span><span class="python_enclosure">(</span><span class="python_name">types</span><span class="python_operator">.</span><span class="python_name">TypeEngine</span><span class="python_enclosure">)</span><span class="python_operator">:
@@ -220,13 +255,7 @@ Next: <a href="docstrings.html">Modules and Classes</a>
     </span><span class="python_keyword">def </span><span class="python_name">convert_bind_param</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_operator">
     </span><span class="python_keyword">def </span><span class="python_name">convert_result_value</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
-        </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_operator">
-    </span><span class="python_keyword">def </span><span class="python_name">adapt</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">typeobj</span><span class="python_enclosure">)</span><span class="python_operator">:
-        </span><span class="python_literal">"""produces an adaptation of this object given a type which is a subclass of this object"""</span><span class="python_operator">
-        </span><span class="python_keyword">return </span><span class="python_name">typeobj</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">precision</span><span class="python_enclosure">)</span><span class="python_operator">
-    </span><span class="python_keyword">def </span><span class="python_name">adapt_args</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
-        </span><span class="python_literal">"""allows for the adaptation of this TypeEngine object into a new kind of type depending on its arguments."""</span><span class="python_operator">
-        </span><span class="python_keyword">return </span><span class="python_name">self</span><span class="python_operator"></span></pre></div>
+        </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_operator"></span></pre></div>
 
 
     </div>
@@ -249,7 +278,7 @@ Next: <a href="docstrings.html">Modules and Classes</a>
 
                 |
 
-        Next: <a href="docstrings.html">Modules and Classes</a>
+        Next: <a href="pooling.html">Connection Pooling</a>
 
 </div>
 </div>

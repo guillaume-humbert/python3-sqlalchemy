@@ -4,18 +4,14 @@
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-from engine import *
 from types import *
 from sql import *
 from schema import *
-from exceptions import *
-import mapping as mapperlib
-from mapping import *
+from sqlalchemy.orm import *
 
-import sqlalchemy.schema
-import sqlalchemy.ext.proxy
-sqlalchemy.schema.default_engine = sqlalchemy.ext.proxy.ProxyEngine()
+from sqlalchemy.engine import create_engine
+from sqlalchemy.schema import default_metadata
 
 def global_connect(*args, **kwargs):
-    sqlalchemy.schema.default_engine.connect(*args, **kwargs)
+    default_metadata.connect(*args, **kwargs)
     

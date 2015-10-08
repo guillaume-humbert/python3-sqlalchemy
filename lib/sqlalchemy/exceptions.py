@@ -25,13 +25,18 @@ class ArgumentError(SQLAlchemyError):
     objects.  This error generally corresponds to construction time state errors."""
     pass
     
-class CommitError(SQLAlchemyError):
-    """raised when an invalid condition is detected upon a commit()"""
+class FlushError(SQLAlchemyError):
+    """raised when an invalid condition is detected upon a flush()"""
     pass
     
 class InvalidRequestError(SQLAlchemyError):
     """sqlalchemy was asked to do something it cant do, return nonexistent data, etc.
     This error generally corresponds to runtime state errors."""
+    pass
+
+class NoSuchTableError(InvalidRequestError):
+    """sqlalchemy was asked to load a table's definition from the database,
+    but the table doesn't exist."""
     pass
 
 class AssertionError(SQLAlchemyError):

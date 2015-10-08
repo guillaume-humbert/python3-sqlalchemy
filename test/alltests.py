@@ -1,63 +1,18 @@
 import testbase
 import unittest
 
-testbase.echo = False
-
-#test
+import orm.alltests as orm
+import base.alltests as base
+import sql.alltests as sql
+import engine.alltests as engine
+import ext.alltests as ext
 
 def suite():
-    modules_to_test = (
-        # core utilities
-        'historyarray', 
-        'attributes', 
-        'dependency',
-        
-        # connectivity
-        'pool', 
-        
-        # schema/tables
-        'engines', 
-        'testtypes',
-        'indexes',
-
-        # SQL syntax
-        'select',
-        'selectable',
-        
-        # assorted round-trip tests
-        'query',
-        
-        # defaults, sequences (postgres/oracle)
-        'defaults',
-        
-        # ORM selecting
-        'mapper',
-        'eagertest1',
-        'eagertest2',
-        
-        # ORM persistence
-        'objectstore',
-        
-        # cyclical ORM persistence
-        'cycles',
-        
-        # more select/persistence, backrefs
-        'manytomany',
-        'onetoone',
-        'inheritance',
-        
-        # extensions
-        'proxy_engine',
-        #'wsgi_test',
-        
-        )
     alltests = unittest.TestSuite()
-    for module in map(__import__, modules_to_test):
-        alltests.addTest(unittest.findTestCases(module, suiteClass=None))
+    for suite in (base, engine, sql, orm, ext):
+        alltests.addTest(suite.suite())
     return alltests
 
-import sys
-sys.stdout = sys.stderr
 
 if __name__ == '__main__':
     testbase.runTests(suite())

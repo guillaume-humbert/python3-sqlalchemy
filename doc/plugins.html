@@ -1,0 +1,896 @@
+<html>
+<head>
+	<title>
+    Plugins - SQLAlchemy 0.2 Documentation
+</title>
+</head>
+<body>
+
+
+
+<link href="style.css" rel="stylesheet" type="text/css"></link>
+<link href="syntaxhighlight.css" rel="stylesheet" type="text/css"></link>
+
+<link href="docs.css" rel="stylesheet" type="text/css"></link>
+<script src="scripts.js"></script>
+
+
+<div style="position:absolute;left:0px;top:0px;"><a name="top"></a>&nbsp;</div>
+
+<div class="doccontainer">
+
+<div class="docheader">
+
+<div class="docheadertext" >Plugins</div>
+<div class="">Version: 0.2.3   Last Updated: 06/16/06 21:59:41</div>
+</div>
+
+
+
+		<A name="plugins"></a>
+		
+	
+<div class="topnav">
+
+
+	
+	<div class="topnavcontrol">
+	View: <b>Paged</b> &nbsp;|&nbsp; <a href="documentation.html">One Page</a>
+	</div>
+
+
+
+<div class="topnavsectionlink">
+
+<a href="index.html">Table of Contents</a>
+
+<div class="prevnext">
+Previous: <a href="pooling.html">Connection Pooling</a>
+
+&nbsp; | &nbsp;
+
+
+Next: <a href="docstrings.html">Modules and Classes</a>
+
+</div>
+</div>
+
+
+<div class="topnavmain">
+	<div class="topnavheader">Plugins</div>
+	<div class="topnavitems">
+	
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#plugins_threadlocal">threadlocal</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#plugins_threadlocal_get_session()">get_session() Implemented on All Mappers</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#plugins_threadlocal_default">Default Query Objects</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#plugins_threadlocal_objectstore">objectstore Namespace</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#plugins_threadlocal_attaching">Attaching Mappers to their Class</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#plugins_threadlocal_engine">Engine Strategy Set to threadlocal By Default</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#plugins_sessioncontext">SessionContext</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#plugins_assignmapper">assignmapper</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#plugins_activemapper">ActiveMapper</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#plugins_sqlsoup">SqlSoup</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#plugins_proxyengine">ProxyEngine</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#plugins_selectresults">SelectResults</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+
+	</div>
+</div>
+
+</div>
+
+		<div class="sectioncontent">
+			
+
+
+
+
+<div class="subsection" style="margin-left:10px;">
+
+    <div class="sectiontext">
+
+
+
+<p>SQLAlchemy has a variety of extensions and "mods" available which provide extra functionality to SA, either via explicit usage or by augmenting the core behavior.
+</p>
+
+
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+
+    </div>
+
+        
+
+
+
+<A name="plugins_threadlocal"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">threadlocal</span>
+    <div class="sectiontext">
+
+
+
+<p> <strong>Author:</strong>  Mike Bayer and Daniel Miller
+</p>
+<p>Establishes <code>threadlocal</code> as the default strategy for new <code>ComposedSQLEngine</code> objects, installs a threadlocal <code>SessionContext</code> that is attached to all Mappers via a global <code>MapperExtension</code>, and establishes the global <code>SessionContext</code> under the name <code>sqlalchemy.objectstore</code>.  Usually this is used in combination with <code>Tables</code> that are associated with <code>BoundMetaData</code> or <code>DynamicMetaData</code>, so that the <code>Session</code> does not need to be bound to any <code>Engine</code> explicitly. 
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">mods</span><span class="python_operator">.</span><span class="python_name">threadlocal</span><span class="python_operator">
+</span><span class="python_keyword">from </span><span class="python_name">sqlalchemy </span><span class="python_keyword">import </span><span class="python_operator">*
+</span>
+<span class="python_name">metadata </span><span class="python_operator">= </span><span class="python_name">BoundMetaData</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">user_table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'users'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">user_table</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># thread local session
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">get_session</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># "user" object is added to the session automatically
+</span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+
+
+			
+
+			
+
+			
+
+			
+
+			
+
+    </div>
+
+        
+
+
+
+<A name="plugins_threadlocal_get_session()"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">get_session() Implemented on All Mappers</span>
+    <div class="sectiontext">
+
+
+
+<p>All <code>Mapper</code> objects constructed after the <code>threadlocal</code> import will receive a default <code>MapperExtension</code> which implements the <code>get_session()</code> method, returning the <code>Session</code> that is associated with the current thread by the global <code>SessionContext</code>.  All newly constructed objects will automatically be attached to the <code>Session</code> corresponding to the current thread, i.e. they will skip the "transient" state and go right to "pending".
+</p>
+<p>This occurs because when a <code>Mapper</code> is first constructed for a class, it decorates the classes' <code>__init__()</code> method in a manner like the following:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_name">oldinit </span><span class="python_operator">= </span><span class="python_name">class_</span><span class="python_operator">.</span><span class="python_name">__init__   </span><span class="python_comment"># the previous init method</span><span class="python_operator">
+</span><span class="python_keyword">def </span><span class="python_name">__init__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">get_session</span><span class="python_enclosure">() </span><span class="python_comment"># get Session from this Mapper's MapperExtension</span><span class="python_operator">
+    </span><span class="python_keyword">if </span><span class="python_name">session </span><span class="python_keyword">is </span><span class="python_name">EXT_PASS</span><span class="python_operator">:
+        </span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">None</span><span class="python_operator">
+    </span><span class="python_keyword">if </span><span class="python_name">session </span><span class="python_keyword">is not </span><span class="python_name">None</span><span class="python_operator">:
+        </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)  </span><span class="python_comment"># attach to the current session</span><span class="python_operator">
+    </span><span class="python_name">oldinit</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)   </span><span class="python_comment"># call previous init method</span><span class="python_operator"></span></pre></div>
+<p>An instance can be redirected at construction time to a different <code>Session</code> by specifying the keyword parameter <code>_sa_session</code>:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">()  </span><span class="python_comment"># create a new session distinct from the thread-local session</span><span class="python_operator">
+</span><span class="python_name">myuser </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">_sa_session</span><span class="python_operator">=</span><span class="python_name">session</span><span class="python_enclosure">)  </span><span class="python_comment"># make a new User that is saved to this session</span><span class="python_operator"></span></pre></div>
+<p>Similarly, the <strong>entity_name</strong> parameter, which specifies an alternate <code>Mapper</code> to be used when attaching this instance to the <code>Session</code>, can be specified via <code>_sa_entity_name</code>:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_name">myuser </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">_sa_session</span><span class="python_operator">=</span><span class="python_name">session</span><span class="python_operator">, </span><span class="python_name">_sa_entity_name</span><span class="python_operator">=</span><span class="python_literal">'altentity'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+
+    </div>
+
+
+    <a href="#plugins" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="plugins_threadlocal_default"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Default Query Objects</span>
+    <div class="sectiontext">
+
+
+
+<p>The <code>MapperExtension</code> object's <code>get_session()</code> method is also used by the <code>Query</code> object to locate a <code>Session</code> with which to store newly loaded instances, if the <code>Query</code> is not already associated with a specific <code>Session</code>.  As a result, the <code>Query</code> can be constructed standalone from a mapper or class:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_comment"># create a Query from a class
+</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">Query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># specify entity name
+</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">Query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">entity_name</span><span class="python_operator">=</span><span class="python_literal">'foo'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># create a Query from a mapper
+</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">Query</span><span class="python_enclosure">(</span><span class="python_name">mapper</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+
+    </div>
+
+
+    <a href="#plugins" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="plugins_threadlocal_objectstore"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">objectstore Namespace</span>
+    <div class="sectiontext">
+
+
+
+<p>The <code>objectstore</code> is an instance of <code>SessionContext</code>, available in the <code>sqlalchemy</code> namespace which provides a proxy to the underlying <code>Session</code> bound to the current thread.  <code>objectstore</code> can be treated just like the <code>Session</code> itself:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">instance</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">clear</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+
+
+    </div>
+
+
+    <a href="#plugins" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="plugins_threadlocal_attaching"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Attaching Mappers to their Class</span>
+    <div class="sectiontext">
+
+
+
+<p>With <code>get_session()</code> handling the details of providing a <code>Session</code> in all cases, the <code>assign_mapper</code> function provides some of the functionality of <code>Query</code> and <code>Session</code> directly off the mapped instances themselves.  This is a "monkeypatch" function that creates a primary mapper, attaches the mapper to the class, and also the  methods <code>get</code>, <code>select</code>, <code>select_by</code>, <code>selectone</code>, <code>get_by</code>, <code>join_to</code>, <code>join_via</code>, <code>flush</code>, <code>delete</code>, <code>expire</code>, <code>refresh</code>, <code>expunge</code>, <code>merge</code>, <code>update</code>, <code>save</code>, and <code>save_or_update</code>:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_comment"># "assign" a mapper to the User class/users table
+</span><span class="python_name">assign_mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># methods are attached to the class for selecting
+</span><span class="python_name">userlist </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">user_id</span><span class="python_operator">=</span><span class="python_number">12</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_name">myuser </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">1</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># mark an object as deleted for the next commit
+</span><span class="python_name">myuser</span><span class="python_operator">.</span><span class="python_name">delete</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># flush the changes on a specific object
+</span><span class="python_name">myotheruser</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+<p>A more generic version of <code>assign_mapper</code> that works with any <code>SessionContext</code> is available in the <a href="plugins.html#plugins_assignmapper" >assignmapper</a> plugin.
+</p>
+
+
+    </div>
+
+
+    <a href="#plugins" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="plugins_threadlocal_engine"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Engine Strategy Set to threadlocal By Default</span>
+    <div class="sectiontext">
+
+
+
+<p>The <code>threadlocal</code> mod also establishes <code>threadlocal</code> as the default <em>strategy</em> when calling the <code>create_engine()</code> function.  This strategy is specified by the <code>strategy</code> keyword argument to <code>create_engine()</code> and can still be overridden to be "<code>plain</code>" or "<code>threadlocal</code>" explicitly.
+</p>
+<p>An <code>Engine</code> created with the <code>threadlocal</code> strategy will use a thread-locally managed connection object for all <strong>implicit</strong> statement executions and schema operations.  Recall from <a href="dbengine.html#dbengine" >Database Engines</a> that an implicit execution is an execution where the <code>Connection</code> object is opened and closed internally, and the <code>connect()</code> method on <code>Engine</code> is not used; such as:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">table</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+<p>Above, the <code>result</code> variable holds onto a <code>ResultProxy</code> which is still referencing a connection returned by the connection pool.  <code>threadlocal</code> strategy means that a second <code>execute()</code> statement in the same thread will use the same connection as the one referenced by <code>result</code>, assuming <code>result</code> is still referenced in memory. 
+</p>
+<p>The <code>Mapper</code>, <code>Session</code>, and <code>Query</code> implementations work equally well with either the <code>default</code> or <code>threadlocal</code> engine strategies.  However, using the <code>threadlocal</code> strategy means that <code>Session</code> operations will use the same underlying connection as that of straight <code>execute()</code> calls with constructed SQL objects:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_comment"># assume "threadlocal" strategy is enabled, and there is no transaction in progress
+</span>
+<span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">table</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()   </span><span class="python_comment"># 'result' references a DBAPI connection, bound to the current thread</span><span class="python_operator">
+</span>
+<span class="python_name">object </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()           </span><span class="python_comment"># the 'select' operation also uses the current thread's connection,</span><span class="python_operator">
+                                    </span><span class="python_comment"># i.e. the same connection referenced by 'result'
+</span>
+<span class="python_name">result</span><span class="python_operator">.</span><span class="python_name">close</span><span class="python_enclosure">()                      </span><span class="python_comment"># return the connection to the pool.  now there is no connection </span><span class="python_operator">
+                                    </span><span class="python_comment"># associated with the current thread.  the next execution will re-check out a 
+                                    # connection and re-attach to the current thread.</span><span class="python_operator"></span></pre></div>
+
+
+    </div>
+
+
+    <a href="#plugins" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+        
+
+
+
+<A name="plugins_sessioncontext"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">SessionContext</span>
+    <div class="sectiontext">
+
+
+
+<p> <strong>Author:</strong>  Daniel Miller
+</p>
+<p>This plugin is a generalized version of the <code>objectstore</code> object provided by the <code>threadlocal</code> plugin:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">
+</span><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">sessioncontext </span><span class="python_keyword">import </span><span class="python_name">SessionContext</span><span class="python_operator">
+</span>
+<span class="python_name">ctx </span><span class="python_operator">= </span><span class="python_name">SessionContext</span><span class="python_enclosure">(</span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">create_session</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">extension</span><span class="python_operator">=</span><span class="python_name">ctx</span><span class="python_operator">.</span><span class="python_name">mapperextension</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># 'u' is automatically added to the current session of 'ctx'
+</span><span class="python_name">u </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># get the current session and flush
+</span><span class="python_name">ctx</span><span class="python_operator">.</span><span class="python_name">current</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+<p>The construction of each <code>Session</code> instance can be customized by providing a "creation function" which returns a new <code>Session</code>.  The "scope" to which the session is associated, which by default is the current thread, can be customized by providing a "scope callable" which returns a hashable key that represents the current scope:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">
+</span><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">sessioncontext </span><span class="python_keyword">import </span><span class="python_name">SessionContext</span><span class="python_operator">
+</span>
+<span class="python_comment"># create an engine
+</span><span class="python_name">someengine </span><span class="python_operator">= </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># a function to return a Session bound to our engine
+</span><span class="python_keyword">def </span><span class="python_name">make_session</span><span class="python_enclosure">()</span><span class="python_operator">:
+    </span><span class="python_keyword">return </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">create_session</span><span class="python_enclosure">(</span><span class="python_name">bind_to</span><span class="python_operator">=</span><span class="python_name">someengine</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># global declaration of "scope"
+</span><span class="python_operator"></span><span class="python_name">scope </span><span class="python_operator">= </span><span class="python_literal">"scope1"</span><span class="python_operator">
+</span>
+<span class="python_comment"># a function to return the current "session scope"
+</span><span class="python_keyword">def </span><span class="python_name">global_scope_func</span><span class="python_enclosure">()</span><span class="python_operator">:
+    </span><span class="python_keyword">return </span><span class="python_name">scope</span><span class="python_operator">
+</span>
+<span class="python_comment"># create SessionContext with our two functions
+</span><span class="python_operator"></span><span class="python_name">ctx </span><span class="python_operator">= </span><span class="python_name">SessionContext</span><span class="python_enclosure">(</span><span class="python_name">make_session</span><span class="python_operator">, </span><span class="python_name">scopefunc</span><span class="python_operator">=</span><span class="python_name">global_scope_func</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># get the session corresponding to "scope1", bound to engine "someengine":
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">ctx</span><span class="python_operator">.</span><span class="python_name">current</span><span class="python_operator">
+</span>
+<span class="python_comment"># switch the "scope"
+</span><span class="python_name">scope </span><span class="python_operator">= </span><span class="python_literal">"scope2"</span><span class="python_operator">
+</span>
+<span class="python_comment"># get the session corresponding to "scope2", bound to engine "someengine":
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">ctx</span><span class="python_operator">.</span><span class="python_name">current</span><span class="python_operator"></span></pre></div>
+
+
+    </div>
+
+
+    <a href="#plugins" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="plugins_assignmapper"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">assignmapper</span>
+    <div class="sectiontext">
+
+
+
+<p> <strong>Author:</strong> Mike Bayer
+</p>
+<p>This is a generic version of the <code>assign_mapper</code> function present in the <a href="plugins.html#plugins_threadlocal" >threadlocal</a> mod.  It requires an explicit <a href="plugins.html#plugins_sessioncontext" >SessionContext</a>.
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">
+</span><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">sessioncontext </span><span class="python_keyword">import </span><span class="python_name">SessionContext</span><span class="python_operator">
+</span><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">assignmapper </span><span class="python_keyword">import </span><span class="python_name">assign_mapper</span><span class="python_operator">
+</span>
+<span class="python_comment"># session context
+</span><span class="python_name">ctx </span><span class="python_operator">= </span><span class="python_name">SessionContext</span><span class="python_enclosure">(</span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">create_session</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># assign mapper to class MyClass using table 'sometable', getting
+# Sessions from 'ctx'.
+</span><span class="python_name">assign_mapper</span><span class="python_enclosure">(</span><span class="python_name">ctx</span><span class="python_operator">, </span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">sometable</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+
+    </div>
+
+
+    <a href="#plugins" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="plugins_activemapper"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">ActiveMapper</span>
+    <div class="sectiontext">
+
+
+
+<p> <strong>Author:</strong> Jonathan LaCour
+</p>
+<p>ActiveMapper is a so-called "declarative layer" which allows the construction of a class, a <code>Table</code>, and a <code>Mapper</code> all in one step:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_keyword">class </span><span class="python_name">Person</span><span class="python_enclosure">(</span><span class="python_name">ActiveMapper</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">class </span><span class="python_name">mapping</span><span class="python_operator">:
+        </span><span class="python_name">id          </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">full_name   </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">first_name  </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">middle_name </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">last_name   </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">birth_date  </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">DateTime</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">ssn         </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">gender      </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">home_phone  </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">cell_phone  </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">work_phone  </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">prefs_id    </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">foreign_key</span><span class="python_operator">=</span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'preferences.id'</span><span class="python_enclosure">))</span><span class="python_operator">
+        </span><span class="python_name">addresses   </span><span class="python_operator">= </span><span class="python_name">one_to_many</span><span class="python_enclosure">(</span><span class="python_literal">'Address'</span><span class="python_operator">, </span><span class="python_name">colname</span><span class="python_operator">=</span><span class="python_literal">'person_id'</span><span class="python_operator">, </span><span class="python_name">backref</span><span class="python_operator">=</span><span class="python_literal">'person'</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">preferences </span><span class="python_operator">= </span><span class="python_name">one_to_one</span><span class="python_enclosure">(</span><span class="python_literal">'Preferences'</span><span class="python_operator">, </span><span class="python_name">colname</span><span class="python_operator">=</span><span class="python_literal">'pref_id'</span><span class="python_operator">, </span><span class="python_name">backref</span><span class="python_operator">=</span><span class="python_literal">'person'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+    <span class="python_operator"></span><span class="python_keyword">def </span><span class="python_name">__str__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_name">s </span><span class="python_operator">=  </span><span class="python_literal">'%s\n' </span><span class="python_operator">% </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">full_name</span><span class="python_operator">
+        </span><span class="python_name">s </span><span class="python_operator">+= </span><span class="python_literal">'  * birthdate: %s\n' </span><span class="python_operator">% </span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">birth_date </span><span class="python_keyword">or </span><span class="python_literal">'not provided'</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">s </span><span class="python_operator">+= </span><span class="python_literal">'  * fave color: %s\n' </span><span class="python_operator">% </span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">preferences</span><span class="python_operator">.</span><span class="python_name">favorite_color </span><span class="python_keyword">or </span><span class="python_literal">'Unknown'</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">s </span><span class="python_operator">+= </span><span class="python_literal">'  * personality: %s\n' </span><span class="python_operator">% </span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">preferences</span><span class="python_operator">.</span><span class="python_name">personality_type </span><span class="python_keyword">or </span><span class="python_literal">'Unknown'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+        <span class="python_keyword">for </span><span class="python_name">address </span><span class="python_keyword">in </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_operator">:
+            </span><span class="python_name">s </span><span class="python_operator">+= </span><span class="python_literal">'  * address: %s\n' </span><span class="python_operator">% </span><span class="python_name">address</span><span class="python_operator">.</span><span class="python_name">address_1</span><span class="python_operator">
+            </span><span class="python_name">s </span><span class="python_operator">+= </span><span class="python_literal">'             %s, %s %s\n' </span><span class="python_operator">% </span><span class="python_enclosure">(</span><span class="python_name">address</span><span class="python_operator">.</span><span class="python_name">city</span><span class="python_operator">, </span><span class="python_name">address</span><span class="python_operator">.</span><span class="python_name">state</span><span class="python_operator">, </span><span class="python_name">address</span><span class="python_operator">.</span><span class="python_name">postal_code</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+        <span class="python_operator"></span><span class="python_keyword">return </span><span class="python_name">s</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">Preferences</span><span class="python_enclosure">(</span><span class="python_name">ActiveMapper</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">class </span><span class="python_name">mapping</span><span class="python_operator">:
+        </span><span class="python_name">__table__        </span><span class="python_operator">= </span><span class="python_literal">'preferences'</span><span class="python_operator">
+        </span><span class="python_name">id               </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">favorite_color   </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">personality_type </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_keyword">class </span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_name">ActiveMapper</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">class </span><span class="python_name">mapping</span><span class="python_operator">:
+        </span><span class="python_name">id          </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">type        </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">address_1   </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">city        </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">state       </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">postal_code </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_name">person_id   </span><span class="python_operator">= </span><span class="python_name">column</span><span class="python_enclosure">(</span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">foreign_key</span><span class="python_operator">=</span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'person.id'</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
+<p>More discussion on ActiveMapper can be found at <a href="http://cleverdevil.org/computing/35/declarative-mapping-with-sqlalchemy">Jonathan LaCour's Blog</a> as well as the <a href="http://www.sqlalchemy.org/trac/wiki/ActiveMapper">SQLAlchemy Wiki</a>.
+</p>
+
+
+    </div>
+
+
+    <a href="#plugins" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="plugins_sqlsoup"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">SqlSoup</span>
+    <div class="sectiontext">
+
+
+
+<p> <strong>Author:</strong> Jonathan Ellis
+</p>
+<p>SqlSoup creates mapped classes on the fly from tables, which are automatically reflected from the database based on name.  It is essentially a nicer version of the "row data gateway" pattern.
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_literal">>>> </span><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">sqlsoup </span><span class="python_keyword">import </span><span class="python_name">SqlSoup</span><span class="python_operator">
+</span><span class="python_literal">>>> </span><span class="python_name">soup </span><span class="python_operator">= </span><span class="python_name">SqlSoup</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_literal">>>> </span><span class="python_name">users </span><span class="python_operator">= </span><span class="python_name">soup</span><span class="python_operator">.</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_literal">>>> </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">sort</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_literal">>>> </span><span class="python_name">users</span><span class="python_operator">
+</span><span class="python_enclosure">[</span><span class="python_name">Class_Users</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'Bhargan Basepair'</span><span class="python_operator">,</span><span class="python_name">email</span><span class="python_operator">=</span><span class="python_literal">'basepair@example.edu'</span><span class="python_operator">,</span><span class="python_name">password</span><span class="python_operator">=</span><span class="python_literal">'basepair'</span><span class="python_operator">,</span><span class="python_name">classname</span><span class="python_operator">=</span><span class="python_name">None</span><span class="python_operator">,</span><span class="python_name">admin</span><span class="python_operator">=</span><span class="python_number">1</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+ <span class="python_name">Class_Users</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'Joe Student'</span><span class="python_operator">,</span><span class="python_name">email</span><span class="python_operator">=</span><span class="python_literal">'student@example.edu'</span><span class="python_operator">,</span><span class="python_name">password</span><span class="python_operator">=</span><span class="python_literal">'student'</span><span class="python_operator">,</span><span class="python_name">classname</span><span class="python_operator">=</span><span class="python_name">None</span><span class="python_operator">,</span><span class="python_name">admin</span><span class="python_operator">=</span><span class="python_number">0</span><span class="python_enclosure">)]</span><span class="python_operator"></span></pre></div>
+<p>Read more about SqlSoup on <a href="http://spyced.blogspot.com/2006/04/introducing-sqlsoup.html">Jonathan Ellis' Blog</a>.
+</p>
+
+
+    </div>
+
+
+    <a href="#plugins" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="plugins_proxyengine"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">ProxyEngine</span>
+    <div class="sectiontext">
+
+
+
+<p> <strong>Author:</strong> Jason Pellerin
+</p>
+<p>The <code>ProxyEngine</code> is used to "wrap" an <code>Engine</code>, and via subclassing <code>ProxyEngine</code> one can instrument the functionality of an arbitrary <code>Engine</code> instance through the decorator pattern.  It also provides a <code>connect()</code> method which will send all <code>Engine</code> requests to different underlying engines.  Its functionality in that regard is largely superceded now by <code>DynamicMetaData</code> which is a better solution.
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">proxy </span><span class="python_keyword">import </span><span class="python_name">ProxyEngine</span><span class="python_operator">
+</span><span class="python_name">proxy </span><span class="python_operator">= </span><span class="python_name">ProxyEngine</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_name">proxy</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://user:pw@host/db'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+
+    </div>
+
+
+    <a href="#plugins" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="plugins_selectresults"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">SelectResults</span>
+    <div class="sectiontext">
+
+
+
+<p> <strong>Author:</strong> Jonas Borgstr&#246;m
+</p>
+<p>SelectResults gives transformative behavior to the results returned from the <code>select</code> and <code>select_by</code> method of <code>Query</code>.  It supports three modes of operation; per-query, per-mapper, and per-application.
+</p>
+
+
+<div class="sliding_code">
+    <div class="codetitle">SelectResults with a Query Object</div>
+<pre><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">selectresults </span><span class="python_keyword">import </span><span class="python_name">SelectResults</span><span class="python_operator">
+</span>
+<span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">res </span><span class="python_operator">= </span><span class="python_name">SelectResults</span><span class="python_enclosure">(</span><span class="python_name">query</span><span class="python_operator">, </span><span class="python_name">table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">column </span><span class="python_operator">== </span><span class="python_literal">"something"</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">res </span><span class="python_operator">= </span><span class="python_name">res</span><span class="python_operator">.</span><span class="python_name">order_by</span><span class="python_enclosure">([</span><span class="python_name">table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">column</span><span class="python_enclosure">]) </span><span class="python_comment">#add an order clause</span><span class="python_operator">
+</span>
+<span class="python_keyword">for </span><span class="python_name">x </span><span class="python_keyword">in </span><span class="python_name">res</span><span class="python_enclosure">[</span><span class="python_operator">:</span><span class="python_number">10</span><span class="python_enclosure">]</span><span class="python_operator">:  </span><span class="python_comment"># Fetch and print the top ten instances</span><span class="python_operator">
+  </span><span class="python_keyword">print </span><span class="python_name">x</span><span class="python_operator">.</span><span class="python_name">column2</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_name">x </span><span class="python_operator">= </span><span class="python_name">list</span><span class="python_enclosure">(</span><span class="python_name">res</span><span class="python_enclosure">) </span><span class="python_comment"># execute the query</span><span class="python_operator">
+</span>
+<span class="python_comment"># Count how many instances that have column2 > 42
+# and column == "something"
+</span><span class="python_keyword">print </span><span class="python_name">res</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">column2 </span><span class="python_operator">> </span><span class="python_number">42</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+<p>Per mapper:
+</p>
+
+
+<div class="sliding_code">
+    <div class="codetitle">SelectResults with a Mapper Object</div>
+<pre><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">selectresults </span><span class="python_keyword">import </span><span class="python_name">SelectResultsExt</span><span class="python_operator">
+</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">mytable</span><span class="python_operator">, </span><span class="python_name">extension</span><span class="python_operator">=</span><span class="python_name">SelectResultsExt</span><span class="python_enclosure">())</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">column</span><span class="python_operator">==</span><span class="python_literal">"something"</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">order_by</span><span class="python_enclosure">([</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">column</span><span class="python_enclosure">])[</span><span class="python_number">2</span><span class="python_operator">:</span><span class="python_number">7</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre></div>
+<p>Or across an application via the <code>selectresults</code> mod:
+</p>
+
+
+<div class="sliding_code">
+    <div class="codetitle">SelectResults via mod</div>
+<pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">mods</span><span class="python_operator">.</span><span class="python_name">selectresults</span><span class="python_operator">
+</span>
+<span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">mytable</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">column</span><span class="python_operator">==</span><span class="python_literal">"something"</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">order_by</span><span class="python_enclosure">([</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">column</span><span class="python_enclosure">])[</span><span class="python_number">2</span><span class="python_operator">:</span><span class="python_number">7</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre></div>
+<p>For a full listing of methods, see the <a href="docstrings.html#docstrings_sqlalchemy.ext.selectresults" >generated documentation</a>.
+</p>
+
+
+    </div>
+
+
+    <a href="#plugins" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
+
+    
+<div class="sectionnavblock">
+<div class="sectionnav">
+
+
+        Previous: <a href="pooling.html">Connection Pooling</a>
+
+                |
+
+        Next: <a href="docstrings.html">Modules and Classes</a>
+
+</div>
+</div>
+
+
+</div>
+
+
+		</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<center>
+</center>
+</body>
+</html>
+
+
+
+

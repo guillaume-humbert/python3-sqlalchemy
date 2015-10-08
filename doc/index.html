@@ -1,7 +1,7 @@
 <html>
 <head>
 	<title>
-        SQLAlchemy Documentation
+        SQLAlchemy 0.2 Documentation
 </title>
 </head>
 <body>
@@ -21,8 +21,8 @@
 
 <div class="docheader">
 
-<div class="docheadertext" >SQLAlchemy Documentation</div>
-<div class="">Version: 0.1.4   Last Updated: 03/13/06 12:39:29</div>
+<div class="docheadertext" >SQLAlchemy 0.2 Documentation</div>
+<div class="">Version: 0.2.3   Last Updated: 06/16/06 21:59:41</div>
 </div>
 
 
@@ -52,15 +52,7 @@
     
     
     <div class="toclink">
-        <A style="" href="trailmap.html">Introduction</a>
-    </div>
-    
-
-
-    
-    
-    <div class="toclink">
-        <A style="" href="pooling.html">Connection Pooling</a>
+        <A style="" href="tutorial.html">Tutorial</a>
     </div>
     
 
@@ -92,7 +84,7 @@
     
     
     <div class="toclink">
-        <A style="" href="datamapping.html">Basic Data Mapping</a>
+        <A style="" href="datamapping.html">Data Mapping</a>
     </div>
     
 
@@ -100,7 +92,7 @@
     
     
     <div class="toclink">
-        <A style="" href="unitofwork.html">Unit of Work</a>
+        <A style="" href="unitofwork.html">Session / Unit of Work</a>
     </div>
     
 
@@ -117,6 +109,22 @@
     
     <div class="toclink">
         <A style="" href="types.html">The Types System</a>
+    </div>
+    
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="pooling.html">Connection Pooling</a>
+    </div>
+    
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="plugins.html">Plugins</a>
     </div>
     
 
@@ -149,7 +157,7 @@
     
     
     <div class="toclink">
-        <A style="" href="trailmap.html">Introduction</a>
+        <A style="" href="tutorial.html">Tutorial</a>
     </div>
     
     <div class="toclinkcontainer">
@@ -158,28 +166,15 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="trailmap.html#intro_trailmap">Trail Map</a>
+    <A href="tutorial.html#tutorial_installation">Installation</a>
     </div>
 
-    </div>
-
-
-    </div>
-
-
-    
-    
-    <div class="toclink">
-        <A style="" href="pooling.html">Connection Pooling</a>
-    </div>
-    
-    <div class="toclinkcontainer">
         
         
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="pooling.html#pooling_establishing">Establishing a Transparent Connection Pool</a>
+    <A href="tutorial.html#tutorial_installation_sqlalchemy">Installing SQLAlchemy</a>
     </div>
 
     </div>
@@ -190,7 +185,29 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="pooling.html#pooling_configuration">Connection Pool Configuration</a>
+    <A href="tutorial.html#tutorial_installation_dbms">Installing a Database API</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_gettingstarted">Getting Started</a>
+    </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_gettingstarted_imports">Imports</a>
     </div>
 
     </div>
@@ -201,7 +218,186 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="pooling.html#pooling_custom">Custom Pool Construction</a>
+    <A href="tutorial.html#tutorial_gettingstarted_connecting">Connecting to the Database</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_schemasql">Working with Database Objects</a>
+    </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_schemasql_metadata">Defining Metadata, Binding to Engines</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_schemasql_table">Creating a Table</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_schemasql_inserting">Inserting Rows</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_schemasql_selecting">Selecting</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_schemasql_working">Working with Rows</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_schemasql_table">Table Relationships</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_orm">Working with Object Mappers</a>
+    </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_orm_mapper">Creating a Mapper</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_orm_session">Obtaining a Session</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_orm_query">The Query Object</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_orm_changes">Making Changes</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_orm_saving">Saving</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_orm_relationships">Relationships</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_orm_transactions">Transactions</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="tutorial.html#tutorial_next">Next Steps</a>
     </div>
 
     </div>
@@ -222,7 +418,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="dbengine.html#dbengine_establishing">Establishing a Database Engine</a>
+    <A href="dbengine.html#dbengine_supported">Supported Databases</a>
     </div>
 
     </div>
@@ -233,7 +429,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="dbengine.html#dbengine_methods">Database Engine Methods</a>
+    <A href="dbengine.html#dbengine_establishing">Establishing a Database Engine</a>
     </div>
 
     </div>
@@ -255,7 +451,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="dbengine.html#dbengine_proxy">Using the Proxy Engine</a>
+    <A href="dbengine.html#dbengine_connections">Using Connections</a>
     </div>
 
         
@@ -263,7 +459,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="dbengine.html#dbengine_proxy_defaultproxy">Using the Global Proxy</a>
+    <A href="dbengine.html#dbengine_connections_context">Implicit Connection Contexts</a>
     </div>
 
     </div>
@@ -298,8 +494,63 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="metadata.html#metadata_tables">Describing Tables with MetaData</a>
+    <A href="metadata.html#metadata_tables">Describing Databases with MetaData</a>
     </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="metadata.html#metadata_tables_binding">Binding MetaData to an Engine</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="metadata.html#metadata_tables_using">Using the global Metadata object</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="metadata.html#metadata_tables_reflecting">Reflecting Tables</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="metadata.html#metadata_tables_schema">Specifying the Schema Name</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="metadata.html#metadata_tables_options">Other Options</a>
+    </div>
+
+    </div>
+
 
     </div>
 
@@ -386,19 +637,8 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="metadata.html#metadata_adapting">Adapting Tables to Alternate Engines</a>
+    <A href="metadata.html#metadata_adapting">Adapting Tables to Alternate Metadata</a>
     </div>
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="metadata.html#metadata_adapting_primitives">Non-engine primitives: TableClause/ColumnClause</a>
-    </div>
-
-    </div>
-
 
     </div>
 
@@ -426,6 +666,39 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
+    <A href="sqlconstruction.html#sql_select_explicit">Explicit Execution</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="sqlconstruction.html#sql_select_binding">Binding ClauseElements to Engines</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="sqlconstruction.html#sql_select_resultproxy">Getting Results</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
     <A href="sqlconstruction.html#sql_select_labels">Using Column Labels</a>
     </div>
 
@@ -443,14 +716,6 @@
     </div>
 
 
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="sqlconstruction.html#sql_select_whereclause">WHERE Clause</a>
-    </div>
-
     </div>
 
 
@@ -459,18 +724,15 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="sqlconstruction.html#sql_select_engine">Specifying the Engine</a>
+    <A href="sqlconstruction.html#sql_whereclause">WHERE Clause</a>
     </div>
-
-    </div>
-
 
         
         
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="sqlconstruction.html#sql_select_functions">Functions</a>
+    <A href="sqlconstruction.html#sql_whereclause_operators">Operators</a>
     </div>
 
     </div>
@@ -481,7 +743,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="sqlconstruction.html#sql_select_literals">Literals</a>
+    <A href="sqlconstruction.html#sql_whereclause_functions">Functions</a>
     </div>
 
     </div>
@@ -492,7 +754,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="sqlconstruction.html#sql_select_orderby">Order By</a>
+    <A href="sqlconstruction.html#sql_whereclause_literals">Literals</a>
     </div>
 
     </div>
@@ -503,7 +765,18 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="sqlconstruction.html#sql_select_options">DISTINCT, LIMIT and OFFSET</a>
+    <A href="sqlconstruction.html#sql_whereclause_orderby">Order By</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="sqlconstruction.html#sql_whereclause_options">DISTINCT, LIMIT and OFFSET</a>
     </div>
 
     </div>
@@ -553,14 +826,6 @@
     </div>
 
 
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="sqlconstruction.html#sql_subqueries_correlated">Correlated Subqueries</a>
-    </div>
-
     </div>
 
 
@@ -569,7 +834,15 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="sqlconstruction.html#sql_subqueries_exists">EXISTS Clauses</a>
+    <A href="sqlconstruction.html#sql_correlated">Correlated Subqueries</a>
+    </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="sqlconstruction.html#sql_correlated_exists">EXISTS Clauses</a>
     </div>
 
     </div>
@@ -694,7 +967,7 @@
     
     
     <div class="toclink">
-        <A style="" href="datamapping.html">Basic Data Mapping</a>
+        <A style="" href="datamapping.html">Data Mapping</a>
     </div>
     
     <div class="toclinkcontainer">
@@ -703,15 +976,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="datamapping.html#datamapping_synopsis">Synopsis</a>
-    </div>
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="datamapping.html#datamapping_synopsis_attaching">Attaching Mappers to their Class</a>
+    <A href="datamapping.html#datamapping_datamapping">Basic Data Mapping</a>
     </div>
 
     </div>
@@ -722,11 +987,8 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="datamapping.html#datamapping_synopsis_overriding">Overriding Properties</a>
+    <A href="datamapping.html#datamapping_synopsis">Synopsis</a>
     </div>
-
-    </div>
-
 
     </div>
 
@@ -736,7 +998,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="datamapping.html#datamapping_selecting">Selecting from a Mapper</a>
+    <A href="datamapping.html#datamapping_query">The Query Object</a>
     </div>
 
     </div>
@@ -766,7 +1028,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="datamapping.html#datamapping_relations_private">Useful Feature: Private Relations</a>
+    <A href="datamapping.html#datamapping_relations_onetomany">One to Many</a>
     </div>
 
     </div>
@@ -777,7 +1039,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="datamapping.html#datamapping_relations_backreferences">Useful Feature: Backreferences</a>
+    <A href="datamapping.html#datamapping_relations_lifecycle">Lifecycle Relations</a>
     </div>
 
     </div>
@@ -788,7 +1050,29 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="datamapping.html#datamapping_relations_cascade">Creating Relationships Automatically with cascade_mappers</a>
+    <A href="datamapping.html#datamapping_relations_backreferences">Backreferences</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="datamapping.html#datamapping_selectrelations">Selecting from Relationships</a>
+    </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="datamapping.html#datamapping_selectrelations_relselectby">Creating Joins Across Relations</a>
     </div>
 
     </div>
@@ -799,7 +1083,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="datamapping.html#datamapping_relations_lazyload">Selecting from Relationships: Lazy Load</a>
+    <A href="datamapping.html#datamapping_selectrelations_jointo">More Granular Join Control Using join_to, join_via</a>
     </div>
 
     </div>
@@ -810,7 +1094,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="datamapping.html#datamapping_relations_eagerload">Selecting from Relationships: Eager Load</a>
+    <A href="datamapping.html#datamapping_selectrelations_eagerload">Eager Loading</a>
     </div>
 
     </div>
@@ -821,7 +1105,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="datamapping.html#datamapping_relations_options">Switching Lazy/Eager, No Load</a>
+    <A href="datamapping.html#datamapping_selectrelations_options">Using Options to Change the Loading Strategy</a>
     </div>
 
     </div>
@@ -869,7 +1153,7 @@
     
     
     <div class="toclink">
-        <A style="" href="unitofwork.html">Unit of Work</a>
+        <A style="" href="unitofwork.html">Session / Unit of Work</a>
     </div>
     
     <div class="toclinkcontainer">
@@ -889,7 +1173,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="unitofwork.html#unitofwork_getting">Accessing UnitOfWork Instances</a>
+    <A href="unitofwork.html#unitofwork_states">Object States</a>
     </div>
 
     </div>
@@ -900,15 +1184,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="unitofwork.html#unitofwork_begincommit">Begin/Commit</a>
-    </div>
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="unitofwork.html#unitofwork_begincommit_begin">Controlling Scope with begin()</a>
+    <A href="unitofwork.html#unitofwork_getting">Acquiring a Session</a>
     </div>
 
     </div>
@@ -919,7 +1195,180 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="unitofwork.html#unitofwork_begincommit_transactionnesting">Nesting UnitOfWork in a Database Transaction</a>
+    <A href="unitofwork.html#unitofwork_identitymap">Introduction to the Identity Map</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="unitofwork.html#unitofwork_changed">Whats Changed ?</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="unitofwork.html#unitofwork_api">The Session API</a>
+    </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="unitofwork.html#unitofwork_api_query">query()</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="unitofwork.html#unitofwork_api_get">get()</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="unitofwork.html#unitofwork_api_load">load()</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="unitofwork.html#unitofwork_api_save">save()</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="unitofwork.html#unitofwork_api_flush">flush()</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="unitofwork.html#unitofwork_api_close">close()</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="unitofwork.html#unitofwork_api_delete">delete()</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="unitofwork.html#unitofwork_api_clear">clear()</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="unitofwork.html#unitofwork_api_refreshexpire">refresh() / expire()</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="unitofwork.html#unitofwork_api_expunge">expunge()</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="unitofwork.html#unitofwork_api_bind">bind_mapper() / bind_table()</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="unitofwork.html#unitofwork_api_update">update()</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="unitofwork.html#unitofwork_api_saveorupdate">save_or_update()</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="unitofwork.html#unitofwork_api_merge">merge()</a>
     </div>
 
     </div>
@@ -933,7 +1382,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="unitofwork.html#unitofwork_identity">The Identity Map</a>
+    <A href="unitofwork.html#unitofwork_cascade">Cascade rules</a>
     </div>
 
     </div>
@@ -944,7 +1393,15 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="unitofwork.html#unitofwork_import">Bringing External Instances into the UnitOfWork</a>
+    <A href="unitofwork.html#unitofwork_transaction">SessionTransaction</a>
+    </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="unitofwork.html#unitofwork_transaction_sql">Using SQL with SessionTransaction</a>
     </div>
 
     </div>
@@ -955,16 +1412,11 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="unitofwork.html#unitofwork_advscope">Advanced UnitOfWork Management</a>
+    <A href="unitofwork.html#unitofwork_transaction_using">Using Engine-level Transactions with Sessions</a>
     </div>
 
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="unitofwork.html#unitofwork_advscope_object">Per-Object Sessions</a>
     </div>
+
 
     </div>
 
@@ -974,22 +1426,8 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="unitofwork.html#unitofwork_advscope_scope">Custom Session Objects/Custom Scopes</a>
+    <A href="unitofwork.html#unitofwork_logging">Analyzing Object Flushes</a>
     </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="unitofwork.html#unitofwork_advscope_logging">Analyzing Object Commits</a>
-    </div>
-
-    </div>
-
 
     </div>
 
@@ -1009,7 +1447,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_relations">More On Relations</a>
+    <A href="adv_datamapping.html#advdatamapping_properties">More On Mapper Properties</a>
     </div>
 
         
@@ -1017,18 +1455,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_relations_customjoin">Custom Join Conditions</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_relations_multiplejoin">Lazy/Eager Joins Multiple Times to One Table</a>
+    <A href="adv_datamapping.html#advdatamapping_properties_colname">Overriding Column Names</a>
     </div>
 
     </div>
@@ -1039,7 +1466,62 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_relations_relationoptions">Relation Options</a>
+    <A href="adv_datamapping.html#advdatamapping_properties_overriding">Overriding Properties</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="adv_datamapping.html#advdatamapping_properties_customlist">Custom List Classes</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="adv_datamapping.html#advdatamapping_properties_customjoin">Custom Join Conditions</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="adv_datamapping.html#advdatamapping_properties_multiplejoin">Lazy/Eager Joins Multiple Times to One Table</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="adv_datamapping.html#advdatamapping_properties_deferred">Deferred Column Loading</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="adv_datamapping.html#advdatamapping_properties_relationoptions">Relation Options</a>
     </div>
 
     </div>
@@ -1053,7 +1535,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_orderby">Controlling Ordering</a>
+    <A href="adv_datamapping.html#advdatamapping_orderby">Controlling Ordering</a>
     </div>
 
     </div>
@@ -1064,7 +1546,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_limits">Limiting Rows</a>
+    <A href="adv_datamapping.html#advdatamapping_limits">Limiting Rows</a>
     </div>
 
     </div>
@@ -1075,7 +1557,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_colname">Overriding Column Names</a>
+    <A href="adv_datamapping.html#advdatamapping_options">More on Mapper Options</a>
     </div>
 
     </div>
@@ -1086,7 +1568,15 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_deferred">Deferred Column Loading</a>
+    <A href="adv_datamapping.html#advdatamapping_inheritance">Mapping a Class with Table Inheritance</a>
+    </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="adv_datamapping.html#advdatamapping_inheritance_single">Single Table Inheritance</a>
     </div>
 
     </div>
@@ -1097,7 +1587,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_options">More on Mapper Options</a>
+    <A href="adv_datamapping.html#advdatamapping_inheritance_concrete">Concrete Table Inheritance</a>
     </div>
 
     </div>
@@ -1108,7 +1598,21 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_inheritance">Mapping a Class with Table Inheritance</a>
+    <A href="adv_datamapping.html#advdatamapping_inheritance_multiple">Multiple Table Inheritance</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="adv_datamapping.html#advdatamapping_joins">Mapping a Class against Multiple Tables</a>
     </div>
 
     </div>
@@ -1119,7 +1623,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_joins">Mapping a Class against Multiple Tables</a>
+    <A href="adv_datamapping.html#advdatamapping_selects">Mapping a Class against Arbitary Selects</a>
     </div>
 
     </div>
@@ -1130,7 +1634,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_selects">Mapping a Class against Arbitary Selects</a>
+    <A href="adv_datamapping.html#advdatamapping_multiple">Multiple Mappers for One Class</a>
     </div>
 
     </div>
@@ -1141,7 +1645,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_multiple">Multiple Mappers for One Class</a>
+    <A href="adv_datamapping.html#advdatamapping_circular">Circular Mapping</a>
     </div>
 
     </div>
@@ -1152,7 +1656,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_circular">Circular Mapping</a>
+    <A href="adv_datamapping.html#advdatamapping_recursive">Self Referential Mappers</a>
     </div>
 
     </div>
@@ -1163,7 +1667,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_recursive">Self Referential Mappers</a>
+    <A href="adv_datamapping.html#advdatamapping_resultset">Result-Set Mapping</a>
     </div>
 
     </div>
@@ -1174,7 +1678,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_resultset">Result-Set Mapping</a>
+    <A href="adv_datamapping.html#advdatamapping_arguments">Mapper Arguments</a>
     </div>
 
     </div>
@@ -1185,18 +1689,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_extending">Extending Mapper</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="adv_datamapping.html#adv_datamapping_class">How Mapper Modifies Mapped Classes</a>
+    <A href="adv_datamapping.html#advdatamapping_extending">Extending Mapper</a>
     </div>
 
     </div>
@@ -1240,186 +1733,195 @@
     
     
     <div class="toclink">
+        <A style="" href="pooling.html">Connection Pooling</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="pooling.html#pooling_establishing">Establishing a Transparent Connection Pool</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="pooling.html#pooling_configuration">Connection Pool Configuration</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="pooling.html#pooling_custom">Custom Pool Construction</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="plugins.html">Plugins</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="plugins.html#plugins_threadlocal">threadlocal</a>
+    </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="plugins.html#plugins_threadlocal_get_session()">get_session() Implemented on All Mappers</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="plugins.html#plugins_threadlocal_default">Default Query Objects</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="plugins.html#plugins_threadlocal_objectstore">objectstore Namespace</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="plugins.html#plugins_threadlocal_attaching">Attaching Mappers to their Class</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="plugins.html#plugins_threadlocal_engine">Engine Strategy Set to threadlocal By Default</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="plugins.html#plugins_sessioncontext">SessionContext</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="plugins.html#plugins_assignmapper">assignmapper</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="plugins.html#plugins_activemapper">ActiveMapper</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="plugins.html#plugins_sqlsoup">SqlSoup</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="plugins.html#plugins_proxyengine">ProxyEngine</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="plugins.html#plugins_selectresults">SelectResults</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+    
+    
+    <div class="toclink">
         <A style="" href="docstrings.html">Modules and Classes</a>
     </div>
     
     <div class="toclinkcontainer">
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.schema">Module sqlalchemy.schema</a>
-    </div>
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.schema_Column">Class Column(ColumnClause)</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.schema_ColumnDefault">Class ColumnDefault(DefaultGenerator)</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.schema_ForeignKey">Class ForeignKey(SchemaItem)</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.schema_Index">Class Index(SchemaItem)</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.schema_PassiveDefault">Class PassiveDefault(DefaultGenerator)</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.schema_SchemaEngine">Class SchemaEngine(object)</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.schema_SchemaItem">Class SchemaItem(object)</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.schema_SchemaVisitor">Class SchemaVisitor(ClauseVisitor)</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.schema_Sequence">Class Sequence(DefaultGenerator)</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.schema_Table">Class Table(TableClause)</a>
-    </div>
-
-    </div>
-
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.engine">Module sqlalchemy.engine</a>
-    </div>
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.engine_modfunc">Module Functions</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.engine_SQLEngine">Class SQLEngine(SchemaEngine)</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.engine_ResultProxy">Class ResultProxy</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.engine_RowProxy">Class RowProxy</a>
-    </div>
-
-    </div>
-
-
-    </div>
-
-
         
         
     <div class="toclinkcontainer">
@@ -1434,6 +1936,28 @@
     
     <div class="smalltoclink">
     <A href="docstrings.html#docstrings_sqlalchemy.sql_modfunc">Module Functions</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.sql_Engine">Class Engine(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.sql_AbstractDialect">Class AbstractDialect(object)</a>
     </div>
 
     </div>
@@ -1489,6 +2013,424 @@
     
     <div class="smalltoclink">
     <A href="docstrings.html#docstrings_sqlalchemy.sql_ColumnClause">Class ColumnClause(ColumnElement)</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.schema">Module sqlalchemy.schema</a>
+    </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.schema_BoundMetaData">Class BoundMetaData(MetaData)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.schema_Column">Class Column(SchemaItem,ColumnClause)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.schema_ColumnDefault">Class ColumnDefault(DefaultGenerator)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.schema_DynamicMetaData">Class DynamicMetaData(MetaData)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.schema_ForeignKey">Class ForeignKey(SchemaItem)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.schema_Index">Class Index(SchemaItem)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.schema_MetaData">Class MetaData(SchemaItem)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.schema_PassiveDefault">Class PassiveDefault(DefaultGenerator)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.schema_SchemaItem">Class SchemaItem(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.schema_SchemaVisitor">Class SchemaVisitor(ClauseVisitor)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.schema_Sequence">Class Sequence(DefaultGenerator)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.schema_Table">Class Table(SchemaItem,TableClause)</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.engine">Module sqlalchemy.engine</a>
+    </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.engine_modfunc">Module Functions</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.engine_Connectable">Class Connectable(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.engine_ComposedSQLEngine">Class ComposedSQLEngine(Engine,Connectable)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.engine_Connection">Class Connection(Connectable)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.engine_Transaction">Class Transaction(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.engine_Dialect">Class Dialect(AbstractDialect)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.engine_ConnectionProvider">Class ConnectionProvider(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.engine_ExecutionContext">Class ExecutionContext(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.engine_ResultProxy">Class ResultProxy</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.engine_RowProxy">Class RowProxy</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.engine.strategies">Module sqlalchemy.engine.strategies</a>
+    </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.engine.strategies_EngineStrategy">Class EngineStrategy(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.engine.strategies_PlainEngineStrategy">Class PlainEngineStrategy(EngineStrategy)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.engine.strategies_ThreadLocalEngineStrategy">Class ThreadLocalEngineStrategy(EngineStrategy)</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.orm">Module sqlalchemy.orm</a>
+    </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.orm_modfunc">Module Functions</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.orm_Mapper">Class Mapper(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.orm_MapperExtension">Class MapperExtension(object)</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.orm.query">Module sqlalchemy.orm.query</a>
+    </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.orm.query_Query">Class Query(object)</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.orm.session">Module sqlalchemy.orm.session</a>
+    </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.orm.session_modfunc">Module Functions</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.orm.session_Session">Class Session(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.orm.session_SessionTransaction">Class SessionTransaction(object)</a>
     </div>
 
     </div>
@@ -1568,7 +2510,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.mapping">Module sqlalchemy.mapping</a>
+    <A href="docstrings.html#docstrings_sqlalchemy.ext.sessioncontext">Module sqlalchemy.ext.sessioncontext</a>
     </div>
 
         
@@ -1576,40 +2518,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.mapping_modfunc">Module Functions</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.mapping_MapperExtension">Class MapperExtension(object)</a>
-    </div>
-
-    </div>
-
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.mapping.objectstore">Module sqlalchemy.mapping.objectstore</a>
-    </div>
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.mapping.objectstore_modfunc">Module Functions</a>
+    <A href="docstrings.html#docstrings_sqlalchemy.ext.sessioncontext_SessionContext">Class SessionContext(object)</a>
     </div>
 
     </div>
@@ -1620,7 +2529,29 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.mapping.objectstore_Session">Class Session(object)</a>
+    <A href="docstrings.html#docstrings_sqlalchemy.ext.sessioncontext_SessionContextExt">Class SessionContextExt(MapperExtension)</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.mods.threadlocal">Module sqlalchemy.mods.threadlocal</a>
+    </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.mods.threadlocal_modfunc">Module Functions</a>
     </div>
 
     </div>
@@ -1631,7 +2562,29 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.mapping.objectstore_SessionTrans">Class SessionTrans(object)</a>
+    <A href="docstrings.html#docstrings_sqlalchemy.mods.threadlocal_Objectstore">Class Objectstore(SessionContext)</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.ext.selectresults">Module sqlalchemy.ext.selectresults</a>
+    </div>
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.ext.selectresults_SelectResults">Class SelectResults(object)</a>
     </div>
 
     </div>
@@ -1642,7 +2595,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.mapping.objectstore_UnitOfWork">Class UnitOfWork(object)</a>
+    <A href="docstrings.html#docstrings_sqlalchemy.ext.selectresults_SelectResultsExt">Class SelectResultsExt(MapperExtension)</a>
     </div>
 
     </div>
@@ -1686,17 +2639,6 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.exceptions_CommitError">Class CommitError</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
     <A href="docstrings.html#docstrings_sqlalchemy.exceptions_DBAPIError">Class DBAPIError</a>
     </div>
 
@@ -1708,7 +2650,29 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.exceptions_FlushError">Class FlushError</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
     <A href="docstrings.html#docstrings_sqlalchemy.exceptions_InvalidRequestError">Class InvalidRequestError</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="docstrings.html#docstrings_sqlalchemy.exceptions_NoSuchTableError">Class NoSuchTableError</a>
     </div>
 
     </div>
@@ -1752,17 +2716,6 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.ext.proxy_modfunc">Module Functions</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
     <A href="docstrings.html#docstrings_sqlalchemy.ext.proxy_AutoConnectEngine">Class AutoConnectEngine(BaseProxyEngine)</a>
     </div>
 
@@ -1774,7 +2727,7 @@
     <div class="toclinkcontainer">
     
     <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.ext.proxy_BaseProxyEngine">Class BaseProxyEngine(SchemaEngine)</a>
+    <A href="docstrings.html#docstrings_sqlalchemy.ext.proxy_BaseProxyEngine">Class BaseProxyEngine(Engine)</a>
     </div>
 
     </div>
@@ -1786,39 +2739,6 @@
     
     <div class="smalltoclink">
     <A href="docstrings.html#docstrings_sqlalchemy.ext.proxy_ProxyEngine">Class ProxyEngine(BaseProxyEngine)</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.ext.proxy_ProxyType">Class ProxyType(object)</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.ext.proxy_ProxyTypeEngine">Class ProxyTypeEngine(object)</a>
-    </div>
-
-    </div>
-
-
-        
-        
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="docstrings.html#docstrings_sqlalchemy.ext.proxy_TypeEngine">Class TypeEngine(object)</a>
     </div>
 
     </div>
