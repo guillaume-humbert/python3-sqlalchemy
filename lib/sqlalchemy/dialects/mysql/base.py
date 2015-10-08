@@ -1932,6 +1932,8 @@ class MySQLDialect(default.DefaultDialect):
         cursor.execute('SELECT @@tx_isolation')
         val = cursor.fetchone()[0]
         cursor.close()
+        if util.py3k and isinstance(val, bytes):
+            val = val.decode()
         return val.upper().replace("-", " ")
 
     def do_commit(self, dbapi_connection):
@@ -2040,7 +2042,7 @@ class MySQLDialect(default.DefaultDialect):
         try:
             try:
                 rs = connection.execute(st)
-                have = rs.rowcount > 0
+                have = rs.fetchone() is not None
                 rs.close()
                 return have
             except exc.DBAPIError, e:
@@ -2409,7 +2411,6 @@ class MySQLTableDefinitionParser(object):
                     state.constraints.append(spec)
                 else:
                     pass
-
         return state
 
     def _parse_constraints(self, line):

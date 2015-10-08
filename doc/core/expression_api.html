@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0',
+          VERSION:     '0.8.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
+        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
 
 
     </div>
@@ -407,9 +407,10 @@ condition of the <tt class="docutils literal"><span class="pre">UPDATE</span></t
 </tr>
 </tbody>
 </table>
-<p>See also:</p>
-<blockquote>
-<div><a class="reference internal" href="tutorial.html#deletes"><em>Deletes</em></a> - SQL Expression Tutorial</div></blockquote>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="tutorial.html#deletes"><em>Deletes</em></a> - SQL Expression Tutorial</p>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -499,7 +500,7 @@ boolean equivalent for the target dialect.</p>
 
 <dl class="data">
 <dt id="sqlalchemy.sql.expression.func">
-<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.expression._FunctionGenerator object at 0x101902910&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.expression._FunctionGenerator object at 0x1019bbc90&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate SQL function expressions.</p>
 <p><a class="reference internal" href="#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a> is a special object instance which generates SQL
 functions based on name-based attributes, e.g.:</p>
@@ -596,7 +597,7 @@ against the <tt class="docutils literal"><span class="pre">INSERT</span></tt> st
 <div class="admonition-see-also admonition seealso">
 <p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="tutorial.html#coretutorial-insert-expressions"><em>Insert Expressions</em></a> - SQL Expression Tutorial</p>
-<p class="last"><a class="reference internal" href="tutorial.html#inserts-and-updates"><em>Inserts and Updates</em></a> - SQL Expression Tutorial</p>
+<p class="last"><a class="reference internal" href="tutorial.html#inserts-and-updates"><em>Inserts, Updates and Deletes</em></a> - SQL Expression Tutorial</p>
 </div>
 </dd></dl>
 
@@ -864,9 +865,11 @@ method on any <a class="reference internal" href="#sqlalchemy.sql.expression.Fro
 <p>All arguments which accept <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">ClauseElement</span></tt></a> arguments also accept
 string arguments, which will be converted as appropriate into
 either <a class="reference internal" href="#sqlalchemy.sql.expression.text" title="sqlalchemy.sql.expression.text"><tt class="xref py py-func docutils literal"><span class="pre">text()</span></tt></a> or <a class="reference internal" href="#sqlalchemy.sql.expression.literal_column" title="sqlalchemy.sql.expression.literal_column"><tt class="xref py py-func docutils literal"><span class="pre">literal_column()</span></tt></a> constructs.</p>
-<p>See also:</p>
-<p><a class="reference internal" href="tutorial.html#coretutorial-selecting"><em>Selecting</em></a> - Core Tutorial description of
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="tutorial.html#coretutorial-selecting"><em>Selecting</em></a> - Core Tutorial description of
 <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>.</p>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1289,10 +1292,11 @@ being updated:</p>
                 <span class="n">as_scalar</span><span class="p">()</span>
     <span class="p">)</span></pre></div>
 </div>
-<p>See also:</p>
-<blockquote>
-<div><a class="reference internal" href="tutorial.html#inserts-and-updates"><em>Inserts and Updates</em></a> - SQL Expression
-Language Tutorial</div></blockquote>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="tutorial.html#inserts-and-updates"><em>Inserts, Updates and Deletes</em></a> - SQL Expression
+Language Tutorial</p>
+</div>
 </dd></dl>
 
 </div>
@@ -4648,6 +4652,9 @@ SELECT-based set operations.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.append_group_by" title="sqlalchemy.sql.expression.SelectBase.append_group_by"><tt class="xref py py-meth docutils literal"><span class="pre">append_group_by()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase" title="sqlalchemy.sql.expression.SelectBase"><tt class="xref py py-class docutils literal"><span class="pre">SelectBase</span></tt></a></div>
 <p>Append the given GROUP BY criterion applied to this selectable.</p>
 <p>The criterion will be appended to any pre-existing GROUP BY criterion.</p>
+<p>This is an <strong>in-place</strong> mutation method; the
+<a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.group_by" title="sqlalchemy.sql.expression.SelectBase.group_by"><tt class="xref py py-meth docutils literal"><span class="pre">group_by()</span></tt></a> method is preferred, as it provides standard
+<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -4657,6 +4664,9 @@ SELECT-based set operations.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.append_order_by" title="sqlalchemy.sql.expression.SelectBase.append_order_by"><tt class="xref py py-meth docutils literal"><span class="pre">append_order_by()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase" title="sqlalchemy.sql.expression.SelectBase"><tt class="xref py py-class docutils literal"><span class="pre">SelectBase</span></tt></a></div>
 <p>Append the given ORDER BY criterion applied to this selectable.</p>
 <p>The criterion will be appended to any pre-existing ORDER BY criterion.</p>
+<p>This is an <strong>in-place</strong> mutation method; the
+<a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.order_by" title="sqlalchemy.sql.expression.SelectBase.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">order_by()</span></tt></a> method is preferred, as it provides standard
+<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -4938,8 +4948,10 @@ Postgresql&#8217;s documentation at
 
 <span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></pre></div>
 </div>
-<p>See also:</p>
-<p><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.cte" title="sqlalchemy.orm.query.Query.cte"><tt class="xref py py-meth docutils literal"><span class="pre">orm.query.Query.cte()</span></tt></a> - ORM version of <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.cte" title="sqlalchemy.sql.expression.SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.cte()</span></tt></a>.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.cte" title="sqlalchemy.orm.query.Query.cte"><tt class="xref py py-meth docutils literal"><span class="pre">orm.query.Query.cte()</span></tt></a> - ORM version of <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.cte" title="sqlalchemy.sql.expression.SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.cte()</span></tt></a>.</p>
+</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -4981,11 +4993,11 @@ to a statement - these include &#8220;autocommit&#8221; and &#8220;stream_result
 but not &#8220;isolation_level&#8221; or &#8220;compiled_cache&#8221;.
 See <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> for a full list of
 possible options.</p>
-<p>See also:</p>
-<blockquote>
-<div><p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
-<p><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
-</div></blockquote>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -5024,7 +5036,10 @@ criterion.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.label" title="sqlalchemy.sql.expression.SelectBase.label"><tt class="xref py py-meth docutils literal"><span class="pre">label()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase" title="sqlalchemy.sql.expression.SelectBase"><tt class="xref py py-class docutils literal"><span class="pre">SelectBase</span></tt></a></div>
 <p>return a &#8216;scalar&#8217; representation of this selectable, embedded as a
 subquery with a label.</p>
-<p>See also <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.as_scalar" title="sqlalchemy.sql.expression.SelectBase.as_scalar"><tt class="xref py py-meth docutils literal"><span class="pre">as_scalar()</span></tt></a>.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.as_scalar" title="sqlalchemy.sql.expression.SelectBase.as_scalar"><tt class="xref py py-meth docutils literal"><span class="pre">as_scalar()</span></tt></a>.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -5500,11 +5515,11 @@ to a statement - these include &#8220;autocommit&#8221; and &#8220;stream_result
 but not &#8220;isolation_level&#8221; or &#8220;compiled_cache&#8221;.
 See <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> for a full list of
 possible options.</p>
-<p>See also:</p>
-<blockquote>
-<div><p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
-<p><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
-</div></blockquote>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -5723,11 +5738,11 @@ to a statement - these include &#8220;autocommit&#8221; and &#8220;stream_result
 but not &#8220;isolation_level&#8221; or &#8220;compiled_cache&#8221;.
 See <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> for a full list of
 possible options.</p>
-<p>See also:</p>
-<blockquote>
-<div><p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
-<p><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
-</div></blockquote>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -5744,12 +5759,14 @@ result&#8217;s scalar representation.</p>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">FunctionElement</tt><big>(</big><em>*clauses</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.FunctionElement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.Executable</span></tt></a>, <a class="reference internal" href="#sqlalchemy.sql.expression.ColumnElement" title="sqlalchemy.sql.expression.ColumnElement"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.ColumnElement</span></tt></a>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.FromClause</span></tt></a></p>
 <p>Base for SQL function-oriented constructs.</p>
-<p>See also:</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="#sqlalchemy.sql.expression.Function" title="sqlalchemy.sql.expression.Function"><tt class="xref py py-class docutils literal"><span class="pre">Function</span></tt></a> - named SQL function.</p>
 <p><a class="reference internal" href="#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a> - namespace which produces registered or ad-hoc
 <a class="reference internal" href="#sqlalchemy.sql.expression.Function" title="sqlalchemy.sql.expression.Function"><tt class="xref py py-class docutils literal"><span class="pre">Function</span></tt></a> instances.</p>
-<p><a class="reference internal" href="#sqlalchemy.sql.functions.GenericFunction" title="sqlalchemy.sql.functions.GenericFunction"><tt class="xref py py-class docutils literal"><span class="pre">GenericFunction</span></tt></a> - allows creation of registered function
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.functions.GenericFunction" title="sqlalchemy.sql.functions.GenericFunction"><tt class="xref py py-class docutils literal"><span class="pre">GenericFunction</span></tt></a> - allows creation of registered function
 types.</p>
+</div>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.FunctionElement.__eq__">
 <tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.FunctionElement.__eq__" title="Permalink to this definition">¶</a></dt>
@@ -6088,11 +6105,11 @@ to a statement - these include &#8220;autocommit&#8221; and &#8220;stream_result
 but not &#8220;isolation_level&#8221; or &#8220;compiled_cache&#8221;.
 See <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> for a full list of
 possible options.</p>
-<p>See also:</p>
-<blockquote>
-<div><p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
-<p><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
-</div></blockquote>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -6505,12 +6522,13 @@ used.</p>
 <p>Describe a named SQL function.</p>
 <p>See the superclass <a class="reference internal" href="#sqlalchemy.sql.expression.FunctionElement" title="sqlalchemy.sql.expression.FunctionElement"><tt class="xref py py-class docutils literal"><span class="pre">FunctionElement</span></tt></a> for a description
 of public methods.</p>
-<p>See also:</p>
-<p>See also:</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
 <p><a class="reference internal" href="#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-data docutils literal"><span class="pre">func</span></tt></a> - namespace which produces registered or ad-hoc
 <a class="reference internal" href="#sqlalchemy.sql.expression.Function" title="sqlalchemy.sql.expression.Function"><tt class="xref py py-class docutils literal"><span class="pre">Function</span></tt></a> instances.</p>
-<p><a class="reference internal" href="#sqlalchemy.sql.functions.GenericFunction" title="sqlalchemy.sql.functions.GenericFunction"><tt class="xref py py-class docutils literal"><span class="pre">GenericFunction</span></tt></a> - allows creation of registered function
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.functions.GenericFunction" title="sqlalchemy.sql.functions.GenericFunction"><tt class="xref py py-class docutils literal"><span class="pre">GenericFunction</span></tt></a> - allows creation of registered function
 types.</p>
+</div>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Function.__eq__">
 <tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Function.__eq__" title="Permalink to this definition">¶</a></dt>
@@ -6857,11 +6875,11 @@ to a statement - these include &#8220;autocommit&#8221; and &#8220;stream_result
 but not &#8220;isolation_level&#8221; or &#8220;compiled_cache&#8221;.
 See <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> for a full list of
 possible options.</p>
-<p>See also:</p>
-<blockquote>
-<div><p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
-<p><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
-</div></blockquote>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -7431,8 +7449,10 @@ method which allows for arbitrary column lists.</p>
 <p>Represent an INSERT construct.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.sql.expression.Insert" title="sqlalchemy.sql.expression.Insert"><tt class="xref py py-class docutils literal"><span class="pre">Insert</span></tt></a> object is created using the
 <a class="reference internal" href="#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a> function.</p>
-<p>See also:</p>
-<p><a class="reference internal" href="tutorial.html#coretutorial-insert-expressions"><em>Insert Expressions</em></a></p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="tutorial.html#coretutorial-insert-expressions"><em>Insert Expressions</em></a></p>
+</div>
 <dl class="attribute">
 <dt id="sqlalchemy.sql.expression.Insert.bind">
 <tt class="descname">bind</tt><a class="headerlink" href="#sqlalchemy.sql.expression.Insert.bind" title="Permalink to this definition">¶</a></dt>
@@ -7527,11 +7547,11 @@ to a statement - these include &#8220;autocommit&#8221; and &#8220;stream_result
 but not &#8220;isolation_level&#8221; or &#8220;compiled_cache&#8221;.
 See <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> for a full list of
 possible options.</p>
-<p>See also:</p>
-<blockquote>
-<div><p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
-<p><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
-</div></blockquote>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -7743,7 +7763,7 @@ syntax.</p>
 </table>
 <div class="admonition-see-also admonition seealso">
 <p class="first admonition-title">See also</p>
-<p><a class="reference internal" href="tutorial.html#inserts-and-updates"><em>Inserts and Updates</em></a> - SQL Expression
+<p><a class="reference internal" href="tutorial.html#inserts-and-updates"><em>Inserts, Updates and Deletes</em></a> - SQL Expression
 Language Tutorial</p>
 <p><a class="reference internal" href="#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a> - produce an <tt class="docutils literal"><span class="pre">INSERT</span></tt> statement</p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.update" title="sqlalchemy.sql.expression.update"><tt class="xref py py-func docutils literal"><span class="pre">update()</span></tt></a> - produce an <tt class="docutils literal"><span class="pre">UPDATE</span></tt> statement</p>
@@ -8227,13 +8247,13 @@ operators such as <tt class="xref py py-meth docutils literal"><span class="pre"
 <em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Select</tt><big>(</big><em>columns</em>, <em>whereclause=None</em>, <em>from_obj=None</em>, <em>distinct=False</em>, <em>having=None</em>, <em>correlate=True</em>, <em>prefixes=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Select" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.HasPrefixes</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase" title="sqlalchemy.sql.expression.SelectBase"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.SelectBase</span></tt></a></p>
 <p>Represents a <tt class="docutils literal"><span class="pre">SELECT</span></tt> statement.</p>
-<p>See also:</p>
-<dl class="docutils">
-<dt><a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> - the function which creates</dt>
-<dd>a <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object.</dd>
-<dt><a class="reference internal" href="tutorial.html#coretutorial-selecting"><em>Selecting</em></a> - Core Tutorial description</dt>
-<dd>of <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>.</dd>
-</dl>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a> - the function which creates
+a <a class="reference internal" href="#sqlalchemy.sql.expression.Select" title="sqlalchemy.sql.expression.Select"><tt class="xref py py-class docutils literal"><span class="pre">Select</span></tt></a> object.</p>
+<p class="last"><a class="reference internal" href="tutorial.html#coretutorial-selecting"><em>Selecting</em></a> - Core Tutorial description
+of <a class="reference internal" href="#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>.</p>
+</div>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Select.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>columns</em>, <em>whereclause=None</em>, <em>from_obj=None</em>, <em>distinct=False</em>, <em>having=None</em>, <em>correlate=True</em>, <em>prefixes=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Select.__init__" title="Permalink to this definition">¶</a></dt>
@@ -8263,6 +8283,9 @@ argument descriptions.</p>
 <tt class="descname">append_column</tt><big>(</big><em>column</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Select.append_column" title="Permalink to this definition">¶</a></dt>
 <dd><p>append the given column expression to the columns clause of this
 select() construct.</p>
+<p>This is an <strong>in-place</strong> mutation method; the
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select.column" title="sqlalchemy.sql.expression.Select.column"><tt class="xref py py-meth docutils literal"><span class="pre">column()</span></tt></a> method is preferred, as it provides standard
+<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -8270,6 +8293,9 @@ select() construct.</p>
 <tt class="descname">append_correlation</tt><big>(</big><em>fromclause</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Select.append_correlation" title="Permalink to this definition">¶</a></dt>
 <dd><p>append the given correlation expression to this select()
 construct.</p>
+<p>This is an <strong>in-place</strong> mutation method; the
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select.correlate" title="sqlalchemy.sql.expression.Select.correlate"><tt class="xref py py-meth docutils literal"><span class="pre">correlate()</span></tt></a> method is preferred, as it provides standard
+<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -8277,6 +8303,9 @@ construct.</p>
 <tt class="descname">append_from</tt><big>(</big><em>fromclause</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Select.append_from" title="Permalink to this definition">¶</a></dt>
 <dd><p>append the given FromClause expression to this select() construct&#8217;s
 FROM clause.</p>
+<p>This is an <strong>in-place</strong> mutation method; the
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select.select_from" title="sqlalchemy.sql.expression.Select.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">select_from()</span></tt></a> method is preferred, as it provides standard
+<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -8286,6 +8315,9 @@ FROM clause.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.append_group_by" title="sqlalchemy.sql.expression.SelectBase.append_group_by"><tt class="xref py py-meth docutils literal"><span class="pre">append_group_by()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase" title="sqlalchemy.sql.expression.SelectBase"><tt class="xref py py-class docutils literal"><span class="pre">SelectBase</span></tt></a></div>
 <p>Append the given GROUP BY criterion applied to this selectable.</p>
 <p>The criterion will be appended to any pre-existing GROUP BY criterion.</p>
+<p>This is an <strong>in-place</strong> mutation method; the
+<a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.group_by" title="sqlalchemy.sql.expression.SelectBase.group_by"><tt class="xref py py-meth docutils literal"><span class="pre">group_by()</span></tt></a> method is preferred, as it provides standard
+<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -8294,6 +8326,9 @@ FROM clause.</p>
 <dd><p>append the given expression to this select() construct&#8217;s HAVING
 criterion.</p>
 <p>The expression will be joined to existing HAVING criterion via AND.</p>
+<p>This is an <strong>in-place</strong> mutation method; the
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select.having" title="sqlalchemy.sql.expression.Select.having"><tt class="xref py py-meth docutils literal"><span class="pre">having()</span></tt></a> method is preferred, as it provides standard
+<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -8303,6 +8338,9 @@ criterion.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.append_order_by" title="sqlalchemy.sql.expression.SelectBase.append_order_by"><tt class="xref py py-meth docutils literal"><span class="pre">append_order_by()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase" title="sqlalchemy.sql.expression.SelectBase"><tt class="xref py py-class docutils literal"><span class="pre">SelectBase</span></tt></a></div>
 <p>Append the given ORDER BY criterion applied to this selectable.</p>
 <p>The criterion will be appended to any pre-existing ORDER BY criterion.</p>
+<p>This is an <strong>in-place</strong> mutation method; the
+<a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.order_by" title="sqlalchemy.sql.expression.SelectBase.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">order_by()</span></tt></a> method is preferred, as it provides standard
+<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -8310,6 +8348,9 @@ criterion.</p>
 <tt class="descname">append_prefix</tt><big>(</big><em>clause</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Select.append_prefix" title="Permalink to this definition">¶</a></dt>
 <dd><p>append the given columns clause prefix expression to this select()
 construct.</p>
+<p>This is an <strong>in-place</strong> mutation method; the
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select.prefix_with" title="sqlalchemy.sql.expression.Select.prefix_with"><tt class="xref py py-meth docutils literal"><span class="pre">prefix_with()</span></tt></a> method is preferred, as it provides standard
+<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -8318,6 +8359,9 @@ construct.</p>
 <dd><p>append the given expression to this select() construct&#8217;s WHERE
 criterion.</p>
 <p>The expression will be joined to existing WHERE criterion via AND.</p>
+<p>This is an <strong>in-place</strong> mutation method; the
+<a class="reference internal" href="#sqlalchemy.sql.expression.Select.where" title="sqlalchemy.sql.expression.Select.where"><tt class="xref py py-meth docutils literal"><span class="pre">where()</span></tt></a> method is preferred, as it provides standard
+<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -8639,8 +8683,10 @@ Postgresql&#8217;s documentation at
 
 <span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></pre></div>
 </div>
-<p>See also:</p>
-<p><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.cte" title="sqlalchemy.orm.query.Query.cte"><tt class="xref py py-meth docutils literal"><span class="pre">orm.query.Query.cte()</span></tt></a> - ORM version of <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.cte" title="sqlalchemy.sql.expression.SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.cte()</span></tt></a>.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.cte" title="sqlalchemy.orm.query.Query.cte"><tt class="xref py py-meth docutils literal"><span class="pre">orm.query.Query.cte()</span></tt></a> - ORM version of <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.cte" title="sqlalchemy.sql.expression.SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.cte()</span></tt></a>.</p>
+</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -8713,11 +8759,11 @@ to a statement - these include &#8220;autocommit&#8221; and &#8220;stream_result
 but not &#8220;isolation_level&#8221; or &#8220;compiled_cache&#8221;.
 See <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> for a full list of
 possible options.</p>
-<p>See also:</p>
-<blockquote>
-<div><p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
-<p><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
-</div></blockquote>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -8796,7 +8842,10 @@ given selectable.</p>
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.label" title="sqlalchemy.sql.expression.SelectBase.label"><tt class="xref py py-meth docutils literal"><span class="pre">label()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase" title="sqlalchemy.sql.expression.SelectBase"><tt class="xref py py-class docutils literal"><span class="pre">SelectBase</span></tt></a></div>
 <p>return a &#8216;scalar&#8217; representation of this selectable, embedded as a
 subquery with a label.</p>
-<p>See also <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.as_scalar" title="sqlalchemy.sql.expression.SelectBase.as_scalar"><tt class="xref py py-meth docutils literal"><span class="pre">as_scalar()</span></tt></a>.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.as_scalar" title="sqlalchemy.sql.expression.SelectBase.as_scalar"><tt class="xref py py-meth docutils literal"><span class="pre">as_scalar()</span></tt></a>.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -9162,6 +9211,9 @@ asked to select both from <tt class="docutils literal"><span class="pre">table1<
 <tt class="descname">append_group_by</tt><big>(</big><em>*clauses</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.SelectBase.append_group_by" title="Permalink to this definition">¶</a></dt>
 <dd><p>Append the given GROUP BY criterion applied to this selectable.</p>
 <p>The criterion will be appended to any pre-existing GROUP BY criterion.</p>
+<p>This is an <strong>in-place</strong> mutation method; the
+<a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.group_by" title="sqlalchemy.sql.expression.SelectBase.group_by"><tt class="xref py py-meth docutils literal"><span class="pre">group_by()</span></tt></a> method is preferred, as it provides standard
+<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -9169,6 +9221,9 @@ asked to select both from <tt class="docutils literal"><span class="pre">table1<
 <tt class="descname">append_order_by</tt><big>(</big><em>*clauses</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.SelectBase.append_order_by" title="Permalink to this definition">¶</a></dt>
 <dd><p>Append the given ORDER BY criterion applied to this selectable.</p>
 <p>The criterion will be appended to any pre-existing ORDER BY criterion.</p>
+<p>This is an <strong>in-place</strong> mutation method; the
+<a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.order_by" title="sqlalchemy.sql.expression.SelectBase.order_by"><tt class="xref py py-meth docutils literal"><span class="pre">order_by()</span></tt></a> method is preferred, as it provides standard
+<a class="reference internal" href="../glossary.html#term-method-chaining"><em class="xref std std-term">method chaining</em></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -9318,8 +9373,10 @@ Postgresql&#8217;s documentation at
 
 <span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></pre></div>
 </div>
-<p>See also:</p>
-<p><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.cte" title="sqlalchemy.orm.query.Query.cte"><tt class="xref py py-meth docutils literal"><span class="pre">orm.query.Query.cte()</span></tt></a> - ORM version of <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.cte" title="sqlalchemy.sql.expression.SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.cte()</span></tt></a>.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.cte" title="sqlalchemy.orm.query.Query.cte"><tt class="xref py py-meth docutils literal"><span class="pre">orm.query.Query.cte()</span></tt></a> - ORM version of <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.cte" title="sqlalchemy.sql.expression.SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.cte()</span></tt></a>.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -9336,7 +9393,10 @@ criterion.</p>
 <tt class="descname">label</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.SelectBase.label" title="Permalink to this definition">¶</a></dt>
 <dd><p>return a &#8216;scalar&#8217; representation of this selectable, embedded as a
 subquery with a label.</p>
-<p>See also <a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.as_scalar" title="sqlalchemy.sql.expression.SelectBase.as_scalar"><tt class="xref py py-meth docutils literal"><span class="pre">as_scalar()</span></tt></a>.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.SelectBase.as_scalar" title="sqlalchemy.sql.expression.SelectBase.as_scalar"><tt class="xref py py-meth docutils literal"><span class="pre">as_scalar()</span></tt></a>.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -9781,11 +9841,11 @@ to a statement - these include &#8220;autocommit&#8221; and &#8220;stream_result
 but not &#8220;isolation_level&#8221; or &#8220;compiled_cache&#8221;.
 See <a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a> for a full list of
 possible options.</p>
-<p>See also:</p>
-<blockquote>
-<div><p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
-<p><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
-</div></blockquote>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -9997,7 +10057,7 @@ syntax.</p>
 </table>
 <div class="admonition-see-also admonition seealso">
 <p class="first admonition-title">See also</p>
-<p><a class="reference internal" href="tutorial.html#inserts-and-updates"><em>Inserts and Updates</em></a> - SQL Expression
+<p><a class="reference internal" href="tutorial.html#inserts-and-updates"><em>Inserts, Updates and Deletes</em></a> - SQL Expression
 Language Tutorial</p>
 <p><a class="reference internal" href="#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a> - produce an <tt class="docutils literal"><span class="pre">INSERT</span></tt> statement</p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.update" title="sqlalchemy.sql.expression.update"><tt class="xref py py-func docutils literal"><span class="pre">update()</span></tt></a> - produce an <tt class="docutils literal"><span class="pre">UPDATE</span></tt> statement</p>
@@ -10244,7 +10304,7 @@ syntax.</p>
 </table>
 <div class="admonition-see-also admonition seealso">
 <p class="first admonition-title">See also</p>
-<p><a class="reference internal" href="tutorial.html#inserts-and-updates"><em>Inserts and Updates</em></a> - SQL Expression
+<p><a class="reference internal" href="tutorial.html#inserts-and-updates"><em>Inserts, Updates and Deletes</em></a> - SQL Expression
 Language Tutorial</p>
 <p><a class="reference internal" href="#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a> - produce an <tt class="docutils literal"><span class="pre">INSERT</span></tt> statement</p>
 <p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.update" title="sqlalchemy.sql.expression.update"><tt class="xref py py-func docutils literal"><span class="pre">update()</span></tt></a> - produce an <tt class="docutils literal"><span class="pre">UPDATE</span></tt> statement</p>

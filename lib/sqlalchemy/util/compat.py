@@ -132,3 +132,36 @@ else:
             return obj
         return g
 
+# Adapted from six.py
+if py3k:
+    def b(s):
+        return s.encode("latin-1")
+else:
+    def b(s):
+        return s
+
+
+if py3k:
+    def reraise(tp, value, tb=None, cause=None):
+        if cause is not None:
+            value.__cause__ = cause
+        if value.__traceback__ is not tb:
+            raise value.with_traceback(tb)
+        raise value
+
+    def raise_from_cause(exception, exc_info):
+        exc_type, exc_value, exc_tb = exc_info
+        reraise(type(exception), exception, tb=exc_tb, cause=exc_value)
+else:
+    exec("def reraise(tp, value, tb=None, cause=None):\n"
+            "    raise tp, value, tb\n")
+
+    def raise_from_cause(exception, exc_info):
+        # not as nice as that of Py3K, but at least preserves
+        # the code line where the issue occurred
+        exc_type, exc_value, exc_tb = exc_info
+        reraise(type(exception), exception, tb=exc_tb)
+
+
+
+

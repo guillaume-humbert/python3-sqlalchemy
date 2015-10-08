@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0',
+          VERSION:     '0.8.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
+        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
 
 
     </div>
@@ -565,7 +565,7 @@ erroneously making another connection<a class="changeset-link reference internal
 modified version (works in py2.3/2.4!) that uses a threading.RLock
 for a mutex.  this is to fix a reported case where a ConnectionFairy&#8217;s
 __del__() method got called within the Queue&#8217;s get() method, which
-then returns its connection to the Queue via the the put() method,
+then returns its connection to the Queue via the put() method,
 causing a reentrant hang unless threading.RLock is used.<a class="changeset-link reference internal" href="#change-90b6ad1a4b48a77cb1587a668db4f7ef">(link)</a><p></p>
 </p>
 </li>

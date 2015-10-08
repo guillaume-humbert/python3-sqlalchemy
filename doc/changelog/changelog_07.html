@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0',
+          VERSION:     '0.8.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
+        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
 
 
     </div>
@@ -313,7 +313,24 @@
 no release date<div class="section" id="change-0.7.11-orm">
 <h3>orm<a class="headerlink" href="#change-0.7.11-orm" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.7.11-0"><span class="target" id="change-8a5e83498c9c0eded67638e01d96e699"><strong>[orm] [bug] </strong></span>Improved the error message emitted when a &#8220;backref loop&#8221; is detected,
+<li><p id="change-0.7.11-0"><span class="target" id="change-67c2029e6f187392003eec283687e00e"><strong>[orm] [bug] </strong></span>Fixed bug when a query of the form:
+<tt class="docutils literal"><span class="pre">query(SubClass).options(subqueryload(Baseclass.attrname))</span></tt>,
+where <tt class="docutils literal"><span class="pre">SubClass</span></tt> is a joined inh of <tt class="docutils literal"><span class="pre">BaseClass</span></tt>,
+would fail to apply the <tt class="docutils literal"><span class="pre">JOIN</span></tt> inside the subquery
+on the attribute load, producing a cartesian product.
+The populated results still tended to be correct as additional
+rows are just ignored, so this issue may be present as a
+performance degradation in applications that are
+otherwise working correctly.<a class="changeset-link reference internal" href="#change-67c2029e6f187392003eec283687e00e">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2699">#2699</a></p>
+</p>
+</li>
+<li><p id="change-0.7.11-1"><span class="target" id="change-70b9b9893c9cd22af7e63065e86830bc"><strong>[orm] [bug] </strong></span>Fixed bug in unit of work whereby a joined-inheritance
+subclass could insert the row for the &#8220;sub&#8221; table
+before the parent table, if the two tables had no
+ForeignKey constraints set up between them.<a class="changeset-link reference internal" href="#change-70b9b9893c9cd22af7e63065e86830bc">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2689">#2689</a></p>
+</p>
+</li>
+<li><p id="change-0.7.11-2"><span class="target" id="change-8a5e83498c9c0eded67638e01d96e699"><strong>[orm] [bug] </strong></span>Improved the error message emitted when a &#8220;backref loop&#8221; is detected,
 that is when an attribute event triggers a bidirectional
 assignment between two other attributes with no end.
 This condition can occur not just when an object of the wrong
@@ -321,7 +338,7 @@ type is assigned, but also when an attribute is mis-configured
 to backref into an existing backref pair.<a class="changeset-link reference internal" href="#change-8a5e83498c9c0eded67638e01d96e699">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2674">#2674</a></p>
 </p>
 </li>
-<li><p id="change-0.7.11-1"><span class="target" id="change-efb22c6e4fe4f34fd6705e77ab5f9bfa"><strong>[orm] [bug] </strong></span>A warning is emitted when a MapperProperty is assigned to a mapper
+<li><p id="change-0.7.11-3"><span class="target" id="change-efb22c6e4fe4f34fd6705e77ab5f9bfa"><strong>[orm] [bug] </strong></span>A warning is emitted when a MapperProperty is assigned to a mapper
 that replaces an existing property, if the properties in question
 aren&#8217;t plain column-based properties.   Replacement of relationship
 properties is rarely (ever?) what is intended and usually refers to a
@@ -335,7 +352,7 @@ itself on top of an existing one in an inheritance relationship
 <div class="section" id="change-0.7.11-postgresql">
 <h3>postgresql<a class="headerlink" href="#change-0.7.11-postgresql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.7.11-2"><span class="target" id="change-4be83fabc8054be90db8d9ea622ea32c"><strong>[postgresql] [feature] </strong></span>Added support for Postgresql&#8217;s traditional SUBSTRING
+<li><p id="change-0.7.11-4"><span class="target" id="change-4be83fabc8054be90db8d9ea622ea32c"><strong>[postgresql] [feature] </strong></span>Added support for Postgresql&#8217;s traditional SUBSTRING
 function syntax, renders as &#8220;SUBSTRING(x FROM y FOR z)&#8221;
 when regular <tt class="docutils literal"><span class="pre">func.substring()</span></tt> is used.
 Courtesy Gunnlaugur Þór Briem.<a class="changeset-link reference internal" href="#change-4be83fabc8054be90db8d9ea622ea32c">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2676">#2676</a></p>
@@ -346,7 +363,7 @@ Courtesy Gunnlaugur Þór Briem.<a class="changeset-link reference internal" hre
 <div class="section" id="change-0.7.11-misc">
 <h3>misc<a class="headerlink" href="#change-0.7.11-misc" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.7.11-3"><span class="target" id="change-2f7a576e7a8d284e37a6743b00f108d6"><strong>[bug] [tests] </strong></span>Fixed an import of &#8220;logging&#8221; in test_execute which was not
+<li><p id="change-0.7.11-5"><span class="target" id="change-2f7a576e7a8d284e37a6743b00f108d6"><strong>[bug] [tests] </strong></span>Fixed an import of &#8220;logging&#8221; in test_execute which was not
 working on some linux platforms.<a class="changeset-link reference internal" href="#change-2f7a576e7a8d284e37a6743b00f108d6">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2669">#2669</a>, <a class="reference external" href="https://bitbucket.org/sqlalchemy/sqlalchemy/pull-request/41">pull request 41</a></p>
 </p>
 </li>

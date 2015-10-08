@@ -670,10 +670,13 @@ class ARRAY(sqltypes.Concatenable, sqltypes.TypeEngine):
         return x == y
 
     def _proc_array(self, arr, itemproc, dim, collection):
-        if dim == 1 or (
-                    dim is None and
-                    (not arr or not isinstance(arr[0], (list, tuple)))
-                ):
+        if dim is None:
+            arr = list(arr)
+        if dim == 1 or dim is None and (
+                        # this has to be (list, tuple), or at least
+                        # not hasattr('__iter__'), since Py3K strings
+                        # etc. have __iter__
+                        not arr or not isinstance(arr[0], (list, tuple))):
             if itemproc:
                 return collection(itemproc(x) for x in arr)
             else:

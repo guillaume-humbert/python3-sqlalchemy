@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0',
+          VERSION:     '0.8.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
+        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
 
 
     </div>
@@ -155,6 +155,11 @@
 <li><a class="reference internal" href="#dialect-mysql-mysqlconnector-connect">Connecting</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#module-sqlalchemy.dialects.mysql.cymysql">cymysql</a><ul>
+<li><a class="reference internal" href="#dialect-mysql-cymysql-url">DBAPI</a></li>
+<li><a class="reference internal" href="#dialect-mysql-cymysql-connect">Connecting</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.mysql.gaerdbms">Google App Engine</a><ul>
 <li><a class="reference internal" href="#dialect-mysql-gaerdbms-url">DBAPI</a></li>
 <li><a class="reference internal" href="#dialect-mysql-gaerdbms-connect">Connecting</a></li>
@@ -211,6 +216,7 @@
 <li><a class="reference external" href="#module-sqlalchemy.dialects.mysql.oursql">OurSQL</a></li>
 <li><a class="reference external" href="#module-sqlalchemy.dialects.mysql.pymysql">PyMySQL</a></li>
 <li><a class="reference external" href="#module-sqlalchemy.dialects.mysql.mysqlconnector">MySQL Connector/Python</a></li>
+<li><a class="reference external" href="#module-sqlalchemy.dialects.mysql.cymysql">CyMySQL</a></li>
 <li><a class="reference external" href="#module-sqlalchemy.dialects.mysql.gaerdbms">Google Cloud SQL</a></li>
 <li><a class="reference external" href="#module-sqlalchemy.dialects.mysql.pyodbc">PyODBC</a></li>
 <li><a class="reference external" href="#module-sqlalchemy.dialects.mysql.zxjdbc">zxjdbc for Jython</a></li>
@@ -1461,6 +1467,21 @@ the pymysql driver as well.</p>
 <div class="section" id="dialect-mysql-mysqlconnector-connect">
 <h3>Connecting<a class="headerlink" href="#dialect-mysql-mysqlconnector-connect" title="Permalink to this headline">¶</a></h3>
 <p>Connect String:<div class="highlight-python"><pre>mysql+mysqlconnector://&lt;user&gt;:&lt;password&gt;@&lt;host&gt;[:&lt;port&gt;]/&lt;dbname&gt;</pre>
+</div>
+</p>
+</div>
+</div>
+<div class="section" id="module-sqlalchemy.dialects.mysql.cymysql">
+<span id="cymysql"></span><h2>cymysql<a class="headerlink" href="#module-sqlalchemy.dialects.mysql.cymysql" title="Permalink to this headline">¶</a></h2>
+<p>Support for the MySQL database via the CyMySQL driver.</p>
+<div class="section" id="dialect-mysql-cymysql-url">
+<h3>DBAPI<a class="headerlink" href="#dialect-mysql-cymysql-url" title="Permalink to this headline">¶</a></h3>
+<p>Documentation and download information (if applicable) for CyMySQL is available at:
+<a class="reference external" href="https://github.com/nakagami/CyMySQL">https://github.com/nakagami/CyMySQL</a></p>
+</div>
+<div class="section" id="dialect-mysql-cymysql-connect">
+<h3>Connecting<a class="headerlink" href="#dialect-mysql-cymysql-connect" title="Permalink to this headline">¶</a></h3>
+<p>Connect String:<div class="highlight-python"><pre>mysql+cymysql://&lt;username&gt;:&lt;password&gt;@&lt;host&gt;/&lt;dbname&gt;[?&lt;options&gt;]</pre>
 </div>
 </p>
 </div>

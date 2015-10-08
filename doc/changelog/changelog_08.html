@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.8.0',
+          VERSION:     '0.8.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.8.0</span> | Release Date: March 9, 2013
+        Release: <span class="version-num">0.8.1</span> | Release Date: April 27, 2013
 
 
     </div>
@@ -114,6 +114,16 @@
     <h3><a href="../index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">0.8 Changelog</a><ul>
+<li><a class="reference internal" href="#change-0.8.1">0.8.1</a><ul>
+<li><a class="reference internal" href="#change-0.8.1-orm">orm</a></li>
+<li><a class="reference internal" href="#change-0.8.1-orm-declarative">orm declarative</a></li>
+<li><a class="reference internal" href="#change-0.8.1-sql">sql</a></li>
+<li><a class="reference internal" href="#change-0.8.1-postgresql">postgresql</a></li>
+<li><a class="reference internal" href="#change-0.8.1-mysql">mysql</a></li>
+<li><a class="reference internal" href="#change-0.8.1-mssql">mssql</a></li>
+<li><a class="reference internal" href="#change-0.8.1-misc">misc</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#change-0.8.0">0.8.0</a><ul>
 <li><a class="reference internal" href="#change-0.8.0-orm">orm</a></li>
 <li><a class="reference internal" href="#change-0.8.0-sql">sql</a></li>
@@ -181,6 +191,267 @@
         
 <div class="section" id="changelog">
 <h1>0.8 Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="change-0.8.1">
+<h2>0.8.1<a class="headerlink" href="#change-0.8.1" title="Permalink to this headline">¶</a></h2>
+Released: April 27, 2013<div class="section" id="change-0.8.1-orm">
+<h3>orm<a class="headerlink" href="#change-0.8.1-orm" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.1-0"><span class="target" id="change-538cfca74b737d41cffcf811beddd163"><strong>[orm] [feature] </strong></span>Added a convenience method to Query that turns a query into an
+EXISTS subquery of the form
+<tt class="docutils literal"><span class="pre">EXISTS</span> <span class="pre">(SELECT</span> <span class="pre">1</span> <span class="pre">FROM</span> <span class="pre">...</span> <span class="pre">WHERE</span> <span class="pre">...)</span></tt>.<a class="changeset-link reference internal" href="#change-538cfca74b737d41cffcf811beddd163">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2673">#2673</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-1"><span class="target" id="change-6b5abc76b93639e02dbac6061c8b93ff"><strong>[orm] [bug] </strong></span>Fixes to the <tt class="docutils literal"><span class="pre">sqlalchemy.ext.serializer</span></tt> extension, including
+that the &#8220;id&#8221; passed from the pickler is turned into a string
+to prevent against bytes being parsed on Py3K, as well as that
+<tt class="docutils literal"><span class="pre">relationship()</span></tt> and <tt class="docutils literal"><span class="pre">orm.join()</span></tt> constructs are now properly
+serialized.<a class="changeset-link reference internal" href="#change-6b5abc76b93639e02dbac6061c8b93ff">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2698">#2698</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-2"><span class="target" id="change-b8cd50e1714b608fa9a53cb51fb4c8ef"><strong>[orm] [bug] </strong></span>A significant improvement to the inner workings of query.join(),
+such that the decisionmaking involved on how to join has been
+dramatically simplified.  New test cases now pass such as
+multiple joins extending from the middle of an already complex
+series of joins involving inheritance and such.   Joining from
+deeply nested subquery structures is still complicated and
+not without caveats, but with these improvements the edge
+cases are hopefully pushed even farther out to the edges.<a class="changeset-link reference internal" href="#change-b8cd50e1714b608fa9a53cb51fb4c8ef">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2714">#2714</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-3"><span class="target" id="change-c9e76122e927bce00034de429959dcbc"><strong>[orm] [bug] </strong></span>Added a conditional to the unpickling process for ORM
+mapped objects, such that if the reference to the object
+were lost when the object was pickled, we don&#8217;t
+erroneously try to set up _sa_instance_state - fixes
+a NoneType error.<a class="changeset-link reference internal" href="#change-c9e76122e927bce00034de429959dcbc">(link)</a><p></p>
+</p>
+</li>
+<li><p id="change-0.8.1-4"><span class="target" id="change-693cd23b4e1f3a578dceac48c89c5508"><strong>[orm] [bug] </strong></span>Fixed bug where many-to-many relationship with uselist=False
+would fail to delete the association row and raise an error
+if the scalar attribute were set to None.  This was a
+regression introduced by the changes for <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2229">#2229</a>.<a class="changeset-link reference internal" href="#change-693cd23b4e1f3a578dceac48c89c5508">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2710">#2710</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-5"><span class="target" id="change-7addcdb8589d1b8db248e399c8eff53b"><strong>[orm] [bug] </strong></span>Improved the behavior of instance management regarding
+the creation of strong references within the Session;
+an object will no longer have an internal reference cycle
+created if it&#8217;s in the transient state or moves into the
+detached state - the strong ref is created only when the
+object is attached to a Session and is removed when the
+object is detached.  This makes it somewhat safer for an
+object to have a <cite>__del__()</cite> method, even though this is
+not recommended, as relationships with backrefs produce
+cycles too.  A warning has been added when a class with
+a <cite>__del__()</cite> method is mapped.<a class="changeset-link reference internal" href="#change-7addcdb8589d1b8db248e399c8eff53b">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2708">#2708</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-6"><span class="target" id="change-f241aa4abf00fdb62f17b6161f0f1dc6"><strong>[orm] [bug] </strong></span>Fixed bug whereby ORM would run the wrong kind of
+query when refreshing an inheritance-mapped class
+where the superclass was mapped to a non-Table
+object, like a custom join() or a select(),
+running a query that assumed a hierarchy that&#8217;s
+mapped to individual Table-per-class.<a class="changeset-link reference internal" href="#change-f241aa4abf00fdb62f17b6161f0f1dc6">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2697">#2697</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-7"><span class="target" id="change-cd903a647a5922f6bbc9db890e9f4304"><strong>[orm] [bug] </strong></span>Fixed <cite>__repr__()</cite> on mapper property constructs
+to work before the object is initialized, so
+that Sphinx builds with recent Sphinx versions
+can read them.<a class="changeset-link reference internal" href="#change-cd903a647a5922f6bbc9db890e9f4304">(link)</a><p></p>
+</p>
+</li>
+<li><p id="change-0.8.1-8"><span class="target" id="change-a85f346f7c5a45a6ec0bda0e5e3c792e"><strong>[orm] [bug] </strong></span>Fixed bug when a query of the form:
+<tt class="docutils literal"><span class="pre">query(SubClass).options(subqueryload(Baseclass.attrname))</span></tt>,
+where <tt class="docutils literal"><span class="pre">SubClass</span></tt> is a joined inh of <tt class="docutils literal"><span class="pre">BaseClass</span></tt>,
+would fail to apply the <tt class="docutils literal"><span class="pre">JOIN</span></tt> inside the subquery
+on the attribute load, producing a cartesian product.
+The populated results still tended to be correct as additional
+rows are just ignored, so this issue may be present as a
+performance degradation in applications that are
+otherwise working correctly.  Also in 0.7.11.<a class="changeset-link reference internal" href="#change-a85f346f7c5a45a6ec0bda0e5e3c792e">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2699">#2699</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-9"><span class="target" id="change-33f72d18d004e2a614dd358f917e6949"><strong>[orm] [bug] </strong></span>Fixed bug in unit of work whereby a joined-inheritance
+subclass could insert the row for the &#8220;sub&#8221; table
+before the parent table, if the two tables had no
+ForeignKey constraints set up between them.
+Also in 0.7.11.<a class="changeset-link reference internal" href="#change-33f72d18d004e2a614dd358f917e6949">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2689">#2689</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.8.1-orm-declarative">
+<h3>orm declarative<a class="headerlink" href="#change-0.8.1-orm-declarative" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.1-10"><span class="target" id="change-2b9d746e218c78a250148a29ad1fef34"><strong>[bug] [orm] [declarative] </strong></span>Fixed indirect regression regarding <a class="reference internal" href="../orm/extensions/declarative.html#sqlalchemy.ext.declarative.has_inherited_table" title="sqlalchemy.ext.declarative.has_inherited_table"><tt class="xref py py-func docutils literal"><span class="pre">has_inherited_table()</span></tt></a>,
+where since it considers the current class&#8217; <tt class="docutils literal"><span class="pre">__table__</span></tt>, was
+sensitive to when it was called.  This is 0.7&#8217;s behavior also,
+but in 0.7 things tended to &#8220;work out&#8221; within events like
+<tt class="docutils literal"><span class="pre">__mapper_args__()</span></tt>.  <a class="reference internal" href="../orm/extensions/declarative.html#sqlalchemy.ext.declarative.has_inherited_table" title="sqlalchemy.ext.declarative.has_inherited_table"><tt class="xref py py-func docutils literal"><span class="pre">has_inherited_table()</span></tt></a> now only
+considers superclasses, so should return the same answer
+regarding the current class no matter when it&#8217;s called
+(obviously assuming the state of the superclass).<a class="changeset-link reference internal" href="#change-2b9d746e218c78a250148a29ad1fef34">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2656">#2656</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.8.1-sql">
+<h3>sql<a class="headerlink" href="#change-0.8.1-sql" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.1-11"><span class="target" id="change-3686aff789b10fca55c71c0fe69557df"><strong>[sql] [feature] </strong></span>Loosened the check on dialect-specific argument names
+passed to Table(); since we want to support external dialects
+and also want to support args without a certain dialect
+being installed, it only checks the format of the arg now,
+rather than looking for that dialect in sqlalchemy.dialects.<a class="changeset-link reference internal" href="#change-3686aff789b10fca55c71c0fe69557df">(link)</a><p></p>
+</p>
+</li>
+<li><p id="change-0.8.1-12"><span class="target" id="change-a4d2a849342bd0b32b1a6f4a4c088ad6"><strong>[sql] [bug] [mysql] </strong></span>Fully implemented the IS and IS NOT operators with
+regards to the True/False constants.  An expression like
+<tt class="docutils literal"><span class="pre">col.is_(True)</span></tt> will now render <tt class="docutils literal"><span class="pre">col</span> <span class="pre">IS</span> <span class="pre">true</span></tt>
+on the target platform, rather than converting the True/
+False constant to an integer bound parameter.
+This allows the <tt class="docutils literal"><span class="pre">is_()</span></tt> operator to work on MySQL when
+given True/False constants.<a class="changeset-link reference internal" href="#change-a4d2a849342bd0b32b1a6f4a4c088ad6">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2682">#2682</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-13"><span class="target" id="change-e317ad63213b3197754a3d94f7507a58"><strong>[sql] [bug] </strong></span>A major fix to the way in which a select() object produces
+labeled columns when apply_labels() is used; this mode
+produces a SELECT where each column is labeled as in
+&lt;tablename&gt;_&lt;columnname&gt;, to remove column name collisions
+for a multiple table select.   The fix is that if two labels
+collide when combined with the table name, i.e.
+&#8220;foo.bar_id&#8221; and &#8220;foo_bar.id&#8221;, anonymous aliasing will be
+applied to one of the dupes.  This allows the ORM to handle
+both columns independently; previously, 0.7
+would in some cases silently emit a second SELECT for the
+column that was &#8220;duped&#8221;, and in 0.8 an ambiguous column error
+would be emitted.   The &#8220;keys&#8221; applied to the .c. collection
+of the select() will also be deduped, so that the &#8220;column
+being replaced&#8221; warning will no longer emit for any select()
+that specifies use_labels, though the dupe key will be given
+an anonymous label which isn&#8217;t generally user-friendly.<a class="changeset-link reference internal" href="#change-e317ad63213b3197754a3d94f7507a58">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2702">#2702</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-14"><span class="target" id="change-1f28811ac556b12ce7c452b4a3408f2a"><strong>[sql] [bug] </strong></span>Fixed bug where disconnect detect on error would
+raise an attribute error if the error were being
+raised after the Connection object had already
+been closed.<a class="changeset-link reference internal" href="#change-1f28811ac556b12ce7c452b4a3408f2a">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2691">#2691</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-15"><span class="target" id="change-18be80dfecdf0ef6fc3df9f795f45ad4"><strong>[sql] [bug] </strong></span>Reworked internal exception raises that emit
+a rollback() before re-raising, so that the stack
+trace is preserved from sys.exc_info() before entering
+the rollback.  This so that the traceback is preserved
+when using coroutine frameworks which may have switched
+contexts before the rollback function returns.<a class="changeset-link reference internal" href="#change-18be80dfecdf0ef6fc3df9f795f45ad4">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2703">#2703</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-16"><span class="target" id="change-36fe44c142145d30fafc44b26a0b2de3"><strong>[sql] [bug] [postgresql] </strong></span>The _Binary base type now converts values through
+the bytes() callable when run on Python 3; in particular
+psycopg2 2.5 with Python 3.3 seems to now be returning
+the &#8220;memoryview&#8221; type, so this is converted to bytes
+before return.<a class="changeset-link reference internal" href="#change-36fe44c142145d30fafc44b26a0b2de3">(link)</a><p></p>
+</p>
+</li>
+<li><p id="change-0.8.1-17"><span class="target" id="change-8f9807690202ed982e5ae96fe1e87a63"><strong>[sql] [bug] </strong></span>Improvements to Connection auto-invalidation
+handling.  If a non-disconnect error occurs,
+but leads to a delayed disconnect error within error
+handling (happens with MySQL), the disconnect condition
+is detected.  The Connection can now also be closed
+when in an invalid state, meaning it will raise &#8220;closed&#8221;
+on next usage, and additionally the &#8220;close with result&#8221;
+feature will work even if the autorollback in an error
+handling routine fails and regardless of whether the
+condition is a disconnect or not.<a class="changeset-link reference internal" href="#change-8f9807690202ed982e5ae96fe1e87a63">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2695">#2695</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-18"><span class="target" id="change-b320bbb422d328f3f84b0ac64d30eb7d"><strong>[sql] [bug] </strong></span>Fixed bug whereby a DBAPI that can return &#8220;0&#8221;
+for cursor.lastrowid would not function correctly
+in conjunction with <a class="reference internal" href="../core/connections.html#sqlalchemy.engine.ResultProxy.inserted_primary_key" title="sqlalchemy.engine.ResultProxy.inserted_primary_key"><tt class="xref py py-attr docutils literal"><span class="pre">ResultProxy.inserted_primary_key</span></tt></a>.<a class="changeset-link reference internal" href="#change-b320bbb422d328f3f84b0ac64d30eb7d">(link)</a><p></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.8.1-postgresql">
+<h3>postgresql<a class="headerlink" href="#change-0.8.1-postgresql" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.1-19"><span class="target" id="change-f67787db3b9ef9d1cb3ccc779ae2d229"><strong>[postgresql] [bug] </strong></span>Opened up the checking for &#8220;disconnect&#8221; with psycopg2/libpq
+to check for all the various &#8220;disconnect&#8221; messages within
+the full exception hierarchy.  Specifically the
+&#8220;closed the connection unexpectedly&#8221; message has now been
+seen in at least three different exception types.
+Courtesy Eli Collins.<a class="changeset-link reference internal" href="#change-f67787db3b9ef9d1cb3ccc779ae2d229">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2712">#2712</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-20"><span class="target" id="change-365654f1763bc018c6fea3d1adfe7f6d"><strong>[postgresql] [bug] </strong></span>The operators for the Postgresql ARRAY type supports
+input types of sets, generators, etc. even when
+a dimension is not specified, by turning the given
+iterable into a collection unconditionally.<a class="changeset-link reference internal" href="#change-365654f1763bc018c6fea3d1adfe7f6d">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2681">#2681</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-21"><span class="target" id="change-78ea5cd647f43b14fbd184b6c51042bd"><strong>[postgresql] [bug] </strong></span>Added missing HSTORE type to postgresql type names
+so that the type can be reflected.<a class="changeset-link reference internal" href="#change-78ea5cd647f43b14fbd184b6c51042bd">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2680">#2680</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.8.1-mysql">
+<h3>mysql<a class="headerlink" href="#change-0.8.1-mysql" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.1-22"><span class="target" id="change-4793f92820e9c93f772dd33adee75002"><strong>[mysql] [bug] </strong></span>Fixes to support the latest cymysql DBAPI, courtesy
+Hajime Nakagami.<a class="changeset-link reference internal" href="#change-4793f92820e9c93f772dd33adee75002">(link)</a><p> <a class="reference external" href="https://bitbucket.org/sqlalchemy/sqlalchemy/pull-request/55">pull request 55</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-23"><span class="target" id="change-32eca569275c8c9405df1ae6e52e28a7"><strong>[mysql] [bug] </strong></span>Improvements to the operation of the pymysql dialect on
+Python 3, including some important decode/bytes steps.
+Issues remain with BLOB types due to driver issues.
+Courtesy Ben Trofatter.<a class="changeset-link reference internal" href="#change-32eca569275c8c9405df1ae6e52e28a7">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2663">#2663</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-24"><span class="target" id="change-ad0d195d23c8846439e6fa6093c16c37"><strong>[mysql] [bug] </strong></span>Updated a regexp to correctly extract error code on
+google app engine v1.7.5 and newer.  Courtesy
+Dan Ring.<a class="changeset-link reference internal" href="#change-ad0d195d23c8846439e6fa6093c16c37">(link)</a><p> <a class="reference external" href="https://bitbucket.org/sqlalchemy/sqlalchemy/pull-request/54">pull request 54</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.8.1-mssql">
+<h3>mssql<a class="headerlink" href="#change-0.8.1-mssql" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.1-25"><span class="target" id="change-577130fc7c7f3c64856c9b296fb83a6d"><strong>[mssql] [bug] </strong></span>Part of a longer series of fixes needed for pyodbc+
+mssql, a CAST to NVARCHAR(max) has been added to the bound
+parameter for the table name and schema name in all information schema
+queries to avoid the issue of comparing NVARCHAR to NTEXT,
+which seems to be rejected by the ODBC driver in some cases,
+such as FreeTDS (0.91 only?) plus unicode bound parameters being passed.
+The issue seems to be specific to the SQL Server information
+schema tables and the workaround is harmless for those cases
+where the problem doesn&#8217;t exist in the first place.<a class="changeset-link reference internal" href="#change-577130fc7c7f3c64856c9b296fb83a6d">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2355">#2355</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-26"><span class="target" id="change-7f3aa37006984fd02c41a09398143685"><strong>[mssql] [bug] </strong></span>Added support for additional &#8220;disconnect&#8221; messages
+to the pymssql dialect.  Courtesy John Anderson.<a class="changeset-link reference internal" href="#change-7f3aa37006984fd02c41a09398143685">(link)</a><p> <a class="reference external" href="https://bitbucket.org/sqlalchemy/sqlalchemy/pull-request/47">pull request 47</a></p>
+</p>
+</li>
+<li><p id="change-0.8.1-27"><span class="target" id="change-b830f432c4ee6d47eefab9bd9b667c3f"><strong>[mssql] [bug] </strong></span>Fixed Py3K bug regarding &#8220;binary&#8221; types and
+pymssql.  Courtesy Marc Abramowitz.<a class="changeset-link reference internal" href="#change-b830f432c4ee6d47eefab9bd9b667c3f">(link)</a><p> <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2683">#2683</a>, <a class="reference external" href="https://bitbucket.org/sqlalchemy/sqlalchemy/pull-request/46">pull request 46</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.8.1-misc">
+<h3>misc<a class="headerlink" href="#change-0.8.1-misc" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.1-28"><span class="target" id="change-b873d75029d2d99647c05b161cb0c2c6"><strong>[bug] [examples] </strong></span>Fixed a long-standing bug in the caching example, where
+the limit/offset parameter values wouldn&#8217;t be taken into
+account when computing the cache key.  The
+_key_from_query() function has been simplified to work
+directly from the final compiled statement in order to get
+at both the full statement as well as the fully processed
+parameter list.<a class="changeset-link reference internal" href="#change-b873d75029d2d99647c05b161cb0c2c6">(link)</a><p></p>
+</p>
+</li>
+</ul>
+</div>
+</div>
 <div class="section" id="change-0.8.0">
 <h2>0.8.0<a class="headerlink" href="#change-0.8.0" title="Permalink to this headline">¶</a></h2>
 Released: March 9, 2013<p><div class="admonition note">
