@@ -114,7 +114,6 @@ lib/sqlalchemy/orm/util.py
 test/__init__.py
 test/alltests.py
 test/rundocs.py
-test/session.py
 test/tables.py
 test/testbase.py
 test/base/__init__.py

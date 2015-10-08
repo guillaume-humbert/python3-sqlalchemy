@@ -28,26 +28,7 @@ NO_ATTRIBUTE = object()
 # returned by a MapperExtension method to indicate a "do nothing" response
 EXT_PASS = object()
 
-# as mappers are constructed, they place records in this dictionary
-# to set up "compile triggers" between mappers related by backref setups, so that when one 
-# mapper compiles it can trigger the compilation of a second mapper which needs to place
-# a backref on the first.
-_compile_triggers = {}
-
-class CompileTrigger(object):
-    def __init__(self, mapper):
-        self.mapper = mapper
-        self.dependencies = util.Set()
-    def add_dependency(self, classkey):
-        self.dependencies.add(classkey)
-    def can_compile(self):
-        #print "can compile", self.mapper, self.dependencies
-        return len(self.dependencies) == 0 or (len(self.dependencies)==1 and list(self.dependencies)[0] == self.mapper.class_key)
-    def compiled(self, classkey):
-        self.dependencies.remove(classkey)
-    def __str__(self):
-        return "CompileTrigger on mapper " + str(self.mapper)
-            
+                
 class Mapper(object):
     """Persists object instances to and from schema.Table objects via the sql package.
     Instances of this class should be constructed through this package's mapper() or
@@ -150,13 +131,6 @@ class Mapper(object):
         # mapper.
         self._compile_class()
         
-        # for all MapperProperties sent in the properties dictionary (typically this means
-        # (relation() instances), call the "attach()" method which may be used to set up
-        # compile triggers for this Mapper.
-        for prop in self.properties.values():
-            if isinstance(prop, MapperProperty):
-                prop.attach(self)
-
         # uncomment to compile at construction time (the old way)
         # this will break mapper setups that arent declared in the order
         # of dependency
@@ -177,23 +151,14 @@ class Mapper(object):
             
         self._do_compile()
         
-        # see if other mappers still need to be compiled.  if so,
-        # locate one which is ready to be compiled, and compile it.
-        # this will keep the chain of compilation going until all
-        # mappers are compiled.
-        for key in _compile_triggers.keys():
-            if isinstance(key, ClassKey):
-                mapper = mapper_registry.get(key, None)
-                if mapper is not None:
-                    trigger = _compile_triggers.get(mapper, None)
-                    if trigger is None or trigger.can_compile():
-                        mapper.compile()
-                        break
-        
-        # in most cases, all known mappers should be compiled at this point
-        # _compile_triggers.clear()
-        # assert  len(_compile_triggers) == 0
-        
+        # look for another mapper thats not compiled, and compile it.
+        # this will utlimately compile all mappers, including any that 
+        # need to set up backrefs on this mapper.
+        for mapper in mapper_registry.values():
+            if not mapper.__is_compiled:
+                mapper.compile()
+                break
+                
         return self
 
     def _do_compile(self):
@@ -212,50 +177,8 @@ class Mapper(object):
         self._compile_properties()
         self._compile_selectable()
         self._initialize_properties()
-        try:
-            del _compile_triggers[self]
-        except KeyError:
-            pass
-        
-        # compile some other mappers which have backrefs to this mapper
-        triggerset = _compile_triggers.pop(self.class_key, None)
-        if triggerset is not None:
-            for rec in triggerset:
-                rec.compiled(self.class_key)
-                if rec.can_compile():
-                    rec.mapper._do_compile()
-                    
+
         return self
-
-    def _add_compile_trigger(self, argument):
-        """Establish the given mapper/classkey as a compilation dependency for this mapper."""
-    
-        if isinstance(argument, Mapper):
-            classkey = argument.class_key
-        else:
-            classkey = ClassKey(argument, None)
-        
-        # CompileTrigger by mapper
-        try:
-            rec = _compile_triggers[self]
-        except KeyError:
-            rec = CompileTrigger(self)
-            _compile_triggers[self] = rec
-            
-        if classkey in rec.dependencies:
-            return
-
-        rec.add_dependency(classkey)
-
-        # CompileTrigger by triggering mapper (its classkey)
-        # when this mapper is compiled, all the CompileTrigger mappers
-        # are compiled (if their dependencies have all been compiled)
-        try:
-            triggers = _compile_triggers[classkey]
-        except KeyError:
-            triggers = []
-            _compile_triggers[classkey] = triggers
-        triggers.append(rec)
         
     def _compile_extensions(self):
         """goes through the global_extensions list as well as the list of MapperExtensions
@@ -742,7 +665,6 @@ class Mapper(object):
 
     def _setattrbycolumn(self, obj, column, value):
         self.columntoproperty[column][0].setattr(obj, value)
-    
             
     def save_obj(self, objects, uow, postupdate=False):
         """called by a UnitOfWork object to save objects, which involves either an INSERT or
@@ -750,6 +672,16 @@ class Mapper(object):
         list."""
         #print "SAVE_OBJ MAPPER", self.class_.__name__, objects
         connection = uow.transaction.connection(self)
+
+        if not postupdate:
+            for obj in objects:
+                if not hasattr(obj, "_instance_key"):
+                    self.extension.before_insert(self, connection, obj)
+                else:
+                    self.extension.before_update(self, connection, obj)
+
+        inserted_objects = util.Set()
+        updated_objects = util.Set()
         for table in self.tables.sort(reverse=False):
             #print "SAVE_OBJ table ", self.class_.__name__, table.name
             # looping through our set of tables, which are all "real" tables, as opposed
@@ -857,14 +789,24 @@ class Mapper(object):
                 statement = table.update(clause)
                 rows = 0
                 supports_sane_rowcount = True
+                def comparator(a, b):
+                    for col in self.pks_by_table[table]:
+                        x = cmp(a[1][col._label],b[1][col._label])
+                        if x != 0:
+                            return x
+                    return 0
+                update.sort(comparator)
                 for rec in update:
                     (obj, params) = rec
                     c = connection.execute(statement, params)
                     self._postfetch(connection, table, obj, c, c.last_updated_params())
-                    self.extension.after_update(self, connection, obj)
+
+                    updated_objects.add(obj)
                     rows += c.cursor.rowcount
+
                 if c.supports_sane_rowcount() and rows != len(update):
                     raise exceptions.FlushError("ConcurrencyError - updated rowcount %d does not match number of objects updated %d" % (rows, len(update)))
+
             if len(insert):
                 statement = table.insert()
                 for rec in insert:
@@ -888,7 +830,10 @@ class Mapper(object):
                             mapper._synchronizer.execute(obj, obj)
                     sync(self)
                     
-                    self.extension.after_insert(self, connection, obj)
+                    inserted_objects.add(obj)
+        if not postupdate:
+            [self.extension.after_insert(self, connection, obj) for obj in inserted_objects]
+            [self.extension.after_update(self, connection, obj) for obj in updated_objects]
 
     def _postfetch(self, connection, table, obj, resultproxy, params):
         """after an INSERT or UPDATE, asks the returned result if PassiveDefaults fired off on the database side
@@ -917,12 +862,13 @@ class Mapper(object):
         DELETE statement for each table used by this mapper, for each object in the list."""
         connection = uow.transaction.connection(self)
         #print "DELETE_OBJ MAPPER", self.class_.__name__, objects
-        
+
+        [self.extension.before_delete(self, connection, obj) for obj in objects]
+        deleted_objects = util.Set()
         for table in self.tables.sort(reverse=True):
             if not self._has_pks(table):
                 continue
             delete = []
-            deleted_objects = []
             for obj in objects:
                 params = {}
                 if not hasattr(obj, "_instance_key"):
@@ -933,9 +879,15 @@ class Mapper(object):
                     params[col.key] = self._getattrbycolumn(obj, col)
                 if self.version_id_col is not None:
                     params[self.version_id_col.key] = self._getattrbycolumn(obj, self.version_id_col)
-                self.extension.before_delete(self, connection, obj)
-                deleted_objects.append(obj)
+                deleted_objects.add(obj)
             if len(delete):
+                def comparator(a, b):
+                    for col in self.pks_by_table[table]:
+                        x = cmp(a[col.key],b[col.key])
+                        if x != 0:
+                            return x
+                    return 0
+                delete.sort(comparator)
                 clause = sql.and_()
                 for col in self.pks_by_table[table]:
                     clause.clauses.append(col == sql.bindparam(col.key, type=col.type))
@@ -945,8 +897,8 @@ class Mapper(object):
                 c = connection.execute(statement, delete)
                 if c.supports_sane_rowcount() and c.rowcount != len(delete):
                     raise exceptions.FlushError("ConcurrencyError - updated rowcount %d does not match number of objects updated %d" % (c.cursor.rowcount, len(delete)))
-                for obj in deleted_objects:
-                    self.extension.after_delete(self, connection, obj)
+                    
+        [self.extension.after_delete(self, connection, obj) for obj in deleted_objects]
 
     def _has_pks(self, table):
         try:
@@ -1134,10 +1086,6 @@ class Mapper(object):
 class MapperProperty(object):
     """an element attached to a Mapper that describes and assists in the loading and saving 
     of an attribute on an object instance."""
-    def attach(self, mapper):
-        """called during mapper construction for each property present in the "properties" dictionary.
-        this is before the Mapper has compiled its internal state."""
-        pass
     def execute(self, session, instance, row, identitykey, imap, isnew):
         """called when the mapper receives a row.  instance is the parent instance
         corresponding to the row. """

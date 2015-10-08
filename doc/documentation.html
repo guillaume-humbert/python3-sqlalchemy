@@ -22,7 +22,7 @@
 <div class="docheader">
 
 <div class="docheadertext" >SQLAlchemy 0.2 Documentation</div>
-<div class="">Version: 0.2.4   Last Updated: 06/27/06 20:09:23</div>
+<div class="">Version: 0.2.5   Last Updated: 07/08/06 13:45:27</div>
 </div>
 
 
@@ -3849,7 +3849,7 @@ Next: <a href="#dbengine">Database Engines</a>
 </span><span class="python_name">True</span><span class="python_operator"></span></pre></div>
 <p>With the identity map, a single <code>Session</code> can be relied upon to keep all loaded instances straight.
 </p>
-<p>As far as the issue of the same object being modified in two different Sessions, that's an issue of concurrency detection; SQLAlchemy does some basic concurrency checks when saving objects, with the option for a stronger check using version ids.  See <b>None</b> for more details.
+<p>As far as the issue of the same object being modified in two different Sessions, that's an issue of concurrency detection; SQLAlchemy does some basic concurrency checks when saving objects, with the option for a stronger check using version ids.  See <a href="#advdatamapping_arguments" >Mapper Arguments</a> for more details.
 </p>
 
 
@@ -4326,6 +4326,8 @@ Next: <a href="#metadata">Database Meta Data</a>
      Firebird:  <a href="http://kinterbasdb.sourceforge.net/">kinterbasdb</a> 
  </li>
 </ul>
+<p>The SQLAlchemy Wiki contains a page of database notes, describing whatever quirks and behaviors have been observed.  Its a good place to check for issues with specific databases.  <a href="http://www.sqlalchemy.org/trac/wiki/DatabaseNotes">Database Notes</a> 
+</p>
 
 
     </div>
@@ -4358,8 +4360,15 @@ Next: <a href="#metadata">Database Meta Data</a>
 
 
 <div class="sliding_code">
-<pre><span class="python_name">pg_db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://scott:tiger@localhost:5432/mydatabase'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_name">sqlite_db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///mydb.txt'</span><span class="python_enclosure">)</span><span class="python_operator">
+<pre><span class="python_comment"># postgres
+</span><span class="python_name">pg_db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://scott:tiger@localhost:5432/mydatabase'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># sqlite (note the four slashes for an absolute path)
+</span><span class="python_name">sqlite_db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:////absolute/path/to/database.txt'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">sqlite_db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///relative/path/to/database.txt'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">sqlite_db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite://'</span><span class="python_enclosure">)  </span><span class="python_comment"># in-memory database</span><span class="python_operator">
+</span>
+<span class="python_comment"># mysql
 </span><span class="python_name">mysql_db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'mysql://localhost/foo'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># oracle via TNS name

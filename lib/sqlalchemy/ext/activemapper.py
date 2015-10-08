@@ -1,5 +1,6 @@
 from sqlalchemy             import create_session, relation, mapper, \
-join, DynamicMetaData, class_mapper, util
+                                   join, DynamicMetaData, class_mapper, \
+                                   util, Integer
 from sqlalchemy             import and_, or_
 from sqlalchemy             import Table, Column, ForeignKey
 from sqlalchemy.ext.sessioncontext import SessionContext
@@ -18,11 +19,13 @@ metadata = DynamicMetaData("activemapper")
 #
 # thread local SessionContext
 #
-class Objectstore(SessionContext):
-    def __getattr__(self, key):
-        return getattr(self.current, key)
-    def get_session(self):
-        return self.current
+class Objectstore(object):
+
+    def __init__(self, *args, **kwargs):
+        self._context = SessionContext(*args, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self._context.current, name)
 
 objectstore = Objectstore(create_session)
 
@@ -47,7 +50,7 @@ class column(object):
 #
 class relationship(object):
     def __init__(self, classname, colname=None, backref=None, private=False,
-                 lazy=True, uselist=True, secondary=None):
+                 lazy=True, uselist=True, secondary=None, order_by=False):
         self.classname = classname
         self.colname   = colname
         self.backref   = backref
@@ -55,25 +58,28 @@ class relationship(object):
         self.lazy      = lazy
         self.uselist   = uselist
         self.secondary = secondary
+        self.order_by  = order_by
 
 class one_to_many(relationship):
     def __init__(self, classname, colname=None, backref=None, private=False,
-                 lazy=True):
+                 lazy=True, order_by=False):
         relationship.__init__(self, classname, colname, backref, private, 
-                              lazy, uselist=True)
+                              lazy, uselist=True, order_by=order_by)
 
 class one_to_one(relationship):
     def __init__(self, classname, colname=None, backref=None, private=False,
-                 lazy=True):
+                 lazy=True, order_by=False):
         if backref is not None:
             backref = create_backref(backref, uselist=False)
         relationship.__init__(self, classname, colname, backref, private, 
-                              lazy, uselist=False)
+                              lazy, uselist=False, order_by=order_by)
 
 class many_to_many(relationship):
-    def __init__(self, classname, secondary, backref=None, lazy=True):
+    def __init__(self, classname, secondary, backref=None, lazy=True,
+                 order_by=False):
         relationship.__init__(self, classname, None, backref, False, lazy,
-                              uselist=True, secondary=secondary)
+                              uselist=True, secondary=secondary,
+                              order_by=order_by)
 
 
 # 
@@ -125,12 +131,20 @@ def process_relationships(klass, was_deferred=False):
         relations = {}
         for propname, reldesc in klass.relations.items():
             relclass = ActiveMapperMeta.classes[reldesc.classname]
+            if isinstance(reldesc.order_by, str):
+                reldesc.order_by = [ reldesc.order_by ]
+            if isinstance(reldesc.order_by, list):
+                for itemno in range(len(reldesc.order_by)):
+                    if isinstance(reldesc.order_by[itemno], str):
+                        reldesc.order_by[itemno] = \
+                            getattr(relclass.c, reldesc.order_by[itemno])
             relations[propname] = relation(relclass.mapper,
                                            secondary=reldesc.secondary,
                                            backref=reldesc.backref, 
                                            private=reldesc.private, 
                                            lazy=reldesc.lazy, 
-                                           uselist=reldesc.uselist)
+                                           uselist=reldesc.uselist,
+                                           order_by=reldesc.order_by)
         
         class_mapper(klass).add_properties(relations)
         if klass in __deferred_classes__: 
@@ -162,6 +176,8 @@ class ActiveMapperMeta(type):
                              "__metadata__", metadata)
         
         if 'mapping' in dict:
+            found_pk = False
+            
             members = inspect.getmembers(dict.get('mapping'))
             for name, value in members:
                 if name == '__table__':
@@ -175,6 +191,8 @@ class ActiveMapperMeta(type):
                 if name.startswith('__'): continue
                 
                 if isinstance(value, column):
+                    if value.primary_key == True: found_pk = True
+                        
                     if value.foreign_key:
                         col = Column(value.colname or name, 
                                      value.coltype,
@@ -192,6 +210,11 @@ class ActiveMapperMeta(type):
                 if isinstance(value, relationship):
                     relations[name] = value
             
+            if not found_pk:
+                col = Column('id', Integer, primary_key=True)
+                cls.mapping.id = col
+                columns.append(col)
+            
             assert _metadata is not None, "No MetaData specified"
             
             ActiveMapperMeta.metadatas.add(_metadata)
@@ -201,10 +224,10 @@ class ActiveMapperMeta(type):
             # check for inheritence
             if hasattr(bases[0], "mapping"):
                 cls._base_mapper= bases[0].mapper
-                assign_mapper(objectstore, cls, cls.table, 
+                assign_mapper(objectstore._context, cls, cls.table, 
                               inherits=cls._base_mapper)
             else:
-                assign_mapper(objectstore, cls, cls.table)
+                assign_mapper(objectstore._context, cls, cls.table)
             cls.relations = relations
             ActiveMapperMeta.classes[clsname] = cls
             
