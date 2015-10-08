@@ -3,108 +3,6 @@ from sqlalchemy.sql import expression, visitors
 
 """Utility functions that build upon SQL and Schema constructs."""
 
-class ClauseParameters(object):
-    """Represent a dictionary/iterator of bind parameter key names/values.
-
-    Tracks the original [sqlalchemy.sql#_BindParamClause] objects as well as the
-    keys/position of each parameter, and can return parameters as a
-    dictionary or a list.  Will process parameter values according to
-    the ``TypeEngine`` objects present in the ``_BindParamClause`` instances.
-    """
-
-    __slots__ = 'dialect', '_binds', 'positional'
-
-    def __init__(self, dialect, positional=None):
-        self.dialect = dialect
-        self._binds = {}
-        if positional is None:
-            self.positional = []
-        else:
-            self.positional = positional
-
-    def get_parameter(self, key):
-        return self._binds[key]
-
-    def set_parameter(self, bindparam, value, name):
-        self._binds[name] = [bindparam, name, value]
-        
-    def get_original(self, key):
-        return self._binds[key][2]
-
-    def get_type(self, key):
-        return self._binds[key][0].type
-
-    def get_processors(self):
-        """return a dictionary of bind 'processing' functions"""
-        return dict([
-            (key, value) for key, value in 
-            [(
-                key,
-                self._binds[key][0].bind_processor(self.dialect)
-            ) for key in self._binds]
-            if value is not None
-        ])
-    
-    def get_processed(self, key, processors):
-        if key in processors:
-            return processors[key](self._binds[key][2])
-        else:
-            return self._binds[key][2]
-            
-    def keys(self):
-        return self._binds.keys()
-
-    def __iter__(self):
-        return iter(self.keys())
-        
-    def __getitem__(self, key):
-        (bind, name, value) = self._binds[key]
-        processor = bind.bind_processor(self.dialect)
-        if processor is not None:
-            return processor(value)
-        else:
-            return value
- 
-    def __contains__(self, key):
-        return key in self._binds
-    
-    def set_value(self, key, value):
-        self._binds[key][2] = value
-            
-    def get_original_dict(self):
-        return dict([(name, value) for (b, name, value) in self._binds.values()])
-
-    def get_raw_list(self, processors):
-        binds, res = self._binds, []
-        for key in self.positional:
-            if key in processors:
-                res.append(processors[key](binds[key][2]))
-            else:
-                res.append(binds[key][2])
-        return res
-
-    def get_raw_dict(self, processors, encode_keys=False):
-        binds, res = self._binds, {}
-        if encode_keys:
-            encoding = self.dialect.encoding
-            for key in self.keys():
-                if key in processors:
-                    res[key.encode(encoding)] = processors[key](binds[key][2])
-                else:
-                    res[key.encode(encoding)] = binds[key][2]
-        else:
-            for key in self.keys():
-                if key in processors:
-                    res[key] = processors[key](binds[key][2])
-                else:
-                    res[key] = binds[key][2]
-        return res
-        
-    def __repr__(self):
-        return self.__class__.__name__ + ":" + repr(self.get_original_dict())
-
-
-
 class TableCollection(object):
     def __init__(self, tables=None):
         self.tables = tables or []
@@ -198,6 +96,11 @@ class ColumnFinder(visitors.ClauseVisitor):
     def __iter__(self):
         return iter(self.columns)
 
+def find_columns(selectable):
+    cf = ColumnFinder()
+    cf.traverse(selectable)
+    return iter(cf)
+    
 class ColumnsInClause(visitors.ClauseVisitor):
     """Given a selectable, visit clauses and determine if any columns
     from the clause are in the selectable.
@@ -211,87 +114,93 @@ class ColumnsInClause(visitors.ClauseVisitor):
         if self.selectable.c.get(column.key) is column:
             self.result = True
 
-class AbstractClauseProcessor(visitors.NoColumnVisitor):
-    """Traverse a clause and attempt to convert the contents of container elements
-    to a converted element.
-
-    The conversion operation is defined by subclasses.
+class AbstractClauseProcessor(object):
+    """Traverse and copy a ClauseElement, replacing selected elements based on rules.
+    
+    This class implements its own visit-and-copy strategy but maintains the
+    same public interface as visitors.ClauseVisitor.
     """
-
+    
+    __traverse_options__ = {'column_collections':False}
+    
     def convert_element(self, elem):
         """Define the *conversion* method for this ``AbstractClauseProcessor``."""
 
         raise NotImplementedError()
 
-    def copy_and_process(self, list_):
-        """Copy the container elements in the given list to a new list and
-        process the new list.
-        """
+    def chain(self, visitor):
+        # chaining AbstractClauseProcessor and other ClauseVisitor
+        # objects separately.  All the ACP objects are chained on 
+        # their convert_element() method whereas regular visitors
+        # chain on their visit_XXX methods.
+        if isinstance(visitor, AbstractClauseProcessor):
+            attr = '_next_acp'
+        else:
+            attr = '_next'
+        
+        tail = self
+        while getattr(tail, attr, None) is not None:
+            tail = getattr(tail, attr)
+        setattr(tail, attr, visitor)
+        return self
 
+    def copy_and_process(self, list_, stop_on=None):
+        """Copy the given list to a new list, with each element traversed individually."""
+        
         list_ = list(list_)
-        self.process_list(list_)
+        stop_on = util.Set()
+        for i in range(0, len(list_)):
+            list_[i] = self.traverse(list_[i], stop_on=stop_on)
         return list_
 
-    def process_list(self, list_):
-        """Process all elements of the given list in-place."""
-
-        for i in range(0, len(list_)):
-            elem = self.convert_element(list_[i])
-            if elem is not None:
-                list_[i] = elem
-            else:
-                list_[i] = self.traverse(list_[i], clone=True)
-    
-    def visit_grouping(self, grouping):
-        elem = self.convert_element(grouping.elem)
-        if elem is not None:
-            grouping.elem = elem
+    def _convert_element(self, elem, stop_on, cloned):
+        v = self
+        while v is not None:
+            newelem = v.convert_element(elem)
+            if newelem:
+                stop_on.add(newelem)
+                return newelem
+            v = getattr(v, '_next_acp', None)
+        
+        if elem not in cloned:
+            # the full traversal will only make a clone of a particular element
+            # once.
+            cloned[elem] = elem._clone()
+        return cloned[elem]
+        
+    def traverse(self, elem, clone=True, stop_on=None):
+        if not clone:
+            raise exceptions.ArgumentError("AbstractClauseProcessor 'clone' argument must be True")
+        
+        if stop_on is None:
+            stop_on = util.Set()
+        return self._traverse(elem, stop_on, {}, _clone_toplevel=True)
+        
+    def _traverse(self, elem, stop_on, cloned, _clone_toplevel=False):
+        if elem in stop_on:
+            return elem
+        
+        if _clone_toplevel:
+            elem = self._convert_element(elem, stop_on, cloned)
+            if elem in stop_on:
+                return elem
             
-    def visit_clauselist(self, clist):
-        for i in range(0, len(clist.clauses)):
-            n = self.convert_element(clist.clauses[i])
-            if n is not None:
-                clist.clauses[i] = n
-    
-    def visit_unary(self, unary):
-        elem = self.convert_element(unary.element)
-        if elem is not None:
-            unary.element = elem
-            
-    def visit_binary(self, binary):
-        elem = self.convert_element(binary.left)
-        if elem is not None:
-            binary.left = elem
-        elem = self.convert_element(binary.right)
-        if elem is not None:
-            binary.right = elem
-    
-    def visit_join(self, join):
-        elem = self.convert_element(join.left)
-        if elem is not None:
-            join.left = elem
-        elem = self.convert_element(join.right)
-        if elem is not None:
-            join.right = elem
-        join._init_primary_key()
-            
-    def visit_select(self, select):
-        fr = util.OrderedSet()
-        for elem in select._froms:
-            n = self.convert_element(elem)
-            if n is not None:
-                fr.add((elem, n))
-        select._recorrelate_froms(fr)
-
-        col = []
-        for elem in select._raw_columns:
-            n = self.convert_element(elem)
-            if n is None:
-                col.append(elem)
-            else:
-                col.append(n)
-        select._raw_columns = col
-    
+        def clone(element):
+            return self._convert_element(element, stop_on, cloned)
+        elem._copy_internals(clone=clone)
+        
+        v = getattr(self, '_next', None)
+        while v is not None:
+            meth = getattr(v, "visit_%s" % elem.__visit_name__, None)
+            if meth:
+                meth(elem)
+            v = getattr(v, '_next', None)
+        
+        for e in elem.get_children(**self.__traverse_options__):
+            if e not in stop_on:
+                self._traverse(e, stop_on, cloned)
+        return elem
+        
 class ClauseAdapter(AbstractClauseProcessor):
     """Given a clause (like as in a WHERE criterion), locate columns
     which are embedded within a given selectable, and changes those
@@ -338,15 +247,12 @@ class ClauseAdapter(AbstractClauseProcessor):
         if self.exclude is not None:
             if col in self.exclude:
                 return None
-        newcol = self.selectable.corresponding_column(col, raiseerr=False, require_embedded=True, keys_ok=False)
+        newcol = self.selectable.corresponding_column(col, raiseerr=False, require_embedded=True)
         if newcol is None and self.equivalents is not None and col in self.equivalents:
             for equiv in self.equivalents[col]:
-                newcol = self.selectable.corresponding_column(equiv, raiseerr=False, require_embedded=True, keys_ok=False)
+                newcol = self.selectable.corresponding_column(equiv, raiseerr=False, require_embedded=True)
                 if newcol:
                     return newcol
-        #if newcol is None:
-        #    self.traverse(col)
-        #    return col
         return newcol
 
 

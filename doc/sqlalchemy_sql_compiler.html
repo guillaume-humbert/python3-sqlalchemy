@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
+<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
 
 
 
@@ -69,7 +69,7 @@
         <li><a style="" href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_DDLBase">class DDLBase(SchemaIterator)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_DefaultCompiler">class DefaultCompiler(Compiled,ClauseVisitor)</a></li>
+        <li><a style="" href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_DefaultCompiler">class DefaultCompiler(Compiled)</a></li>
         
         
         <li><a style="" href="sqlalchemy_sql_compiler.html#docstrings_sqlalchemy.sql.compiler_IdentifierPreparer">class IdentifierPreparer(object)</a></li>
@@ -143,11 +143,12 @@
     
     <div class="sectionL3">
 
-    <h3>class DefaultCompiler(<a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Compiled">Compiled</a>,ClauseVisitor)</h3>
+    <h3>class DefaultCompiler(<a href="sqlalchemy_engine.html#docstrings_sqlalchemy.engine_Compiled">Compiled</a>)</h3>
     
     
     <div class="darkcell"><p>Default implementation of Compiled.</p>
-<p>Compiles ClauseElements into SQL strings.</p>
+<p>Compiles ClauseElements into SQL strings.   Uses a similar visit
+paradigm as visitors.ClauseVisitor but implements its own traversal.</p>
 </div>
     
 
@@ -168,16 +169,6 @@
 statement.</dd>
 </dl>
 
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def after_compile(<i>self</i>)</b>
-    <div class="docstring">
-    
     </div>
     </div>
 
@@ -217,11 +208,7 @@ statement.</dd>
     <A name=""></a>
     <b>def construct_params(<i>self</i>, <i>params=None</i>)</b>
     <div class="docstring">
-    <p>Return a sql.util.ClauseParameters object.</p>
-<p>Combines the given bind parameter dictionary (string keys to object values)
-with the _BindParamClause objects stored within this Compiled object
-to produce a ClauseParameters structure, representing the bind arguments
-for a single statement execution, or one element of an executemany execution.</p>
+    <p>return a dictionary of bind parameter keys and values</p>
 
     </div>
     </div>
@@ -334,8 +321,7 @@ representation.</p>
          <A name=""></a>
          <b>params = property()</b>
          <div class="docstring">
-         <p>Return the <cite>ClauseParameters</cite> corresponding to this compiled object.
-A shortcut for <cite>construct_params()</cite>.</p>
+         <p>return a dictionary of bind parameter keys and values</p>
 
          </div> 
          </div>
@@ -364,7 +350,7 @@ A shortcut for <cite>construct_params()</cite>.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_binary(<i>self</i>, <i>binary</i>, <i>**kwargs</i>)</b>
+    <b>def visit_binary(<i>self</i>, <i>binary</i>, <i>typemap=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -394,7 +380,7 @@ A shortcut for <cite>construct_params()</cite>.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_cast(<i>self</i>, <i>cast</i>, <i>**kwargs</i>)</b>
+    <b>def visit_cast(<i>self</i>, <i>cast</i>, <i>typemap=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -414,7 +400,7 @@ A shortcut for <cite>construct_params()</cite>.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_column(<i>self</i>, <i>column</i>, <i>**kwargs</i>)</b>
+    <b>def visit_column(<i>self</i>, <i>column</i>, <i>typemap=None</i>, <i>column_labels=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -454,7 +440,7 @@ A shortcut for <cite>construct_params()</cite>.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_function(<i>self</i>, <i>func</i>, <i>**kwargs</i>)</b>
+    <b>def visit_function(<i>self</i>, <i>func</i>, <i>typemap=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -504,7 +490,7 @@ A shortcut for <cite>construct_params()</cite>.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def visit_label(<i>self</i>, <i>label</i>)</b>
+    <b>def visit_label(<i>self</i>, <i>label</i>, <i>typemap=None</i>, <i>column_labels=None</i>)</b>
     <div class="docstring">
     
     </div>

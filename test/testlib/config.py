@@ -21,6 +21,7 @@ oracle=oracle://scott:tiger@127.0.0.1:1521
 oracle8=oracle://scott:tiger@127.0.0.1:1521/?use_ansi=0
 mssql=mssql://scott:tiger@SQUAWK\\SQLEXPRESS/test
 firebird=firebird://sysdba:s@localhost/tmp/test.fdb
+maxdb=maxdb://MONA:RED@/maxdb1
 """
 
 parser = optparse.OptionParser(usage = "usage: %prog [options] [tests...]")
@@ -73,7 +74,7 @@ def _start_coverage(option, opt_str, value, parser):
     atexit.register(_stop)
     coverage.erase()
     coverage.start()
-    
+
 def _list_dbs(*args):
     print "Available --db options (use --dburi to override)"
     for macro in sorted(file_config.options('db')):
@@ -113,6 +114,12 @@ opt("--enginestrategy", action="callback", type="string",
 opt("--reversetop", action="store_true", dest="reversetop", default=False,
     help="Reverse the collection ordering for topological sorts (helps "
           "reveal dependency issues)")
+opt("--unhashable", action="store_true", dest="unhashable", default=False,
+    help="Disallow SQLAlchemy from performing a hash() on mapped test objects.")
+opt("--noncomparable", action="store_true", dest="noncomparable", default=False,
+    help="Disallow SQLAlchemy from performing == on mapped test objects.")
+opt("--truthless", action="store_true", dest="truthless", default=False,
+    help="Disallow SQLAlchemy from truth-evaluating mapped test objects.")
 opt("--serverside", action="callback", callback=_server_side_cursors,
     help="Turn on server side cursors for PG")
 opt("--mysql-engine", action="store", dest="mysql_engine", default=None,

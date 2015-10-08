@@ -93,8 +93,8 @@ class UnitOfWork(object):
         else:
             self.identity_map = {}
 
-        self.new = util.Set() #OrderedSet()
-        self.deleted = util.Set()
+        self.new = util.IdentitySet() #OrderedSet()
+        self.deleted = util.IdentitySet()
         self.logger = logging.instance_logger(self, echoflag=session.echo_uow)
 
     def _remove_deleted(self, obj):
@@ -108,11 +108,6 @@ class UnitOfWork(object):
             self.new.remove(obj)
         except KeyError:
             pass
-
-    def _validate_obj(self, obj):
-        if (hasattr(obj, '_instance_key') and obj._instance_key not in self.identity_map) or \
-            (not hasattr(obj, '_instance_key') and obj not in self.new):
-            raise exceptions.InvalidRequestError("Instance '%s' is not attached or pending within this session" % repr(obj))
 
     def _is_valid(self, obj):
         if (hasattr(obj, '_instance_key') and obj._instance_key not in self.identity_map) or \
@@ -133,7 +128,7 @@ class UnitOfWork(object):
         if hasattr(obj, '_sa_insert_order'):
             delattr(obj, '_sa_insert_order')
         self.identity_map[obj._instance_key] = obj
-        attribute_manager.commit(obj)
+        obj._state.commit_all()
 
     def register_new(self, obj):
         """register the given object as 'new' (i.e. unsaved) within this unit of work."""
@@ -147,9 +142,7 @@ class UnitOfWork(object):
     def register_deleted(self, obj):
         """register the given persistent object as 'to be deleted' within this unit of work."""
         
-        if obj not in self.deleted:
-            self._validate_obj(obj)
-            self.deleted.add(obj)
+        self.deleted.add(obj)
 
     def locate_dirty(self):
         """return a set of all persistent instances within this unit of work which 
@@ -157,7 +150,7 @@ class UnitOfWork(object):
         """
         
         # a little bit of inlining for speed
-        return util.Set([x for x in self.identity_map.values() 
+        return util.IdentitySet([x for x in self.identity_map.values() 
             if x not in self.deleted 
             and (
                 x._state.modified
@@ -187,13 +180,13 @@ class UnitOfWork(object):
         # create the set of all objects we want to operate upon
         if objects is not None:
             # specific list passed in
-            objset = util.Set(objects)
+            objset = util.IdentitySet(objects)
         else:
             # or just everything
-            objset = util.Set(self.identity_map.values()).union(self.new)
+            objset = util.IdentitySet(self.identity_map.values()).union(self.new)
             
         # store objects whose fate has been decided
-        processed = util.Set()
+        processed = util.IdentitySet()
 
         # put all saves/updates into the flush context.  detect top-level orphans and throw them into deleted.
         for obj in self.new.union(dirty).intersection(objset).difference(self.deleted):
@@ -304,6 +297,17 @@ class UOWTransaction(object):
 
         task.append(obj, listonly, isdelete=isdelete, **kwargs)
 
+    def set_row_switch(self, obj):
+        """mark a deleted object as a 'row switch'.
+        
+        this indicates that an INSERT statement elsewhere corresponds to this DELETE;
+        the INSERT is converted to an UPDATE and the DELETE does not occur.
+        """
+        mapper = object_mapper(obj)
+        task = self.get_task_by_mapper(mapper)
+        taskelement = task._objects[id(obj)]
+        taskelement.isdelete = "rowswitch"
+        
     def unregister_object(self, obj):
         """remove an object from its parent UOWTask.
         
@@ -311,7 +315,7 @@ class UOWTransaction(object):
         no further operations occur upon the instance."""
         mapper = object_mapper(obj)
         task = self.get_task_by_mapper(mapper)
-        if obj in task._objects:
+        if id(obj) in task._objects:
             task.delete(obj)
 
     def is_deleted(self, obj):
@@ -611,11 +615,11 @@ class UOWTask(object):
         """
 
         try:
-            rec = self._objects[obj]
+            rec = self._objects[id(obj)]
             retval = False
         except KeyError:
             rec = UOWTaskElement(obj)
-            self._objects[obj] = rec
+            self._objects[id(obj)] = rec
             retval = True
         if not listonly:
             rec.listonly = False
@@ -642,7 +646,7 @@ class UOWTask(object):
         """remove the given object from this UOWTask, if present."""
         
         try:
-            del self._objects[obj]
+            del self._objects[id(obj)]
         except KeyError:
             pass
 
@@ -650,7 +654,7 @@ class UOWTask(object):
         """return True if the given object is contained within this UOWTask or inheriting tasks."""
         
         for task in self.polymorphic_tasks():
-            if obj in task._objects:
+            if id(obj) in task._objects:
                 return True
         else:
             return False
@@ -659,7 +663,7 @@ class UOWTask(object):
         """return True if the given object is marked as to be deleted within this UOWTask."""
         
         try:
-            return self._objects[obj].isdelete
+            return self._objects[id(obj)].isdelete
         except KeyError:
             return False
 
@@ -731,9 +735,9 @@ class UOWTask(object):
 
         def get_dependency_task(obj, depprocessor):
             try:
-                dp = dependencies[obj]
+                dp = dependencies[id(obj)]
             except KeyError:
-                dp = dependencies.setdefault(obj, {})
+                dp = dependencies.setdefault(id(obj), {})
             try:
                 l = dp[depprocessor]
             except KeyError:
@@ -762,7 +766,7 @@ class UOWTask(object):
             for subtask in task.polymorphic_tasks():
                 for taskelement in subtask.elements:
                     obj = taskelement.obj
-                    object_to_original_task[obj] = subtask
+                    object_to_original_task[id(obj)] = subtask
                     for dep in deps_by_targettask.get(subtask, []):
                         # is this dependency involved in one of the cycles ?
                         if not dependency_in_cycles(dep):
@@ -791,7 +795,7 @@ class UOWTask(object):
                             # task
                             if o not in childtask:
                                 childtask.append(o, listonly=True)
-                                object_to_original_task[o] = childtask
+                                object_to_original_task[id(o)] = childtask
 
                             # create a tuple representing the "parent/child"
                             whosdep = dep.whose_dependent_on_who(obj, o)
@@ -817,17 +821,17 @@ class UOWTask(object):
         
         used_tasks = util.Set()
         def make_task_tree(node, parenttask, nexttasks):
-            originating_task = object_to_original_task[node.item]
+            originating_task = object_to_original_task[id(node.item)]
             used_tasks.add(originating_task)
             t = nexttasks.get(originating_task, None)
             if t is None:
                 t = UOWTask(self.uowtransaction, originating_task.mapper)
                 nexttasks[originating_task] = t
-                parenttask.append(None, listonly=False, isdelete=originating_task._objects[node.item].isdelete, childtask=t)
-            t.append(node.item, originating_task._objects[node.item].listonly, isdelete=originating_task._objects[node.item].isdelete)
+                parenttask.append(None, listonly=False, isdelete=originating_task._objects[id(node.item)].isdelete, childtask=t)
+            t.append(node.item, originating_task._objects[id(node.item)].listonly, isdelete=originating_task._objects[id(node.item)].isdelete)
 
-            if node.item in dependencies:
-                for depprocessor, deptask in dependencies[node.item].iteritems():
+            if id(node.item) in dependencies:
+                for depprocessor, deptask in dependencies[id(node.item)].iteritems():
                     t.cyclical_dependencies.add(depprocessor.branch(deptask))
             nd = {}
             for n in node.children:
@@ -857,7 +861,7 @@ class UOWTask(object):
                 # or "delete" members due to inheriting mappers which contain tasks
                 localtask = UOWTask(self.uowtransaction, t2.mapper)
                 for obj in t2.elements:
-                    localtask.append(obj, t2.listonly, isdelete=t2._objects[obj].isdelete)
+                    localtask.append(obj, t2.listonly, isdelete=t2._objects[id(obj)].isdelete)
                 for dep in t2.dependencies:
                     localtask._dependencies.add(dep)
                 t.childtasks.insert(0, localtask)
@@ -902,7 +906,7 @@ class UOWTaskElement(object):
         self.childtasks = []
         self.__isdelete = False
         self.__preprocessed = {}
-
+        
     def _get_listonly(self):
         return self.__listonly
 

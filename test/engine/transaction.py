@@ -160,7 +160,7 @@ class TransactionTest(PersistTest):
         connection.close()
 
     
-    @testing.supported('postgres', 'mysql', 'oracle')
+    @testing.supported('postgres', 'mysql', 'oracle', 'maxdb')
     @testing.exclude('mysql', '<', (5, 0, 3))
     def testnestedsubtransactionrollback(self):
         connection = testbase.db.connect()
@@ -178,7 +178,7 @@ class TransactionTest(PersistTest):
         )
         connection.close()
 
-    @testing.supported('postgres', 'mysql', 'oracle')
+    @testing.supported('postgres', 'mysql', 'oracle', 'maxdb')
     @testing.exclude('mysql', '<', (5, 0, 3))
     def testnestedsubtransactioncommit(self):
         connection = testbase.db.connect()
@@ -196,7 +196,7 @@ class TransactionTest(PersistTest):
         )
         connection.close()
 
-    @testing.supported('postgres', 'mysql', 'oracle')
+    @testing.supported('postgres', 'mysql', 'oracle', 'maxdb')
     @testing.exclude('mysql', '<', (5, 0, 3))
     def testrollbacktosubtransaction(self):
         connection = testbase.db.connect()
@@ -249,36 +249,36 @@ class TransactionTest(PersistTest):
     @testing.exclude('mysql', '<', (5, 0, 3))
     def testmixedtwophasetransaction(self):
         connection = testbase.db.connect()
-        
+    
         transaction = connection.begin_twophase()
         connection.execute(users.insert(), user_id=1, user_name='user1')
-        
+    
         transaction2 = connection.begin()
         connection.execute(users.insert(), user_id=2, user_name='user2')
-        
+    
         transaction3 = connection.begin_nested()
         connection.execute(users.insert(), user_id=3, user_name='user3')
-        
+    
         transaction4 = connection.begin()
         connection.execute(users.insert(), user_id=4, user_name='user4')
         transaction4.commit()
-        
+    
         transaction3.rollback()
-        
+    
         connection.execute(users.insert(), user_id=5, user_name='user5')
-        
+    
         transaction2.commit()
-        
+    
         transaction.prepare()
-        
+    
         transaction.commit()
-        
+    
         self.assertEquals(
             connection.execute(select([users.c.user_id]).order_by(users.c.user_id)).fetchall(),
             [(1,),(2,),(5,)]
         )
         connection.close()
-        
+            
     @testing.supported('postgres')
     def testtwophaserecover(self):
         # MySQL recovery doesn't currently seem to work correctly
@@ -384,7 +384,7 @@ class TLTransactionTest(PersistTest):
         users.drop(tlengine)
         tlengine.dispose()
     
-    def testclose(self):
+    def test_connection_close(self):
         """test that when connections are closed for real, transactions are rolled back and disposed."""
         
         c = tlengine.contextual_connect()
@@ -396,6 +396,28 @@ class TLTransactionTest(PersistTest):
         assert not tlengine.session.in_transaction()
         assert not hasattr(tlengine.session, '_TLSession__transaction')
         assert not hasattr(tlengine.session, '_TLSession__trans')
+
+    def test_transaction_close(self):
+        c = tlengine.contextual_connect()
+        t = c.begin()
+        tlengine.execute(users.insert(), user_id=1, user_name='user1')
+        tlengine.execute(users.insert(), user_id=2, user_name='user2')
+        t2 = c.begin()
+        tlengine.execute(users.insert(), user_id=3, user_name='user3')
+        tlengine.execute(users.insert(), user_id=4, user_name='user4')
+        t2.close()
+
+        result = c.execute("select * from query_users")
+        assert len(result.fetchall()) == 4
+
+        t.close()
+
+        external_connection = tlengine.connect()
+        result = external_connection.execute("select * from query_users")
+        try:
+            assert len(result.fetchall()) == 0
+        finally:
+            external_connection.close()
         
     def testrollback(self):
         """test a basic rollback"""
@@ -636,7 +658,7 @@ class ForUpdateTest(PersistTest):
                 break
         con.close()
 
-    @testing.supported('mysql', 'oracle', 'postgres')
+    @testing.supported('mysql', 'oracle', 'postgres', 'maxdb')
     def testqueued_update(self):
         """Test SELECT FOR UPDATE with concurrent modifications.
 
@@ -698,7 +720,7 @@ class ForUpdateTest(PersistTest):
 
         return errors
         
-    @testing.supported('mysql', 'oracle', 'postgres')
+    @testing.supported('mysql', 'oracle', 'postgres', 'maxdb')
     def testqueued_select(self):
         """Simple SELECT FOR UPDATE conflict test"""
 
@@ -707,7 +729,7 @@ class ForUpdateTest(PersistTest):
             sys.stderr.write("Failure: %s\n" % e)
         self.assert_(len(errors) == 0)
 
-    @testing.supported('oracle', 'postgres')
+    @testing.supported('oracle', 'postgres', 'maxdb')
     def testnowait_select(self):
         """Simple SELECT FOR UPDATE NOWAIT conflict test"""
 

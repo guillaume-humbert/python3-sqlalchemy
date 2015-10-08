@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
+<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
 
 
 
@@ -294,6 +294,9 @@
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__TextClause">class _TextClause(ClauseElement)</a></li>
         
         
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__TextFromClause">class _TextFromClause(FromClause)</a></li>
+        
+        
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__TypeClause">class _TypeClause(ClauseElement)</a></li>
         
         
@@ -423,20 +426,18 @@ provides similar functionality.</p>
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.sql.expression_modfunc_bindparam"></a>
-    <b>def bindparam(<i>key</i>, <i>value=None</i>, <i>type_=None</i>, <i>shortname=None</i>, <i>unique=False</i>)</b>
+    <b>def bindparam(<i>key</i>, <i>value=None</i>, <i>shortname=None</i>, <i>type_=None</i>, <i>unique=False</i>)</b>
     <div class="docstring">
     <p>Create a bind parameter clause with the given key.</p>
 <dl class="docutils">
 <dt>value</dt>
 <dd>a default value for this bind parameter.  a bindparam with a
 value is called a <tt class="docutils literal"><span class="pre">value-based</span> <span class="pre">bindparam</span></tt>.</dd>
-<dt>shortname</dt>
-<dd>an <tt class="docutils literal"><span class="pre">alias</span></tt> for this bind parameter.  usually used to alias the
-<tt class="docutils literal"><span class="pre">key</span></tt> nd <tt class="docutils literal"><span class="pre">label</span></tt> of a column, i.e. <tt class="docutils literal"><span class="pre">somecolname</span></tt> and
-<tt class="docutils literal"><span class="pre">sometable_somecolname</span></tt></dd>
 <dt>type</dt>
 <dd>a sqlalchemy.types.TypeEngine object indicating the type of this
 bind param, will invoke type-specific bind parameter processing</dd>
+<dt>shortname</dt>
+<dd>deprecated.</dd>
 <dt>unique</dt>
 <dd>if True, bind params sharing the same name will have their
 underlying <tt class="docutils literal"><span class="pre">key</span></tt> modified to a uniquely generated name.
@@ -1201,6 +1202,15 @@ function as well as the <tt class="docutils literal"><span class="pre">alias()</
          </div>
 
                     
+         <div class="darkcell">
+         <A name=""></a>
+         <b>description = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
+
+                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -1335,7 +1345,7 @@ function as well as the <tt class="docutils literal"><span class="pre">alias()</
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>key</i>, <i>value</i>, <i>shortname=None</i>, <i>type_=None</i>, <i>unique=False</i>, <i>isoutparam=False</i>)</b>
+    <b>def __init__(<i>self</i>, <i>key</i>, <i>value</i>, <i>type_=None</i>, <i>unique=False</i>, <i>isoutparam=False</i>, <i>shortname=None</i>)</b>
     <div class="docstring">
     <p>Construct a _BindParamClause.</p>
 <dl class="docutils">
@@ -1351,11 +1361,7 @@ required.</dd>
 overridden by the dictionary of parameters sent to statement
 compilation/execution.</dd>
 <dt>shortname</dt>
-<dd>Defaults to the key, a <em>short name</em> that will also identify
-this bind parameter, similar to an alias.  the bind
-parameter keys sent to a statement compilation or compiled
-execution may match either the key or the shortname of the
-corresponding <tt class="docutils literal"><span class="pre">_BindParamClause</span></tt> objects.</dd>
+<dd>deprecated.</dd>
 <dt>type_</dt>
 <dd>A <tt class="docutils literal"><span class="pre">TypeEngine</span></tt> object that will be used to pre-process the
 value corresponding to this <tt class="docutils literal"><span class="pre">_BindParamClause</span></tt> at
@@ -1468,7 +1474,8 @@ operators.</p>
          <A name=""></a>
          <b>key = property()</b>
          <div class="docstring">
-         
+         <p>_calc_</p>
+
          </div> 
          </div>
 
@@ -1889,7 +1896,7 @@ rules applied regardless of case sensitive settings.  the
                     
          <div class="darkcell">
          <A name=""></a>
-         <b>is_labeled = property()</b>
+         <b>description = property()</b>
          <div class="docstring">
          
          </div> 
@@ -2044,9 +2051,20 @@ docstring for more details.</p>
     
 
                     
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>)</b>
+    <div class="docstring">
+    <p>Construct a new <tt class="docutils literal"><span class="pre">ColumnElement</span></tt>.</p>
+
+    </div>
+    </div>
+
+                    
          <div class="darkcell">
          <A name=""></a>
-         <b>foreign_key = property()</b>
+         <b>base_columns = property()</b>
          <div class="docstring">
          
          </div> 
@@ -2055,36 +2073,9 @@ docstring for more details.</p>
                     
          <div class="darkcell">
          <A name=""></a>
-         <b>foreign_keys = property()</b>
+         <b>proxy_set = property()</b>
          <div class="docstring">
-         <p>Foreign key accessor.  References a list of <tt class="docutils literal"><span class="pre">ForeignKey</span></tt> objects
-which each represent a foreign key placed on this column's ultimate
-ancestor.</p>
-
-         </div> 
-         </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>orig_set = property()</b>
-         <div class="docstring">
-         <p>A Set containing TableClause-bound, non-proxied ColumnElements
-for which this ColumnElement is a proxy.  In all cases except
-for a column proxied from a Union (i.e. CompoundSelect), this
-set will be just one element.</p>
-
-         </div> 
-         </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>primary_key = property()</b>
-         <div class="docstring">
-         <p>Primary key flag.  Indicates if this <tt class="docutils literal"><span class="pre">Column</span></tt> represents part or
-whole of a primary key for its parent table.</p>
-
+         
          </div> 
          </div>
 
@@ -2214,6 +2205,16 @@ acts like a ColumnElement.</p>
     
     <A name=""></a>
     <b>def concat(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def contains(<i>self</i>, <i>other</i>)</b>
     <div class="docstring">
     
     </div>
@@ -2562,6 +2563,17 @@ acts like a ColumnElement.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def contains(<i>self</i>, <i>other</i>)</b>
+    <div class="docstring">
+    <p>Produce the clause <tt class="docutils literal"><span class="pre">LIKE</span> <span class="pre">'%&lt;other&gt;%'</span></tt></p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def desc(<i>self</i>)</b>
     <div class="docstring">
     <p>Produce a DESC clause, i.e. <tt class="docutils literal"><span class="pre">&lt;columnname&gt;</span> <span class="pre">DESC</span></tt></p>
@@ -2618,7 +2630,8 @@ acts like a ColumnElement.</p>
     <A name=""></a>
     <b>def label(<i>self</i>, <i>name</i>)</b>
     <div class="docstring">
-    <p>Produce a column label, i.e. <tt class="docutils literal"><span class="pre">&lt;columnname&gt;</span> <span class="pre">AS</span> <span class="pre">&lt;name&gt;</span></tt></p>
+    <p>Produce a column label, i.e. <tt class="docutils literal"><span class="pre">&lt;columnname&gt;</span> <span class="pre">AS</span> <span class="pre">&lt;name&gt;</span></tt>.</p>
+<p>if 'name' is None, an anonymous label name will be generated.</p>
 
     </div>
     </div>
@@ -2721,15 +2734,6 @@ generated function.</dd>
     
     </div>
     </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>name = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
 
                     
     <div class="darkcell">
@@ -2908,7 +2912,7 @@ generated function.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>name=None</i>)</b>
+    <b>def __init__(<i>self</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">FromClause</span></tt>.</p>
 
@@ -2948,7 +2952,7 @@ generated function.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def corresponding_column(<i>self</i>, <i>column</i>, <i>raiseerr=True</i>, <i>keys_ok=False</i>, <i>require_embedded=False</i>)</b>
+    <b>def corresponding_column(<i>self</i>, <i>column</i>, <i>raiseerr=True</i>, <i>require_embedded=False</i>)</b>
     <div class="docstring">
     <p>Given a <tt class="docutils literal"><span class="pre">ColumnElement</span></tt>, return the exported <tt class="docutils literal"><span class="pre">ColumnElement</span></tt>
 object from this <tt class="docutils literal"><span class="pre">Selectable</span></tt> which corresponds to that
@@ -2959,10 +2963,6 @@ original <tt class="docutils literal"><span class="pre">Column</span></tt> via a
 <dt>raiseerr</dt>
 <dd>if True, raise an error if the given <tt class="docutils literal"><span class="pre">ColumnElement</span></tt> could
 not be matched. if False, non-matches will return None.</dd>
-<dt>keys_ok</dt>
-<dd>if the <tt class="docutils literal"><span class="pre">ColumnElement</span></tt> cannot be matched, attempt to match
-based on the string &quot;key&quot; property of the column alone. This
-makes the search much more liberal.</dd>
 <dt>require_embedded</dt>
 <dd>only return corresponding columns for the given
 <tt class="docutils literal"><span class="pre">ColumnElement</span></tt>, if the given <tt class="docutils literal"><span class="pre">ColumnElement</span></tt> is
@@ -2995,6 +2995,17 @@ of this <tt class="docutils literal"><span class="pre">FromClause</span></tt>.</
     
     </div>
     </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>description = property()</b>
+         <div class="docstring">
+         <p>a brief description of this FromClause.</p>
+<p>Used primarily for error message formatting.</p>
+
+         </div> 
+         </div>
 
                     
          <div class="darkcell">
@@ -3039,17 +3050,6 @@ column in a generated SQL statement.</p>
 
     </div>
     </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>original_columns = property()</b>
-         <div class="docstring">
-         <p>A dictionary mapping an original Table-bound
-column to a proxied column in this FromClause.</p>
-
-         </div> 
-         </div>
 
                     
     <div class="darkcell">
@@ -3478,7 +3478,7 @@ off all <tt class="docutils literal"><span class="pre">FromClause</span></tt> su
                     
          <div class="darkcell">
          <A name=""></a>
-         <b>encodedname = property()</b>
+         <b>description = property()</b>
          <div class="docstring">
          
          </div> 
@@ -3503,24 +3503,6 @@ off all <tt class="docutils literal"><span class="pre">FromClause</span></tt> su
     
     </div>
     </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>name = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>primary_key = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
 
                     
     <div class="darkcell">
@@ -3599,6 +3581,15 @@ function as well as the <tt class="docutils literal"><span class="pre">label()</
     </div>
 
                     
+         <div class="darkcell">
+         <A name=""></a>
+         <b>base_columns = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
+
+                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -3607,6 +3598,15 @@ function as well as the <tt class="docutils literal"><span class="pre">label()</
     
     </div>
     </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>foreign_keys = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
 
                     
     <div class="darkcell">
@@ -3630,7 +3630,25 @@ function as well as the <tt class="docutils literal"><span class="pre">label()</
                     
          <div class="darkcell">
          <A name=""></a>
-         <b>orig_set = property()</b>
+         <b>primary_key = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>proxies = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>proxy_set = property()</b>
          <div class="docstring">
          
          </div> 
@@ -3699,6 +3717,16 @@ function as well as the <tt class="docutils literal"><span class="pre">label()</
     
     <A name=""></a>
     <b>def clause_element(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def op(<i>self</i>, <i>opstring</i>)</b>
     <div class="docstring">
     
     </div>
@@ -3930,6 +3958,10 @@ argument descriptions.</p>
     <b>def append_column(<i>self</i>, <i>column</i>, <i>_copy_collection=True</i>)</b>
     <div class="docstring">
     <p>append the given column expression to the columns clause of this select() construct.</p>
+<p>Note that this mutates the Select construct such that derived attributes,
+such as the &quot;primary_key&quot;, &quot;oid_column&quot;, and child &quot;froms&quot; collection may
+be invalid if they have already been initialized.  Consider the generative
+form of this method instead to prevent this issue.</p>
 
     </div>
     </div>
@@ -3941,6 +3973,10 @@ argument descriptions.</p>
     <b>def append_correlation(<i>self</i>, <i>fromclause</i>, <i>_copy_collection=True</i>)</b>
     <div class="docstring">
     <p>append the given correlation expression to this select() construct.</p>
+<p>Note that this mutates the Select construct such that derived attributes,
+such as the &quot;primary_key&quot;, &quot;oid_column&quot;, and child &quot;froms&quot; collection may
+be invalid if they have already been initialized.  Consider the generative
+form of this method instead to prevent this issue.</p>
 
     </div>
     </div>
@@ -3952,6 +3988,10 @@ argument descriptions.</p>
     <b>def append_from(<i>self</i>, <i>fromclause</i>, <i>_copy_collection=True</i>)</b>
     <div class="docstring">
     <p>append the given FromClause expression to this select() construct's FROM clause.</p>
+<p>Note that this mutates the Select construct such that derived attributes,
+such as the &quot;primary_key&quot;, &quot;oid_column&quot;, and child &quot;froms&quot; collection may
+be invalid if they have already been initialized.  Consider the generative
+form of this method instead to prevent this issue.</p>
 
     </div>
     </div>
@@ -3964,6 +4004,10 @@ argument descriptions.</p>
     <div class="docstring">
     <p>append the given expression to this select() construct's HAVING criterion.</p>
 <p>The expression will be joined to existing HAVING criterion via AND.</p>
+<p>Note that this mutates the Select construct such that derived attributes,
+such as the &quot;primary_key&quot;, &quot;oid_column&quot;, and child &quot;froms&quot; collection may
+be invalid if they have already been initialized.  Consider the generative
+form of this method instead to prevent this issue.</p>
 
     </div>
     </div>
@@ -3975,6 +4019,10 @@ argument descriptions.</p>
     <b>def append_prefix(<i>self</i>, <i>clause</i>, <i>_copy_collection=True</i>)</b>
     <div class="docstring">
     <p>append the given columns clause prefix expression to this select() construct.</p>
+<p>Note that this mutates the Select construct such that derived attributes,
+such as the &quot;primary_key&quot;, &quot;oid_column&quot;, and child &quot;froms&quot; collection may
+be invalid if they have already been initialized.  Consider the generative
+form of this method instead to prevent this issue.</p>
 
     </div>
     </div>
@@ -3987,6 +4035,10 @@ argument descriptions.</p>
     <div class="docstring">
     <p>append the given expression to this select() construct's WHERE criterion.</p>
 <p>The expression will be joined to existing WHERE criterion via AND.</p>
+<p>Note that this mutates the Select construct such that derived attributes,
+such as the &quot;primary_key&quot;, &quot;oid_column&quot;, and child &quot;froms&quot; collection may
+be invalid if they have already been initialized.  Consider the generative
+form of this method instead to prevent this issue.</p>
 
     </div>
     </div>
@@ -4122,6 +4174,16 @@ to the existing clause via AND, if any.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def is_derived_from(<i>self</i>, <i>fromclause</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def locate_all_froms(<i>self</i>)</b>
     <div class="docstring">
     <p>return a Set of all FromClause elements referenced by this Select.</p>
@@ -4134,22 +4196,9 @@ is specifically for those FromClause elements that would actually be rendered.</
                     
          <div class="darkcell">
          <A name=""></a>
-         <b>name = property()</b>
-         <div class="docstring">
-         <p>Placeholder 'name' attribute to meet the FromClause interface.</p>
-
-         </div> 
-         </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
          <b>oid_column = property()</b>
          <div class="docstring">
-         <p>return the 'oid' column, if any, for this select statement.</p>
-<p>This is part of the FromClause contract.  The column will usually be the 'oid' column of the first <tt class="docutils literal"><span class="pre">Table</span></tt>
-located within the from clause of this select().</p>
-
+         
          </div> 
          </div>
 
@@ -4267,6 +4316,10 @@ to the existing clause via AND, if any.</p>
     <div class="docstring">
     <p>Append the given GROUP BY criterion applied to this selectable.</p>
 <p>The criterion will be appended to any pre-existing GROUP BY criterion.</p>
+<p>Note that this mutates the Select construct such that derived attributes,
+such as the &quot;primary_key&quot;, &quot;oid_column&quot;, and child &quot;froms&quot; collection may
+be invalid if they have already been initialized.  Consider the generative
+form of this method instead to prevent this issue.</p>
 
     </div>
     </div>
@@ -4279,6 +4332,10 @@ to the existing clause via AND, if any.</p>
     <div class="docstring">
     <p>Append the given ORDER BY criterion applied to this selectable.</p>
 <p>The criterion will be appended to any pre-existing ORDER BY criterion.</p>
+<p>Note that this mutates the Select construct such that derived attributes,
+such as the &quot;primary_key&quot;, &quot;oid_column&quot;, and child &quot;froms&quot; collection may
+be invalid if they have already been initialized.  Consider the generative
+form of this method instead to prevent this issue.</p>
 
     </div>
     </div>
@@ -4499,6 +4556,15 @@ functionality.</p>
     </div>
 
                     
+         <div class="darkcell">
+         <A name=""></a>
+         <b>description = property()</b>
+         <div class="docstring">
+         
+         </div> 
+         </div>
+
+                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -4537,15 +4603,6 @@ functionality.</p>
     
     </div>
     </div>
-
-                    
-         <div class="darkcell">
-         <A name=""></a>
-         <b>original_columns = property()</b>
-         <div class="docstring">
-         
-         </div> 
-         </div>
 
                     
     <div class="darkcell">
@@ -4650,6 +4707,39 @@ functionality.</p>
          
          </div> 
          </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.sql.expression__TextFromClause"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class _TextFromClause(<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_FromClause">FromClause</a>)</h3>
+    
+    
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>text</i>)</b>
+    <div class="docstring">
+    <p>Construct a new <tt class="docutils literal"><span class="pre">_TextFromClause</span></tt>.</p>
+
+    </div>
+    </div>
 
 
     

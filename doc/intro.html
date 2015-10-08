@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
+<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
 
 
 
@@ -104,6 +104,9 @@
         
         
         <li><a style="" href="intro.html#overview_migration_type">All "type" Keyword Arguments Changed to "type_"</a></li>
+        
+        
+        <li><a style="" href="intro.html#overview_migration_mapper">Mapper Extensions must return EXT_CONTINUE to continue execution to the next mapper</a></li>
         
     </ul>
 
@@ -555,6 +558,25 @@
 <span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">now</span><span class="python_enclosure">(</span><span class="python_name">type_</span><span class="python_operator">=</span><span class="python_name">DateTime</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
+
+
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+    
+    <A name="overview_migration_mapper"></a>
+    
+    <div class="sectionL3">
+
+    <h3>Mapper Extensions must return EXT_CONTINUE to continue execution to the next mapper</h3>
+    
+    
+
+<p>If you extend the mapper, the methods in your mapper extension must return EXT_CONTINUE to continue executing additional mappers.
+</p>
 
 
 

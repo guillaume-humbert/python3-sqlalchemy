@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
+<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
 
 
 
@@ -119,7 +119,7 @@ closing all cursors and other resources is recommended.</p>
 <p>Events also receive a <tt class="docutils literal"><span class="pre">_ConnectionRecord</span></tt>, a long-lived internal
 <tt class="docutils literal"><span class="pre">Pool</span></tt> object that basically represents a &quot;slot&quot; in the
 connection pool.  <tt class="docutils literal"><span class="pre">_ConnectionRecord</span></tt> objects have one public
-attribute of note: <tt class="docutils literal"><span class="pre">properties</span></tt>, a dictionary whose contents are
+attribute of note: <tt class="docutils literal"><span class="pre">info</span></tt>, a dictionary whose contents are
 scoped to the lifetime of the DB-API connection managed by the
 record.  You can use this shared storage area however you like.</p>
 <p>There is no need to subclass <tt class="docutils literal"><span class="pre">PoolListener</span></tt> to handle events.

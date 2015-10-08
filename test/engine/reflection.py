@@ -3,6 +3,7 @@ import pickle, StringIO, unicodedata
 
 from sqlalchemy import *
 from sqlalchemy import exceptions
+from sqlalchemy import types as sqltypes
 from testlib import *
 from testlib import engines
 
@@ -10,9 +11,10 @@ class ReflectionTest(PersistTest):
 
     @testing.exclude('mysql', '<', (4, 1, 1))
     def testbasic(self):
-        use_function_defaults = testbase.db.engine.name == 'postgres' or testbase.db.engine.name == 'oracle'
+        use_function_defaults = testing.against('postgres', 'oracle', 'maxdb')
 
-        use_string_defaults = use_function_defaults or testbase.db.engine.__module__.endswith('sqlite')
+        use_string_defaults = (use_function_defaults or
+                               testbase.db.engine.__module__.endswith('sqlite'))
 
         if use_function_defaults:
             defval = func.current_date()
@@ -24,12 +26,11 @@ class ReflectionTest(PersistTest):
         if use_string_defaults:
             deftype2 = String
             defval2 = "im a default"
-            #deftype3 = DateTime
-            # the colon thing isnt working out for PG reflection just yet
-            #defval3 = '1999-09-09 00:00:00'
             deftype3 = Date
-            if testbase.db.engine.name == 'oracle':
+            if testing.against('oracle'):
                 defval3 = text("to_date('09-09-1999', 'MM-DD-YYYY')")
+            elif testing.against('maxdb'):
+                defval3 = '19990909'
             else:
                 defval3 = '1999-09-09'
         else:
@@ -181,7 +182,34 @@ class ReflectionTest(PersistTest):
             assert len(a4.constraints) == 2
         finally:
             meta.drop_all()
-
+    
+    def test_unknown_types(self):
+        meta = MetaData(testbase.db)
+        t = Table("test", meta, 
+            Column('foo', DateTime))
+            
+        import sys
+        dialect_module = sys.modules[testbase.db.dialect.__module__]
+        
+        # we're relying on the presence of "ischema_names" in the 
+        # dialect module, else we can't test this.  we need to be able
+        # to get the dialect to not be aware of some type so we temporarily
+        # monkeypatch.  not sure what a better way for this could be,
+        # except for an established dialect hook or dialect-specific tests
+        if not hasattr(dialect_module, 'ischema_names'):
+            return
+        
+        ischema_names = dialect_module.ischema_names
+        t.create()
+        dialect_module.ischema_names = {}
+        try:
+            m2 = MetaData(testbase.db)
+            t2 = Table("test", m2, autoload=True)
+            assert t2.c.foo.type.__class__ == sqltypes.NullType
+        finally:
+            dialect_module.ischema_names = ischema_names
+            t.drop()
+            
     def test_override_fkandpkcol(self):
         """test that you can override columns which contain foreign keys to other reflected tables,
         where the foreign key column is also a primary key column"""
@@ -492,7 +520,7 @@ class ReflectionTest(PersistTest):
 
         # There's currently no way to calculate identifier case normalization
         # in isolation, so...
-        if testbase.db.engine.name in ('firebird', 'oracle'):
+        if testing.against('firebird', 'oracle', 'maxdb'):
             check_col = 'TRUE'
         else:
             check_col = 'true'
@@ -661,7 +689,7 @@ class CreateDropTest(PersistTest):
         metadata.drop_all(bind=testbase.db)
 
 class UnicodeTest(PersistTest):
-    @testing.unsupported('sybase')
+    @testing.unsupported('sybase', 'maxdb', 'oracle')
     def test_basic(self):
         try:
             # the 'convert_unicode' should not get in the way of the reflection 
@@ -719,16 +747,16 @@ class SchemaTest(PersistTest):
         assert buf.index("CREATE TABLE someschema.table1") > -1
         assert buf.index("CREATE TABLE someschema.table2") > -1
 
-    @testing.supported('mysql','postgres')
+    @testing.supported('maxdb', 'mysql', 'postgres')
     def test_explicit_default_schema(self):
         engine = testbase.db
         schema = engine.dialect.get_default_schema_name(engine)
-        #engine.echo = True
 
-        if testbase.db.name == 'mysql':
+        if testing.against('mysql'):
             schema = testbase.db.url.database
-        else:
+        elif testing.against('postgres'):
             schema = 'public'
+
         metadata = MetaData(testbase.db)
         table1 = Table('table1', metadata,
             Column('col1', Integer, primary_key=True),
@@ -740,6 +768,7 @@ class SchemaTest(PersistTest):
         metadata.create_all()
         metadata.create_all(checkfirst=True)
         metadata.clear()
+
         table1 = Table('table1', metadata, autoload=True, schema=schema)
         table2 = Table('table2', metadata, autoload=True, schema=schema)
         metadata.drop_all()

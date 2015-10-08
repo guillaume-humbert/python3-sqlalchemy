@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
+<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
 
 
 
@@ -435,13 +435,21 @@ resources of the underlying <tt class="docutils literal"><span class="pre">Conne
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def expire(<i>self</i>, <i>obj</i>)</b>
+    <b>def expire(<i>self</i>, <i>obj</i>, <i>attribute_names=None</i>)</b>
     <div class="docstring">
-    <p>Mark the given object as expired.</p>
-<p>This will add an instrumentation to all mapped attributes on
-the instance such that when an attribute is next accessed, the
-session will reload all attributes on the instance from the
-database.</p>
+    <p>Expire the attributes on the given instance.</p>
+<p>The instance's attributes are instrumented such that
+when an attribute is next accessed, a query will be issued
+to the database which will refresh all attributes with their
+current value.</p>
+<p>Lazy-loaded relational attributes will remain lazily loaded, so that
+triggering one will incur the instance-wide refresh operation, followed
+immediately by the lazy load of that attribute.</p>
+<p>Eagerly-loaded relational attributes will eagerly load within the
+single refresh operation.</p>
+<p>The <tt class="docutils literal"><span class="pre">attribute_names</span></tt> argument is an iterable collection
+of attribute names indicating a subset of attributes to be
+expired.</p>
 
     </div>
     </div>
@@ -566,17 +574,6 @@ to get_bind() which are passed through here.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def is_expired(<i>self</i>, <i>obj</i>, <i>unexpire=False</i>)</b>
-    <div class="docstring">
-    <p>Return True if the given object has been marked as expired.</p>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
     <b>def is_modified(<i>self</i>, <i>obj</i>, <i>include_collections=True</i>, <i>passive=False</i>)</b>
     <div class="docstring">
     <p>return True if the given object has modified attributes.</p>
@@ -618,7 +615,7 @@ query.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def merge(<i>self</i>, <i>object</i>, <i>entity_name=None</i>, <i>_recursive=None</i>)</b>
+    <b>def merge(<i>self</i>, <i>object</i>, <i>entity_name=None</i>, <i>dont_load=False</i>, <i>_recursive=None</i>)</b>
     <div class="docstring">
     <p>Copy the state of the given <cite>object</cite> onto the persistent
 object with the same identifier.</p>
@@ -686,10 +683,20 @@ the mapper, or the classes' primary mapper.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def refresh(<i>self</i>, <i>obj</i>)</b>
+    <b>def refresh(<i>self</i>, <i>obj</i>, <i>attribute_names=None</i>)</b>
     <div class="docstring">
-    <p>Reload the attributes for the given object from the
-database, clear any changes made.</p>
+    <p>Refresh the attributes on the given instance.</p>
+<p>When called, a query will be issued
+to the database which will refresh all attributes with their
+current value.</p>
+<p>Lazy-loaded relational attributes will remain lazily loaded, so that
+the instance-wide refresh operation will be followed
+immediately by the lazy load of that attribute.</p>
+<p>Eagerly-loaded relational attributes will eagerly load within the
+single refresh operation.</p>
+<p>The <tt class="docutils literal"><span class="pre">attribute_names</span></tt> argument is an iterable collection
+of attribute names indicating a subset of attributes to be
+refreshed.</p>
 
     </div>
     </div>
@@ -764,8 +771,9 @@ determines whether to <tt class="docutils literal"><span class="pre">save()</spa
     <div class="docstring">
     <p>Bring the given detached (saved) instance into this
 <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
-<p>If there is a persistent instance with the same identifier
-already associated with this <tt class="docutils literal"><span class="pre">Session</span></tt>, an exception is thrown.</p>
+<p>If there is a persistent instance with the same instance key, but
+different identity already associated with this <tt class="docutils literal"><span class="pre">Session</span></tt>, an
+InvalidRequestError exception is thrown.</p>
 <p>This operation cascades the <cite>save_or_update</cite> method to
 associated instances if the relation is mapped with
 <tt class="docutils literal"><span class="pre">cascade=&quot;save-update&quot;</span></tt>.</p>

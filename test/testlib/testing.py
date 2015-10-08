@@ -3,10 +3,10 @@
 # monkeypatches unittest.TestLoader.suiteClass at import time
 
 import testbase
-import unittest, re, sys, os, operator
+import itertools, unittest, re, sys, os, operator
 from cStringIO import StringIO
 import testlib.config as config
-sql, MetaData, clear_mappers, Session = None, None, None, None
+sql, MetaData, clear_mappers, Session, util = None, None, None, None, None
 
 
 __all__ = ('PersistTest', 'AssertMixin', 'ORMTest', 'SQLCompileTest')
@@ -23,7 +23,7 @@ _ops = { '<': operator.lt,
 
 def unsupported(*dbs):
     """Mark a test as unsupported by one or more database implementations"""
-    
+
     def decorate(fn):
         fn_name = fn.__name__
         def maybe(*args, **kw):
@@ -40,9 +40,42 @@ def unsupported(*dbs):
         return maybe
     return decorate
 
+def fails_on(*dbs):
+    """Mark a test as expected to fail on one or more database implementations.
+
+    Unlike ``unsupported``, tests marked as ``fails_on`` will be run
+    for the named databases.  The test is expected to fail and the unit test
+    logic is inverted: if the test fails, a success is reported.  If the test
+    succeeds, a failure is reported.
+    """
+
+    def decorate(fn):
+        fn_name = fn.__name__
+        def maybe(*args, **kw):
+            if config.db.name not in dbs:
+                return fn(*args, **kw)
+            else:
+                try:
+                    fn(*args, **kw)
+                except Exception, ex:
+                    print ("'%s' failed as expected on DB implementation "
+                           "'%s': %s" % (
+                        fn_name, config.db.name, str(ex)))
+                    return True
+                else:
+                    raise AssertionError(
+                        "Unexpected success for '%s' on DB implementation '%s'" %
+                        (fn_name, config.db.name))
+        try:
+            maybe.__name__ = fn_name
+        except:
+            pass
+        return maybe
+    return decorate
+
 def supported(*dbs):
     """Mark a test as supported by one or more database implementations"""
-    
+
     def decorate(fn):
         fn_name = fn.__name__
         def maybe(*args, **kw):
@@ -124,14 +157,22 @@ def against(*queries):
                 return True
     return False
 
+def rowset(results):
+    """Converts the results of sql execution into a plain set of column tuples.
+
+    Useful for asserting the results of an unordered query.
+    """
+
+    return set([tuple(row) for row in results])
+
 class TestData(object):
     """Tracks SQL expressions as they are executed via an instrumented ExecutionContext."""
-    
+
     def __init__(self):
         self.set_assert_list(None, None)
         self.sql_count = 0
         self.buffer = None
-        
+
     def set_assert_list(self, unittest, list):
         self.unittest = unittest
         self.assert_list = list
@@ -144,7 +185,7 @@ testdata = TestData()
 class ExecutionContextWrapper(object):
     """instruments the ExecutionContext created by the Engine so that SQL expressions
     can be tracked."""
-    
+
     def __init__(self, ctx):
         global sql
         if sql is None:
@@ -155,7 +196,7 @@ class ExecutionContextWrapper(object):
         return getattr(self.ctx, key)
     def __setattr__(self, key, value):
         setattr(self.ctx, key, value)
-        
+
     def post_execution(self):
         ctx = self.ctx
         statement = unicode(ctx.compiled)
@@ -172,7 +213,7 @@ class ExecutionContextWrapper(object):
                 item = testdata.assert_list.pop()
             else:
                 # asserting a dictionary of statements->parameters
-                # this is to specify query assertions where the queries can be in 
+                # this is to specify query assertions where the queries can be in
                 # multiple orderings
                 if '_converted' not in item:
                     for key in item.keys():
@@ -194,15 +235,14 @@ class ExecutionContextWrapper(object):
                 params = params(ctx)
             if params is not None and not isinstance(params, list):
                 params = [params]
-            
-            from sqlalchemy.sql.util import ClauseParameters
-            parameters = [p.get_original_dict() for p in ctx.compiled_parameters]
-                    
+
+            parameters = ctx.compiled_parameters
+
             query = self.convert_statement(query)
             testdata.unittest.assert_(statement == query and (params is None or params == parameters), "Testing for query '%s' params %s, received '%s' with params %s" % (query, repr(params), statement, repr(parameters)))
         testdata.sql_count += 1
         self.ctx.post_execution()
-        
+
     def convert_statement(self, query):
         paramstyle = self.ctx.dialect.paramstyle
         if paramstyle == 'named':
@@ -240,12 +280,12 @@ class SQLCompileTest(PersistTest):
     def assert_compile(self, clause, result, params=None, checkparams=None, dialect=None):
         if dialect is None:
             dialect = getattr(self, '__dialect__', None)
-        
+
         if params is None:
             keys = None
         else:
             keys = params.keys()
-                
+
         c = clause.compile(column_keys=keys, dialect=dialect)
 
         print "\nSQL String:\n" + str(c) + repr(c.params)
@@ -255,27 +295,24 @@ class SQLCompileTest(PersistTest):
         self.assert_(cc == result, "\n'" + cc + "'\n does not match \n'" + result + "'")
 
         if checkparams is not None:
-            if isinstance(checkparams, list):
-                self.assert_(c.params.get_raw_list({}) == checkparams, "params dont match ")
-            else:
-                self.assert_(c.params.get_original_dict() == checkparams, "params dont match" + repr(c.params))
+            self.assert_(c.construct_params(params) == checkparams, "params dont match" + repr(c.params))
 
 class AssertMixin(PersistTest):
     """given a list-based structure of keys/properties which represent information within an object structure, and
     a list of actual objects, asserts that the list of objects corresponds to the structure."""
-    
+
     def assert_result(self, result, class_, *objects):
         result = list(result)
         print repr(result)
         self.assert_list(result, class_, objects)
-        
+
     def assert_list(self, result, class_, list):
         self.assert_(len(result) == len(list),
                      "result list is not the same size as test list, " +
                      "for class " + class_.__name__)
         for i in range(0, len(list)):
             self.assert_row(class_, result[i], list[i])
-            
+
     def assert_row(self, class_, rowobj, desc):
         self.assert_(rowobj.__class__ is class_,
                      "item class is not " + repr(class_))
@@ -289,7 +326,58 @@ class AssertMixin(PersistTest):
                 self.assert_(getattr(rowobj, key) == value,
                              "attribute %s value %s does not match %s" % (
                              key, getattr(rowobj, key), value))
-                
+
+    def assert_unordered_result(self, result, cls, *expected):
+        """As assert_result, but the order of objects is not considered.
+
+        The algorithm is very expensive but not a big deal for the small
+        numbers of rows that the test suite manipulates.
+        """
+
+        global util
+        if util is None:
+            from sqlalchemy import util
+
+        class frozendict(dict):
+            def __hash__(self):
+                return id(self)
+
+        found = util.IdentitySet(result)
+        expected = set([frozendict(e) for e in expected])
+
+        for wrong in itertools.ifilterfalse(lambda o: type(o) == cls, found):
+            self.fail('Unexpected type "%s", expected "%s"' % (
+                type(wrong).__name__, cls.__name__))
+
+        if len(found) != len(expected):
+            self.fail('Unexpected object count "%s", expected "%s"' % (
+                len(found), len(expected)))
+
+        NOVALUE = object()
+        def _compare_item(obj, spec):
+            for key, value in spec.iteritems():
+                if isinstance(value, tuple):
+                    try:
+                        self.assert_unordered_result(
+                            getattr(obj, key), value[0], *value[1])
+                    except AssertionError:
+                        return False
+                else:
+                    if getattr(obj, key, NOVALUE) != value:
+                        return False
+            return True
+
+        for expected_item in expected:
+            for found_item in found:
+                if _compare_item(found_item, expected_item):
+                    found.remove(found_item)
+                    break
+            else:
+                self.fail(
+                    "Expected %s instance with attributes %s not found." % (
+                    cls.__name__, repr(expected_item)))
+        return True
+
     def assert_sql(self, db, callable_, list, with_sequences=None):
         global testdata
         testdata = TestData()
@@ -306,12 +394,10 @@ class AssertMixin(PersistTest):
     def assert_sql_count(self, db, callable_, count):
         global testdata
         testdata = TestData()
-        try:
-            callable_()
-        finally:
-            self.assert_(testdata.sql_count == count,
-                         "desired statement count %d does not match %d" % (
-                         count, testdata.sql_count))
+        callable_()
+        self.assert_(testdata.sql_count == count,
+                     "desired statement count %d does not match %d" % (
+                       count, testdata.sql_count))
 
     def capture_sql(self, db, callable_):
         global testdata
@@ -329,13 +415,13 @@ class ORMTest(AssertMixin):
     keep_mappers = False
     keep_data = False
     metadata = None
-    
+
     def setUpAll(self):
         global MetaData, _otest_metadata
 
         if MetaData is None:
             from sqlalchemy import MetaData
-        
+
         if self.metadata is None:
             _otest_metadata = MetaData(config.db)
         else:

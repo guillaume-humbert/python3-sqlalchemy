@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4   Last Updated: 10/17/07 13:56:48</div>
+<div class="versionheader">Version: 0.4.1   Last Updated: 11/18/07 17:50:18</div>
 
 
 
@@ -780,7 +780,7 @@ CREATE TABLE user_prefs(<br/>
 
  </li>
 </ul>
-<p>For a statement which executes with <code>inline=False</code> and is not an executemany execution, the returned <code>ResultProxy</code> will contain a collection accessible via <code>result.postfetch_cols()</code> which contains a list of all <code>Column</code> objects which had an inline-executed default.  Similarly, all parameters which were bound to the statement, including all Python and SQL expressions which were pre-executed, are present in the <code>last_inserted_params()</code> or <code>last_updated_params()</code> collections on <code>ResultProxy</code>.  The <code>last_inserted_ids()</code> collection contains a list of primary key values for the row inserted.  <br></br>
+<p>For a statement execution which is not an executemany, the returned <code>ResultProxy</code> will contain a collection accessible via <code>result.postfetch_cols()</code> which contains a list of all <code>Column</code> objects which had an inline-executed default.  Similarly, all parameters which were bound to the statement, including all Python and SQL expressions which were pre-executed, are present in the <code>last_inserted_params()</code> or <code>last_updated_params()</code> collections on <code>ResultProxy</code>.  The <code>last_inserted_ids()</code> collection contains a list of primary key values for the row inserted.  <br></br>
 </p>
 
 
@@ -807,7 +807,7 @@ CREATE TABLE user_prefs(<br/>
     <div class="sliding_code">
         <pre>
 <span class="python_name">t </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'test'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">, </span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'mycolumn'</span><span class="python_operator">, </span><span class="python_name">DateTime</span><span class="python_operator">, </span><span class="python_name">PassiveDefault</span><span class="python_enclosure">(</span><span class="python_literal">"sysdate"</span><span class="python_enclosure">))</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'mycolumn'</span><span class="python_operator">, </span><span class="python_name">DateTime</span><span class="python_operator">, </span><span class="python_name">PassiveDefault</span><span class="python_enclosure">(</span><span class="python_name">text</span><span class="python_enclosure">(</span><span class="python_literal">"sysdate"</span><span class="python_enclosure">)))</span>
 <span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>

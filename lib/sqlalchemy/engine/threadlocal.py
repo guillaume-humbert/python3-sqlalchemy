@@ -76,7 +76,13 @@ class TLSession(object):
                 self.reset()
         elif self.__tcount > 1:
             self.__tcount -= 1
-
+            
+    def close(self):
+        if self.__tcount == 1:
+            self.rollback()
+        elif self.__tcount > 1:
+            self.__tcount -= 1
+        
     def is_begun(self):
         return self.__tcount > 0
 
@@ -137,6 +143,9 @@ class TLTransaction(base.Transaction):
 
     def commit(self):
         self._session.commit()
+
+    def close(self):
+        self._session.close()
 
     def __enter__(self):
         return self

@@ -106,7 +106,7 @@ class AssociationProxy(object):
             Optional, use with proxy_factory.  See the _set() method for
             details.
         """
-        
+
         self.target_collection = targetcollection # backwards compat name...
         self.value_attr = attr
         self.creator = creator
@@ -141,7 +141,7 @@ class AssociationProxy(object):
                     "scope")
             return getattr(obj, target)
         return lazy_collection
-        
+
     def __get__(self, obj, class_):
         if obj is None:
             self.owning_class = class_
@@ -204,12 +204,12 @@ class AssociationProxy(object):
 
         if self.proxy_factory:
             return self.proxy_factory(lazy_collection, creator, self.value_attr)
-        
+
         if self.getset_factory:
             getter, setter = self.getset_factory(self.collection_class, self)
         else:
             getter, setter = self._default_getset(self.collection_class)
-        
+
         if self.collection_class is list:
             return _AssociationList(lazy_collection, creator, getter, setter)
         elif self.collection_class is dict:
@@ -247,7 +247,7 @@ class _AssociationList(object):
         lazy_collection
           A callable returning a list-based collection of entities (usually
           an object attribute managed by a SQLAlchemy relation())
-          
+
         creator
           A function that creates new target entities.  Given one parameter:
           value.  The assertion is assumed:
@@ -291,7 +291,7 @@ class _AssociationList(object):
 
     def __getitem__(self, index):
         return self._get(self.col[index])
-    
+
     def __setitem__(self, index, value):
         if not isinstance(index, slice):
             self._set(self.col[index], value)
@@ -326,6 +326,7 @@ class _AssociationList(object):
 
     def __contains__(self, value):
         for member in self.col:
+            # testlib.pragma exempt:__eq__
             if self._get(member) == value:
                 return True
         return False
@@ -406,7 +407,7 @@ class _AssociationList(object):
     def __repr__(self):
         return repr(list(self))
 
-    def hash(self):
+    def __hash__(self):
         raise TypeError("%s objects are unhashable" % type(self).__name__)
 
 _NotProvided = object()
@@ -420,7 +421,7 @@ class _AssociationDict(object):
         lazy_collection
           A callable returning a dict-based collection of entities (usually
           an object attribute managed by a SQLAlchemy relation())
-          
+
         creator
           A function that creates new target entities.  Given two parameters:
           key and value.  The assertion is assumed:
@@ -462,7 +463,7 @@ class _AssociationDict(object):
 
     def __getitem__(self, key):
         return self._get(self.col[key])
-    
+
     def __setitem__(self, key, value):
         if key in self.col:
             self._set(self.col[key], key, value)
@@ -473,6 +474,7 @@ class _AssociationDict(object):
         del self.col[key]
 
     def __contains__(self, key):
+        # testlib.pragma exempt:__hash__
         return key in self.col
     has_key = __contains__
 
@@ -535,7 +537,7 @@ class _AssociationDict(object):
     def popitem(self):
         item = self.col.popitem()
         return (item[0], self._get(item[1]))
-    
+
     def update(self, *a, **kw):
         if len(a) > 1:
             raise TypeError('update expected at most 1 arguments, got %i' %
@@ -554,7 +556,7 @@ class _AssociationDict(object):
     def copy(self):
         return dict(self.items())
 
-    def hash(self):
+    def __hash__(self):
         raise TypeError("%s objects are unhashable" % type(self).__name__)
 
 class _AssociationSet(object):
@@ -567,7 +569,7 @@ class _AssociationSet(object):
         collection
           A callable returning a set-based collection of entities (usually an
           object attribute managed by a SQLAlchemy relation())
-          
+
         creator
           A function that creates new target entities.  Given one parameter:
           value.  The assertion is assumed:
@@ -609,6 +611,7 @@ class _AssociationSet(object):
 
     def __contains__(self, value):
         for member in self.col:
+            # testlib.pragma exempt:__eq__
             if self._get(member) == value:
                 return True
         return False
@@ -707,10 +710,10 @@ class _AssociationSet(object):
 
     def issubset(self, other):
         return util.Set(self).issubset(other)
-    
+
     def issuperset(self, other):
         return util.Set(self).issuperset(other)
-                
+
     def clear(self):
         self.col.clear()
 
@@ -727,5 +730,5 @@ class _AssociationSet(object):
     def __repr__(self):
         return repr(util.Set(self))
 
-    def hash(self):
+    def __hash__(self):
         raise TypeError("%s objects are unhashable" % type(self).__name__)
