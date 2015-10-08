@@ -1,5 +1,5 @@
 # orm/events.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -17,7 +17,7 @@ from . import mapperlib, instrumentation
 from .session import Session, sessionmaker
 from .scoping import scoped_session
 from .attributes import QueryableAttribute
-
+from .query import Query
 
 class InstrumentationEvents(event.Events):
     """Events related to class instrumentation events.
@@ -292,23 +292,6 @@ class InstanceEvents(event.Events):
         :param attrs: iterable collection of attribute
          names which were expired, or None if all attributes were
          expired.
-
-        """
-
-    def resurrect(self, target):
-        """Receive an object instance as it is 'resurrected' from
-        garbage collection, which occurs when a "dirty" state falls
-        out of scope.
-
-        :param target: the mapped instance.  If
-         the event is configured with ``raw=True``, this will
-         instead be the :class:`.InstanceState` state-management
-         object associated with the instance.
-
-        .. deprecated:: 0.9 - the resurrect event has no function, as the
-           underlying functionality was dependent on the "mutation tracking"
-           feature removed from SQLAlchemy in the 0.8 series.   This event
-           is removed in 1.0.
 
         """
 
@@ -669,145 +652,6 @@ class MapperEvents(event.Events):
             @event.listens_for(mapper, "after_configured", once=True)
             def go():
                 # ...
-
-        """
-
-    def translate_row(self, mapper, context, row):
-        """Perform pre-processing on the given result row and return a
-        new row instance.
-
-        .. deprecated:: 0.9 the :meth:`.translate_row` event should
-           be considered as legacy.  The row as delivered in a mapper
-           load operation typically requires that highly technical
-           details be accommodated in order to identity the correct
-           column keys are present in the row, rendering this particular
-           event hook as difficult to use and unreliable.
-
-        This listener is typically registered with ``retval=True``.
-        It is called when the mapper first receives a row, before
-        the object identity or the instance itself has been derived
-        from that row.   The given row may or may not be a
-        :class:`.RowProxy` object - it will always be a dictionary-like
-        object which contains mapped columns as keys.  The
-        returned object should also be a dictionary-like object
-        which recognizes mapped columns as keys.
-
-        :param mapper: the :class:`.Mapper` which is the target
-         of this event.
-        :param context: the :class:`.QueryContext`, which includes
-         a handle to the current :class:`.Query` in progress as well
-         as additional state information.
-        :param row: the result row being handled.  This may be
-         an actual :class:`.RowProxy` or may be a dictionary containing
-         :class:`.Column` objects as keys.
-        :return: When configured with ``retval=True``, the function
-         should return a dictionary-like row object, or ``EXT_CONTINUE``,
-         indicating the original row should be used.
-
-
-        """
-
-    def create_instance(self, mapper, context, row, class_):
-        """Receive a row when a new object instance is about to be
-        created from that row.
-
-        .. deprecated:: 0.9 the :meth:`.create_instance` event should
-           be considered as legacy.  Manipulation of the object construction
-           mechanics during a load should not be necessary.
-
-        The method can choose to create the instance itself, or it can return
-        EXT_CONTINUE to indicate normal object creation should take place.
-        This listener is typically registered with ``retval=True``.
-
-        :param mapper: the :class:`.Mapper` which is the target
-         of this event.
-        :param context: the :class:`.QueryContext`, which includes
-         a handle to the current :class:`.Query` in progress as well
-         as additional state information.
-        :param row: the result row being handled.  This may be
-         an actual :class:`.RowProxy` or may be a dictionary containing
-         :class:`.Column` objects as keys.
-        :param class\_: the mapped class.
-        :return: When configured with ``retval=True``, the return value
-         should be a newly created instance of the mapped class,
-         or ``EXT_CONTINUE`` indicating that default object construction
-         should take place.
-
-        """
-
-    def append_result(self, mapper, context, row, target,
-                      result, **flags):
-        """Receive an object instance before that instance is appended
-        to a result list.
-
-        .. deprecated:: 0.9 the :meth:`.append_result` event should
-           be considered as legacy.  It is a difficult to use method
-           whose original purpose is better suited by custom collection
-           classes.
-
-        This is a rarely used hook which can be used to alter
-        the construction of a result list returned by :class:`.Query`.
-
-        :param mapper: the :class:`.Mapper` which is the target
-         of this event.
-        :param context: the :class:`.QueryContext`, which includes
-         a handle to the current :class:`.Query` in progress as well
-         as additional state information.
-        :param row: the result row being handled.  This may be
-         an actual :class:`.RowProxy` or may be a dictionary containing
-         :class:`.Column` objects as keys.
-        :param target: the mapped instance being populated.  If
-         the event is configured with ``raw=True``, this will
-         instead be the :class:`.InstanceState` state-management
-         object associated with the instance.
-        :param result: a list-like object where results are being
-         appended.
-        :param \**flags: Additional state information about the
-         current handling of the row.
-        :return: If this method is registered with ``retval=True``,
-         a return value of ``EXT_STOP`` will prevent the instance
-         from being appended to the given result list, whereas a
-         return value of ``EXT_CONTINUE`` will result in the default
-         behavior of appending the value to the result list.
-
-        """
-
-    def populate_instance(self, mapper, context, row,
-                          target, **flags):
-        """Receive an instance before that instance has
-        its attributes populated.
-
-        .. deprecated:: 0.9 the :meth:`.populate_instance` event should
-           be considered as legacy.  The mechanics of instance population
-           should not need modification; special "on load" rules can as always
-           be accommodated by the :class:`.InstanceEvents.load` event.
-
-        This usually corresponds to a newly loaded instance but may
-        also correspond to an already-loaded instance which has
-        unloaded attributes to be populated.  The method may be called
-        many times for a single instance, as multiple result rows are
-        used to populate eagerly loaded collections.
-
-        Most usages of this hook are obsolete.  For a
-        generic "object has been newly created from a row" hook, use
-        :meth:`.InstanceEvents.load`.
-
-        :param mapper: the :class:`.Mapper` which is the target
-         of this event.
-        :param context: the :class:`.QueryContext`, which includes
-         a handle to the current :class:`.Query` in progress as well
-         as additional state information.
-        :param row: the result row being handled.  This may be
-         an actual :class:`.RowProxy` or may be a dictionary containing
-         :class:`.Column` objects as keys.
-        :param target: the mapped instance.  If
-         the event is configured with ``raw=True``, this will
-         instead be the :class:`.InstanceState` state-management
-         object associated with the instance.
-        :return: When configured with ``retval=True``, a return
-         value of ``EXT_STOP`` will bypass instance population by
-         the mapper. A value of ``EXT_CONTINUE`` indicates that
-         default instance population should take place.
 
         """
 
@@ -1635,8 +1479,9 @@ class AttributeEvents(event.Events):
 
     @staticmethod
     def _set_dispatch(cls, dispatch_cls):
-        event.Events._set_dispatch(cls, dispatch_cls)
+        dispatch = event.Events._set_dispatch(cls, dispatch_cls)
         dispatch_cls._active_history = False
+        return dispatch
 
     @classmethod
     def _accept_with(cls, target):
@@ -1753,3 +1598,109 @@ class AttributeEvents(event.Events):
          the given value, or a new effective value, should be returned.
 
         """
+
+    def init_collection(self, target, collection, collection_adapter):
+        """Receive a 'collection init' event.
+
+        This event is triggered for a collection-based attribute, when
+        the initial "empty collection" is first generated for a blank
+        attribute, as well as for when the collection is replaced with
+        a new one, such as via a set event.
+
+        E.g., given that ``User.addresses`` is a relationship-based
+        collection, the event is triggered here::
+
+            u1 = User()
+            u1.addresses.append(a1)  #  <- new collection
+
+        and also during replace operations::
+
+            u1.addresess = [a2, a3]  #  <- new collection
+
+        :param target: the object instance receiving the event.
+         If the listener is registered with ``raw=True``, this will
+         be the :class:`.InstanceState` object.
+        :param collection: the new collection.  This will always be generated
+         from what was specified as
+         :paramref:`.RelationshipProperty.collection_class`, and will always
+         be empty.
+        :param collection_adpater: the :class:`.CollectionAdapter` that will
+         mediate internal access to the collection.
+
+        .. versionadded:: 1.0.0 the :meth:`.AttributeEvents.init_collection`
+           and :meth:`.AttributeEvents.dispose_collection` events supersede
+           the :class:`.collection.linker` hook.
+
+        """
+
+    def dispose_collection(self, target, collection, collection_adpater):
+        """Receive a 'collection dispose' event.
+
+        This event is triggered for a collection-based attribute when
+        a collection is replaced, that is::
+
+            u1.addresses.append(a1)
+
+            u1.addresses = [a2, a3]  # <- old collection is disposed
+
+        The mechanics of the event will typically include that the given
+        collection is empty, even if it stored objects while being replaced.
+
+        .. versionadded:: 1.0.0 the :meth:`.AttributeEvents.init_collection`
+           and :meth:`.AttributeEvents.dispose_collection` events supersede
+           the :class:`.collection.linker` hook.
+
+        """
+
+
+class QueryEvents(event.Events):
+    """Represent events within the construction of a :class:`.Query` object.
+
+    The events here are intended to be used with an as-yet-unreleased
+    inspection system for :class:`.Query`.   Some very basic operations
+    are possible now, however the inspection system is intended to allow
+    complex query manipulations to be automated.
+
+    .. versionadded:: 1.0.0
+
+    """
+
+    _target_class_doc = "SomeQuery"
+    _dispatch_target = Query
+
+    def before_compile(self, query):
+        """Receive the :class:`.Query` object before it is composed into a
+        core :class:`.Select` object.
+
+        This event is intended to allow changes to the query given::
+
+            @event.listens_for(Query, "before_compile", retval=True)
+            def no_deleted(query):
+                for desc in query.column_descriptions:
+                    if desc['type'] is User:
+                        entity = desc['expr']
+                        query = query.filter(entity.deleted == False)
+                return query
+
+        The event should normally be listened with the ``retval=True``
+        parameter set, so that the modified query may be returned.
+
+
+        """
+
+    @classmethod
+    def _listen(
+            cls, event_key, retval=False, **kw):
+        fn = event_key._listen_fn
+
+        if not retval:
+            def wrap(*arg, **kw):
+                if not retval:
+                    query = arg[0]
+                    fn(*arg, **kw)
+                    return query
+                else:
+                    return fn(*arg, **kw)
+            event_key = event_key.with_wrapper(wrap)
+
+        event_key.base_listen(**kw)

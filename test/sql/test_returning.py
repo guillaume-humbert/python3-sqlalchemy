@@ -1,12 +1,15 @@
 from sqlalchemy.testing import eq_
-from sqlalchemy import *
 from sqlalchemy import testing
 from sqlalchemy.testing.schema import Table, Column
 from sqlalchemy.types import TypeDecorator
 from sqlalchemy.testing import fixtures, AssertsExecutionResults, engines, \
     assert_raises_message
 from sqlalchemy import exc as sa_exc
+from sqlalchemy import MetaData, String, Integer, Boolean, func, select, \
+    Sequence
 import itertools
+
+table = GoofyType = seq = None
 
 
 class ReturningTest(fixtures.TestBase, AssertsExecutionResults):
@@ -31,11 +34,13 @@ class ReturningTest(fixtures.TestBase, AssertsExecutionResults):
                 return value + "BAR"
 
         table = Table(
-            'tables', meta, Column(
-                'id', Integer, primary_key=True, test_needs_autoincrement=True), Column(
-                'persons', Integer), Column(
-                'full', Boolean), Column(
-                    'goofy', GoofyType(50)))
+            'tables', meta,
+            Column(
+                'id', Integer, primary_key=True,
+                test_needs_autoincrement=True),
+            Column('persons', Integer),
+            Column('full', Boolean),
+            Column('goofy', GoofyType(50)))
         table.create(checkfirst=True)
 
     def teardown(self):
@@ -47,9 +52,11 @@ class ReturningTest(fixtures.TestBase, AssertsExecutionResults):
 
         row = result.first()
         assert row[table.c.id] == row['id'] == 1
-        assert row[table.c.full] == row['full'] == False
+        assert row[table.c.full] == row['full']
+        assert row['full'] is False
 
-        result = table.insert().values(persons=5, full=True, goofy="somegoofy").\
+        result = table.insert().values(
+            persons=5, full=True, goofy="somegoofy").\
             returning(table.c.persons, table.c.full, table.c.goofy).execute()
         row = result.first()
         assert row[table.c.persons] == row['persons'] == 5
@@ -153,6 +160,39 @@ class ReturningTest(fixtures.TestBase, AssertsExecutionResults):
         eq_(result2.fetchall(), [(2, False), ])
 
 
+class CompositeStatementTest(fixtures.TestBase):
+    __requires__ = 'returning',
+    __backend__ = True
+
+    @testing.provide_metadata
+    def test_select_doesnt_pollute_result(self):
+        class MyType(TypeDecorator):
+            impl = Integer
+
+            def process_result_value(self, value, dialect):
+                raise Exception("I have not been selected")
+
+        t1 = Table(
+            't1', self.metadata,
+            Column('x', MyType())
+        )
+
+        t2 = Table(
+            't2', self.metadata,
+            Column('x', Integer)
+        )
+
+        self.metadata.create_all(testing.db)
+        with testing.db.connect() as conn:
+            conn.execute(t1.insert().values(x=5))
+
+            stmt = t2.insert().values(
+                x=select([t1.c.x]).as_scalar()).returning(t2.c.x)
+
+            result = conn.execute(stmt)
+            eq_(result.scalar(), 5)
+
+
 class SequenceReturningTest(fixtures.TestBase):
     __requires__ = 'returning', 'sequences'
     __backend__ = True
@@ -238,11 +278,13 @@ class ReturnDefaultsTest(fixtures.TablesTest):
             return str(next(counter))
 
         Table(
-            "t1", metadata, Column(
-                "id", Integer, primary_key=True, test_needs_autoincrement=True), Column(
-                "data", String(50)), Column(
-                "insdef", Integer, default=IncDefault()), Column(
-                    "upddef", Integer, onupdate=IncDefault()))
+            "t1", metadata,
+            Column(
+                "id", Integer, primary_key=True,
+                test_needs_autoincrement=True),
+            Column("data", String(50)),
+            Column("insdef", Integer, default=IncDefault()),
+            Column("upddef", Integer, onupdate=IncDefault()))
 
     def test_chained_insert_pk(self):
         t1 = self.tables.t1
@@ -336,9 +378,10 @@ class ReturnDefaultsTest(fixtures.TablesTest):
         testing.db.execute(
             t1.insert().values(upddef=1)
         )
-        result = testing.db.execute(t1.update().
-                                    values(insdef=2).return_defaults(
-            t1.c.data, t1.c.upddef))
+        result = testing.db.execute(
+            t1.update().
+            values(insdef=2).return_defaults(
+                t1.c.data, t1.c.upddef))
         eq_(
             dict(result.returned_defaults),
             {"data": None, 'upddef': 1}
@@ -352,12 +395,14 @@ class ImplicitReturningFlag(fixtures.TestBase):
         e = engines.testing_engine(options={'implicit_returning': False})
         assert e.dialect.implicit_returning is False
         c = e.connect()
+        c.close()
         assert e.dialect.implicit_returning is False
 
     def test_flag_turned_on(self):
         e = engines.testing_engine(options={'implicit_returning': True})
         assert e.dialect.implicit_returning is True
         c = e.connect()
+        c.close()
         assert e.dialect.implicit_returning is True
 
     def test_flag_turned_default(self):
@@ -377,4 +422,5 @@ class ImplicitReturningFlag(fixtures.TestBase):
 
         # version detection on connect sets it
         c = e.connect()
+        c.close()
         assert e.dialect.implicit_returning is supports[0]

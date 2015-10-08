@@ -1,5 +1,5 @@
 # sqlalchemy/events.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -338,7 +338,7 @@ class PoolEvents(event.Events):
 
         """
 
-    def reset(self, dbapi_connnection, connection_record):
+    def reset(self, dbapi_connection, connection_record):
         """Called before the "reset" action occurs for a pooled connection.
 
         This event represents
@@ -371,7 +371,9 @@ class PoolEvents(event.Events):
         """Called when a DBAPI connection is to be "invalidated".
 
         This event is called any time the :meth:`._ConnectionRecord.invalidate`
-        method is invoked, either from API usage or via "auto-invalidation".
+        method is invoked, either from API usage or via "auto-invalidation",
+        without the ``soft`` flag.
+
         The event occurs before a final attempt to call ``.close()`` on the
         connection occurs.
 
@@ -389,6 +391,21 @@ class PoolEvents(event.Events):
         .. seealso::
 
             :ref:`pool_connection_invalidation`
+
+        """
+
+    def soft_invalidate(self, dbapi_connection, connection_record, exception):
+        """Called when a DBAPI connection is to be "soft invalidated".
+
+        This event is called any time the :meth:`._ConnectionRecord.invalidate`
+        method is invoked with the ``soft`` flag.
+
+        Soft invalidation refers to when the connection record that tracks
+        this connection will force a reconnect after the current connection
+        is checked in.   It does not actively close the dbapi_connection
+        at the point at which it is called.
+
+        .. versionadded:: 1.0.3
 
         """
 
@@ -419,6 +436,12 @@ class ConnectionEvents(event.Events):
             def before_cursor_execute(conn, cursor, statement, parameters,
                                             context, executemany):
                 log.info("Received statement: %s" % statement)
+
+    When the methods are called with a `statement` parameter, such as in
+    :meth:`.after_cursor_execute`, :meth:`.before_cursor_execute` and
+    :meth:`.dbapi_error`, the statement is the exact SQL string that was
+    prepared for transmission to the DBAPI ``cursor`` in the connection's
+    :class:`.Dialect`.
 
     The :meth:`.before_execute` and :meth:`.before_cursor_execute`
     events can also be established with the ``retval=True`` flag, which
@@ -549,9 +572,8 @@ class ConnectionEvents(event.Events):
     def before_cursor_execute(self, conn, cursor, statement,
                               parameters, context, executemany):
         """Intercept low-level cursor execute() events before execution,
-        receiving the string
-        SQL statement and DBAPI-specific parameter list to be invoked
-        against a cursor.
+        receiving the string SQL statement and DBAPI-specific parameter list to
+        be invoked against a cursor.
 
         This event is a good choice for logging as well as late modifications
         to the SQL string.  It's less ideal for parameter modifications except
@@ -571,7 +593,7 @@ class ConnectionEvents(event.Events):
 
         :param conn: :class:`.Connection` object
         :param cursor: DBAPI cursor object
-        :param statement: string SQL statement
+        :param statement: string SQL statement, as to be passed to the DBAPI
         :param parameters: Dictionary, tuple, or list of parameters being
          passed to the ``execute()`` or ``executemany()`` method of the
          DBAPI ``cursor``.  In some cases may be ``None``.
@@ -596,7 +618,7 @@ class ConnectionEvents(event.Events):
         :param cursor: DBAPI cursor object.  Will have results pending
          if the statement was a SELECT, but these should not be consumed
          as they will be needed by the :class:`.ResultProxy`.
-        :param statement: string SQL statement
+        :param statement: string SQL statement, as passed to the DBAPI
         :param parameters: Dictionary, tuple, or list of parameters being
          passed to the ``execute()`` or ``executemany()`` method of the
          DBAPI ``cursor``.  In some cases may be ``None``.
@@ -640,7 +662,7 @@ class ConnectionEvents(event.Events):
 
         :param conn: :class:`.Connection` object
         :param cursor: DBAPI cursor object
-        :param statement: string SQL statement
+        :param statement: string SQL statement, as passed to the DBAPI
         :param parameters: Dictionary, tuple, or list of parameters being
          passed to the ``execute()`` or ``executemany()`` method of the
          DBAPI ``cursor``.  In some cases may be ``None``.
@@ -702,6 +724,16 @@ class ConnectionEvents(event.Events):
                     "failed" in str(context.original_exception):
                     raise MySpecialException("failed operation")
 
+        .. warning::  Because the :meth:`.ConnectionEvents.handle_error`
+           event specifically provides for exceptions to be re-thrown as
+           the ultimate exception raised by the failed statement,
+           **stack traces will be misleading** if the user-defined event
+           handler itself fails and throws an unexpected exception;
+           the stack trace may not illustrate the actual code line that
+           failed!  It is advised to code carefully here and use
+           logging and/or inline debugging if unexpected exceptions are
+           occurring.
+
         Alternatively, a "chained" style of event handling can be
         used, by configuring the handler with the ``retval=True``
         modifier and returning the new exception instance from the
@@ -733,6 +765,22 @@ class ConnectionEvents(event.Events):
 
         .. versionadded:: 0.9.7 Added the
             :meth:`.ConnectionEvents.handle_error` hook.
+
+        .. versionchanged:: 1.0.0 The :meth:`.handle_error` event is now
+           invoked when an :class:`.Engine` fails during the initial
+           call to :meth:`.Engine.connect`, as well as when a
+           :class:`.Connection` object encounters an error during a
+           reconnect operation.
+
+        .. versionchanged:: 1.0.0 The :meth:`.handle_error` event is
+           not fired off when a dialect makes use of the
+           ``skip_user_error_events`` execution option.   This is used
+           by dialects which intend to catch SQLAlchemy-specific exceptions
+           within specific operations, such as when the MySQL dialect detects
+           a table not present within the ``has_table()`` dialect method.
+           Prior to 1.0.0, code which implements :meth:`.handle_error` needs
+           to ensure that exceptions thrown in these scenarios are re-raised
+           without modification.
 
         """
 
@@ -985,6 +1033,23 @@ class DialectEvents(event.Events):
             return target.dialect
         else:
             return target
+
+    def do_connect(self, dialect, conn_rec, cargs, cparams):
+        """Receive connection arguments before a connection is made.
+
+        Return a DBAPI connection to halt further events from invoking;
+        the returned connection will be used.
+
+        Alternatively, the event can manipulate the cargs and/or cparams
+        collections; cargs will always be a Python list that can be mutated
+        in-place and cparams a Python dictionary.  Return None to
+        allow control to pass to the next event handler and ultimately
+        to allow the dialect to connect normally, given the updated
+        arguments.
+
+        .. versionadded:: 1.0.3
+
+        """
 
     def do_executemany(self, cursor, statement, parameters, context):
         """Receive a cursor to have executemany() called.

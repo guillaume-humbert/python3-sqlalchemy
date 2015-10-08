@@ -1,12 +1,12 @@
 # testing/__init__.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 
-from .warnings import testing_warn, assert_warnings, resetwarnings
+from .warnings import assert_warnings
 
 from . import config
 
@@ -23,7 +23,9 @@ from .assertions import emits_warning, emits_warning_on, uses_deprecated, \
     assert_raises_message, AssertsCompiledSQL, ComparesTables, \
     AssertsExecutionResults, expect_deprecated, expect_warnings
 
-from .util import run_as_contextmanager, rowset, fail, provide_metadata, adict
+from .util import run_as_contextmanager, rowset, fail, \
+    provide_metadata, adict, force_drop_names, \
+    teardown_events
 
 crashes = skip
 

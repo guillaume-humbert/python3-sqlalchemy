@@ -184,7 +184,7 @@ class NaturalPKTest(fixtures.MappedTest):
         if not passive_updates:
             # test passive_updates=False;
             #load addresses, update user, update 2 addresses
-            self.assert_sql_count(testing.db, go, 4)
+            self.assert_sql_count(testing.db, go, 3)
         else:
             # test passive_updates=True; update user
             self.assert_sql_count(testing.db, go, 1)
@@ -239,7 +239,7 @@ class NaturalPKTest(fixtures.MappedTest):
 
         def go():
             sess.flush()
-        self.assert_sql_count(testing.db, go, 3)
+        self.assert_sql_count(testing.db, go, 2)
 
     def _test_manytoone(self, passive_updates):
         users, Address, addresses, User = (self.tables.users,
@@ -270,7 +270,7 @@ class NaturalPKTest(fixtures.MappedTest):
         if passive_updates:
             self.assert_sql_count(testing.db, go, 1)
         else:
-            self.assert_sql_count(testing.db, go, 3)
+            self.assert_sql_count(testing.db, go, 2)
 
         def go():
             sess.flush()
@@ -366,7 +366,8 @@ class NaturalPKTest(fixtures.MappedTest):
         if passive_updates:
             self.assert_sql_count(testing.db, go, 1)
         else:
-            self.assert_sql_count(testing.db, go, 3)
+            # two updates bundled
+            self.assert_sql_count(testing.db, go, 2)
         eq_([Address(username='ed'), Address(username='ed')], [ad1, ad2])
         sess.expunge_all()
         eq_(
@@ -383,7 +384,8 @@ class NaturalPKTest(fixtures.MappedTest):
         if passive_updates:
             self.assert_sql_count(testing.db, go, 1)
         else:
-            self.assert_sql_count(testing.db, go, 3)
+            # two updates bundled
+            self.assert_sql_count(testing.db, go, 2)
         sess.expunge_all()
         eq_(
             [Address(username='fred'), Address(username='fred')],
@@ -789,8 +791,8 @@ class NonPKCascadeTest(fixtures.MappedTest):
             sess.flush()
         if not passive_updates:
             # test passive_updates=False; load addresses,
-            #  update user, update 2 addresses
-            self.assert_sql_count(testing.db, go, 4)
+            #  update user, update 2 addresses (in one executemany)
+            self.assert_sql_count(testing.db, go, 3)
         else:
             # test passive_updates=True; update user
             self.assert_sql_count(testing.db, go, 1)
@@ -1203,3 +1205,79 @@ class JoinedInheritanceTest(fixtures.MappedTest):
 
         eq_(e1.boss_name, 'pointy haired')
         eq_(e2.boss_name, 'pointy haired')
+
+
+class JoinedInheritancePKOnFKTest(fixtures.MappedTest):
+    """Test cascades of pk->non-pk/fk on joined table inh."""
+
+    # mssql doesn't allow ON UPDATE on self-referential keys
+    __unsupported_on__ = ('mssql',)
+
+    __requires__ = 'skip_mysql_on_windows',
+    __backend__ = True
+
+    @classmethod
+    def define_tables(cls, metadata):
+        fk_args = _backend_specific_fk_args()
+
+        Table(
+            'person', metadata,
+            Column('name', String(50), primary_key=True),
+            Column('type', String(50), nullable=False),
+            test_needs_fk=True)
+
+        Table(
+            'engineer', metadata,
+            Column(
+                'id', Integer,
+                primary_key=True, test_needs_autoincrement=True),
+            Column(
+                'person_name', String(50),
+                ForeignKey('person.name', **fk_args)),
+            Column('primary_language', String(50)),
+            test_needs_fk=True
+        )
+
+    @classmethod
+    def setup_classes(cls):
+
+        class Person(cls.Comparable):
+            pass
+
+        class Engineer(Person):
+            pass
+
+    def _test_pk(self, passive_updates):
+        Person, person, Engineer, engineer = (
+            self.classes.Person, self.tables.person,
+            self.classes.Engineer, self.tables.engineer)
+
+        mapper(
+            Person, person, polymorphic_on=person.c.type,
+            polymorphic_identity='person', passive_updates=passive_updates)
+        mapper(
+            Engineer, engineer, inherits=Person,
+            polymorphic_identity='engineer')
+
+        sess = sa.orm.sessionmaker()()
+
+        e1 = Engineer(name='dilbert', primary_language='java')
+        sess.add(e1)
+        sess.commit()
+        e1.name = 'wally'
+        e1.primary_language = 'c++'
+
+        sess.flush()
+
+        eq_(e1.person_name, 'wally')
+
+        sess.expire_all()
+        eq_(e1.primary_language, "c++")
+
+    @testing.requires.on_update_cascade
+    def test_pk_passive(self):
+        self._test_pk(True)
+
+    #@testing.requires.non_updating_cascade
+    def test_pk_nonpassive(self):
+        self._test_pk(False)

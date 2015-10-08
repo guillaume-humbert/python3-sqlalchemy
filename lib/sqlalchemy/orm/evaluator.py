@@ -1,5 +1,5 @@
 # orm/evaluator.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -7,7 +7,6 @@
 
 import operator
 from ..sql import operators
-from .. import util
 
 
 class UnevaluatableError(Exception):
@@ -27,7 +26,6 @@ _notimplemented_ops = set(getattr(operators, op)
 
 
 class EvaluatorCompiler(object):
-
     def __init__(self, target_cls=None):
         self.target_cls = target_cls
 
@@ -55,14 +53,9 @@ class EvaluatorCompiler(object):
             parentmapper = clause._annotations['parentmapper']
             if self.target_cls and not issubclass(
                     self.target_cls, parentmapper.class_):
-                util.warn(
-                    "Can't do in-Python evaluation of criteria against "
-                    "alternate class %s; "
-                    "expiration of objects will not be accurate "
-                    "and/or may fail.  synchronize_session should be set to "
-                    "False or 'fetch'. "
-                    "This warning will be an exception "
-                    "in 1.0." % parentmapper.class_
+                raise UnevaluatableError(
+                    "Can't evaluate criteria against alternate class %s" %
+                    parentmapper.class_
                 )
             key = parentmapper._columntoproperty[clause].key
         else:

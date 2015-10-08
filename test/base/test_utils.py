@@ -6,27 +6,28 @@ from sqlalchemy.testing import eq_, is_, ne_, fails_if
 from sqlalchemy.testing.util import picklers, gc_collect
 from sqlalchemy.util import classproperty, WeakSequence, get_callable_argspec
 from sqlalchemy.sql import column
+from sqlalchemy.util import langhelpers
 
-class KeyedTupleTest():
+
+class _KeyedTupleTest(object):
+
+    def _fixture(self, values, labels):
+        raise NotImplementedError()
 
     def test_empty(self):
-        keyed_tuple = util.KeyedTuple([])
-        eq_(type(keyed_tuple), util.KeyedTuple)
+        keyed_tuple = self._fixture([], [])
         eq_(str(keyed_tuple), '()')
         eq_(len(keyed_tuple), 0)
 
-        eq_(keyed_tuple.__dict__, {'_labels': []})
         eq_(list(keyed_tuple.keys()), [])
         eq_(keyed_tuple._fields, ())
         eq_(keyed_tuple._asdict(), {})
 
     def test_values_but_no_labels(self):
-        keyed_tuple = util.KeyedTuple([1, 2])
-        eq_(type(keyed_tuple), util.KeyedTuple)
+        keyed_tuple = self._fixture([1, 2], [])
         eq_(str(keyed_tuple), '(1, 2)')
         eq_(len(keyed_tuple), 2)
 
-        eq_(keyed_tuple.__dict__, {'_labels': []})
         eq_(list(keyed_tuple.keys()), [])
         eq_(keyed_tuple._fields, ())
         eq_(keyed_tuple._asdict(), {})
@@ -35,14 +36,14 @@ class KeyedTupleTest():
         eq_(keyed_tuple[1], 2)
 
     def test_basic_creation(self):
-        keyed_tuple = util.KeyedTuple([1, 2], ['a', 'b'])
+        keyed_tuple = self._fixture([1, 2], ['a', 'b'])
         eq_(str(keyed_tuple), '(1, 2)')
         eq_(list(keyed_tuple.keys()), ['a', 'b'])
         eq_(keyed_tuple._fields, ('a', 'b'))
         eq_(keyed_tuple._asdict(), {'a': 1, 'b': 2})
 
     def test_basic_index_access(self):
-        keyed_tuple = util.KeyedTuple([1, 2], ['a', 'b'])
+        keyed_tuple = self._fixture([1, 2], ['a', 'b'])
         eq_(keyed_tuple[0], 1)
         eq_(keyed_tuple[1], 2)
 
@@ -51,7 +52,7 @@ class KeyedTupleTest():
         assert_raises(IndexError, should_raise)
 
     def test_basic_attribute_access(self):
-        keyed_tuple = util.KeyedTuple([1, 2], ['a', 'b'])
+        keyed_tuple = self._fixture([1, 2], ['a', 'b'])
         eq_(keyed_tuple.a, 1)
         eq_(keyed_tuple.b, 2)
 
@@ -60,12 +61,9 @@ class KeyedTupleTest():
         assert_raises(AttributeError, should_raise)
 
     def test_none_label(self):
-        keyed_tuple = util.KeyedTuple([1, 2, 3], ['a', None, 'b'])
+        keyed_tuple = self._fixture([1, 2, 3], ['a', None, 'b'])
         eq_(str(keyed_tuple), '(1, 2, 3)')
 
-        # TODO: consider not allowing None labels
-        expected = {'a': 1, None: 2, 'b': 3, '_labels': ['a', None, 'b']}
-        eq_(keyed_tuple.__dict__, expected)
         eq_(list(keyed_tuple.keys()), ['a', 'b'])
         eq_(keyed_tuple._fields, ('a', 'b'))
         eq_(keyed_tuple._asdict(), {'a': 1, 'b': 3})
@@ -80,12 +78,9 @@ class KeyedTupleTest():
         eq_(keyed_tuple[2], 3)
 
     def test_duplicate_labels(self):
-        keyed_tuple = util.KeyedTuple([1, 2, 3], ['a', 'b', 'b'])
+        keyed_tuple = self._fixture([1, 2, 3], ['a', 'b', 'b'])
         eq_(str(keyed_tuple), '(1, 2, 3)')
 
-        # TODO: consider not allowing duplicate labels
-        expected = {'a': 1, 'b': 3, '_labels': ['a', 'b', 'b']}
-        eq_(keyed_tuple.__dict__, expected)
         eq_(list(keyed_tuple.keys()), ['a', 'b', 'b'])
         eq_(keyed_tuple._fields, ('a', 'b', 'b'))
         eq_(keyed_tuple._asdict(), {'a': 1, 'b': 3})
@@ -100,20 +95,40 @@ class KeyedTupleTest():
         eq_(keyed_tuple[2], 3)
 
     def test_immutable(self):
-        keyed_tuple = util.KeyedTuple([1, 2], ['a', 'b'])
+        keyed_tuple = self._fixture([1, 2], ['a', 'b'])
         eq_(str(keyed_tuple), '(1, 2)')
 
-        # attribute access: mutable
         eq_(keyed_tuple.a, 1)
-        keyed_tuple.a = 100
-        eq_(keyed_tuple.a, 100)
-        keyed_tuple.c = 300
-        eq_(keyed_tuple.c, 300)
 
-        # index access: immutable
+        assert_raises(AttributeError, setattr, keyed_tuple, "a", 5)
+
         def should_raise():
             keyed_tuple[0] = 100
         assert_raises(TypeError, should_raise)
+
+    def test_serialize(self):
+
+        keyed_tuple = self._fixture([1, 2, 3], ['a', None, 'b'])
+
+        for loads, dumps in picklers():
+            kt = loads(dumps(keyed_tuple))
+
+            eq_(str(kt), '(1, 2, 3)')
+
+            eq_(list(kt.keys()), ['a', 'b'])
+            eq_(kt._fields, ('a', 'b'))
+            eq_(kt._asdict(), {'a': 1, 'b': 3})
+
+
+class KeyedTupleTest(_KeyedTupleTest, fixtures.TestBase):
+    def _fixture(self, values, labels):
+        return util.KeyedTuple(values, labels)
+
+
+class LWKeyedTupleTest(_KeyedTupleTest, fixtures.TestBase):
+    def _fixture(self, values, labels):
+        return util.lightweight_named_tuple('n', labels)(values)
+
 
 class WeakSequenceTest(fixtures.TestBase):
     @testing.requires.predictable_gc
@@ -268,6 +283,35 @@ class MemoizedAttrTest(fixtures.TestBase):
         eq_(f1.bar(), 20)
         eq_(val[0], 21)
 
+
+class ToListTest(fixtures.TestBase):
+    def test_from_string(self):
+        eq_(
+            util.to_list("xyz"),
+            ["xyz"]
+        )
+
+    def test_from_set(self):
+        spec = util.to_list(set([1, 2, 3]))
+        assert isinstance(spec, list)
+        eq_(
+            sorted(spec),
+            [1, 2, 3]
+        )
+
+    def test_from_dict(self):
+        spec = util.to_list({1: "a", 2: "b", 3: "c"})
+        assert isinstance(spec, list)
+        eq_(
+            sorted(spec),
+            [1, 2, 3]
+        )
+
+    def test_from_tuple(self):
+        eq_(
+            util.to_list((1, 2, 3)),
+            [1, 2, 3]
+        )
 
 class ColumnCollectionTest(fixtures.TestBase):
 
@@ -1258,6 +1302,43 @@ class DuckTypeCollectionTest(fixtures.TestBase):
             is_(util.duck_type_collection(type_), None)
             instance = type_()
             is_(util.duck_type_collection(instance), None)
+
+
+class PublicFactoryTest(fixtures.TestBase):
+
+    def _fixture(self):
+        class Thingy(object):
+            def __init__(self, value):
+                "make a thingy"
+                self.value = value
+
+            @classmethod
+            def foobar(cls, x, y):
+                "do the foobar"
+                return Thingy(x + y)
+
+        return Thingy
+
+    def test_classmethod(self):
+        Thingy = self._fixture()
+        foob = langhelpers.public_factory(
+            Thingy.foobar, ".sql.elements.foob")
+        eq_(foob(3, 4).value, 7)
+        eq_(foob(x=3, y=4).value, 7)
+        eq_(foob.__doc__, "do the foobar")
+        eq_(foob.__module__, "sqlalchemy.sql.elements")
+        assert Thingy.foobar.__doc__.startswith("This function is mirrored;")
+
+    def test_constructor(self):
+        Thingy = self._fixture()
+        foob = langhelpers.public_factory(
+            Thingy, ".sql.elements.foob")
+        eq_(foob(7).value, 7)
+        eq_(foob(value=7).value, 7)
+        eq_(foob.__doc__, "make a thingy")
+        eq_(foob.__module__, "sqlalchemy.sql.elements")
+        assert Thingy.__init__.__doc__.startswith(
+            "Construct a new :class:`.Thingy` object.")
 
 
 class ArgInspectionTest(fixtures.TestBase):

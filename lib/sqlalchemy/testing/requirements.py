@@ -1,5 +1,5 @@
 # testing/requirements.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -16,6 +16,7 @@ to provide specific inclusion/exclusions.
 """
 
 from . import exclusions
+from .. import util
 
 
 class Requirements(object):
@@ -97,6 +98,14 @@ class SuiteRequirements(Requirements):
     def offset(self):
         """target database can render OFFSET, or an equivalent, in a
         SELECT.
+        """
+
+        return exclusions.open()
+
+    @property
+    def bound_limit_offset(self):
+        """target database can render LIMIT and/or OFFSET using a bound
+        parameter
         """
 
         return exclusions.open()
@@ -303,6 +312,25 @@ class SuiteRequirements(Requirements):
     @property
     def foreign_key_constraint_reflection(self):
         return exclusions.open()
+
+    @property
+    def temp_table_reflection(self):
+        return exclusions.open()
+
+    @property
+    def temp_table_names(self):
+        """target dialect supports listing of temporary table names"""
+        return exclusions.closed()
+
+    @property
+    def temporary_tables(self):
+        """target database supports temporary tables"""
+        return exclusions.open()
+
+    @property
+    def temporary_views(self):
+        """target database supports temporary views"""
+        return exclusions.closed()
 
     @property
     def index_reflection(self):
@@ -608,6 +636,38 @@ class SuiteRequirements(Requirements):
         """
         return exclusions.skip_if(
             lambda config: config.options.low_connections)
+
+    @property
+    def timing_intensive(self):
+        return exclusions.requires_tag("timing_intensive")
+
+    @property
+    def memory_intensive(self):
+        return exclusions.requires_tag("memory_intensive")
+
+    @property
+    def threading_with_mock(self):
+        """Mark tests that use threading and mock at the same time - stability
+        issues have been observed with coverage + python 3.3
+
+        """
+        return exclusions.skip_if(
+            lambda config: util.py3k and config.options.has_coverage,
+            "Stability issues with coverage + py3k"
+        )
+
+    @property
+    def no_coverage(self):
+        """Test should be skipped if coverage is enabled.
+
+        This is to block tests that exercise libraries that seem to be
+        sensitive to coverage, such as Postgresql notice logging.
+
+        """
+        return exclusions.skip_if(
+            lambda config: config.options.has_coverage,
+            "Issues observed when coverage is enabled"
+        )
 
     def _has_mysql_on_windows(self, config):
         return False

@@ -1,5 +1,5 @@
 # sql/expression.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -36,7 +36,7 @@ from .elements import ClauseElement, ColumnElement,\
     True_, False_, BinaryExpression, Tuple, TypeClause, Extract, \
     Grouping, not_, \
     collate, literal_column, between,\
-    literal, outparam, type_coerce, ClauseList
+    literal, outparam, type_coerce, ClauseList, FunctionFilter
 
 from .elements import SavepointClause, RollbackToSavepointClause, \
     ReleaseSavepointClause
@@ -47,7 +47,7 @@ from .base import ColumnCollection, Generative, Executable, \
 from .selectable import Alias, Join, Select, Selectable, TableClause, \
     CompoundSelect, CTE, FromClause, FromGrouping, SelectBase, \
     alias, GenerativeSelect, \
-    subquery, HasPrefixes, Exists, ScalarSelect, TextAsFrom
+    subquery, HasPrefixes, HasSuffixes, Exists, ScalarSelect, TextAsFrom
 
 
 from .dml import Insert, Update, Delete, UpdateBase, ValuesBase
@@ -89,14 +89,16 @@ asc = public_factory(UnaryExpression._create_asc, ".expression.asc")
 desc = public_factory(UnaryExpression._create_desc, ".expression.desc")
 distinct = public_factory(
     UnaryExpression._create_distinct, ".expression.distinct")
-true = public_factory(True_._singleton, ".expression.true")
-false = public_factory(False_._singleton, ".expression.false")
-null = public_factory(Null._singleton, ".expression.null")
+true = public_factory(True_._instance, ".expression.true")
+false = public_factory(False_._instance, ".expression.false")
+null = public_factory(Null._instance, ".expression.null")
 join = public_factory(Join._create_join, ".expression.join")
 outerjoin = public_factory(Join._create_outerjoin, ".expression.outerjoin")
 insert = public_factory(Insert, ".expression.insert")
 update = public_factory(Update, ".expression.update")
 delete = public_factory(Delete, ".expression.delete")
+funcfilter = public_factory(
+    FunctionFilter, ".expression.funcfilter")
 
 
 # internal functions still being called from tests and the ORM,
@@ -106,7 +108,8 @@ from .elements import _literal_as_text, _clause_element_as_expr,\
     _is_column, _labeled, _only_column_elements, _string_or_unprintable, \
     _truncated_label, _clone, _cloned_difference, _cloned_intersection,\
     _column_as_key, _literal_as_binds, _select_iterables, \
-    _corresponding_column_or_error
+    _corresponding_column_or_error, _literal_as_label_reference, \
+    _expression_literal_as_text
 from .selectable import _interpret_as_from
 
 

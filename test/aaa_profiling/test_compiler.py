@@ -1,6 +1,9 @@
-from sqlalchemy import *
-from sqlalchemy.testing import *
 from sqlalchemy.engine import default
+from sqlalchemy.testing import fixtures, AssertsExecutionResults, profiling
+from sqlalchemy import MetaData, Table, Column, Integer, String, select
+
+t1 = t2 = None
+
 
 class CompileTest(fixtures.TestBase, AssertsExecutionResults):
     __requires__ = 'cpython',
@@ -12,12 +15,12 @@ class CompileTest(fixtures.TestBase, AssertsExecutionResults):
         global t1, t2, metadata
         metadata = MetaData()
         t1 = Table('t1', metadata,
-            Column('c1', Integer, primary_key=True),
-            Column('c2', String(30)))
+                   Column('c1', Integer, primary_key=True),
+                   Column('c2', String(30)))
 
         t2 = Table('t2', metadata,
-            Column('c1', Integer, primary_key=True),
-            Column('c2', String(30)))
+                   Column('c1', Integer, primary_key=True),
+                   Column('c2', String(30)))
 
         # do a "compile" ahead of time to load
         # deferred imports
@@ -39,7 +42,7 @@ class CompileTest(fixtures.TestBase, AssertsExecutionResults):
     def test_insert(self):
         t1.insert().compile(dialect=self.dialect)
 
-    @profiling.function_call_count()
+    @profiling.function_call_count(variance=.15)
     def test_update(self):
         t1.update().compile(dialect=self.dialect)
 

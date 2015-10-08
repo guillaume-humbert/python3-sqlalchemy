@@ -1,5 +1,5 @@
 # orm/instrumentation.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -35,12 +35,16 @@ from .. import util
 from . import base
 
 
-class ClassManager(dict):
+_memoized_key_collection = util.group_expirable_memoized_property()
 
+
+class ClassManager(dict):
     """tracks state information at the class level."""
 
     MANAGER_ATTR = base.DEFAULT_MANAGER_ATTR
     STATE_ATTR = base.DEFAULT_STATE_ATTR
+
+    _state_setter = staticmethod(util.attrsetter(STATE_ATTR))
 
     deferred_scalar_loader = None
 
@@ -91,6 +95,21 @@ class ClassManager(dict):
     def is_mapped(self):
         return 'mapper' in self.__dict__
 
+    @_memoized_key_collection
+    def _all_key_set(self):
+        return frozenset(self)
+
+    @_memoized_key_collection
+    def _collection_impl_keys(self):
+        return frozenset([
+            attr.key for attr in self.values() if attr.impl.collection])
+
+    @_memoized_key_collection
+    def _scalar_loader_impls(self):
+        return frozenset([
+            attr.impl for attr in
+            self.values() if attr.impl.accepts_scalar_loader])
+
     @util.memoized_property
     def mapper(self):
         # raises unless self.mapper has been assigned
@@ -98,7 +117,7 @@ class ClassManager(dict):
 
     def _all_sqla_attributes(self, exclude=None):
         """return an iterator of all classbound attributes that are
-        implement :class:`._InspectionAttr`.
+        implement :class:`.InspectionAttr`.
 
         This includes :class:`.QueryableAttribute` as well as extension
         types such as :class:`.hybrid_property` and
@@ -111,7 +130,7 @@ class ClassManager(dict):
             for key in set(supercls.__dict__).difference(exclude):
                 exclude.add(key)
                 val = supercls.__dict__[key]
-                if isinstance(val, interfaces._InspectionAttr):
+                if isinstance(val, interfaces.InspectionAttr):
                     yield key, val
 
     def _attr_has_impl(self, key):
@@ -194,6 +213,7 @@ class ClassManager(dict):
         else:
             self.local_attrs[key] = inst
             self.install_descriptor(key, inst)
+        _memoized_key_collection.expire_instance(self)
         self[key] = inst
 
         for cls in self.class_.__subclasses__():
@@ -222,6 +242,7 @@ class ClassManager(dict):
         else:
             del self.local_attrs[key]
             self.uninstall_descriptor(key)
+        _memoized_key_collection.expire_instance(self)
         del self[key]
         for cls in self.class_.__subclasses__():
             manager = manager_of_class(cls)
@@ -289,13 +310,15 @@ class ClassManager(dict):
 
     def new_instance(self, state=None):
         instance = self.class_.__new__(self.class_)
-        setattr(instance, self.STATE_ATTR,
-                state or self._state_constructor(instance, self))
+        if state is None:
+            state = self._state_constructor(instance, self)
+        self._state_setter(instance, state)
         return instance
 
     def setup_instance(self, instance, state=None):
-        setattr(instance, self.STATE_ATTR,
-                state or self._state_constructor(instance, self))
+        if state is None:
+            state = self._state_constructor(instance, self)
+        self._state_setter(instance, state)
 
     def teardown_instance(self, instance):
         delattr(instance, self.STATE_ATTR)
@@ -322,7 +345,7 @@ class ClassManager(dict):
                 _new_state_if_none(instance)
         else:
             state = self._state_constructor(instance, self)
-            setattr(instance, self.STATE_ATTR, state)
+            self._state_setter(instance, state)
             return state
 
     def has_state(self, instance):
@@ -344,7 +367,6 @@ class ClassManager(dict):
 
 
 class _SerializeManager(object):
-
     """Provide serialization of a :class:`.ClassManager`.
 
     The :class:`.InstanceState` uses ``__init__()`` on serialize
@@ -379,7 +401,6 @@ class _SerializeManager(object):
 
 
 class InstrumentationFactory(object):
-
     """Factory for new ClassManager instances."""
 
     def create_manager_for_cls(self, class_):

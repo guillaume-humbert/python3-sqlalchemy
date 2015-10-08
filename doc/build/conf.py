@@ -34,13 +34,10 @@ import sqlalchemy
 extensions = [
             'sphinx.ext.autodoc',
             'sphinx.ext.intersphinx',
-                'builder.autodoc_mods',
+                'zzzeeksphinx',
                 'changelog',
                 'sphinx_paramlinks',
-                'builder.dialect_info',
-                'builder.mako',
-                'builder.sqlformatter',
-                'builder.viewsource',
+                #'corrections'
             ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -61,7 +58,7 @@ changelog_sections = ["general", "orm", "orm declarative", "orm querying", \
                 "postgresql", "mysql", "sqlite", "mssql", \
                 "oracle", "firebird"]
 # tags to sort on inside of sections
-changelog_inner_tag_sort = ["feature", "bug", "moved", "changed", "removed"]
+changelog_inner_tag_sort = ["feature", "changed", "removed", "bug", "moved"]
 
 # how to render changelog links
 changelog_render_ticket = "http://www.sqlalchemy.org/trac/ticket/%s"
@@ -74,6 +71,23 @@ changelog_render_pullreq = {
 
 changelog_render_changeset = "http://www.sqlalchemy.org/trac/changeset/%s"
 
+autodocmods_convert_modname = {
+    "sqlalchemy.sql.sqltypes": "sqlalchemy.types",
+    "sqlalchemy.sql.type_api": "sqlalchemy.types",
+    "sqlalchemy.sql.schema": "sqlalchemy.schema",
+    "sqlalchemy.sql.elements": "sqlalchemy.sql.expression",
+    "sqlalchemy.sql.selectable": "sqlalchemy.sql.expression",
+    "sqlalchemy.sql.dml": "sqlalchemy.sql.expression",
+    "sqlalchemy.sql.ddl": "sqlalchemy.schema",
+    "sqlalchemy.sql.base": "sqlalchemy.sql.expression",
+    "sqlalchemy.engine.base": "sqlalchemy.engine",
+    "sqlalchemy.engine.result": "sqlalchemy.engine",
+}
+
+autodocmods_convert_modname_w_class = {
+    ("sqlalchemy.engine.interfaces", "Connectable"): "sqlalchemy.engine",
+    ("sqlalchemy.sql.base", "DialectKWArgs"): "sqlalchemy.sql.base",
+}
 
 # The encoding of source files.
 #source_encoding = 'utf-8-sig'
@@ -83,20 +97,22 @@ master_doc = 'contents'
 
 # General information about the project.
 project = u'SQLAlchemy'
-copyright = u'2007-2014, the SQLAlchemy authors and contributors'
+copyright = u'2007-2015, the SQLAlchemy authors and contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = "0.9"
+version = "1.0"
 # The full version, including alpha/beta/rc tags.
-release = "0.9.8"
+release = "1.0.4"
 
-release_date = "October 13, 2014"
+release_date = "May 7, 2015"
 
 site_base = os.environ.get("RTD_SITE_BASE", "http://www.sqlalchemy.org")
+site_adapter_template = "docs_adapter.mako"
+site_adapter_py = "docs_adapter.py"
 
 # arbitrary number recognized by builders.py, incrementing this
 # will force a rebuild
@@ -144,7 +160,7 @@ gettext_compact = False
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+html_theme = 'zzzeeksphinx'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -178,7 +194,7 @@ html_title = "%s %s Documentation" % (project, version)
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['static']
+html_static_path = []
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -291,7 +307,7 @@ man_pages = [
 epub_title = u'SQLAlchemy'
 epub_author = u'SQLAlchemy authors'
 epub_publisher = u'SQLAlchemy authors'
-epub_copyright = u'2007-2014, SQLAlchemy authors'
+epub_copyright = u'2007-2015, SQLAlchemy authors'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
@@ -328,3 +344,5 @@ intersphinx_mapping = {
     'alembic': ('http://alembic.readthedocs.org/en/latest/', None),
     'psycopg2': ('http://pythonhosted.org/psycopg2', None),
 }
+
+

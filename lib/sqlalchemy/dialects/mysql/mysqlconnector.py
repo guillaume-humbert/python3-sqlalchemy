@@ -1,5 +1,5 @@
 # mysql/mysqlconnector.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -13,6 +13,12 @@
 <host>[:<port>]/<dbname>
     :url: http://dev.mysql.com/downloads/connector/python/
 
+
+Unicode
+-------
+
+Please see :ref:`mysql_unicode` for current recommendations on unicode
+handling.
 
 """
 
@@ -108,8 +114,10 @@ class MySQLDialect_mysqlconnector(MySQLDialect):
 
         util.coerce_kw_type(opts, 'buffered', bool)
         util.coerce_kw_type(opts, 'raise_on_warnings', bool)
+
+        # unfortunately, MySQL/connector python refuses to release a
+        # cursor without reading fully, so non-buffered isn't an option
         opts.setdefault('buffered', True)
-        opts.setdefault('raise_on_warnings', True)
 
         # FOUND_ROWS must be set in ClientFlag to enable
         # supports_sane_rowcount.
@@ -120,7 +128,7 @@ class MySQLDialect_mysqlconnector(MySQLDialect):
                     'client_flags', ClientFlag.get_default())
                 client_flags |= ClientFlag.FOUND_ROWS
                 opts['client_flags'] = client_flags
-            except:
+            except Exception:
                 pass
         return [[], opts]
 

@@ -40,11 +40,11 @@ following text represents the expected return value.
 Version Check
 =============
 
-A quick check to verify that we are on at least **version 0.9** of SQLAlchemy::
+A quick check to verify that we are on at least **version 1.0** of SQLAlchemy::
 
     >>> import sqlalchemy
     >>> sqlalchemy.__version__ # doctest:+SKIP
-    0.9.0
+    1.0.0
 
 Connecting
 ==========
@@ -982,6 +982,11 @@ completely "raw", using string names to identify desired columns:
     ('ed',)
     {stop}[(1, u'ed', 12)]
 
+.. versionchanged:: 1.0.0
+   The :class:`.Query` construct emits warnings when string SQL
+   fragments are coerced to :func:`.text`, and :func:`.text` should
+   be used explicitly.  See :ref:`migration_2992` for background.
+
 .. seealso::
 
     :ref:`sqlexpression_text` - Core description of textual segments.  The
@@ -1625,6 +1630,13 @@ very easy to use:
 
     >>> jack.addresses
     [<Address(email_address='jack@google.com')>, <Address(email_address='j25@yahoo.com')>]
+
+.. note::
+
+   :func:`.subqueryload` when used in conjunction with limiting such as
+   :meth:`.Query.first`, :meth:`.Query.limit` or :meth:`.Query.offset`
+   should also include :meth:`.Query.order_by` on a unique column in order to
+   ensure correct results.  See :ref:`subqueryload_ordering`.
 
 Joined Load
 -------------

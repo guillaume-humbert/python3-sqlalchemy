@@ -2,19 +2,24 @@ from sqlalchemy import (
     testing, null, exists, text, union, literal, literal_column, func, between,
     Unicode, desc, and_, bindparam, select, distinct, or_, collate, insert,
     Integer, String, Boolean, exc as sa_exc, util, cast)
-from sqlalchemy.sql import operators, column, expression
+from sqlalchemy.sql import operators, expression
+from sqlalchemy import column, table
 from sqlalchemy.engine import default
 from sqlalchemy.orm import (
     attributes, mapper, relationship, create_session, synonym, Session,
-    aliased, column_property, joinedload_all, joinedload, Query, Bundle)
+    aliased, column_property, joinedload_all, joinedload, Query, Bundle,
+    subqueryload, backref, lazyload, defer)
 from sqlalchemy.testing.assertsql import CompiledSQL
 from sqlalchemy.testing.schema import Table, Column
 import sqlalchemy as sa
 from sqlalchemy.testing.assertions import (
-    eq_, assert_raises, assert_raises_message)
-from sqlalchemy.testing import fixtures, AssertsCompiledSQL
+    eq_, assert_raises, assert_raises_message, expect_warnings)
+from sqlalchemy.testing import fixtures, AssertsCompiledSQL, assert_warnings
 from test.orm import _fixtures
 from sqlalchemy.orm.util import join, with_parent
+import contextlib
+from sqlalchemy.testing import mock, is_, is_not_
+from sqlalchemy import inspect
 
 
 class QueryTest(_fixtures.FixtureTest):
@@ -64,27 +69,29 @@ class RowTupleTest(QueryTest):
         mapper(Address, addresses)
         sess = create_session()
         user_alias = aliased(User)
+        user_alias_id_label = user_alias.id.label('foo')
         address_alias = aliased(Address, name='aalias')
         fn = func.count(User.id)
         name_label = User.name.label('uname')
         bundle = Bundle('b1', User.id, User.name)
+        cte = sess.query(User.id).cte()
         for q, asserted in [
             (
                 sess.query(User),
                 [
                     {
                         'name': 'User', 'type': User, 'aliased': False,
-                        'expr': User}]
+                        'expr': User, 'entity': User}]
             ),
             (
                 sess.query(User.id, User),
                 [
                     {
                         'name': 'id', 'type': users.c.id.type,
-                        'aliased': False, 'expr': User.id},
+                        'aliased': False, 'expr': User.id, 'entity': User},
                     {
                         'name': 'User', 'type': User, 'aliased': False,
-                        'expr': User}
+                        'expr': User, 'entity': User}
                 ]
             ),
             (
@@ -92,10 +99,28 @@ class RowTupleTest(QueryTest):
                 [
                     {
                         'name': 'id', 'type': users.c.id.type,
-                        'aliased': False, 'expr': User.id},
+                        'aliased': False, 'expr': User.id, 'entity': User},
                     {
                         'name': None, 'type': User, 'aliased': True,
-                        'expr': user_alias}
+                        'expr': user_alias, 'entity': user_alias}
+                ]
+            ),
+            (
+                sess.query(user_alias.id),
+                [
+                    {
+                        'name': 'id', 'type': users.c.id.type,
+                        'aliased': True, 'expr': user_alias.id,
+                        'entity': user_alias},
+                ]
+            ),
+            (
+                sess.query(user_alias_id_label),
+                [
+                    {
+                        'name': 'foo', 'type': users.c.id.type,
+                        'aliased': True, 'expr': user_alias_id_label,
+                        'entity': user_alias},
                 ]
             ),
             (
@@ -103,7 +128,7 @@ class RowTupleTest(QueryTest):
                 [
                     {
                         'name': 'aalias', 'type': Address, 'aliased': True,
-                        'expr': address_alias}
+                        'expr': address_alias, 'entity': address_alias}
                 ]
             ),
             (
@@ -111,19 +136,48 @@ class RowTupleTest(QueryTest):
                 [
                     {
                         'name': 'uname', 'type': users.c.name.type,
-                        'aliased': False, 'expr': name_label},
+                        'aliased': False, 'expr': name_label, 'entity': User},
                     {
                         'name': None, 'type': fn.type, 'aliased': False,
-                        'expr': fn},
+                        'expr': fn, 'entity': User},
                 ]
+            ),
+            (
+                sess.query(cte),
+                [
+                {
+                    'aliased': False,
+                    'expr': cte.c.id, 'type': cte.c.id.type,
+                    'name': 'id', 'entity': None
+                }]
+            ),
+            (
+                sess.query(users),
+                [
+                    {'aliased': False,
+                     'expr': users.c.id, 'type': users.c.id.type,
+                     'name': 'id', 'entity': None},
+                    {'aliased': False,
+                     'expr': users.c.name, 'type': users.c.name.type,
+                     'name': 'name', 'entity': None}
+                ]
+            ),
+            (
+                sess.query(users.c.name),
+                [{
+                    "name": "name", "type": users.c.name.type,
+                    "aliased": False, "expr": users.c.name, "entity": None
+                }]
             ),
             (
                 sess.query(bundle),
                 [
-                    {'aliased': False,
-                    'expr': bundle,
-                    'type': Bundle,
-                    'name': 'b1'}
+                    {
+                        'aliased': False,
+                        'expr': bundle,
+                        'type': Bundle,
+                        'name': 'b1', 'entity': User
+                    }
                 ]
             )
         ]:
@@ -688,39 +742,6 @@ class InvalidGenerationsTest(QueryTest, AssertsCompiledSQL):
             text("select * from table"))
         assert_raises(sa_exc.InvalidRequestError, q.with_polymorphic, User)
 
-    def test_cancel_order_by(self):
-        User = self.classes.User
-
-        s = create_session()
-
-        q = s.query(User).order_by(User.id)
-        self.assert_compile(
-            q,
-            "SELECT users.id AS users_id, users.name AS users_name "
-            "FROM users ORDER BY users.id",
-            use_default_dialect=True)
-
-        assert_raises(
-            sa_exc.InvalidRequestError, q._no_select_modifiers, "foo")
-
-        q = q.order_by(None)
-        self.assert_compile(
-            q,
-            "SELECT users.id AS users_id, users.name AS users_name FROM users",
-            use_default_dialect=True)
-
-        assert_raises(
-            sa_exc.InvalidRequestError, q._no_select_modifiers, "foo")
-
-        q = q.order_by(False)
-        self.assert_compile(
-            q,
-            "SELECT users.id AS users_id, users.name AS users_name FROM users",
-            use_default_dialect=True)
-
-        # after False was set, this should pass
-        q._no_select_modifiers("foo")
-
     def test_mapper_zero(self):
         User, Address = self.classes.User, self.classes.Address
 
@@ -745,11 +766,11 @@ class InvalidGenerationsTest(QueryTest, AssertsCompiledSQL):
             q = meth(q, *arg, **kw)
             assert_raises(
                 sa_exc.InvalidRequestError,
-                q.from_statement, "x"
+                q.from_statement, text("x")
             )
 
             q = s.query(User)
-            q = q.from_statement("x")
+            q = q.from_statement(text("x"))
             assert_raises(
                 sa_exc.InvalidRequestError,
                 meth, q, *arg, **kw
@@ -761,7 +782,7 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
 
     __dialect__ = 'default'
 
-    def _test(self, clause, expected, entity=None):
+    def _test(self, clause, expected, entity=None, checkparams=None):
         dialect = default.DefaultDialect()
         if entity is not None:
             # specify a lead entity, so that when we are testing
@@ -773,7 +794,21 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
             lead = context.statement.compile(dialect=dialect)
             expected = (str(lead) + " WHERE " + expected).replace("\n", "")
             clause = sess.query(entity).filter(clause)
-        self.assert_compile(clause, expected)
+        self.assert_compile(clause, expected, checkparams=checkparams)
+
+    def _test_filter_aliases(
+            self,
+            clause, expected, from_, onclause, checkparams=None):
+        dialect = default.DefaultDialect()
+        sess = Session()
+        lead = sess.query(from_).join(onclause, aliased=True)
+        full = lead.filter(clause)
+        context = lead._compile_context()
+        context.statement.use_labels = True
+        lead = context.statement.compile(dialect=dialect)
+        expected = (str(lead) + " WHERE " + expected).replace("\n", "")
+
+        self.assert_compile(full, expected, checkparams=checkparams)
 
     def test_arithmetic(self):
         User = self.classes.User
@@ -793,7 +828,7 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
                 (literal(5), 'b', ':param_1 %s :param_2'),
                 (literal(5), User.id, ':param_1 %s users.id'),
                 (literal(5), literal(6), ':param_1 %s :param_2'),
-                ):
+            ):
                 self._test(py_op(lhs, rhs), res % sql_op)
 
     def test_comparison(self):
@@ -821,7 +856,7 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
                     (User.id, ualias.name, 'users.id', 'users_1.name'),
                     (User.name, ualias.name, 'users.name', 'users_1.name'),
                     (ualias.name, User.name, 'users_1.name', 'users.name'),
-                    ):
+            ):
 
                 # the compiled clause should match either (e.g.):
                 # 'a' < 'b' -or- 'b' > 'a'.
@@ -834,17 +869,69 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
                              "\n'" + compiled + "'\n does not match\n'" +
                              fwd_sql + "'\n or\n'" + rev_sql + "'")
 
-    def test_negated_null(self):
-        User, Address = self.classes.User, self.classes.Address
+    def test_o2m_compare_to_null(self):
+        User = self.classes.User
 
         self._test(User.id == None, "users.id IS NULL")
+        self._test(User.id != None, "users.id IS NOT NULL")
         self._test(~(User.id == None), "users.id IS NOT NULL")
+        self._test(~(User.id != None), "users.id IS NULL")
         self._test(None == User.id, "users.id IS NULL")
         self._test(~(None == User.id), "users.id IS NOT NULL")
+
+    def test_m2o_compare_to_null(self):
+        Address = self.classes.Address
         self._test(Address.user == None, "addresses.user_id IS NULL")
         self._test(~(Address.user == None), "addresses.user_id IS NOT NULL")
+        self._test(~(Address.user != None), "addresses.user_id IS NULL")
         self._test(None == Address.user, "addresses.user_id IS NULL")
         self._test(~(None == Address.user), "addresses.user_id IS NOT NULL")
+
+    def test_o2m_compare_to_null_orm_adapt(self):
+        User, Address = self.classes.User, self.classes.Address
+        self._test_filter_aliases(
+            User.id == None,
+            "users_1.id IS NULL", Address, Address.user),
+        self._test_filter_aliases(
+            User.id != None,
+            "users_1.id IS NOT NULL", Address, Address.user),
+        self._test_filter_aliases(
+            ~(User.id == None),
+            "users_1.id IS NOT NULL", Address, Address.user),
+        self._test_filter_aliases(
+            ~(User.id != None),
+            "users_1.id IS NULL", Address, Address.user),
+
+    def test_m2o_compare_to_null_orm_adapt(self):
+        User, Address = self.classes.User, self.classes.Address
+        self._test_filter_aliases(
+            Address.user == None,
+            "addresses_1.user_id IS NULL", User, User.addresses),
+        self._test_filter_aliases(
+            Address.user != None,
+            "addresses_1.user_id IS NOT NULL", User, User.addresses),
+        self._test_filter_aliases(
+            ~(Address.user == None),
+            "addresses_1.user_id IS NOT NULL", User, User.addresses),
+        self._test_filter_aliases(
+            ~(Address.user != None),
+            "addresses_1.user_id IS NULL", User, User.addresses),
+
+    def test_o2m_compare_to_null_aliased(self):
+        User = self.classes.User
+        u1 = aliased(User)
+        self._test(u1.id == None, "users_1.id IS NULL")
+        self._test(u1.id != None, "users_1.id IS NOT NULL")
+        self._test(~(u1.id == None), "users_1.id IS NOT NULL")
+        self._test(~(u1.id != None), "users_1.id IS NULL")
+
+    def test_m2o_compare_to_null_aliased(self):
+        Address = self.classes.Address
+        a1 = aliased(Address)
+        self._test(a1.user == None, "addresses_1.user_id IS NULL")
+        self._test(~(a1.user == None), "addresses_1.user_id IS NOT NULL")
+        self._test(a1.user != None, "addresses_1.user_id IS NOT NULL")
+        self._test(~(a1.user != None), "addresses_1.user_id IS NULL")
 
     def test_relationship_unimplemented(self):
         User = self.classes.User
@@ -856,9 +943,8 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
         ]:
             assert_raises(NotImplementedError, op, "x")
 
-    def test_relationship(self):
+    def test_o2m_any(self):
         User, Address = self.classes.User, self.classes.Address
-
         self._test(
             User.addresses.any(Address.id == 17),
             "EXISTS (SELECT 1 FROM addresses "
@@ -866,17 +952,149 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
             entity=User
         )
 
-        u7 = User(id=7)
+    def test_o2m_any_aliased(self):
+        User, Address = self.classes.User, self.classes.Address
+        u1 = aliased(User)
+        a1 = aliased(Address)
+        self._test(
+            u1.addresses.of_type(a1).any(a1.id == 17),
+            "EXISTS (SELECT 1 FROM addresses AS addresses_1 "
+            "WHERE users_1.id = addresses_1.user_id AND "
+            "addresses_1.id = :id_1)",
+            entity=u1
+        )
+
+    def test_o2m_any_orm_adapt(self):
+        User, Address = self.classes.User, self.classes.Address
+        self._test_filter_aliases(
+            User.addresses.any(Address.id == 17),
+            "EXISTS (SELECT 1 FROM addresses "
+            "WHERE users_1.id = addresses.user_id AND addresses.id = :id_1)",
+            Address, Address.user
+        )
+
+    def test_m2o_compare_instance(self):
+        User, Address = self.classes.User, self.classes.Address
+        u7 = User(id=5)
         attributes.instance_state(u7)._commit_all(attributes.instance_dict(u7))
+        u7.id = 7
 
         self._test(Address.user == u7, ":param_1 = addresses.user_id")
 
-        self._test(Address.user != u7,
-                "addresses.user_id != :user_id_1 OR addresses.user_id IS NULL")
+    def test_m2o_compare_instance_negated(self):
+        User, Address = self.classes.User, self.classes.Address
+        u7 = User(id=5)
+        attributes.instance_state(u7)._commit_all(attributes.instance_dict(u7))
+        u7.id = 7
 
-        self._test(Address.user == None, "addresses.user_id IS NULL")
+        self._test(
+            Address.user != u7,
+            "addresses.user_id != :user_id_1 OR addresses.user_id IS NULL",
+            checkparams={'user_id_1': 7})
 
-        self._test(Address.user != None, "addresses.user_id IS NOT NULL")
+    def test_m2o_compare_instance_orm_adapt(self):
+        User, Address = self.classes.User, self.classes.Address
+        u7 = User(id=5)
+        attributes.instance_state(u7)._commit_all(attributes.instance_dict(u7))
+        u7.id = 7
+
+        self._test_filter_aliases(
+            Address.user == u7,
+            ":param_1 = addresses_1.user_id", User, User.addresses,
+            checkparams={'param_1': 7}
+        )
+
+    def test_m2o_compare_instance_negated_warn_on_none(self):
+        User, Address = self.classes.User, self.classes.Address
+
+        u7_transient = User(id=None)
+
+        with expect_warnings("Got None for value of column users.id; "):
+            self._test_filter_aliases(
+                Address.user != u7_transient,
+                "addresses_1.user_id != :user_id_1 "
+                "OR addresses_1.user_id IS NULL",
+                User, User.addresses,
+                checkparams={'user_id_1': None}
+            )
+
+    def test_m2o_compare_instance_negated_orm_adapt(self):
+        User, Address = self.classes.User, self.classes.Address
+        u7 = User(id=5)
+        attributes.instance_state(u7)._commit_all(attributes.instance_dict(u7))
+        u7.id = 7
+
+        u7_transient = User(id=7)
+
+        self._test_filter_aliases(
+            Address.user != u7,
+            "addresses_1.user_id != :user_id_1 OR addresses_1.user_id IS NULL",
+            User, User.addresses,
+            checkparams={'user_id_1': 7}
+        )
+
+        self._test_filter_aliases(
+            ~(Address.user == u7), ":param_1 != addresses_1.user_id",
+            User, User.addresses,
+            checkparams={'param_1': 7}
+        )
+
+        self._test_filter_aliases(
+            ~(Address.user != u7),
+            "NOT (addresses_1.user_id != :user_id_1 "
+            "OR addresses_1.user_id IS NULL)", User, User.addresses,
+            checkparams={'user_id_1': 7}
+        )
+
+        self._test_filter_aliases(
+            Address.user != u7_transient,
+            "addresses_1.user_id != :user_id_1 OR addresses_1.user_id IS NULL",
+            User, User.addresses,
+            checkparams={'user_id_1': 7}
+        )
+
+        self._test_filter_aliases(
+            ~(Address.user == u7_transient), ":param_1 != addresses_1.user_id",
+            User, User.addresses,
+            checkparams={'param_1': 7}
+        )
+
+        self._test_filter_aliases(
+            ~(Address.user != u7_transient),
+            "NOT (addresses_1.user_id != :user_id_1 "
+            "OR addresses_1.user_id IS NULL)", User, User.addresses,
+            checkparams={'user_id_1': 7}
+        )
+
+    def test_m2o_compare_instance_aliased(self):
+        User, Address = self.classes.User, self.classes.Address
+        u7 = User(id=5)
+        attributes.instance_state(u7)._commit_all(attributes.instance_dict(u7))
+        u7.id = 7
+
+        u7_transient = User(id=7)
+
+        a1 = aliased(Address)
+        self._test(
+            a1.user == u7,
+            ":param_1 = addresses_1.user_id",
+            checkparams={'param_1': 7})
+
+        self._test(
+            a1.user != u7,
+            "addresses_1.user_id != :user_id_1 OR addresses_1.user_id IS NULL",
+            checkparams={'user_id_1': 7})
+
+        a1 = aliased(Address)
+        self._test(
+            a1.user == u7_transient,
+            ":param_1 = addresses_1.user_id",
+            checkparams={'param_1': 7})
+
+        self._test(
+            a1.user != u7_transient,
+            "addresses_1.user_id != :user_id_1 OR addresses_1.user_id IS NULL",
+            checkparams={'user_id_1': 7})
 
     def test_selfref_relationship(self):
 
@@ -889,7 +1107,8 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
             Node.children.any(Node.data == 'n1'),
             "EXISTS (SELECT 1 FROM nodes AS nodes_1 WHERE "
             "nodes.id = nodes_1.parent_id AND nodes_1.data = :data_1)",
-            entity=Node
+            entity=Node,
+            checkparams={'data_1': 'n1'}
         )
 
         # needs autoaliasing
@@ -897,31 +1116,43 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
             Node.children == None,
             "NOT (EXISTS (SELECT 1 FROM nodes AS nodes_1 "
             "WHERE nodes.id = nodes_1.parent_id))",
-            entity=Node
+            entity=Node,
+            checkparams={}
         )
 
         self._test(
             Node.parent == None,
-            "nodes.parent_id IS NULL"
+            "nodes.parent_id IS NULL",
+            checkparams={}
         )
 
         self._test(
             nalias.parent == None,
-            "nodes_1.parent_id IS NULL"
+            "nodes_1.parent_id IS NULL",
+            checkparams={}
+        )
+
+        self._test(
+            nalias.parent != None,
+            "nodes_1.parent_id IS NOT NULL",
+            checkparams={}
         )
 
         self._test(
             nalias.children == None,
             "NOT (EXISTS ("
             "SELECT 1 FROM nodes WHERE nodes_1.id = nodes.parent_id))",
-            entity=nalias
+            entity=nalias,
+            checkparams={}
         )
 
         self._test(
             nalias.children.any(Node.data == 'some data'),
             "EXISTS (SELECT 1 FROM nodes WHERE "
             "nodes_1.id = nodes.parent_id AND nodes.data = :data_1)",
-            entity=nalias)
+            entity=nalias,
+            checkparams={'data_1': 'some data'}
+            )
 
         # this fails because self-referential any() is auto-aliasing;
         # the fact that we use "nalias" here means we get two aliases.
@@ -936,33 +1167,48 @@ class OperatorTest(QueryTest, AssertsCompiledSQL):
             nalias.parent.has(Node.data == 'some data'),
             "EXISTS (SELECT 1 FROM nodes WHERE nodes.id = nodes_1.parent_id "
             "AND nodes.data = :data_1)",
-            entity=nalias
+            entity=nalias,
+            checkparams={'data_1': 'some data'}
         )
 
         self._test(
             Node.parent.has(Node.data == 'some data'),
             "EXISTS (SELECT 1 FROM nodes AS nodes_1 WHERE "
             "nodes_1.id = nodes.parent_id AND nodes_1.data = :data_1)",
-            entity=Node
+            entity=Node,
+            checkparams={'data_1': 'some data'}
         )
 
         self._test(
             Node.parent == Node(id=7),
-            ":param_1 = nodes.parent_id"
+            ":param_1 = nodes.parent_id",
+            checkparams={"param_1": 7}
         )
 
         self._test(
             nalias.parent == Node(id=7),
-            ":param_1 = nodes_1.parent_id"
+            ":param_1 = nodes_1.parent_id",
+            checkparams={"param_1": 7}
         )
 
         self._test(
             nalias.parent != Node(id=7),
-            'nodes_1.parent_id != :parent_id_1 OR nodes_1.parent_id IS NULL'
+            'nodes_1.parent_id != :parent_id_1 '
+            'OR nodes_1.parent_id IS NULL',
+            checkparams={"parent_id_1": 7}
         )
 
         self._test(
-            nalias.children.contains(Node(id=7)), "nodes_1.id = :param_1"
+            nalias.parent != Node(id=7),
+            'nodes_1.parent_id != :parent_id_1 '
+            'OR nodes_1.parent_id IS NULL',
+            checkparams={"parent_id_1": 7}
+        )
+
+        self._test(
+            nalias.children.contains(Node(id=7, parent_id=12)),
+            "nodes_1.id = :param_1",
+            checkparams={"param_1": 12}
         )
 
     def test_multilevel_any(self):
@@ -1230,6 +1476,248 @@ class ExpressionTest(QueryTest, AssertsCompiledSQL):
                     Address(email_address='jack@bean.com', user_id=7, id=1))])
 
 
+class ColumnPropertyTest(_fixtures.FixtureTest, AssertsCompiledSQL):
+    __dialect__ = 'default'
+    run_setup_mappers = 'each'
+
+    def _fixture(self, label=True, polymorphic=False):
+        User, Address = self.classes("User", "Address")
+        users, addresses = self.tables("users", "addresses")
+        stmt = select([func.max(addresses.c.email_address)]).\
+            where(addresses.c.user_id == users.c.id).\
+            correlate(users)
+        if label:
+            stmt = stmt.label("email_ad")
+
+        mapper(User, users, properties={
+            "ead": column_property(stmt)
+        }, with_polymorphic="*" if polymorphic else None)
+        mapper(Address, addresses)
+
+    def test_order_by_column_prop_string(self):
+        User, Address = self.classes("User", "Address")
+        self._fixture(label=True)
+
+        s = Session()
+        q = s.query(User).order_by("email_ad")
+        self.assert_compile(
+            q,
+            "SELECT (SELECT max(addresses.email_address) AS max_1 "
+            "FROM addresses "
+            "WHERE addresses.user_id = users.id) AS email_ad, "
+            "users.id AS users_id, users.name AS users_name "
+            "FROM users ORDER BY email_ad"
+        )
+
+    def test_order_by_column_prop_aliased_string(self):
+        User, Address = self.classes("User", "Address")
+        self._fixture(label=True)
+
+        s = Session()
+        ua = aliased(User)
+        q = s.query(ua).order_by("email_ad")
+
+        def go():
+            self.assert_compile(
+                q,
+                "SELECT (SELECT max(addresses.email_address) AS max_1 "
+                "FROM addresses WHERE addresses.user_id = users_1.id) "
+                "AS anon_1, users_1.id AS users_1_id, "
+                "users_1.name AS users_1_name FROM users AS users_1 "
+                "ORDER BY email_ad"
+            )
+        assert_warnings(
+            go,
+            ["Can't resolve label reference 'email_ad'"], regex=True)
+
+    def test_order_by_column_labeled_prop_attr_aliased_one(self):
+        User = self.classes.User
+        self._fixture(label=True)
+
+        ua = aliased(User)
+        s = Session()
+        q = s.query(ua).order_by(ua.ead)
+        self.assert_compile(
+            q,
+            "SELECT (SELECT max(addresses.email_address) AS max_1 "
+            "FROM addresses WHERE addresses.user_id = users_1.id) AS anon_1, "
+            "users_1.id AS users_1_id, users_1.name AS users_1_name "
+            "FROM users AS users_1 ORDER BY anon_1"
+        )
+
+    def test_order_by_column_labeled_prop_attr_aliased_two(self):
+        User = self.classes.User
+        self._fixture(label=True)
+
+        ua = aliased(User)
+        s = Session()
+        q = s.query(ua.ead).order_by(ua.ead)
+        self.assert_compile(
+            q,
+            "SELECT (SELECT max(addresses.email_address) AS max_1 "
+            "FROM addresses, "
+            "users AS users_1 WHERE addresses.user_id = users_1.id) "
+            "AS anon_1 ORDER BY anon_1"
+        )
+
+        # we're also testing that the state of "ua" is OK after the
+        # previous call, so the batching into one test is intentional
+        q = s.query(ua).order_by(ua.ead)
+        self.assert_compile(
+            q,
+            "SELECT (SELECT max(addresses.email_address) AS max_1 "
+            "FROM addresses WHERE addresses.user_id = users_1.id) AS anon_1, "
+            "users_1.id AS users_1_id, users_1.name AS users_1_name "
+            "FROM users AS users_1 ORDER BY anon_1"
+        )
+
+    def test_order_by_column_labeled_prop_attr_aliased_three(self):
+        User = self.classes.User
+        self._fixture(label=True)
+
+        ua = aliased(User)
+        s = Session()
+        q = s.query(User.ead, ua.ead).order_by(User.ead, ua.ead)
+        self.assert_compile(
+            q,
+            "SELECT (SELECT max(addresses.email_address) AS max_1 "
+            "FROM addresses, users WHERE addresses.user_id = users.id) "
+            "AS email_ad, (SELECT max(addresses.email_address) AS max_1 "
+            "FROM addresses, users AS users_1 WHERE addresses.user_id = "
+            "users_1.id) AS anon_1 ORDER BY email_ad, anon_1"
+        )
+
+        q = s.query(User, ua).order_by(User.ead, ua.ead)
+        self.assert_compile(
+            q,
+            "SELECT (SELECT max(addresses.email_address) AS max_1 "
+            "FROM addresses WHERE addresses.user_id = users.id) AS "
+            "email_ad, users.id AS users_id, users.name AS users_name, "
+            "(SELECT max(addresses.email_address) AS max_1 FROM addresses "
+            "WHERE addresses.user_id = users_1.id) AS anon_1, users_1.id "
+            "AS users_1_id, users_1.name AS users_1_name FROM users, "
+            "users AS users_1 ORDER BY email_ad, anon_1"
+        )
+
+    def test_order_by_column_labeled_prop_attr_aliased_four(self):
+        User = self.classes.User
+        self._fixture(label=True, polymorphic=True)
+
+        ua = aliased(User)
+        s = Session()
+        q = s.query(ua, User.id).order_by(ua.ead)
+        self.assert_compile(
+            q,
+            "SELECT (SELECT max(addresses.email_address) AS max_1 FROM "
+            "addresses WHERE addresses.user_id = users_1.id) AS anon_1, "
+            "users_1.id AS users_1_id, users_1.name AS users_1_name, "
+            "users.id AS users_id FROM users AS users_1, users ORDER BY anon_1"
+        )
+
+
+    def test_order_by_column_unlabeled_prop_attr_aliased_one(self):
+        User = self.classes.User
+        self._fixture(label=False)
+
+        ua = aliased(User)
+        s = Session()
+        q = s.query(ua).order_by(ua.ead)
+        self.assert_compile(
+            q,
+            "SELECT (SELECT max(addresses.email_address) AS max_1 "
+            "FROM addresses WHERE addresses.user_id = users_1.id) AS anon_1, "
+            "users_1.id AS users_1_id, users_1.name AS users_1_name "
+            "FROM users AS users_1 ORDER BY anon_1"
+        )
+
+    def test_order_by_column_unlabeled_prop_attr_aliased_two(self):
+        User = self.classes.User
+        self._fixture(label=False)
+
+        ua = aliased(User)
+        s = Session()
+        q = s.query(ua.ead).order_by(ua.ead)
+        self.assert_compile(
+            q,
+            "SELECT (SELECT max(addresses.email_address) AS max_1 "
+            "FROM addresses, "
+            "users AS users_1 WHERE addresses.user_id = users_1.id) "
+            "AS anon_1 ORDER BY anon_1"
+        )
+
+        # we're also testing that the state of "ua" is OK after the
+        # previous call, so the batching into one test is intentional
+        q = s.query(ua).order_by(ua.ead)
+        self.assert_compile(
+            q,
+            "SELECT (SELECT max(addresses.email_address) AS max_1 "
+            "FROM addresses WHERE addresses.user_id = users_1.id) AS anon_1, "
+            "users_1.id AS users_1_id, users_1.name AS users_1_name "
+            "FROM users AS users_1 ORDER BY anon_1"
+        )
+
+    def test_order_by_column_unlabeled_prop_attr_aliased_three(self):
+        User = self.classes.User
+        self._fixture(label=False)
+
+        ua = aliased(User)
+        s = Session()
+        q = s.query(User.ead, ua.ead).order_by(User.ead, ua.ead)
+        self.assert_compile(
+            q,
+            "SELECT (SELECT max(addresses.email_address) AS max_1 "
+            "FROM addresses, users WHERE addresses.user_id = users.id) "
+            "AS anon_1, (SELECT max(addresses.email_address) AS max_1 "
+            "FROM addresses, users AS users_1 "
+            "WHERE addresses.user_id = users_1.id) AS anon_2 "
+            "ORDER BY anon_1, anon_2"
+        )
+
+        q = s.query(User, ua).order_by(User.ead, ua.ead)
+        self.assert_compile(
+            q,
+            "SELECT (SELECT max(addresses.email_address) AS max_1 "
+            "FROM addresses WHERE addresses.user_id = users.id) AS "
+            "anon_1, users.id AS users_id, users.name AS users_name, "
+            "(SELECT max(addresses.email_address) AS max_1 FROM addresses "
+            "WHERE addresses.user_id = users_1.id) AS anon_2, users_1.id "
+            "AS users_1_id, users_1.name AS users_1_name FROM users, "
+            "users AS users_1 ORDER BY anon_1, anon_2"
+        )
+
+    def test_order_by_column_prop_attr(self):
+        User, Address = self.classes("User", "Address")
+        self._fixture(label=True)
+
+        s = Session()
+        q = s.query(User).order_by(User.ead)
+        # this one is a bit of a surprise; this is compiler
+        # label-order-by logic kicking in, but won't work in more
+        # complex cases.
+        self.assert_compile(
+            q,
+            "SELECT (SELECT max(addresses.email_address) AS max_1 "
+            "FROM addresses "
+            "WHERE addresses.user_id = users.id) AS email_ad, "
+            "users.id AS users_id, users.name AS users_name "
+            "FROM users ORDER BY email_ad"
+        )
+
+    def test_order_by_column_prop_attr_non_present(self):
+        User, Address = self.classes("User", "Address")
+        self._fixture(label=True)
+
+        s = Session()
+        q = s.query(User).options(defer(User.ead)).order_by(User.ead)
+        self.assert_compile(
+            q,
+            "SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users ORDER BY (SELECT max(addresses.email_address) AS max_1 "
+            "FROM addresses "
+            "WHERE addresses.user_id = users.id)"
+        )
+
+
 # more slice tests are available in test/orm/generative.py
 class SliceTest(QueryTest):
     def test_first(self):
@@ -1240,7 +1728,6 @@ class SliceTest(QueryTest):
         assert create_session().query(User).filter(User.id == 27). \
             first() is None
 
-    @testing.only_on('sqlite', 'testing execution but db-specific syntax')
     def test_limit_offset_applies(self):
         """Test that the expected LIMIT/OFFSET is applied for slices.
 
@@ -1266,15 +1753,15 @@ class SliceTest(QueryTest):
             testing.db, lambda: q[:20], [
                 (
                     "SELECT users.id AS users_id, users.name "
-                    "AS users_name FROM users LIMIT :param_1 OFFSET :param_2",
-                    {'param_1': 20, 'param_2': 0})])
+                    "AS users_name FROM users LIMIT :param_1",
+                    {'param_1': 20})])
 
         self.assert_sql(
             testing.db, lambda: q[5:], [
                 (
                     "SELECT users.id AS users_id, users.name "
-                    "AS users_name FROM users LIMIT :param_1 OFFSET :param_2",
-                    {'param_1': -1, 'param_2': 5})])
+                    "AS users_name FROM users LIMIT -1 OFFSET :param_1",
+                    {'param_1': 5})])
 
         self.assert_sql(testing.db, lambda: q[2:2], [])
 
@@ -1324,6 +1811,38 @@ class FilterTest(QueryTest, AssertsCompiledSQL):
 
         assert [] == sess.query(User).order_by(User.id)[3:3]
         assert [] == sess.query(User).order_by(User.id)[0:0]
+
+    @testing.requires.bound_limit_offset
+    def test_select_with_bindparam_offset_limit(self):
+        """Does a query allow bindparam for the limit?"""
+        User = self.classes.User
+        sess = create_session()
+        q1 = sess.query(self.classes.User).\
+            order_by(self.classes.User.id).limit(bindparam('n'))
+
+        for n in range(1, 4):
+            result = q1.params(n=n).all()
+            eq_(len(result), n)
+
+        eq_(
+            sess.query(User).order_by(User.id).limit(bindparam('limit')).
+            offset(bindparam('offset')).params(limit=2, offset=1).all(),
+            [User(id=8), User(id=9)]
+        )
+
+    @testing.fails_on("mysql", "doesn't like CAST in the limit clause")
+    @testing.requires.bound_limit_offset
+    def test_select_with_bindparam_offset_limit_w_cast(self):
+        User = self.classes.User
+        sess = create_session()
+        q1 = sess.query(self.classes.User).\
+            order_by(self.classes.User.id).limit(bindparam('n'))
+        eq_(
+            list(
+                sess.query(User).params(a=1, b=3).order_by(User.id)
+                [cast(bindparam('a'), Integer):cast(bindparam('b'), Integer)]),
+            [User(id=8), User(id=9)]
+        )
 
     @testing.requires.boolean_col_expressions
     def test_exists(self):
@@ -1646,7 +2165,7 @@ class FilterTest(QueryTest, AssertsCompiledSQL):
         User = self.classes.User
         s = create_session()
         self.assert_compile(
-            s.query(User).filter("name='ed'"),
+            s.query(User).filter(text("name='ed'")),
             "SELECT users.id AS users_id, users.name "
             "AS users_name FROM users WHERE name='ed'"
         )
@@ -1735,7 +2254,7 @@ class SetOpsTest(QueryTest, AssertsCompiledSQL):
         )
 
         for q in (
-                q3.order_by(User.id, "anon_1_param_1"),
+                q3.order_by(User.id, text("anon_1_param_1")),
                 q6.order_by(User.id, "foo")):
             eq_(
                 q.all(),
@@ -2092,14 +2611,30 @@ class PrefixWithTest(QueryTest, AssertsCompiledSQL):
         self.assert_compile(query, expected, dialect=default.DefaultDialect())
 
 
-class YieldTest(QueryTest):
+class YieldTest(_fixtures.FixtureTest):
+    run_setup_mappers = 'each'
+    run_inserts = 'each'
+
+    def _eagerload_mappings(self, addresses_lazy=True, user_lazy=True):
+        User, Address = self.classes("User", "Address")
+        users, addresses = self.tables("users", "addresses")
+        mapper(User, users, properties={
+            "addresses": relationship(
+                Address, lazy=addresses_lazy,
+                backref=backref("user", lazy=user_lazy)
+            )
+        })
+        mapper(Address, addresses)
+
     def test_basic(self):
+        self._eagerload_mappings()
+
         User = self.classes.User
 
         sess = create_session()
         q = iter(
             sess.query(User).yield_per(1).from_statement(
-                "select * from users"))
+                text("select * from users")))
 
         ret = []
         eq_(len(sess.identity_map), 0)
@@ -2116,6 +2651,8 @@ class YieldTest(QueryTest):
             pass
 
     def test_yield_per_and_execution_options(self):
+        self._eagerload_mappings()
+
         User = self.classes.User
 
         sess = create_session()
@@ -2124,8 +2661,81 @@ class YieldTest(QueryTest):
         assert q._yield_per
         eq_(q._execution_options, {"stream_results": True, "foo": "bar"})
 
+    def test_no_joinedload_opt(self):
+        self._eagerload_mappings()
+
+        User = self.classes.User
+        sess = create_session()
+        q = sess.query(User).options(joinedload("addresses")).yield_per(1)
+        assert_raises_message(
+            sa_exc.InvalidRequestError,
+            "The yield_per Query option is currently not compatible with "
+            "joined collection eager loading.  Please specify ",
+            q.all
+        )
+
+    def test_no_subqueryload_opt(self):
+        self._eagerload_mappings()
+
+        User = self.classes.User
+        sess = create_session()
+        q = sess.query(User).options(subqueryload("addresses")).yield_per(1)
+        assert_raises_message(
+            sa_exc.InvalidRequestError,
+            "The yield_per Query option is currently not compatible with "
+            "subquery eager loading.  Please specify ",
+            q.all
+        )
+
+    def test_no_subqueryload_mapping(self):
+        self._eagerload_mappings(addresses_lazy="subquery")
+
+        User = self.classes.User
+        sess = create_session()
+        q = sess.query(User).yield_per(1)
+        assert_raises_message(
+            sa_exc.InvalidRequestError,
+            "The yield_per Query option is currently not compatible with "
+            "subquery eager loading.  Please specify ",
+            q.all
+        )
+
+    def test_joinedload_m2o_ok(self):
+        self._eagerload_mappings(user_lazy="joined")
+        Address = self.classes.Address
+        sess = create_session()
+        q = sess.query(Address).yield_per(1)
+        q.all()
+
+    def test_eagerload_opt_disable(self):
+        self._eagerload_mappings()
+
+        User = self.classes.User
+        sess = create_session()
+        q = sess.query(User).options(subqueryload("addresses")).\
+            enable_eagerloads(False).yield_per(1)
+        q.all()
+
+        q = sess.query(User).options(joinedload("addresses")).\
+            enable_eagerloads(False).yield_per(1)
+        q.all()
+
+    def test_m2o_joinedload_not_others(self):
+        self._eagerload_mappings(addresses_lazy="joined")
+        Address = self.classes.Address
+        sess = create_session()
+        q = sess.query(Address).options(
+            lazyload('*'), joinedload("user")).yield_per(1).filter_by(id=1)
+
+        def go():
+            result = q.all()
+            assert result[0].user
+        self.assert_sql_count(testing.db, go, 1)
+
 
 class HintsTest(QueryTest, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
     def test_hints(self):
         User = self.classes.User
 
@@ -2161,57 +2771,86 @@ class HintsTest(QueryTest, AssertsCompiledSQL):
             "ON users_1.id > users.id", dialect=dialect
         )
 
+    def test_statement_hints(self):
+        User = self.classes.User
 
-class TextTest(QueryTest):
+        sess = create_session()
+        stmt = sess.query(User).\
+            with_statement_hint("test hint one").\
+            with_statement_hint("test hint two").\
+            with_statement_hint("test hint three", "postgresql")
+
+        self.assert_compile(
+            stmt,
+            "SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users test hint one test hint two",
+        )
+
+        self.assert_compile(
+            stmt,
+            "SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users test hint one test hint two test hint three",
+            dialect='postgresql'
+        )
+
+
+class TextTest(QueryTest, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
     def test_fulltext(self):
         User = self.classes.User
 
-        eq_(
-            create_session().query(User).
-            from_statement("select * from users order by id").all(),
-            [User(id=7), User(id=8), User(id=9), User(id=10)]
-        )
+        with expect_warnings("Textual SQL"):
+            eq_(
+                create_session().query(User).
+                from_statement("select * from users order by id").all(),
+                [User(id=7), User(id=8), User(id=9), User(id=10)]
+            )
 
         eq_(
             create_session().query(User).from_statement(
-                "select * from users order by id").first(), User(id=7)
+                text("select * from users order by id")).first(), User(id=7)
         )
         eq_(
             create_session().query(User).from_statement(
-                "select * from users where name='nonexistent'").first(), None)
+                text("select * from users where name='nonexistent'")).first(),
+            None)
 
     def test_fragment(self):
         User = self.classes.User
 
-        eq_(
-            create_session().query(User).filter("id in (8, 9)").all(),
-            [User(id=8), User(id=9)]
+        with expect_warnings("Textual SQL expression"):
+            eq_(
+                create_session().query(User).filter("id in (8, 9)").all(),
+                [User(id=8), User(id=9)]
 
-        )
+            )
 
-        eq_(
-            create_session().query(User).filter("name='fred'").
-            filter("id=9").all(), [User(id=9)]
-        )
-        eq_(
-            create_session().query(User).filter("name='fred'").
-            filter(User.id == 9).all(), [User(id=9)]
-        )
+            eq_(
+                create_session().query(User).filter("name='fred'").
+                filter("id=9").all(), [User(id=9)]
+            )
+            eq_(
+                create_session().query(User).filter("name='fred'").
+                filter(User.id == 9).all(), [User(id=9)]
+            )
 
-    def test_binds(self):
+    def test_binds_coerce(self):
         User = self.classes.User
 
-        eq_(
-            create_session().query(User).filter("id in (:id1, :id2)").
-            params(id1=8, id2=9).all(), [User(id=8), User(id=9)]
-        )
+        with expect_warnings("Textual SQL expression"):
+            eq_(
+                create_session().query(User).filter("id in (:id1, :id2)").
+                params(id1=8, id2=9).all(), [User(id=8), User(id=9)]
+            )
 
     def test_as_column(self):
         User = self.classes.User
 
         s = create_session()
-        assert_raises(sa_exc.InvalidRequestError, s.query,
-                    User.id, text("users.name"))
+        assert_raises(
+            sa_exc.InvalidRequestError, s.query,
+            User.id, text("users.name"))
 
         eq_(
             s.query(User.id, "name").order_by(User.id).all(),
@@ -2222,7 +2861,8 @@ class TextTest(QueryTest):
         s = create_session()
         eq_(
             s.query(User).from_statement(
-                select(['id', 'name']).select_from('users').order_by('id'),
+                select([column('id'), column('name')]).
+                select_from(table('users')).order_by('id'),
             ).all(),
             [User(id=7), User(id=8), User(id=9), User(id=10)]
         )
@@ -2258,6 +2898,182 @@ class TextTest(QueryTest):
                 text("select * from users").columns(id=Integer, name=String)
             ).order_by(User.id).all(),
             [User(id=7), User(id=8), User(id=9), User(id=10)]
+        )
+
+    def test_order_by_w_eager_one(self):
+        User = self.classes.User
+        s = create_session()
+
+        # from 1.0.0 thru 1.0.2, the "name" symbol here was considered
+        # to be part of the things we need to ORDER BY and it was being
+        # placed into the inner query's columns clause, as part of
+        # query._compound_eager_statement where we add unwrap_order_by()
+        # to the columns clause.  However, as #3392 illustrates, unlocatable
+        # string expressions like "name desc" will only fail in this scenario,
+        # so in general the changing of the query structure with string labels
+        # is dangerous.
+        #
+        # the queries here are again "invalid" from a SQL perspective, as the
+        # "name" field isn't matched up to anything.
+        #
+        with expect_warnings("Can't resolve label reference 'name';"):
+            self.assert_compile(
+                s.query(User).options(joinedload("addresses")).
+                order_by(desc("name")).limit(1),
+                "SELECT anon_1.users_id AS anon_1_users_id, "
+                "anon_1.users_name AS anon_1_users_name, "
+                "addresses_1.id AS addresses_1_id, "
+                "addresses_1.user_id AS addresses_1_user_id, "
+                "addresses_1.email_address AS addresses_1_email_address "
+                "FROM (SELECT users.id AS users_id, users.name AS users_name "
+                "FROM users ORDER BY users.name "
+                "DESC LIMIT :param_1) AS anon_1 "
+                "LEFT OUTER JOIN addresses AS addresses_1 "
+                "ON anon_1.users_id = addresses_1.user_id "
+                "ORDER BY name DESC, addresses_1.id"
+            )
+
+    def test_order_by_w_eager_two(self):
+        User = self.classes.User
+        s = create_session()
+
+        with expect_warnings("Can't resolve label reference 'name';"):
+            self.assert_compile(
+                s.query(User).options(joinedload("addresses")).
+                order_by("name").limit(1),
+                "SELECT anon_1.users_id AS anon_1_users_id, "
+                "anon_1.users_name AS anon_1_users_name, "
+                "addresses_1.id AS addresses_1_id, "
+                "addresses_1.user_id AS addresses_1_user_id, "
+                "addresses_1.email_address AS addresses_1_email_address "
+                "FROM (SELECT users.id AS users_id, users.name AS users_name "
+                "FROM users ORDER BY users.name "
+                "LIMIT :param_1) AS anon_1 "
+                "LEFT OUTER JOIN addresses AS addresses_1 "
+                "ON anon_1.users_id = addresses_1.user_id "
+                "ORDER BY name, addresses_1.id"
+            )
+
+    def test_order_by_w_eager_three(self):
+        User = self.classes.User
+        s = create_session()
+
+        self.assert_compile(
+            s.query(User).options(joinedload("addresses")).
+            order_by("users_name").limit(1),
+            "SELECT anon_1.users_id AS anon_1_users_id, "
+            "anon_1.users_name AS anon_1_users_name, "
+            "addresses_1.id AS addresses_1_id, "
+            "addresses_1.user_id AS addresses_1_user_id, "
+            "addresses_1.email_address AS addresses_1_email_address "
+            "FROM (SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users ORDER BY users.name "
+            "LIMIT :param_1) AS anon_1 "
+            "LEFT OUTER JOIN addresses AS addresses_1 "
+            "ON anon_1.users_id = addresses_1.user_id "
+            "ORDER BY anon_1.users_name, addresses_1.id"
+        )
+
+        # however! this works (again?)
+        eq_(
+            s.query(User).options(joinedload("addresses")).
+            order_by("users_name").first(),
+            User(name='chuck', addresses=[])
+        )
+
+    def test_order_by_w_eager_four(self):
+        User = self.classes.User
+        Address = self.classes.Address
+        s = create_session()
+
+        self.assert_compile(
+            s.query(User).options(joinedload("addresses")).
+            order_by(desc("users_name")).limit(1),
+            "SELECT anon_1.users_id AS anon_1_users_id, "
+            "anon_1.users_name AS anon_1_users_name, "
+            "addresses_1.id AS addresses_1_id, "
+            "addresses_1.user_id AS addresses_1_user_id, "
+            "addresses_1.email_address AS addresses_1_email_address "
+            "FROM (SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users ORDER BY users.name DESC "
+            "LIMIT :param_1) AS anon_1 "
+            "LEFT OUTER JOIN addresses AS addresses_1 "
+            "ON anon_1.users_id = addresses_1.user_id "
+            "ORDER BY anon_1.users_name DESC, addresses_1.id"
+        )
+
+        # however! this works (again?)
+        eq_(
+            s.query(User).options(joinedload("addresses")).
+            order_by(desc("users_name")).first(),
+            User(name='jack', addresses=[Address()])
+        )
+
+    def test_order_by_w_eager_five(self):
+        """essentially the same as test_eager_relations -> test_limit_3,
+        but test for textual label elements that are freeform.
+        this is again #3392."""
+
+        User = self.classes.User
+        Address = self.classes.Address
+        Order = self.classes.Order
+
+        sess = create_session()
+
+        q = sess.query(User, Address.email_address.label('email_address'))
+
+        l = q.join('addresses').options(joinedload(User.orders)).\
+            order_by(
+            "email_address desc").limit(1).offset(0)
+        with expect_warnings(
+                "Can't resolve label reference 'email_address desc'"):
+            eq_(
+                [
+                    (User(
+                        id=7,
+                        orders=[Order(id=1), Order(id=3), Order(id=5)],
+                        addresses=[Address(id=1)]
+                    ), 'jack@bean.com')
+                ],
+                l.all())
+
+
+class TextWarningTest(QueryTest, AssertsCompiledSQL):
+    def _test(self, fn, arg, offending_clause, expected):
+        assert_raises_message(
+            sa.exc.SAWarning,
+            r"Textual (?:SQL|column|SQL FROM) expression %(stmt)r should be "
+            r"explicitly declared (?:with|as) text\(%(stmt)r\)" % {
+                "stmt": util.ellipses_string(offending_clause),
+            },
+            fn, arg
+        )
+
+        with expect_warnings("Textual "):
+            stmt = fn(arg)
+            self.assert_compile(stmt, expected)
+
+    def test_filter(self):
+        User = self.classes.User
+        self._test(
+            Session().query(User.id).filter, "myid == 5", "myid == 5",
+            "SELECT users.id AS users_id FROM users WHERE myid == 5"
+        )
+
+    def test_having(self):
+        User = self.classes.User
+        self._test(
+            Session().query(User.id).having, "myid == 5", "myid == 5",
+            "SELECT users.id AS users_id FROM users HAVING myid == 5"
+        )
+
+    def test_from_statement(self):
+        User = self.classes.User
+        self._test(
+            Session().query(User.id).from_statement,
+            "select id from user",
+            "select id from user",
+            "select id from user",
         )
 
 
@@ -2353,6 +3169,7 @@ class ParentTest(QueryTest, AssertsCompiledSQL):
             o.all()
         )
 
+
     def test_with_pending_autoflush(self):
         Order, User = self.classes.Order, self.classes.User
 
@@ -2424,6 +3241,131 @@ class ParentTest(QueryTest, AssertsCompiledSQL):
             "addresses_email_address FROM addresses WHERE "
             ":param_1 = addresses.user_id OR :param_2 = addresses.user_id",
             checkparams={'param_1': 7, 'param_2': 8},
+        )
+
+
+class WithTransientOnNone(_fixtures.FixtureTest, AssertsCompiledSQL):
+    run_inserts = None
+    __dialect__ = 'default'
+
+    def _fixture1(self):
+        User, Address = self.classes.User, self.classes.Address
+        users, addresses = self.tables.users, self.tables.addresses
+
+        mapper(User, users)
+        mapper(Address, addresses, properties={
+            'user': relationship(User),
+            'special_user': relationship(
+                User, primaryjoin=and_(
+                    users.c.id == addresses.c.user_id,
+                    users.c.name == addresses.c.email_address))
+        })
+
+    def test_filter_with_transient_assume_pk(self):
+        self._fixture1()
+        User, Address = self.classes.User, self.classes.Address
+
+        sess = Session()
+
+        q = sess.query(Address).filter(Address.user == User())
+        with expect_warnings("Got None for value of column "):
+            self.assert_compile(
+                q,
+                "SELECT addresses.id AS addresses_id, "
+                "addresses.user_id AS addresses_user_id, "
+                "addresses.email_address AS addresses_email_address "
+                "FROM addresses WHERE :param_1 = addresses.user_id",
+                checkparams={'param_1': None}
+            )
+
+    def test_filter_with_transient_warn_for_none_against_non_pk(self):
+        self._fixture1()
+        User, Address = self.classes.User, self.classes.Address
+
+        s = Session()
+        q = s.query(Address).filter(Address.special_user == User())
+        with expect_warnings("Got None for value of column"):
+
+            self.assert_compile(
+                q,
+                "SELECT addresses.id AS addresses_id, "
+                "addresses.user_id AS addresses_user_id, "
+                "addresses.email_address AS addresses_email_address "
+                "FROM addresses WHERE :param_1 = addresses.user_id "
+                "AND :param_2 = addresses.email_address",
+                checkparams={"param_1": None, "param_2": None}
+            )
+
+    def test_with_parent_with_transient_assume_pk(self):
+        self._fixture1()
+        User, Address = self.classes.User, self.classes.Address
+
+        sess = Session()
+
+        q = sess.query(User).with_parent(Address(), "user")
+        with expect_warnings("Got None for value of column"):
+            self.assert_compile(
+                q,
+                "SELECT users.id AS users_id, users.name AS users_name "
+                "FROM users WHERE users.id = :param_1",
+                checkparams={'param_1': None}
+            )
+
+    def test_with_parent_with_transient_warn_for_none_against_non_pk(self):
+        self._fixture1()
+        User, Address = self.classes.User, self.classes.Address
+
+        s = Session()
+        q = s.query(User).with_parent(Address(), "special_user")
+        with expect_warnings("Got None for value of column"):
+
+            self.assert_compile(
+                q,
+                "SELECT users.id AS users_id, users.name AS users_name "
+                "FROM users WHERE users.id = :param_1 "
+                "AND users.name = :param_2",
+                checkparams={"param_1": None, "param_2": None}
+            )
+
+    def test_negated_contains_or_equals_plain_m2o(self):
+        self._fixture1()
+        User, Address = self.classes.User, self.classes.Address
+
+        s = Session()
+        q = s.query(Address).filter(Address.user != User())
+        with expect_warnings("Got None for value of column"):
+            self.assert_compile(
+                q,
+
+                "SELECT addresses.id AS addresses_id, "
+                "addresses.user_id AS addresses_user_id, "
+                "addresses.email_address AS addresses_email_address "
+                "FROM addresses "
+                "WHERE addresses.user_id != :user_id_1 "
+                "OR addresses.user_id IS NULL",
+                checkparams={'user_id_1': None}
+            )
+
+    def test_negated_contains_or_equals_complex_rel(self):
+        self._fixture1()
+        User, Address = self.classes.User, self.classes.Address
+
+        s = Session()
+
+        # this one does *not* warn because we do the criteria
+        # without deferral
+        q = s.query(Address).filter(Address.special_user != User())
+        self.assert_compile(
+            q,
+            "SELECT addresses.id AS addresses_id, "
+            "addresses.user_id AS addresses_user_id, "
+            "addresses.email_address AS addresses_email_address "
+            "FROM addresses "
+            "WHERE NOT (EXISTS (SELECT 1 "
+            "FROM users "
+            "WHERE users.id = addresses.user_id AND "
+            "users.name = addresses.email_address AND users.id IS NULL))",
+            checkparams={}
         )
 
 
@@ -2708,7 +3650,7 @@ class BooleanEvalTest(fixtures.TestBase, testing.AssertsCompiledSQL):
         c = column('x', Boolean)
         self.assert_compile(
             s.query(c).filter(c),
-            "SELECT x AS x WHERE x",
+            "SELECT x WHERE x",
             dialect=self._dialect(True)
         )
 
@@ -2717,7 +3659,7 @@ class BooleanEvalTest(fixtures.TestBase, testing.AssertsCompiledSQL):
         c = column('x', Boolean)
         self.assert_compile(
             s.query(c).filter(c),
-            "SELECT x AS x WHERE x = 1",
+            "SELECT x WHERE x = 1",
             dialect=self._dialect(False)
         )
 
@@ -2726,7 +3668,7 @@ class BooleanEvalTest(fixtures.TestBase, testing.AssertsCompiledSQL):
         c = column('x', Boolean)
         self.assert_compile(
             s.query(c).filter(~c),
-            "SELECT x AS x WHERE x = 0",
+            "SELECT x WHERE x = 0",
             dialect=self._dialect(False)
         )
 
@@ -2735,7 +3677,7 @@ class BooleanEvalTest(fixtures.TestBase, testing.AssertsCompiledSQL):
         c = column('x', Boolean)
         self.assert_compile(
             s.query(c).filter(~c),
-            "SELECT x AS x WHERE NOT x",
+            "SELECT x WHERE NOT x",
             dialect=self._dialect(True)
         )
 
@@ -2744,6 +3686,99 @@ class BooleanEvalTest(fixtures.TestBase, testing.AssertsCompiledSQL):
         c = column('x', Boolean)
         self.assert_compile(
             s.query(c).having(c),
-            "SELECT x AS x HAVING x = 1",
+            "SELECT x HAVING x = 1",
             dialect=self._dialect(False)
         )
+
+
+class SessionBindTest(QueryTest):
+
+    @contextlib.contextmanager
+    def _assert_bind_args(self, session):
+        get_bind = mock.Mock(side_effect=session.get_bind)
+        with mock.patch.object(session, "get_bind", get_bind):
+            yield
+        for call_ in get_bind.mock_calls:
+            is_(call_[1][0], inspect(self.classes.User))
+            is_not_(call_[2]['clause'], None)
+
+    def test_single_entity_q(self):
+        User = self.classes.User
+        session = Session()
+        with self._assert_bind_args(session):
+            session.query(User).all()
+
+    def test_sql_expr_entity_q(self):
+        User = self.classes.User
+        session = Session()
+        with self._assert_bind_args(session):
+            session.query(User.id).all()
+
+    def test_count(self):
+        User = self.classes.User
+        session = Session()
+        with self._assert_bind_args(session):
+            session.query(User).count()
+
+    def test_aggregate_fn(self):
+        User = self.classes.User
+        session = Session()
+        with self._assert_bind_args(session):
+            session.query(func.max(User.name)).all()
+
+    def test_bulk_update_no_sync(self):
+        User = self.classes.User
+        session = Session()
+        with self._assert_bind_args(session):
+            session.query(User).filter(User.id == 15).update(
+                {"name": "foob"}, synchronize_session=False)
+
+    def test_bulk_delete_no_sync(self):
+        User = self.classes.User
+        session = Session()
+        with self._assert_bind_args(session):
+            session.query(User).filter(User.id == 15).delete(
+                synchronize_session=False)
+
+    def test_bulk_update_fetch_sync(self):
+        User = self.classes.User
+        session = Session()
+        with self._assert_bind_args(session):
+            session.query(User).filter(User.id == 15).update(
+                {"name": "foob"}, synchronize_session='fetch')
+
+    def test_bulk_delete_fetch_sync(self):
+        User = self.classes.User
+        session = Session()
+        with self._assert_bind_args(session):
+            session.query(User).filter(User.id == 15).delete(
+                synchronize_session='fetch')
+
+    def test_column_property(self):
+        User = self.classes.User
+
+        mapper = inspect(User)
+        mapper.add_property(
+            "score",
+            column_property(func.coalesce(self.tables.users.c.name, None)))
+        session = Session()
+        with self._assert_bind_args(session):
+            session.query(func.max(User.score)).scalar()
+
+    def test_column_property_select(self):
+        User = self.classes.User
+        Address = self.classes.Address
+
+        mapper = inspect(User)
+        mapper.add_property(
+            "score",
+            column_property(
+                select([func.sum(Address.id)]).
+                where(Address.user_id == User.id).as_scalar()
+            )
+        )
+        session = Session()
+
+        with self._assert_bind_args(session):
+            session.query(func.max(User.score)).scalar()
+

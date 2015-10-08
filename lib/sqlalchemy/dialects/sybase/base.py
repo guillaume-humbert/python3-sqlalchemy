@@ -1,5 +1,5 @@
 # sybase/base.py
-# Copyright (C) 2010-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2010-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 # get_select_precolumns(), limit_clause() implementation
 # copyright (C) 2007 Fisch Asset Management
@@ -98,7 +98,6 @@ RESERVED_WORDS = set([
 
 
 class _SybaseUnitypeMixin(object):
-
     """these types appear to return a buffer object."""
 
     def result_processor(self, dialect, coltype):
@@ -147,41 +146,40 @@ class IMAGE(sqltypes.LargeBinary):
 
 
 class SybaseTypeCompiler(compiler.GenericTypeCompiler):
-
-    def visit_large_binary(self, type_):
+    def visit_large_binary(self, type_, **kw):
         return self.visit_IMAGE(type_)
 
-    def visit_boolean(self, type_):
+    def visit_boolean(self, type_, **kw):
         return self.visit_BIT(type_)
 
-    def visit_unicode(self, type_):
+    def visit_unicode(self, type_, **kw):
         return self.visit_NVARCHAR(type_)
 
-    def visit_UNICHAR(self, type_):
+    def visit_UNICHAR(self, type_, **kw):
         return "UNICHAR(%d)" % type_.length
 
-    def visit_UNIVARCHAR(self, type_):
+    def visit_UNIVARCHAR(self, type_, **kw):
         return "UNIVARCHAR(%d)" % type_.length
 
-    def visit_UNITEXT(self, type_):
+    def visit_UNITEXT(self, type_, **kw):
         return "UNITEXT"
 
-    def visit_TINYINT(self, type_):
+    def visit_TINYINT(self, type_, **kw):
         return "TINYINT"
 
-    def visit_IMAGE(self, type_):
+    def visit_IMAGE(self, type_, **kw):
         return "IMAGE"
 
-    def visit_BIT(self, type_):
+    def visit_BIT(self, type_, **kw):
         return "BIT"
 
-    def visit_MONEY(self, type_):
+    def visit_MONEY(self, type_, **kw):
         return "MONEY"
 
-    def visit_SMALLMONEY(self, type_):
+    def visit_SMALLMONEY(self, type_, **kw):
         return "SMALLMONEY"
 
-    def visit_UNIQUEIDENTIFIER(self, type_):
+    def visit_UNIQUEIDENTIFIER(self, type_, **kw):
         return "UNIQUEIDENTIFIER"
 
 ischema_names = {
@@ -325,28 +323,30 @@ class SybaseSQLCompiler(compiler.SQLCompiler):
             'milliseconds': 'millisecond'
         })
 
-    def get_select_precolumns(self, select):
+    def get_select_precolumns(self, select, **kw):
         s = select._distinct and "DISTINCT " or ""
         # TODO: don't think Sybase supports
         # bind params for FIRST / TOP
-        if select._limit:
+        limit = select._limit
+        if limit:
             # if select._limit == 1:
-            #    s += "FIRST "
+                # s += "FIRST "
             # else:
-            #    s += "TOP %s " % (select._limit,)
-            s += "TOP %s " % (select._limit,)
-        if select._offset:
-            if not select._limit:
+                # s += "TOP %s " % (select._limit,)
+            s += "TOP %s " % (limit,)
+        offset = select._offset
+        if offset:
+            if not limit:
                 # FIXME: sybase doesn't allow an offset without a limit
                 # so use a huge value for TOP here
                 s += "TOP 1000000 "
-            s += "START AT %s " % (select._offset + 1,)
+            s += "START AT %s " % (offset + 1,)
         return s
 
     def get_from_hint_text(self, table, text):
         return text
 
-    def limit_clause(self, select):
+    def limit_clause(self, select, **kw):
         # Limit in sybase is after the select keyword
         return ""
 
@@ -375,10 +375,10 @@ class SybaseSQLCompiler(compiler.SQLCompiler):
 
 
 class SybaseDDLCompiler(compiler.DDLCompiler):
-
     def get_column_specification(self, column, **kwargs):
         colspec = self.preparer.format_column(column) + " " + \
-            self.dialect.type_compiler.process(column.type)
+            self.dialect.type_compiler.process(
+                column.type, type_expression=column)
 
         if column.table is None:
             raise exc.CompileError(

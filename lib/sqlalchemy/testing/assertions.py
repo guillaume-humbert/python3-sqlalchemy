@@ -1,5 +1,5 @@
 # testing/assertions.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -9,79 +9,90 @@ from __future__ import absolute_import
 
 from . import util as testutil
 from sqlalchemy import pool, orm, util
-from sqlalchemy.engine import default, create_engine, url
-from sqlalchemy import exc as sa_exc
+from sqlalchemy.engine import default, url
 from sqlalchemy.util import decorator
-from sqlalchemy import types as sqltypes, schema
+from sqlalchemy import types as sqltypes, schema, exc as sa_exc
 import warnings
 import re
-from .warnings import resetwarnings
 from .exclusions import db_spec, _is_excluded
 from . import assertsql
 from . import config
 from .util import fail
 import contextlib
+from . import mock
+
+
+def expect_warnings(*messages, **kw):
+    """Context manager which expects one or more warnings.
+
+    With no arguments, squelches all SAWarnings emitted via
+    sqlalchemy.util.warn and sqlalchemy.util.warn_limited.   Otherwise
+    pass string expressions that will match selected warnings via regex;
+    all non-matching warnings are sent through.
+
+    The expect version **asserts** that the warnings were in fact seen.
+
+    Note that the test suite sets SAWarning warnings to raise exceptions.
+
+    """
+    return _expect_warnings(sa_exc.SAWarning, messages, **kw)
 
 
 @contextlib.contextmanager
-def expect_warnings(*messages):
-    """Context manager to expect warnings with the given messages."""
+def expect_warnings_on(db, *messages, **kw):
+    """Context manager which expects one or more warnings on specific
+    dialects.
 
-    filters = [dict(action='ignore',
-                    category=sa_exc.SAPendingDeprecationWarning)]
-    if not messages:
-        filters.append(dict(action='ignore',
-                            category=sa_exc.SAWarning))
-    else:
-        filters.extend(dict(action='ignore',
-                            message=message,
-                            category=sa_exc.SAWarning)
-                       for message in messages)
-    for f in filters:
-        warnings.filterwarnings(**f)
-    try:
+    The expect version **asserts** that the warnings were in fact seen.
+
+    """
+    spec = db_spec(db)
+
+    if isinstance(db, util.string_types) and not spec(config._current):
         yield
-    finally:
-        resetwarnings()
+    elif not _is_excluded(*db):
+        yield
+    else:
+        with expect_warnings(*messages, **kw):
+            yield
 
 
 def emits_warning(*messages):
-    """Mark a test as emitting a warning.
+    """Decorator form of expect_warnings().
 
-    With no arguments, squelches all SAWarning failures.  Or pass one or more
-    strings; these will be matched to the root of the warning description by
-    warnings.filterwarnings().
+    Note that emits_warning does **not** assert that the warnings
+    were in fact seen.
+
     """
+
     @decorator
     def decorate(fn, *args, **kw):
-        with expect_warnings(*messages):
+        with expect_warnings(assert_=False, *messages):
             return fn(*args, **kw)
+
     return decorate
 
 
-def emits_warning_on(db, *warnings):
+def expect_deprecated(*messages, **kw):
+    return _expect_warnings(sa_exc.SADeprecationWarning, messages, **kw)
+
+
+def emits_warning_on(db, *messages):
     """Mark a test as emitting a warning on a specific dialect.
 
     With no arguments, squelches all SAWarning failures.  Or pass one or more
     strings; these will be matched to the root of the warning description by
     warnings.filterwarnings().
-    """
-    spec = db_spec(db)
 
+    Note that emits_warning_on does **not** assert that the warnings
+    were in fact seen.
+
+    """
     @decorator
     def decorate(fn, *args, **kw):
-        if isinstance(db, util.string_types):
-            if not spec(config._current):
-                return fn(*args, **kw)
-            else:
-                wrapped = emits_warning(*warnings)(fn)
-                return wrapped(*args, **kw)
-        else:
-            if not _is_excluded(*db):
-                return fn(*args, **kw)
-            else:
-                wrapped = emits_warning(*warnings)(fn)
-                return wrapped(*args, **kw)
+        with expect_warnings_on(db, *messages):
+            return fn(*args, **kw)
+
     return decorate
 
 
@@ -95,39 +106,52 @@ def uses_deprecated(*messages):
     As a special case, you may pass a function name prefixed with //
     and it will be re-written as needed to match the standard warning
     verbiage emitted by the sqlalchemy.util.deprecated decorator.
+
+    Note that uses_deprecated does **not** assert that the warnings
+    were in fact seen.
+
     """
 
     @decorator
     def decorate(fn, *args, **kw):
-        with expect_deprecated(*messages):
+        with expect_deprecated(*messages, assert_=False):
             return fn(*args, **kw)
     return decorate
 
 
 @contextlib.contextmanager
-def expect_deprecated(*messages):
-    # todo: should probably be strict about this, too
-    filters = [dict(action='ignore',
-                    category=sa_exc.SAPendingDeprecationWarning)]
-    if not messages:
-        filters.append(dict(action='ignore',
-                            category=sa_exc.SADeprecationWarning))
-    else:
-        filters.extend(
-            [dict(action='ignore',
-                  message=message,
-                  category=sa_exc.SADeprecationWarning)
-             for message in
-             [(m.startswith('//') and
-               ('Call to deprecated function ' + m[2:]) or m)
-              for m in messages]])
+def _expect_warnings(exc_cls, messages, regex=True, assert_=True):
 
-    for f in filters:
-        warnings.filterwarnings(**f)
-    try:
+    if regex:
+        filters = [re.compile(msg, re.I) for msg in messages]
+    else:
+        filters = messages
+
+    seen = set(filters)
+
+    real_warn = warnings.warn
+
+    def our_warn(msg, exception, *arg, **kw):
+        if not issubclass(exception, exc_cls):
+            return real_warn(msg, exception, *arg, **kw)
+
+        if not filters:
+            return
+
+        for filter_ in filters:
+            if (regex and filter_.match(msg)) or \
+                    (not regex and filter_ == msg):
+                seen.discard(filter_)
+                break
+        else:
+            real_warn(msg, exception, *arg, **kw)
+
+    with mock.patch("warnings.warn", our_warn):
         yield
-    finally:
-        resetwarnings()
+
+    if assert_:
+        assert not seen, "Warnings were not seen: %s" % \
+            ", ".join("%r" % (s.pattern if regex else s) for s in seen)
 
 
 def global_cleanup_assertions():
@@ -233,6 +257,7 @@ class AssertsCompiledSQL(object):
     def assert_compile(self, clause, result, params=None,
                        checkparams=None, dialect=None,
                        checkpositional=None,
+                       check_prefetch=None,
                        use_default_dialect=False,
                        allow_dialect_select=False,
                        literal_binds=False):
@@ -293,6 +318,8 @@ class AssertsCompiledSQL(object):
         if checkpositional is not None:
             p = c.construct_params(params)
             eq_(tuple([p[x] for x in c.positiontup]), checkpositional)
+        if check_prefetch is not None:
+            eq_(c.prefetch, check_prefetch)
 
 
 class ComparesTables(object):
@@ -409,29 +436,27 @@ class AssertsExecutionResults(object):
                         cls.__name__, repr(expected_item)))
         return True
 
-    def assert_sql_execution(self, db, callable_, *rules):
-        assertsql.asserter.add_rules(rules)
-        try:
-            callable_()
-            assertsql.asserter.statement_complete()
-        finally:
-            assertsql.asserter.clear_rules()
+    def sql_execution_asserter(self, db=None):
+        if db is None:
+            from . import db as db
 
-    def assert_sql(self, db, callable_, list_, with_sequences=None):
-        if (with_sequences is not None and
-                config.db.dialect.supports_sequences):
-            rules = with_sequences
-        else:
-            rules = list_
+        return assertsql.assert_engine(db)
+
+    def assert_sql_execution(self, db, callable_, *rules):
+        with self.sql_execution_asserter(db) as asserter:
+            callable_()
+        asserter.assert_(*rules)
+
+    def assert_sql(self, db, callable_, rules):
 
         newrules = []
         for rule in rules:
             if isinstance(rule, dict):
                 newrule = assertsql.AllOf(*[
-                    assertsql.ExactSQL(k, v) for k, v in rule.items()
+                    assertsql.CompiledSQL(k, v) for k, v in rule.items()
                 ])
             else:
-                newrule = assertsql.ExactSQL(*rule)
+                newrule = assertsql.CompiledSQL(*rule)
             newrules.append(newrule)
 
         self.assert_sql_execution(db, callable_, *newrules)

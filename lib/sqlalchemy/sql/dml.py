@@ -1,5 +1,5 @@
 # sql/dml.py
-# Copyright (C) 2009-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2009-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -10,7 +10,8 @@ Provide :class:`.Insert`, :class:`.Update` and :class:`.Delete`.
 """
 
 from .base import Executable, _generative, _from_objects, DialectKWArgs
-from .elements import ClauseElement, _literal_as_text, Null, and_, _clone
+from .elements import ClauseElement, _literal_as_text, Null, and_, _clone, \
+    _column_as_key
 from .selectable import _interpret_as_from, _interpret_as_select, HasPrefixes
 from .. import util
 from .. import exc
@@ -269,6 +270,19 @@ class ValuesBase(UpdateBase):
          .. versionadded:: 0.8
              Support for multiple-VALUES INSERT statements.
 
+        .. versionchanged:: 1.0.0 an INSERT that uses a multiple-VALUES
+           clause, even a list of length one,
+           implies that the :paramref:`.Insert.inline` flag is set to
+           True, indicating that the statement will not attempt to fetch
+           the "last inserted primary key" or other defaults.  The statement
+           deals with an arbitrary number of rows, so the
+           :attr:`.ResultProxy.inserted_primary_key` accessor does not apply.
+
+        .. versionchanged:: 1.0.0 A multiple-VALUES INSERT now supports
+           columns with Python side default values and callables in the
+           same way as that of an "executemany" style of invocation; the
+           callable is invoked for each row.   See :ref:`bug_3288`
+           for other details.
 
         .. seealso::
 
@@ -380,7 +394,7 @@ class ValuesBase(UpdateBase):
         :func:`.mapper`.
 
         :param cols: optional list of column key names or :class:`.Column`
-         objects.  If omitted, all column expressions evaulated on the server
+         objects.  If omitted, all column expressions evaluated on the server
          are added to the returning list.
 
         .. versionadded:: 0.9.0
@@ -434,8 +448,13 @@ class Insert(ValuesBase):
          dynamically render the VALUES clause at execution time based on
          the parameters passed to :meth:`.Connection.execute`.
 
-        :param inline: if True, SQL defaults will be compiled 'inline' into
-         the statement and not pre-executed.
+        :param inline: if True, no attempt will be made to retrieve the
+         SQL-generated default values to be provided within the statement;
+         in particular,
+         this allows SQL expressions to be rendered 'inline' within the
+         statement without the need to pre-execute them beforehand; for
+         backends that support "returning", this turns off the "implicit
+         returning" feature for the statement.
 
         If both `values` and compile-time bind parameters are present, the
         compile-time bind parameters override the information specified
@@ -463,6 +482,7 @@ class Insert(ValuesBase):
         ValuesBase.__init__(self, table, values, prefixes)
         self._bind = bind
         self.select = self.select_names = None
+        self.include_insert_from_select_defaults = False
         self.inline = inline
         self._returning = returning
         self._validate_dialect_kwargs(dialect_kw)
@@ -475,7 +495,7 @@ class Insert(ValuesBase):
             return ()
 
     @_generative
-    def from_select(self, names, select):
+    def from_select(self, names, select, include_defaults=True):
         """Return a new :class:`.Insert` construct which represents
         an ``INSERT...FROM SELECT`` statement.
 
@@ -494,34 +514,28 @@ class Insert(ValuesBase):
          is not checked before passing along to the database, the database
          would normally raise an exception if these column lists don't
          correspond.
+        :param include_defaults: if True, non-server default values and
+         SQL expressions as specified on :class:`.Column` objects
+         (as documented in :ref:`metadata_defaults_toplevel`) not
+         otherwise specified in the list of names will be rendered
+         into the INSERT and SELECT statements, so that these values are also
+         included in the data to be inserted.
 
-        .. warning::
+         .. note:: A Python-side default that uses a Python callable function
+            will only be invoked **once** for the whole statement, and **not
+            per row**.
 
-           The ``inline=True`` flag should be set to True when using
-           backends that support RETURNING, including Postgresql, Oracle,
-           and SQL Server.   This will prevent the implicit ``RETURNING``
-           clause from being appended to the statement, which is normally
-           used to fetch the "last inserted primary key" value.  This feature
-           will raise an error if the statement inserts zero rows, and
-           on some backends (e.g. Oracle) it will raise an error if the
-           statement inserts more than one row.
+         .. versionadded:: 1.0.0 - :meth:`.Insert.from_select` now renders
+            Python-side and SQL expression column defaults into the
+            SELECT statement for columns otherwise not included in the
+            list of column names.
 
-           :paramref:`.insert.inline` is set to True as follows::
-
-             sel = select([table1.c.a, table1.c.b]).where(table1.c.c > 5)
-             ins = table2.insert(inline=True).from_select(['a', 'b'], sel)
-
-           Version 1.0 of SQLAlchemy will set this flag to True in **all**
-           cases.
-
-        .. note::
-
-           Python-side and SQL function defaults, as described at
-           :ref:`metadata_defaults_toplevel`, are **not** automatically
-           included in the SELECT statement as rendered unless explicitly
-           added to the statement.  The behavior of automatically rendering
-           these default values and expressions is available as of SQLAlchemy
-           version 1.0.0.
+        .. versionchanged:: 1.0.0 an INSERT that uses FROM SELECT
+           implies that the :paramref:`.insert.inline` flag is set to
+           True, indicating that the statement will not attempt to fetch
+           the "last inserted primary key" or other defaults.  The statement
+           deals with an arbitrary number of rows, so the
+           :attr:`.ResultProxy.inserted_primary_key` accessor does not apply.
 
         .. versionadded:: 0.8.3
 
@@ -531,9 +545,12 @@ class Insert(ValuesBase):
                 "This construct already inserts value expressions")
 
         self.parameters, self._has_multi_parameters = \
-            self._process_colparams(dict((n, Null()) for n in names))
+            self._process_colparams(
+                dict((_column_as_key(n), Null()) for n in names))
 
         self.select_names = names
+        self.inline = True
+        self.include_insert_from_select_defaults = include_defaults
         self.select = _interpret_as_select(select)
 
     def _copy_internals(self, clone=_clone, **kw):
@@ -616,13 +633,12 @@ class Update(ValuesBase):
           :meth:`.Update.values` method to set the values of the
           UPDATE statement.
 
-        :param inline: if True, no attempt will be made to retrieve the
-            SQL-generated default values to be provided within the statement;
-            in particular,
-            this allows SQL expressions to be rendered 'inline' within the
-            statement without the need to pre-execute them beforehand; for
-            backends that support "returning", this turns off the "implicit
-            returning" feature for the statement.
+        :param inline:
+          if True, SQL defaults present on :class:`.Column` objects via
+          the ``default`` keyword will be compiled 'inline' into the statement
+          and not pre-executed.  This means that their values will not
+          be available in the dictionary returned from
+          :meth:`.ResultProxy.last_updated_params`.
 
         If both ``values`` and compile-time bind parameters are present, the
         compile-time bind parameters override the information specified

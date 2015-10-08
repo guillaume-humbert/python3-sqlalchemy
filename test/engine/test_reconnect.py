@@ -1,14 +1,15 @@
 from sqlalchemy.testing import eq_, assert_raises, assert_raises_message
 import time
-from sqlalchemy import select, MetaData, Integer, String, create_engine, pool
+from sqlalchemy import (
+    select, MetaData, Integer, String, create_engine, pool, exc, util)
 from sqlalchemy.testing.schema import Table, Column
 import sqlalchemy as tsa
 from sqlalchemy import testing
+from sqlalchemy.testing import mock
 from sqlalchemy.testing import engines
-from sqlalchemy import exc, util
 from sqlalchemy.testing import fixtures
 from sqlalchemy.testing.engines import testing_engine
-from sqlalchemy.testing.mock import Mock, call
+from sqlalchemy.testing.mock import Mock, call, patch
 
 
 class MockError(Exception):
@@ -26,12 +27,12 @@ def mock_connection():
                 raise MockDisconnect("Lost the DB connection on execute")
             elif conn.explode in ('execute_no_disconnect', ):
                 raise MockError(
-                    "something broke on execute but we didn't "
-                    "lose the connection")
+                    "something broke on execute but we didn't lose the "
+                    "connection")
             elif conn.explode in ('rollback', 'rollback_no_disconnect'):
                 raise MockError(
-                    "something broke on execute but we didn't "
-                    "lose the connection")
+                    "something broke on execute but we didn't lose the "
+                    "connection")
             elif args and "SELECT" in args[0]:
                 cursor.description = [('foo', None, None, None, None, None)]
             else:
@@ -42,8 +43,7 @@ def mock_connection():
                 Mock(side_effect=MockError("cursor closed"))
         cursor = Mock(
             execute=Mock(side_effect=execute),
-            close=Mock(side_effect=close)
-        )
+            close=Mock(side_effect=close))
         return cursor
 
     def cursor():
@@ -55,15 +55,14 @@ def mock_connection():
             raise MockDisconnect("Lost the DB connection on rollback")
         if conn.explode == 'rollback_no_disconnect':
             raise MockError(
-                "something broke on rollback but we didn't "
-                "lose the connection")
+                "something broke on rollback but we didn't lose the "
+                "connection")
         else:
             return
 
     conn = Mock(
         rollback=Mock(side_effect=rollback),
-        cursor=Mock(side_effect=cursor())
-    )
+        cursor=Mock(side_effect=cursor()))
     return conn
 
 
@@ -91,12 +90,10 @@ def MockDBAPI():
         dispose=Mock(side_effect=dispose),
         paramstyle='named',
         connections=connections,
-        Error=MockError
-    )
+        Error=MockError)
 
 
 class MockReconnectTest(fixtures.TestBase):
-
     def setup(self):
         self.dbapi = MockDBAPI()
 
@@ -104,8 +101,8 @@ class MockReconnectTest(fixtures.TestBase):
             'postgresql://foo:bar@localhost/test',
             options=dict(module=self.dbapi, _initialize=False))
 
-        self.mock_connect = call(host='localhost', password='bar',
-                                 user='foo', database='test')
+        self.mock_connect = call(
+            host='localhost', password='bar', user='foo', database='test')
         # monkeypatch disconnect checker
         self.db.dialect.is_disconnect = \
             lambda e, conn, cursor: isinstance(e, MockDisconnect)
@@ -202,10 +199,8 @@ class MockReconnectTest(fixtures.TestBase):
 
         assert_raises_message(
             tsa.exc.InvalidRequestError,
-            "Can't reconnect until invalid transaction is "
-            "rolled back",
-            trans.commit
-        )
+            "Can't reconnect until invalid transaction is rolled back",
+            trans.commit)
 
         assert trans.is_active
         trans.rollback()
@@ -216,6 +211,15 @@ class MockReconnectTest(fixtures.TestBase):
             [c.close.mock_calls for c in self.dbapi.connections],
             [[call()], []]
         )
+
+    def test_invalidate_dont_call_finalizer(self):
+        conn = self.db.connect()
+        finalizer = mock.Mock()
+        conn.connection._connection_record.\
+            finalize_callback.append(finalizer)
+        conn.invalidate()
+        assert conn.invalidated
+        eq_(finalizer.call_count, 0)
 
     def test_conn_reusable(self):
         conn = self.db.connect()
@@ -366,7 +370,6 @@ class MockReconnectTest(fixtures.TestBase):
         mock_dialect = Mock()
 
         class MyURL(URL):
-
             def get_dialect(self):
                 return Dialect
 
@@ -384,7 +387,6 @@ class CursorErrTest(fixtures.TestBase):
     # this isn't really a "reconnect" test, it's more of
     # a generic "recovery".   maybe this test suite should have been
     # named "test_error_recovery".
-
     def _fixture(self, explode_on_exec, initialize):
         class DBAPIError(Exception):
             pass
@@ -408,25 +410,19 @@ class CursorErrTest(fixtures.TestBase):
                 while True:
                     yield Mock(
                         spec=['cursor', 'commit', 'rollback', 'close'],
-                        cursor=Mock(side_effect=cursor()),
-                    )
+                        cursor=Mock(side_effect=cursor()),)
 
             return Mock(
-                Error=DBAPIError,
-                paramstyle='qmark',
-                connect=Mock(side_effect=connect())
-            )
+                Error=DBAPIError, paramstyle='qmark',
+                connect=Mock(side_effect=connect()))
         dbapi = MockDBAPI()
 
         from sqlalchemy.engine import default
         url = Mock(
             get_dialect=lambda: default.DefaultDialect,
-            translate_connect_args=lambda: {},
-            query={},
-        )
+            translate_connect_args=lambda: {}, query={},)
         eng = testing_engine(
-            url,
-            options=dict(module=dbapi, _initialize=initialize))
+            url, options=dict(module=dbapi, _initialize=initialize))
         eng.pool.logger = Mock()
         return eng
 
@@ -517,6 +513,54 @@ class RealReconnectTest(fixtures.TestBase):
 
         # pool isn't replaced
         assert self.engine.pool is p2
+
+    def test_branched_invalidate_branch_to_parent(self):
+        c1 = self.engine.connect()
+
+        with patch.object(self.engine.pool, "logger") as logger:
+            c1_branch = c1.connect()
+            eq_(c1_branch.execute(select([1])).scalar(), 1)
+
+            self.engine.test_shutdown()
+
+            _assert_invalidated(c1_branch.execute, select([1]))
+            assert c1.invalidated
+            assert c1_branch.invalidated
+
+            c1_branch._revalidate_connection()
+            assert not c1.invalidated
+            assert not c1_branch.invalidated
+
+        assert "Invalidate connection" in logger.mock_calls[0][1][0]
+
+    def test_branched_invalidate_parent_to_branch(self):
+        c1 = self.engine.connect()
+
+        c1_branch = c1.connect()
+        eq_(c1_branch.execute(select([1])).scalar(), 1)
+
+        self.engine.test_shutdown()
+
+        _assert_invalidated(c1.execute, select([1]))
+        assert c1.invalidated
+        assert c1_branch.invalidated
+
+        c1._revalidate_connection()
+        assert not c1.invalidated
+        assert not c1_branch.invalidated
+
+    def test_branch_invalidate_state(self):
+        c1 = self.engine.connect()
+
+        c1_branch = c1.connect()
+
+        eq_(c1_branch.execute(select([1])).scalar(), 1)
+
+        self.engine.test_shutdown()
+
+        _assert_invalidated(c1_branch.execute, select([1]))
+        assert not c1_branch.closed
+        assert not c1_branch._connection_is_valid
 
     def test_ensure_is_disconnect_gets_connection(self):
         def is_disconnect(e, conn, cursor):
@@ -633,10 +677,8 @@ class RealReconnectTest(fixtures.TestBase):
         assert trans.is_active
         assert_raises_message(
             tsa.exc.StatementError,
-            "Can't reconnect until invalid transaction is "
-            "rolled back",
-            conn.execute, select([1])
-        )
+            "Can't reconnect until invalid transaction is rolled back",
+            conn.execute, select([1]))
         assert trans.is_active
         assert_raises_message(
             tsa.exc.InvalidRequestError,
@@ -689,9 +731,10 @@ class InvalidateDuringResultTest(fixtures.TestBase):
     def setup(self):
         self.engine = engines.reconnecting_engine()
         self.meta = MetaData(self.engine)
-        table = Table('sometable', self.meta,
-                      Column('id', Integer, primary_key=True),
-                      Column('name', String(50)))
+        table = Table(
+            'sometable', self.meta,
+            Column('id', Integer, primary_key=True),
+            Column('name', String(50)))
         self.meta.create_all()
         table.insert().execute(
             [{'id': i, 'name': 'row %d' % i} for i in range(1, 100)]
@@ -702,10 +745,8 @@ class InvalidateDuringResultTest(fixtures.TestBase):
         self.engine.dispose()
 
     @testing.fails_if([
-        '+mysqlconnector', '+mysqldb',
-        '+cymysql', '+pymysql', '+pg8000'
-    ], "Buffers the result set and doesn't check for "
-        "connection close")
+        '+mysqlconnector', '+mysqldb', '+cymysql', '+pymysql', '+pg8000'],
+        "Buffers the result set and doesn't check for connection close")
     def test_invalidate_on_results(self):
         conn = self.engine.connect()
         result = conn.execute('select * from sometable')

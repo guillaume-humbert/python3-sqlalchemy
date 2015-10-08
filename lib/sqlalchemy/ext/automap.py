@@ -1,5 +1,5 @@
 # ext/automap.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -67,7 +67,7 @@ asking it to reflect the schema and produce mappings::
 Above, calling :meth:`.AutomapBase.prepare` while passing along the
 :paramref:`.AutomapBase.prepare.reflect` parameter indicates that the
 :meth:`.MetaData.reflect` method will be called on this declarative base
-classes' :class:`.MetaData` collection; then, each viable
+classes' :class:`.MetaData` collection; then, each **viable**
 :class:`.Table` within the :class:`.MetaData` will get a new mapped class
 generated automatically.  The :class:`.ForeignKeyConstraint` objects which
 link the various tables together will be used to produce new, bidirectional
@@ -75,6 +75,12 @@ link the various tables together will be used to produce new, bidirectional
 follow along a default naming scheme that we can customize.  At this point,
 our basic mapping consisting of related ``User`` and ``Address`` classes is
 ready to use in the traditional way.
+
+.. note:: By **viable**, we mean that for a table to be mapped, it must
+   specify a primary key.  Additionally, if the table is detected as being
+   a pure association table between two other tables, it will not be directly
+   mapped and will instead be configured as a many-to-many table between
+   the mappings for the two referring tables.
 
 Generating Mappings from an Existing MetaData
 =============================================
@@ -243,7 +249,26 @@ follows:
    one-to-many backref will be created on the referred class referring
    to this class.
 
-4. The names of the relationships are determined using the
+4. If any of the columns that are part of the :class:`.ForeignKeyConstraint`
+   are not nullable (e.g. ``nullable=False``), a
+   :paramref:`~.relationship.cascade` keyword argument
+   of ``all, delete-orphan`` will be added to the keyword arguments to
+   be passed to the relationship or backref.  If the
+   :class:`.ForeignKeyConstraint` reports that
+   :paramref:`.ForeignKeyConstraint.ondelete`
+   is set to ``CASCADE`` for a not null or ``SET NULL`` for a nullable
+   set of columns, the option :paramref:`~.relationship.passive_deletes`
+   flag is set to ``True`` in the set of relationship keyword arguments.
+   Note that not all backends support reflection of ON DELETE.
+
+   .. versionadded:: 1.0.0 - automap will detect non-nullable foreign key
+      constraints when producing a one-to-many relationship and establish
+      a default cascade of ``all, delete-orphan`` if so; additionally,
+      if the constraint specifies :paramref:`.ForeignKeyConstraint.ondelete`
+      of ``CASCADE`` for non-nullable or ``SET NULL`` for nullable columns,
+      the ``passive_deletes=True`` option is also added.
+
+5. The names of the relationships are determined using the
    :paramref:`.AutomapBase.prepare.name_for_scalar_relationship` and
    :paramref:`.AutomapBase.prepare.name_for_collection_relationship`
    callable functions.  It is important to note that the default relationship
@@ -252,18 +277,18 @@ follows:
    alternate class naming scheme, that's the name from which the relationship
    name will be derived.
 
-5. The classes are inspected for an existing mapped property matching these
+6. The classes are inspected for an existing mapped property matching these
    names.  If one is detected on one side, but none on the other side,
    :class:`.AutomapBase` attempts to create a relationship on the missing side,
    then uses the :paramref:`.relationship.back_populates` parameter in order to
    point the new relationship to the other side.
 
-6. In the usual case where no relationship is on either side,
+7. In the usual case where no relationship is on either side,
    :meth:`.AutomapBase.prepare` produces a :func:`.relationship` on the
    "many-to-one" side and matches it to the other using the
    :paramref:`.relationship.backref` parameter.
 
-7. Production of the :func:`.relationship` and optionally the :func:`.backref`
+8. Production of the :func:`.relationship` and optionally the :func:`.backref`
    is handed off to the :paramref:`.AutomapBase.prepare.generate_relationship`
    function, which can be supplied by the end-user in order to augment
    the arguments passed to :func:`.relationship` or :func:`.backref` or to
@@ -606,7 +631,7 @@ def generate_relationship(
     :param base: the :class:`.AutomapBase` class doing the prepare.
 
     :param direction: indicate the "direction" of the relationship; this will
-     be one of :data:`.ONETOMANY`, :data:`.MANYTOONE`, :data:`.MANYTOONE`.
+     be one of :data:`.ONETOMANY`, :data:`.MANYTOONE`, :data:`.MANYTOMANY`.
 
     :param return_fn: the function that is used by default to create the
      relationship.  This will be either :func:`.relationship` or
@@ -877,6 +902,19 @@ def _relationships_for_fks(automap_base, map_config, table_to_map_config,
                 constraint
             )
 
+            o2m_kws = {}
+            nullable = False not in set([fk.parent.nullable for fk in fks])
+            if not nullable:
+                o2m_kws['cascade'] = "all, delete-orphan"
+
+                if constraint.ondelete and \
+                        constraint.ondelete.lower() == "cascade":
+                    o2m_kws['passive_deletes'] = True
+            else:
+                if constraint.ondelete and \
+                        constraint.ondelete.lower() == "set null":
+                    o2m_kws['passive_deletes'] = True
+
             create_backref = backref_name not in referred_cfg.properties
 
             if relationship_name not in map_config.properties:
@@ -885,7 +923,8 @@ def _relationships_for_fks(automap_base, map_config, table_to_map_config,
                         automap_base,
                         interfaces.ONETOMANY, backref,
                         backref_name, referred_cls, local_cls,
-                        collection_class=collection_class)
+                        collection_class=collection_class,
+                        **o2m_kws)
                 else:
                     backref_obj = None
                 rel = generate_relationship(automap_base,
@@ -916,7 +955,8 @@ def _relationships_for_fks(automap_base, map_config, table_to_map_config,
                                                 fk.parent
                                                 for fk in constraint.elements],
                                             back_populates=relationship_name,
-                                            collection_class=collection_class)
+                                            collection_class=collection_class,
+                                            **o2m_kws)
                 if rel is not None:
                     referred_cfg.properties[backref_name] = rel
                     map_config.properties[

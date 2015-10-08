@@ -1,5 +1,5 @@
 # sqlalchemy/pool.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -186,6 +186,10 @@ class Pool(log.Identified):
             database that supports transactions,
             as it will lead to deadlocks and stale
             state.
+          * ``"none"`` - same as ``None``
+
+            .. versionadded:: 0.9.10
+
           * ``False`` - same as None, this is here for
             backwards compatibility.
 
@@ -220,7 +224,7 @@ class Pool(log.Identified):
         self._use_threadlocal = use_threadlocal
         if reset_on_return in ('rollback', True, reset_rollback):
             self._reset_on_return = reset_rollback
-        elif reset_on_return in (None, False, reset_none):
+        elif reset_on_return in ('none', None, False, reset_none):
             self._reset_on_return = reset_none
         elif reset_on_return in ('commit', reset_commit):
             self._reset_on_return = reset_commit
@@ -230,6 +234,7 @@ class Pool(log.Identified):
                 % reset_on_return)
 
         self.echo = echo
+
         if _dispatch:
             self.dispatch._update(_dispatch, only_propagate=False)
         if _dialect:
@@ -244,13 +249,46 @@ class Pool(log.Identified):
             for l in listeners:
                 self.add_listener(l)
 
+    @property
+    def _creator(self):
+        return self.__dict__['_creator']
+
+    @_creator.setter
+    def _creator(self, creator):
+        self.__dict__['_creator'] = creator
+        self._invoke_creator = self._should_wrap_creator(creator)
+
+    def _should_wrap_creator(self, creator):
+        """Detect if creator accepts a single argument, or is sent
+        as a legacy style no-arg function.
+
+        """
+
+        try:
+            argspec = util.get_callable_argspec(self._creator, no_self=True)
+        except TypeError:
+            return lambda crec: creator()
+
+        defaulted = argspec[3] is not None and len(argspec[3]) or 0
+        positionals = len(argspec[0]) - defaulted
+
+        # look for the exact arg signature that DefaultStrategy
+        # sends us
+        if (argspec[0], argspec[3]) == (['connection_record'], (None,)):
+            return creator
+        # or just a single positional
+        elif positionals == 1:
+            return creator
+        # all other cases, just wrap and assume legacy "creator" callable
+        # thing
+        else:
+            return lambda crec: creator()
+
     def _close_connection(self, connection):
         self.logger.debug("Closing connection %r", connection)
         try:
             self._dialect.do_close(connection)
-        except (SystemExit, KeyboardInterrupt):
-            raise
-        except:
+        except Exception:
             self.logger.error("Exception closing connection %r",
                               connection, exc_info=True)
 
@@ -425,6 +463,8 @@ class _ConnectionRecord(object):
 
     """
 
+    _soft_invalidate_time = 0
+
     @util.memoized_property
     def info(self):
         """The ``.info`` dictionary associated with the DBAPI connection.
@@ -441,8 +481,8 @@ class _ConnectionRecord(object):
         try:
             dbapi_connection = rec.get_connection()
         except:
-            rec.checkin()
-            raise
+            with util.safe_reraise():
+                rec.checkin()
         echo = pool._should_log_debug()
         fairy = _ConnectionFairy(dbapi_connection, rec, echo)
         rec.fairy_ref = weakref.ref(
@@ -473,13 +513,20 @@ class _ConnectionRecord(object):
         if self.connection is not None:
             self.__close()
 
-    def invalidate(self, e=None):
+    def invalidate(self, e=None, soft=False):
         """Invalidate the DBAPI connection held by this :class:`._ConnectionRecord`.
 
         This method is called for all connection invalidations, including
         when the :meth:`._ConnectionFairy.invalidate` or
         :meth:`.Connection.invalidate` methods are called, as well as when any
         so-called "automatic invalidation" condition occurs.
+
+        :param e: an exception object indicating a reason for the invalidation.
+
+        :param soft: if True, the connection isn't closed; instead, this
+         connection will be recycled on next checkout.
+
+         .. versionadded:: 1.0.3
 
         .. seealso::
 
@@ -489,22 +536,31 @@ class _ConnectionRecord(object):
         # already invalidated
         if self.connection is None:
             return
-        self.__pool.dispatch.invalidate(self.connection, self, e)
+        if soft:
+            self.__pool.dispatch.soft_invalidate(self.connection, self, e)
+        else:
+            self.__pool.dispatch.invalidate(self.connection, self, e)
         if e is not None:
             self.__pool.logger.info(
-                "Invalidate connection %r (reason: %s:%s)",
+                "%sInvalidate connection %r (reason: %s:%s)",
+                "Soft " if soft else "",
                 self.connection, e.__class__.__name__, e)
         else:
             self.__pool.logger.info(
-                "Invalidate connection %r", self.connection)
-        self.__close()
-        self.connection = None
+                "%sInvalidate connection %r",
+                "Soft " if soft else "",
+                self.connection)
+        if soft:
+            self._soft_invalidate_time = time.time()
+        else:
+            self.__close()
+            self.connection = None
 
     def get_connection(self):
         recycle = False
         if self.connection is None:
-            self.connection = self.__connect()
             self.info.clear()
+            self.connection = self.__connect()
             if self.__pool.dispatch.connect:
                 self.__pool.dispatch.connect(self.connection, self)
         elif self.__pool._recycle > -1 and \
@@ -520,22 +576,30 @@ class _ConnectionRecord(object):
                 self.connection
             )
             recycle = True
+        elif self._soft_invalidate_time > self.starttime:
+            self.__pool.logger.info(
+                "Connection %r invalidated due to local soft invalidation; " +
+                "recycling",
+                self.connection
+            )
+            recycle = True
 
         if recycle:
             self.__close()
-            self.connection = self.__connect()
             self.info.clear()
+            self.connection = self.__connect()
             if self.__pool.dispatch.connect:
                 self.__pool.dispatch.connect(self.connection, self)
         return self.connection
 
     def __close(self):
+        self.finalize_callback.clear()
         self.__pool._close_connection(self.connection)
 
     def __connect(self):
         try:
             self.starttime = time.time()
-            connection = self.__pool._creator()
+            connection = self.__pool._invoke_creator(self)
             self.__pool.logger.debug("Created new connection %r", connection)
             return connection
         except Exception as e:
@@ -569,12 +633,12 @@ def _finalize_fairy(connection, connection_record,
             # Immediately close detached instances
             if not connection_record:
                 pool._close_connection(connection)
-        except Exception as e:
+        except BaseException as e:
             pool.logger.error(
                 "Exception during reset or similar", exc_info=True)
             if connection_record:
                 connection_record.invalidate(e=e)
-            if isinstance(e, (SystemExit, KeyboardInterrupt)):
+            if not isinstance(e, Exception):
                 raise
 
     if connection_record:
@@ -736,7 +800,7 @@ class _ConnectionFairy(object):
         """
         return self._connection_record.info
 
-    def invalidate(self, e=None):
+    def invalidate(self, e=None, soft=False):
         """Mark this connection as invalidated.
 
         This method can be called directly, and is also called as a result
@@ -744,6 +808,13 @@ class _ConnectionFairy(object):
         the DBAPI connection is immediately closed and discarded from
         further use by the pool.  The invalidation mechanism proceeds
         via the :meth:`._ConnectionRecord.invalidate` internal method.
+
+        :param e: an exception object indicating a reason for the invalidation.
+
+        :param soft: if True, the connection isn't closed; instead, this
+         connection will be recycled on next checkout.
+
+         .. versionadded:: 1.0.3
 
         .. seealso::
 
@@ -755,9 +826,10 @@ class _ConnectionFairy(object):
             util.warn("Can't invalidate an already-closed connection.")
             return
         if self._connection_record:
-            self._connection_record.invalidate(e=e)
-        self.connection = None
-        self._checkin()
+            self._connection_record.invalidate(e=e, soft=soft)
+        if not soft:
+            self.connection = None
+            self._checkin()
 
     def cursor(self, *args, **kwargs):
         """Return a new DBAPI cursor for the underlying connection.
@@ -806,6 +878,19 @@ class SingletonThreadPool(Pool):
     Maintains one connection per each thread, never moving a connection to a
     thread other than the one which it was created in.
 
+    .. warning::  the :class:`.SingletonThreadPool` will call ``.close()``
+       on arbitrary connections that exist beyond the size setting of
+       ``pool_size``, e.g. if more unique **thread identities**
+       than what ``pool_size`` states are used.   This cleanup is
+       non-deterministic and not sensitive to whether or not the connections
+       linked to those thread identities are currently in use.
+
+       :class:`.SingletonThreadPool` may be improved in a future release,
+       however in its current status it is generally used only for test
+       scenarios using a SQLite ``:memory:`` database and is not recommended
+       for production use.
+
+
     Options are the same as those of :class:`.Pool`, as well as:
 
     :param pool_size: The number of threads in which to maintain connections
@@ -842,9 +927,7 @@ class SingletonThreadPool(Pool):
         for conn in self._all_conns:
             try:
                 conn.close()
-            except (SystemExit, KeyboardInterrupt):
-                raise
-            except:
+            except Exception:
                 # pysqlite won't even let you close a conn from a thread
                 # that didn't create it
                 pass
@@ -921,9 +1004,9 @@ class QueuePool(Pool):
           on returning a connection. Defaults to 30.
 
         :param \**kw: Other keyword arguments including
-        :paramref:`.Pool.recycle`, :paramref:`.Pool.echo`,
-        :paramref:`.Pool.reset_on_return` and others are passed to the
-        :class:`.Pool` constructor.
+          :paramref:`.Pool.recycle`, :paramref:`.Pool.echo`,
+          :paramref:`.Pool.reset_on_return` and others are passed to the
+          :class:`.Pool` constructor.
 
         """
         Pool.__init__(self, creator, **kw)
@@ -962,8 +1045,8 @@ class QueuePool(Pool):
                 try:
                     return self._create_connection()
                 except:
-                    self._dec_overflow()
-                    raise
+                    with util.safe_reraise():
+                        self._dec_overflow()
             else:
                 return self._do_get()
 

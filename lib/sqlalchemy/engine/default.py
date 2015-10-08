@@ -1,5 +1,5 @@
 # engine/default.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -395,6 +395,12 @@ class DefaultDialect(interfaces.Dialect):
             self._set_connection_isolation(connection, opts['isolation_level'])
 
     def _set_connection_isolation(self, connection, level):
+        if connection.in_transaction():
+            util.warn(
+                "Connection is already established with a Transaction; "
+                "setting isolation_level may implicitly rollback or commit "
+                "the existing transaction, or have no effect until "
+                "next transaction")
         self.set_isolation_level(connection.connection, level)
         connection.connection._connection_record.\
             finalize_callback.append(self.reset_isolation_level)
@@ -452,14 +458,12 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
     isinsert = False
     isupdate = False
     isdelete = False
+    is_crud = False
     isddl = False
     executemany = False
-    result_map = None
     compiled = None
     statement = None
-    postfetch_cols = None
-    prefetch_cols = None
-    returning_cols = None
+    result_column_struct = None
     _is_implicit_returning = False
     _is_explicit_returning = False
 
@@ -472,10 +476,9 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
         """Initialize execution context for a DDLElement construct."""
 
         self = cls.__new__(cls)
-        self.dialect = dialect
         self.root_connection = connection
         self._dbapi_connection = dbapi_connection
-        self.engine = connection.engine
+        self.dialect = connection.dialect
 
         self.compiled = compiled = compiled_ddl
         self.isddl = True
@@ -507,25 +510,20 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
         """Initialize execution context for a Compiled construct."""
 
         self = cls.__new__(cls)
-        self.dialect = dialect
         self.root_connection = connection
         self._dbapi_connection = dbapi_connection
-        self.engine = connection.engine
+        self.dialect = connection.dialect
 
         self.compiled = compiled
 
         if not compiled.can_execute:
             raise exc.ArgumentError("Not an executable clause")
 
-        self.execution_options = compiled.statement._execution_options
-        if connection._execution_options:
-            self.execution_options = dict(self.execution_options)
-            self.execution_options.update(connection._execution_options)
+        self.execution_options = compiled.statement._execution_options.union(
+            connection._execution_options)
 
-        # compiled clauseelement.  process bind params, process table defaults,
-        # track collections used by ResultProxy to target and process results
-
-        self.result_map = compiled.result_map
+        self.result_column_struct = (
+            compiled._result_columns, compiled._ordered_columns)
 
         self.unicode_statement = util.text_type(compiled)
         if not dialect.supports_unicode_statements:
@@ -538,11 +536,6 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
         self.isupdate = compiled.isupdate
         self.isdelete = compiled.isdelete
 
-        if self.isinsert or self.isupdate or self.isdelete:
-            self._is_explicit_returning = bool(compiled.statement._returning)
-            self._is_implicit_returning = bool(
-                compiled.returning and not compiled.statement._returning)
-
         if not parameters:
             self.compiled_parameters = [compiled.construct_params()]
         else:
@@ -553,11 +546,19 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
             self.executemany = len(parameters) > 1
 
         self.cursor = self.create_cursor()
-        if self.isinsert or self.isupdate:
-            self.postfetch_cols = self.compiled.postfetch
-            self.prefetch_cols = self.compiled.prefetch
-            self.returning_cols = self.compiled.returning
-            self.__process_defaults()
+
+        if self.isinsert or self.isupdate or self.isdelete:
+            self.is_crud = True
+            self._is_explicit_returning = bool(compiled.statement._returning)
+            self._is_implicit_returning = bool(
+                compiled.returning and not compiled.statement._returning)
+
+            if not self.isdelete:
+                if self.compiled.prefetch:
+                    if self.executemany:
+                        self._process_executemany_defaults()
+                    else:
+                        self._process_executesingle_defaults()
 
         processors = compiled._bind_processors
 
@@ -577,21 +578,28 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
         else:
             encode = not dialect.supports_unicode_statements
             for compiled_params in self.compiled_parameters:
-                param = {}
+
                 if encode:
-                    for key in compiled_params:
-                        if key in processors:
-                            param[dialect._encoder(key)[0]] = \
-                                processors[key](compiled_params[key])
-                        else:
-                            param[dialect._encoder(key)[0]] = \
-                                compiled_params[key]
+                    param = dict(
+                        (
+                            dialect._encoder(key)[0],
+                            processors[key](compiled_params[key])
+                            if key in processors
+                            else compiled_params[key]
+                        )
+                        for key in compiled_params
+                    )
                 else:
-                    for key in compiled_params:
-                        if key in processors:
-                            param[key] = processors[key](compiled_params[key])
-                        else:
-                            param[key] = compiled_params[key]
+                    param = dict(
+                        (
+                            key,
+                            processors[key](compiled_params[key])
+                            if key in processors
+                            else compiled_params[key]
+                        )
+                        for key in compiled_params
+                    )
+
                 parameters.append(param)
         self.parameters = dialect.execute_sequence_format(parameters)
 
@@ -603,10 +611,9 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
         """Initialize execution context for a string SQL statement."""
 
         self = cls.__new__(cls)
-        self.dialect = dialect
         self.root_connection = connection
         self._dbapi_connection = dbapi_connection
-        self.engine = connection.engine
+        self.dialect = connection.dialect
 
         # plain text statement
         self.execution_options = connection._execution_options
@@ -647,21 +654,32 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
         """Initialize execution context for a ColumnDefault construct."""
 
         self = cls.__new__(cls)
-        self.dialect = dialect
         self.root_connection = connection
         self._dbapi_connection = dbapi_connection
-        self.engine = connection.engine
+        self.dialect = connection.dialect
         self.execution_options = connection._execution_options
         self.cursor = self.create_cursor()
         return self
 
     @util.memoized_property
-    def no_parameters(self):
-        return self.execution_options.get("no_parameters", False)
+    def engine(self):
+        return self.root_connection.engine
 
     @util.memoized_property
-    def is_crud(self):
-        return self.isinsert or self.isupdate or self.isdelete
+    def postfetch_cols(self):
+        return self.compiled.postfetch
+
+    @util.memoized_property
+    def prefetch_cols(self):
+        return self.compiled.prefetch
+
+    @util.memoized_property
+    def returning_cols(self):
+        self.compiled.returning
+
+    @util.memoized_property
+    def no_parameters(self):
+        return self.execution_options.get("no_parameters", False)
 
     @util.memoized_property
     def should_autocommit(self):
@@ -778,16 +796,51 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
     def supports_sane_multi_rowcount(self):
         return self.dialect.supports_sane_multi_rowcount
 
-    def post_insert(self):
-        if not self._is_implicit_returning and \
-            not self._is_explicit_returning and \
-            not self.compiled.inline and \
-            self.dialect.postfetch_lastrowid and \
-            (not self.inserted_primary_key or
-             None in self.inserted_primary_key):
+    def _setup_crud_result_proxy(self):
+        if self.isinsert and \
+                not self.executemany:
+            if not self._is_implicit_returning and \
+                not self.compiled.inline and \
+                    self.dialect.postfetch_lastrowid:
 
-            table = self.compiled.statement.table
-            lastrowid = self.get_lastrowid()
+                self._setup_ins_pk_from_lastrowid()
+
+            elif not self._is_implicit_returning:
+                self._setup_ins_pk_from_empty()
+
+        result = self.get_result_proxy()
+
+        if self.isinsert:
+            if self._is_implicit_returning:
+                row = result.fetchone()
+                self.returned_defaults = row
+                self._setup_ins_pk_from_implicit_returning(row)
+                result._soft_close(_autoclose_connection=False)
+                result._metadata = None
+            elif not self._is_explicit_returning:
+                result._soft_close(_autoclose_connection=False)
+                result._metadata = None
+        elif self.isupdate and self._is_implicit_returning:
+            row = result.fetchone()
+            self.returned_defaults = row
+            result._soft_close(_autoclose_connection=False)
+            result._metadata = None
+
+        elif result._metadata is None:
+            # no results, get rowcount
+            # (which requires open cursor on some drivers
+            # such as kintersbasdb, mxodbc)
+            result.rowcount
+            result._soft_close(_autoclose_connection=False)
+        return result
+
+    def _setup_ins_pk_from_lastrowid(self):
+        key_getter = self.compiled._key_getters_for_crud_column[2]
+        table = self.compiled.statement.table
+        compiled_params = self.compiled_parameters[0]
+
+        lastrowid = self.get_lastrowid()
+        if lastrowid is not None:
             autoinc_col = table._autoincrement_column
             if autoinc_col is not None:
                 # apply type post processors to the lastrowid
@@ -795,35 +848,44 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
                     self.dialect, None)
                 if proc is not None:
                     lastrowid = proc(lastrowid)
-
             self.inserted_primary_key = [
-                lastrowid if c is autoinc_col else v
-                for c, v in zip(
-                    table.primary_key,
-                    self.inserted_primary_key)
+                lastrowid if c is autoinc_col else
+                compiled_params.get(key_getter(c), None)
+                for c in table.primary_key
+            ]
+        else:
+            # don't have a usable lastrowid, so
+            # do the same as _setup_ins_pk_from_empty
+            self.inserted_primary_key = [
+                compiled_params.get(key_getter(c), None)
+                for c in table.primary_key
             ]
 
-    def _fetch_implicit_returning(self, resultproxy):
+    def _setup_ins_pk_from_empty(self):
+        key_getter = self.compiled._key_getters_for_crud_column[2]
         table = self.compiled.statement.table
-        row = resultproxy.fetchone()
+        compiled_params = self.compiled_parameters[0]
+        self.inserted_primary_key = [
+            compiled_params.get(key_getter(c), None)
+            for c in table.primary_key
+        ]
 
-        ipk = []
-        for c, v in zip(table.primary_key, self.inserted_primary_key):
-            if v is not None:
-                ipk.append(v)
-            else:
-                ipk.append(row[c])
+    def _setup_ins_pk_from_implicit_returning(self, row):
+        key_getter = self.compiled._key_getters_for_crud_column[2]
+        table = self.compiled.statement.table
+        compiled_params = self.compiled_parameters[0]
 
-        self.inserted_primary_key = ipk
-        self.returned_defaults = row
-
-    def _fetch_implicit_update_returning(self, resultproxy):
-        row = resultproxy.fetchone()
-        self.returned_defaults = row
+        self.inserted_primary_key = [
+            row[col] if value is None else value
+            for col, value in [
+                (col, compiled_params.get(key_getter(col), None))
+                for col in table.primary_key
+            ]
+        ]
 
     def lastrow_has_defaults(self):
         return (self.isinsert or self.isupdate) and \
-            bool(self.postfetch_cols)
+            bool(self.compiled.postfetch)
 
     def set_input_sizes(self, translate=None, exclude_types=None):
         """Given a cursor and ClauseParameters, call the appropriate
@@ -901,58 +963,53 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
         else:
             return self._exec_default(column.onupdate, column.type)
 
-    def __process_defaults(self):
-        """Generate default values for compiled insert/update statements,
-        and generate inserted_primary_key collection.
-        """
-
+    def _process_executemany_defaults(self):
         key_getter = self.compiled._key_getters_for_crud_column[2]
 
-        if self.executemany:
-            if len(self.compiled.prefetch):
-                scalar_defaults = {}
+        prefetch = self.compiled.prefetch
+        scalar_defaults = {}
 
-                # pre-determine scalar Python-side defaults
-                # to avoid many calls of get_insert_default()/
-                # get_update_default()
-                for c in self.prefetch_cols:
-                    if self.isinsert and c.default and c.default.is_scalar:
-                        scalar_defaults[c] = c.default.arg
-                    elif self.isupdate and c.onupdate and c.onupdate.is_scalar:
-                        scalar_defaults[c] = c.onupdate.arg
+        # pre-determine scalar Python-side defaults
+        # to avoid many calls of get_insert_default()/
+        # get_update_default()
+        for c in prefetch:
+            if self.isinsert and c.default and c.default.is_scalar:
+                scalar_defaults[c] = c.default.arg
+            elif self.isupdate and c.onupdate and c.onupdate.is_scalar:
+                scalar_defaults[c] = c.onupdate.arg
 
-                for param in self.compiled_parameters:
-                    self.current_parameters = param
-                    for c in self.prefetch_cols:
-                        if c in scalar_defaults:
-                            val = scalar_defaults[c]
-                        elif self.isinsert:
-                            val = self.get_insert_default(c)
-                        else:
-                            val = self.get_update_default(c)
-                        if val is not None:
-                            param[key_getter(c)] = val
-                del self.current_parameters
-        else:
-            self.current_parameters = compiled_parameters = \
-                self.compiled_parameters[0]
-
-            for c in self.compiled.prefetch:
-                if self.isinsert:
+        for param in self.compiled_parameters:
+            self.current_parameters = param
+            for c in prefetch:
+                if c in scalar_defaults:
+                    val = scalar_defaults[c]
+                elif self.isinsert:
                     val = self.get_insert_default(c)
                 else:
                     val = self.get_update_default(c)
-
                 if val is not None:
-                    compiled_parameters[key_getter(c)] = val
-            del self.current_parameters
+                    param[key_getter(c)] = val
+        del self.current_parameters
 
+    def _process_executesingle_defaults(self):
+        key_getter = self.compiled._key_getters_for_crud_column[2]
+        prefetch = self.compiled.prefetch
+        self.current_parameters = compiled_parameters = \
+            self.compiled_parameters[0]
+
+        for c in prefetch:
             if self.isinsert:
-                self.inserted_primary_key = [
-                    self.compiled_parameters[0].get(key_getter(c), None)
-                    for c in self.compiled.
-                    statement.table.primary_key
-                ]
+                if c.default and \
+                        not c.default.is_sequence and c.default.is_scalar:
+                    val = c.default.arg
+                else:
+                    val = self.get_insert_default(c)
+            else:
+                val = self.get_update_default(c)
+
+            if val is not None:
+                compiled_parameters[key_getter(c)] = val
+        del self.current_parameters
 
 
 DefaultDialect.execution_ctx_cls = DefaultExecutionContext

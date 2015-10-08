@@ -172,6 +172,57 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
         assert_raises(ValueError, select, offset="foo")
         assert_raises(ValueError, select, limit="foo")
 
+    def test_limit_offset_no_int_coercion_one(self):
+        exp1 = literal_column("Q")
+        exp2 = literal_column("Y")
+        self.assert_compile(
+            select([1]).limit(exp1).offset(exp2),
+            "SELECT 1 LIMIT Q OFFSET Y"
+        )
+
+        self.assert_compile(
+            select([1]).limit(bindparam('x')).offset(bindparam('y')),
+            "SELECT 1 LIMIT :x OFFSET :y"
+        )
+
+    def test_limit_offset_no_int_coercion_two(self):
+        exp1 = literal_column("Q")
+        exp2 = literal_column("Y")
+        sel = select([1]).limit(exp1).offset(exp2)
+
+        assert_raises_message(
+            exc.CompileError,
+            "This SELECT structure does not use a simple integer "
+            "value for limit",
+            getattr, sel, "_limit"
+        )
+
+        assert_raises_message(
+            exc.CompileError,
+            "This SELECT structure does not use a simple integer "
+            "value for offset",
+            getattr, sel, "_offset"
+        )
+
+    def test_limit_offset_no_int_coercion_three(self):
+        exp1 = bindparam("Q")
+        exp2 = bindparam("Y")
+        sel = select([1]).limit(exp1).offset(exp2)
+
+        assert_raises_message(
+            exc.CompileError,
+            "This SELECT structure does not use a simple integer "
+            "value for limit",
+            getattr, sel, "_limit"
+        )
+
+        assert_raises_message(
+            exc.CompileError,
+            "This SELECT structure does not use a simple integer "
+            "value for offset",
+            getattr, sel, "_offset"
+        )
+
     def test_limit_offset(self):
         for lim, offset, exp, params in [
             (5, 10, "LIMIT :param_1 OFFSET :param_2",
@@ -187,25 +238,41 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
                 checkparams=params
             )
 
+    def test_limit_offset_select_literal_binds(self):
+        stmt = select([1]).limit(5).offset(6)
+        self.assert_compile(
+            stmt,
+            "SELECT 1 LIMIT 5 OFFSET 6",
+            literal_binds=True
+        )
+
+    def test_limit_offset_compound_select_literal_binds(self):
+        stmt = select([1]).union(select([2])).limit(5).offset(6)
+        self.assert_compile(
+            stmt,
+            "SELECT 1 UNION SELECT 2 LIMIT 5 OFFSET 6",
+            literal_binds=True
+        )
+
     def test_select_precol_compile_ordering(self):
-        s1 = select([column('x')]).select_from('a').limit(5).as_scalar()
+        s1 = select([column('x')]).select_from(text('a')).limit(5).as_scalar()
         s2 = select([s1]).limit(10)
 
         class MyCompiler(compiler.SQLCompiler):
 
-            def get_select_precolumns(self, select):
+            def get_select_precolumns(self, select, **kw):
                 result = ""
                 if select._limit:
                     result += "FIRST %s " % self.process(
                         literal(
-                            select._limit))
+                            select._limit), **kw)
                 if select._offset:
                     result += "SKIP %s " % self.process(
                         literal(
-                            select._offset))
+                            select._offset), **kw)
                 return result
 
-            def limit_clause(self, select):
+            def limit_clause(self, select, **kw):
                 return ""
 
         dialect = default.DefaultDialect()
@@ -295,7 +362,7 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
     def test_select_from_clauselist(self):
         self.assert_compile(
             select([ClauseList(column('a'), column('b'))]
-                   ).select_from('sometable'),
+                   ).select_from(text('sometable')),
             'SELECT a, b FROM sometable'
         )
 
@@ -313,7 +380,7 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
         # this is native_boolean=False for default dialect
         self.assert_compile(
             select([not_(True)], use_labels=True),
-            "SELECT :param_1 = 0"
+            "SELECT :param_1 = 0 AS anon_1"
         )
 
         self.assert_compile(
@@ -368,6 +435,19 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
             dialect=default.DefaultDialect(paramstyle='pyformat')
         )
 
+    def test_anon_param_name_on_keys(self):
+        self.assert_compile(
+            keyed.insert(),
+            "INSERT INTO keyed (x, y, z) VALUES (%(colx)s, %(coly)s, %(z)s)",
+            dialect=default.DefaultDialect(paramstyle='pyformat')
+        )
+        self.assert_compile(
+            keyed.c.coly == 5,
+            "keyed.y = %(coly_1)s",
+            checkparams={'coly_1': 5},
+            dialect=default.DefaultDialect(paramstyle='pyformat')
+        )
+
     def test_dupe_columns(self):
         """test that deduping is performed against clause
         element identity, not rendered result."""
@@ -411,7 +491,7 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
         )
 
         self.assert_compile(
-            select(["a", "a", "a"]),
+            select([column("a"), column("a"), column("a")]),
             "SELECT a, a, a"
         )
 
@@ -481,13 +561,13 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(exists([table1.c.myid], table1.c.myid
                                    == 5).select(),
                             'SELECT EXISTS (SELECT mytable.myid FROM '
-                            'mytable WHERE mytable.myid = :myid_1)',
+                            'mytable WHERE mytable.myid = :myid_1) AS anon_1',
                             params={'mytable_myid': 5})
         self.assert_compile(select([table1, exists([1],
                                                    from_obj=table2)]),
                             'SELECT mytable.myid, mytable.name, '
                             'mytable.description, EXISTS (SELECT 1 '
-                            'FROM myothertable) FROM mytable',
+                            'FROM myothertable) AS anon_1 FROM mytable',
                             params={})
         self.assert_compile(select([table1,
                                     exists([1],
@@ -881,8 +961,21 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
             dialect=dialect
         )
 
+    def test_no_group_by_labels(self):
+        lab1 = (table1.c.myid + 12).label('foo')
+        lab2 = func.somefunc(table1.c.name).label('bar')
+        dialect = default.DefaultDialect()
+
+        self.assert_compile(
+            select([lab1, lab2]).group_by(lab1, lab2),
+            "SELECT mytable.myid + :myid_1 AS foo, somefunc(mytable.name) "
+            "AS bar FROM mytable GROUP BY mytable.myid + :myid_1, "
+            "somefunc(mytable.name)",
+            dialect=dialect
+        )
+
     def test_conjunctions(self):
-        a, b, c = 'a', 'b', 'c'
+        a, b, c = text('a'), text('b'), text('c')
         x = and_(a, b, c)
         assert isinstance(x.type, Boolean)
         assert str(x) == 'a AND b AND c'
@@ -893,7 +986,7 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
 
         self.assert_compile(
             and_(table1.c.myid == 12, table1.c.name == 'asdf',
-                 table2.c.othername == 'foo', "sysdate() = today()"),
+                 table2.c.othername == 'foo', text("sysdate() = today()")),
             "mytable.myid = :myid_1 AND mytable.name = :name_1 "
             "AND myothertable.othername = "
             ":othername_1 AND sysdate() = today()"
@@ -904,7 +997,7 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
                 table1.c.myid == 12,
                 or_(table2.c.othername == 'asdf',
                     table2.c.othername == 'foo', table2.c.otherid == 9),
-                "sysdate() = today()",
+                text("sysdate() = today()"),
             ),
             'mytable.myid = :myid_1 AND (myothertable.othername = '
             ':othername_1 OR myothertable.othername = :othername_2 OR '
@@ -1016,8 +1109,12 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
 
     def test_multiple_col_binds(self):
         self.assert_compile(
-            select(["*"], or_(table1.c.myid == 12, table1.c.myid == 'asdf',
-                              table1.c.myid == 'foo')),
+            select(
+                [literal_column("*")],
+                or_(
+                    table1.c.myid == 12, table1.c.myid == 'asdf',
+                    table1.c.myid == 'foo')
+            ),
             "SELECT * FROM mytable WHERE mytable.myid = :myid_1 "
             "OR mytable.myid = :myid_2 OR mytable.myid = :myid_3"
         )
@@ -1427,7 +1524,7 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
                 table1.c.name == 'fred',
                 table1.c.myid == 10,
                 table2.c.othername != 'jack',
-                "EXISTS (select yay from foo where boo = lar)"
+                text("EXISTS (select yay from foo where boo = lar)")
             ),
             from_obj=[outerjoin(table1, table2,
                                 table1.c.myid == table2.c.otherid)]
@@ -1500,7 +1597,8 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
             "SELECT mytable.myid, mytable.name "
             "FROM mytable UNION SELECT myothertable.otherid, "
             "myothertable.othername "
-            "FROM myothertable ORDER BY myid LIMIT :param_1 OFFSET :param_2",
+            "FROM myothertable ORDER BY myid "  # note table name is omitted
+            "LIMIT :param_1 OFFSET :param_2",
             {'param_1': 5, 'param_2': 10}
         )
 
@@ -1563,7 +1661,7 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
         )
 
     def test_compound_grouping(self):
-        s = select([column('foo'), column('bar')]).select_from('bat')
+        s = select([column('foo'), column('bar')]).select_from(text('bat'))
 
         self.assert_compile(
             union(union(union(s, s), s), s),
@@ -2079,10 +2177,10 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(
             select([
                 func.max(table1.c.name).over(
-                    partition_by=['foo']
+                    partition_by=['description']
                 )
             ]),
-            "SELECT max(mytable.name) OVER (PARTITION BY foo) "
+            "SELECT max(mytable.name) OVER (PARTITION BY mytable.description) "
             "AS anon_1 FROM mytable"
         )
         # from partition_by
@@ -2111,6 +2209,27 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(
             select([column("x") + over(func.foo())]),
             "SELECT x + foo() OVER () AS anon_1"
+        )
+
+        # test a reference to a label that in the referecned selectable;
+        # this resolves
+        expr = (table1.c.myid + 5).label('sum')
+        stmt = select([expr]).alias()
+        self.assert_compile(
+            select([stmt.c.sum, func.row_number().over(order_by=stmt.c.sum)]),
+            "SELECT anon_1.sum, row_number() OVER (ORDER BY anon_1.sum) "
+            "AS anon_2 FROM (SELECT mytable.myid + :myid_1 AS sum "
+            "FROM mytable) AS anon_1"
+        )
+
+        # test a reference to a label that's at the same level as the OVER
+        # in the columns clause; doesn't resolve
+        expr = (table1.c.myid + 5).label('sum')
+        self.assert_compile(
+            select([expr, func.row_number().over(order_by=expr)]),
+            "SELECT mytable.myid + :myid_1 AS sum, "
+            "row_number() OVER "
+            "(ORDER BY mytable.myid + :myid_1) AS anon_1 FROM mytable"
         )
 
     def test_date_between(self):
@@ -2334,7 +2453,7 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
                 """SELECT /*+ "QuotedName" idx1 */ "QuotedName".col1 """
                 """FROM "QuotedName" WHERE "QuotedName".col1 > :col1_1"""),
             (s7, oracle_d,
-             """SELECT /*+ SomeName idx1 */ "SomeName".col1 FROM """
+             """SELECT /*+ "SomeName" idx1 */ "SomeName".col1 FROM """
              """"QuotedName" "SomeName" WHERE "SomeName".col1 > :col1_1"""),
         ]:
             self.assert_compile(
@@ -2343,9 +2462,26 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
                 dialect=dialect
             )
 
+    def test_statement_hints(self):
+
+        stmt = select([table1.c.myid]).\
+            with_statement_hint("test hint one").\
+            with_statement_hint("test hint two", 'mysql')
+
+        self.assert_compile(
+            stmt,
+            "SELECT mytable.myid FROM mytable test hint one",
+        )
+
+        self.assert_compile(
+            stmt,
+            "SELECT mytable.myid FROM mytable test hint one test hint two",
+            dialect='mysql'
+        )
+
     def test_literal_as_text_fromstring(self):
         self.assert_compile(
-            and_("a", "b"),
+            and_(text("a"), text("b")),
             "a AND b"
         )
 
@@ -3257,7 +3393,7 @@ class ResultMapTest(fixtures.TestBase):
         stmt = select([t]).union(select([t]))
         comp = stmt.compile()
         eq_(
-            comp.result_map,
+            comp._create_result_map(),
             {'a': ('a', (t.c.a, 'a', 'a'), t.c.a.type),
              'b': ('b', (t.c.b, 'b', 'b'), t.c.b.type)}
         )
@@ -3268,7 +3404,7 @@ class ResultMapTest(fixtures.TestBase):
         stmt = select([t.c.a]).select_from(t.join(subq, t.c.a == subq.c.a))
         comp = stmt.compile()
         eq_(
-            comp.result_map,
+            comp._create_result_map(),
             {'a': ('a', (t.c.a, 'a', 'a'), t.c.a.type)}
         )
 
@@ -3277,7 +3413,7 @@ class ResultMapTest(fixtures.TestBase):
         stmt = select([t.c.a]).union(select([t.c.b]))
         comp = stmt.compile()
         eq_(
-            comp.result_map,
+            comp._create_result_map(),
             {'a': ('a', (t.c.a, 'a', 'a'), t.c.a.type)},
         )
 
@@ -3287,9 +3423,9 @@ class ResultMapTest(fixtures.TestBase):
         tc = type_coerce(t.c.a, String)
         stmt = select([t.c.a, l1, tc])
         comp = stmt.compile()
-        tc_anon_label = comp.result_map['a_1'][1][0]
+        tc_anon_label = comp._create_result_map()['a_1'][1][0]
         eq_(
-            comp.result_map,
+            comp._create_result_map(),
             {
                 'a': ('a', (t.c.a, 'a', 'a'), t.c.a.type),
                 'bar': ('bar', (l1, 'bar'), l1.type),
@@ -3308,9 +3444,95 @@ class ResultMapTest(fixtures.TestBase):
             t1.join(union, t1.c.a == union.c.t1_a)).apply_labels()
         comp = stmt.compile()
         eq_(
-            set(comp.result_map),
+            set(comp._create_result_map()),
             set(['t1_1_b', 't1_1_a', 't1_a', 't1_b'])
         )
         is_(
-            comp.result_map['t1_a'][1][2], t1.c.a
+            comp._create_result_map()['t1_a'][1][2], t1.c.a
+        )
+
+    def test_insert_with_select_values(self):
+        astring = Column('a', String)
+        aint = Column('a', Integer)
+        m = MetaData()
+        Table('t1', m, astring)
+        t2 = Table('t2', m, aint)
+
+        stmt = t2.insert().values(a=select([astring])).returning(aint)
+        comp = stmt.compile(dialect=postgresql.dialect())
+        eq_(
+            comp._create_result_map(),
+            {'a': ('a', (aint, 'a', 'a'), aint.type)}
+        )
+
+    def test_insert_from_select(self):
+        astring = Column('a', String)
+        aint = Column('a', Integer)
+        m = MetaData()
+        Table('t1', m, astring)
+        t2 = Table('t2', m, aint)
+
+        stmt = t2.insert().from_select(['a'], select([astring])).\
+            returning(aint)
+        comp = stmt.compile(dialect=postgresql.dialect())
+        eq_(
+            comp._create_result_map(),
+            {'a': ('a', (aint, 'a', 'a'), aint.type)}
+        )
+
+    def test_nested_api(self):
+        from sqlalchemy.engine.result import ResultMetaData
+        stmt2 = select([table2])
+
+        stmt1 = select([table1]).select_from(stmt2)
+
+        contexts = {}
+
+        int_ = Integer()
+
+        class MyCompiler(compiler.SQLCompiler):
+            def visit_select(self, stmt, *arg, **kw):
+
+                if stmt is stmt2:
+                    with self._nested_result() as nested:
+                        contexts[stmt2] = nested
+                        text = super(MyCompiler, self).visit_select(stmt2)
+                        self._add_to_result_map("k1", "k1", (1, 2, 3), int_)
+                else:
+                    text = super(MyCompiler, self).visit_select(
+                        stmt, *arg, **kw)
+                    self._add_to_result_map("k2", "k2", (3, 4, 5), int_)
+                return text
+
+        comp = MyCompiler(default.DefaultDialect(), stmt1)
+
+        eq_(
+            ResultMetaData._create_result_map(contexts[stmt2][0]),
+            {
+                'otherid': (
+                    'otherid',
+                    (table2.c.otherid, 'otherid', 'otherid'),
+                    table2.c.otherid.type),
+                'othername': (
+                    'othername',
+                    (table2.c.othername, 'othername', 'othername'),
+                    table2.c.othername.type),
+                'k1': ('k1', (1, 2, 3), int_)
+            }
+        )
+        eq_(
+            comp._create_result_map(),
+            {
+                'myid': (
+                    'myid',
+                    (table1.c.myid, 'myid', 'myid'), table1.c.myid.type
+                ),
+                'k2': ('k2', (3, 4, 5), int_),
+                'name': (
+                    'name', (table1.c.name, 'name', 'name'),
+                    table1.c.name.type),
+                'description': (
+                    'description',
+                    (table1.c.description, 'description', 'description'),
+                    table1.c.description.type)}
         )

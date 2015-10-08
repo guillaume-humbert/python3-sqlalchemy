@@ -1,5 +1,5 @@
 # sql/elements.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -19,7 +19,8 @@ from .visitors import Visitable, cloned_traverse, traverse
 from .annotation import Annotated
 import itertools
 from .base import Executable, PARSE_AUTOCOMMIT, Immutable, NO_ARG
-from .base import _generative, Generative
+from .base import _generative
+import numbers
 
 import re
 import operator
@@ -625,8 +626,73 @@ class ColumnElement(operators.ColumnOperators, ClauseElement):
     __visit_name__ = 'column'
     primary_key = False
     foreign_keys = []
+
     _label = None
-    _key_label = key = None
+    """The named label that can be used to target
+    this column in a result set.
+
+    This label is almost always the label used when
+    rendering <expr> AS <label> in a SELECT statement.  It also
+    refers to a name that this column expression can be located from
+    in a result set.
+
+    For a regular Column bound to a Table, this is typically the label
+    <tablename>_<columnname>.  For other constructs, different rules
+    may apply, such as anonymized labels and others.
+
+    """
+
+    key = None
+    """the 'key' that in some circumstances refers to this object in a
+    Python namespace.
+
+    This typically refers to the "key" of the column as present in the
+    ``.c`` collection of a selectable, e.g. sometable.c["somekey"] would
+    return a Column with a .key of "somekey".
+
+    """
+
+    _key_label = None
+    """A label-based version of 'key' that in some circumstances refers
+    to this object in a Python namespace.
+
+
+    _key_label comes into play when a select() statement is constructed with
+    apply_labels(); in this case, all Column objects in the ``.c`` collection
+    are rendered as <tablename>_<columnname> in SQL; this is essentially the
+    value of ._label.  But to locate those columns in the ``.c`` collection,
+    the name is along the lines of <tablename>_<key>; that's the typical
+    value of .key_label.
+
+    """
+
+    _render_label_in_columns_clause = True
+    """A flag used by select._columns_plus_names that helps to determine
+    we are actually going to render in terms of "SELECT <col> AS <label>".
+    This flag can be returned as False for some Column objects that want
+    to be rendered as simple "SELECT <col>"; typically columns that don't have
+    any parent table and are named the same as what the label would be
+    in any case.
+
+    """
+
+    _resolve_label = None
+    """The name that should be used to identify this ColumnElement in a
+    select() object when "label resolution" logic is used; this refers
+    to using a string name in an expression like order_by() or group_by()
+    that wishes to target a labeled expression in the columns clause.
+
+    The name is distinct from that of .name or ._label to account for the case
+    where anonymizing logic may be used to change the name that's actually
+    rendered at compile time; this attribute should hold onto the original
+    name that was user-assigned when producing a .label() construct.
+
+    """
+
+    _allow_label_resolve = True
+    """A flag that can be flipped to prevent a column from being resolvable
+    by string label name."""
+
     _alt_names = ()
 
     def self_group(self, against=None):
@@ -795,6 +861,9 @@ class ColumnElement(operators.ColumnOperators, ClauseElement):
         expressions and function calls.
 
         """
+        while self._is_clone_of is not None:
+            self = self._is_clone_of
+
         return _anonymous_label(
             '%%(%d %s)s' % (id(self), getattr(self, 'name', 'anon'))
         )
@@ -1023,7 +1092,7 @@ class BindParameter(ColumnElement):
         """
         if isinstance(key, ColumnClause):
             type_ = key.type
-            key = key.name
+            key = key.key
         if required is NO_ARG:
             required = (value is NO_ARG and callable_ is None)
         if value is NO_ARG:
@@ -1181,6 +1250,12 @@ class TextClause(Executable, ClauseElement):
 
     _hide_froms = []
 
+    # help in those cases where text() is
+    # interpreted in a column expression situation
+    key = _label = _resolve_label = None
+
+    _allow_label_resolve = False
+
     def __init__(
             self,
             text,
@@ -1204,7 +1279,7 @@ class TextClause(Executable, ClauseElement):
 
         E.g.::
 
-            fom sqlalchemy import text
+            from sqlalchemy import text
 
             t = text("SELECT * FROM users")
             result = connection.execute(t)
@@ -1545,10 +1620,10 @@ class Null(ColumnElement):
         return type_api.NULLTYPE
 
     @classmethod
-    def _singleton(cls):
+    def _instance(cls):
         """Return a constant :class:`.Null` construct."""
 
-        return NULL
+        return Null()
 
     def compare(self, other):
         return isinstance(other, Null)
@@ -1569,11 +1644,11 @@ class False_(ColumnElement):
         return type_api.BOOLEANTYPE
 
     def _negate(self):
-        return TRUE
+        return True_()
 
     @classmethod
-    def _singleton(cls):
-        """Return a constant :class:`.False_` construct.
+    def _instance(cls):
+        """Return a :class:`.False_` construct.
 
         E.g.::
 
@@ -1607,7 +1682,7 @@ class False_(ColumnElement):
 
         """
 
-        return FALSE
+        return False_()
 
     def compare(self, other):
         return isinstance(other, False_)
@@ -1628,17 +1703,17 @@ class True_(ColumnElement):
         return type_api.BOOLEANTYPE
 
     def _negate(self):
-        return FALSE
+        return False_()
 
     @classmethod
     def _ifnone(cls, other):
         if other is None:
-            return cls._singleton()
+            return cls._instance()
         else:
             return other
 
     @classmethod
-    def _singleton(cls):
+    def _instance(cls):
         """Return a constant :class:`.True_` construct.
 
         E.g.::
@@ -1673,14 +1748,10 @@ class True_(ColumnElement):
 
         """
 
-        return TRUE
+        return True_()
 
     def compare(self, other):
         return isinstance(other, True_)
-
-NULL = Null()
-FALSE = False_()
-TRUE = True_()
 
 
 class ClauseList(ClauseElement):
@@ -1695,13 +1766,16 @@ class ClauseList(ClauseElement):
         self.operator = kwargs.pop('operator', operators.comma_op)
         self.group = kwargs.pop('group', True)
         self.group_contents = kwargs.pop('group_contents', True)
+        text_converter = kwargs.pop(
+            '_literal_as_text',
+            _expression_literal_as_text)
         if self.group_contents:
             self.clauses = [
-                _literal_as_text(clause).self_group(against=self.operator)
+                text_converter(clause).self_group(against=self.operator)
                 for clause in clauses]
         else:
             self.clauses = [
-                _literal_as_text(clause)
+                text_converter(clause)
                 for clause in clauses]
 
     def __iter__(self):
@@ -1768,7 +1842,7 @@ class BooleanClauseList(ClauseList, ColumnElement):
 
         clauses = util.coerce_generator_arg(clauses)
         for clause in clauses:
-            clause = _literal_as_text(clause)
+            clause = _expression_literal_as_text(clause)
 
             if isinstance(clause, continue_on):
                 continue
@@ -2072,7 +2146,7 @@ class Case(ColumnElement):
           result of the ``CASE`` construct if all expressions within
           :paramref:`.case.whens` evaluate to false.  When omitted, most
           databases will produce a result of NULL if none of the "when"
-          expressions evaulate to true.
+          expressions evaluate to true.
 
 
         """
@@ -2281,6 +2355,42 @@ class Extract(ColumnElement):
         return self.expr._from_objects
 
 
+class _label_reference(ColumnElement):
+    """Wrap a column expression as it appears in a 'reference' context.
+
+    This expression is any that inclues an _order_by_label_element,
+    which is a Label, or a DESC / ASC construct wrapping a Label.
+
+    The production of _label_reference() should occur when an expression
+    is added to this context; this includes the ORDER BY or GROUP BY of a
+    SELECT statement, as well as a few other places, such as the ORDER BY
+    within an OVER clause.
+
+    """
+    __visit_name__ = 'label_reference'
+
+    def __init__(self, element):
+        self.element = element
+
+    def _copy_internals(self, clone=_clone, **kw):
+        self.element = clone(self.element, **kw)
+
+    @property
+    def _from_objects(self):
+        return ()
+
+
+class _textual_label_reference(ColumnElement):
+    __visit_name__ = 'textual_label_reference'
+
+    def __init__(self, element):
+        self.element = element
+
+    @util.memoized_property
+    def _text_clause(self):
+        return TextClause._create_text(self.element)
+
+
 class UnaryExpression(ColumnElement):
     """Define a 'unary' expression.
 
@@ -2297,13 +2407,14 @@ class UnaryExpression(ColumnElement):
     __visit_name__ = 'unary'
 
     def __init__(self, element, operator=None, modifier=None,
-                 type_=None, negate=None):
+                 type_=None, negate=None, wraps_column_expression=False):
         self.operator = operator
         self.modifier = modifier
         self.element = element.self_group(
             against=self.operator or self.modifier)
         self.type = type_api.to_instance(type_)
         self.negate = negate
+        self.wraps_column_expression = wraps_column_expression
 
     @classmethod
     def _create_nullsfirst(cls, column):
@@ -2344,7 +2455,9 @@ class UnaryExpression(ColumnElement):
 
         """
         return UnaryExpression(
-            _literal_as_text(column), modifier=operators.nullsfirst_op)
+            _literal_as_label_reference(column),
+            modifier=operators.nullsfirst_op,
+            wraps_column_expression=False)
 
     @classmethod
     def _create_nullslast(cls, column):
@@ -2384,7 +2497,9 @@ class UnaryExpression(ColumnElement):
 
         """
         return UnaryExpression(
-            _literal_as_text(column), modifier=operators.nullslast_op)
+            _literal_as_label_reference(column),
+            modifier=operators.nullslast_op,
+            wraps_column_expression=False)
 
     @classmethod
     def _create_desc(cls, column):
@@ -2422,7 +2537,9 @@ class UnaryExpression(ColumnElement):
 
         """
         return UnaryExpression(
-            _literal_as_text(column), modifier=operators.desc_op)
+            _literal_as_label_reference(column),
+            modifier=operators.desc_op,
+            wraps_column_expression=False)
 
     @classmethod
     def _create_asc(cls, column):
@@ -2459,7 +2576,9 @@ class UnaryExpression(ColumnElement):
 
         """
         return UnaryExpression(
-            _literal_as_text(column), modifier=operators.asc_op)
+            _literal_as_label_reference(column),
+            modifier=operators.asc_op,
+            wraps_column_expression=False)
 
     @classmethod
     def _create_distinct(cls, expr):
@@ -2499,9 +2618,10 @@ class UnaryExpression(ColumnElement):
         """
         expr = _literal_as_binds(expr)
         return UnaryExpression(
-            expr, operator=operators.distinct_op, type_=expr.type)
+            expr, operator=operators.distinct_op,
+            type_=expr.type, wraps_column_expression=False)
 
-    @util.memoized_property
+    @property
     def _order_by_label_element(self):
         if self.modifier in (operators.desc_op, operators.asc_op):
             return self.element._order_by_label_element
@@ -2536,7 +2656,8 @@ class UnaryExpression(ColumnElement):
                 operator=self.negate,
                 negate=self.operator,
                 modifier=self.modifier,
-                type_=self.type)
+                type_=self.type,
+                wraps_column_expression=self.wraps_column_expression)
         else:
             return ClauseElement._negate(self)
 
@@ -2555,6 +2676,7 @@ class AsBoolean(UnaryExpression):
         self.operator = operator
         self.negate = negate
         self.modifier = None
+        self.wraps_column_expression = True
 
     def self_group(self, against=None):
         return self
@@ -2651,7 +2773,7 @@ class BinaryExpression(ColumnElement):
                 self.right,
                 self.negate,
                 negate=self.operator,
-                type_=type_api.BOOLEANTYPE,
+                type_=self.type,
                 modifiers=self.modifiers)
         else:
             return super(BinaryExpression, self)._negate()
@@ -2668,6 +2790,10 @@ class Grouping(ColumnElement):
 
     def self_group(self, against=None):
         return self
+
+    @property
+    def _key_label(self):
+        return self._label
 
     @property
     def _label(self):
@@ -2743,9 +2869,13 @@ class Over(ColumnElement):
         """
         self.func = func
         if order_by is not None:
-            self.order_by = ClauseList(*util.to_list(order_by))
+            self.order_by = ClauseList(
+                *util.to_list(order_by),
+                _literal_as_text=_literal_as_label_reference)
         if partition_by is not None:
-            self.partition_by = ClauseList(*util.to_list(partition_by))
+            self.partition_by = ClauseList(
+                *util.to_list(partition_by),
+                _literal_as_text=_literal_as_label_reference)
 
     @util.memoized_property
     def type(self):
@@ -2768,6 +2898,120 @@ class Over(ColumnElement):
         return list(itertools.chain(
             *[c._from_objects for c in
                 (self.func, self.partition_by, self.order_by)
+              if c is not None]
+        ))
+
+
+class FunctionFilter(ColumnElement):
+    """Represent a function FILTER clause.
+
+    This is a special operator against aggregate and window functions,
+    which controls which rows are passed to it.
+    It's supported only by certain database backends.
+
+    Invocation of :class:`.FunctionFilter` is via
+    :meth:`.FunctionElement.filter`::
+
+        func.count(1).filter(True)
+
+    .. versionadded:: 1.0.0
+
+    .. seealso::
+
+        :meth:`.FunctionElement.filter`
+
+    """
+    __visit_name__ = 'funcfilter'
+
+    criterion = None
+
+    def __init__(self, func, *criterion):
+        """Produce a :class:`.FunctionFilter` object against a function.
+
+        Used against aggregate and window functions,
+        for database backends that support the "FILTER" clause.
+
+        E.g.::
+
+            from sqlalchemy import funcfilter
+            funcfilter(func.count(1), MyClass.name == 'some name')
+
+        Would produce "COUNT(1) FILTER (WHERE myclass.name = 'some name')".
+
+        This function is also available from the :data:`~.expression.func`
+        construct itself via the :meth:`.FunctionElement.filter` method.
+
+        .. versionadded:: 1.0.0
+
+        .. seealso::
+
+            :meth:`.FunctionElement.filter`
+
+
+        """
+        self.func = func
+        self.filter(*criterion)
+
+    def filter(self, *criterion):
+        """Produce an additional FILTER against the function.
+
+        This method adds additional criteria to the initial criteria
+        set up by :meth:`.FunctionElement.filter`.
+
+        Multiple criteria are joined together at SQL render time
+        via ``AND``.
+
+
+        """
+
+        for criterion in list(criterion):
+            criterion = _expression_literal_as_text(criterion)
+
+            if self.criterion is not None:
+                self.criterion = self.criterion & criterion
+            else:
+                self.criterion = criterion
+
+        return self
+
+    def over(self, partition_by=None, order_by=None):
+        """Produce an OVER clause against this filtered function.
+
+        Used against aggregate or so-called "window" functions,
+        for database backends that support window functions.
+
+        The expression::
+
+            func.rank().filter(MyClass.y > 5).over(order_by='x')
+
+        is shorthand for::
+
+            from sqlalchemy import over, funcfilter
+            over(funcfilter(func.rank(), MyClass.y > 5), order_by='x')
+
+        See :func:`~.expression.over` for a full description.
+
+        """
+        return Over(self, partition_by=partition_by, order_by=order_by)
+
+    @util.memoized_property
+    def type(self):
+        return self.func.type
+
+    def get_children(self, **kwargs):
+        return [c for c in
+                (self.func, self.criterion)
+                if c is not None]
+
+    def _copy_internals(self, clone=_clone, **kw):
+        self.func = clone(self.func, **kw)
+        if self.criterion is not None:
+            self.criterion = clone(self.criterion, **kw)
+
+    @property
+    def _from_objects(self):
+        return list(itertools.chain(
+            *[c._from_objects for c in (self.func, self.criterion)
               if c is not None]
         ))
 
@@ -2797,14 +3041,21 @@ class Label(ColumnElement):
         :param obj: a :class:`.ColumnElement`.
 
         """
+
+        if isinstance(element, Label):
+            self._resolve_label = element._label
+
         while isinstance(element, Label):
             element = element.element
+
         if name:
             self.name = name
+            self._resolve_label = self.name
         else:
             self.name = _anonymous_label(
                 '%%(%d %s)s' % (id(self), getattr(element, 'name', 'anon'))
             )
+
         self.key = self._label = self._key_label = self.name
         self._element = element
         self._type = type_
@@ -2814,6 +3065,10 @@ class Label(ColumnElement):
         return self.__class__, (self.name, self._element, self._type)
 
     @util.memoized_property
+    def _allow_label_resolve(self):
+        return self.element._allow_label_resolve
+
+    @property
     def _order_by_label_element(self):
         return self
 
@@ -2847,8 +3102,15 @@ class Label(ColumnElement):
     def get_children(self, **kwargs):
         return self.element,
 
-    def _copy_internals(self, clone=_clone, **kw):
+    def _copy_internals(self, clone=_clone, anonymize_labels=False, **kw):
         self.element = clone(self.element, **kw)
+        self.__dict__.pop('_allow_label_resolve', None)
+        if anonymize_labels:
+            self.name = self._resolve_label = _anonymous_label(
+                '%%(%d %s)s' % (
+                    id(self), getattr(self.element, 'name', 'anon'))
+            )
+            self.key = self._label = self._key_label = self.name
 
     @property
     def _from_objects(self):
@@ -2870,7 +3132,7 @@ class ColumnClause(Immutable, ColumnElement):
     :class:`.Column` class, is typically invoked using the
     :func:`.column` function, as in::
 
-        from sqlalchemy.sql import column
+        from sqlalchemy import column
 
         id, name = column("id"), column("name")
         stmt = select([id, name]).select_from("user")
@@ -2910,7 +3172,7 @@ class ColumnClause(Immutable, ColumnElement):
         :class:`.Column` class.  The :func:`.column` function can
         be invoked with just a name alone, as in::
 
-            from sqlalchemy.sql import column
+            from sqlalchemy import column
 
             id, name = column("id"), column("name")
             stmt = select([id, name]).select_from("user")
@@ -2942,7 +3204,7 @@ class ColumnClause(Immutable, ColumnElement):
         (which is the lightweight analogue to :class:`.Table`) to produce
         a working table construct with minimal boilerplate::
 
-            from sqlalchemy.sql import table, column
+            from sqlalchemy import table, column, select
 
             user = table("user",
                     column("id"),
@@ -2957,6 +3219,10 @@ class ColumnClause(Immutable, ColumnElement):
         ad-hoc fashion and is not associated with any
         :class:`.schema.MetaData`, DDL, or events, unlike its
         :class:`.Table` counterpart.
+
+        .. versionchanged:: 1.0.0 :func:`.expression.column` can now
+           be imported from the plain ``sqlalchemy`` namespace like any
+           other SQL element.
 
         :param text: the text of the element.
 
@@ -3036,6 +3302,10 @@ class ColumnClause(Immutable, ColumnElement):
     def _label(self):
         return self._gen_label(self.name)
 
+    @_memoized_property
+    def _render_label_in_columns_clause(self):
+        return self.table is not None
+
     def _gen_label(self, name):
         t = self.table
 
@@ -3077,7 +3347,7 @@ class ColumnClause(Immutable, ColumnElement):
             return name
 
     def _bind_param(self, operator, obj):
-        return BindParameter(self.name, obj,
+        return BindParameter(self.key, obj,
                              _compared_to_operator=operator,
                              _compared_to_type=self.type,
                              unique=True)
@@ -3129,7 +3399,7 @@ class ReleaseSavepointClause(_IdentifiedClause):
     __visit_name__ = 'release_savepoint'
 
 
-class quoted_name(util.text_type):
+class quoted_name(util.MemoizedSlots, util.text_type):
     """Represent a SQL identifier combined with quoting preferences.
 
     :class:`.quoted_name` is a Python unicode/str subclass which
@@ -3173,6 +3443,8 @@ class quoted_name(util.text_type):
 
     """
 
+    __slots__ = 'quote', 'lower', 'upper'
+
     def __new__(cls, value, quote):
         if value is None:
             return None
@@ -3192,15 +3464,13 @@ class quoted_name(util.text_type):
     def __reduce__(self):
         return quoted_name, (util.text_type(self), self.quote)
 
-    @util.memoized_instancemethod
-    def lower(self):
+    def _memoized_method_lower(self):
         if self.quote:
             return self
         else:
             return util.text_type(self).lower()
 
-    @util.memoized_instancemethod
-    def upper(self):
+    def _memoized_method_upper(self):
         if self.quote:
             return self
         else:
@@ -3216,6 +3486,8 @@ class quoted_name(util.text_type):
 class _truncated_label(quoted_name):
     """A unicode subclass used to identify symbolic "
     "names that may require truncation."""
+
+    __slots__ = ()
 
     def __new__(cls, value, quote=None):
         quote = getattr(value, "quote", quote)
@@ -3273,6 +3545,7 @@ class conv(_truncated_label):
         :ref:`constraint_naming_conventions`
 
     """
+    __slots__ = ()
 
 
 class _defer_name(_truncated_label):
@@ -3280,6 +3553,8 @@ class _defer_name(_truncated_label):
     generation.
 
     """
+    __slots__ = ()
+
     def __new__(cls, value):
         if value is None:
             return _NONE_NAME
@@ -3294,6 +3569,7 @@ class _defer_name(_truncated_label):
 
 class _defer_none_name(_defer_name):
     """indicate a 'deferred' name that was ultimately the value None."""
+    __slots__ = ()
 
 _NONE_NAME = _defer_none_name("_unnamed_")
 
@@ -3307,6 +3583,8 @@ _generated_label = _truncated_label
 class _anonymous_label(_truncated_label):
     """A unicode subclass used to identify anonymously
     generated names."""
+
+    __slots__ = ()
 
     def __add__(self, other):
         return _anonymous_label(
@@ -3351,7 +3629,7 @@ def _string_or_unprintable(element):
     else:
         try:
             return str(element)
-        except:
+        except Exception:
             return "unprintable element %r" % element
 
 
@@ -3439,18 +3717,53 @@ def _clause_element_as_expr(element):
         return element
 
 
-def _literal_as_text(element):
+def _literal_as_label_reference(element):
+    if isinstance(element, util.string_types):
+        return _textual_label_reference(element)
+
+    elif hasattr(element, '__clause_element__'):
+        element = element.__clause_element__()
+
+    return _literal_as_text(element)
+
+
+def _literal_and_labels_as_label_reference(element):
+    if isinstance(element, util.string_types):
+        return _textual_label_reference(element)
+
+    elif hasattr(element, '__clause_element__'):
+        element = element.__clause_element__()
+
+    if isinstance(element, ColumnElement) and \
+            element._order_by_label_element is not None:
+        return _label_reference(element)
+    else:
+        return _literal_as_text(element)
+
+
+def _expression_literal_as_text(element):
+    return _literal_as_text(element, warn=True)
+
+
+def _literal_as_text(element, warn=False):
     if isinstance(element, Visitable):
         return element
     elif hasattr(element, '__clause_element__'):
         return element.__clause_element__()
     elif isinstance(element, util.string_types):
+        if warn:
+            util.warn_limited(
+                "Textual SQL expression %(expr)r should be "
+                "explicitly declared as text(%(expr)r)",
+                {"expr": util.ellipses_string(element)})
+
         return TextClause(util.text_type(element))
     elif isinstance(element, (util.NoneType, bool)):
         return _const_expr(element)
     else:
         raise exc.ArgumentError(
-            "SQL expression object or string expected."
+            "SQL expression object or string expected, got object of type %r "
+            "instead" % type(element)
         )
 
 
@@ -3499,6 +3812,8 @@ def _literal_as_binds(element, name=None, type_=None):
     else:
         return element
 
+_guess_straight_column = re.compile(r'^\w\S*$', re.I)
+
 
 def _interpret_as_column_or_from(element):
     if isinstance(element, Visitable):
@@ -3513,7 +3828,31 @@ def _interpret_as_column_or_from(element):
     elif hasattr(insp, "selectable"):
         return insp.selectable
 
-    return ColumnClause(str(element), is_literal=True)
+    # be forgiving as this is an extremely common
+    # and known expression
+    if element == "*":
+        guess_is_literal = True
+    elif isinstance(element, (numbers.Number)):
+        return ColumnClause(str(element), is_literal=True)
+    else:
+        element = str(element)
+        # give into temptation, as this fact we are guessing about
+        # is not one we've previously ever needed our users tell us;
+        # but let them know we are not happy about it
+        guess_is_literal = not _guess_straight_column.match(element)
+        util.warn_limited(
+            "Textual column expression %(column)r should be "
+            "explicitly declared with text(%(column)r), "
+            "or use %(literal_column)s(%(column)r) "
+            "for more specificity",
+            {
+                "column": util.ellipses_string(element),
+                "literal_column": "literal_column"
+                if guess_is_literal else "column"
+            })
+    return ColumnClause(
+        element,
+        is_literal=guess_is_literal)
 
 
 def _const_expr(element):

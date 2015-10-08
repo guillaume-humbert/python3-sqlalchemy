@@ -1,5 +1,5 @@
 # postgresql/base.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -48,7 +48,7 @@ Transaction Isolation Level
 ---------------------------
 
 All Postgresql dialects support setting of transaction isolation level
-both via a dialect-specific parameter ``isolation_level``
+both via a dialect-specific parameter :paramref:`.create_engine.isolation_level`
 accepted by :func:`.create_engine`,
 as well as the ``isolation_level`` argument as passed to
 :meth:`.Connection.execution_options`.  When using a non-psycopg2 dialect,
@@ -266,7 +266,7 @@ will emit to the database::
 
 The Postgresql text search functions such as ``to_tsquery()``
 and ``to_tsvector()`` are available
-explicitly using the standard :attr:`.func` construct.  For example::
+explicitly using the standard :data:`.func` construct.  For example::
 
     select([
         func.to_tsvector('fat cats ate rats').match('cat & rat')
@@ -299,7 +299,7 @@ not re-compute the column on demand.
 
 In order to provide for this explicit query planning, or to use different
 search strategies, the ``match`` method accepts a ``postgresql_regconfig``
-keyword argument.
+keyword argument::
 
     select([mytable.c.id]).where(
         mytable.c.title.match('somestring', postgresql_regconfig='english')
@@ -311,7 +311,7 @@ Emits the equivalent of::
     WHERE mytable.title @@ to_tsquery('english', 'somestring')
 
 One can also specifically pass in a `'regconfig'` value to the
-``to_tsvector()`` command as the initial argument.
+``to_tsvector()`` command as the initial argument::
 
     select([mytable.c.id]).where(
             func.to_tsvector('english', mytable.c.title )\
@@ -401,13 +401,123 @@ The value passed to the keyword argument will be simply passed through to the
 underlying CREATE INDEX command, so it *must* be a valid index type for your
 version of PostgreSQL.
 
+
+.. _postgresql_index_concurrently:
+
+Indexes with CONCURRENTLY
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The Postgresql index option CONCURRENTLY is supported by passing the
+flag ``postgresql_concurrently`` to the :class:`.Index` construct::
+
+    tbl = Table('testtbl', m, Column('data', Integer))
+
+    idx1 = Index('test_idx1', tbl.c.data, postgresql_concurrently=True)
+
+The above index construct will render SQL as::
+
+    CREATE INDEX CONCURRENTLY test_idx1 ON testtbl (data)
+
+.. versionadded:: 0.9.9
+
+.. _postgresql_index_reflection:
+
+Postgresql Index Reflection
+---------------------------
+
+The Postgresql database creates a UNIQUE INDEX implicitly whenever the
+UNIQUE CONSTRAINT construct is used.   When inspecting a table using
+:class:`.Inspector`, the :meth:`.Inspector.get_indexes`
+and the :meth:`.Inspector.get_unique_constraints` will report on these
+two constructs distinctly; in the case of the index, the key
+``duplicates_constraint`` will be present in the index entry if it is
+detected as mirroring a constraint.   When performing reflection using
+``Table(..., autoload=True)``, the UNIQUE INDEX is **not** returned
+in :attr:`.Table.indexes` when it is detected as mirroring a
+:class:`.UniqueConstraint` in the :attr:`.Table.constraints` collection.
+
+.. versionchanged:: 1.0.0 - :class:`.Table` reflection now includes
+   :class:`.UniqueConstraint` objects present in the :attr:`.Table.constraints`
+   collection; the Postgresql backend will no longer include a "mirrored"
+   :class:`.Index` construct in :attr:`.Table.indexes` if it is detected
+   as corresponding to a unique constraint.
+
+Special Reflection Options
+--------------------------
+
+The :class:`.Inspector` used for the Postgresql backend is an instance
+of :class:`.PGInspector`, which offers additional methods::
+
+    from sqlalchemy import create_engine, inspect
+
+    engine = create_engine("postgresql+psycopg2://localhost/test")
+    insp = inspect(engine)  # will be a PGInspector
+
+    print(insp.get_enums())
+
+.. autoclass:: PGInspector
+    :members:
+
+.. _postgresql_table_options:
+
+PostgreSQL Table Options
+-------------------------
+
+Several options for CREATE TABLE are supported directly by the PostgreSQL
+dialect in conjunction with the :class:`.Table` construct:
+
+* ``TABLESPACE``::
+
+    Table("some_table", metadata, ..., postgresql_tablespace='some_tablespace')
+
+* ``ON COMMIT``::
+
+    Table("some_table", metadata, ..., postgresql_on_commit='PRESERVE ROWS')
+
+* ``WITH OIDS``::
+
+    Table("some_table", metadata, ..., postgresql_with_oids=True)
+
+* ``WITHOUT OIDS``::
+
+    Table("some_table", metadata, ..., postgresql_with_oids=False)
+
+* ``INHERITS``::
+
+    Table("some_table", metadata, ..., postgresql_inherits="some_supertable")
+
+    Table("some_table", metadata, ..., postgresql_inherits=("t1", "t2", ...))
+
+.. versionadded:: 1.0.0
+
+.. seealso::
+
+    `Postgresql CREATE TABLE options
+    <http://www.postgresql.org/docs/9.3/static/sql-createtable.html>`_
+
+ENUM Types
+----------
+
+Postgresql has an independently creatable TYPE structure which is used
+to implement an enumerated type.   This approach introduces significant
+complexity on the SQLAlchemy side in terms of when this type should be
+CREATED and DROPPED.   The type object is also an independently reflectable
+entity.   The following sections should be consulted:
+
+* :class:`.postgresql.ENUM` - DDL and typing support for ENUM.
+
+* :meth:`.PGInspector.get_enums` - retrieve a listing of current ENUM types
+
+* :meth:`.postgresql.ENUM.create` , :meth:`.postgresql.ENUM.drop` - individual
+  CREATE and DROP commands for ENUM.
+
 """
 from collections import defaultdict
 import re
 
 from ... import sql, schema, exc, util
 from ...engine import default, reflection
-from ...sql import compiler, expression, operators
+from ...sql import compiler, expression, operators, default_comparator
 from ... import types as sqltypes
 
 try:
@@ -604,10 +714,10 @@ class _Slice(expression.ColumnElement):
     type = sqltypes.NULLTYPE
 
     def __init__(self, slice_, source_comparator):
-        self.start = source_comparator._check_literal(
+        self.start = default_comparator._check_literal(
             source_comparator.expr,
             operators.getitem, slice_.start)
-        self.stop = source_comparator._check_literal(
+        self.stop = default_comparator._check_literal(
             source_comparator.expr,
             operators.getitem, slice_.stop)
 
@@ -800,8 +910,9 @@ class ARRAY(sqltypes.Concatenable, sqltypes.TypeEngine):
                 index += shift_indexes
                 return_type = self.type.item_type
 
-            return self._binary_operate(self.expr, operators.getitem, index,
-                                        result_type=return_type)
+            return default_comparator._binary_operate(
+                self.expr, operators.getitem, index,
+                result_type=return_type)
 
         def any(self, other, operator=operators.eq):
             """Return ``other operator ANY (array)`` clause.
@@ -1004,21 +1115,76 @@ class ENUM(sqltypes.Enum):
     """Postgresql ENUM type.
 
     This is a subclass of :class:`.types.Enum` which includes
-    support for PG's ``CREATE TYPE``.
+    support for PG's ``CREATE TYPE`` and ``DROP TYPE``.
 
-    :class:`~.postgresql.ENUM` is used automatically when
-    using the :class:`.types.Enum` type on PG assuming
-    the ``native_enum`` is left as ``True``.   However, the
-    :class:`~.postgresql.ENUM` class can also be instantiated
-    directly in order to access some additional Postgresql-specific
-    options, namely finer control over whether or not
-    ``CREATE TYPE`` should be emitted.
+    When the builtin type :class:`.types.Enum` is used and the
+    :paramref:`.Enum.native_enum` flag is left at its default of
+    True, the Postgresql backend will use a :class:`.postgresql.ENUM`
+    type as the implementation, so the special create/drop rules
+    will be used.
 
-    Note that both :class:`.types.Enum` as well as
-    :class:`~.postgresql.ENUM` feature create/drop
-    methods; the base :class:`.types.Enum` type ultimately
-    delegates to the :meth:`~.postgresql.ENUM.create` and
-    :meth:`~.postgresql.ENUM.drop` methods present here.
+    The create/drop behavior of ENUM is necessarily intricate, due to the
+    awkward relationship the ENUM type has in relationship to the
+    parent table, in that it may be "owned" by just a single table, or
+    may be shared among many tables.
+
+    When using :class:`.types.Enum` or :class:`.postgresql.ENUM`
+    in an "inline" fashion, the ``CREATE TYPE`` and ``DROP TYPE`` is emitted
+    corresponding to when the :meth:`.Table.create` and :meth:`.Table.drop`
+    methods are called::
+
+        table = Table('sometable', metadata,
+            Column('some_enum', ENUM('a', 'b', 'c', name='myenum'))
+        )
+
+        table.create(engine)  # will emit CREATE ENUM and CREATE TABLE
+        table.drop(engine)  # will emit DROP TABLE and DROP ENUM
+
+    To use a common enumerated type between multiple tables, the best
+    practice is to declare the :class:`.types.Enum` or
+    :class:`.postgresql.ENUM` independently, and associate it with the
+    :class:`.MetaData` object itself::
+
+        my_enum = ENUM('a', 'b', 'c', name='myenum', metadata=metadata)
+
+        t1 = Table('sometable_one', metadata,
+            Column('some_enum', myenum)
+        )
+
+        t2 = Table('sometable_two', metadata,
+            Column('some_enum', myenum)
+        )
+
+    When this pattern is used, care must still be taken at the level
+    of individual table creates.  Emitting CREATE TABLE without also
+    specifying ``checkfirst=True`` will still cause issues::
+
+        t1.create(engine) # will fail: no such type 'myenum'
+
+    If we specify ``checkfirst=True``, the individual table-level create
+    operation will check for the ``ENUM`` and create if not exists::
+
+        # will check if enum exists, and emit CREATE TYPE if not
+        t1.create(engine, checkfirst=True)
+
+    When using a metadata-level ENUM type, the type will always be created
+    and dropped if either the metadata-wide create/drop is called::
+
+        metadata.create_all(engine)  # will emit CREATE TYPE
+        metadata.drop_all(engine)  # will emit DROP TYPE
+
+    The type can also be created and dropped directly::
+
+        my_enum.create(engine)
+        my_enum.drop(engine)
+
+    .. versionchanged:: 1.0.0 The Postgresql :class:`.postgresql.ENUM` type
+       now behaves more strictly with regards to CREATE/DROP.  A metadata-level
+       ENUM type will only be created and dropped at the metadata level,
+       not the table level, with the exception of
+       ``table.create(checkfirst=True)``.
+       The ``table.drop()`` call will now emit a DROP TYPE for a table-level
+       enumerated type.
 
     """
 
@@ -1124,8 +1290,17 @@ class ENUM(sqltypes.Enum):
             return False
 
     def _on_table_create(self, target, bind, checkfirst, **kw):
-        if not self._check_for_name_in_memos(checkfirst, kw):
+        if checkfirst or (
+                not self.metadata and
+                not kw.get('_is_metadata_operation', False)) and \
+                not self._check_for_name_in_memos(checkfirst, kw):
             self.create(bind=bind, checkfirst=checkfirst)
+
+    def _on_table_drop(self, target, bind, checkfirst, **kw):
+        if not self.metadata and \
+            not kw.get('_is_metadata_operation', False) and \
+                not self._check_for_name_in_memos(checkfirst, kw):
+            self.drop(bind=bind, checkfirst=checkfirst)
 
     def _on_metadata_create(self, target, bind, checkfirst, **kw):
         if not self._check_for_name_in_memos(checkfirst, kw):
@@ -1256,14 +1431,14 @@ class PGCompiler(compiler.SQLCompiler):
     def visit_sequence(self, seq):
         return "nextval('%s')" % self.preparer.format_sequence(seq)
 
-    def limit_clause(self, select):
+    def limit_clause(self, select, **kw):
         text = ""
-        if select._limit is not None:
-            text += " \n LIMIT " + self.process(sql.literal(select._limit))
-        if select._offset is not None:
-            if select._limit is None:
+        if select._limit_clause is not None:
+            text += " \n LIMIT " + self.process(select._limit_clause, **kw)
+        if select._offset_clause is not None:
+            if select._limit_clause is None:
                 text += " \n LIMIT ALL"
-            text += " OFFSET " + self.process(sql.literal(select._offset))
+            text += " OFFSET " + self.process(select._offset_clause, **kw)
         return text
 
     def format_from_hint_text(self, sqltext, table, hint, iscrud):
@@ -1271,7 +1446,7 @@ class PGCompiler(compiler.SQLCompiler):
             raise exc.CompileError("Unrecognized hint: %r" % hint)
         return "ONLY " + sqltext
 
-    def get_select_precolumns(self, select):
+    def get_select_precolumns(self, select, **kw):
         if select._distinct is not False:
             if select._distinct is True:
                 return "DISTINCT "
@@ -1280,11 +1455,12 @@ class PGCompiler(compiler.SQLCompiler):
                     [self.process(col) for col in select._distinct]
                 ) + ") "
             else:
-                return "DISTINCT ON (" + self.process(select._distinct) + ") "
+                return "DISTINCT ON (" + \
+                    self.process(select._distinct, **kw) + ") "
         else:
             return ""
 
-    def for_update_clause(self, select):
+    def for_update_clause(self, select, **kw):
 
         if select._for_update_arg.read:
             tmp = " FOR SHARE"
@@ -1296,7 +1472,7 @@ class PGCompiler(compiler.SQLCompiler):
                 c.table if isinstance(c, expression.ColumnClause)
                 else c for c in select._for_update_arg.of)
             tmp += " OF " + ", ".join(
-                self.process(table, ashint=True)
+                self.process(table, ashint=True, **kw)
                 for table in tables
             )
 
@@ -1348,7 +1524,8 @@ class PGDDLCompiler(compiler.DDLCompiler):
             else:
                 colspec += " SERIAL"
         else:
-            colspec += " " + self.dialect.type_compiler.process(column.type)
+            colspec += " " + self.dialect.type_compiler.process(column.type,
+                                                    type_expression=column)
             default = self.get_column_default_string(column)
             if default is not None:
                 colspec += " DEFAULT " + default
@@ -1381,7 +1558,13 @@ class PGDDLCompiler(compiler.DDLCompiler):
         text = "CREATE "
         if index.unique:
             text += "UNIQUE "
-        text += "INDEX %s ON %s " % (
+        text += "INDEX "
+
+        concurrently = index.dialect_options['postgresql']['concurrently']
+        if concurrently:
+            text += "CONCURRENTLY "
+
+        text += "%s ON %s " % (
             self._prepared_index_name(index,
                                       include_schema=False),
             preparer.format_table(index.table)
@@ -1400,8 +1583,13 @@ class PGDDLCompiler(compiler.DDLCompiler):
                             if not isinstance(expr, expression.ColumnClause)
                             else expr,
                             include_table=False, literal_binds=True) +
-                        (c.key in ops and (' ' + ops[c.key]) or '')
-                        for expr, c in zip(index.expressions, index.columns)])
+                        (
+                            (' ' + ops[expr.key])
+                            if hasattr(expr, 'key')
+                            and expr.key in ops else ''
+                        )
+                        for expr in index.expressions
+                    ])
                 )
 
         whereclause = index.dialect_options["postgresql"]["where"]
@@ -1431,96 +1619,125 @@ class PGDDLCompiler(compiler.DDLCompiler):
         text += self.define_constraint_deferrability(constraint)
         return text
 
+    def post_create_table(self, table):
+        table_opts = []
+        pg_opts = table.dialect_options['postgresql']
+
+        inherits = pg_opts.get('inherits')
+        if inherits is not None:
+            if not isinstance(inherits, (list, tuple)):
+                inherits = (inherits, )
+            table_opts.append(
+                '\n INHERITS ( ' +
+                ', '.join(self.preparer.quote(name) for name in inherits) +
+                ' )')
+
+        if pg_opts['with_oids'] is True:
+            table_opts.append('\n WITH OIDS')
+        elif pg_opts['with_oids'] is False:
+            table_opts.append('\n WITHOUT OIDS')
+
+        if pg_opts['on_commit']:
+            on_commit_options = pg_opts['on_commit'].replace("_", " ").upper()
+            table_opts.append('\n ON COMMIT %s' % on_commit_options)
+
+        if pg_opts['tablespace']:
+            tablespace_name = pg_opts['tablespace']
+            table_opts.append(
+                '\n TABLESPACE %s' % self.preparer.quote(tablespace_name)
+            )
+
+        return ''.join(table_opts)
+
 
 class PGTypeCompiler(compiler.GenericTypeCompiler):
-
-    def visit_TSVECTOR(self, type):
+    def visit_TSVECTOR(self, type, **kw):
         return "TSVECTOR"
 
-    def visit_INET(self, type_):
+    def visit_INET(self, type_, **kw):
         return "INET"
 
-    def visit_CIDR(self, type_):
+    def visit_CIDR(self, type_, **kw):
         return "CIDR"
 
-    def visit_MACADDR(self, type_):
+    def visit_MACADDR(self, type_, **kw):
         return "MACADDR"
 
-    def visit_OID(self, type_):
+    def visit_OID(self, type_, **kw):
         return "OID"
 
-    def visit_FLOAT(self, type_):
+    def visit_FLOAT(self, type_, **kw):
         if not type_.precision:
             return "FLOAT"
         else:
             return "FLOAT(%(precision)s)" % {'precision': type_.precision}
 
-    def visit_DOUBLE_PRECISION(self, type_):
+    def visit_DOUBLE_PRECISION(self, type_, **kw):
         return "DOUBLE PRECISION"
 
-    def visit_BIGINT(self, type_):
+    def visit_BIGINT(self, type_, **kw):
         return "BIGINT"
 
-    def visit_HSTORE(self, type_):
+    def visit_HSTORE(self, type_, **kw):
         return "HSTORE"
 
-    def visit_JSON(self, type_):
+    def visit_JSON(self, type_, **kw):
         return "JSON"
 
-    def visit_JSONB(self, type_):
+    def visit_JSONB(self, type_, **kw):
         return "JSONB"
 
-    def visit_INT4RANGE(self, type_):
+    def visit_INT4RANGE(self, type_, **kw):
         return "INT4RANGE"
 
-    def visit_INT8RANGE(self, type_):
+    def visit_INT8RANGE(self, type_, **kw):
         return "INT8RANGE"
 
-    def visit_NUMRANGE(self, type_):
+    def visit_NUMRANGE(self, type_, **kw):
         return "NUMRANGE"
 
-    def visit_DATERANGE(self, type_):
+    def visit_DATERANGE(self, type_, **kw):
         return "DATERANGE"
 
-    def visit_TSRANGE(self, type_):
+    def visit_TSRANGE(self, type_, **kw):
         return "TSRANGE"
 
-    def visit_TSTZRANGE(self, type_):
+    def visit_TSTZRANGE(self, type_, **kw):
         return "TSTZRANGE"
 
-    def visit_datetime(self, type_):
-        return self.visit_TIMESTAMP(type_)
+    def visit_datetime(self, type_, **kw):
+        return self.visit_TIMESTAMP(type_, **kw)
 
-    def visit_enum(self, type_):
+    def visit_enum(self, type_, **kw):
         if not type_.native_enum or not self.dialect.supports_native_enum:
-            return super(PGTypeCompiler, self).visit_enum(type_)
+            return super(PGTypeCompiler, self).visit_enum(type_, **kw)
         else:
-            return self.visit_ENUM(type_)
+            return self.visit_ENUM(type_, **kw)
 
-    def visit_ENUM(self, type_):
+    def visit_ENUM(self, type_, **kw):
         return self.dialect.identifier_preparer.format_type(type_)
 
-    def visit_TIMESTAMP(self, type_):
+    def visit_TIMESTAMP(self, type_, **kw):
         return "TIMESTAMP%s %s" % (
             getattr(type_, 'precision', None) and "(%d)" %
             type_.precision or "",
             (type_.timezone and "WITH" or "WITHOUT") + " TIME ZONE"
         )
 
-    def visit_TIME(self, type_):
+    def visit_TIME(self, type_, **kw):
         return "TIME%s %s" % (
             getattr(type_, 'precision', None) and "(%d)" %
             type_.precision or "",
             (type_.timezone and "WITH" or "WITHOUT") + " TIME ZONE"
         )
 
-    def visit_INTERVAL(self, type_):
+    def visit_INTERVAL(self, type_, **kw):
         if type_.precision is not None:
             return "INTERVAL(%d)" % type_.precision
         else:
             return "INTERVAL"
 
-    def visit_BIT(self, type_):
+    def visit_BIT(self, type_, **kw):
         if type_.varying:
             compiled = "BIT VARYING"
             if type_.length is not None:
@@ -1529,16 +1746,16 @@ class PGTypeCompiler(compiler.GenericTypeCompiler):
             compiled = "BIT(%d)" % type_.length
         return compiled
 
-    def visit_UUID(self, type_):
+    def visit_UUID(self, type_, **kw):
         return "UUID"
 
-    def visit_large_binary(self, type_):
-        return self.visit_BYTEA(type_)
+    def visit_large_binary(self, type_, **kw):
+        return self.visit_BYTEA(type_, **kw)
 
-    def visit_BYTEA(self, type_):
+    def visit_BYTEA(self, type_, **kw):
         return "BYTEA"
 
-    def visit_ARRAY(self, type_):
+    def visit_ARRAY(self, type_, **kw):
         return self.process(type_.item_type) + ('[]' * (type_.dimensions
                                                         if type_.dimensions
                                                         is not None else 1))
@@ -1570,10 +1787,44 @@ class PGInspector(reflection.Inspector):
         reflection.Inspector.__init__(self, conn)
 
     def get_table_oid(self, table_name, schema=None):
-        """Return the oid from `table_name` and `schema`."""
+        """Return the OID for the given table name."""
 
         return self.dialect.get_table_oid(self.bind, table_name, schema,
                                           info_cache=self.info_cache)
+
+    def get_enums(self, schema=None):
+        """Return a list of ENUM objects.
+
+        Each member is a dictionary containing these fields:
+
+            * name - name of the enum
+            * schema - the schema name for the enum.
+            * visible - boolean, whether or not this enum is visible
+              in the default search path.
+            * labels - a list of string labels that apply to the enum.
+
+        :param schema: schema name.  If None, the default schema
+         (typically 'public') is used.  May also be set to '*' to
+         indicate load enums for all schemas.
+
+        .. versionadded:: 1.0.0
+
+        """
+        schema = schema or self.default_schema_name
+        return self.dialect._load_enums(self.bind, schema)
+
+    def get_foreign_table_names(self, schema=None):
+        """Return a list of FOREIGN TABLE names.
+
+        Behavior is similar to that of :meth:`.Inspector.get_table_names`,
+        except that the list is limited to those tables tha report a
+        ``relkind`` value of ``f``.
+
+        .. versionadded:: 1.0.0
+
+        """
+        schema = schema or self.default_schema_name
+        return self.dialect._get_foreign_table_names(self.bind, schema)
 
 
 class CreateEnumType(schema._CreateDropBase):
@@ -1666,10 +1917,15 @@ class PGDialect(default.DefaultDialect):
         (schema.Index, {
             "using": False,
             "where": None,
-            "ops": {}
+            "ops": {},
+            "concurrently": False,
         }),
         (schema.Table, {
-            "ignore_search_path": False
+            "ignore_search_path": False,
+            "tablespace": None,
+            "with_oids": None,
+            "on_commit": None,
+            "inherits": None
         })
     ]
 
@@ -1798,7 +2054,8 @@ class PGDialect(default.DefaultDialect):
             cursor = connection.execute(
                 sql.text(
                     "select relname from pg_class c join pg_namespace n on "
-                    "n.oid=c.relnamespace where n.nspname=current_schema() "
+                    "n.oid=c.relnamespace where "
+                    "pg_catalog.pg_table_is_visible(c.oid) "
                     "and relname=:name",
                     bindparams=[
                         sql.bindparam('name', util.text_type(table_name),
@@ -1916,7 +2173,7 @@ class PGDialect(default.DefaultDialect):
             FROM pg_catalog.pg_class c
             LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
             WHERE (%s)
-            AND c.relname = :table_name AND c.relkind in ('r','v')
+            AND c.relname = :table_name AND c.relkind in ('r', 'v', 'm', 'f')
         """ % schema_where_clause
         # Since we're binding to unicode, table_name and schema_name must be
         # unicode.
@@ -1970,6 +2227,24 @@ class PGDialect(default.DefaultDialect):
         return [row[0] for row in result]
 
     @reflection.cache
+    def _get_foreign_table_names(self, connection, schema=None, **kw):
+        if schema is not None:
+            current_schema = schema
+        else:
+            current_schema = self.default_schema_name
+
+        result = connection.execute(
+            sql.text("SELECT relname FROM pg_class c "
+                     "WHERE relkind = 'f' "
+                     "AND '%s' = (select nspname from pg_namespace n "
+                     "where n.oid = c.relnamespace) " %
+                     current_schema,
+                     typemap={'relname': sqltypes.Unicode}
+                     )
+        )
+        return [row[0] for row in result]
+
+    @reflection.cache
     def get_view_names(self, connection, schema=None, **kw):
         if schema is not None:
             current_schema = schema
@@ -1978,7 +2253,7 @@ class PGDialect(default.DefaultDialect):
         s = """
         SELECT relname
         FROM pg_class c
-        WHERE relkind = 'v'
+        WHERE relkind IN ('m', 'v')
           AND '%(schema)s' = (select nspname from pg_namespace n
           where n.oid = c.relnamespace)
         """ % dict(schema=current_schema)
@@ -2039,7 +2314,12 @@ class PGDialect(default.DefaultDialect):
         c = connection.execute(s, table_oid=table_oid)
         rows = c.fetchall()
         domains = self._load_domains(connection)
-        enums = self._load_enums(connection)
+        enums = dict(
+            (
+                "%s.%s" % (rec['schema'], rec['name'])
+                if not rec['visible'] else rec['name'], rec) for rec in
+            self._load_enums(connection, schema='*')
+        )
 
         # format columns
         columns = []
@@ -2113,10 +2393,9 @@ class PGDialect(default.DefaultDialect):
             elif attype in enums:
                 enum = enums[attype]
                 coltype = ENUM
-                if "." in attype:
-                    kwargs['schema'], kwargs['name'] = attype.split('.')
-                else:
-                    kwargs['name'] = attype
+                kwargs['name'] = enum['name']
+                if not enum['visible']:
+                    kwargs['schema'] = enum['schema']
                 args = tuple(enum['labels'])
                 break
             elif attype in domains:
@@ -2323,32 +2602,59 @@ class PGDialect(default.DefaultDialect):
         # cast indkey as varchar since it's an int2vector,
         # returned as a list by some drivers such as pypostgresql
 
-        IDX_SQL = """
-          SELECT
-              i.relname as relname,
-              ix.indisunique, ix.indexprs, ix.indpred,
-              a.attname, a.attnum, ix.indkey%s
-          FROM
-              pg_class t
-                    join pg_index ix on t.oid = ix.indrelid
-                    join pg_class i on i.oid=ix.indexrelid
-                    left outer join
-                        pg_attribute a
-                        on t.oid=a.attrelid and %s
-          WHERE
-              t.relkind = 'r'
-              and t.oid = :table_oid
-              and ix.indisprimary = 'f'
-          ORDER BY
-              t.relname,
-              i.relname
-        """ % (
-            # version 8.3 here was based on observing the
-            # cast does not work in PG 8.2.4, does work in 8.3.0.
-            # nothing in PG changelogs regarding this.
-            "::varchar" if self.server_version_info >= (8, 3) else "",
-            self._pg_index_any("a.attnum", "ix.indkey")
-        )
+        if self.server_version_info < (8, 5):
+            IDX_SQL = """
+              SELECT
+                  i.relname as relname,
+                  ix.indisunique, ix.indexprs, ix.indpred,
+                  a.attname, a.attnum, NULL, ix.indkey%s
+              FROM
+                  pg_class t
+                        join pg_index ix on t.oid = ix.indrelid
+                        join pg_class i on i.oid = ix.indexrelid
+                        left outer join
+                            pg_attribute a
+                            on t.oid = a.attrelid and %s
+              WHERE
+                  t.relkind IN ('r', 'v', 'f', 'm')
+                  and t.oid = :table_oid
+                  and ix.indisprimary = 'f'
+              ORDER BY
+                  t.relname,
+                  i.relname
+            """ % (
+                # version 8.3 here was based on observing the
+                # cast does not work in PG 8.2.4, does work in 8.3.0.
+                # nothing in PG changelogs regarding this.
+                "::varchar" if self.server_version_info >= (8, 3) else "",
+                self._pg_index_any("a.attnum", "ix.indkey")
+            )
+        else:
+            IDX_SQL = """
+              SELECT
+                  i.relname as relname,
+                  ix.indisunique, ix.indexprs, ix.indpred,
+                  a.attname, a.attnum, c.conrelid, ix.indkey::varchar
+              FROM
+                  pg_class t
+                        join pg_index ix on t.oid = ix.indrelid
+                        join pg_class i on i.oid = ix.indexrelid
+                        left outer join
+                            pg_attribute a
+                            on t.oid = a.attrelid and a.attnum = ANY(ix.indkey)
+                        left outer join
+                            pg_constraint c
+                            on (ix.indrelid = c.conrelid and
+                                ix.indexrelid = c.conindid and
+                                c.contype in ('p', 'u', 'x'))
+              WHERE
+                  t.relkind IN ('r', 'v', 'f', 'm')
+                  and t.oid = :table_oid
+                  and ix.indisprimary = 'f'
+              ORDER BY
+                  t.relname,
+                  i.relname
+            """
 
         t = sql.text(IDX_SQL, typemap={'attname': sqltypes.Unicode})
         c = connection.execute(t, table_oid=table_oid)
@@ -2357,7 +2663,7 @@ class PGDialect(default.DefaultDialect):
 
         sv_idx_name = None
         for row in c.fetchall():
-            idx_name, unique, expr, prd, col, col_num, idx_key = row
+            idx_name, unique, expr, prd, col, col_num, conrelid, idx_key = row
 
             if expr:
                 if idx_name != sv_idx_name:
@@ -2374,18 +2680,27 @@ class PGDialect(default.DefaultDialect):
                     % idx_name)
                 sv_idx_name = idx_name
 
+            has_idx = idx_name in indexes
             index = indexes[idx_name]
             if col is not None:
                 index['cols'][col_num] = col
-            index['key'] = [int(k.strip()) for k in idx_key.split()]
-            index['unique'] = unique
+            if not has_idx:
+                index['key'] = [int(k.strip()) for k in idx_key.split()]
+                index['unique'] = unique
+                if conrelid is not None:
+                    index['duplicates_constraint'] = idx_name
 
-        return [
-            {'name': name,
-             'unique': idx['unique'],
-             'column_names': [idx['cols'][i] for i in idx['key']]}
-            for name, idx in indexes.items()
-        ]
+        result = []
+        for name, idx in indexes.items():
+            entry = {
+                'name': name,
+                'unique': idx['unique'],
+                'column_names': [idx['cols'][i] for i in idx['key']]
+            }
+            if 'duplicates_constraint' in idx:
+                entry['duplicates_constraint'] = idx['duplicates_constraint']
+            result.append(entry)
+        return result
 
     @reflection.cache
     def get_unique_constraints(self, connection, table_name,
@@ -2424,7 +2739,8 @@ class PGDialect(default.DefaultDialect):
             for name, uc in uniques.items()
         ]
 
-    def _load_enums(self, connection):
+    def _load_enums(self, connection, schema=None):
+        schema = schema or self.default_schema_name
         if not self.supports_native_enum:
             return {}
 
@@ -2440,31 +2756,37 @@ class PGDialect(default.DefaultDialect):
                  LEFT JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
                  LEFT JOIN pg_catalog.pg_enum e ON t.oid = e.enumtypid
             WHERE t.typtype = 'e'
-            ORDER BY "name", e.oid -- e.oid gives us label order
         """
+
+        if schema != '*':
+            SQL_ENUMS += "AND n.nspname = :schema "
+
+        # e.oid gives us label order within an enum
+        SQL_ENUMS += 'ORDER BY "schema", "name", e.oid'
 
         s = sql.text(SQL_ENUMS, typemap={
             'attname': sqltypes.Unicode,
             'label': sqltypes.Unicode})
+
+        if schema != '*':
+            s = s.bindparams(schema=schema)
+
         c = connection.execute(s)
 
-        enums = {}
+        enums = []
+        enum_by_name = {}
         for enum in c.fetchall():
-            if enum['visible']:
-                # 'visible' just means whether or not the enum is in a
-                # schema that's on the search path -- or not overridden by
-                # a schema with higher precedence. If it's not visible,
-                # it will be prefixed with the schema-name when it's used.
-                name = enum['name']
+            key = (enum['schema'], enum['name'])
+            if key in enum_by_name:
+                enum_by_name[key]['labels'].append(enum['label'])
             else:
-                name = "%s.%s" % (enum['schema'], enum['name'])
-
-            if name in enums:
-                enums[name]['labels'].append(enum['label'])
-            else:
-                enums[name] = {
+                enum_by_name[key] = enum_rec = {
+                    'name': enum['name'],
+                    'schema': enum['schema'],
+                    'visible': enum['visible'],
                     'labels': [enum['label']],
                 }
+                enums.append(enum_rec)
 
         return enums
 

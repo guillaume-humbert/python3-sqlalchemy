@@ -1,5 +1,5 @@
 # mssql/base.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -226,6 +226,53 @@ The DATE and TIME types are not available for MSSQL 2005 and
 previous - if a server version below 2008 is detected, DDL
 for these types will be issued as DATETIME.
 
+.. _mssql_large_type_deprecation:
+
+Large Text/Binary Type Deprecation
+----------------------------------
+
+Per `SQL Server 2012/2014 Documentation <http://technet.microsoft.com/en-us/library/ms187993.aspx>`_,
+the ``NTEXT``, ``TEXT`` and ``IMAGE`` datatypes are to be removed from SQL Server
+in a future release.   SQLAlchemy normally relates these types to the
+:class:`.UnicodeText`, :class:`.Text` and :class:`.LargeBinary` datatypes.
+
+In order to accommodate this change, a new flag ``deprecate_large_types``
+is added to the dialect, which will be automatically set based on detection
+of the server version in use, if not otherwise set by the user.  The
+behavior of this flag is as follows:
+
+* When this flag is ``True``, the :class:`.UnicodeText`, :class:`.Text` and
+  :class:`.LargeBinary` datatypes, when used to render DDL, will render the
+  types ``NVARCHAR(max)``, ``VARCHAR(max)``, and ``VARBINARY(max)``,
+  respectively.  This is a new behavior as of the addition of this flag.
+
+* When this flag is ``False``, the :class:`.UnicodeText`, :class:`.Text` and
+  :class:`.LargeBinary` datatypes, when used to render DDL, will render the
+  types ``NTEXT``, ``TEXT``, and ``IMAGE``,
+  respectively.  This is the long-standing behavior of these types.
+
+* The flag begins with the value ``None``, before a database connection is
+  established.   If the dialect is used to render DDL without the flag being
+  set, it is interpreted the same as ``False``.
+
+* On first connection, the dialect detects if SQL Server version 2012 or greater
+  is in use; if the flag is still at ``None``, it sets it to ``True`` or
+  ``False`` based on whether 2012 or greater is detected.
+
+* The flag can be set to either ``True`` or ``False`` when the dialect
+  is created, typically via :func:`.create_engine`::
+
+        eng = create_engine("mssql+pymssql://user:pass@host/db",
+                        deprecate_large_types=True)
+
+* Complete control over whether the "old" or "new" types are rendered is
+  available in all SQLAlchemy versions by using the UPPERCASE type objects
+  instead: :class:`.NVARCHAR`, :class:`.VARCHAR`, :class:`.types.VARBINARY`,
+  :class:`.TEXT`, :class:`.mssql.NTEXT`, :class:`.mssql.IMAGE` will always remain
+  fixed and always output exactly that type.
+
+.. versionadded:: 1.0.0
+
 .. _mssql_indexes:
 
 Clustered Index Support
@@ -367,19 +414,20 @@ import operator
 import re
 
 from ... import sql, schema as sa_schema, exc, util
-from ...sql import compiler, expression, \
-    util as sql_util, cast
+from ...sql import compiler, expression, util as sql_util
 from ... import engine
 from ...engine import reflection, default
 from ... import types as sqltypes
 from ...types import INTEGER, BIGINT, SMALLINT, DECIMAL, NUMERIC, \
     FLOAT, TIMESTAMP, DATETIME, DATE, BINARY,\
-    VARBINARY, TEXT, VARCHAR, NVARCHAR, CHAR, NCHAR
+    TEXT, VARCHAR, NVARCHAR, CHAR, NCHAR
 
 
 from ...util import update_wrapper
 from . import information_schema as ischema
 
+# http://sqlserverbuilds.blogspot.com/
+MS_2012_VERSION = (11,)
 MS_2008_VERSION = (10,)
 MS_2005_VERSION = (9,)
 MS_2000_VERSION = (8,)
@@ -545,6 +593,26 @@ class NTEXT(sqltypes.UnicodeText):
     __visit_name__ = 'NTEXT'
 
 
+class VARBINARY(sqltypes.VARBINARY, sqltypes.LargeBinary):
+    """The MSSQL VARBINARY type.
+
+    This type extends both :class:`.types.VARBINARY` and
+    :class:`.types.LargeBinary`.   In "deprecate_large_types" mode,
+    the :class:`.types.LargeBinary` type will produce ``VARBINARY(max)``
+    on SQL Server.
+
+    .. versionadded:: 1.0.0
+
+    .. seealso::
+
+        :ref:`mssql_large_type_deprecation`
+
+
+
+    """
+    __visit_name__ = 'VARBINARY'
+
+
 class IMAGE(sqltypes.LargeBinary):
     __visit_name__ = 'IMAGE'
 
@@ -626,7 +694,6 @@ ischema_names = {
 
 
 class MSTypeCompiler(compiler.GenericTypeCompiler):
-
     def _extend(self, spec, type_, length=None):
         """Extend a string-type declaration with standard SQL
         COLLATE annotations.
@@ -647,103 +714,115 @@ class MSTypeCompiler(compiler.GenericTypeCompiler):
         return ' '.join([c for c in (spec, collation)
                          if c is not None])
 
-    def visit_FLOAT(self, type_):
+    def visit_FLOAT(self, type_, **kw):
         precision = getattr(type_, 'precision', None)
         if precision is None:
             return "FLOAT"
         else:
             return "FLOAT(%(precision)s)" % {'precision': precision}
 
-    def visit_TINYINT(self, type_):
+    def visit_TINYINT(self, type_, **kw):
         return "TINYINT"
 
-    def visit_DATETIMEOFFSET(self, type_):
+    def visit_DATETIMEOFFSET(self, type_, **kw):
         if type_.precision:
             return "DATETIMEOFFSET(%s)" % type_.precision
         else:
             return "DATETIMEOFFSET"
 
-    def visit_TIME(self, type_):
+    def visit_TIME(self, type_, **kw):
         precision = getattr(type_, 'precision', None)
         if precision:
             return "TIME(%s)" % precision
         else:
             return "TIME"
 
-    def visit_DATETIME2(self, type_):
+    def visit_DATETIME2(self, type_, **kw):
         precision = getattr(type_, 'precision', None)
         if precision:
             return "DATETIME2(%s)" % precision
         else:
             return "DATETIME2"
 
-    def visit_SMALLDATETIME(self, type_):
+    def visit_SMALLDATETIME(self, type_, **kw):
         return "SMALLDATETIME"
 
-    def visit_unicode(self, type_):
-        return self.visit_NVARCHAR(type_)
+    def visit_unicode(self, type_, **kw):
+        return self.visit_NVARCHAR(type_, **kw)
 
-    def visit_unicode_text(self, type_):
-        return self.visit_NTEXT(type_)
+    def visit_text(self, type_, **kw):
+        if self.dialect.deprecate_large_types:
+            return self.visit_VARCHAR(type_, **kw)
+        else:
+            return self.visit_TEXT(type_, **kw)
 
-    def visit_NTEXT(self, type_):
+    def visit_unicode_text(self, type_, **kw):
+        if self.dialect.deprecate_large_types:
+            return self.visit_NVARCHAR(type_, **kw)
+        else:
+            return self.visit_NTEXT(type_, **kw)
+
+    def visit_NTEXT(self, type_, **kw):
         return self._extend("NTEXT", type_)
 
-    def visit_TEXT(self, type_):
+    def visit_TEXT(self, type_, **kw):
         return self._extend("TEXT", type_)
 
-    def visit_VARCHAR(self, type_):
+    def visit_VARCHAR(self, type_, **kw):
         return self._extend("VARCHAR", type_, length=type_.length or 'max')
 
-    def visit_CHAR(self, type_):
+    def visit_CHAR(self, type_, **kw):
         return self._extend("CHAR", type_)
 
-    def visit_NCHAR(self, type_):
+    def visit_NCHAR(self, type_, **kw):
         return self._extend("NCHAR", type_)
 
-    def visit_NVARCHAR(self, type_):
+    def visit_NVARCHAR(self, type_, **kw):
         return self._extend("NVARCHAR", type_, length=type_.length or 'max')
 
-    def visit_date(self, type_):
+    def visit_date(self, type_, **kw):
         if self.dialect.server_version_info < MS_2008_VERSION:
-            return self.visit_DATETIME(type_)
+            return self.visit_DATETIME(type_, **kw)
         else:
-            return self.visit_DATE(type_)
+            return self.visit_DATE(type_, **kw)
 
-    def visit_time(self, type_):
+    def visit_time(self, type_, **kw):
         if self.dialect.server_version_info < MS_2008_VERSION:
-            return self.visit_DATETIME(type_)
+            return self.visit_DATETIME(type_, **kw)
         else:
-            return self.visit_TIME(type_)
+            return self.visit_TIME(type_, **kw)
 
-    def visit_large_binary(self, type_):
-        return self.visit_IMAGE(type_)
+    def visit_large_binary(self, type_, **kw):
+        if self.dialect.deprecate_large_types:
+            return self.visit_VARBINARY(type_, **kw)
+        else:
+            return self.visit_IMAGE(type_, **kw)
 
-    def visit_IMAGE(self, type_):
+    def visit_IMAGE(self, type_, **kw):
         return "IMAGE"
 
-    def visit_VARBINARY(self, type_):
+    def visit_VARBINARY(self, type_, **kw):
         return self._extend(
             "VARBINARY",
             type_,
             length=type_.length or 'max')
 
-    def visit_boolean(self, type_):
+    def visit_boolean(self, type_, **kw):
         return self.visit_BIT(type_)
 
-    def visit_BIT(self, type_):
+    def visit_BIT(self, type_, **kw):
         return "BIT"
 
-    def visit_MONEY(self, type_):
+    def visit_MONEY(self, type_, **kw):
         return "MONEY"
 
-    def visit_SMALLMONEY(self, type_):
+    def visit_SMALLMONEY(self, type_, **kw):
         return 'SMALLMONEY'
 
-    def visit_UNIQUEIDENTIFIER(self, type_):
+    def visit_UNIQUEIDENTIFIER(self, type_, **kw):
         return "UNIQUEIDENTIFIER"
 
-    def visit_SQL_VARIANT(self, type_):
+    def visit_SQL_VARIANT(self, type_, **kw):
         return 'SQL_VARIANT'
 
 
@@ -846,7 +925,7 @@ class MSExecutionContext(default.DefaultExecutionContext):
                         "SET IDENTITY_INSERT %s OFF" %
                         self.dialect.identifier_preparer. format_table(
                             self.compiled.statement.table)))
-            except:
+            except Exception:
                 pass
 
     def get_result_proxy(self):
@@ -900,19 +979,24 @@ class MSSQLCompiler(compiler.SQLCompiler):
             self.process(binary.left, **kw),
             self.process(binary.right, **kw))
 
-    def get_select_precolumns(self, select):
-        """ MS-SQL puts TOP, its version of LIMIT, here """
-        if select._distinct or select._limit is not None:
-            s = select._distinct and "DISTINCT " or ""
+    def get_select_precolumns(self, select, **kw):
+        """ MS-SQL puts TOP, it's version of LIMIT here """
 
+        s = ""
+        if select._distinct:
+            s += "DISTINCT "
+
+        if select._simple_int_limit and not select._offset:
             # ODBC drivers and possibly others
             # don't support bind params in the SELECT clause on SQL Server.
             # so have to use literal here.
-            if select._limit is not None:
-                if not select._offset:
-                    s += "TOP %d " % select._limit
+            s += "TOP %d " % select._limit
+
+        if s:
             return s
-        return compiler.SQLCompiler.get_select_precolumns(self, select)
+        else:
+            return compiler.SQLCompiler.get_select_precolumns(
+                self, select, **kw)
 
     def get_from_hint_text(self, table, text):
         return text
@@ -920,7 +1004,7 @@ class MSSQLCompiler(compiler.SQLCompiler):
     def get_crud_hint_text(self, table, text):
         return text
 
-    def limit_clause(self, select):
+    def limit_clause(self, select, **kw):
         # Limit in mssql is after the select keyword
         return ""
 
@@ -929,28 +1013,44 @@ class MSSQLCompiler(compiler.SQLCompiler):
         so tries to wrap it in a subquery with ``row_number()`` criterion.
 
         """
-        if select._offset and not getattr(select, '_mssql_visit', None):
+        if (
+            (
+                not select._simple_int_limit and
+                select._limit_clause is not None
+            ) or (
+                select._offset_clause is not None and
+                not select._simple_int_offset or select._offset
+            )
+        ) and not getattr(select, '_mssql_visit', None):
+
             # to use ROW_NUMBER(), an ORDER BY is required.
             if not select._order_by_clause.clauses:
                 raise exc.CompileError('MSSQL requires an order_by when '
-                                       'using an offset.')
-            _offset = select._offset
-            _limit = select._limit
+                                       'using an OFFSET or a non-simple '
+                                       'LIMIT clause')
+
             _order_by_clauses = select._order_by_clause.clauses
+            limit_clause = select._limit_clause
+            offset_clause = select._offset_clause
+            kwargs['select_wraps_for'] = select
             select = select._generate()
             select._mssql_visit = True
             select = select.column(
                 sql.func.ROW_NUMBER().over(order_by=_order_by_clauses)
-                .label("mssql_rn")
-            ).order_by(None).alias()
+                .label("mssql_rn")).order_by(None).alias()
 
             mssql_rn = sql.column('mssql_rn')
             limitselect = sql.select([c for c in select.c if
                                       c.key != 'mssql_rn'])
-            limitselect.append_whereclause(mssql_rn > _offset)
-            if _limit is not None:
-                limitselect.append_whereclause(mssql_rn <= (_limit + _offset))
-            return self.process(limitselect, iswrapper=True, **kwargs)
+            if offset_clause is not None:
+                limitselect.append_whereclause(mssql_rn > offset_clause)
+                if limit_clause is not None:
+                    limitselect.append_whereclause(
+                        mssql_rn <= (limit_clause + offset_clause))
+            else:
+                limitselect.append_whereclause(
+                    mssql_rn <= (limit_clause))
+            return self.process(limitselect, **kwargs)
         else:
             return compiler.SQLCompiler.visit_select(self, select, **kwargs)
 
@@ -1141,8 +1241,11 @@ class MSSQLStrictCompiler(MSSQLCompiler):
 class MSDDLCompiler(compiler.DDLCompiler):
 
     def get_column_specification(self, column, **kwargs):
-        colspec = (self.preparer.format_column(column) + " "
-                   + self.dialect.type_compiler.process(column.type))
+        colspec = (
+            self.preparer.format_column(column) + " "
+            + self.dialect.type_compiler.process(
+                column.type, type_expression=column)
+        )
 
         if column.nullable is not None:
             if not column.nullable or column.primary_key or \
@@ -1351,13 +1454,15 @@ class MSDialect(default.DefaultDialect):
                  query_timeout=None,
                  use_scope_identity=True,
                  max_identifier_length=None,
-                 schema_name="dbo", **opts):
+                 schema_name="dbo",
+                 deprecate_large_types=None, **opts):
         self.query_timeout = int(query_timeout or 0)
         self.schema_name = schema_name
 
         self.use_scope_identity = use_scope_identity
         self.max_identifier_length = int(max_identifier_length or 0) or \
             self.max_identifier_length
+        self.deprecate_large_types = deprecate_large_types
         super(MSDialect, self).__init__(**opts)
 
     def do_savepoint(self, connection, name):
@@ -1371,6 +1476,9 @@ class MSDialect(default.DefaultDialect):
 
     def initialize(self, connection):
         super(MSDialect, self).initialize(connection)
+        self._setup_version_attributes()
+
+    def _setup_version_attributes(self):
         if self.server_version_info[0] not in list(range(8, 17)):
             # FreeTDS with version 4.2 seems to report here
             # a number like "95.10.255".  Don't know what
@@ -1386,6 +1494,9 @@ class MSDialect(default.DefaultDialect):
             self.implicit_returning = True
         if self.server_version_info >= MS_2008_VERSION:
             self.supports_multivalues_insert = True
+        if self.deprecate_large_types is None:
+            self.deprecate_large_types = \
+                self.server_version_info >= MS_2012_VERSION
 
     def _get_default_schema_name(self, connection):
         if self.server_version_info < MS_2005_VERSION:
@@ -1573,12 +1684,11 @@ class MSDialect(default.DefaultDialect):
             if coltype in (MSString, MSChar, MSNVarchar, MSNChar, MSText,
                            MSNText, MSBinary, MSVarBinary,
                            sqltypes.LargeBinary):
+                if charlen == -1:
+                    charlen = 'max'
                 kwargs['length'] = charlen
                 if collation:
                     kwargs['collation'] = collation
-                if coltype == MSText or \
-                        (coltype in (MSString, MSNVarchar) and charlen == -1):
-                    kwargs.pop('length')
 
             if coltype is None:
                 util.warn(

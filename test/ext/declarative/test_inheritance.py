@@ -11,7 +11,7 @@ from sqlalchemy.orm import relationship, create_session, class_mapper, \
     polymorphic_union, deferred, Session
 from sqlalchemy.ext.declarative import declared_attr, AbstractConcreteBase, \
     ConcreteBase, has_inherited_table
-from sqlalchemy.testing import fixtures
+from sqlalchemy.testing import fixtures, mock
 
 Base = None
 
@@ -484,6 +484,41 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
         eq_(sess.query(Engineer).filter_by(primary_language='cobol'
                                            ).one(),
             Engineer(name='vlad', primary_language='cobol'))
+
+    def test_single_constraint_on_sub(self):
+        """test the somewhat unusual case of [ticket:3341]"""
+
+        class Person(Base, fixtures.ComparableEntity):
+
+            __tablename__ = 'people'
+            id = Column(Integer, primary_key=True,
+                        test_needs_autoincrement=True)
+            name = Column(String(50))
+            discriminator = Column('type', String(50))
+            __mapper_args__ = {'polymorphic_on': discriminator}
+
+        class Engineer(Person):
+
+            __mapper_args__ = {'polymorphic_identity': 'engineer'}
+            primary_language = Column(String(50))
+
+            __hack_args_one__ = sa.UniqueConstraint(
+                Person.name, primary_language)
+            __hack_args_two__ = sa.CheckConstraint(
+                Person.name != primary_language)
+
+        uq = [c for c in Person.__table__.constraints
+              if isinstance(c, sa.UniqueConstraint)][0]
+        ck = [c for c in Person.__table__.constraints
+              if isinstance(c, sa.CheckConstraint)][0]
+        eq_(
+            list(uq.columns),
+            [Person.__table__.c.name, Person.__table__.c.primary_language]
+        )
+        eq_(
+            list(ck.columns),
+            [Person.__table__.c.name, Person.__table__.c.primary_language]
+        )
 
     @testing.skip_if(lambda: testing.against('oracle'),
                      "Test has an empty insert in it at the moment")
@@ -1304,6 +1339,90 @@ class ConcreteExtensionConfigTest(
             "ON pjoin.a_id = a.id"
         )
 
+    def test_prop_on_base(self):
+        """test [ticket:2670] """
+
+        counter = mock.Mock()
+
+        class Something(Base):
+            __tablename__ = 'something'
+            id = Column(Integer, primary_key=True)
+
+        class AbstractConcreteAbstraction(AbstractConcreteBase, Base):
+            id = Column(Integer, primary_key=True)
+            x = Column(Integer)
+            y = Column(Integer)
+
+            @declared_attr
+            def something_id(cls):
+                return Column(ForeignKey(Something.id))
+
+            @declared_attr
+            def something(cls):
+                counter(cls, "something")
+                return relationship("Something")
+
+            @declared_attr
+            def something_else(cls):
+                counter(cls, "something_else")
+                return relationship("Something")
+
+        class ConcreteConcreteAbstraction(AbstractConcreteAbstraction):
+            __tablename__ = 'cca'
+            __mapper_args__ = {
+                'polymorphic_identity': 'ccb',
+                'concrete': True}
+
+        # concrete is mapped, the abstract base is not (yet)
+        assert ConcreteConcreteAbstraction.__mapper__
+        assert not hasattr(AbstractConcreteAbstraction, '__mapper__')
+
+        session = Session()
+        self.assert_compile(
+            session.query(ConcreteConcreteAbstraction).filter(
+                ConcreteConcreteAbstraction.something.has(id=1)),
+            "SELECT cca.id AS cca_id, cca.x AS cca_x, cca.y AS cca_y, "
+            "cca.something_id AS cca_something_id FROM cca WHERE EXISTS "
+            "(SELECT 1 FROM something WHERE something.id = cca.something_id "
+            "AND something.id = :id_1)"
+        )
+
+        # now it is
+        assert AbstractConcreteAbstraction.__mapper__
+
+        self.assert_compile(
+            session.query(ConcreteConcreteAbstraction).filter(
+                ConcreteConcreteAbstraction.something_else.has(id=1)),
+            "SELECT cca.id AS cca_id, cca.x AS cca_x, cca.y AS cca_y, "
+            "cca.something_id AS cca_something_id FROM cca WHERE EXISTS "
+            "(SELECT 1 FROM something WHERE something.id = cca.something_id "
+            "AND something.id = :id_1)"
+        )
+
+        self.assert_compile(
+            session.query(AbstractConcreteAbstraction).filter(
+                AbstractConcreteAbstraction.something.has(id=1)),
+            "SELECT pjoin.id AS pjoin_id, pjoin.x AS pjoin_x, "
+            "pjoin.y AS pjoin_y, pjoin.something_id AS pjoin_something_id, "
+            "pjoin.type AS pjoin_type FROM "
+            "(SELECT cca.id AS id, cca.x AS x, cca.y AS y, "
+            "cca.something_id AS something_id, 'ccb' AS type FROM cca) "
+            "AS pjoin WHERE EXISTS (SELECT 1 FROM something "
+            "WHERE something.id = pjoin.something_id AND something.id = :id_1)"
+        )
+
+        self.assert_compile(
+            session.query(AbstractConcreteAbstraction).filter(
+                AbstractConcreteAbstraction.something_else.has(id=1)),
+            "SELECT pjoin.id AS pjoin_id, pjoin.x AS pjoin_x, "
+            "pjoin.y AS pjoin_y, pjoin.something_id AS pjoin_something_id, "
+            "pjoin.type AS pjoin_type FROM "
+            "(SELECT cca.id AS id, cca.x AS x, cca.y AS y, "
+            "cca.something_id AS something_id, 'ccb' AS type FROM cca) "
+            "AS pjoin WHERE EXISTS (SELECT 1 FROM something "
+            "WHERE something.id = pjoin.something_id AND something.id = :id_1)"
+        )
+
     def test_abstract_in_hierarchy(self):
         class Document(Base, AbstractConcreteBase):
             doctype = Column(String)
@@ -1333,3 +1452,4 @@ class ConcreteExtensionConfigTest(
             "actual_documents.id AS id, 'actual' AS type "
             "FROM actual_documents) AS pjoin"
         )
+

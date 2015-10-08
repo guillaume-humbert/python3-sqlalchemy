@@ -1,5 +1,5 @@
 # orm/mapper.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -25,7 +25,8 @@ from .. import sql, util, log, exc as sa_exc, event, schema, inspection
 from ..sql import expression, visitors, operators, util as sql_util
 from . import instrumentation, attributes, exc as orm_exc, loading
 from . import properties
-from .interfaces import MapperProperty, _InspectionAttr, _MappedAttribute
+from . import util as orm_util
+from .interfaces import MapperProperty, InspectionAttr, _MappedAttribute
 
 from .base import _class_to_mapper, _state_mapper, class_mapper, \
     state_str, _INSTRUMENTOR
@@ -51,8 +52,7 @@ _CONFIGURE_MUTEX = util.threading.RLock()
 
 @inspection._self_inspects
 @log.class_logger
-class Mapper(_InspectionAttr):
-
+class Mapper(InspectionAttr):
     """Define the correlation of class attributes to database table
     columns.
 
@@ -974,6 +974,15 @@ class Mapper(_InspectionAttr):
             self._all_tables = self.inherits._all_tables
 
             if self.polymorphic_identity is not None:
+                if self.polymorphic_identity in self.polymorphic_map:
+                    util.warn(
+                        "Reassigning polymorphic association for identity %r "
+                        "from %r to %r: Check for duplicate use of %r as "
+                        "value for polymorphic_identity." %
+                        (self.polymorphic_identity,
+                         self.polymorphic_map[self.polymorphic_identity],
+                         self, self.polymorphic_identity)
+                )
                 self.polymorphic_map[self.polymorphic_identity] = self
 
         else:
@@ -1086,6 +1095,7 @@ class Mapper(_InspectionAttr):
         auto-session attachment logic.
 
         """
+
         manager = attributes.manager_of_class(self.class_)
 
         if self.non_primary:
@@ -1115,6 +1125,8 @@ class Mapper(_InspectionAttr):
 
         _mapper_registry[self] = True
 
+        # note: this *must be called before instrumentation.register_class*
+        # to maintain the documented behavior of instrument_class
         self.dispatch.instrument_class(self, self.class_)
 
         if manager is None:
@@ -1133,7 +1145,6 @@ class Mapper(_InspectionAttr):
 
         event.listen(manager, 'first_init', _event_on_first_init, raw=True)
         event.listen(manager, 'init', _event_on_init, raw=True)
-        event.listen(manager, 'resurrect', _event_on_resurrect, raw=True)
 
         for key, method in util.iterate_attributes(self.class_):
             if isinstance(method, types.FunctionType):
@@ -1195,14 +1206,6 @@ class Mapper(_InspectionAttr):
                 util.ordered_column_set(t.c).\
                 intersection(all_cols)
 
-        # determine cols that aren't expressed within our tables; mark these
-        # as "read only" properties which are refreshed upon INSERT/UPDATE
-        self._readonly_props = set(
-            self._columntoproperty[col]
-            for col in self._columntoproperty
-            if not hasattr(col, 'table') or
-            col.table not in self._cols_by_table)
-
         # if explicit PK argument sent, add those columns to the
         # primary key mappings
         if self._primary_key_argument:
@@ -1252,6 +1255,15 @@ class Mapper(_InspectionAttr):
 
             self.primary_key = tuple(primary_key)
             self._log("Identified primary key columns: %s", primary_key)
+
+        # determine cols that aren't expressed within our tables; mark these
+        # as "read only" properties which are refreshed upon INSERT/UPDATE
+        self._readonly_props = set(
+            self._columntoproperty[col]
+            for col in self._columntoproperty
+            if self._columntoproperty[col] not in self._identity_key_props and
+            (not hasattr(col, 'table') or
+                col.table not in self._cols_by_table))
 
     def _configure_properties(self):
 
@@ -1458,13 +1470,11 @@ class Mapper(_InspectionAttr):
                 if polymorphic_key in dict_ and \
                         dict_[polymorphic_key] not in \
                         mapper._acceptable_polymorphic_identities:
-                    util.warn(
+                    util.warn_limited(
                         "Flushing object %s with "
                         "incompatible polymorphic identity %r; the "
-                        "object may not refresh and/or load correctly" % (
-                            state_str(state),
-                            dict_[polymorphic_key]
-                        )
+                        "object may not refresh and/or load correctly",
+                        (state_str(state), dict_[polymorphic_key])
                     )
 
             self._set_polymorphic_identity = _set_polymorphic_identity
@@ -1494,6 +1504,10 @@ class Mapper(_InspectionAttr):
                 stack.extend(item._inheriting_mappers)
 
         return identities
+
+    @_memoized_configured_property
+    def _prop_set(self):
+        return frozenset(self._props.values())
 
     def _adapt_inherited_property(self, key, prop, init):
         if not self.concrete:
@@ -1584,6 +1598,8 @@ class Mapper(_InspectionAttr):
                           self,
                           prop,
                       ))
+            oldprop = self._props[key]
+            self._path_registry.pop(oldprop, None)
 
         self._props[key] = prop
 
@@ -1898,6 +1914,54 @@ class Mapper(_InspectionAttr):
 
     """
 
+    @_memoized_configured_property
+    def _insert_cols_as_none(self):
+        return dict(
+            (
+                table,
+                frozenset(
+                    col.key for col in columns
+                    if not col.primary_key and
+                    not col.server_default and not col.default)
+            )
+            for table, columns in self._cols_by_table.items()
+        )
+
+    @_memoized_configured_property
+    def _propkey_to_col(self):
+        return dict(
+            (
+                table,
+                dict(
+                    (self._columntoproperty[col].key, col)
+                    for col in columns
+                )
+            )
+            for table, columns in self._cols_by_table.items()
+        )
+
+    @_memoized_configured_property
+    def _pk_keys_by_table(self):
+        return dict(
+            (
+                table,
+                frozenset([col.key for col in pks])
+            )
+            for table, pks in self._pks_by_table.items()
+        )
+
+    @_memoized_configured_property
+    def _server_default_cols(self):
+        return dict(
+            (
+                table,
+                frozenset([
+                    col for col in columns
+                    if col.server_default is not None])
+            )
+            for table, columns in self._cols_by_table.items()
+        )
+
     @property
     def selectable(self):
         """The :func:`.select` construct this :class:`.Mapper` selects from
@@ -1985,7 +2049,7 @@ class Mapper(_InspectionAttr):
 
     @util.memoized_property
     def all_orm_descriptors(self):
-        """A namespace of all :class:`._InspectionAttr` attributes associated
+        """A namespace of all :class:`.InspectionAttr` attributes associated
         with the mapped class.
 
         These attributes are in all cases Python :term:`descriptors`
@@ -1994,13 +2058,13 @@ class Mapper(_InspectionAttr):
         This namespace includes attributes that are mapped to the class
         as well as attributes declared by extension modules.
         It includes any Python descriptor type that inherits from
-        :class:`._InspectionAttr`.  This includes
+        :class:`.InspectionAttr`.  This includes
         :class:`.QueryableAttribute`, as well as extension types such as
         :class:`.hybrid_property`, :class:`.hybrid_method` and
         :class:`.AssociationProxy`.
 
         To distinguish between mapped attributes and extension attributes,
-        the attribute :attr:`._InspectionAttr.extension_type` will refer
+        the attribute :attr:`.InspectionAttr.extension_type` will refer
         to a constant that distinguishes between different extension types.
 
         When dealing with a :class:`.QueryableAttribute`, the
@@ -2244,6 +2308,16 @@ class Mapper(_InspectionAttr):
     def primary_base_mapper(self):
         return self.class_manager.mapper.base_mapper
 
+    def _result_has_identity_key(self, result, adapter=None):
+        pk_cols = self.primary_key
+        if adapter:
+            pk_cols = [adapter.columns[c] for c in pk_cols]
+        for col in pk_cols:
+            if not result._has_key(col):
+                return False
+        else:
+            return True
+
     def identity_key_from_row(self, row, adapter=None):
         """Return an identity-map key for use in storing/retrieving an
         item from the identity map.
@@ -2292,7 +2366,7 @@ class Mapper(_InspectionAttr):
         manager = state.manager
         return self._identity_class, tuple([
             manager[self._columntoproperty[col].key].
-            impl.get(state, dict_, attributes.PASSIVE_OFF)
+            impl.get(state, dict_, attributes.PASSIVE_RETURN_NEVER_SET)
             for col in self.primary_key
         ])
 
@@ -2307,21 +2381,49 @@ class Mapper(_InspectionAttr):
 
         """
         state = attributes.instance_state(instance)
-        return self._primary_key_from_state(state)
+        return self._primary_key_from_state(state, attributes.PASSIVE_OFF)
 
-    def _primary_key_from_state(self, state):
+    def _primary_key_from_state(
+            self, state, passive=attributes.PASSIVE_RETURN_NEVER_SET):
         dict_ = state.dict
         manager = state.manager
         return [
-            manager[self._columntoproperty[col].key].
-            impl.get(state, dict_, attributes.PASSIVE_OFF)
-            for col in self.primary_key
+            manager[prop.key].
+            impl.get(state, dict_, passive)
+            for prop in self._identity_key_props
         ]
 
-    def _get_state_attr_by_column(self, state, dict_, column,
-                                  passive=attributes.PASSIVE_OFF):
+    @_memoized_configured_property
+    def _identity_key_props(self):
+        return [self._columntoproperty[col] for col in self.primary_key]
+
+    @_memoized_configured_property
+    def _all_pk_props(self):
+        collection = set()
+        for table in self.tables:
+            collection.update(self._pks_by_table[table])
+        return collection
+
+    @_memoized_configured_property
+    def _should_undefer_in_wildcard(self):
+        cols = set(self.primary_key)
+        if self.polymorphic_on is not None:
+            cols.add(self.polymorphic_on)
+        return cols
+
+    @_memoized_configured_property
+    def _primary_key_propkeys(self):
+        return set([prop.key for prop in self._all_pk_props])
+
+    def _get_state_attr_by_column(
+            self, state, dict_, column,
+            passive=attributes.PASSIVE_RETURN_NEVER_SET):
         prop = self._columntoproperty[column]
         return state.manager[prop.key].impl.get(state, dict_, passive=passive)
+
+    def _set_committed_state_attr_by_column(self, state, dict_, column, value):
+        prop = self._columntoproperty[column]
+        state.manager[prop.key].impl.set_committed_value(state, dict_, value)
 
     def _set_state_attr_by_column(self, state, dict_, column, value):
         prop = self._columntoproperty[column]
@@ -2330,14 +2432,12 @@ class Mapper(_InspectionAttr):
     def _get_committed_attr_by_column(self, obj, column):
         state = attributes.instance_state(obj)
         dict_ = attributes.instance_dict(obj)
-        return self._get_committed_state_attr_by_column(state, dict_, column)
+        return self._get_committed_state_attr_by_column(
+            state, dict_, column, passive=attributes.PASSIVE_OFF)
 
     def _get_committed_state_attr_by_column(
-            self,
-            state,
-            dict_,
-            column,
-            passive=attributes.PASSIVE_OFF):
+            self, state, dict_, column,
+            passive=attributes.PASSIVE_RETURN_NEVER_SET):
 
         prop = self._columntoproperty[column]
         return state.manager[prop.key].impl.\
@@ -2378,7 +2478,7 @@ class Mapper(_InspectionAttr):
                     state, state.dict,
                     leftcol,
                     passive=attributes.PASSIVE_NO_INITIALIZE)
-                if leftval is attributes.PASSIVE_NO_RESULT or leftval is None:
+                if leftval in orm_util._none_set:
                     raise ColumnsNotAvailable()
                 binary.left = sql.bindparam(None, leftval,
                                             type_=binary.right.type)
@@ -2387,8 +2487,7 @@ class Mapper(_InspectionAttr):
                     state, state.dict,
                     rightcol,
                     passive=attributes.PASSIVE_NO_INITIALIZE)
-                if rightval is attributes.PASSIVE_NO_RESULT or \
-                        rightval is None:
+                if rightval in orm_util._none_set:
                     raise ColumnsNotAvailable()
                 binary.right = sql.bindparam(None, rightval,
                                              type_=binary.right.type)
@@ -2569,7 +2668,7 @@ def configure_mappers():
             if not Mapper._new_mappers:
                 return
 
-            Mapper.dispatch(Mapper).before_configured()
+            Mapper.dispatch._for_class(Mapper).before_configured()
             # initialize properties on all mappers
             # note that _mapper_registry is unordered, which
             # may randomly conceal/reveal issues related to
@@ -2590,7 +2689,7 @@ def configure_mappers():
                         mapper._expire_memoizations()
                         mapper.dispatch.mapper_configured(
                             mapper, mapper.class_)
-                    except:
+                    except Exception:
                         exc = sys.exc_info()[1]
                         if not hasattr(exc, '_configure_failed'):
                             mapper._configure_failed = exc
@@ -2601,7 +2700,7 @@ def configure_mappers():
             _already_compiling = False
     finally:
         _CONFIGURE_MUTEX.release()
-    Mapper.dispatch(Mapper).after_configured()
+    Mapper.dispatch._for_class(Mapper).after_configured()
 
 
 def reconstructor(fn):
@@ -2710,19 +2809,10 @@ def _event_on_init(state, args, kwargs):
             instrumenting_mapper._set_polymorphic_identity(state)
 
 
-def _event_on_resurrect(state):
-    # re-populate the primary key elements
-    # of the dict based on the mapping.
-    instrumenting_mapper = state.manager.info.get(_INSTRUMENTOR)
-    if instrumenting_mapper:
-        for col, val in zip(instrumenting_mapper.primary_key, state.key[1]):
-            instrumenting_mapper._set_state_attr_by_column(
-                state, state.dict, col, val)
-
-
 class _ColumnMapping(dict):
-
     """Error reporting helper for mapper._columntoproperty."""
+
+    __slots__ = 'mapper',
 
     def __init__(self, mapper):
         self.mapper = mapper

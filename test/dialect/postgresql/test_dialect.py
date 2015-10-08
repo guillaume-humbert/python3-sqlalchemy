@@ -77,6 +77,7 @@ class MiscTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiledSQL):
 
     # currently not passing with pg 9.3 that does not seem to generate
     # any notices here, would rather find a way to mock this
+    @testing.requires.no_coverage
     @testing.only_on('postgresql+psycopg2', 'psycopg2-specific feature')
     def _test_notice_logging(self):
         log = logging.getLogger('sqlalchemy.dialects.postgresql')
@@ -98,11 +99,13 @@ class MiscTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiledSQL):
         assert 'will create implicit sequence' in msgs
         assert 'will create implicit index' in msgs
 
-    @testing.only_on('postgresql+psycopg2', 'psycopg2-specific feature')
+    @testing.only_on(
+        ['postgresql+psycopg2', 'postgresql+pg8000'],
+        'psycopg2/pg8000-specific feature')
     @engines.close_open_connections
     def test_client_encoding(self):
         c = testing.db.connect()
-        current_encoding = c.connection.connection.encoding
+        current_encoding = c.execute("show client_encoding").fetchone()[0]
         c.close()
 
         # attempt to use an encoding that's not
@@ -114,10 +117,12 @@ class MiscTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiledSQL):
 
         e = engines.testing_engine(options={'client_encoding': test_encoding})
         c = e.connect()
-        eq_(c.connection.connection.encoding, test_encoding)
+        new_encoding = c.execute("show client_encoding").fetchone()[0]
+        eq_(new_encoding, test_encoding)
 
     @testing.only_on(
-        ['postgresql+psycopg2', 'postgresql+pg8000'],
+        ['postgresql+psycopg2', 'postgresql+pg8000',
+         'postgresql+psycopg2cffi'],
         'psycopg2 / pg8000 - specific feature')
     @engines.close_open_connections
     def test_autocommit_isolation_level(self):

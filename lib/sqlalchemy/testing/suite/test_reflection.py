@@ -43,7 +43,7 @@ class ComponentReflectionTest(fixtures.TablesTest):
     def define_tables(cls, metadata):
         cls.define_reflected_tables(metadata, None)
         if testing.requires.schemas.enabled:
-            cls.define_reflected_tables(metadata, "test_schema")
+            cls.define_reflected_tables(metadata, testing.config.test_schema)
 
     @classmethod
     def define_reflected_tables(cls, metadata, schema):
@@ -95,6 +95,43 @@ class ComponentReflectionTest(fixtures.TablesTest):
             cls.define_index(metadata, users)
         if testing.requires.view_column_reflection.enabled:
             cls.define_views(metadata, schema)
+        if not schema and testing.requires.temp_table_reflection.enabled:
+            cls.define_temp_tables(metadata)
+
+    @classmethod
+    def define_temp_tables(cls, metadata):
+        # cheat a bit, we should fix this with some dialect-level
+        # temp table fixture
+        if testing.against("oracle"):
+            kw = {
+                'prefixes': ["GLOBAL TEMPORARY"],
+                'oracle_on_commit': 'PRESERVE ROWS'
+            }
+        else:
+            kw = {
+                'prefixes': ["TEMPORARY"],
+            }
+
+        user_tmp = Table(
+            "user_tmp", metadata,
+            Column("id", sa.INT, primary_key=True),
+            Column('name', sa.VARCHAR(50)),
+            Column('foo', sa.INT),
+            sa.UniqueConstraint('name', name='user_tmp_uq'),
+            sa.Index("user_tmp_ix", "foo"),
+            **kw
+        )
+        if testing.requires.view_reflection.enabled and \
+                testing.requires.temporary_views.enabled:
+            event.listen(
+                user_tmp, "after_create",
+                DDL("create temporary view user_tmp_v as "
+                    "select * from user_tmp")
+            )
+            event.listen(
+                user_tmp, "before_drop",
+                DDL("drop view user_tmp_v")
+            )
 
     @classmethod
     def define_index(cls, metadata, users):
@@ -126,7 +163,7 @@ class ComponentReflectionTest(fixtures.TablesTest):
     def test_get_schema_names(self):
         insp = inspect(testing.db)
 
-        self.assert_('test_schema' in insp.get_schema_names())
+        self.assert_(testing.config.test_schema in insp.get_schema_names())
 
     @testing.requires.schema_reflection
     def test_dialect_initialize(self):
@@ -147,6 +184,7 @@ class ComponentReflectionTest(fixtures.TablesTest):
         users, addresses, dingalings = self.tables.users, \
             self.tables.email_addresses, self.tables.dingalings
         insp = inspect(meta.bind)
+
         if table_type == 'view':
             table_names = insp.get_view_names(schema)
             table_names.sort()
@@ -162,6 +200,20 @@ class ComponentReflectionTest(fixtures.TablesTest):
                 answer = ['dingalings', 'email_addresses', 'users']
                 eq_(sorted(table_names), answer)
 
+    @testing.requires.temp_table_names
+    def test_get_temp_table_names(self):
+        insp = inspect(testing.db)
+        temp_table_names = insp.get_temp_table_names()
+        eq_(sorted(temp_table_names), ['user_tmp'])
+
+    @testing.requires.view_reflection
+    @testing.requires.temp_table_names
+    @testing.requires.temporary_views
+    def test_get_temp_view_names(self):
+        insp = inspect(self.metadata.bind)
+        temp_table_names = insp.get_temp_view_names()
+        eq_(sorted(temp_table_names), ['user_tmp_v'])
+
     @testing.requires.table_reflection
     def test_get_table_names(self):
         self._test_get_table_names()
@@ -174,7 +226,7 @@ class ComponentReflectionTest(fixtures.TablesTest):
     @testing.requires.table_reflection
     @testing.requires.schemas
     def test_get_table_names_with_schema(self):
-        self._test_get_table_names('test_schema')
+        self._test_get_table_names(testing.config.test_schema)
 
     @testing.requires.view_column_reflection
     def test_get_view_names(self):
@@ -183,7 +235,8 @@ class ComponentReflectionTest(fixtures.TablesTest):
     @testing.requires.view_column_reflection
     @testing.requires.schemas
     def test_get_view_names_with_schema(self):
-        self._test_get_table_names('test_schema', table_type='view')
+        self._test_get_table_names(
+            testing.config.test_schema, table_type='view')
 
     @testing.requires.table_reflection
     @testing.requires.view_column_reflection
@@ -291,7 +344,29 @@ class ComponentReflectionTest(fixtures.TablesTest):
     @testing.requires.table_reflection
     @testing.requires.schemas
     def test_get_columns_with_schema(self):
-        self._test_get_columns(schema='test_schema')
+        self._test_get_columns(schema=testing.config.test_schema)
+
+    @testing.requires.temp_table_reflection
+    def test_get_temp_table_columns(self):
+        meta = MetaData(testing.db)
+        user_tmp = self.tables.user_tmp
+        insp = inspect(meta.bind)
+        cols = insp.get_columns('user_tmp')
+        self.assert_(len(cols) > 0, len(cols))
+
+        for i, col in enumerate(user_tmp.columns):
+            eq_(col.name, cols[i]['name'])
+
+    @testing.requires.temp_table_reflection
+    @testing.requires.view_column_reflection
+    @testing.requires.temporary_views
+    def test_get_temp_view_columns(self):
+        insp = inspect(self.metadata.bind)
+        cols = insp.get_columns('user_tmp_v')
+        eq_(
+            [col['name'] for col in cols],
+            ['id', 'name', 'foo']
+        )
 
     @testing.requires.view_column_reflection
     def test_get_view_columns(self):
@@ -300,7 +375,8 @@ class ComponentReflectionTest(fixtures.TablesTest):
     @testing.requires.view_column_reflection
     @testing.requires.schemas
     def test_get_view_columns_with_schema(self):
-        self._test_get_columns(schema='test_schema', table_type='view')
+        self._test_get_columns(
+            schema=testing.config.test_schema, table_type='view')
 
     @testing.provide_metadata
     def _test_get_pk_constraint(self, schema=None):
@@ -327,7 +403,7 @@ class ComponentReflectionTest(fixtures.TablesTest):
     @testing.requires.primary_key_constraint_reflection
     @testing.requires.schemas
     def test_get_pk_constraint_with_schema(self):
-        self._test_get_pk_constraint(schema='test_schema')
+        self._test_get_pk_constraint(schema=testing.config.test_schema)
 
     @testing.requires.table_reflection
     @testing.provide_metadata
@@ -385,7 +461,7 @@ class ComponentReflectionTest(fixtures.TablesTest):
     @testing.requires.foreign_key_constraint_reflection
     @testing.requires.schemas
     def test_get_foreign_keys_with_schema(self):
-        self._test_get_foreign_keys(schema='test_schema')
+        self._test_get_foreign_keys(schema=testing.config.test_schema)
 
     @testing.provide_metadata
     def _test_get_indexes(self, schema=None):
@@ -418,16 +494,40 @@ class ComponentReflectionTest(fixtures.TablesTest):
     @testing.requires.index_reflection
     @testing.requires.schemas
     def test_get_indexes_with_schema(self):
-        self._test_get_indexes(schema='test_schema')
+        self._test_get_indexes(schema=testing.config.test_schema)
 
     @testing.requires.unique_constraint_reflection
     def test_get_unique_constraints(self):
         self._test_get_unique_constraints()
 
+    @testing.requires.temp_table_reflection
+    @testing.requires.unique_constraint_reflection
+    def test_get_temp_table_unique_constraints(self):
+        insp = inspect(self.metadata.bind)
+        reflected = insp.get_unique_constraints('user_tmp')
+        for refl in reflected:
+            # Different dialects handle duplicate index and constraints
+            # differently, so ignore this flag
+            refl.pop('duplicates_index', None)
+        eq_(reflected, [{'column_names': ['name'], 'name': 'user_tmp_uq'}])
+
+    @testing.requires.temp_table_reflection
+    def test_get_temp_table_indexes(self):
+        insp = inspect(self.metadata.bind)
+        indexes = insp.get_indexes('user_tmp')
+        for ind in indexes:
+            ind.pop('dialect_options', None)
+        eq_(
+            # TODO: we need to add better filtering for indexes/uq constraints
+            # that are doubled up
+            [idx for idx in indexes if idx['name'] == 'user_tmp_ix'],
+            [{'unique': False, 'column_names': ['foo'], 'name': 'user_tmp_ix'}]
+        )
+
     @testing.requires.unique_constraint_reflection
     @testing.requires.schemas
     def test_get_unique_constraints_with_schema(self):
-        self._test_get_unique_constraints(schema='test_schema')
+        self._test_get_unique_constraints(schema=testing.config.test_schema)
 
     @testing.provide_metadata
     def _test_get_unique_constraints(self, schema=None):
@@ -464,6 +564,9 @@ class ComponentReflectionTest(fixtures.TablesTest):
         )
 
         for orig, refl in zip(uniques, reflected):
+            # Different dialects handle duplicate index and constraints
+            # differently, so ignore this flag
+            refl.pop('duplicates_index', None)
             eq_(orig, refl)
 
     @testing.provide_metadata
@@ -486,7 +589,7 @@ class ComponentReflectionTest(fixtures.TablesTest):
     @testing.requires.view_reflection
     @testing.requires.schemas
     def test_get_view_definition_with_schema(self):
-        self._test_get_view_definition(schema='test_schema')
+        self._test_get_view_definition(schema=testing.config.test_schema)
 
     @testing.only_on("postgresql", "PG specific feature")
     @testing.provide_metadata
@@ -503,7 +606,7 @@ class ComponentReflectionTest(fixtures.TablesTest):
 
     @testing.requires.schemas
     def test_get_table_oid_with_schema(self):
-        self._test_get_table_oid('users', schema='test_schema')
+        self._test_get_table_oid('users', schema=testing.config.test_schema)
 
     @testing.requires.table_reflection
     @testing.provide_metadata

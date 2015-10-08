@@ -1,5 +1,5 @@
 # engine/reflection.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -173,7 +173,14 @@ class Inspector(object):
          passed as ``None``.  For special quoting, use :class:`.quoted_name`.
 
         :param order_by: Optional, may be the string "foreign_key" to sort
-         the result on foreign key dependencies.
+         the result on foreign key dependencies.  Does not automatically
+         resolve cycles, and will raise :class:`.CircularDependencyError`
+         if cycles exist.
+
+         .. deprecated:: 1.0.0 - see
+            :meth:`.Inspector.get_sorted_table_and_fkc_names` for a version
+            of this which resolves foreign key cycles between tables
+            automatically.
 
          .. versionchanged:: 0.8 the "foreign_key" sorting sorts tables
             in order of dependee to dependent; that is, in creation
@@ -182,6 +189,8 @@ class Inspector(object):
             :attr:`.MetaData.sorted_tables` and :func:`.util.sort_tables`.
 
         .. seealso::
+
+            :meth:`.Inspector.get_sorted_table_and_fkc_names`
 
             :attr:`.MetaData.sorted_tables`
 
@@ -200,6 +209,88 @@ class Inspector(object):
                         tuples.append((fkey['referred_table'], tname))
             tnames = list(topological.sort(tuples, tnames))
         return tnames
+
+    def get_sorted_table_and_fkc_names(self, schema=None):
+        """Return dependency-sorted table and foreign key constraint names in
+        referred to within a particular schema.
+
+        This will yield 2-tuples of
+        ``(tablename, [(tname, fkname), (tname, fkname), ...])``
+        consisting of table names in CREATE order grouped with the foreign key
+        constraint names that are not detected as belonging to a cycle.
+        The final element
+        will be ``(None, [(tname, fkname), (tname, fkname), ..])``
+        which will consist of remaining
+        foreign key constraint names that would require a separate CREATE
+        step after-the-fact, based on dependencies between tables.
+
+        .. versionadded:: 1.0.-
+
+        .. seealso::
+
+            :meth:`.Inspector.get_table_names`
+
+            :func:`.sort_tables_and_constraints` - similar method which works
+             with an already-given :class:`.MetaData`.
+
+        """
+        if hasattr(self.dialect, 'get_table_names'):
+            tnames = self.dialect.get_table_names(
+                self.bind, schema, info_cache=self.info_cache)
+        else:
+            tnames = self.engine.table_names(schema)
+
+        tuples = set()
+        remaining_fkcs = set()
+
+        fknames_for_table = {}
+        for tname in tnames:
+            fkeys = self.get_foreign_keys(tname, schema)
+            fknames_for_table[tname] = set(
+                [fk['name'] for fk in fkeys]
+            )
+            for fkey in fkeys:
+                if tname != fkey['referred_table']:
+                    tuples.add((fkey['referred_table'], tname))
+        try:
+            candidate_sort = list(topological.sort(tuples, tnames))
+        except exc.CircularDependencyError as err:
+            for edge in err.edges:
+                tuples.remove(edge)
+                remaining_fkcs.update(
+                    (edge[1], fkc)
+                    for fkc in fknames_for_table[edge[1]]
+                )
+
+            candidate_sort = list(topological.sort(tuples, tnames))
+        return [
+            (tname, fknames_for_table[tname].difference(remaining_fkcs))
+            for tname in candidate_sort
+        ] + [(None, list(remaining_fkcs))]
+
+    def get_temp_table_names(self):
+        """return a list of temporary table names for the current bind.
+
+        This method is unsupported by most dialects; currently
+        only SQLite implements it.
+
+        .. versionadded:: 1.0.0
+
+        """
+        return self.dialect.get_temp_table_names(
+            self.bind, info_cache=self.info_cache)
+
+    def get_temp_view_names(self):
+        """return a list of temporary view names for the current bind.
+
+        This method is unsupported by most dialects; currently
+        only SQLite implements it.
+
+        .. versionadded:: 1.0.0
+
+        """
+        return self.dialect.get_temp_view_names(
+            self.bind, info_cache=self.info_cache)
 
     def get_table_options(self, table_name, schema=None, **kw):
         """Return a dictionary of options specified when the table of the
@@ -370,6 +461,12 @@ class Inspector(object):
         unique
           boolean
 
+        dialect_options
+          dict of dialect-specific index options.  May not be present
+          for all dialects.
+
+          .. versionadded:: 1.0.0
+
         :param table_name: string name of the table.  For special quoting,
          use :class:`.quoted_name`.
 
@@ -465,55 +562,87 @@ class Inspector(object):
         for col_d in self.get_columns(
                 table_name, schema, **table.dialect_kwargs):
             found_table = True
-            orig_name = col_d['name']
 
-            table.dispatch.column_reflect(self, table, col_d)
-
-            name = col_d['name']
-            if include_columns and name not in include_columns:
-                continue
-            if exclude_columns and name in exclude_columns:
-                continue
-
-            coltype = col_d['type']
-
-            col_kw = dict(
-                (k, col_d[k])
-                for k in ['nullable', 'autoincrement', 'quote', 'info', 'key']
-                if k in col_d
-            )
-
-            colargs = []
-            if col_d.get('default') is not None:
-                # the "default" value is assumed to be a literal SQL
-                # expression, so is wrapped in text() so that no quoting
-                # occurs on re-issuance.
-                colargs.append(
-                    sa_schema.DefaultClause(
-                        sql.text(col_d['default']), _reflected=True
-                    )
-                )
-
-            if 'sequence' in col_d:
-                # TODO: mssql and sybase are using this.
-                seq = col_d['sequence']
-                sequence = sa_schema.Sequence(seq['name'], 1, 1)
-                if 'start' in seq:
-                    sequence.start = seq['start']
-                if 'increment' in seq:
-                    sequence.increment = seq['increment']
-                colargs.append(sequence)
-
-            cols_by_orig_name[orig_name] = col = \
-                sa_schema.Column(name, coltype, *colargs, **col_kw)
-
-            if col.key in table.primary_key:
-                col.primary_key = True
-            table.append_column(col)
+            self._reflect_column(
+                table, col_d, include_columns,
+                exclude_columns, cols_by_orig_name)
 
         if not found_table:
             raise exc.NoSuchTableError(table.name)
 
+        self._reflect_pk(
+            table_name, schema, table, cols_by_orig_name, exclude_columns)
+
+        self._reflect_fk(
+            table_name, schema, table, cols_by_orig_name,
+            exclude_columns, reflection_options)
+
+        self._reflect_indexes(
+            table_name, schema, table, cols_by_orig_name,
+            include_columns, exclude_columns, reflection_options)
+
+        self._reflect_unique_constraints(
+            table_name, schema, table, cols_by_orig_name,
+            include_columns, exclude_columns, reflection_options)
+
+    def _reflect_column(
+        self, table, col_d, include_columns,
+            exclude_columns, cols_by_orig_name):
+
+        orig_name = col_d['name']
+
+        table.dispatch.column_reflect(self, table, col_d)
+
+        # fetch name again as column_reflect is allowed to
+        # change it
+        name = col_d['name']
+        if (include_columns and name not in include_columns) \
+                or (exclude_columns and name in exclude_columns):
+            return
+
+        coltype = col_d['type']
+
+        col_kw = dict(
+            (k, col_d[k])
+            for k in ['nullable', 'autoincrement', 'quote', 'info', 'key']
+            if k in col_d
+        )
+
+        colargs = []
+        if col_d.get('default') is not None:
+            # the "default" value is assumed to be a literal SQL
+            # expression, so is wrapped in text() so that no quoting
+            # occurs on re-issuance.
+            colargs.append(
+                sa_schema.DefaultClause(
+                    sql.text(col_d['default']), _reflected=True
+                )
+            )
+
+        if 'sequence' in col_d:
+            self._reflect_col_sequence(col_d, colargs)
+
+        cols_by_orig_name[orig_name] = col = \
+            sa_schema.Column(name, coltype, *colargs, **col_kw)
+
+        if col.key in table.primary_key:
+            col.primary_key = True
+        table.append_column(col)
+
+    def _reflect_col_sequence(self, col_d, colargs):
+        if 'sequence' in col_d:
+            # TODO: mssql and sybase are using this.
+            seq = col_d['sequence']
+            sequence = sa_schema.Sequence(seq['name'], 1, 1)
+            if 'start' in seq:
+                sequence.start = seq['start']
+            if 'increment' in seq:
+                sequence.increment = seq['increment']
+            colargs.append(sequence)
+
+    def _reflect_pk(
+            self, table_name, schema, table,
+            cols_by_orig_name, exclude_columns):
         pk_cons = self.get_pk_constraint(
             table_name, schema, **table.dialect_kwargs)
         if pk_cons:
@@ -530,6 +659,9 @@ class Inspector(object):
             # its column collection
             table.primary_key._reload(pk_cols)
 
+    def _reflect_fk(
+            self, table_name, schema, table, cols_by_orig_name,
+            exclude_columns, reflection_options):
         fkeys = self.get_foreign_keys(
             table_name, schema, **table.dialect_kwargs)
         for fkey_d in fkeys:
@@ -572,6 +704,10 @@ class Inspector(object):
                 sa_schema.ForeignKeyConstraint(constrained_columns, refspec,
                                                conname, link_to_name=True,
                                                **options))
+
+    def _reflect_indexes(
+        self, table_name, schema, table, cols_by_orig_name,
+            include_columns, exclude_columns, reflection_options):
         # Indexes
         indexes = self.get_indexes(table_name, schema)
         for index_d in indexes:
@@ -579,11 +715,16 @@ class Inspector(object):
             columns = index_d['column_names']
             unique = index_d['unique']
             flavor = index_d.get('type', 'index')
+            dialect_options = index_d.get('dialect_options', {})
+
+            duplicates = index_d.get('duplicates_constraint')
             if include_columns and \
                     not set(columns).issubset(include_columns):
                 util.warn(
                     "Omitting %s key for (%s), key covers omitted columns." %
-                    (flavor or "index", ', '.join(columns)))
+                    (flavor, ', '.join(columns)))
+                continue
+            if duplicates:
                 continue
             # look for columns by orig name in cols_by_orig_name,
             # but support columns that are in-Python only as fallback
@@ -596,9 +737,52 @@ class Inspector(object):
                     util.warn(
                         "%s key '%s' was not located in "
                         "columns for table '%s'" % (
-                            flavor or "index", c, table_name
+                            flavor, c, table_name
                         ))
                 else:
                     idx_cols.append(idx_col)
 
-            sa_schema.Index(name, *idx_cols, **dict(unique=unique))
+            sa_schema.Index(
+                name, *idx_cols,
+                **dict(list(dialect_options.items()) + [('unique', unique)])
+            )
+
+    def _reflect_unique_constraints(
+        self, table_name, schema, table, cols_by_orig_name,
+            include_columns, exclude_columns, reflection_options):
+
+        # Unique Constraints
+        try:
+            constraints = self.get_unique_constraints(table_name, schema)
+        except NotImplementedError:
+            # optional dialect feature
+            return
+
+        for const_d in constraints:
+            conname = const_d['name']
+            columns = const_d['column_names']
+            duplicates = const_d.get('duplicates_index')
+            if include_columns and \
+                    not set(columns).issubset(include_columns):
+                util.warn(
+                    "Omitting unique constraint key for (%s), "
+                    "key covers omitted columns." %
+                    ', '.join(columns))
+                continue
+            if duplicates:
+                continue
+            # look for columns by orig name in cols_by_orig_name,
+            # but support columns that are in-Python only as fallback
+            constrained_cols = []
+            for c in columns:
+                try:
+                    constrained_col = cols_by_orig_name[c] \
+                        if c in cols_by_orig_name else table.c[c]
+                except KeyError:
+                    util.warn(
+                        "unique constraint key '%s' was not located in "
+                        "columns for table '%s'" % (c, table_name))
+                else:
+                    constrained_cols.append(constrained_col)
+            table.append_constraint(
+                sa_schema.UniqueConstraint(*constrained_cols, name=conname))

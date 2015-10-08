@@ -1,5 +1,5 @@
 # ext/hybrid.py
-# Copyright (C) 2005-2014 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -145,7 +145,7 @@ usage of the absolute value function::
             return func.abs(cls.length) / 2
 
 Above the Python function ``abs()`` is used for instance-level
-operations, the SQL function ``ABS()`` is used via the :attr:`.func`
+operations, the SQL function ``ABS()`` is used via the :data:`.func`
 object for class-level expressions::
 
     >>> i1.radius
@@ -634,10 +634,10 @@ from .. import util
 from ..orm import attributes, interfaces
 
 HYBRID_METHOD = util.symbol('HYBRID_METHOD')
-"""Symbol indicating an :class:`_InspectionAttr` that's
+"""Symbol indicating an :class:`InspectionAttr` that's
    of type :class:`.hybrid_method`.
 
-   Is assigned to the :attr:`._InspectionAttr.extension_type`
+   Is assigned to the :attr:`.InspectionAttr.extension_type`
    attibute.
 
    .. seealso::
@@ -647,10 +647,10 @@ HYBRID_METHOD = util.symbol('HYBRID_METHOD')
 """
 
 HYBRID_PROPERTY = util.symbol('HYBRID_PROPERTY')
-"""Symbol indicating an :class:`_InspectionAttr` that's
+"""Symbol indicating an :class:`InspectionAttr` that's
     of type :class:`.hybrid_method`.
 
-   Is assigned to the :attr:`._InspectionAttr.extension_type`
+   Is assigned to the :attr:`.InspectionAttr.extension_type`
    attibute.
 
    .. seealso::
@@ -660,7 +660,7 @@ HYBRID_PROPERTY = util.symbol('HYBRID_PROPERTY')
 """
 
 
-class hybrid_method(interfaces._InspectionAttr):
+class hybrid_method(interfaces.InspectionAttrInfo):
     """A decorator which allows definition of a Python object method with both
     instance-level and class-level behavior.
 
@@ -703,7 +703,7 @@ class hybrid_method(interfaces._InspectionAttr):
         return self
 
 
-class hybrid_property(interfaces._InspectionAttr):
+class hybrid_property(interfaces.InspectionAttrInfo):
     """A decorator which allows definition of a Python descriptor with both
     instance-level and class-level behavior.
 
