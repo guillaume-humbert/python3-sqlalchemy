@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -234,10 +235,10 @@ the Python side deals in <tt class="docutils literal"><span class="pre">True</sp
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.types.Boolean.__init__.params.create_constraint"></span><strong>create_constraint</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Boolean.__init__.params.create_constraint">¶</a> &#8211; defaults to True.  If the boolean
+<li><span class="target" id="sqlalchemy.types.Boolean.params.create_constraint"></span><strong>create_constraint</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Boolean.params.create_constraint">¶</a> &#8211; defaults to True.  If the boolean
 is generated as an int/smallint, also create a CHECK constraint
 on the table that ensures 1 or 0 as a value.</li>
-<li><span class="target" id="sqlalchemy.types.Boolean.__init__.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Boolean.__init__.params.name">¶</a> &#8211; if a CHECK constraint is generated, specify
+<li><span class="target" id="sqlalchemy.types.Boolean.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Boolean.params.name">¶</a> &#8211; if a CHECK constraint is generated, specify
 the name of the constraint.</li>
 </ul>
 </td>
@@ -273,7 +274,7 @@ converted back to datetime objects when rows are returned.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.types.DateTime.__init__.params.timezone"></span><strong>timezone</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.DateTime.__init__.params.timezone">¶</a> &#8211; boolean.  If True, and supported by the
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.types.DateTime.params.timezone"></span><strong>timezone</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.DateTime.params.timezone">¶</a> &#8211; boolean.  If True, and supported by the
 backend, will produce &#8216;TIMESTAMP WITH TIMEZONE&#8217;. For backends
 that don&#8217;t support timezone aware timestamps, has no
 effect.</td>
@@ -309,12 +310,12 @@ by that backend.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.types.Enum.__init__.params.*enums"></span><strong>*enums</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Enum.__init__.params.*enums">¶</a> &#8211; string or unicode enumeration labels. If unicode
+<li><span class="target" id="sqlalchemy.types.Enum.params.*enums"></span><strong>*enums</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Enum.params.*enums">¶</a> &#8211; string or unicode enumeration labels. If unicode
 labels are present, the <cite>convert_unicode</cite> flag is auto-enabled.</li>
-<li><span class="target" id="sqlalchemy.types.Enum.__init__.params.convert_unicode"></span><strong>convert_unicode</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Enum.__init__.params.convert_unicode">¶</a> &#8211; Enable unicode-aware bind parameter and
+<li><span class="target" id="sqlalchemy.types.Enum.params.convert_unicode"></span><strong>convert_unicode</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Enum.params.convert_unicode">¶</a> &#8211; Enable unicode-aware bind parameter and
 result-set processing for this Enum&#8217;s data. This is set
 automatically based on the presence of unicode label strings.</li>
-<li><span class="target" id="sqlalchemy.types.Enum.__init__.params.metadata"></span><strong>metadata</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Enum.__init__.params.metadata">¶</a> &#8211; Associate this type directly with a <tt class="docutils literal"><span class="pre">MetaData</span></tt>
+<li><span class="target" id="sqlalchemy.types.Enum.params.metadata"></span><strong>metadata</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Enum.params.metadata">¶</a> &#8211; Associate this type directly with a <tt class="docutils literal"><span class="pre">MetaData</span></tt>
 object. For types that exist on the target database as an
 independent schema construct (Postgresql), this type will be
 created and dropped within <tt class="docutils literal"><span class="pre">create_all()</span></tt> and <tt class="docutils literal"><span class="pre">drop_all()</span></tt>
@@ -324,14 +325,14 @@ used, and will be created when any of those individual tables are
 created, after a check is performed for it&#8217;s existence. The type is
 only dropped when <tt class="docutils literal"><span class="pre">drop_all()</span></tt> is called for that <tt class="docutils literal"><span class="pre">Table</span></tt>
 object&#8217;s metadata, however.</li>
-<li><span class="target" id="sqlalchemy.types.Enum.__init__.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Enum.__init__.params.name">¶</a> &#8211; The name of this type. This is required for Postgresql
+<li><span class="target" id="sqlalchemy.types.Enum.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Enum.params.name">¶</a> &#8211; The name of this type. This is required for Postgresql
 and any future supported database which requires an explicitly
 named type, or an explicitly named constraint in order to generate
 the type and/or a table that uses it.</li>
-<li><span class="target" id="sqlalchemy.types.Enum.__init__.params.native_enum"></span><strong>native_enum</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Enum.__init__.params.native_enum">¶</a> &#8211; Use the database&#8217;s native ENUM type when
+<li><span class="target" id="sqlalchemy.types.Enum.params.native_enum"></span><strong>native_enum</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Enum.params.native_enum">¶</a> &#8211; Use the database&#8217;s native ENUM type when
 available. Defaults to True. When False, uses VARCHAR + check
 constraint for all backends.</li>
-<li><span class="target" id="sqlalchemy.types.Enum.__init__.params.schema"></span><strong>schema</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Enum.__init__.params.schema">¶</a> &#8211; <p>Schema name of this type. For types that exist on the
+<li><span class="target" id="sqlalchemy.types.Enum.params.schema"></span><strong>schema</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Enum.params.schema">¶</a> &#8211; <p>Schema name of this type. For types that exist on the
 target database as an independent schema construct (Postgresql),
 this parameter specifies the named schema in which the type is
 present.</p>
@@ -343,8 +344,8 @@ owning <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table
 set the <tt class="docutils literal"><span class="pre">inherit_schema</span></tt> flag to <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
 </div>
 </li>
-<li><span class="target" id="sqlalchemy.types.Enum.__init__.params.quote"></span><strong>quote</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Enum.__init__.params.quote">¶</a> &#8211; Set explicit quoting preferences for the type&#8217;s name.</li>
-<li><span class="target" id="sqlalchemy.types.Enum.__init__.params.inherit_schema"></span><strong>inherit_schema</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Enum.__init__.params.inherit_schema">¶</a> &#8211; <p>When <tt class="docutils literal"><span class="pre">True</span></tt>, the &#8220;schema&#8221; from the owning
+<li><span class="target" id="sqlalchemy.types.Enum.params.quote"></span><strong>quote</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Enum.params.quote">¶</a> &#8211; Set explicit quoting preferences for the type&#8217;s name.</li>
+<li><span class="target" id="sqlalchemy.types.Enum.params.inherit_schema"></span><strong>inherit_schema</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Enum.params.inherit_schema">¶</a> &#8211; <p>When <tt class="docutils literal"><span class="pre">True</span></tt>, the &#8220;schema&#8221; from the owning
 <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> will be copied to the &#8220;schema&#8221; attribute of this
 <a class="reference internal" href="#sqlalchemy.types.Enum" title="sqlalchemy.types.Enum"><tt class="xref py py-class docutils literal"><span class="pre">Enum</span></tt></a>, replacing whatever value was passed for the
 <tt class="docutils literal"><span class="pre">schema</span></tt> attribute.   This also takes effect when using the
@@ -378,9 +379,21 @@ set the <tt class="docutils literal"><span class="pre">inherit_schema</span></tt
 <dt id="sqlalchemy.types.Float">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Float</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>decimal_return_scale=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Float" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Numeric</span></tt></a></p>
-<p>A type for <tt class="docutils literal"><span class="pre">float</span></tt> numbers.</p>
-<p>Returns Python <tt class="docutils literal"><span class="pre">float</span></tt> objects by default, applying
-conversion as needed.</p>
+<p>Type representing floating point types, such as <tt class="docutils literal"><span class="pre">FLOAT</span></tt> or <tt class="docutils literal"><span class="pre">REAL</span></tt>.</p>
+<p>This type returns Python <tt class="docutils literal"><span class="pre">float</span></tt> objects by default, unless the
+<a class="reference internal" href="#sqlalchemy.types.Float.params.asdecimal" title="sqlalchemy.types.Float"><tt class="xref py py-paramref docutils literal"><span class="pre">Float.asdecimal</span></tt></a> flag is set to True, in which case they
+are coerced to <tt class="docutils literal"><span class="pre">decimal.Decimal</span></tt> objects.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <a class="reference internal" href="#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a> type is designed to receive data from a database
+type that is explicitly known to be a floating point type
+(e.g. <tt class="docutils literal"><span class="pre">FLOAT</span></tt>, <tt class="docutils literal"><span class="pre">REAL</span></tt>, others)
+and not a decimal type (e.g. <tt class="docutils literal"><span class="pre">DECIMAL</span></tt>, <tt class="docutils literal"><span class="pre">NUMERIC</span></tt>, others).
+If the database column on the server is in fact a Numeric
+type, such as <tt class="docutils literal"><span class="pre">DECIMAL</span></tt> or <tt class="docutils literal"><span class="pre">NUMERIC</span></tt>, use the <a class="reference internal" href="#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>
+type or a subclass, otherwise numeric coercion between <tt class="docutils literal"><span class="pre">float</span></tt>/<tt class="docutils literal"><span class="pre">Decimal</span></tt>
+may or may not function as expected.</p>
+</div>
 <dl class="method">
 <dt id="sqlalchemy.types.Float.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>decimal_return_scale=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Float.__init__" title="Permalink to this definition">¶</a></dt>
@@ -390,12 +403,12 @@ conversion as needed.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.types.Float.__init__.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Float.__init__.params.precision">¶</a> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span>
+<li><span class="target" id="sqlalchemy.types.Float.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Float.params.precision">¶</a> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt>.</li>
-<li><span class="target" id="sqlalchemy.types.Float.__init__.params.asdecimal"></span><strong>asdecimal</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Float.__init__.params.asdecimal">¶</a> &#8211; the same flag as that of <a class="reference internal" href="#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>, but
+<li><span class="target" id="sqlalchemy.types.Float.params.asdecimal"></span><strong>asdecimal</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Float.params.asdecimal">¶</a> &#8211; the same flag as that of <a class="reference internal" href="#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>, but
 defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.   Note that setting this flag to <tt class="docutils literal"><span class="pre">True</span></tt>
 results in floating point conversion.</li>
-<li><span class="target" id="sqlalchemy.types.Float.__init__.params.decimal_return_scale"></span><strong>decimal_return_scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Float.__init__.params.decimal_return_scale">¶</a> &#8211; <p>Default scale to use when converting
+<li><span class="target" id="sqlalchemy.types.Float.params.decimal_return_scale"></span><strong>decimal_return_scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Float.params.decimal_return_scale">¶</a> &#8211; <p>Default scale to use when converting
 from floats to Python decimals.  Floating point values will typically
 be much longer due to decimal inaccuracy, and most floating point
 database types don&#8217;t have a notion of &#8220;scale&#8221;, so by default the
@@ -407,7 +420,7 @@ as the default for decimal_return_scale, if not otherwise specified.</p>
 <p><span>New in version 0.9.0.</span></p>
 </div>
 </li>
-<li><span class="target" id="sqlalchemy.types.Float.__init__.params.**kwargs"></span><strong>**kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Float.__init__.params.**kwargs">¶</a> &#8211; deprecated.  Additional arguments here are ignored
+<li><span class="target" id="sqlalchemy.types.Float.params.**kwargs"></span><strong>**kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Float.params.**kwargs">¶</a> &#8211; deprecated.  Additional arguments here are ignored
 by the default <a class="reference internal" href="#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a> type.  For database specific
 floats that support additional arguments, see that dialect&#8217;s
 documentation for details, such as
@@ -452,15 +465,15 @@ currently is a manual procedure (such as via
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.types.Interval.__init__.params.native"></span><strong>native</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Interval.__init__.params.native">¶</a> &#8211; when True, use the actual
+<li><span class="target" id="sqlalchemy.types.Interval.params.native"></span><strong>native</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Interval.params.native">¶</a> &#8211; when True, use the actual
 INTERVAL type provided by the database, if
 supported (currently Postgresql, Oracle).
 Otherwise, represent the interval data as
 an epoch value regardless.</li>
-<li><span class="target" id="sqlalchemy.types.Interval.__init__.params.second_precision"></span><strong>second_precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Interval.__init__.params.second_precision">¶</a> &#8211; For native interval types
+<li><span class="target" id="sqlalchemy.types.Interval.params.second_precision"></span><strong>second_precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Interval.params.second_precision">¶</a> &#8211; For native interval types
 which support a &#8220;fractional seconds precision&#8221; parameter,
 i.e. Oracle and Postgresql</li>
-<li><span class="target" id="sqlalchemy.types.Interval.__init__.params.day_precision"></span><strong>day_precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Interval.__init__.params.day_precision">¶</a> &#8211; for native interval types which
+<li><span class="target" id="sqlalchemy.types.Interval.params.day_precision"></span><strong>day_precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Interval.params.day_precision">¶</a> &#8211; for native interval types which
 support a &#8220;day precision&#8221; parameter, i.e. Oracle.</li>
 </ul>
 </td>
@@ -499,7 +512,7 @@ provided by each DB-API.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.types.LargeBinary.__init__.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.LargeBinary.__init__.params.length">¶</a> &#8211; optional, a length for the column for use in
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.types.LargeBinary.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.LargeBinary.params.length">¶</a> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
@@ -518,40 +531,37 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 <dt id="sqlalchemy.types.Numeric">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">Numeric</tt><big>(</big><em>precision=None</em>, <em>scale=None</em>, <em>decimal_return_scale=None</em>, <em>asdecimal=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.Numeric" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types._DateAffinity</span></tt>, <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
-<p>A type for fixed precision numbers.</p>
-<p>Typically generates DECIMAL or NUMERIC.  Returns
-<tt class="docutils literal"><span class="pre">decimal.Decimal</span></tt> objects by default, applying
-conversion as needed.</p>
+<p>A type for fixed precision numbers, such as <tt class="docutils literal"><span class="pre">NUMERIC</span></tt> or <tt class="docutils literal"><span class="pre">DECIMAL</span></tt>.</p>
+<p>This type returns Python <tt class="docutils literal"><span class="pre">decimal.Decimal</span></tt> objects by default, unless the
+<a class="reference internal" href="#sqlalchemy.types.Numeric.params.asdecimal" title="sqlalchemy.types.Numeric"><tt class="xref py py-paramref docutils literal"><span class="pre">Numeric.asdecimal</span></tt></a> flag is set to False, in which case they
+are coerced to Python <tt class="docutils literal"><span class="pre">float</span></tt> objects.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>The <a class="reference external" href="http://pypi.python.org/pypi/cdecimal/">cdecimal</a> library
-is a high performing alternative to Python&#8217;s built-in
-<tt class="docutils literal"><span class="pre">decimal.Decimal</span></tt> type, which performs very poorly in high volume
-situations. SQLAlchemy 0.7 is tested against <tt class="docutils literal"><span class="pre">cdecimal</span></tt> and supports
-it fully. The type is not necessarily supported by DBAPI
-implementations however, most of which contain an import for plain
-<tt class="docutils literal"><span class="pre">decimal</span></tt> in their source code, even though some such as psycopg2
-provide hooks for alternate adapters. SQLAlchemy imports <tt class="docutils literal"><span class="pre">decimal</span></tt>
-globally as well.  The most straightforward and
-foolproof way to use &#8220;cdecimal&#8221; given current DBAPI and Python support
-is to patch it directly into sys.modules before anything else is
-imported:</p>
+<p class="last">The <a class="reference internal" href="#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a> type is designed to receive data from a database
+type that is explicitly known to be a decimal type
+(e.g. <tt class="docutils literal"><span class="pre">DECIMAL</span></tt>, <tt class="docutils literal"><span class="pre">NUMERIC</span></tt>, others) and not a floating point
+type (e.g. <tt class="docutils literal"><span class="pre">FLOAT</span></tt>, <tt class="docutils literal"><span class="pre">REAL</span></tt>, others).
+If the database column on the server is in fact a floating-point type
+type, such as <tt class="docutils literal"><span class="pre">FLOAT</span></tt> or <tt class="docutils literal"><span class="pre">REAL</span></tt>, use the <a class="reference internal" href="#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a>
+type or a subclass, otherwise numeric coercion between <tt class="docutils literal"><span class="pre">float</span></tt>/<tt class="docutils literal"><span class="pre">Decimal</span></tt>
+may or may not function as expected.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The Python <tt class="docutils literal"><span class="pre">decimal.Decimal</span></tt> class is generally slow
+performing; cPython 3.3 has now switched to use the <a class="reference external" href="http://pypi.python.org/pypi/cdecimal/">cdecimal</a> library natively. For
+older Python versions, the <tt class="docutils literal"><span class="pre">cdecimal</span></tt> library can be patched
+into any application where it will replace the <tt class="docutils literal"><span class="pre">decimal</span></tt>
+library fully, however this needs to be applied globally and
+before any other modules have been imported, as follows:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">cdecimal</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s">&quot;decimal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cdecimal</span></pre></div>
 </div>
-<p>While the global patch is a little ugly, it&#8217;s particularly
-important to use just one decimal library at a time since
-Python Decimal and cdecimal Decimal objects
-are not currently compatible <em>with each other</em>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">cdecimal</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">decimal</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s">&quot;10&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">cdecimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s">&quot;10&quot;</span><span class="p">)</span>
-<span class="go">False</span></pre></div>
-</div>
-<p class="last">SQLAlchemy will provide more natural support of
-cdecimal if and when it becomes a standard part of Python
-installations and is supported by all DBAPIs.</p>
+<p class="last">Note that the <tt class="docutils literal"><span class="pre">cdecimal</span></tt> and <tt class="docutils literal"><span class="pre">decimal</span></tt> libraries are <strong>not
+compatible with each other</strong>, so patching <tt class="docutils literal"><span class="pre">cdecimal</span></tt> at the
+global level is the only way it can be used effectively with
+various DBAPIs that hardcode to import the <tt class="docutils literal"><span class="pre">decimal</span></tt> library.</p>
 </div>
 <dl class="method">
 <dt id="sqlalchemy.types.Numeric.__init__">
@@ -562,15 +572,15 @@ installations and is supported by all DBAPIs.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.types.Numeric.__init__.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Numeric.__init__.params.precision">¶</a> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span>
+<li><span class="target" id="sqlalchemy.types.Numeric.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Numeric.params.precision">¶</a> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt>.</li>
-<li><span class="target" id="sqlalchemy.types.Numeric.__init__.params.scale"></span><strong>scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Numeric.__init__.params.scale">¶</a> &#8211; the numeric scale for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>.</li>
-<li><span class="target" id="sqlalchemy.types.Numeric.__init__.params.asdecimal"></span><strong>asdecimal</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Numeric.__init__.params.asdecimal">¶</a> &#8211; default True.  Return whether or not
+<li><span class="target" id="sqlalchemy.types.Numeric.params.scale"></span><strong>scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Numeric.params.scale">¶</a> &#8211; the numeric scale for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>.</li>
+<li><span class="target" id="sqlalchemy.types.Numeric.params.asdecimal"></span><strong>asdecimal</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Numeric.params.asdecimal">¶</a> &#8211; default True.  Return whether or not
 values should be sent as Python Decimal objects, or
 as floats.   Different DBAPIs send one or the other based on
 datatypes - the Numeric type will ensure that return values
 are one or the other across DBAPIs consistently.</li>
-<li><span class="target" id="sqlalchemy.types.Numeric.__init__.params.decimal_return_scale"></span><strong>decimal_return_scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Numeric.__init__.params.decimal_return_scale">¶</a> &#8211; <p>Default scale to use when converting
+<li><span class="target" id="sqlalchemy.types.Numeric.params.decimal_return_scale"></span><strong>decimal_return_scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.Numeric.params.decimal_return_scale">¶</a> &#8211; <p>Default scale to use when converting
 from floats to Python decimals.  Floating point values will typically
 be much longer due to decimal inaccuracy, and most floating point
 database types don&#8217;t have a notion of &#8220;scale&#8221;, so by default the
@@ -626,11 +636,11 @@ with <a class="reference internal" href="#sqlalchemy.types.PickleType" title="sq
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.types.PickleType.__init__.params.protocol"></span><strong>protocol</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.PickleType.__init__.params.protocol">¶</a> &#8211; defaults to <tt class="docutils literal"><span class="pre">pickle.HIGHEST_PROTOCOL</span></tt>.</li>
-<li><span class="target" id="sqlalchemy.types.PickleType.__init__.params.pickler"></span><strong>pickler</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.PickleType.__init__.params.pickler">¶</a> &#8211; defaults to cPickle.pickle or pickle.pickle if
+<li><span class="target" id="sqlalchemy.types.PickleType.params.protocol"></span><strong>protocol</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.PickleType.params.protocol">¶</a> &#8211; defaults to <tt class="docutils literal"><span class="pre">pickle.HIGHEST_PROTOCOL</span></tt>.</li>
+<li><span class="target" id="sqlalchemy.types.PickleType.params.pickler"></span><strong>pickler</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.PickleType.params.pickler">¶</a> &#8211; defaults to cPickle.pickle or pickle.pickle if
 cPickle is not available.  May be any object with
 pickle-compatible <tt class="docutils literal"><span class="pre">dumps`</span> <span class="pre">and</span> <span class="pre">``loads</span></tt> methods.</li>
-<li><span class="target" id="sqlalchemy.types.PickleType.__init__.params.comparator"></span><strong>comparator</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.PickleType.__init__.params.comparator">¶</a> &#8211; a 2-arg callable predicate used
+<li><span class="target" id="sqlalchemy.types.PickleType.params.comparator"></span><strong>comparator</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.PickleType.params.comparator">¶</a> &#8211; a 2-arg callable predicate used
 to compare values of this type.  If left as <tt class="docutils literal"><span class="pre">None</span></tt>,
 the Python &#8220;equals&#8221; operator is used to compare values.</li>
 </ul>
@@ -724,14 +734,14 @@ on most databases.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.types.String.__init__.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.String.__init__.params.length">¶</a> &#8211; optional, a length for the column for use in
+<li><span class="target" id="sqlalchemy.types.String.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.String.params.length">¶</a> &#8211; optional, a length for the column for use in
 DDL and CAST expressions.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
 <tt class="docutils literal"><span class="pre">length</span></tt> for use in DDL, and will raise an exception when
 the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued if a <tt class="docutils literal"><span class="pre">VARCHAR</span></tt>
 with no length is included.  Whether the value is
 interpreted as bytes or characters is database specific.</li>
-<li><span class="target" id="sqlalchemy.types.String.__init__.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.String.__init__.params.collation">¶</a> &#8211; <p>Optional, a column-level collation for
+<li><span class="target" id="sqlalchemy.types.String.params.collation"></span><strong>collation</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.String.params.collation">¶</a> &#8211; <p>Optional, a column-level collation for
 use in DDL and CAST expressions.  Renders using the
 COLLATE keyword supported by SQLite, MySQL, and Postgresql.
 E.g.:</p>
@@ -744,7 +754,7 @@ E.g.:</p>
 string types.</p>
 </div>
 </li>
-<li><span class="target" id="sqlalchemy.types.String.__init__.params.convert_unicode"></span><strong>convert_unicode</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.String.__init__.params.convert_unicode">¶</a> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the
+<li><span class="target" id="sqlalchemy.types.String.params.convert_unicode"></span><strong>convert_unicode</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.String.params.convert_unicode">¶</a> &#8211; <p>When set to <tt class="docutils literal"><span class="pre">True</span></tt>, the
 <a class="reference internal" href="#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type will assume that
 input is to be passed as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects,
 and results returned as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects.
@@ -769,7 +779,7 @@ the value <tt class="docutils literal"><span class="pre">force</span></tt> can b
 cause SQLAlchemy&#8217;s encode/decode services to be
 used unconditionally.</p>
 </li>
-<li><span class="target" id="sqlalchemy.types.String.__init__.params.unicode_error"></span><strong>unicode_error</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.String.__init__.params.unicode_error">¶</a> &#8211; Optional, a method to use to handle Unicode
+<li><span class="target" id="sqlalchemy.types.String.params.unicode_error"></span><strong>unicode_error</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.types.String.params.unicode_error">¶</a> &#8211; Optional, a method to use to handle Unicode
 conversion errors. Behaves like the <tt class="docutils literal"><span class="pre">errors</span></tt> keyword argument to
 the standard library&#8217;s <tt class="docutils literal"><span class="pre">string.decode()</span></tt> functions.   This flag
 requires that <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> is set to <tt class="docutils literal"><span class="pre">force</span></tt> - otherwise,
@@ -2062,7 +2072,14 @@ more fundamental behavior of
 <dt id="sqlalchemy.types.TypeEngine">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.types.</tt><tt class="descname">TypeEngine</tt><a class="headerlink" href="#sqlalchemy.types.TypeEngine" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.visitors.Visitable</span></tt></p>
-<p>Base for built-in types.</p>
+<p>The ultimate base class for all SQL datatypes.</p>
+<p>Common subclasses of <a class="reference internal" href="#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">TypeEngine</span></tt></a> include
+<a class="reference internal" href="#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a>, <a class="reference internal" href="#sqlalchemy.types.Integer" title="sqlalchemy.types.Integer"><tt class="xref py py-class docutils literal"><span class="pre">Integer</span></tt></a>, and <a class="reference internal" href="#sqlalchemy.types.Boolean" title="sqlalchemy.types.Boolean"><tt class="xref py py-class docutils literal"><span class="pre">Boolean</span></tt></a>.</p>
+<p>For an overview of the SQLAlchemy typing system, see <a class="reference internal" href="#"><em>Column and Data Types</em></a>.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#"><em>Column and Data Types</em></a></p>
+</div>
 <dl class="class">
 <dt id="sqlalchemy.types.TypeEngine.Comparator">
 <em class="property">class </em><tt class="descname">Comparator</tt><big>(</big><em>expr</em><big>)</big><a class="headerlink" href="#sqlalchemy.types.TypeEngine.Comparator" title="Permalink to this definition">¶</a></dt>

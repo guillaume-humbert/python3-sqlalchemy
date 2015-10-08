@@ -114,21 +114,37 @@ class AdaptTest(fixtures.TestBase):
 
         """
 
-        for typ in self._all_types():
+        def adaptions():
+            for typ in self._all_types():
+                up_adaptions = [typ] + typ.__subclasses__()
+                yield False, typ, up_adaptions
+                for subcl in typ.__subclasses__():
+                    if subcl is not typ and \
+                        typ is not TypeDecorator and \
+                        "sqlalchemy" in subcl.__module__:
+                        yield True, subcl, [typ]
+
+        for is_down_adaption, typ, target_adaptions in adaptions():
             if typ in (types.TypeDecorator, types.TypeEngine, types.Variant):
                 continue
             elif typ is dialects.postgresql.ARRAY:
                 t1 = typ(String)
             else:
                 t1 = typ()
-            for cls in [typ] + typ.__subclasses__():
+            for cls in target_adaptions:
                 if not issubclass(typ, types.Enum) and \
                         issubclass(cls, types.Enum):
                     continue
+
+                # print("ADAPT %s -> %s" % (t1.__class__, cls))
                 t2 = t1.adapt(cls)
                 assert t1 is not t2
+
+                if is_down_adaption:
+                    t2, t1 = t1, t2
+
                 for k in t1.__dict__:
-                    if k == 'impl':
+                    if k in ('impl', '_is_oracle_number'):
                         continue
                     # assert each value was copied, or that
                     # the adapted type has a more specific
@@ -853,8 +869,11 @@ class UnicodeTest(fixtures.TestBase):
                 testing.db.dialect.returns_unicode_strings,
                 True if util.py3k else False
             )
-
-
+        elif testing.against('oracle+cx_oracle'):
+            eq_(
+                testing.db.dialect.returns_unicode_strings,
+                True if util.py3k else "conditional"
+            )
         else:
             expected = (testing.db.name, testing.db.driver) in \
                 (
@@ -867,7 +886,6 @@ class UnicodeTest(fixtures.TestBase):
                     ('mysql', 'mysqlconnector'),
                     ('sqlite', 'pysqlite'),
                     ('oracle', 'zxjdbc'),
-                    ('oracle', 'cx_oracle'),
                 )
 
             eq_(
@@ -1184,6 +1202,18 @@ class BinaryTest(fixtures.TestBase, AssertsExecutionResults):
                     where(binary_table.c.data == data).alias().
                     count().scalar(), 1)
 
+
+    @testing.requires.binary_literals
+    def test_literal_roundtrip(self):
+        compiled = select([cast(literal(util.b("foo")), LargeBinary)]).compile(
+                            dialect=testing.db.dialect,
+                            compile_kwargs={"literal_binds": True})
+        result = testing.db.execute(compiled)
+        eq_(result.scalar(), util.b("foo"))
+
+    def test_bind_processor_no_dbapi(self):
+        b = LargeBinary()
+        eq_(b.bind_processor(default.DefaultDialect()), None)
 
     def load_stream(self, name):
         f = os.path.join(os.path.dirname(__file__), "..", name)

@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -141,7 +142,9 @@
 </li>
 <li><a class="reference internal" href="#unique-constraint">UNIQUE Constraint</a></li>
 <li><a class="reference internal" href="#check-constraint">CHECK Constraint</a></li>
+<li><a class="reference internal" href="#primary-key-constraint">PRIMARY KEY Constraint</a></li>
 <li><a class="reference internal" href="#setting-up-constraints-when-using-the-declarative-orm-extension">Setting up Constraints when using the Declarative ORM Extension</a></li>
+<li><a class="reference internal" href="#configuring-constraint-naming-conventions">Configuring Constraint Naming Conventions</a></li>
 <li><a class="reference internal" href="#constraints-api">Constraints API</a></li>
 <li><a class="reference internal" href="#indexes">Indexes</a><ul>
 <li><a class="reference internal" href="#functional-indexes">Functional Indexes</a></li>
@@ -328,7 +331,9 @@ databases.</p>
 <tt class="docutils literal"><span class="pre">unique</span></tt> keyword on <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>. Explicitly named
 unique constraints and/or those with multiple columns are created via the
 <a class="reference internal" href="#sqlalchemy.schema.UniqueConstraint" title="sqlalchemy.schema.UniqueConstraint"><tt class="xref py py-class docutils literal"><span class="pre">UniqueConstraint</span></tt></a> table-level construct.</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">meta</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">UniqueConstraint</span>
+
+<span class="n">meta</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
 <span class="n">mytable</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span>
 
     <span class="c"># per-column anonymous unique constraint</span>
@@ -352,7 +357,9 @@ constraints generally should only refer to the column to which they are
 placed, while table level constraints can refer to any columns in the table.</p>
 <p>Note that some databases do not actively support check constraints such as
 MySQL.</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">meta</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">CheckConstraint</span>
+
+<span class="n">meta</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
 <span class="n">mytable</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span>
 
     <span class="c"># per-column CHECK constraint</span>
@@ -374,6 +381,27 @@ MySQL.</p>
 )</div></pre></div>
 </div>
 </div>
+<div class="section" id="primary-key-constraint">
+<h2>PRIMARY KEY Constraint<a class="headerlink" href="#primary-key-constraint" title="Permalink to this headline">¶</a></h2>
+<p>The primary key constraint of any <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object is implicitly
+present, based on the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects that are marked with the
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.Column.params.primary_key" title="sqlalchemy.schema.Column"><tt class="xref py py-paramref docutils literal"><span class="pre">Column.primary_key</span></tt></a> flag.   The <a class="reference internal" href="#sqlalchemy.schema.PrimaryKeyConstraint" title="sqlalchemy.schema.PrimaryKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt></a>
+object provides explicit access to this constraint, which includes the
+option of being configured directly:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">PrimaryKeyConstraint</span>
+
+<span class="n">my_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+            <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
+            <span class="n">Column</span><span class="p">(</span><span class="s">&#39;version_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
+            <span class="n">Column</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">)),</span>
+            <span class="n">PrimaryKeyConstraint</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="s">&#39;version_id&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;mytable_pk&#39;</span><span class="p">)</span>
+        <span class="p">)</span></pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.schema.PrimaryKeyConstraint" title="sqlalchemy.schema.PrimaryKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt></a> - detailed API documentation.</p>
+</div>
+</div>
 <div class="section" id="setting-up-constraints-when-using-the-declarative-orm-extension">
 <h2>Setting up Constraints when using the Declarative ORM Extension<a class="headerlink" href="#setting-up-constraints-when-using-the-declarative-orm-extension" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> is the SQLAlchemy Core construct that allows one to define
@@ -385,12 +413,159 @@ the contents of the table primarily as a mapping of <a class="reference internal
 to a table defined using Declarative, use the <tt class="docutils literal"><span class="pre">__table_args__</span></tt> attribute,
 described at <a class="reference internal" href="../orm/extensions/declarative.html#declarative-table-args"><em>Table Configuration</em></a>.</p>
 </div>
+<div class="section" id="configuring-constraint-naming-conventions">
+<span id="constraint-naming-conventions"></span><h2>Configuring Constraint Naming Conventions<a class="headerlink" href="#configuring-constraint-naming-conventions" title="Permalink to this headline">¶</a></h2>
+<p>Relational databases typically assign explicit names to all constraints and
+indexes.  In the common case that a table is created using <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt>
+where constraints such as CHECK, UNIQUE, and PRIMARY KEY constraints are
+produced inline with the table definition, the database usually has a system
+in place in which names are automatically assigned to these constraints, if
+a name is not otherwise specified.  When an existing database table is altered
+in a database using a command such as <tt class="docutils literal"><span class="pre">ALTER</span> <span class="pre">TABLE</span></tt>, this command typically
+needs to specify expicit names for new constraints as well as be able to
+specify the name of an existing constraint that is to be dropped or modified.</p>
+<p>Constraints can be named explicitly using the <a class="reference internal" href="#sqlalchemy.schema.Constraint.params.name" title="sqlalchemy.schema.Constraint"><tt class="xref py py-paramref docutils literal"><span class="pre">Constraint.name</span></tt></a> parameter,
+and for indexes the <a class="reference internal" href="#sqlalchemy.schema.Index.params.name" title="sqlalchemy.schema.Index"><tt class="xref py py-paramref docutils literal"><span class="pre">Index.name</span></tt></a> parameter.  However, in the
+case of constraints this parameter is optional.  There are also the use
+cases of using the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column.params.unique" title="sqlalchemy.schema.Column"><tt class="xref py py-paramref docutils literal"><span class="pre">Column.unique</span></tt></a> and <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column.params.index" title="sqlalchemy.schema.Column"><tt class="xref py py-paramref docutils literal"><span class="pre">Column.index</span></tt></a>
+parameters which create <a class="reference internal" href="#sqlalchemy.schema.UniqueConstraint" title="sqlalchemy.schema.UniqueConstraint"><tt class="xref py py-class docutils literal"><span class="pre">UniqueConstraint</span></tt></a> and <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> objects
+without an explicit name being specified.</p>
+<p>The use case of alteration of existing tables and constraints can be handled
+by schema migration tools such as <a class="reference external" href="http://http://alembic.readthedocs.org/">Alembic</a>.
+However, neither Alembic nor SQLAlchemy currently create names for constraint
+objects where the name is otherwise unspecified, leading to the case where
+being able to alter existing constraints means that one must reverse-engineer
+the naming system used by the relational database to auto-assign names,
+or that care must be taken to ensure that all constraints are named.</p>
+<p>In contrast to having to assign explicit names to all <a class="reference internal" href="#sqlalchemy.schema.Constraint" title="sqlalchemy.schema.Constraint"><tt class="xref py py-class docutils literal"><span class="pre">Constraint</span></tt></a>
+and <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> objects, automated naming schemes can be constructed
+using events.  This approach has the advantage that constraints will get
+a consistent naming scheme without the need for explicit name parameters
+throughout the code, and also that the convention takes place just as well
+for those constraints and indexes produced by the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column.params.unique" title="sqlalchemy.schema.Column"><tt class="xref py py-paramref docutils literal"><span class="pre">Column.unique</span></tt></a>
+and <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column.params.index" title="sqlalchemy.schema.Column"><tt class="xref py py-paramref docutils literal"><span class="pre">Column.index</span></tt></a> parameters.  As of SQLAlchemy 0.9.2 this
+event-based approach is included, and can be configured using the argument
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData.params.naming_convention" title="sqlalchemy.schema.MetaData"><tt class="xref py py-paramref docutils literal"><span class="pre">MetaData.naming_convention</span></tt></a>.</p>
+<p><a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData.params.naming_convention" title="sqlalchemy.schema.MetaData"><tt class="xref py py-paramref docutils literal"><span class="pre">MetaData.naming_convention</span></tt></a> refers to a dictionary which accepts
+the <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> class or individual <a class="reference internal" href="#sqlalchemy.schema.Constraint" title="sqlalchemy.schema.Constraint"><tt class="xref py py-class docutils literal"><span class="pre">Constraint</span></tt></a> classes as keys,
+and Python string templates as values.   It also accepts a series of
+string-codes as alternative keys, <tt class="docutils literal"><span class="pre">&quot;fk&quot;</span></tt>, <tt class="docutils literal"><span class="pre">&quot;pk&quot;</span></tt>,
+<tt class="docutils literal"><span class="pre">&quot;ix&quot;</span></tt>, <tt class="docutils literal"><span class="pre">&quot;ck&quot;</span></tt>, <tt class="docutils literal"><span class="pre">&quot;uq&quot;</span></tt> for foreign key, primary key, index,
+check, and unique constraint, respectively.  The string templates in this
+dictionary are used whenever a constraint or index is associated with this
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object that does not have an existing name given (including
+one exception case where an existing name can be further embellished).</p>
+<p>An example naming convention that suits basic cases is as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">convention</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s">&quot;ix&quot;</span><span class="p">:</span> <span class="s">&#39;ix_</span><span class="si">%(column_0_label)s</span><span class="s">&#39;</span><span class="p">,</span>
+  <span class="s">&quot;uq&quot;</span><span class="p">:</span> <span class="s">&quot;uq_</span><span class="si">%(table_name)s</span><span class="s">_</span><span class="si">%(column_0_name)s</span><span class="s">&quot;</span><span class="p">,</span>
+  <span class="s">&quot;ck&quot;</span><span class="p">:</span> <span class="s">&quot;ck_</span><span class="si">%(table_name)s</span><span class="s">_</span><span class="si">%(constraint_name)s</span><span class="s">&quot;</span><span class="p">,</span>
+  <span class="s">&quot;fk&quot;</span><span class="p">:</span> <span class="s">&quot;fk_</span><span class="si">%(table_name)s</span><span class="s">_</span><span class="si">%(column_0_name)s</span><span class="s">_</span><span class="si">%(referred_table_name)s</span><span class="s">&quot;</span><span class="p">,</span>
+  <span class="s">&quot;pk&quot;</span><span class="p">:</span> <span class="s">&quot;pk_</span><span class="si">%(table_name)s</span><span class="s">&quot;</span>
+<span class="p">}</span>
+
+<span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">naming_convention</span><span class="o">=</span><span class="n">convention</span><span class="p">)</span></pre></div>
+</div>
+<p>The above convention will establish names for all constraints within
+the target <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> collection.
+For example, we can observe the name produced when we create an unnamed
+<a class="reference internal" href="#sqlalchemy.schema.UniqueConstraint" title="sqlalchemy.schema.UniqueConstraint"><tt class="xref py py-class docutils literal"><span class="pre">UniqueConstraint</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">user_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;user&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+<span class="gp">... </span>                <span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+<span class="gp">... </span>                <span class="n">UniqueConstraint</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">)</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">user_table</span><span class="o">.</span><span class="n">constraints</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;uq_user_name&#39;</span></pre></div>
+</div>
+<p>This same feature takes effect even if we just use the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column.params.unique" title="sqlalchemy.schema.Column"><tt class="xref py py-paramref docutils literal"><span class="pre">Column.unique</span></tt></a>
+flag:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">user_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;user&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+<span class="gp">... </span>                 <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+<span class="gp">... </span>                 <span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">user_table</span><span class="o">.</span><span class="n">constraints</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;uq_user_name&#39;</span></pre></div>
+</div>
+<p>A key advantage to the naming convention approach is that the names are established
+at Python construction time, rather than at DDL emit time.  The effect this has
+when using Alembic&#8217;s <tt class="docutils literal"><span class="pre">--autogenerate</span></tt> feature is that the naming convention
+will be explicit when a new migration script is generated:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">upgrade</span><span class="p">():</span>
+    <span class="n">op</span><span class="o">.</span><span class="n">create_unique_constraint</span><span class="p">(</span><span class="s">&quot;uq_user_name&quot;</span><span class="p">,</span> <span class="s">&quot;user&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;name&quot;</span><span class="p">])</span></pre></div>
+</div>
+<p>The above <tt class="docutils literal"><span class="pre">&quot;uq_user_name&quot;</span></tt> string was copied from the <a class="reference internal" href="#sqlalchemy.schema.UniqueConstraint" title="sqlalchemy.schema.UniqueConstraint"><tt class="xref py py-class docutils literal"><span class="pre">UniqueConstraint</span></tt></a>
+object that <tt class="docutils literal"><span class="pre">--autogenerate</span></tt> located in our metadata.</p>
+<p>The default value for <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData.params.naming_convention" title="sqlalchemy.schema.MetaData"><tt class="xref py py-paramref docutils literal"><span class="pre">MetaData.naming_convention</span></tt></a> handles
+the long-standing SQLAlchemy behavior of assigning a name to a <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a>
+object that is created using the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column.params.index" title="sqlalchemy.schema.Column"><tt class="xref py py-paramref docutils literal"><span class="pre">Column.index</span></tt></a> parameter:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy.sql.schema</span> <span class="kn">import</span> <span class="n">DEFAULT_NAMING_CONVENTION</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">DEFAULT_NAMING_CONVENTION</span>
+<span class="go">immutabledict({&#39;ix&#39;: &#39;ix_%(column_0_label)s&#39;})</span></pre></div>
+</div>
+<p>The tokens available include <tt class="docutils literal"><span class="pre">%(table_name)s</span></tt>,
+<tt class="docutils literal"><span class="pre">%(referred_table_name)s</span></tt>, <tt class="docutils literal"><span class="pre">%(column_0_name)s</span></tt>, <tt class="docutils literal"><span class="pre">%(column_0_label)s</span></tt>,
+<tt class="docutils literal"><span class="pre">%(column_0_key)s</span></tt>,  <tt class="docutils literal"><span class="pre">%(referred_column_0_name)s</span></tt>, and <tt class="docutils literal"><span class="pre">%(constraint_name)s</span></tt>;
+the documentation for <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData.params.naming_convention" title="sqlalchemy.schema.MetaData"><tt class="xref py py-paramref docutils literal"><span class="pre">MetaData.naming_convention</span></tt></a> describes each
+individually.  New tokens can also be added, by specifying an additional
+token and a callable within the naming_convention dictionary.  For example,
+if we wanted to name our foreign key constraints using a GUID scheme,
+we could do that as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="k">def</span> <span class="nf">fk_guid</span><span class="p">(</span><span class="n">constraint</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
+    <span class="n">str_tokens</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+    <span class="p">]</span> <span class="o">+</span> <span class="p">[</span>
+        <span class="n">element</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">elements</span>
+    <span class="p">]</span> <span class="o">+</span> <span class="p">[</span>
+        <span class="n">element</span><span class="o">.</span><span class="n">target_fullname</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">elements</span>
+    <span class="p">]</span>
+    <span class="n">guid</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid5</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">NAMESPACE_OID</span><span class="p">,</span> <span class="s">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">str_tokens</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">guid</span><span class="p">)</span>
+
+<span class="n">convention</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&quot;fk_guid&quot;</span><span class="p">:</span> <span class="n">fk_guid</span><span class="p">,</span>
+    <span class="s">&quot;ix&quot;</span><span class="p">:</span> <span class="s">&#39;ix_</span><span class="si">%(column_0_label)s</span><span class="s">&#39;</span><span class="p">,</span>
+    <span class="s">&quot;fk&quot;</span><span class="p">:</span> <span class="s">&quot;fk_</span><span class="si">%(fk_guid)s</span><span class="s">&quot;</span><span class="p">,</span>
+<span class="p">}</span></pre></div>
+</div>
+<p>Above, when we create a new <a class="reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>, we will get a
+name as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">naming_convention</span><span class="o">=</span><span class="n">convention</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">user_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;user&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+<span class="gp">... </span>        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;version&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+<span class="gp">... </span>        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">address_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;address&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+<span class="gp">... </span>       <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+<span class="gp">... </span>       <span class="n">Column</span><span class="p">(</span><span class="s">&#39;user_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
+<span class="gp">... </span>       <span class="n">Column</span><span class="p">(</span><span class="s">&#39;user_version_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">)</span>
+<span class="gp">... </span>   <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fk</span> <span class="o">=</span> <span class="n">ForeignKeyConstraint</span><span class="p">([</span><span class="s">&#39;user_id&#39;</span><span class="p">,</span> <span class="s">&#39;user_version_id&#39;</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="p">[</span><span class="s">&#39;user.id&#39;</span><span class="p">,</span> <span class="s">&#39;user.version&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">address_table</span><span class="o">.</span><span class="n">append_constraint</span><span class="p">(</span><span class="n">fk</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fk</span><span class="o">.</span><span class="n">name</span>
+<span class="go">fk_0cd51ab5-8d70-56e8-a83c-86661737766d</span></pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData.params.naming_convention" title="sqlalchemy.schema.MetaData"><tt class="xref py py-paramref docutils literal"><span class="pre">MetaData.naming_convention</span></tt></a> - for additional usage details
+as well as a listing of all avaiable naming components.</p>
+<p class="last"><a class="reference external" href="http://alembic.readthedocs.org/en/latest/tutorial.html#tutorial-constraint-names" title="(in Alembic v0.6.3)"><em>The Importance of Naming Constraints</em></a> - in the Alembic documentation.</p>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.2: </span>Added the <a class="reference internal" href="metadata.html#sqlalchemy.schema.MetaData.params.naming_convention" title="sqlalchemy.schema.MetaData"><tt class="xref py py-paramref docutils literal"><span class="pre">MetaData.naming_convention</span></tt></a> argument.</p>
+</div>
+</div>
 <div class="section" id="constraints-api">
 <h2>Constraints API<a class="headerlink" href="#constraints-api" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sqlalchemy.schema.Constraint">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Constraint</tt><big>(</big><em>name=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>_create_rule=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Constraint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="metadata.html#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Constraint</tt><big>(</big><em>name=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>_create_rule=None</em>, <em>**dialect_kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Constraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.DialectKWArgs</span></tt>, <a class="reference internal" href="metadata.html#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
 <p>A table-level SQL constraint.</p>
 </dd></dl>
 
@@ -411,8 +586,8 @@ described at <a class="reference internal" href="../orm/extensions/declarative.h
 
 <dl class="class">
 <dt id="sqlalchemy.schema.ForeignKey">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ForeignKey</tt><big>(</big><em>column</em>, <em>_constraint=None</em>, <em>use_alter=False</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>link_to_name=False</em>, <em>match=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKey" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="metadata.html#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ForeignKey</tt><big>(</big><em>column</em>, <em>_constraint=None</em>, <em>use_alter=False</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>link_to_name=False</em>, <em>match=None</em>, <em>**dialect_kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.DialectKWArgs</span></tt>, <a class="reference internal" href="metadata.html#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
 <p>Defines a dependency between two columns.</p>
 <p><tt class="docutils literal"><span class="pre">ForeignKey</span></tt> is specified as an argument to a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> object,
 e.g.:</p>
@@ -443,7 +618,7 @@ of that column.</p>
 <em class="xref std std-ref">metadata_foreignkeys</em>.</p>
 <dl class="method">
 <dt id="sqlalchemy.schema.ForeignKey.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>column</em>, <em>_constraint=None</em>, <em>use_alter=False</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>link_to_name=False</em>, <em>match=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKey.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>column</em>, <em>_constraint=None</em>, <em>use_alter=False</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>link_to_name=False</em>, <em>match=None</em>, <em>**dialect_kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKey.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a column-level FOREIGN KEY.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> object when constructed generates a
 <a class="reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> which is associated with the parent
@@ -453,7 +628,7 @@ of that column.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.column"></span><strong>column</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.column">¶</a> &#8211; <p>A single target column for the key relationship. A
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.params.column"></span><strong>column</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.params.column">¶</a> &#8211; <p>A single target column for the key relationship. A
 <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> object or a column name as a string:
 <tt class="docutils literal"><span class="pre">tablename.columnkey</span></tt> or <tt class="docutils literal"><span class="pre">schema.tablename.columnkey</span></tt>.
 <tt class="docutils literal"><span class="pre">columnkey</span></tt> is the <tt class="docutils literal"><span class="pre">key</span></tt> which has been assigned to the column
@@ -465,28 +640,37 @@ underlying <a class="reference internal" href="metadata.html#sqlalchemy.schema.M
 be used.</p>
 </div>
 </li>
-<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.name">¶</a> &#8211; Optional string. An in-database name for the key if
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.params.name">¶</a> &#8211; Optional string. An in-database name for the key if
 <cite>constraint</cite> is not provided.</li>
-<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.onupdate"></span><strong>onupdate</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.onupdate">¶</a> &#8211; Optional string. If set, emit ON UPDATE &lt;value&gt; when
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.params.onupdate"></span><strong>onupdate</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.params.onupdate">¶</a> &#8211; Optional string. If set, emit ON UPDATE &lt;value&gt; when
 issuing DDL for this constraint. Typical values include CASCADE,
 DELETE and RESTRICT.</li>
-<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.ondelete"></span><strong>ondelete</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.ondelete">¶</a> &#8211; Optional string. If set, emit ON DELETE &lt;value&gt; when
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.params.ondelete"></span><strong>ondelete</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.params.ondelete">¶</a> &#8211; Optional string. If set, emit ON DELETE &lt;value&gt; when
 issuing DDL for this constraint. Typical values include CASCADE,
 DELETE and RESTRICT.</li>
-<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.deferrable"></span><strong>deferrable</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.deferrable">¶</a> &#8211; Optional bool. If set, emit DEFERRABLE or NOT
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.params.deferrable"></span><strong>deferrable</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.params.deferrable">¶</a> &#8211; Optional bool. If set, emit DEFERRABLE or NOT
 DEFERRABLE when issuing DDL for this constraint.</li>
-<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.initially"></span><strong>initially</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.initially">¶</a> &#8211; Optional string. If set, emit INITIALLY &lt;value&gt; when
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.params.initially"></span><strong>initially</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.params.initially">¶</a> &#8211; Optional string. If set, emit INITIALLY &lt;value&gt; when
 issuing DDL for this constraint.</li>
-<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.link_to_name"></span><strong>link_to_name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.link_to_name">¶</a> &#8211; if True, the string name given in <tt class="docutils literal"><span class="pre">column</span></tt> is
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.params.link_to_name"></span><strong>link_to_name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.params.link_to_name">¶</a> &#8211; if True, the string name given in <tt class="docutils literal"><span class="pre">column</span></tt> is
 the rendered name of the referenced column, not its locally
 assigned <tt class="docutils literal"><span class="pre">key</span></tt>.</li>
-<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.use_alter"></span><strong>use_alter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.use_alter">¶</a> &#8211; passed to the underlying
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.params.use_alter"></span><strong>use_alter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.params.use_alter">¶</a> &#8211; passed to the underlying
 <a class="reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> to indicate the constraint should be
 generated/dropped externally from the CREATE TABLE/ DROP TABLE
 statement. See that classes&#8217; constructor for details.</li>
-<li><span class="target" id="sqlalchemy.schema.ForeignKey.__init__.params.match"></span><strong>match</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.__init__.params.match">¶</a> &#8211; Optional string. If set, emit MATCH &lt;value&gt; when issuing
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.params.match"></span><strong>match</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.params.match">¶</a> &#8211; Optional string. If set, emit MATCH &lt;value&gt; when issuing
 DDL for this constraint. Typical values include SIMPLE, PARTIAL
 and FULL.</li>
+<li><span class="target" id="sqlalchemy.schema.ForeignKey.params.**dialect_kw"></span><strong>**dialect_kw</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKey.params.**dialect_kw">¶</a> &#8211; <p>Additional keyword arguments are dialect specific,
+and passed in the form <tt class="docutils literal"><span class="pre">&lt;dialectname&gt;_&lt;argname&gt;</span></tt>.  The arguments
+are ultimately handled by a corresponding <a class="reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>.
+See the documentation regarding an individual dialect at
+<a class="reference internal" href="../dialects/index.html"><em>Dialects</em></a> for detail on documented arguments.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.2.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
@@ -558,7 +742,7 @@ argument first passed to the object&#8217;s constructor.</p>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.ForeignKeyConstraint">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ForeignKeyConstraint</tt><big>(</big><em>columns</em>, <em>refcolumns</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>use_alter=False</em>, <em>link_to_name=False</em>, <em>match=None</em>, <em>table=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKeyConstraint" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ForeignKeyConstraint</tt><big>(</big><em>columns</em>, <em>refcolumns</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>use_alter=False</em>, <em>link_to_name=False</em>, <em>match=None</em>, <em>table=None</em>, <em>**dialect_kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKeyConstraint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.schema.Constraint" title="sqlalchemy.schema.Constraint"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.Constraint</span></tt></a></p>
 <p>A table-level FOREIGN KEY constraint.</p>
 <p>Defines a single column or composite FOREIGN KEY ... REFERENCES
@@ -568,34 +752,34 @@ equivalent for an unnamed, single column <a class="reference internal" href="#sq
 <p>Examples of foreign key configuration are in <em class="xref std std-ref">metadata_foreignkeys</em>.</p>
 <dl class="method">
 <dt id="sqlalchemy.schema.ForeignKeyConstraint.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>columns</em>, <em>refcolumns</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>use_alter=False</em>, <em>link_to_name=False</em>, <em>match=None</em>, <em>table=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>columns</em>, <em>refcolumns</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>use_alter=False</em>, <em>link_to_name=False</em>, <em>match=None</em>, <em>table=None</em>, <em>**dialect_kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a composite-capable FOREIGN KEY.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.columns"></span><strong>columns</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.columns">¶</a> &#8211; A sequence of local column names. The named columns
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.params.columns"></span><strong>columns</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.params.columns">¶</a> &#8211; A sequence of local column names. The named columns
 must be defined and present in the parent Table. The names should
 match the <tt class="docutils literal"><span class="pre">key</span></tt> given to each column (defaults to the name) unless
 <tt class="docutils literal"><span class="pre">link_to_name</span></tt> is True.</li>
-<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.refcolumns"></span><strong>refcolumns</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.refcolumns">¶</a> &#8211; A sequence of foreign column names or Column
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.params.refcolumns"></span><strong>refcolumns</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.params.refcolumns">¶</a> &#8211; A sequence of foreign column names or Column
 objects. The columns must all be located within the same Table.</li>
-<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.name">¶</a> &#8211; Optional, the in-database name of the key.</li>
-<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.onupdate"></span><strong>onupdate</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.onupdate">¶</a> &#8211; Optional string. If set, emit ON UPDATE &lt;value&gt; when
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.params.name">¶</a> &#8211; Optional, the in-database name of the key.</li>
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.params.onupdate"></span><strong>onupdate</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.params.onupdate">¶</a> &#8211; Optional string. If set, emit ON UPDATE &lt;value&gt; when
 issuing DDL for this constraint. Typical values include CASCADE,
 DELETE and RESTRICT.</li>
-<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.ondelete"></span><strong>ondelete</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.ondelete">¶</a> &#8211; Optional string. If set, emit ON DELETE &lt;value&gt; when
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.params.ondelete"></span><strong>ondelete</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.params.ondelete">¶</a> &#8211; Optional string. If set, emit ON DELETE &lt;value&gt; when
 issuing DDL for this constraint. Typical values include CASCADE,
 DELETE and RESTRICT.</li>
-<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.deferrable"></span><strong>deferrable</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.deferrable">¶</a> &#8211; Optional bool. If set, emit DEFERRABLE or NOT
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.params.deferrable"></span><strong>deferrable</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.params.deferrable">¶</a> &#8211; Optional bool. If set, emit DEFERRABLE or NOT
 DEFERRABLE when issuing DDL for this constraint.</li>
-<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.initially"></span><strong>initially</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.initially">¶</a> &#8211; Optional string. If set, emit INITIALLY &lt;value&gt; when
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.params.initially"></span><strong>initially</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.params.initially">¶</a> &#8211; Optional string. If set, emit INITIALLY &lt;value&gt; when
 issuing DDL for this constraint.</li>
-<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.link_to_name"></span><strong>link_to_name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.link_to_name">¶</a> &#8211; if True, the string name given in <tt class="docutils literal"><span class="pre">column</span></tt> is
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.params.link_to_name"></span><strong>link_to_name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.params.link_to_name">¶</a> &#8211; if True, the string name given in <tt class="docutils literal"><span class="pre">column</span></tt> is
 the rendered name of the referenced column, not its locally assigned
 <tt class="docutils literal"><span class="pre">key</span></tt>.</li>
-<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.use_alter"></span><strong>use_alter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.use_alter">¶</a> &#8211; If True, do not emit the DDL for this constraint as
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.params.use_alter"></span><strong>use_alter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.params.use_alter">¶</a> &#8211; If True, do not emit the DDL for this constraint as
 part of the CREATE TABLE definition. Instead, generate it via an
 ALTER TABLE statement issued after the full collection of tables
 have been created, and drop it via an ALTER TABLE statement before
@@ -604,9 +788,17 @@ usage of <a class="reference internal" href="ddl.html#sqlalchemy.schema.AddConst
 as &#8220;after-create&#8221; and &#8220;before-drop&#8221; events on the MetaData object.
 This is normally used to generate/drop constraints on objects that
 are mutually dependent on each other.</li>
-<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.__init__.params.match"></span><strong>match</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.__init__.params.match">¶</a> &#8211; Optional string. If set, emit MATCH &lt;value&gt; when issuing
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.params.match"></span><strong>match</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.params.match">¶</a> &#8211; Optional string. If set, emit MATCH &lt;value&gt; when issuing
 DDL for this constraint. Typical values include SIMPLE, PARTIAL
 and FULL.</li>
+<li><span class="target" id="sqlalchemy.schema.ForeignKeyConstraint.params.**dialect_kw"></span><strong>**dialect_kw</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.ForeignKeyConstraint.params.**dialect_kw">¶</a> &#8211; <p>Additional keyword arguments are dialect specific,
+and passed in the form <tt class="docutils literal"><span class="pre">&lt;dialectname&gt;_&lt;argname&gt;</span></tt>.  See the
+documentation regarding an individual dialect at <a class="reference internal" href="../dialects/index.html"><em>Dialects</em></a>
+for detail on documented arguments.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.2.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
@@ -621,10 +813,67 @@ and FULL.</li>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">PrimaryKeyConstraint</tt><big>(</big><em>*columns</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.PrimaryKeyConstraint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.schema.ColumnCollectionConstraint" title="sqlalchemy.schema.ColumnCollectionConstraint"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.ColumnCollectionConstraint</span></tt></a></p>
 <p>A table-level PRIMARY KEY constraint.</p>
-<p>Defines a single column or composite PRIMARY KEY constraint. For a
-no-frills primary key, adding <tt class="docutils literal"><span class="pre">primary_key=True</span></tt> to one or more
-<tt class="docutils literal"><span class="pre">Column</span></tt> definitions is a shorthand equivalent for an unnamed single- or
-multiple-column PrimaryKeyConstraint.</p>
+<p>The <a class="reference internal" href="#sqlalchemy.schema.PrimaryKeyConstraint" title="sqlalchemy.schema.PrimaryKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt></a> object is present automatically
+on any <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object; it is assigned a set of
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects corresponding to those marked with
+the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column.params.primary_key" title="sqlalchemy.schema.Column"><tt class="xref py py-paramref docutils literal"><span class="pre">Column.primary_key</span></tt></a> flag:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">my_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+<span class="gp">... </span>                <span class="n">Column</span><span class="p">(</span><span class="s">&#39;version_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+<span class="gp">... </span>                <span class="n">Column</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_table</span><span class="o">.</span><span class="n">primary_key</span>
+<span class="go">PrimaryKeyConstraint(</span>
+<span class="go">    Column(&#39;id&#39;, Integer(), table=&lt;mytable&gt;, primary_key=True, nullable=False),</span>
+<span class="go">    Column(&#39;version_id&#39;, Integer(), table=&lt;mytable&gt;, primary_key=True, nullable=False)</span>
+<span class="go">)</span></pre></div>
+</div>
+<p>The primary key of a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> can also be specified by using
+a <a class="reference internal" href="#sqlalchemy.schema.PrimaryKeyConstraint" title="sqlalchemy.schema.PrimaryKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt></a> object explicitly; in this mode of usage,
+the &#8220;name&#8221; of the constraint can also be specified, as well as other
+options which may be recognized by dialects:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">my_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+            <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
+            <span class="n">Column</span><span class="p">(</span><span class="s">&#39;version_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
+            <span class="n">Column</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">)),</span>
+            <span class="n">PrimaryKeyConstraint</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="s">&#39;version_id&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;mytable_pk&#39;</span><span class="p">)</span>
+        <span class="p">)</span></pre></div>
+</div>
+<p>The two styles of column-specification should generally not be mixed.
+An warning is emitted if the columns present in the
+<a class="reference internal" href="#sqlalchemy.schema.PrimaryKeyConstraint" title="sqlalchemy.schema.PrimaryKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt></a>
+don&#8217;t match the columns that were marked as <tt class="docutils literal"><span class="pre">primary_key=True</span></tt>, if both
+are present; in this case, the columns are taken strictly from the
+<a class="reference internal" href="#sqlalchemy.schema.PrimaryKeyConstraint" title="sqlalchemy.schema.PrimaryKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt></a> declaration, and those columns otherwise marked
+as <tt class="docutils literal"><span class="pre">primary_key=True</span></tt> are ignored.  This behavior is intended to be
+backwards compatible with previous behavior.</p>
+<div class="versionchanged">
+<p><span>Changed in version 0.9.2: </span>Using a mixture of columns within a
+<a class="reference internal" href="#sqlalchemy.schema.PrimaryKeyConstraint" title="sqlalchemy.schema.PrimaryKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt></a> in addition to columns marked as
+<tt class="docutils literal"><span class="pre">primary_key=True</span></tt> now emits a warning if the lists don&#8217;t match.
+The ultimate behavior of ignoring those columns marked with the flag
+only is currently maintained for backwards compatibility; this warning
+may raise an exception in a future release.</p>
+</div>
+<p>For the use case where specific options are to be specified on the
+<a class="reference internal" href="#sqlalchemy.schema.PrimaryKeyConstraint" title="sqlalchemy.schema.PrimaryKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt></a>, but the usual style of using <tt class="docutils literal"><span class="pre">primary_key=True</span></tt>
+flags is still desirable, an empty <a class="reference internal" href="#sqlalchemy.schema.PrimaryKeyConstraint" title="sqlalchemy.schema.PrimaryKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt></a> may be
+specified, which will take on the primary key column collection from
+the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> based on the flags:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">my_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+            <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+            <span class="n">Column</span><span class="p">(</span><span class="s">&#39;version_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+            <span class="n">Column</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">)),</span>
+            <span class="n">PrimaryKeyConstraint</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;mytable_pk&#39;</span><span class="p">,</span> <span class="n">mssql_clustered</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="p">)</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.2: </span>an empty <a class="reference internal" href="#sqlalchemy.schema.PrimaryKeyConstraint" title="sqlalchemy.schema.PrimaryKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt></a> may now
+be specified for the purposes of establishing keyword arguments with the
+constraint, independently of the specification of &#8220;primary key&#8221; columns
+within the <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> itself; columns marked as <tt class="docutils literal"><span class="pre">primary_key=True</span></tt>
+will be gathered into the empty constraint&#8217;s column collection.</p>
+</div>
 </dd></dl>
 
 <dl class="class">
@@ -742,7 +991,7 @@ as well as plain columns.</p>
 <dl class="class">
 <dt id="sqlalchemy.schema.Index">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Index</tt><big>(</big><em>name</em>, <em>*expressions</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Index" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.ColumnCollectionMixin</span></tt>, <a class="reference internal" href="metadata.html#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.DialectKWArgs</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.ColumnCollectionMixin</span></tt>, <a class="reference internal" href="metadata.html#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
 <p>A table-level INDEX.</p>
 <p>Defines a composite (one or more column) INDEX.</p>
 <p>E.g.:</p>
@@ -776,7 +1025,7 @@ one <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" 
 <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct.</p>
 <p><a class="reference internal" href="../dialects/mysql.html#mysql-indexes"><em>MySQL Specific Index Options</em></a> - MySQL-specific options available for the
 <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct.</p>
-<p class="last"><a class="reference internal" href="../dialects/mssql.html#mssql-indexes"><em>MSSQL-Specific Index Options</em></a> - MSSQL-specific options available for the
+<p class="last"><a class="reference internal" href="../dialects/mssql.html#mssql-indexes"><em>Clustered Index Support</em></a> - MSSQL-specific options available for the
 <a class="reference internal" href="#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> construct.</p>
 </div>
 <dl class="method">
@@ -788,13 +1037,19 @@ one <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" 
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.schema.Index.__init__.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Index.__init__.params.name">¶</a> &#8211; The name of the index</li>
-<li><span class="target" id="sqlalchemy.schema.Index.__init__.params.*expressions"></span><strong>*expressions</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Index.__init__.params.*expressions">¶</a> &#8211; Column expressions to include in the index.   The expressions
+<li><span class="target" id="sqlalchemy.schema.Index.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Index.params.name">¶</a> &#8211; The name of the index</li>
+<li><span class="target" id="sqlalchemy.schema.Index.params.*expressions"></span><strong>*expressions</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Index.params.*expressions">¶</a> &#8211; Column expressions to include in the index.   The expressions
 are normally instances of <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, but may also
 be arbitrary SQL expressions which ultmately refer to a
 <a class="reference internal" href="metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>.</li>
-<li><span class="target" id="sqlalchemy.schema.Index.__init__.params.unique"></span><strong>unique</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Index.__init__.params.unique">¶</a> &#8211; Defaults to False: create a unique index.</li>
-<li><span class="target" id="sqlalchemy.schema.Index.__init__.params.**kw"></span><strong>**kw</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Index.__init__.params.**kw">¶</a> &#8211; Other keyword arguments may be interpreted by specific dialects.</li>
+<li><span class="target" id="sqlalchemy.schema.Index.params.unique"></span><strong>unique=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Index.params.unique">¶</a> &#8211; Keyword only argument; if True, create a unique index.</li>
+<li><span class="target" id="sqlalchemy.schema.Index.params.quote"></span><strong>quote=None</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Index.params.quote">¶</a> &#8211; Keyword only argument; whether to apply quoting to the name of
+the index.  Works in the same manner as that of
+<a class="reference internal" href="metadata.html#sqlalchemy.schema.Column.params.quote" title="sqlalchemy.schema.Column"><tt class="xref py py-paramref docutils literal"><span class="pre">Column.quote</span></tt></a>.</li>
+<li><span class="target" id="sqlalchemy.schema.Index.params.**kw"></span><strong>**kw</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.schema.Index.params.**kw">¶</a> &#8211; Additional keyword arguments not mentioned above are
+dialect specific, and passed in the form <tt class="docutils literal"><span class="pre">&lt;dialectname&gt;_&lt;argname&gt;</span></tt>.
+See the documentation regarding an individual dialect at
+<a class="reference internal" href="../dialects/index.html"><em>Dialects</em></a> for detail on documented arguments.</li>
 </ul>
 </td>
 </tr>

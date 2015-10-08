@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    './',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -83,7 +84,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -823,6 +824,30 @@
 
 <dt>
         <a href="orm/query.html#sqlalchemy.util.KeyedTuple._asdict">_asdict() (sqlalchemy.util.KeyedTuple method)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/pooling.html#sqlalchemy.pool._ConnectionFairy._connection_record">_connection_record (sqlalchemy.pool._ConnectionFairy attribute)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/pooling.html#sqlalchemy.pool._ConnectionFairy">_ConnectionFairy (class in sqlalchemy.pool)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/pooling.html#sqlalchemy.pool._ConnectionRecord">_ConnectionRecord (class in sqlalchemy.pool)</a>
 </dt>
 
 
@@ -3324,6 +3349,12 @@
         <a href="core/connections.html#sqlalchemy.engine.Connection.connection">connection (sqlalchemy.engine.Connection attribute)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="core/pooling.html#sqlalchemy.pool._ConnectionFairy.connection">(sqlalchemy.pool._ConnectionFairy attribute)</a>
+      </dt>
+      <dt><a href="core/pooling.html#sqlalchemy.pool._ConnectionRecord.connection">(sqlalchemy.pool._ConnectionRecord attribute)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -3386,6 +3417,14 @@
 
 <dt>
         <a href="glossary.html#term-constraints">constraints</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/internals.html#sqlalchemy.engine.default.DefaultDialect.construct_arguments">construct_arguments (sqlalchemy.engine.default.DefaultDialect attribute)</a>
 </dt>
 
 
@@ -3791,6 +3830,14 @@
 
 
 <dt>
+        <a href="glossary.html#term-crud">crud</a>
+</dt>
+
+
+  
+
+
+<dt>
         <a href="core/selectable.html#sqlalchemy.sql.expression.CTE">CTE (class in sqlalchemy.sql.expression)</a>
 </dt>
 
@@ -3842,6 +3889,14 @@
 
 <dt>
         <a href="core/functions.html#sqlalchemy.sql.functions.current_user">current_user (class in sqlalchemy.sql.functions)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/pooling.html#sqlalchemy.pool._ConnectionFairy.cursor">cursor() (sqlalchemy.pool._ConnectionFairy method)</a>
 </dt>
 
 
@@ -4302,6 +4357,10 @@
         <a href="core/connections.html#sqlalchemy.engine.Connection.detach">detach() (sqlalchemy.engine.Connection method)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="core/pooling.html#sqlalchemy.pool._ConnectionFairy.detach">(sqlalchemy.pool._ConnectionFairy method)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -4316,8 +4375,6 @@
     </dl></dd>
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -4350,6 +4407,44 @@
 
     <dd><dl>
       <dt><a href="core/types.html#sqlalchemy.types.TypeEngine.dialect_impl">(sqlalchemy.types.TypeEngine method)</a>
+      </dt>
+    </dl></dd>
+
+  
+     
+        </dl></td><td width="33%" valign="top"><dl>
+
+
+<dt>
+        <a href="core/metadata.html#sqlalchemy.schema.Table.dialect_kwargs">dialect_kwargs (sqlalchemy.schema.Table attribute)</a>
+</dt>
+
+    <dd><dl>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.Delete.dialect_kwargs">(sqlalchemy.sql.expression.Delete attribute)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.Insert.dialect_kwargs">(sqlalchemy.sql.expression.Insert attribute)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.Update.dialect_kwargs">(sqlalchemy.sql.expression.Update attribute)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.UpdateBase.dialect_kwargs">(sqlalchemy.sql.expression.UpdateBase attribute)</a>
+      </dt>
+    </dl></dd>
+
+  
+
+
+<dt>
+        <a href="core/metadata.html#sqlalchemy.schema.Table.dialect_options">dialect_options (sqlalchemy.schema.Table attribute)</a>
+</dt>
+
+    <dd><dl>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.Delete.dialect_options">(sqlalchemy.sql.expression.Delete attribute)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.Insert.dialect_options">(sqlalchemy.sql.expression.Insert attribute)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.Update.dialect_options">(sqlalchemy.sql.expression.Update attribute)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.UpdateBase.dialect_options">(sqlalchemy.sql.expression.UpdateBase attribute)</a>
       </dt>
     </dl></dd>
 
@@ -6499,6 +6594,10 @@
       </dt>
       <dt><a href="orm/session.html#sqlalchemy.orm.session.Session.info">(sqlalchemy.orm.session.Session attribute)</a>
       </dt>
+      <dt><a href="core/pooling.html#sqlalchemy.pool._ConnectionFairy.info">(sqlalchemy.pool._ConnectionFairy attribute)</a>
+      </dt>
+      <dt><a href="core/pooling.html#sqlalchemy.pool._ConnectionRecord.info">(sqlalchemy.pool._ConnectionRecord attribute)</a>
+      </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.Column.info">(sqlalchemy.schema.Column attribute)</a>
       </dt>
       <dt><a href="core/metadata.html#sqlalchemy.schema.SchemaItem.info">(sqlalchemy.schema.SchemaItem attribute)</a>
@@ -6688,8 +6787,6 @@
 
 
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -6698,6 +6795,8 @@
 
 
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -6847,8 +6946,6 @@
     <dd><dl>
       <dt><a href="dialects/mysql.html#sqlalchemy.dialects.mysql.INTEGER">(class in sqlalchemy.dialects.mysql)</a>
       </dt>
-      <dt><a href="core/types.html#sqlalchemy.types.INTEGER">(class in sqlalchemy.types)</a>
-      </dt>
     </dl></dd>
 
   
@@ -6856,6 +6953,14 @@
 
 <dt>
         <a href="core/types.html#sqlalchemy.types.Integer">Integer (class in sqlalchemy.types)</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/types.html#sqlalchemy.types.INTEGER">INTEGER (class in sqlalchemy.types)</a>
 </dt>
 
 
@@ -6946,6 +7051,14 @@
         <a href="core/connections.html#sqlalchemy.engine.Connection.invalidate">invalidate() (sqlalchemy.engine.Connection method)</a>
 </dt>
 
+    <dd><dl>
+      <dt><a href="core/events.html#sqlalchemy.events.PoolEvents.invalidate">(sqlalchemy.events.PoolEvents method)</a>
+      </dt>
+      <dt><a href="core/pooling.html#sqlalchemy.pool._ConnectionFairy.invalidate">(sqlalchemy.pool._ConnectionFairy method)</a>
+      </dt>
+      <dt><a href="core/pooling.html#sqlalchemy.pool._ConnectionRecord.invalidate">(sqlalchemy.pool._ConnectionRecord method)</a>
+      </dt>
+    </dl></dd>
 
   
 
@@ -7142,6 +7255,14 @@
       <dt><a href="core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.is_selectable">(sqlalchemy.sql.expression.ColumnElement attribute)</a>
       </dt>
     </dl></dd>
+
+  
+
+
+<dt>
+        <a href="core/pooling.html#sqlalchemy.pool._ConnectionFairy.is_valid">is_valid (sqlalchemy.pool._ConnectionFairy attribute)</a>
+</dt>
+
 
   
 
@@ -7364,6 +7485,24 @@
   
      
         </dl></td><td width="33%" valign="top"><dl>
+
+
+<dt>
+        <a href="core/metadata.html#sqlalchemy.schema.Table.kwargs">kwargs (sqlalchemy.schema.Table attribute)</a>
+</dt>
+
+    <dd><dl>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.Delete.kwargs">(sqlalchemy.sql.expression.Delete attribute)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.Insert.kwargs">(sqlalchemy.sql.expression.Insert attribute)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.Update.kwargs">(sqlalchemy.sql.expression.Update attribute)</a>
+      </dt>
+      <dt><a href="core/dml.html#sqlalchemy.sql.expression.UpdateBase.kwargs">(sqlalchemy.sql.expression.UpdateBase attribute)</a>
+      </dt>
+    </dl></dd>
+
+  
 
 <dt></dt></dl>
 </td></tr></table>
@@ -8304,6 +8443,14 @@
 
 <dt>
         <a href="core/exceptions.html#sqlalchemy.exc.NoSuchColumnError">NoSuchColumnError</a>
+</dt>
+
+
+  
+
+
+<dt>
+        <a href="core/exceptions.html#sqlalchemy.exc.NoSuchModuleError">NoSuchModuleError</a>
 </dt>
 
 
@@ -11137,9 +11284,9 @@
 
 
 <dt>
-        <a href="orm/query.html#module-sqlalchemy.orm">sqlalchemy.orm (module)</a>
+        <a href="orm/relationships.html#module-sqlalchemy.orm">sqlalchemy.orm (module)</a>
             , <a href="orm/mapper_config.html#module-sqlalchemy.orm">[19]</a>
-            , <a href="orm/relationships.html#module-sqlalchemy.orm">[19]</a>
+            , <a href="orm/query.html#module-sqlalchemy.orm">[19]</a>
 </dt>
 
 
@@ -11201,8 +11348,8 @@
 
 <dt>
         <a href="core/dml.html#module-sqlalchemy.sql.expression">sqlalchemy.sql.expression (module)</a>
-            , <a href="core/functions.html#module-sqlalchemy.sql.expression">[19]</a>
             , <a href="core/sqlelement.html#module-sqlalchemy.sql.expression">[19]</a>
+            , <a href="core/functions.html#module-sqlalchemy.sql.expression">[19]</a>
             , <a href="core/expression_api.html#module-sqlalchemy.sql.expression">[19]</a>
             , <a href="core/selectable.html#module-sqlalchemy.sql.expression">[19]</a>
 </dt>
@@ -11560,6 +11707,8 @@
       </dt>
       <dt><a href="dialects/mysql.html#sqlalchemy.dialects.mysql.TEXT">(class in sqlalchemy.dialects.mysql)</a>
       </dt>
+      <dt><a href="core/types.html#sqlalchemy.types.TEXT">(class in sqlalchemy.types)</a>
+      </dt>
     </dl></dd>
 
   
@@ -11567,14 +11716,6 @@
 
 <dt>
         <a href="core/types.html#sqlalchemy.types.Text">Text (class in sqlalchemy.types)</a>
-</dt>
-
-
-  
-
-
-<dt>
-        <a href="core/types.html#sqlalchemy.types.TEXT">TEXT (class in sqlalchemy.types)</a>
 </dt>
 
 

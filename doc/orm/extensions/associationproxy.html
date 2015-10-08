@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -703,13 +704,13 @@ and/or subclassed directly.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.target_collection"></span><strong>target_collection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.target_collection">¶</a> &#8211; Name of the collection we&#8217;ll proxy to,
+<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.params.target_collection"></span><strong>target_collection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.params.target_collection">¶</a> &#8211; Name of the collection we&#8217;ll proxy to,
 usually created with <a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.</li>
-<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.attr"></span><strong>attr</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.attr">¶</a> &#8211; Attribute on the collected instances we&#8217;ll proxy
+<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.params.attr"></span><strong>attr</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.params.attr">¶</a> &#8211; Attribute on the collected instances we&#8217;ll proxy
 for.  For example, given a target collection of [obj1, obj2], a
 list created by this proxy property would look like
 [getattr(obj1, attr), getattr(obj2, attr)]</li>
-<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.creator"></span><strong>creator</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.creator">¶</a> &#8211; <p>Optional. When new items are added to this proxied
+<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.params.creator"></span><strong>creator</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.params.creator">¶</a> &#8211; <p>Optional. When new items are added to this proxied
 collection, new instances of the class collected by the target
 collection will be created.  For list and set collections, the
 target class constructor will be called with the &#8216;value&#8217; for the
@@ -718,7 +719,7 @@ key and value.</p>
 <p>If you want to construct instances differently, supply a &#8216;creator&#8217;
 function that takes arguments as above and returns instances.</p>
 </li>
-<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.getset_factory"></span><strong>getset_factory</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.getset_factory">¶</a> &#8211; <p>Optional.  Proxied attribute access is
+<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.params.getset_factory"></span><strong>getset_factory</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.params.getset_factory">¶</a> &#8211; <p>Optional.  Proxied attribute access is
 automatically handled by routines that get and set values based on
 the <cite>attr</cite> argument for this proxy.</p>
 <p>If you would like to customize this behavior, you may supply a
@@ -726,13 +727,13 @@ the <cite>attr</cite> argument for this proxy.</p>
 <cite>setter</cite> functions.  The factory is called with two arguments, the
 abstract type of the underlying collection and this proxy instance.</p>
 </li>
-<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.proxy_factory"></span><strong>proxy_factory</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.proxy_factory">¶</a> &#8211; Optional.  The type of collection to emulate is
+<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.params.proxy_factory"></span><strong>proxy_factory</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.params.proxy_factory">¶</a> &#8211; Optional.  The type of collection to emulate is
 determined by sniffing the target collection.  If your collection
 type can&#8217;t be determined by duck typing or you&#8217;d like to use a
 different collection implementation, you may supply a factory
 function to produce those collections.  Only applicable to
 non-scalar relationships.</li>
-<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.proxy_bulk_set"></span><strong>proxy_bulk_set</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.__init__.params.proxy_bulk_set">¶</a> &#8211; Optional, use with proxy_factory.  See
+<li><span class="target" id="sqlalchemy.ext.associationproxy.AssociationProxy.params.proxy_bulk_set"></span><strong>proxy_bulk_set</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.ext.associationproxy.AssociationProxy.params.proxy_bulk_set">¶</a> &#8211; Optional, use with proxy_factory.  See
 the _set() method for details.</li>
 </ul>
 </td>

@@ -1648,8 +1648,8 @@ proper context for the desired engine::
 
 .. _session_external_transaction:
 
-Joining a Session into an External Transaction
-===============================================
+Joining a Session into an External Transaction (such as for test suites)
+========================================================================
 
 If a :class:`.Connection` is being used which is already in a transactional
 state (i.e. has a :class:`.Transaction` established), a :class:`.Session` can
@@ -1686,11 +1686,12 @@ entire database interaction is rolled back::
             self.session.commit()
 
         def tearDown(self):
+            self.session.close()
+
             # rollback - everything that happened with the
             # Session above (including calls to commit())
             # is rolled back.
             self.trans.rollback()
-            self.session.close()
 
             # return connection to the Engine
             self.connection.close()
@@ -1701,6 +1702,42 @@ of the :class:`.Connection` object's ability to maintain *subtransactions*, or
 nested begin/commit-or-rollback pairs where only the outermost begin/commit
 pair actually commits the transaction, or if the outermost block rolls back,
 everything is rolled back.
+
+.. topic:: Supporting Tests with Rollbacks
+
+   The above recipe works well for any kind of database enabled test, except
+   for a test that needs to actually invoke :meth:`.Session.rollback` within
+   the scope of the test itself.   The above recipe can be expanded, such
+   that the :class:`.Session` always runs all operations within the scope
+   of a SAVEPOINT, which is established at the start of each transaction,
+   so that tests can also rollback the "transaction" as well while still
+   remaining in the scope of a larger "transaction" that's never committed,
+   using two extra events::
+
+      from sqlalchemy import event
+
+      class SomeTest(TestCase):
+          def setUp(self):
+              # connect to the database
+              self.connection = engine.connect()
+
+              # begin a non-ORM transaction
+              self.trans = connection.begin()
+
+              # bind an individual Session to the connection
+              self.session = Session(bind=self.connection)
+
+              # start the session in a SAVEPOINT...
+              self.session.begin_nested()
+
+              # then each time that SAVEPOINT ends, reopen it
+              @event.listens_for(self.session, "after_transaction_end")
+              def restart_savepoint(session, transaction):
+                  if transaction.nested and not transaction._parent.nested:
+                      session.begin_nested()
+
+
+          # ... the tearDown() method stays the same
 
 .. _unitofwork_contextual:
 
@@ -1763,7 +1800,7 @@ we call upon the registry a second time, we get back the **same** :class:`.Sessi
 This pattern allows disparate sections of the application to call upon a global
 :class:`.scoped_session`, so that all those areas may share the same session
 without the need to pass it explicitly.   The :class:`.Session` we've established
-in our registry will remain, until we explicitly tell our regsitry to dispose of it,
+in our registry will remain, until we explicitly tell our registry to dispose of it,
 by calling :meth:`.scoped_session.remove`::
 
     >>> Session.remove()

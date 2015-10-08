@@ -32,6 +32,9 @@ class ConnectionKiller(object):
     def checkout(self, dbapi_con, con_record, con_proxy):
         self.proxy_refs[con_proxy] = True
 
+    def invalidate(self, dbapi_con, con_record, exception):
+        self.conns.discard((dbapi_con, con_record))
+
     def _safe(self, fn):
         try:
             fn()
@@ -49,7 +52,7 @@ class ConnectionKiller(object):
 
     def close_all(self):
         for rec in list(self.proxy_refs):
-            if rec is not None:
+            if rec is not None and rec.is_valid:
                 self._safe(rec._close)
 
     def _after_test_ctx(self):
@@ -58,7 +61,7 @@ class ConnectionKiller(object):
         # is collecting in finalize_fairy, deadlock.
         # not sure if this should be if pypy/jython only.
         # note that firebird/fdb definitely needs this though
-        for conn, rec in self.conns:
+        for conn, rec in list(self.conns):
             self._safe(conn.rollback)
 
     def _stop_test_ctx(self):
@@ -78,7 +81,7 @@ class ConnectionKiller(object):
 
     def _stop_test_ctx_aggressive(self):
         self.close_all()
-        for conn, rec in self.conns:
+        for conn, rec in list(self.conns):
             self._safe(conn.close)
             rec.connection = None
 
@@ -226,6 +229,7 @@ def testing_engine(url=None, options=None):
     if use_reaper:
         event.listen(engine.pool, 'connect', testing_reaper.connect)
         event.listen(engine.pool, 'checkout', testing_reaper.checkout)
+        event.listen(engine.pool, 'invalidate', testing_reaper.invalidate)
         testing_reaper.add_engine(engine)
 
     return engine

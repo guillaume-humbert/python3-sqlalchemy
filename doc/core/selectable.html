@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -295,31 +296,42 @@ for details.</p>
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.join">
 <tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">join</tt><big>(</big><em>left</em>, <em>right</em>, <em>onclause=None</em>, <em>isouter=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.join" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <tt class="docutils literal"><span class="pre">JOIN</span></tt> clause element (regular inner join).</p>
-<p>The returned object is an instance of <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a>.</p>
-<p>Similar functionality is also available via the
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> method on any
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<dd><p>Produce a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> object, given two <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+expressions.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">user_table</span><span class="p">,</span> <span class="n">address_table</span><span class="p">,</span> <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">user_table</span><span class="p">])</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">j</span><span class="p">)</span></pre></div>
+</div>
+<p>would emit SQL along the lines of:</p>
+<div class="highlight-python"><pre>SELECT user.id, user.name FROM user
+JOIN address ON user.id = address.user_id</pre>
+</div>
+<p>Similar functionality is available given any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> object
+(e.g. such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>) using the <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a>
+method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><span class="target" id="sqlalchemy.sql.expression.join.params.left"></span><strong>left</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.join.params.left">¶</a> &#8211; The left side of the join.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.join.params.right">¶</a> &#8211; The right side of the join.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.join.params.onclause">¶</a> &#8211; Optional criterion for the <tt class="docutils literal"><span class="pre">ON</span></tt> clause, is
-derived from foreign key relationships established between
-left and right otherwise.</li>
-<li><span class="target" id="sqlalchemy.sql.expression.join.params.isouter"></span><strong>isouter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.join.params.isouter">¶</a> &#8211; if True, produce an outer join; synonymous
-with <a class="reference internal" href="#sqlalchemy.sql.expression.outerjoin" title="sqlalchemy.sql.expression.outerjoin"><tt class="xref py py-func docutils literal"><span class="pre">outerjoin()</span></tt></a>.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
+object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
+join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
+join the two tables based on a foreign key relationship.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.join.params.isouter"></span><strong>isouter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.join.params.isouter">¶</a> &#8211; if True, render a LEFT OUTER JOIN, instead of JOIN.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>To chain joins together, use the <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> or
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.outerjoin" title="sqlalchemy.sql.expression.FromClause.outerjoin"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.outerjoin()</span></tt></a> methods on the resulting
-<a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> object.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> - method form, based on a given left side</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> - the type of object produced</p>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -708,8 +720,41 @@ FromClause references.</p>
 <tt class="descname">join</tt><big>(</big><em>right</em>, <em>onclause=None</em>, <em>isouter=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Alias.join" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
-<p>return a join of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> against another
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> from this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+to another <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">join</span>
+
+<span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">user_table</span><span class="p">])</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">j</span><span class="p">)</span></pre></div>
+</div>
+<p>would emit SQL along the lines of:</p>
+<div class="highlight-python"><pre>SELECT user.id, user.name FROM user
+JOIN address ON user.id = address.user_id</pre>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.expression.Alias.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Alias.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
+object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Alias.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Alias.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
+join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
+join the two tables based on a foreign key relationship.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Alias.join.params.isouter"></span><strong>isouter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Alias.join.params.isouter">¶</a> &#8211; if True, render a LEFT OUTER JOIN, instead of JOIN.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.join" title="sqlalchemy.sql.expression.join"><tt class="xref py py-func docutils literal"><span class="pre">join()</span></tt></a> - standalone function</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> - the type of object produced</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -717,8 +762,40 @@ FromClause references.</p>
 <tt class="descname">outerjoin</tt><big>(</big><em>right</em>, <em>onclause=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Alias.outerjoin" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.outerjoin" title="sqlalchemy.sql.expression.FromClause.outerjoin"><tt class="xref py py-meth docutils literal"><span class="pre">outerjoin()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
-<p>return an outer join of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> against another
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> from this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+to another <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>, with the &#8220;isouter&#8221; flag set to
+True.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">outerjoin</span>
+
+<span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span></pre></div>
+</div>
+<p>The above is equivalent to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.expression.Alias.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Alias.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
+object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Alias.outerjoin.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Alias.outerjoin.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
+join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
+join the two tables based on a foreign key relationship.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1227,8 +1304,41 @@ criterion.</p>
 <tt class="descname">join</tt><big>(</big><em>right</em>, <em>onclause=None</em>, <em>isouter=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.CompoundSelect.join" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
-<p>return a join of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> against another
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> from this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+to another <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">join</span>
+
+<span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">user_table</span><span class="p">])</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">j</span><span class="p">)</span></pre></div>
+</div>
+<p>would emit SQL along the lines of:</p>
+<div class="highlight-python"><pre>SELECT user.id, user.name FROM user
+JOIN address ON user.id = address.user_id</pre>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
+object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
+join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
+join the two tables based on a foreign key relationship.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.join.params.isouter"></span><strong>isouter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.join.params.isouter">¶</a> &#8211; if True, render a LEFT OUTER JOIN, instead of JOIN.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.join" title="sqlalchemy.sql.expression.join"><tt class="xref py py-func docutils literal"><span class="pre">join()</span></tt></a> - standalone function</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> - the type of object produced</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1278,8 +1388,40 @@ criterion.</p>
 <tt class="descname">outerjoin</tt><big>(</big><em>right</em>, <em>onclause=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.CompoundSelect.outerjoin" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.outerjoin" title="sqlalchemy.sql.expression.FromClause.outerjoin"><tt class="xref py py-meth docutils literal"><span class="pre">outerjoin()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
-<p>return an outer join of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> against another
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> from this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+to another <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>, with the &#8220;isouter&#8221; flag set to
+True.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">outerjoin</span>
+
+<span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span></pre></div>
+</div>
+<p>The above is equivalent to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
+object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.outerjoin.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.outerjoin.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
+join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
+join the two tables based on a foreign key relationship.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1546,8 +1688,41 @@ FromClause references.</p>
 <tt class="descname">join</tt><big>(</big><em>right</em>, <em>onclause=None</em>, <em>isouter=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.CTE.join" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
-<p>return a join of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> against another
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> from this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+to another <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">join</span>
+
+<span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">user_table</span><span class="p">])</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">j</span><span class="p">)</span></pre></div>
+</div>
+<p>would emit SQL along the lines of:</p>
+<div class="highlight-python"><pre>SELECT user.id, user.name FROM user
+JOIN address ON user.id = address.user_id</pre>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.expression.CTE.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CTE.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
+object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.CTE.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CTE.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
+join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
+join the two tables based on a foreign key relationship.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.CTE.join.params.isouter"></span><strong>isouter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CTE.join.params.isouter">¶</a> &#8211; if True, render a LEFT OUTER JOIN, instead of JOIN.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.join" title="sqlalchemy.sql.expression.join"><tt class="xref py py-func docutils literal"><span class="pre">join()</span></tt></a> - standalone function</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> - the type of object produced</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1555,8 +1730,40 @@ FromClause references.</p>
 <tt class="descname">outerjoin</tt><big>(</big><em>right</em>, <em>onclause=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.CTE.outerjoin" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.outerjoin" title="sqlalchemy.sql.expression.FromClause.outerjoin"><tt class="xref py py-meth docutils literal"><span class="pre">outerjoin()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
-<p>return an outer join of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> against another
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> from this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+to another <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>, with the &#8220;isouter&#8221; flag set to
+True.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">outerjoin</span>
+
+<span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span></pre></div>
+</div>
+<p>The above is equivalent to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.expression.CTE.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CTE.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
+object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.CTE.outerjoin.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CTE.outerjoin.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
+join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
+join the two tables based on a foreign key relationship.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1818,15 +2025,80 @@ FromClause.</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.FromClause.join">
 <tt class="descname">join</tt><big>(</big><em>right</em>, <em>onclause=None</em>, <em>isouter=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.FromClause.join" title="Permalink to this definition">¶</a></dt>
-<dd><p>return a join of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> against another
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<dd><p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> from this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+to another <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">join</span>
+
+<span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">user_table</span><span class="p">])</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">j</span><span class="p">)</span></pre></div>
+</div>
+<p>would emit SQL along the lines of:</p>
+<div class="highlight-python"><pre>SELECT user.id, user.name FROM user
+JOIN address ON user.id = address.user_id</pre>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.expression.FromClause.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.FromClause.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
+object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.FromClause.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.FromClause.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
+join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
+join the two tables based on a foreign key relationship.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.FromClause.join.params.isouter"></span><strong>isouter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.FromClause.join.params.isouter">¶</a> &#8211; if True, render a LEFT OUTER JOIN, instead of JOIN.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.join" title="sqlalchemy.sql.expression.join"><tt class="xref py py-func docutils literal"><span class="pre">join()</span></tt></a> - standalone function</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> - the type of object produced</p>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.FromClause.outerjoin">
 <tt class="descname">outerjoin</tt><big>(</big><em>right</em>, <em>onclause=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.FromClause.outerjoin" title="Permalink to this definition">¶</a></dt>
-<dd><p>return an outer join of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> against another
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<dd><p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> from this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+to another <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>, with the &#8220;isouter&#8221; flag set to
+True.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">outerjoin</span>
+
+<span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span></pre></div>
+</div>
+<p>The above is equivalent to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.expression.FromClause.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.FromClause.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
+object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.FromClause.outerjoin.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.FromClause.outerjoin.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
+join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
+join the two tables based on a foreign key relationship.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -2311,8 +2583,41 @@ FromClause.</p>
 <tt class="descname">join</tt><big>(</big><em>right</em>, <em>onclause=None</em>, <em>isouter=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.GenerativeSelect.join" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
-<p>return a join of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> against another
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> from this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+to another <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">join</span>
+
+<span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">user_table</span><span class="p">])</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">j</span><span class="p">)</span></pre></div>
+</div>
+<p>would emit SQL along the lines of:</p>
+<div class="highlight-python"><pre>SELECT user.id, user.name FROM user
+JOIN address ON user.id = address.user_id</pre>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
+object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
+join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
+join the two tables based on a foreign key relationship.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.join.params.isouter"></span><strong>isouter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.join.params.isouter">¶</a> &#8211; if True, render a LEFT OUTER JOIN, instead of JOIN.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.join" title="sqlalchemy.sql.expression.join"><tt class="xref py py-func docutils literal"><span class="pre">join()</span></tt></a> - standalone function</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> - the type of object produced</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -2356,8 +2661,40 @@ criterion.</p>
 <tt class="descname">outerjoin</tt><big>(</big><em>right</em>, <em>onclause=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.GenerativeSelect.outerjoin" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.outerjoin" title="sqlalchemy.sql.expression.FromClause.outerjoin"><tt class="xref py py-meth docutils literal"><span class="pre">outerjoin()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
-<p>return an outer join of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> against another
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> from this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+to another <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>, with the &#8220;isouter&#8221; flag set to
+True.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">outerjoin</span>
+
+<span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span></pre></div>
+</div>
+<p>The above is equivalent to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
+object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.outerjoin.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.outerjoin.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
+join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
+join the two tables based on a foreign key relationship.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -2541,8 +2878,13 @@ limit rendering of this prefix to only that dialect.</li>
 <p>represent a <tt class="docutils literal"><span class="pre">JOIN</span></tt> construct between two <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
 elements.</p>
 <p>The public constructor function for <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> is the module-level
-<a class="reference internal" href="#sqlalchemy.sql.expression.join" title="sqlalchemy.sql.expression.join"><tt class="xref py py-func docutils literal"><span class="pre">join()</span></tt></a> function, as well as the <a class="reference internal" href="#sqlalchemy.sql.expression.join" title="sqlalchemy.sql.expression.join"><tt class="xref py py-func docutils literal"><span class="pre">join()</span></tt></a> method available
-off all <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> subclasses.</p>
+<a class="reference internal" href="#sqlalchemy.sql.expression.join" title="sqlalchemy.sql.expression.join"><tt class="xref py py-func docutils literal"><span class="pre">join()</span></tt></a> function, as well as the <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> method
+of any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> (e.g. such as <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>).</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.join" title="sqlalchemy.sql.expression.join"><tt class="xref py py-func docutils literal"><span class="pre">join()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a></p>
+</div>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Join.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>left</em>, <em>right</em>, <em>onclause=None</em>, <em>isouter=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Join.__init__" title="Permalink to this definition">¶</a></dt>
@@ -2791,8 +3133,41 @@ FromClause references.</p>
 <tt class="descname">join</tt><big>(</big><em>right</em>, <em>onclause=None</em>, <em>isouter=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Join.join" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
-<p>return a join of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> against another
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> from this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+to another <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">join</span>
+
+<span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">user_table</span><span class="p">])</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">j</span><span class="p">)</span></pre></div>
+</div>
+<p>would emit SQL along the lines of:</p>
+<div class="highlight-python"><pre>SELECT user.id, user.name FROM user
+JOIN address ON user.id = address.user_id</pre>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.expression.Join.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Join.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
+object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Join.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Join.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
+join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
+join the two tables based on a foreign key relationship.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Join.join.params.isouter"></span><strong>isouter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Join.join.params.isouter">¶</a> &#8211; if True, render a LEFT OUTER JOIN, instead of JOIN.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.join" title="sqlalchemy.sql.expression.join"><tt class="xref py py-func docutils literal"><span class="pre">join()</span></tt></a> - standalone function</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> - the type of object produced</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -2800,8 +3175,40 @@ FromClause references.</p>
 <tt class="descname">outerjoin</tt><big>(</big><em>right</em>, <em>onclause=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Join.outerjoin" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.outerjoin" title="sqlalchemy.sql.expression.FromClause.outerjoin"><tt class="xref py py-meth docutils literal"><span class="pre">outerjoin()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
-<p>return an outer join of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> against another
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> from this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+to another <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>, with the &#8220;isouter&#8221; flag set to
+True.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">outerjoin</span>
+
+<span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span></pre></div>
+</div>
+<p>The above is equivalent to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.expression.Join.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Join.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
+object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Join.outerjoin.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Join.outerjoin.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
+join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
+join the two tables based on a foreign key relationship.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -3549,8 +3956,41 @@ given selectable.</p>
 <tt class="descname">join</tt><big>(</big><em>right</em>, <em>onclause=None</em>, <em>isouter=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Select.join" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
-<p>return a join of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> against another
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> from this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+to another <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">join</span>
+
+<span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">user_table</span><span class="p">])</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">j</span><span class="p">)</span></pre></div>
+</div>
+<p>would emit SQL along the lines of:</p>
+<div class="highlight-python"><pre>SELECT user.id, user.name FROM user
+JOIN address ON user.id = address.user_id</pre>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.expression.Select.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
+object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Select.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
+join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
+join the two tables based on a foreign key relationship.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Select.join.params.isouter"></span><strong>isouter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.join.params.isouter">¶</a> &#8211; if True, render a LEFT OUTER JOIN, instead of JOIN.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.join" title="sqlalchemy.sql.expression.join"><tt class="xref py py-func docutils literal"><span class="pre">join()</span></tt></a> - standalone function</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> - the type of object produced</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -3609,8 +4049,40 @@ criterion.</p>
 <tt class="descname">outerjoin</tt><big>(</big><em>right</em>, <em>onclause=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Select.outerjoin" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.outerjoin" title="sqlalchemy.sql.expression.FromClause.outerjoin"><tt class="xref py py-meth docutils literal"><span class="pre">outerjoin()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
-<p>return an outer join of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> against another
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> from this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+to another <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>, with the &#8220;isouter&#8221; flag set to
+True.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">outerjoin</span>
+
+<span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span></pre></div>
+</div>
+<p>The above is equivalent to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.expression.Select.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
+object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Select.outerjoin.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.outerjoin.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
+join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
+join the two tables based on a foreign key relationship.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -4352,8 +4824,41 @@ FromClause.</p>
 <tt class="descname">join</tt><big>(</big><em>right</em>, <em>onclause=None</em>, <em>isouter=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.TableClause.join" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
-<p>return a join of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> against another
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> from this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+to another <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">join</span>
+
+<span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">user_table</span><span class="p">])</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">j</span><span class="p">)</span></pre></div>
+</div>
+<p>would emit SQL along the lines of:</p>
+<div class="highlight-python"><pre>SELECT user.id, user.name FROM user
+JOIN address ON user.id = address.user_id</pre>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.expression.TableClause.join.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.TableClause.join.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
+object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.TableClause.join.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.TableClause.join.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
+join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
+join the two tables based on a foreign key relationship.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.TableClause.join.params.isouter"></span><strong>isouter</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.TableClause.join.params.isouter">¶</a> &#8211; if True, render a LEFT OUTER JOIN, instead of JOIN.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.join" title="sqlalchemy.sql.expression.join"><tt class="xref py py-func docutils literal"><span class="pre">join()</span></tt></a> - standalone function</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> - the type of object produced</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -4361,8 +4866,40 @@ FromClause.</p>
 <tt class="descname">outerjoin</tt><big>(</big><em>right</em>, <em>onclause=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.TableClause.outerjoin" title="Permalink to this definition">¶</a></dt>
 <dd><div class="inherited-member container">
 <em>inherited from the</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.outerjoin" title="sqlalchemy.sql.expression.FromClause.outerjoin"><tt class="xref py py-meth docutils literal"><span class="pre">outerjoin()</span></tt></a> <em>method of</em> <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a></div>
-<p>return an outer join of this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a> against another
-<a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>.</p>
+<p>Return a <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> from this <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+to another <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>, with the &#8220;isouter&#8221; flag set to
+True.</p>
+<p>E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">outerjoin</span>
+
+<span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span></pre></div>
+</div>
+<p>The above is equivalent to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">j</span> <span class="o">=</span> <span class="n">user_table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">address_table</span><span class="p">,</span>
+                <span class="n">user_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">address_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">isouter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.sql.expression.TableClause.outerjoin.params.right"></span><strong>right</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.TableClause.outerjoin.params.right">¶</a> &#8211; the right side of the join; this is any <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause" title="sqlalchemy.sql.expression.FromClause"><tt class="xref py py-class docutils literal"><span class="pre">FromClause</span></tt></a>
+object such as a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object, and may also be a selectable-compatible
+object such as an ORM-mapped class.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.TableClause.outerjoin.params.onclause"></span><strong>onclause</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.TableClause.outerjoin.params.onclause">¶</a> &#8211; a SQL expression representing the ON clause of the
+join.  If left at <tt class="docutils literal"><span class="pre">None</span></tt>, <a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a> will attempt to
+join the two tables based on a foreign key relationship.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#sqlalchemy.sql.expression.FromClause.join" title="sqlalchemy.sql.expression.FromClause.join"><tt class="xref py py-meth docutils literal"><span class="pre">FromClause.join()</span></tt></a></p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="attribute">

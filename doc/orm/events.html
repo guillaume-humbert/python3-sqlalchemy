@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -250,15 +251,6 @@ or &#8220;append&#8221; event.</li>
 <span class="k">def</span> <span class="nf">receive_append</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">initiator</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;append&#39; event&quot;</span>
 
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="o">.</span><span class="n">some_attribute</span><span class="p">,</span> <span class="s">&#39;append&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_append</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;append&#39; event&quot;</span>
-    <span class="n">target</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;target&#39;</span><span class="p">]</span>
-    <span class="n">value</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">]</span>
-
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
 </div>
@@ -307,15 +299,6 @@ the given value, or a new effective value, should be returned.</p>
 <span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="o">.</span><span class="n">some_attribute</span><span class="p">,</span> <span class="s">&#39;remove&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">receive_remove</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">initiator</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;remove&#39; event&quot;</span>
-
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="o">.</span><span class="n">some_attribute</span><span class="p">,</span> <span class="s">&#39;remove&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_remove</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;remove&#39; event&quot;</span>
-    <span class="n">target</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;target&#39;</span><span class="p">]</span>
-    <span class="n">value</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">]</span>
 
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
@@ -538,15 +521,6 @@ has been emitted corresponding to that instance.</p>
 <span class="k">def</span> <span class="nf">receive_after_delete</span><span class="p">(</span><span class="n">mapper</span><span class="p">,</span> <span class="n">connection</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;after_delete&#39; event&quot;</span>
 
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="s">&#39;after_delete&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_after_delete</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;after_delete&#39; event&quot;</span>
-    <span class="n">mapper</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;mapper&#39;</span><span class="p">]</span>
-    <span class="n">connection</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;connection&#39;</span><span class="p">]</span>
-
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
 </div>
@@ -621,15 +595,6 @@ is emitted corresponding to that instance.</p>
 <span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="s">&#39;after_insert&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">receive_after_insert</span><span class="p">(</span><span class="n">mapper</span><span class="p">,</span> <span class="n">connection</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;after_insert&#39; event&quot;</span>
-
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="s">&#39;after_insert&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_after_insert</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;after_insert&#39; event&quot;</span>
-    <span class="n">mapper</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;mapper&#39;</span><span class="p">]</span>
-    <span class="n">connection</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;connection&#39;</span><span class="p">]</span>
 
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
@@ -712,15 +677,6 @@ is emitted corresponding to that instance.</p>
 <span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="s">&#39;after_update&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">receive_after_update</span><span class="p">(</span><span class="n">mapper</span><span class="p">,</span> <span class="n">connection</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;after_update&#39; event&quot;</span>
-
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="s">&#39;after_update&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_after_update</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;after_update&#39; event&quot;</span>
-    <span class="n">mapper</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;mapper&#39;</span><span class="p">]</span>
-    <span class="n">connection</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;connection&#39;</span><span class="p">]</span>
 
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
@@ -882,15 +838,6 @@ is emitted corresponding to that instance.</p>
 <span class="k">def</span> <span class="nf">receive_before_delete</span><span class="p">(</span><span class="n">mapper</span><span class="p">,</span> <span class="n">connection</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;before_delete&#39; event&quot;</span>
 
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="s">&#39;before_delete&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_before_delete</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;before_delete&#39; event&quot;</span>
-    <span class="n">mapper</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;mapper&#39;</span><span class="p">]</span>
-    <span class="n">connection</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;connection&#39;</span><span class="p">]</span>
-
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
 </div>
@@ -965,15 +912,6 @@ is emitted corresponding to that instance.</p>
 <span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="s">&#39;before_insert&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">receive_before_insert</span><span class="p">(</span><span class="n">mapper</span><span class="p">,</span> <span class="n">connection</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;before_insert&#39; event&quot;</span>
-
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="s">&#39;before_insert&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_before_insert</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;before_insert&#39; event&quot;</span>
-    <span class="n">mapper</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;mapper&#39;</span><span class="p">]</span>
-    <span class="n">connection</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;connection&#39;</span><span class="p">]</span>
 
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
@@ -1056,15 +994,6 @@ is emitted corresponding to that instance.</p>
 <span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="s">&#39;before_update&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">receive_before_update</span><span class="p">(</span><span class="n">mapper</span><span class="p">,</span> <span class="n">connection</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;before_update&#39; event&quot;</span>
-
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="s">&#39;before_update&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_before_update</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;before_update&#39; event&quot;</span>
-    <span class="n">mapper</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;mapper&#39;</span><span class="p">]</span>
-    <span class="n">connection</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;connection&#39;</span><span class="p">]</span>
 
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
@@ -1366,15 +1295,6 @@ new row instance.</p>
 <span class="k">def</span> <span class="nf">receive_translate_row</span><span class="p">(</span><span class="n">mapper</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;translate_row&#39; event&quot;</span>
 
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="s">&#39;translate_row&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_translate_row</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;translate_row&#39; event&quot;</span>
-    <span class="n">mapper</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;mapper&#39;</span><span class="p">]</span>
-    <span class="n">context</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;context&#39;</span><span class="p">]</span>
-
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
 </div>
@@ -1533,15 +1453,6 @@ expired.</li>
 <span class="k">def</span> <span class="nf">receive_init</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;init&#39; event&quot;</span>
 
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="s">&#39;init&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_init</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;init&#39; event&quot;</span>
-    <span class="n">target</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;target&#39;</span><span class="p">]</span>
-    <span class="n">args</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;args&#39;</span><span class="p">]</span>
-
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
 </div>
@@ -1563,15 +1474,6 @@ and raised an exception.</p>
 <span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="s">&#39;init_failure&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">receive_init_failure</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;init_failure&#39; event&quot;</span>
-
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="s">&#39;init_failure&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_init_failure</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;init_failure&#39; event&quot;</span>
-    <span class="n">target</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;target&#39;</span><span class="p">]</span>
-    <span class="n">args</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;args&#39;</span><span class="p">]</span>
 
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
@@ -1675,15 +1577,6 @@ been refreshed from a query.</p>
 <span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="s">&#39;refresh&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">receive_refresh</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">attrs</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;refresh&#39; event&quot;</span>
-
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="s">&#39;refresh&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_refresh</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;refresh&#39; event&quot;</span>
-    <span class="n">target</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;target&#39;</span><span class="p">]</span>
-    <span class="n">context</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;context&#39;</span><span class="p">]</span>
 
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
@@ -1849,15 +1742,6 @@ new <a class="reference internal" href="#sqlalchemy.orm.events.SessionEvents.bef
 <span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeSessionOrFactory</span><span class="p">,</span> <span class="s">&#39;after_begin&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">receive_after_begin</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">transaction</span><span class="p">,</span> <span class="n">connection</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;after_begin&#39; event&quot;</span>
-
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeSessionOrFactory</span><span class="p">,</span> <span class="s">&#39;after_begin&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_after_begin</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;after_begin&#39; event&quot;</span>
-    <span class="n">session</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;session&#39;</span><span class="p">]</span>
-    <span class="n">transaction</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;transaction&#39;</span><span class="p">]</span>
 
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
@@ -2380,15 +2264,6 @@ events.</p>
 <span class="k">def</span> <span class="nf">receive_before_flush</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">flush_context</span><span class="p">,</span> <span class="n">instances</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;before_flush&#39; event&quot;</span>
 
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeSessionOrFactory</span><span class="p">,</span> <span class="s">&#39;before_flush&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_before_flush</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;before_flush&#39; event&quot;</span>
-    <span class="n">session</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;session&#39;</span><span class="p">]</span>
-    <span class="n">flush_context</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;flush_context&#39;</span><span class="p">]</span>
-
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
 </div>
@@ -2469,15 +2344,6 @@ documentation which stated the contrary.</p>
 <span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeBaseClass</span><span class="p">,</span> <span class="s">&#39;attribute_instrument&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">receive_attribute_instrument</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">inst</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;attribute_instrument&#39; event&quot;</span>
-
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeBaseClass</span><span class="p">,</span> <span class="s">&#39;attribute_instrument&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_attribute_instrument</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;attribute_instrument&#39; event&quot;</span>
-    <span class="n">cls</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;cls&#39;</span><span class="p">]</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]</span>
 
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>

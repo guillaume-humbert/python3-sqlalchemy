@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -1757,11 +1758,13 @@ table metadata.</p>
 <p>One potential use case for another mapper to exist at the same time is if we
 wanted to load instances of our class not just from the immediate <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
 to which it is mapped, but from another selectable that is a derivation of that
-<a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.   While there technically is a way to create such a <a class="reference internal" href="#sqlalchemy.orm.mapper" title="sqlalchemy.orm.mapper"><tt class="xref py py-func docutils literal"><span class="pre">mapper()</span></tt></a>,
-using the <tt class="docutils literal"><span class="pre">non_primary=True</span></tt> option, this approach is virtually never needed.
-Instead, we use the functionality of the <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object to achieve this,
-using a method such as <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.select_from" title="sqlalchemy.orm.query.Query.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">Query.select_from()</span></tt></a>
-or <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.from_statement" title="sqlalchemy.orm.query.Query.from_statement"><tt class="xref py py-meth docutils literal"><span class="pre">Query.from_statement()</span></tt></a> to specify a derived selectable.</p>
+<a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.   To create a second mapper that only handles querying
+when used explicitly, we can use the <a class="reference internal" href="#sqlalchemy.orm.mapper.params.non_primary" title="sqlalchemy.orm.mapper"><tt class="xref py py-paramref docutils literal"><span class="pre">mapper.non_primary</span></tt></a> argument.
+In practice, this approach is usually not needed, as we
+can do this sort of thing at query time using methods such as
+<a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.select_from" title="sqlalchemy.orm.query.Query.select_from"><tt class="xref py py-meth docutils literal"><span class="pre">Query.select_from()</span></tt></a>, however it is useful in the rare case that we
+wish to build a <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> to such a mapper.  An example of this is
+at <a class="reference internal" href="relationships.html#relationship-non-primary-mapper"><em>Relationship to Non Primary Mapper</em></a>.</p>
 <p>Another potential use is if we genuinely want instances of our class to
 be persisted into different tables at different times; certain kinds of
 data sharding configurations may persist a particular class into tables
@@ -2223,8 +2226,12 @@ to the &#8220;primary&#8221; mapper, that is, the one used for persistence.
 The <a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> created here may be used for ad-hoc
 mapping of the class to an alternate selectable, for loading
 only.</p>
-<p>The <tt class="docutils literal"><span class="pre">non_primary</span></tt> feature is rarely needed with modern
-usage.</p>
+<p><a class="reference internal" href="#sqlalchemy.orm.mapper.Mapper.params.non_primary" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-paramref docutils literal"><span class="pre">Mapper.non_primary</span></tt></a> is not an often used option, but
+is useful in some specific <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> cases.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="relationships.html#relationship-non-primary-mapper"><em>Relationship to Non Primary Mapper</em></a></p>
+</div>
 </li>
 <li><span class="target" id="sqlalchemy.orm.mapper.params.order_by"></span><strong>order_by</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.mapper.params.order_by">¶</a> &#8211; A single <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> or list of <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>
 objects for which selection operations should use as the default

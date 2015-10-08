@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -136,7 +137,7 @@
 <li><a class="reference internal" href="#dialect-postgresql">Support for the PostgreSQL database.</a></li>
 <li><a class="reference internal" href="#sequences-serial">Sequences/SERIAL</a></li>
 <li><a class="reference internal" href="#transaction-isolation-level">Transaction Isolation Level</a></li>
-<li><a class="reference internal" href="#remote-cross-schema-table-introspection">Remote / Cross-Schema Table Introspection</a></li>
+<li><a class="reference internal" href="#remote-schema-table-introspection-and-postgresql-search-path">Remote-Schema Table Introspection and Postgresql search_path</a></li>
 <li><a class="reference internal" href="#insert-update-returning">INSERT/UPDATE...RETURNING</a></li>
 <li><a class="reference internal" href="#full-text-search">Full Text Search</a></li>
 <li><a class="reference internal" href="#from-only">FROM ONLY ...</a></li>
@@ -279,31 +280,120 @@ command <tt class="docutils literal"><span class="pre">SET</span> <span class="p
 <p>The <a class="reference internal" href="#module-sqlalchemy.dialects.postgresql.psycopg2" title="sqlalchemy.dialects.postgresql.psycopg2"><tt class="xref py py-mod docutils literal"><span class="pre">psycopg2</span></tt></a> dialect also offers the special level <tt class="docutils literal"><span class="pre">AUTOCOMMIT</span></tt>.  See
 <a class="reference internal" href="#psycopg2-isolation-level"><em>Psycopg2 Transaction Isolation Level</em></a> for details.</p>
 </div>
-<div class="section" id="remote-cross-schema-table-introspection">
-<h2>Remote / Cross-Schema Table Introspection<a class="headerlink" href="#remote-cross-schema-table-introspection" title="Permalink to this headline">¶</a></h2>
-<p>Tables can be introspected from any accessible schema, including
-inter-schema foreign key relationships.   However, care must be taken
-when specifying the &#8220;schema&#8221; argument for a given <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, when
-the given schema is also present in PostgreSQL&#8217;s <tt class="docutils literal"><span class="pre">search_path</span></tt> variable
-for the current connection.</p>
-<p>If a FOREIGN KEY constraint reports that the remote table&#8217;s schema is within
-the current <tt class="docutils literal"><span class="pre">search_path</span></tt>, the &#8220;schema&#8221; attribute of the resulting
-<a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> will be set to <tt class="docutils literal"><span class="pre">None</span></tt>, unless the actual schema of the
-remote table matches that of the referencing table, and the &#8220;schema&#8221; argument
-was explicitly stated on the referencing table.</p>
-<p>The best practice here is to not use the <tt class="docutils literal"><span class="pre">schema</span></tt> argument
-on <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> for any schemas that are present in <tt class="docutils literal"><span class="pre">search_path</span></tt>.
-<tt class="docutils literal"><span class="pre">search_path</span></tt> defaults to &#8220;public&#8221;, but care should be taken
-to inspect the actual value using:</p>
-<div class="highlight-python"><pre>SHOW search_path;</pre>
+<div class="section" id="remote-schema-table-introspection-and-postgresql-search-path">
+<span id="postgresql-schema-reflection"></span><h2>Remote-Schema Table Introspection and Postgresql search_path<a class="headerlink" href="#remote-schema-table-introspection-and-postgresql-search-path" title="Permalink to this headline">¶</a></h2>
+<p>The Postgresql dialect can reflect tables from any schema.  The
+<a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table.params.schema" title="sqlalchemy.schema.Table"><tt class="xref py py-paramref docutils literal"><span class="pre">Table.schema</span></tt></a> argument, or alternatively the
+<a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.MetaData.reflect.params.schema" title="sqlalchemy.schema.MetaData.reflect"><tt class="xref py py-paramref docutils literal"><span class="pre">MetaData.reflect.schema</span></tt></a> argument determines which schema will
+be searched for the table or tables.   The reflected <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects
+will in all cases retain this <tt class="docutils literal"><span class="pre">.schema</span></tt> attribute as was specified.  However,
+with regards to tables which these <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects refer to via
+foreign key constraint, a decision must be made as to how the <tt class="docutils literal"><span class="pre">.schema</span></tt>
+is represented in those remote tables, in the case where that remote
+schema name is also a member of the current
+<a class="reference external" href="http://www.postgresql.org/docs/9.0/static/ddl-schemas.html#DDL-SCHEMAS-PATH">Postgresql search path</a>.</p>
+<p>By default, the Postgresql dialect mimics the behavior encouraged by
+Postgresql&#8217;s own <tt class="docutils literal"><span class="pre">pg_get_constraintdef()</span></tt> builtin procedure.  This function
+returns a sample definition for a particular foreign key constraint,
+omitting the referenced schema name from that definition when the name is
+also in the Postgresql schema search path.  The interaction below
+illustrates this behavior:</p>
+<div class="highlight-python"><pre>test=&gt; CREATE TABLE test_schema.referred(id INTEGER PRIMARY KEY);
+CREATE TABLE
+test=&gt; CREATE TABLE referring(
+test(&gt;         id INTEGER PRIMARY KEY,
+test(&gt;         referred_id INTEGER REFERENCES test_schema.referred(id));
+CREATE TABLE
+test=&gt; SET search_path TO public, test_schema;
+test=&gt; SELECT pg_catalog.pg_get_constraintdef(r.oid, true) FROM
+test-&gt; pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+test-&gt; JOIN pg_catalog.pg_constraint r  ON c.oid = r.conrelid
+test-&gt; WHERE c.relname='referring' AND r.contype = 'f'
+test-&gt; ;
+               pg_get_constraintdef
+---------------------------------------------------
+ FOREIGN KEY (referred_id) REFERENCES referred(id)
+(1 row)</pre>
 </div>
-<div class="versionchanged">
-<p><span>Changed in version 0.7.3: </span>Prior to this version, cross-schema foreign keys when the schemas
-were also in the <tt class="docutils literal"><span class="pre">search_path</span></tt> could make an incorrect assumption
-if the schemas were explicitly stated on each <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.</p>
+<p>Above, we created a table <tt class="docutils literal"><span class="pre">referred</span></tt> as a member of the remote schema <tt class="docutils literal"><span class="pre">test_schema</span></tt>, however
+when we added <tt class="docutils literal"><span class="pre">test_schema</span></tt> to the PG <tt class="docutils literal"><span class="pre">search_path</span></tt> and then asked <tt class="docutils literal"><span class="pre">pg_get_constraintdef()</span></tt>
+for the <tt class="docutils literal"><span class="pre">FOREIGN</span> <span class="pre">KEY</span></tt> syntax, <tt class="docutils literal"><span class="pre">test_schema</span></tt> was not included in the
+output of the function.</p>
+<p>On the other hand, if we set the search path back to the typical default
+of <tt class="docutils literal"><span class="pre">public</span></tt>:</p>
+<div class="highlight-python"><pre>test=&gt; SET search_path TO public;
+SET</pre>
 </div>
-<p>Background on PG&#8217;s <tt class="docutils literal"><span class="pre">search_path</span></tt> is at:
-<a class="reference external" href="http://www.postgresql.org/docs/9.0/static/ddl-schemas.html#DDL-SCHEMAS-PATH">http://www.postgresql.org/docs/9.0/static/ddl-schemas.html#DDL-SCHEMAS-PATH</a></p>
+<p>The same query against <tt class="docutils literal"><span class="pre">pg_get_constraintdef()</span></tt> now returns the fully
+schema-qualified name for us:</p>
+<div class="highlight-python"><pre>test=&gt; SELECT pg_catalog.pg_get_constraintdef(r.oid, true) FROM
+test-&gt; pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+test-&gt; JOIN pg_catalog.pg_constraint r  ON c.oid = r.conrelid
+test-&gt; WHERE c.relname='referring' AND r.contype = 'f';
+                     pg_get_constraintdef
+---------------------------------------------------------------
+ FOREIGN KEY (referred_id) REFERENCES test_schema.referred(id)
+(1 row)</pre>
+</div>
+<p>SQLAlchemy will by default use the return value of <tt class="docutils literal"><span class="pre">pg_get_constraintdef()</span></tt>
+in order to determine the remote schema name.  That is, if our <tt class="docutils literal"><span class="pre">search_path</span></tt>
+were set to include <tt class="docutils literal"><span class="pre">test_schema</span></tt>, and we invoked a table
+reflection process as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">MetaData</span><span class="p">,</span> <span class="n">create_engine</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;postgresql://scott:tiger@localhost/test&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SET search_path TO test_schema, public&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">meta</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">referring</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;referring&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span> <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoload_with</span><span class="o">=</span><span class="n">conn</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">&lt;sqlalchemy.engine.result.ResultProxy object at 0x101612ed0&gt;</span></pre></div>
+</div>
+<p>The above process would deliver to the <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.MetaData.tables" title="sqlalchemy.schema.MetaData.tables"><tt class="xref py py-attr docutils literal"><span class="pre">MetaData.tables</span></tt></a> collection
+<tt class="docutils literal"><span class="pre">referred</span></tt> table named <strong>without</strong> the schema:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">meta</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="s">&#39;referred&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">schema</span> <span class="ow">is</span> <span class="bp">None</span>
+<span class="go">True</span></pre></div>
+</div>
+<p>To alter the behavior of reflection such that the referred schema is maintained
+regardless of the <tt class="docutils literal"><span class="pre">search_path</span></tt> setting, use the <tt class="docutils literal"><span class="pre">postgresql_ignore_search_path</span></tt>
+option, which can be specified as a dialect-specific argument to both
+<a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> as well as <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.MetaData.reflect" title="sqlalchemy.schema.MetaData.reflect"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.reflect()</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SET search_path TO test_schema, public&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">meta</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">referring</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;referring&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span> <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoload_with</span><span class="o">=</span><span class="n">conn</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="n">postgresql_ignore_search_path</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">&lt;sqlalchemy.engine.result.ResultProxy object at 0x1016126d0&gt;</span></pre></div>
+</div>
+<p>We will now have <tt class="docutils literal"><span class="pre">test_schema.referred</span></tt> stored as schema-qualified:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">meta</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="s">&#39;test_schema.referred&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">schema</span>
+<span class="go">&#39;test_schema&#39;</span></pre></div>
+</div>
+<div class="sidebar">
+<p class="first sidebar-title">Best Practices for Postgresql Schema reflection</p>
+<p class="last">The description of Postgresql schema reflection behavior is complex, and is
+the product of many years of dealing with widely varied use cases and user preferences.
+But in fact, there&#8217;s no need to understand any of it if you just stick to the simplest
+use pattern: leave the <tt class="docutils literal"><span class="pre">search_path</span></tt> set to its default of <tt class="docutils literal"><span class="pre">public</span></tt> only, never refer
+to the name <tt class="docutils literal"><span class="pre">public</span></tt> as an explicit schema name otherwise, and
+refer to all other schema names explicitly when building
+up a <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object.  The options described here are only for those users
+who can&#8217;t, or prefer not to, stay within these guidelines.</p>
+</div>
+<p>Note that <strong>in all cases</strong>, the &#8220;default&#8221; schema is always reflected as <tt class="docutils literal"><span class="pre">None</span></tt>.
+The &#8220;default&#8221; schema on Postgresql is that which is returned by the
+Postgresql <tt class="docutils literal"><span class="pre">current_schema()</span></tt> function.  On a typical Postgresql installation,
+this is the name <tt class="docutils literal"><span class="pre">public</span></tt>.  So a table that refers to another which is
+in the <tt class="docutils literal"><span class="pre">public</span></tt> (i.e. default) schema will always have the <tt class="docutils literal"><span class="pre">.schema</span></tt> attribute
+set to <tt class="docutils literal"><span class="pre">None</span></tt>.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.2: </span>Added the <tt class="docutils literal"><span class="pre">postgresql_ignore_search_path</span></tt>
+dialect-level option accepted by <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> and <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.MetaData.reflect" title="sqlalchemy.schema.MetaData.reflect"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.reflect()</span></tt></a>.</p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference external" href="http://www.postgresql.org/docs/9.0/static/ddl-schemas.html#DDL-SCHEMAS-PATH">The Schema Search Path</a> - on the Postgresql website.</p>
+</div>
 </div>
 <div class="section" id="insert-update-returning">
 <h2>INSERT/UPDATE...RETURNING<a class="headerlink" href="#insert-update-returning" title="Permalink to this headline">¶</a></h2>
@@ -643,15 +733,15 @@ an argument array expression.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.dialects.postgresql.ARRAY.__init__.params.item_type"></span><strong>item_type</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.__init__.params.item_type">¶</a> &#8211; The data type of items of this array. Note that
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ARRAY.params.item_type"></span><strong>item_type</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.params.item_type">¶</a> &#8211; The data type of items of this array. Note that
 dimensionality is irrelevant here, so multi-dimensional arrays like
 <tt class="docutils literal"><span class="pre">INTEGER[][]</span></tt>, are constructed as <tt class="docutils literal"><span class="pre">ARRAY(Integer)</span></tt>, not as
 <tt class="docutils literal"><span class="pre">ARRAY(ARRAY(Integer))</span></tt> or such.</li>
-<li><span class="target" id="sqlalchemy.dialects.postgresql.ARRAY.__init__.params.as_tuple"></span><strong>as_tuple=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.__init__.params.as_tuple">¶</a> &#8211; Specify whether return results
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ARRAY.params.as_tuple"></span><strong>as_tuple=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.params.as_tuple">¶</a> &#8211; Specify whether return results
 should be converted to tuples from lists. DBAPIs such
 as psycopg2 return lists by default. When tuples are
 returned, the results are hashable.</li>
-<li><span class="target" id="sqlalchemy.dialects.postgresql.ARRAY.__init__.params.dimensions"></span><strong>dimensions</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.__init__.params.dimensions">¶</a> &#8211; if non-None, the ARRAY will assume a fixed
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ARRAY.params.dimensions"></span><strong>dimensions</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.params.dimensions">¶</a> &#8211; if non-None, the ARRAY will assume a fixed
 number of dimensions.  This will cause the DDL emitted for this
 ARRAY to include the exact number of bracket clauses <tt class="docutils literal"><span class="pre">[]</span></tt>,
 and will also optimize the performance of the type overall.
@@ -711,7 +801,7 @@ an array expression.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.postgresql.BYTEA.__init__.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.BYTEA.__init__.params.length">¶</a> &#8211; optional, a length for the column for use in
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.postgresql.BYTEA.params.length"></span><strong>length</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.BYTEA.params.length">¶</a> &#8211; optional, a length for the column for use in
 DDL statements, for those BLOB types that accept a length
 (i.e. MySQL).  It does <em>not</em> produce a small BINARY/VARBINARY
 type - use the BINARY/VARBINARY types specifically for those.
@@ -751,12 +841,12 @@ the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pr
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__.params.precision">¶</a> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span>
+<li><span class="target" id="sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.params.precision">¶</a> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt>.</li>
-<li><span class="target" id="sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__.params.asdecimal"></span><strong>asdecimal</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__.params.asdecimal">¶</a> &#8211; the same flag as that of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>, but
+<li><span class="target" id="sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.params.asdecimal"></span><strong>asdecimal</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.params.asdecimal">¶</a> &#8211; the same flag as that of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>, but
 defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.   Note that setting this flag to <tt class="docutils literal"><span class="pre">True</span></tt>
 results in floating point conversion.</li>
-<li><span class="target" id="sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__.params.decimal_return_scale"></span><strong>decimal_return_scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__.params.decimal_return_scale">¶</a> &#8211; <p>Default scale to use when converting
+<li><span class="target" id="sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.params.decimal_return_scale"></span><strong>decimal_return_scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.params.decimal_return_scale">¶</a> &#8211; <p>Default scale to use when converting
 from floats to Python decimals.  Floating point values will typically
 be much longer due to decimal inaccuracy, and most floating point
 database types don&#8217;t have a notion of &#8220;scale&#8221;, so by default the
@@ -768,7 +858,7 @@ as the default for decimal_return_scale, if not otherwise specified.</p>
 <p><span>New in version 0.9.0.</span></p>
 </div>
 </li>
-<li><span class="target" id="sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__.params.**kwargs"></span><strong>**kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.__init__.params.**kwargs">¶</a> &#8211; deprecated.  Additional arguments here are ignored
+<li><span class="target" id="sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.params.**kwargs"></span><strong>**kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.DOUBLE_PRECISION.params.**kwargs">¶</a> &#8211; deprecated.  Additional arguments here are ignored
 by the default <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a> type.  For database specific
 floats that support additional arguments, see that dialect&#8217;s
 documentation for details, such as
@@ -812,7 +902,7 @@ the following parameters.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.postgresql.ENUM.__init__.params.create_type"></span><strong>create_type</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ENUM.__init__.params.create_type">¶</a> &#8211; <p>Defaults to True.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.postgresql.ENUM.params.create_type"></span><strong>create_type</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ENUM.params.create_type">¶</a> &#8211; <p>Defaults to True.
 Indicates that <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TYPE</span></tt> should be
 emitted, after optionally checking for the
 presence of the type, when the parent
@@ -1248,12 +1338,12 @@ as well as an explicit type cast when evaulated.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.dialects.postgresql.REAL.__init__.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.REAL.__init__.params.precision">¶</a> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span>
+<li><span class="target" id="sqlalchemy.dialects.postgresql.REAL.params.precision"></span><strong>precision</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.REAL.params.precision">¶</a> &#8211; the numeric precision for use in DDL <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt>.</li>
-<li><span class="target" id="sqlalchemy.dialects.postgresql.REAL.__init__.params.asdecimal"></span><strong>asdecimal</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.REAL.__init__.params.asdecimal">¶</a> &#8211; the same flag as that of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>, but
+<li><span class="target" id="sqlalchemy.dialects.postgresql.REAL.params.asdecimal"></span><strong>asdecimal</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.REAL.params.asdecimal">¶</a> &#8211; the same flag as that of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Numeric" title="sqlalchemy.types.Numeric"><tt class="xref py py-class docutils literal"><span class="pre">Numeric</span></tt></a>, but
 defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.   Note that setting this flag to <tt class="docutils literal"><span class="pre">True</span></tt>
 results in floating point conversion.</li>
-<li><span class="target" id="sqlalchemy.dialects.postgresql.REAL.__init__.params.decimal_return_scale"></span><strong>decimal_return_scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.REAL.__init__.params.decimal_return_scale">¶</a> &#8211; <p>Default scale to use when converting
+<li><span class="target" id="sqlalchemy.dialects.postgresql.REAL.params.decimal_return_scale"></span><strong>decimal_return_scale</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.REAL.params.decimal_return_scale">¶</a> &#8211; <p>Default scale to use when converting
 from floats to Python decimals.  Floating point values will typically
 be much longer due to decimal inaccuracy, and most floating point
 database types don&#8217;t have a notion of &#8220;scale&#8221;, so by default the
@@ -1265,7 +1355,7 @@ as the default for decimal_return_scale, if not otherwise specified.</p>
 <p><span>New in version 0.9.0.</span></p>
 </div>
 </li>
-<li><span class="target" id="sqlalchemy.dialects.postgresql.REAL.__init__.params.**kwargs"></span><strong>**kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.REAL.__init__.params.**kwargs">¶</a> &#8211; deprecated.  Additional arguments here are ignored
+<li><span class="target" id="sqlalchemy.dialects.postgresql.REAL.params.**kwargs"></span><strong>**kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.REAL.params.**kwargs">¶</a> &#8211; deprecated.  Additional arguments here are ignored
 by the default <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a> type.  For database specific
 floats that support additional arguments, see that dialect&#8217;s
 documentation for details, such as
@@ -1320,7 +1410,7 @@ It is known to work on psycopg2 and not pg8000.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.postgresql.UUID.__init__.params.as_uuid"></span><strong>as_uuid=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.UUID.__init__.params.as_uuid">¶</a> &#8211; if True, values will be interpreted
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><span class="target" id="sqlalchemy.dialects.postgresql.UUID.params.as_uuid"></span><strong>as_uuid=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.UUID.params.as_uuid">¶</a> &#8211; if True, values will be interpreted
 as Python uuid objects, converting to/from string via the
 DBAPI.</td>
 </tr>
@@ -1510,17 +1600,17 @@ documentation</a>.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.*elements"></span><strong>*elements</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.*elements">¶</a> &#8211; A sequence of two tuples of the form <tt class="docutils literal"><span class="pre">(column,</span> <span class="pre">operator)</span></tt> where
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.params.*elements"></span><strong>*elements</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.params.*elements">¶</a> &#8211; A sequence of two tuples of the form <tt class="docutils literal"><span class="pre">(column,</span> <span class="pre">operator)</span></tt> where
 column must be a column name or Column object and operator must
 be a string containing the operator to use.</li>
-<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.name">¶</a> &#8211; Optional, the in-database name of this constraint.</li>
-<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.deferrable"></span><strong>deferrable</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.deferrable">¶</a> &#8211; Optional bool.  If set, emit DEFERRABLE or NOT DEFERRABLE when
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.params.name">¶</a> &#8211; Optional, the in-database name of this constraint.</li>
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.params.deferrable"></span><strong>deferrable</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.params.deferrable">¶</a> &#8211; Optional bool.  If set, emit DEFERRABLE or NOT DEFERRABLE when
 issuing DDL for this constraint.</li>
-<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.initially"></span><strong>initially</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.initially">¶</a> &#8211; Optional string.  If set, emit INITIALLY &lt;value&gt; when issuing DDL
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.params.initially"></span><strong>initially</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.params.initially">¶</a> &#8211; Optional string.  If set, emit INITIALLY &lt;value&gt; when issuing DDL
 for this constraint.</li>
-<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.using"></span><strong>using</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.using">¶</a> &#8211; Optional string.  If set, emit USING &lt;index_method&gt; when issuing DDL
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.params.using"></span><strong>using</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.params.using">¶</a> &#8211; Optional string.  If set, emit USING &lt;index_method&gt; when issuing DDL
 for this constraint. Defaults to &#8216;gist&#8217;.</li>
-<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.where"></span><strong>where</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.__init__.params.where">¶</a> &#8211; Optional string.  If set, emit WHERE &lt;predicate&gt; when issuing DDL
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ExcludeConstraint.params.where"></span><strong>where</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ExcludeConstraint.params.where">¶</a> &#8211; Optional string.  If set, emit WHERE &lt;predicate&gt; when issuing DDL
 for this constraint.</li>
 </ul>
 </td>

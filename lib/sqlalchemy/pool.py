@@ -127,18 +127,70 @@ class Pool(log.Identified):
           already been retrieved from the pool and has not been
           returned yet.  Offers a slight performance advantage at the
           cost of individual transactions by default.  The
-          :meth:`unique_connection` method is provided to bypass the
-          threadlocal behavior installed into :meth:`connect`.
+          :meth:`.Pool.unique_connection` method is provided to return
+          a consistenty unique connection to bypass this behavior
+          when the flag is set.
 
-        :param reset_on_return: Configures the action to take
-          on connections as they are returned to the pool.
-          See the argument description in :class:`.QueuePool` for
-          more detail.
+          .. warning::  The :paramref:`.Pool.use_threadlocal` flag
+             **does not affect the behavior** of :meth:`.Engine.connect`.
+             :meth:`.Engine.connect` makes use of the :meth:`.Pool.unique_connection`
+             method which **does not use thread local context**.
+             To produce a :class:`.Connection` which refers to the
+             :meth:`.Pool.connect` method, use
+             :meth:`.Engine.contextual_connect`.
+
+             Note that other SQLAlchemy connectivity systems such as
+             :meth:`.Engine.execute` as well as the orm
+             :class:`.Session` make use of
+             :meth:`.Engine.contextual_connect` internally, so these functions
+             are compatible with the :paramref:`.Pool.use_threadlocal` setting.
+
+          .. seealso::
+
+            :ref:`threadlocal_strategy` - contains detail on the
+            "threadlocal" engine strategy, which provides a more comprehensive
+            approach to "threadlocal" connectivity for the specific
+            use case of using :class:`.Engine` and :class:`.Connection` objects
+            directly.
+
+        :param reset_on_return: Determine steps to take on
+          connections as they are returned to the pool.
+          reset_on_return can have any of these values:
+
+          * ``"rollback"`` - call rollback() on the connection,
+            to release locks and transaction resources.
+            This is the default value.  The vast majority
+            of use cases should leave this value set.
+          * ``True`` - same as 'rollback', this is here for
+            backwards compatibility.
+          * ``"commit"`` - call commit() on the connection,
+            to release locks and transaction resources.
+            A commit here may be desirable for databases that
+            cache query plans if a commit is emitted,
+            such as Microsoft SQL Server.  However, this
+            value is more dangerous than 'rollback' because
+            any data changes present on the transaction
+            are committed unconditionally.
+          * ``None`` - don't do anything on the connection.
+            This setting should only be made on a database
+            that has no transaction support at all,
+            namely MySQL MyISAM.   By not doing anything,
+            performance can be improved.   This
+            setting should **never be selected** for a
+            database that supports transactions,
+            as it will lead to deadlocks and stale
+            state.
+          * ``False`` - same as None, this is here for
+            backwards compatibility.
+
+          .. versionchanged:: 0.7.6
+              :paramref:`.Pool.reset_on_return` accepts ``"rollback"``
+              and ``"commit"`` arguments.
 
         :param events: a list of 2-tuples, each of the form
-         ``(callable, target)`` which will be passed to event.listen()
+         ``(callable, target)`` which will be passed to :func:`.event.listen`
          upon construction.   Provided here so that event listeners
-         can be assigned via ``create_engine`` before dialect-level
+         can be assigned via :func:`.create_engine` before dialect-level
          listeners are applied.
 
         :param listeners: Deprecated.  A list of
@@ -211,12 +263,13 @@ class Pool(log.Identified):
         """Produce a DBAPI connection that is not referenced by any
         thread-local context.
 
-        This method is different from :meth:`.Pool.connect` only if the
-        ``use_threadlocal`` flag has been set to ``True``.
+        This method is equivalent to :meth:`.Pool.connect` when the
+        :paramref:`.Pool.use_threadlocal` flag is not set to True.
+        When :paramref:`.Pool.use_threadlocal` is True, the :meth:`.Pool.unique_connection`
+        method provides a means of bypassing the threadlocal context.
 
         """
-
-        return _ConnectionFairy.checkout(self)
+        return _ConnectionFairy._checkout(self)
 
     def _create_connection(self):
         """Called by subclasses to create a new ConnectionRecord."""
@@ -268,7 +321,7 @@ class Pool(log.Identified):
 
         """
         if not self._use_threadlocal:
-            return _ConnectionFairy.checkout(self)
+            return _ConnectionFairy._checkout(self)
 
         try:
             rec = self._threadconns.current()
@@ -276,9 +329,9 @@ class Pool(log.Identified):
             pass
         else:
             if rec is not None:
-                return rec.checkout_existing()
+                return rec._checkout_existing()
 
-        return _ConnectionFairy.checkout(self, self._threadconns)
+        return _ConnectionFairy._checkout(self, self._threadconns)
 
     def _return_conn(self, record):
         """Given a _ConnectionRecord, return it to the :class:`.Pool`.
@@ -309,6 +362,34 @@ class Pool(log.Identified):
 
 
 class _ConnectionRecord(object):
+    """Internal object which maintains an individual DBAPI connection
+    referenced by a :class:`.Pool`.
+
+    The :class:`._ConnectionRecord` object always exists for any particular
+    DBAPI connection whether or not that DBAPI connection has been
+    "checked out".  This is in contrast to the :class:`._ConnectionFairy`
+    which is only a public facade to the DBAPI connection while it is checked
+    out.
+
+    A :class:`._ConnectionRecord` may exist for a span longer than that
+    of a single DBAPI connection.  For example, if the
+    :meth:`._ConnectionRecord.invalidate`
+    method is called, the DBAPI connection associated with this
+    :class:`._ConnectionRecord`
+    will be discarded, but the :class:`._ConnectionRecord` may be used again,
+    in which case a new DBAPI connection is produced when the :class:`.Pool`
+    next uses this record.
+
+    The :class:`._ConnectionRecord` is delivered along with connection
+    pool events, including :meth:`.PoolEvents.connect` and
+    :meth:`.PoolEvents.checkout`, however :class:`._ConnectionRecord` still
+    remains an internal object whose API and internals may change.
+
+    .. seealso::
+
+        :class:`._ConnectionFairy`
+
+    """
 
     def __init__(self, pool):
         self.__pool = pool
@@ -320,8 +401,23 @@ class _ConnectionRecord(object):
                     exec_once(self.connection, self)
         pool.dispatch.connect(self.connection, self)
 
+    connection = None
+    """A reference to the actual DBAPI connection being tracked.
+
+    May be ``None`` if this :class:`._ConnectionRecord` has been marked
+    as invalidated; a new DBAPI connection may replace it if the owning
+    pool calls upon this :class:`._ConnectionRecord` to reconnect.
+
+    """
+
     @util.memoized_property
     def info(self):
+        """The ``.info`` dictionary associated with the DBAPI connection.
+
+        This dictionary is shared among the :attr:`._ConnectionFairy.info`
+        and :attr:`.Connection.info` accessors.
+
+        """
         return {}
 
     @classmethod
@@ -360,9 +456,22 @@ class _ConnectionRecord(object):
 
     def close(self):
         if self.connection is not None:
-            self.__pool._close_connection(self.connection)
+            self.__close()
 
     def invalidate(self, e=None):
+        """Invalidate the DBAPI connection held by this :class:`._ConnectionRecord`.
+
+        This method is called for all connection invalidations, including
+        when the :meth:`._ConnectionFairy.invalidate` or :meth:`.Connection.invalidate`
+        methods are called, as well as when any so-called "automatic invalidation"
+        condition occurs.
+
+        .. seealso::
+
+            :ref:`pool_connection_invalidation`
+
+        """
+        self.__pool.dispatch.invalidate(self.connection, self, e)
         if e is not None:
             self.__pool.logger.info(
                 "Invalidate connection %r (reason: %s:%s)",
@@ -423,18 +532,8 @@ def _finalize_fairy(connection, connection_record, pool, ref, echo, fairy=None):
 
         try:
             fairy = fairy or _ConnectionFairy(connection, connection_record)
-            if pool.dispatch.reset:
-                pool.dispatch.reset(fairy, connection_record)
-            if pool._reset_on_return is reset_rollback:
-                if echo:
-                    pool.logger.debug("Connection %s rollback-on-return",
-                                                    connection)
-                pool._dialect.do_rollback(fairy)
-            elif pool._reset_on_return is reset_commit:
-                if echo:
-                    pool.logger.debug("Connection %s commit-on-return",
-                                                    connection)
-                pool._dialect.do_commit(fairy)
+            assert fairy.connection is connection
+            fairy._reset(pool, echo)
 
             # Immediately close detached instances
             if not connection_record:
@@ -453,15 +552,58 @@ _refs = set()
 
 
 class _ConnectionFairy(object):
-    """Proxies a DB-API connection and provides return-on-dereference
-    support."""
+    """Proxies a DBAPI connection and provides return-on-dereference
+    support.
+
+    This is an internal object used by the :class:`.Pool` implementation
+    to provide context management to a DBAPI connection delivered by
+    that :class:`.Pool`.
+
+    The name "fairy" is inspired by the fact that the :class:`._ConnectionFairy`
+    object's lifespan is transitory, as it lasts only for the length of a
+    specific DBAPI connection being checked out from the pool, and additionally
+    that as a transparent proxy, it is mostly invisible.
+
+    .. seealso::
+
+        :class:`._ConnectionRecord`
+
+    """
 
     def __init__(self, dbapi_connection, connection_record):
         self.connection = dbapi_connection
         self._connection_record = connection_record
 
+    connection = None
+    """A reference to the actual DBAPI connection being tracked."""
+
+    _connection_record = None
+    """A reference to the :class:`._ConnectionRecord` object associated
+    with the DBAPI connection.
+
+    This is currently an internal accessor which is subject to change.
+
+    """
+
+    _reset_agent = None
+    """Refer to an object with a ``.commit()`` and ``.rollback()`` method;
+    if non-None, the "reset-on-return" feature will call upon this object
+    rather than directly against the dialect-level do_rollback() and do_commit()
+    methods.
+
+    In practice, a :class:`.Connection` assigns a :class:`.Transaction` object
+    to this variable when one is in scope so that the :class:`.Transaction`
+    takes the job of committing or rolling back on return if
+    :meth:`.Connection.close` is called while the :class:`.Transaction`
+    still exists.
+
+    This is essentially an "event handler" of sorts but is simplified as an
+    instance variable both for performance/simplicity as well as that there
+    can only be one "reset agent" at a time.
+    """
+
     @classmethod
-    def checkout(cls, pool, threadconns=None, fairy=None):
+    def _checkout(cls, pool, threadconns=None, fairy=None):
         if not fairy:
             fairy = _ConnectionRecord.checkout(pool)
 
@@ -498,16 +640,40 @@ class _ConnectionFairy(object):
         fairy.invalidate()
         raise exc.InvalidRequestError("This connection is closed")
 
-    def checkout_existing(self):
-        return _ConnectionFairy.checkout(self._pool, fairy=self)
+    def _checkout_existing(self):
+        return _ConnectionFairy._checkout(self._pool, fairy=self)
 
-    def checkin(self):
+    def _checkin(self):
         _finalize_fairy(self.connection, self._connection_record,
                             self._pool, None, self._echo, fairy=self)
         self.connection = None
         self._connection_record = None
 
-    _close = checkin
+    _close = _checkin
+
+    def _reset(self, pool, echo):
+        if pool.dispatch.reset:
+            pool.dispatch.reset(self, self._connection_record)
+        if pool._reset_on_return is reset_rollback:
+            if echo:
+                pool.logger.debug("Connection %s rollback-on-return%s",
+                                                self.connection,
+                                                ", via agent"
+                                                if self._reset_agent else "")
+            if self._reset_agent:
+                self._reset_agent.rollback()
+            else:
+                pool._dialect.do_rollback(self)
+        elif pool._reset_on_return is reset_commit:
+            if echo:
+                pool.logger.debug("Connection %s commit-on-return%s",
+                                                self.connection,
+                                                ", via agent"
+                                                if self._reset_agent else "")
+            if self._reset_agent:
+                self._reset_agent.commit()
+            else:
+                pool._dialect.do_commit(self)
 
     @property
     def _logger(self):
@@ -515,6 +681,9 @@ class _ConnectionFairy(object):
 
     @property
     def is_valid(self):
+        """Return True if this :class:`._ConnectionFairy` still refers
+        to an active DBAPI connection."""
+
         return self.connection is not None
 
     @util.memoized_property
@@ -525,7 +694,9 @@ class _ConnectionFairy(object):
 
         The data here will follow along with the DBAPI connection including
         after it is returned to the connection pool and used again
-        in subsequent instances of :class:`.ConnectionFairy`.
+        in subsequent instances of :class:`._ConnectionFairy`.  It is shared
+        with the :attr:`._ConnectionRecord.info` and :attr:`.Connection.info`
+        accessors.
 
         """
         return self._connection_record.info
@@ -533,8 +704,16 @@ class _ConnectionFairy(object):
     def invalidate(self, e=None):
         """Mark this connection as invalidated.
 
-        The connection will be immediately closed.  The containing
-        ConnectionRecord will create a new connection when next used.
+        This method can be called directly, and is also called as a result
+        of the :meth:`.Connection.invalidate` method.   When invoked,
+        the DBAPI connection is immediately closed and discarded from
+        further use by the pool.  The invalidation mechanism proceeds
+        via the :meth:`._ConnectionRecord.invalidate` internal method.
+
+        .. seealso::
+
+            :ref:`pool_connection_invalidation`
+
         """
 
         if self.connection is None:
@@ -542,9 +721,15 @@ class _ConnectionFairy(object):
         if self._connection_record:
             self._connection_record.invalidate(e=e)
         self.connection = None
-        self.checkin()
+        self._checkin()
 
     def cursor(self, *args, **kwargs):
+        """Return a new DBAPI cursor for the underlying connection.
+
+        This method is a proxy for the ``connection.cursor()`` DBAPI
+        method.
+
+        """
         return self.connection.cursor(*args, **kwargs)
 
     def __getattr__(self, key):
@@ -576,7 +761,7 @@ class _ConnectionFairy(object):
     def close(self):
         self._counter -= 1
         if self._counter == 0:
-            self.checkin()
+            self._checkin()
 
 
 
@@ -672,8 +857,7 @@ class QueuePool(Pool):
         Construct a QueuePool.
 
         :param creator: a callable function that returns a DB-API
-          connection object.  The function will be called with
-          parameters.
+          connection object, same as that of :paramref:`.Pool.creator`.
 
         :param pool_size: The size of the pool to be maintained,
           defaults to 5. This is the largest number of connections that
@@ -700,64 +884,9 @@ class QueuePool(Pool):
         :param timeout: The number of seconds to wait before giving up
           on returning a connection. Defaults to 30.
 
-        :param recycle: If set to non -1, number of seconds between
-          connection recycling, which means upon checkout, if this
-          timeout is surpassed the connection will be closed and
-          replaced with a newly opened connection. Defaults to -1.
-
-        :param echo: If True, connections being pulled and retrieved
-          from the pool will be logged to the standard output, as well
-          as pool sizing information.  Echoing can also be achieved by
-          enabling logging for the "sqlalchemy.pool"
-          namespace. Defaults to False.
-
-        :param use_threadlocal: If set to True, repeated calls to
-          :meth:`connect` within the same application thread will be
-          guaranteed to return the same connection object, if one has
-          already been retrieved from the pool and has not been
-          returned yet.  Offers a slight performance advantage at the
-          cost of individual transactions by default.  The
-          :meth:`unique_connection` method is provided to bypass the
-          threadlocal behavior installed into :meth:`connect`.
-
-        :param reset_on_return: Determine steps to take on
-          connections as they are returned to the pool.
-          reset_on_return can have any of these values:
-
-          * 'rollback' - call rollback() on the connection,
-            to release locks and transaction resources.
-            This is the default value.  The vast majority
-            of use cases should leave this value set.
-          * True - same as 'rollback', this is here for
-            backwards compatibility.
-          * 'commit' - call commit() on the connection,
-            to release locks and transaction resources.
-            A commit here may be desirable for databases that
-            cache query plans if a commit is emitted,
-            such as Microsoft SQL Server.  However, this
-            value is more dangerous than 'rollback' because
-            any data changes present on the transaction
-            are committed unconditionally.
-          * None - don't do anything on the connection.
-            This setting should only be made on a database
-            that has no transaction support at all,
-            namely MySQL MyISAM.   By not doing anything,
-            performance can be improved.   This
-            setting should **never be selected** for a
-            database that supports transactions,
-            as it will lead to deadlocks and stale
-            state.
-          * False - same as None, this is here for
-            backwards compatibility.
-
-          .. versionchanged:: 0.7.6
-              ``reset_on_return`` accepts values.
-
-        :param listeners: A list of
-          :class:`~sqlalchemy.interfaces.PoolListener`-like objects or
-          dictionaries of callables that receive events when DB-API
-          connections are created, checked out and checked in to the
-          pool.
+        :param \**kw: Other keyword arguments including :paramref:`.Pool.recycle`,
+         :paramref:`.Pool.echo`, :paramref:`.Pool.reset_on_return` and others
+         are passed to the :class:`.Pool` constructor.
 
         """
         Pool.__init__(self, creator, **kw)

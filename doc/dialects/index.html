@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -85,7 +86,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -203,18 +204,21 @@ SQL Server, and Firebird will remain in the Core for the time being.</p>
 <div class="section" id="production-ready">
 <h3>Production Ready<a class="headerlink" href="#production-ready" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><a class="reference external" href="http://code.google.com/p/ibm-db/wiki/README">ibm_db_sa</a> - driver for IBM DB2 and Informix, developed jointly by IBM and SQLAlchemy developers.</li>
-<li><a class="reference external" href="https://github.com/sqlanywhere/sqlalchemy-sqlany">sqlalchemy-sqlany</a> - driver for SAP Sybase SQL Anywhere, developed by SAP.</li>
+<li><a class="reference external" href="http://code.google.com/p/ibm-db/wiki/README">ibm_db_sa</a> - driver for IBM DB2 and Informix,
+developed jointly by IBM and SQLAlchemy developers.</li>
+<li><a class="reference external" href="https://pypi.python.org/pypi/redshift-sqlalchemy">redshift-sqlalchemy</a> - driver for Amazon Redshift, adapts
+the existing Postgresql/psycopg2 driver.</li>
+<li><a class="reference external" href="https://github.com/sqlanywhere/sqlalchemy-sqlany">sqlalchemy-sqlany</a> - driver for SAP Sybase SQL
+Anywhere, developed by SAP.</li>
 <li><a class="reference external" href="https://github.com/gijzelaerr/sqlalchemy-monetdb">sqlalchemy-monetdb</a> - driver for MonetDB.</li>
 </ul>
 </div>
 <div class="section" id="experimental-incomplete">
 <h3>Experimental / Incomplete<a class="headerlink" href="#experimental-incomplete" title="Permalink to this headline">¶</a></h3>
-<p>Dialects that were started but are not in a completed state.  Code contributions
-welcome here.</p>
+<p>Dialects that are in an incomplete state or are considered somewhat experimental.</p>
 <ul class="simple">
+<li><a class="reference external" href="https://github.com/FoundationDB/sql-layer-adapter-sqlalchemy">sqlalchemy-foundationdb</a> - driver and ORM extensions for the <a class="reference external" href="http://foundationdb.com/">Foundation DB</a> database, making use of the <a class="reference external" href="https://foundationdb.com/layers/sql/index.html">FoundationDB SQL Layer</a>.</li>
 <li><a class="reference external" href="https://bitbucket.org/zzzeek/calchipan/">CALCHIPAN</a> - Adapts <a class="reference external" href="http://pandas.pydata.org/">Pandas</a> dataframes to SQLAlchemy.</li>
-<li><a class="reference external" href="https://github.com/zzzeek/sqlalchemy_akiban">sqlalchemy-akiban</a> - driver and ORM extensions for the <a class="reference external" href="http://www.akiban.com">Akiban</a> database.</li>
 <li><a class="reference external" href="https://bitbucket.org/zzzeek/sqlalchemy-cubrid">sqlalchemy-cubrid</a> - driver for the CUBRID database.</li>
 </ul>
 </div>

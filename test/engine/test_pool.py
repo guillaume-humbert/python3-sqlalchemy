@@ -308,6 +308,13 @@ class PoolEventsTest(PoolTestBase):
 
         return p, canary
 
+    def _invalidate_event_fixture(self):
+        p = self._queuepool_fixture()
+        canary = Mock()
+        event.listen(p, 'invalidate', canary)
+
+        return p, canary
+
     def test_first_connect_event(self):
         p, canary = self._first_connect_event_fixture()
 
@@ -410,6 +417,31 @@ class PoolEventsTest(PoolTestBase):
         eq_(canary, [])
         c1.close()
         eq_(canary, ['reset'])
+
+    def test_invalidate_event_no_exception(self):
+        p, canary = self._invalidate_event_fixture()
+
+        c1 = p.connect()
+        c1.close()
+        assert not canary.called
+        c1 = p.connect()
+        dbapi_con = c1.connection
+        c1.invalidate()
+        assert canary.call_args_list[0][0][0] is dbapi_con
+        assert canary.call_args_list[0][0][2] is None
+
+    def test_invalidate_event_exception(self):
+        p, canary = self._invalidate_event_fixture()
+
+        c1 = p.connect()
+        c1.close()
+        assert not canary.called
+        c1 = p.connect()
+        dbapi_con = c1.connection
+        exc = Exception("hi")
+        c1.invalidate(exc)
+        assert canary.call_args_list[0][0][0] is dbapi_con
+        assert canary.call_args_list[0][0][2] is exc
 
     def test_checkin_event_gc(self):
         p, canary = self._checkin_event_fixture()
@@ -1295,6 +1327,96 @@ class QueuePoolTest(PoolTestBase):
         c1.close()
         c2 = p.connect()
         assert c2.connection is not None
+
+class ResetOnReturnTest(PoolTestBase):
+    def _fixture(self, **kw):
+        dbapi = Mock()
+        return dbapi, pool.QueuePool(creator=lambda: dbapi.connect('foo.db'), **kw)
+
+    def test_plain_rollback(self):
+        dbapi, p = self._fixture(reset_on_return='rollback')
+
+        c1 = p.connect()
+        c1.close()
+        assert dbapi.connect().rollback.called
+        assert not dbapi.connect().commit.called
+
+    def test_plain_commit(self):
+        dbapi, p = self._fixture(reset_on_return='commit')
+
+        c1 = p.connect()
+        c1.close()
+        assert not dbapi.connect().rollback.called
+        assert dbapi.connect().commit.called
+
+    def test_plain_none(self):
+        dbapi, p = self._fixture(reset_on_return=None)
+
+        c1 = p.connect()
+        c1.close()
+        assert not dbapi.connect().rollback.called
+        assert not dbapi.connect().commit.called
+
+    def test_agent_rollback(self):
+        dbapi, p = self._fixture(reset_on_return='rollback')
+
+        class Agent(object):
+            def __init__(self, conn):
+                self.conn = conn
+
+            def rollback(self):
+                self.conn.special_rollback()
+
+            def commit(self):
+                self.conn.special_commit()
+
+        c1 = p.connect()
+        c1._reset_agent = Agent(c1)
+        c1.close()
+
+        assert dbapi.connect().special_rollback.called
+        assert not dbapi.connect().special_commit.called
+
+        assert not dbapi.connect().rollback.called
+        assert not dbapi.connect().commit.called
+
+        c1 = p.connect()
+        c1.close()
+        eq_(dbapi.connect().special_rollback.call_count, 1)
+        eq_(dbapi.connect().special_commit.call_count, 0)
+
+        assert dbapi.connect().rollback.called
+        assert not dbapi.connect().commit.called
+
+    def test_agent_commit(self):
+        dbapi, p = self._fixture(reset_on_return='commit')
+
+        class Agent(object):
+            def __init__(self, conn):
+                self.conn = conn
+
+            def rollback(self):
+                self.conn.special_rollback()
+
+            def commit(self):
+                self.conn.special_commit()
+
+        c1 = p.connect()
+        c1._reset_agent = Agent(c1)
+        c1.close()
+        assert not dbapi.connect().special_rollback.called
+        assert dbapi.connect().special_commit.called
+
+        assert not dbapi.connect().rollback.called
+        assert not dbapi.connect().commit.called
+
+        c1 = p.connect()
+        c1.close()
+
+        eq_(dbapi.connect().special_rollback.call_count, 0)
+        eq_(dbapi.connect().special_commit.call_count, 1)
+        assert not dbapi.connect().rollback.called
+        assert dbapi.connect().commit.called
 
 class SingletonThreadPoolTest(PoolTestBase):
 

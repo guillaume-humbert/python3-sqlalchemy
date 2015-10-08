@@ -1,7 +1,7 @@
 from sqlalchemy.sql import operators
 from sqlalchemy import MetaData, null, exists, text, union, literal, \
     literal_column, func, between, Unicode, desc, and_, bindparam, \
-    select, distinct, or_, collate, insert
+    select, distinct, or_, collate, insert, Integer, String
 from sqlalchemy import inspect
 from sqlalchemy import exc as sa_exc, util
 from sqlalchemy.sql import compiler, table, column
@@ -346,6 +346,20 @@ class RawSelectTest(QueryTest, AssertsCompiledSQL):
             insert(User).values(name="ed"),
             "INSERT INTO users (name) VALUES (:name)",
             checkparams={"name": "ed"}
+        )
+
+    def test_col_prop_builtin_function(self):
+        class Foo(object):
+            pass
+
+        mapper(Foo, self.tables.users, properties={
+                'foob': column_property(func.coalesce(self.tables.users.c.name))
+            })
+
+        self.assert_compile(
+            select([Foo]).where(Foo.foob == 'somename').order_by(Foo.foob),
+            "SELECT users.id, users.name FROM users "
+            "WHERE coalesce(users.name) = :coalesce_1 ORDER BY coalesce(users.name)"
         )
 
 class GetTest(QueryTest):
@@ -2063,6 +2077,42 @@ class TextTest(QueryTest):
             s.query(User).from_statement(
                 select(['id', 'name']).select_from('users').order_by('id'),
             ).all(),
+            [User(id=7), User(id=8), User(id=9), User(id=10)]
+        )
+
+    def test_via_textasfrom_from_statement(self):
+        User = self.classes.User
+        s = create_session()
+
+        eq_(
+            s.query(User).from_statement(
+                text("select * from users order by id").\
+                        columns(id=Integer, name=String)
+            ).all(),
+            [User(id=7), User(id=8), User(id=9), User(id=10)]
+        )
+
+    def test_via_textasfrom_use_mapped_columns(self):
+        User = self.classes.User
+        s = create_session()
+
+        eq_(
+            s.query(User).from_statement(
+                text("select * from users order by id").\
+                        columns(User.id, User.name)
+            ).all(),
+            [User(id=7), User(id=8), User(id=9), User(id=10)]
+        )
+
+    def test_via_textasfrom_select_from(self):
+        User = self.classes.User
+        s = create_session()
+
+        eq_(
+            s.query(User).select_from(
+                text("select * from users").\
+                        columns(id=Integer, name=String)
+            ).order_by(User.id).all(),
             [User(id=7), User(id=8), User(id=9), User(id=10)]
         )
 

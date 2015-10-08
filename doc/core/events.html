@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -232,8 +233,9 @@ for detached connections.  (They do not return to the pool.)</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.events.PoolEvents.checkin.params.dbapi_con"></span><strong>dbapi_con</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.checkin.params.dbapi_con">¶</a> &#8211; A raw DB-API connection</li>
-<li><span class="target" id="sqlalchemy.events.PoolEvents.checkin.params.con_record"></span><strong>con_record</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.checkin.params.con_record">¶</a> &#8211; The <tt class="docutils literal"><span class="pre">_ConnectionRecord</span></tt> that persistently manages the connection</li>
+<li><span class="target" id="sqlalchemy.events.PoolEvents.checkin.params.dbapi_connection"></span><strong>dbapi_connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.checkin.params.dbapi_connection">¶</a> &#8211; a DBAPI connection.</li>
+<li><span class="target" id="sqlalchemy.events.PoolEvents.checkin.params.connection_record"></span><strong>connection_record</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.checkin.params.connection_record">¶</a> &#8211; the <a class="reference internal" href="pooling.html#sqlalchemy.pool._ConnectionRecord" title="sqlalchemy.pool._ConnectionRecord"><tt class="xref py py-class docutils literal"><span class="pre">_ConnectionRecord</span></tt></a> managing the
+DBAPI connection.</li>
 </ul>
 </td>
 </tr>
@@ -254,15 +256,6 @@ for detached connections.  (They do not return to the pool.)</p>
 <span class="k">def</span> <span class="nf">receive_checkout</span><span class="p">(</span><span class="n">dbapi_connection</span><span class="p">,</span> <span class="n">connection_record</span><span class="p">,</span> <span class="n">connection_proxy</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;checkout&#39; event&quot;</span>
 
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeEngineOrPool</span><span class="p">,</span> <span class="s">&#39;checkout&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_checkout</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;checkout&#39; event&quot;</span>
-    <span class="n">dbapi_connection</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;dbapi_connection&#39;</span><span class="p">]</span>
-    <span class="n">connection_record</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;connection_record&#39;</span><span class="p">]</span>
-
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
 </div>
@@ -271,10 +264,12 @@ for detached connections.  (They do not return to the pool.)</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.events.PoolEvents.checkout.params.dbapi_con"></span><strong>dbapi_con</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.checkout.params.dbapi_con">¶</a> &#8211; A raw DB-API connection</li>
-<li><span class="target" id="sqlalchemy.events.PoolEvents.checkout.params.con_record"></span><strong>con_record</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.checkout.params.con_record">¶</a> &#8211; The <tt class="docutils literal"><span class="pre">_ConnectionRecord</span></tt> that persistently manages the connection</li>
-<li><span class="target" id="sqlalchemy.events.PoolEvents.checkout.params.con_proxy"></span><strong>con_proxy</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.checkout.params.con_proxy">¶</a> &#8211; The <tt class="docutils literal"><span class="pre">_ConnectionFairy</span></tt> which manages the connection for the span of
-the current checkout.</li>
+<li><span class="target" id="sqlalchemy.events.PoolEvents.checkout.params.dbapi_connection"></span><strong>dbapi_connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.checkout.params.dbapi_connection">¶</a> &#8211; a DBAPI connection.</li>
+<li><span class="target" id="sqlalchemy.events.PoolEvents.checkout.params.connection_record"></span><strong>connection_record</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.checkout.params.connection_record">¶</a> &#8211; the <a class="reference internal" href="pooling.html#sqlalchemy.pool._ConnectionRecord" title="sqlalchemy.pool._ConnectionRecord"><tt class="xref py py-class docutils literal"><span class="pre">_ConnectionRecord</span></tt></a> managing the
+DBAPI connection.</li>
+<li><span class="target" id="sqlalchemy.events.PoolEvents.checkout.params.connection_proxy"></span><strong>connection_proxy</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.checkout.params.connection_proxy">¶</a> &#8211; the <a class="reference internal" href="pooling.html#sqlalchemy.pool._ConnectionFairy" title="sqlalchemy.pool._ConnectionFairy"><tt class="xref py py-class docutils literal"><span class="pre">_ConnectionFairy</span></tt></a> object which
+will proxy the public interface of the DBAPI connection for the lifespan
+of the checkout.</li>
 </ul>
 </td>
 </tr>
@@ -294,7 +289,8 @@ which occurs upon creation of a new <a class="reference internal" href="connecti
 <dl class="method">
 <dt id="sqlalchemy.events.PoolEvents.connect">
 <tt class="descname">connect</tt><big>(</big><em>dbapi_connection</em>, <em>connection_record</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.PoolEvents.connect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called once for each new DB-API connection or Pool&#8217;s <tt class="docutils literal"><span class="pre">creator()</span></tt>.</p>
+<dd><p>Called at the moment a particular DBAPI connection is first
+created for a given <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>.</p>
 <div class="event-signatures container">
 <p>Example argument forms:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
@@ -307,14 +303,17 @@ which occurs upon creation of a new <a class="reference internal" href="connecti
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
 </div>
+<p>This event allows one to capture the point directly after which
+the DBAPI module-level <tt class="docutils literal"><span class="pre">.connect()</span></tt> method has been used in order
+to produce a new DBAPI connection.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.events.PoolEvents.connect.params.dbapi_con"></span><strong>dbapi_con</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.connect.params.dbapi_con">¶</a> &#8211; A newly connected raw DB-API connection (not a SQLAlchemy
-<tt class="docutils literal"><span class="pre">Connection</span></tt> wrapper).</li>
-<li><span class="target" id="sqlalchemy.events.PoolEvents.connect.params.con_record"></span><strong>con_record</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.connect.params.con_record">¶</a> &#8211; The <tt class="docutils literal"><span class="pre">_ConnectionRecord</span></tt> that persistently manages the connection</li>
+<li><span class="target" id="sqlalchemy.events.PoolEvents.connect.params.dbapi_connection"></span><strong>dbapi_connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.connect.params.dbapi_connection">¶</a> &#8211; a DBAPI connection.</li>
+<li><span class="target" id="sqlalchemy.events.PoolEvents.connect.params.connection_record"></span><strong>connection_record</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.connect.params.connection_record">¶</a> &#8211; the <a class="reference internal" href="pooling.html#sqlalchemy.pool._ConnectionRecord" title="sqlalchemy.pool._ConnectionRecord"><tt class="xref py py-class docutils literal"><span class="pre">_ConnectionRecord</span></tt></a> managing the
+DBAPI connection.</li>
 </ul>
 </td>
 </tr>
@@ -325,7 +324,8 @@ which occurs upon creation of a new <a class="reference internal" href="connecti
 <dl class="method">
 <dt id="sqlalchemy.events.PoolEvents.first_connect">
 <tt class="descname">first_connect</tt><big>(</big><em>dbapi_connection</em>, <em>connection_record</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.PoolEvents.first_connect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called exactly once for the first DB-API connection.</p>
+<dd><p>Called exactly once for the first time a DBAPI connection is
+checked out from a particular <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>.</p>
 <div class="event-signatures container">
 <p>Example argument forms:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
@@ -338,14 +338,23 @@ which occurs upon creation of a new <a class="reference internal" href="connecti
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
 </div>
+<p>The rationale for <a class="reference internal" href="#sqlalchemy.events.PoolEvents.first_connect" title="sqlalchemy.events.PoolEvents.first_connect"><tt class="xref py py-meth docutils literal"><span class="pre">PoolEvents.first_connect()</span></tt></a> is to determine
+information about a particular series of database connections based
+on the settings used for all connections.  Since a particular
+<a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a> refers to a single &#8220;creator&#8221; function (which in terms
+of a <a class="reference internal" href="connections.html#sqlalchemy.engine.Engine" title="sqlalchemy.engine.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> refers to the URL and connection options used),
+it is typically valid to make observations about a single connection
+that can be safely assumed to be valid about all subsequent connections,
+such as the database version, the server and client encoding settings,
+collation settings, and many others.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.events.PoolEvents.first_connect.params.dbapi_con"></span><strong>dbapi_con</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.first_connect.params.dbapi_con">¶</a> &#8211; A newly connected raw DB-API connection (not a SQLAlchemy
-<tt class="docutils literal"><span class="pre">Connection</span></tt> wrapper).</li>
-<li><span class="target" id="sqlalchemy.events.PoolEvents.first_connect.params.con_record"></span><strong>con_record</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.first_connect.params.con_record">¶</a> &#8211; The <tt class="docutils literal"><span class="pre">_ConnectionRecord</span></tt> that persistently manages the connection</li>
+<li><span class="target" id="sqlalchemy.events.PoolEvents.first_connect.params.dbapi_connection"></span><strong>dbapi_connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.first_connect.params.dbapi_connection">¶</a> &#8211; a DBAPI connection.</li>
+<li><span class="target" id="sqlalchemy.events.PoolEvents.first_connect.params.connection_record"></span><strong>connection_record</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.first_connect.params.connection_record">¶</a> &#8211; the <a class="reference internal" href="pooling.html#sqlalchemy.pool._ConnectionRecord" title="sqlalchemy.pool._ConnectionRecord"><tt class="xref py py-class docutils literal"><span class="pre">_ConnectionRecord</span></tt></a> managing the
+DBAPI connection.</li>
 </ul>
 </td>
 </tr>
@@ -354,8 +363,53 @@ which occurs upon creation of a new <a class="reference internal" href="connecti
 </dd></dl>
 
 <dl class="method">
+<dt id="sqlalchemy.events.PoolEvents.invalidate">
+<tt class="descname">invalidate</tt><big>(</big><em>dbapi_connection</em>, <em>connection_record</em>, <em>exception</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.PoolEvents.invalidate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when a DBAPI connection is to be &#8220;invalidated&#8221;.</p>
+<div class="event-signatures container">
+<p>Example argument forms:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">event</span>
+
+<span class="c"># standard decorator style</span>
+<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeEngineOrPool</span><span class="p">,</span> <span class="s">&#39;invalidate&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">receive_invalidate</span><span class="p">(</span><span class="n">dbapi_connection</span><span class="p">,</span> <span class="n">connection_record</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
+    <span class="s">&quot;listen for the &#39;invalidate&#39; event&quot;</span>
+
+    <span class="c"># ... (event handling logic) ...</span></pre></div>
+</div>
+</div>
+<p>This event is called any time the <a class="reference internal" href="pooling.html#sqlalchemy.pool._ConnectionRecord.invalidate" title="sqlalchemy.pool._ConnectionRecord.invalidate"><tt class="xref py py-meth docutils literal"><span class="pre">_ConnectionRecord.invalidate()</span></tt></a>
+method is invoked, either from API usage or via &#8220;auto-invalidation&#8221;.
+The event occurs before a final attempt to call <tt class="docutils literal"><span class="pre">.close()</span></tt> on the connection
+occurs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><span class="target" id="sqlalchemy.events.PoolEvents.invalidate.params.dbapi_connection"></span><strong>dbapi_connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.invalidate.params.dbapi_connection">¶</a> &#8211; a DBAPI connection.</li>
+<li><span class="target" id="sqlalchemy.events.PoolEvents.invalidate.params.connection_record"></span><strong>connection_record</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.invalidate.params.connection_record">¶</a> &#8211; the <a class="reference internal" href="pooling.html#sqlalchemy.pool._ConnectionRecord" title="sqlalchemy.pool._ConnectionRecord"><tt class="xref py py-class docutils literal"><span class="pre">_ConnectionRecord</span></tt></a> managing the
+DBAPI connection.</li>
+<li><span class="target" id="sqlalchemy.events.PoolEvents.invalidate.params.exception"></span><strong>exception</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.invalidate.params.exception">¶</a> &#8211; the exception object corresponding to the reason
+for this invalidation, if any.  May be <tt class="docutils literal"><span class="pre">None</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="versionadded">
+<p><span>New in version 0.9.2: </span>Added support for connection invalidation
+listening.</p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="pooling.html#pool-connection-invalidation"><em>More on Invalidation</em></a></p>
+</div>
+</dd></dl>
+
+<dl class="method">
 <dt id="sqlalchemy.events.PoolEvents.reset">
-<tt class="descname">reset</tt><big>(</big><em>dbapi_con</em>, <em>con_record</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.PoolEvents.reset" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">reset</tt><big>(</big><em>dbapi_connnection</em>, <em>connection_record</em><big>)</big><a class="headerlink" href="#sqlalchemy.events.PoolEvents.reset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called before the &#8220;reset&#8221; action occurs for a pooled connection.</p>
 <div class="event-signatures container">
 <p>Example argument forms:</p>
@@ -363,7 +417,7 @@ which occurs upon creation of a new <a class="reference internal" href="connecti
 
 <span class="c"># standard decorator style</span>
 <span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeEngineOrPool</span><span class="p">,</span> <span class="s">&#39;reset&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_reset</span><span class="p">(</span><span class="n">dbapi_con</span><span class="p">,</span> <span class="n">con_record</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">receive_reset</span><span class="p">(</span><span class="n">dbapi_connnection</span><span class="p">,</span> <span class="n">connection_record</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;reset&#39; event&quot;</span>
 
     <span class="c"># ... (event handling logic) ...</span></pre></div>
@@ -382,8 +436,9 @@ cases where the connection is discarded immediately after reset.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><span class="target" id="sqlalchemy.events.PoolEvents.reset.params.dbapi_con"></span><strong>dbapi_con</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.reset.params.dbapi_con">¶</a> &#8211; A raw DB-API connection</li>
-<li><span class="target" id="sqlalchemy.events.PoolEvents.reset.params.con_record"></span><strong>con_record</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.reset.params.con_record">¶</a> &#8211; The <tt class="docutils literal"><span class="pre">_ConnectionRecord</span></tt> that persistently manages the connection</li>
+<li><span class="target" id="sqlalchemy.events.PoolEvents.reset.params.dbapi_connection"></span><strong>dbapi_connection</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.reset.params.dbapi_connection">¶</a> &#8211; a DBAPI connection.</li>
+<li><span class="target" id="sqlalchemy.events.PoolEvents.reset.params.connection_record"></span><strong>connection_record</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.events.PoolEvents.reset.params.connection_record">¶</a> &#8211; the <a class="reference internal" href="pooling.html#sqlalchemy.pool._ConnectionRecord" title="sqlalchemy.pool._ConnectionRecord"><tt class="xref py py-class docutils literal"><span class="pre">_ConnectionRecord</span></tt></a> managing the
+DBAPI connection.</li>
 </ul>
 </td>
 </tr>
@@ -794,15 +849,6 @@ commit, use the <a class="reference internal" href="#sqlalchemy.events.PoolEvent
 <span class="k">def</span> <span class="nf">receive_commit_twophase</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">xid</span><span class="p">,</span> <span class="n">is_prepared</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;commit_twophase&#39; event&quot;</span>
 
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeEngine</span><span class="p">,</span> <span class="s">&#39;commit_twophase&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_commit_twophase</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;commit_twophase&#39; event&quot;</span>
-    <span class="n">conn</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;conn&#39;</span><span class="p">]</span>
-    <span class="n">xid</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;xid&#39;</span><span class="p">]</span>
-
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
 </div>
@@ -997,15 +1043,6 @@ for an individual DBAPI connection</p>
 <span class="k">def</span> <span class="nf">receive_release_savepoint</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;release_savepoint&#39; event&quot;</span>
 
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeEngine</span><span class="p">,</span> <span class="s">&#39;release_savepoint&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_release_savepoint</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;release_savepoint&#39; event&quot;</span>
-    <span class="n">conn</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;conn&#39;</span><span class="p">]</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span>
-
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
 </div>
@@ -1073,15 +1110,6 @@ rollback, use the <a class="reference internal" href="#sqlalchemy.events.PoolEve
 <span class="k">def</span> <span class="nf">receive_rollback_savepoint</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;rollback_savepoint&#39; event&quot;</span>
 
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeEngine</span><span class="p">,</span> <span class="s">&#39;rollback_savepoint&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_rollback_savepoint</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;rollback_savepoint&#39; event&quot;</span>
-    <span class="n">conn</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;conn&#39;</span><span class="p">]</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span>
-
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
 </div>
@@ -1112,15 +1140,6 @@ rollback, use the <a class="reference internal" href="#sqlalchemy.events.PoolEve
 <span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeEngine</span><span class="p">,</span> <span class="s">&#39;rollback_twophase&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">receive_rollback_twophase</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">xid</span><span class="p">,</span> <span class="n">is_prepared</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;rollback_twophase&#39; event&quot;</span>
-
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeEngine</span><span class="p">,</span> <span class="s">&#39;rollback_twophase&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_rollback_twophase</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;rollback_twophase&#39; event&quot;</span>
-    <span class="n">conn</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;conn&#39;</span><span class="p">]</span>
-    <span class="n">xid</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;xid&#39;</span><span class="p">]</span>
 
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>
@@ -1570,15 +1589,6 @@ a <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" tit
 <span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeSchemaClassOrObject</span><span class="p">,</span> <span class="s">&#39;column_reflect&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">receive_column_reflect</span><span class="p">(</span><span class="n">inspector</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">column_info</span><span class="p">):</span>
     <span class="s">&quot;listen for the &#39;column_reflect&#39; event&quot;</span>
-
-    <span class="c"># ... (event handling logic) ...</span>
-
-<span class="c"># named argument style (new in 0.9)</span>
-<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">SomeSchemaClassOrObject</span><span class="p">,</span> <span class="s">&#39;column_reflect&#39;</span><span class="p">,</span> <span class="n">named</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">receive_column_reflect</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s">&quot;listen for the &#39;column_reflect&#39; event&quot;</span>
-    <span class="n">inspector</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;inspector&#39;</span><span class="p">]</span>
-    <span class="n">table</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;table&#39;</span><span class="p">]</span>
 
     <span class="c"># ... (event handling logic) ...</span></pre></div>
 </div>

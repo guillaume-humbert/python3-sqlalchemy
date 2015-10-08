@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -149,6 +150,7 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#behavioral-changes-core">Behavioral Changes - Core</a><ul>
+<li><a class="reference internal" href="#none-can-no-longer-be-used-as-a-partial-and-constructor"><tt class="docutils literal"><span class="pre">None</span></tt> can no longer be used as a &#8220;partial AND&#8221; constructor</a></li>
 <li><a class="reference internal" href="#the-password-portion-of-a-create-engine-no-longer-considers-the-sign-as-an-encoded-space">The &#8220;password&#8221; portion of a <tt class="docutils literal"><span class="pre">create_engine()</span></tt> no longer considers the <tt class="docutils literal"><span class="pre">+</span></tt> sign as an encoded space</a></li>
 <li><a class="reference internal" href="#the-precedence-rules-for-collate-have-been-changed">The precedence rules for COLLATE have been changed</a></li>
 <li><a class="reference internal" href="#postgresql-create-type-x-as-enum-now-applies-quoting-to-values">Postgresql CREATE TYPE &lt;x&gt; AS ENUM now applies quoting to values</a></li>
@@ -228,7 +230,7 @@
 undergoing maintenance releases as of May, 2013,
 and SQLAlchemy version 0.9, which is expected for release
 in late 2013.</p>
-<p class="last">Document last updated: January 5, 2014</p>
+<p class="last">Document last updated: January 8, 2014</p>
 </div>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
@@ -561,6 +563,49 @@ will emit loader callables for an unloaded attribute.</p>
 </div>
 <div class="section" id="behavioral-changes-core">
 <span id="behavioral-changes-core-09"></span><h2>Behavioral Changes - Core<a class="headerlink" href="#behavioral-changes-core" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="none-can-no-longer-be-used-as-a-partial-and-constructor">
+<h3><tt class="docutils literal"><span class="pre">None</span></tt> can no longer be used as a &#8220;partial AND&#8221; constructor<a class="headerlink" href="#none-can-no-longer-be-used-as-a-partial-and-constructor" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">None</span></tt> can no longer be used as the &#8220;backstop&#8221; to form an AND condition piecemeal.
+This pattern was not a documented pattern even though some SQLAlchemy internals
+made use of it:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">condition</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">conditions</span><span class="p">:</span>
+    <span class="n">condition</span> <span class="o">=</span> <span class="n">condition</span> <span class="o">&amp;</span> <span class="n">cond</span>
+
+<span class="k">if</span> <span class="n">condition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="n">stmt</span> <span class="o">=</span> <span class="n">stmt</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span></pre></div>
+</div>
+<p>The above sequence, when <tt class="docutils literal"><span class="pre">conditions</span></tt> is non-empty, will on 0.9 produce
+<tt class="docutils literal"><span class="pre">SELECT</span> <span class="pre">..</span> <span class="pre">WHERE</span> <span class="pre">&lt;condition&gt;</span> <span class="pre">AND</span> <span class="pre">NULL</span></tt>.  The <tt class="docutils literal"><span class="pre">None</span></tt> is no longer implicitly
+ignored, and is instead consistent with when <tt class="docutils literal"><span class="pre">None</span></tt> is interpreted in other
+contexts besides that of a conjunction.</p>
+<p>The correct code for both 0.8 and 0.9 should read:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">and_</span>
+
+<span class="k">if</span> <span class="n">conditions</span><span class="p">:</span>
+    <span class="n">stmt</span> <span class="o">=</span> <span class="n">stmt</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">and_</span><span class="p">(</span><span class="o">*</span><span class="n">conditions</span><span class="p">))</span></pre></div>
+</div>
+<p>Another variant that works on all backends on 0.9, but on 0.8 only works on
+backends that support boolean constants:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">true</span>
+
+<span class="n">condition</span> <span class="o">=</span> <span class="n">true</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">conditions</span><span class="p">:</span>
+    <span class="n">condition</span> <span class="o">=</span> <span class="n">cond</span> <span class="o">&amp;</span> <span class="n">condition</span>
+
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">stmt</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span></pre></div>
+</div>
+<p>On 0.8, this will produce a SELECT statement that always has <tt class="docutils literal"><span class="pre">AND</span> <span class="pre">true</span></tt>
+in the WHERE clause, which is not accepted by backends that don&#8217;t support
+boolean constants (MySQL, MSSQL).  On 0.9, the <tt class="docutils literal"><span class="pre">true</span></tt> constant will be dropped
+within an <tt class="docutils literal"><span class="pre">and_()</span></tt> conjunction.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#migration-2804"><em>Improved rendering of Boolean constants, NULL constants, conjunctions</em></a></p>
+</div>
+</div>
 <div class="section" id="the-password-portion-of-a-create-engine-no-longer-considers-the-sign-as-an-encoded-space">
 <span id="migration-2873"></span><h3>The &#8220;password&#8221; portion of a <tt class="docutils literal"><span class="pre">create_engine()</span></tt> no longer considers the <tt class="docutils literal"><span class="pre">+</span></tt> sign as an encoded space<a class="headerlink" href="#the-password-portion-of-a-create-engine-no-longer-considers-the-sign-as-an-encoded-space" title="Permalink to this headline">¶</a></h3>
 <p>For whatever reason, the Python function <tt class="docutils literal"><span class="pre">unquote_plus()</span></tt> was applied to the

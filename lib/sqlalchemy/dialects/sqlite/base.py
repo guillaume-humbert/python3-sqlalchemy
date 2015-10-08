@@ -130,14 +130,14 @@ for new connections through the usage of events::
 import datetime
 import re
 
-from sqlalchemy import sql, exc
-from sqlalchemy.engine import default, base, reflection
-from sqlalchemy import types as sqltypes
-from sqlalchemy import util
-from sqlalchemy.sql import compiler
-from sqlalchemy import processors
+from ... import sql, exc
+from ...engine import default, reflection
+from ... import types as sqltypes, schema as sa_schema
+from ... import util
+from ...sql import compiler
+from ... import processors
 
-from sqlalchemy.types import BIGINT, BLOB, BOOLEAN, CHAR,\
+from ...types import BIGINT, BLOB, BOOLEAN, CHAR,\
     DECIMAL, FLOAT, REAL, INTEGER, NUMERIC, SMALLINT, TEXT,\
     TIMESTAMP, VARCHAR
 
@@ -154,11 +154,12 @@ class _DateTimeMixin(object):
             self._storage_format = storage_format
 
     def adapt(self, cls, **kw):
-        if self._storage_format:
-            kw["storage_format"] = self._storage_format
-        if self._reg:
-            kw["regexp"] = self._reg
-        return util.constructor_copy(self, cls, **kw)
+        if issubclass(cls, _DateTimeMixin):
+            if self._storage_format:
+                kw["storage_format"] = self._storage_format
+            if self._reg:
+                kw["regexp"] = self._reg
+        return super(_DateTimeMixin, self).adapt(cls, **kw)
 
     def literal_processor(self, dialect):
         bp = self.bind_processor(dialect)
@@ -455,9 +456,9 @@ class SQLiteCompiler(compiler.SQLCompiler):
 
     def visit_cast(self, cast, **kwargs):
         if self.dialect.supports_cast:
-            return super(SQLiteCompiler, self).visit_cast(cast)
+            return super(SQLiteCompiler, self).visit_cast(cast, **kwargs)
         else:
-            return self.process(cast.clause)
+            return self.process(cast.clause, **kwargs)
 
     def visit_extract(self, extract, **kw):
         try:
@@ -499,7 +500,7 @@ class SQLiteDDLCompiler(compiler.DDLCompiler):
             colspec += " NOT NULL"
 
         if (column.primary_key and
-            column.table.kwargs.get('sqlite_autoincrement', False) and
+            column.table.dialect_options['sqlite']['autoincrement'] and
             len(column.table.primary_key.columns) == 1 and
             issubclass(column.type._type_affinity, sqltypes.Integer) and
             not column.foreign_keys):
@@ -514,7 +515,7 @@ class SQLiteDDLCompiler(compiler.DDLCompiler):
         if len(constraint.columns) == 1:
             c = list(constraint)[0]
             if c.primary_key and \
-                c.table.kwargs.get('sqlite_autoincrement', False) and \
+                c.table.dialect_options['sqlite']['autoincrement'] and \
                 issubclass(c.type._type_affinity, sqltypes.Integer) and \
                 not c.foreign_keys:
                 return None
@@ -622,6 +623,12 @@ class SQLiteDialect(default.DefaultDialect):
 
     supports_cast = True
     supports_default_values = True
+
+    construct_arguments = [
+        (sa_schema.Table, {
+            "autoincrement": False
+        })
+    ]
 
     _broken_fk_pragma_quotes = False
 

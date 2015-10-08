@@ -527,13 +527,18 @@ class LazyLoader(AbstractRelationshipLoader):
     def _emit_lazyload(self, strategy_options, session, state, ident_key, passive):
         q = session.query(self.mapper)._adapt_all_clauses()
 
+
+        if self.parent_property.secondary is not None:
+            q = q.select_from(self.mapper, self.parent_property.secondary)
+
         q = q._with_invoke_all_eagers(False)
 
         pending = not state.key
 
         # don't autoflush on pending
-        if pending:
+        if pending or passive & attributes.NO_AUTOFLUSH:
             q = q.autoflush(False)
+
 
         if state.load_path:
             q = q._with_current_path(state.load_path[self.parent_property])
@@ -563,6 +568,7 @@ class LazyLoader(AbstractRelationshipLoader):
                 return None
 
         q = q.filter(lazy_clause)
+
 
         result = q.all()
         if self.uselist:

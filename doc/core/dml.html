@@ -19,6 +19,7 @@
                 <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
                 <link rel="stylesheet" href="../_static/sphinx_paramlinks.css" type="text/css" />
+                <link rel="stylesheet" href="../_static/changelog.css" type="text/css" />
             <!-- end iterate through SQLA + sphinx environment css_files -->
         
 
@@ -31,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.1',
+          VERSION:     '0.9.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -86,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.1</span> | Release Date: January 5, 2014
+        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
 
 
     </div>
@@ -167,7 +168,7 @@ with <a class="reference internal" href="#sqlalchemy.sql.expression.UpdateBase" 
 constructs build on the intermediary <a class="reference internal" href="#sqlalchemy.sql.expression.ValuesBase" title="sqlalchemy.sql.expression.ValuesBase"><tt class="xref py py-class docutils literal"><span class="pre">ValuesBase</span></tt></a>.</p>
 <span class="target" id="module-sqlalchemy.sql.expression"></span><dl class="function">
 <dt id="sqlalchemy.sql.expression.delete">
-<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">delete</tt><big>(</big><em>table</em>, <em>whereclause=None</em>, <em>bind=None</em>, <em>returning=None</em>, <em>prefixes=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.delete" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">delete</tt><big>(</big><em>table</em>, <em>whereclause=None</em>, <em>bind=None</em>, <em>returning=None</em>, <em>prefixes=None</em>, <em>**dialect_kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.delete" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct <a class="reference internal" href="#sqlalchemy.sql.expression.Delete" title="sqlalchemy.sql.expression.Delete"><tt class="xref py py-class docutils literal"><span class="pre">Delete</span></tt></a> object.</p>
 <p>Similar functionality is available via the
 <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.TableClause.delete" title="sqlalchemy.sql.expression.TableClause.delete"><tt class="xref py py-meth docutils literal"><span class="pre">delete()</span></tt></a> method on
@@ -194,7 +195,7 @@ condition of the <tt class="docutils literal"><span class="pre">UPDATE</span></t
 
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.insert">
-<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">insert</tt><big>(</big><em>table</em>, <em>values=None</em>, <em>inline=False</em>, <em>bind=None</em>, <em>prefixes=None</em>, <em>returning=None</em>, <em>return_defaults=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.insert" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">insert</tt><big>(</big><em>table</em>, <em>values=None</em>, <em>inline=False</em>, <em>bind=None</em>, <em>prefixes=None</em>, <em>returning=None</em>, <em>return_defaults=False</em>, <em>**dialect_kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.insert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an <a class="reference internal" href="#sqlalchemy.sql.expression.Insert" title="sqlalchemy.sql.expression.Insert"><tt class="xref py py-class docutils literal"><span class="pre">Insert</span></tt></a> object.</p>
 <p>Similar functionality is available via the
 <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.TableClause.insert" title="sqlalchemy.sql.expression.TableClause.insert"><tt class="xref py py-meth docutils literal"><span class="pre">insert()</span></tt></a> method on
@@ -239,7 +240,7 @@ against the <tt class="docutils literal"><span class="pre">INSERT</span></tt> st
 
 <dl class="function">
 <dt id="sqlalchemy.sql.expression.update">
-<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">update</tt><big>(</big><em>table</em>, <em>whereclause=None</em>, <em>values=None</em>, <em>inline=False</em>, <em>bind=None</em>, <em>prefixes=None</em>, <em>returning=None</em>, <em>return_defaults=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.update" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">update</tt><big>(</big><em>table</em>, <em>whereclause=None</em>, <em>values=None</em>, <em>inline=False</em>, <em>bind=None</em>, <em>prefixes=None</em>, <em>returning=None</em>, <em>return_defaults=False</em>, <em>**dialect_kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an <a class="reference internal" href="#sqlalchemy.sql.expression.Update" title="sqlalchemy.sql.expression.Update"><tt class="xref py py-class docutils literal"><span class="pre">Update</span></tt></a> object.</p>
 <p>E.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">update</span>
@@ -342,13 +343,13 @@ Language Tutorial</p>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.Delete">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Delete</tt><big>(</big><em>table</em>, <em>whereclause=None</em>, <em>bind=None</em>, <em>returning=None</em>, <em>prefixes=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Delete" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Delete</tt><big>(</big><em>table</em>, <em>whereclause=None</em>, <em>bind=None</em>, <em>returning=None</em>, <em>prefixes=None</em>, <em>**dialect_kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Delete" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.sql.expression.UpdateBase" title="sqlalchemy.sql.expression.UpdateBase"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.UpdateBase</span></tt></a></p>
 <p>Represent a DELETE construct.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.sql.expression.Delete" title="sqlalchemy.sql.expression.Delete"><tt class="xref py py-class docutils literal"><span class="pre">Delete</span></tt></a> object is created using the <a class="reference internal" href="#sqlalchemy.sql.expression.delete" title="sqlalchemy.sql.expression.delete"><tt class="xref py py-func docutils literal"><span class="pre">delete()</span></tt></a> function.</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Delete.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>table</em>, <em>whereclause=None</em>, <em>bind=None</em>, <em>returning=None</em>, <em>prefixes=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Delete.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>table</em>, <em>whereclause=None</em>, <em>bind=None</em>, <em>returning=None</em>, <em>prefixes=None</em>, <em>**dialect_kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Delete.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a new <a class="reference internal" href="#sqlalchemy.sql.expression.Delete" title="sqlalchemy.sql.expression.Delete"><tt class="xref py py-class docutils literal"><span class="pre">Delete</span></tt></a> object.</p>
 <p>This constructor is mirrored as a public API function; see <a class="reference internal" href="#sqlalchemy.sql.expression.delete" title="sqlalchemy.sql.expression.delete"><tt class="xref py py-func docutils literal"><span class="pre">delete()</span></tt></a> for a full usage and argument description.</p>
 </dd></dl>
@@ -417,6 +418,47 @@ associated with a primary key <cite>Column</cite>.</li>
 </table>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="sqlalchemy.sql.expression.Delete.dialect_kwargs">
+<tt class="descname">dialect_kwargs</tt><a class="headerlink" href="#sqlalchemy.sql.expression.Delete.dialect_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><div class="inherited-member container">
+<em>inherited from the</em> <tt class="xref py py-attr docutils literal"><span class="pre">dialect_kwargs</span></tt> <em>attribute of</em> <tt class="xref py py-class docutils literal"><span class="pre">DialectKWArgs</span></tt></div>
+<p>A collection of keyword arguments specified as dialect-specific
+options to this construct.</p>
+<p>The arguments are present here in their original <tt class="docutils literal"><span class="pre">&lt;dialect&gt;_&lt;kwarg&gt;</span></tt>
+format.  Only arguments that were actually passed are included;
+unlike the <tt class="xref py py-attr docutils literal"><span class="pre">DialectKWArgs.dialect_options</span></tt> collection, which
+contains all options known by this dialect including defaults.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.2.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><tt class="xref py py-attr docutils literal"><span class="pre">DialectKWArgs.dialect_options</span></tt> - nested dictionary form</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.expression.Delete.dialect_options">
+<tt class="descname">dialect_options</tt><a class="headerlink" href="#sqlalchemy.sql.expression.Delete.dialect_options" title="Permalink to this definition">¶</a></dt>
+<dd><div class="inherited-member container">
+<em>inherited from the</em> <tt class="xref py py-attr docutils literal"><span class="pre">dialect_options</span></tt> <em>attribute of</em> <tt class="xref py py-class docutils literal"><span class="pre">DialectKWArgs</span></tt></div>
+<p>A collection of keyword arguments specified as dialect-specific
+options to this construct.</p>
+<p>This is a two-level nested registry, keyed to <tt class="docutils literal"><span class="pre">&lt;dialect_name&gt;</span></tt>
+and <tt class="docutils literal"><span class="pre">&lt;argument_name&gt;</span></tt>.  For example, the <tt class="docutils literal"><span class="pre">postgresql_where</span></tt> argument
+would be locatable as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">arg</span> <span class="o">=</span> <span class="n">my_object</span><span class="o">.</span><span class="n">dialect_options</span><span class="p">[</span><span class="s">&#39;postgresql&#39;</span><span class="p">][</span><span class="s">&#39;where&#39;</span><span class="p">]</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.2.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><tt class="xref py py-attr docutils literal"><span class="pre">DialectKWArgs.dialect_kwargs</span></tt> - flat dictionary form</p>
+</div>
+</dd></dl>
+
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Delete.execute">
 <tt class="descname">execute</tt><big>(</big><em>*multiparams</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Delete.execute" title="Permalink to this definition">¶</a></dt>
@@ -452,6 +494,14 @@ possible options.</p>
 <p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
 <p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
 </div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.expression.Delete.kwargs">
+<tt class="descname">kwargs</tt><a class="headerlink" href="#sqlalchemy.sql.expression.Delete.kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><div class="inherited-member container">
+<em>inherited from the</em> <tt class="xref py py-attr docutils literal"><span class="pre">kwargs</span></tt> <em>attribute of</em> <tt class="xref py py-class docutils literal"><span class="pre">DialectKWArgs</span></tt></div>
+<p>Deprecated; see :attr:<a href="#id1"><span class="problematic" id="id2">`</span></a>.DialectKWArgs.dialect_kwargs</p>
 </dd></dl>
 
 <dl class="method">
@@ -648,7 +698,7 @@ that dialect is in use.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.Insert">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Insert</tt><big>(</big><em>table</em>, <em>values=None</em>, <em>inline=False</em>, <em>bind=None</em>, <em>prefixes=None</em>, <em>returning=None</em>, <em>return_defaults=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Insert" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Insert</tt><big>(</big><em>table</em>, <em>values=None</em>, <em>inline=False</em>, <em>bind=None</em>, <em>prefixes=None</em>, <em>returning=None</em>, <em>return_defaults=False</em>, <em>**dialect_kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Insert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.sql.expression.ValuesBase" title="sqlalchemy.sql.expression.ValuesBase"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.ValuesBase</span></tt></a></p>
 <p>Represent an INSERT construct.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.sql.expression.Insert" title="sqlalchemy.sql.expression.Insert"><tt class="xref py py-class docutils literal"><span class="pre">Insert</span></tt></a> object is created using the
@@ -659,7 +709,7 @@ that dialect is in use.</li>
 </div>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Insert.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>table</em>, <em>values=None</em>, <em>inline=False</em>, <em>bind=None</em>, <em>prefixes=None</em>, <em>returning=None</em>, <em>return_defaults=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Insert.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>table</em>, <em>values=None</em>, <em>inline=False</em>, <em>bind=None</em>, <em>prefixes=None</em>, <em>returning=None</em>, <em>return_defaults=False</em>, <em>**dialect_kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Insert.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a new <a class="reference internal" href="#sqlalchemy.sql.expression.Insert" title="sqlalchemy.sql.expression.Insert"><tt class="xref py py-class docutils literal"><span class="pre">Insert</span></tt></a> object.</p>
 <p>This constructor is mirrored as a public API function; see <a class="reference internal" href="#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a> for a full usage and argument description.</p>
 </dd></dl>
@@ -726,6 +776,47 @@ associated with a primary key <cite>Column</cite>.</li>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.expression.Insert.dialect_kwargs">
+<tt class="descname">dialect_kwargs</tt><a class="headerlink" href="#sqlalchemy.sql.expression.Insert.dialect_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><div class="inherited-member container">
+<em>inherited from the</em> <tt class="xref py py-attr docutils literal"><span class="pre">dialect_kwargs</span></tt> <em>attribute of</em> <tt class="xref py py-class docutils literal"><span class="pre">DialectKWArgs</span></tt></div>
+<p>A collection of keyword arguments specified as dialect-specific
+options to this construct.</p>
+<p>The arguments are present here in their original <tt class="docutils literal"><span class="pre">&lt;dialect&gt;_&lt;kwarg&gt;</span></tt>
+format.  Only arguments that were actually passed are included;
+unlike the <tt class="xref py py-attr docutils literal"><span class="pre">DialectKWArgs.dialect_options</span></tt> collection, which
+contains all options known by this dialect including defaults.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.2.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><tt class="xref py py-attr docutils literal"><span class="pre">DialectKWArgs.dialect_options</span></tt> - nested dictionary form</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.expression.Insert.dialect_options">
+<tt class="descname">dialect_options</tt><a class="headerlink" href="#sqlalchemy.sql.expression.Insert.dialect_options" title="Permalink to this definition">¶</a></dt>
+<dd><div class="inherited-member container">
+<em>inherited from the</em> <tt class="xref py py-attr docutils literal"><span class="pre">dialect_options</span></tt> <em>attribute of</em> <tt class="xref py py-class docutils literal"><span class="pre">DialectKWArgs</span></tt></div>
+<p>A collection of keyword arguments specified as dialect-specific
+options to this construct.</p>
+<p>This is a two-level nested registry, keyed to <tt class="docutils literal"><span class="pre">&lt;dialect_name&gt;</span></tt>
+and <tt class="docutils literal"><span class="pre">&lt;argument_name&gt;</span></tt>.  For example, the <tt class="docutils literal"><span class="pre">postgresql_where</span></tt> argument
+would be locatable as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">arg</span> <span class="o">=</span> <span class="n">my_object</span><span class="o">.</span><span class="n">dialect_options</span><span class="p">[</span><span class="s">&#39;postgresql&#39;</span><span class="p">][</span><span class="s">&#39;where&#39;</span><span class="p">]</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.2.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><tt class="xref py py-attr docutils literal"><span class="pre">DialectKWArgs.dialect_kwargs</span></tt> - flat dictionary form</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -815,6 +906,14 @@ will <strong>not</strong> take effect when using <a class="reference internal" h
 <div class="versionadded">
 <p><span>New in version 0.8.3.</span></p>
 </div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.expression.Insert.kwargs">
+<tt class="descname">kwargs</tt><a class="headerlink" href="#sqlalchemy.sql.expression.Insert.kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><div class="inherited-member container">
+<em>inherited from the</em> <tt class="xref py py-attr docutils literal"><span class="pre">kwargs</span></tt> <em>attribute of</em> <tt class="xref py py-class docutils literal"><span class="pre">DialectKWArgs</span></tt></div>
+<p>Deprecated; see :attr:<a href="#id3"><span class="problematic" id="id4">`</span></a>.DialectKWArgs.dialect_kwargs</p>
 </dd></dl>
 
 <dl class="method">
@@ -1172,13 +1271,13 @@ that dialect is in use.</li>
 
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.Update">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Update</tt><big>(</big><em>table</em>, <em>whereclause=None</em>, <em>values=None</em>, <em>inline=False</em>, <em>bind=None</em>, <em>prefixes=None</em>, <em>returning=None</em>, <em>return_defaults=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Update" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Update</tt><big>(</big><em>table</em>, <em>whereclause=None</em>, <em>values=None</em>, <em>inline=False</em>, <em>bind=None</em>, <em>prefixes=None</em>, <em>returning=None</em>, <em>return_defaults=False</em>, <em>**dialect_kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.sql.expression.ValuesBase" title="sqlalchemy.sql.expression.ValuesBase"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.ValuesBase</span></tt></a></p>
 <p>Represent an Update construct.</p>
 <p>The <a class="reference internal" href="#sqlalchemy.sql.expression.Update" title="sqlalchemy.sql.expression.Update"><tt class="xref py py-class docutils literal"><span class="pre">Update</span></tt></a> object is created using the <a class="reference internal" href="#sqlalchemy.sql.expression.update" title="sqlalchemy.sql.expression.update"><tt class="xref py py-func docutils literal"><span class="pre">update()</span></tt></a> function.</p>
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Update.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>table</em>, <em>whereclause=None</em>, <em>values=None</em>, <em>inline=False</em>, <em>bind=None</em>, <em>prefixes=None</em>, <em>returning=None</em>, <em>return_defaults=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Update.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>table</em>, <em>whereclause=None</em>, <em>values=None</em>, <em>inline=False</em>, <em>bind=None</em>, <em>prefixes=None</em>, <em>returning=None</em>, <em>return_defaults=False</em>, <em>**dialect_kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Update.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a new <a class="reference internal" href="#sqlalchemy.sql.expression.Update" title="sqlalchemy.sql.expression.Update"><tt class="xref py py-class docutils literal"><span class="pre">Update</span></tt></a> object.</p>
 <p>This constructor is mirrored as a public API function; see <a class="reference internal" href="#sqlalchemy.sql.expression.update" title="sqlalchemy.sql.expression.update"><tt class="xref py py-func docutils literal"><span class="pre">update()</span></tt></a> for a full usage and argument description.</p>
 </dd></dl>
@@ -1247,6 +1346,47 @@ associated with a primary key <cite>Column</cite>.</li>
 </table>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="sqlalchemy.sql.expression.Update.dialect_kwargs">
+<tt class="descname">dialect_kwargs</tt><a class="headerlink" href="#sqlalchemy.sql.expression.Update.dialect_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><div class="inherited-member container">
+<em>inherited from the</em> <tt class="xref py py-attr docutils literal"><span class="pre">dialect_kwargs</span></tt> <em>attribute of</em> <tt class="xref py py-class docutils literal"><span class="pre">DialectKWArgs</span></tt></div>
+<p>A collection of keyword arguments specified as dialect-specific
+options to this construct.</p>
+<p>The arguments are present here in their original <tt class="docutils literal"><span class="pre">&lt;dialect&gt;_&lt;kwarg&gt;</span></tt>
+format.  Only arguments that were actually passed are included;
+unlike the <tt class="xref py py-attr docutils literal"><span class="pre">DialectKWArgs.dialect_options</span></tt> collection, which
+contains all options known by this dialect including defaults.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.2.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><tt class="xref py py-attr docutils literal"><span class="pre">DialectKWArgs.dialect_options</span></tt> - nested dictionary form</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.expression.Update.dialect_options">
+<tt class="descname">dialect_options</tt><a class="headerlink" href="#sqlalchemy.sql.expression.Update.dialect_options" title="Permalink to this definition">¶</a></dt>
+<dd><div class="inherited-member container">
+<em>inherited from the</em> <tt class="xref py py-attr docutils literal"><span class="pre">dialect_options</span></tt> <em>attribute of</em> <tt class="xref py py-class docutils literal"><span class="pre">DialectKWArgs</span></tt></div>
+<p>A collection of keyword arguments specified as dialect-specific
+options to this construct.</p>
+<p>This is a two-level nested registry, keyed to <tt class="docutils literal"><span class="pre">&lt;dialect_name&gt;</span></tt>
+and <tt class="docutils literal"><span class="pre">&lt;argument_name&gt;</span></tt>.  For example, the <tt class="docutils literal"><span class="pre">postgresql_where</span></tt> argument
+would be locatable as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">arg</span> <span class="o">=</span> <span class="n">my_object</span><span class="o">.</span><span class="n">dialect_options</span><span class="p">[</span><span class="s">&#39;postgresql&#39;</span><span class="p">][</span><span class="s">&#39;where&#39;</span><span class="p">]</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.2.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><tt class="xref py py-attr docutils literal"><span class="pre">DialectKWArgs.dialect_kwargs</span></tt> - flat dictionary form</p>
+</div>
+</dd></dl>
+
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.Update.execute">
 <tt class="descname">execute</tt><big>(</big><em>*multiparams</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Update.execute" title="Permalink to this definition">¶</a></dt>
@@ -1282,6 +1422,14 @@ possible options.</p>
 <p><a class="reference internal" href="connections.html#sqlalchemy.engine.Connection.execution_options" title="sqlalchemy.engine.Connection.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Connection.execution_options()</span></tt></a></p>
 <p class="last"><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.execution_options" title="sqlalchemy.orm.query.Query.execution_options"><tt class="xref py py-meth docutils literal"><span class="pre">Query.execution_options()</span></tt></a></p>
 </div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.expression.Update.kwargs">
+<tt class="descname">kwargs</tt><a class="headerlink" href="#sqlalchemy.sql.expression.Update.kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><div class="inherited-member container">
+<em>inherited from the</em> <tt class="xref py py-attr docutils literal"><span class="pre">kwargs</span></tt> <em>attribute of</em> <tt class="xref py py-class docutils literal"><span class="pre">DialectKWArgs</span></tt></div>
+<p>Deprecated; see :attr:<a href="#id5"><span class="problematic" id="id6">`</span></a>.DialectKWArgs.dialect_kwargs</p>
 </dd></dl>
 
 <dl class="method">
@@ -1647,7 +1795,7 @@ that dialect is in use.</li>
 <dl class="class">
 <dt id="sqlalchemy.sql.expression.UpdateBase">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">UpdateBase</tt><a class="headerlink" href="#sqlalchemy.sql.expression.UpdateBase" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.HasPrefixes" title="sqlalchemy.sql.expression.HasPrefixes"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.HasPrefixes</span></tt></a>, <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.Executable</span></tt></a>, <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.ClauseElement</span></tt></a></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.DialectKWArgs</span></tt>, <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.HasPrefixes" title="sqlalchemy.sql.expression.HasPrefixes"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.HasPrefixes</span></tt></a>, <a class="reference internal" href="selectable.html#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.Executable</span></tt></a>, <a class="reference internal" href="sqlelement.html#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.ClauseElement</span></tt></a></p>
 <p>Form the base for <tt class="docutils literal"><span class="pre">INSERT</span></tt>, <tt class="docutils literal"><span class="pre">UPDATE</span></tt>, and <tt class="docutils literal"><span class="pre">DELETE</span></tt> statements.</p>
 <dl class="attribute">
 <dt id="sqlalchemy.sql.expression.UpdateBase.__init__">
@@ -1719,6 +1867,47 @@ associated with a primary key <cite>Column</cite>.</li>
 </table>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="sqlalchemy.sql.expression.UpdateBase.dialect_kwargs">
+<tt class="descname">dialect_kwargs</tt><a class="headerlink" href="#sqlalchemy.sql.expression.UpdateBase.dialect_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><div class="inherited-member container">
+<em>inherited from the</em> <tt class="xref py py-attr docutils literal"><span class="pre">dialect_kwargs</span></tt> <em>attribute of</em> <tt class="xref py py-class docutils literal"><span class="pre">DialectKWArgs</span></tt></div>
+<p>A collection of keyword arguments specified as dialect-specific
+options to this construct.</p>
+<p>The arguments are present here in their original <tt class="docutils literal"><span class="pre">&lt;dialect&gt;_&lt;kwarg&gt;</span></tt>
+format.  Only arguments that were actually passed are included;
+unlike the <tt class="xref py py-attr docutils literal"><span class="pre">DialectKWArgs.dialect_options</span></tt> collection, which
+contains all options known by this dialect including defaults.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.2.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><tt class="xref py py-attr docutils literal"><span class="pre">DialectKWArgs.dialect_options</span></tt> - nested dictionary form</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.expression.UpdateBase.dialect_options">
+<tt class="descname">dialect_options</tt><a class="headerlink" href="#sqlalchemy.sql.expression.UpdateBase.dialect_options" title="Permalink to this definition">¶</a></dt>
+<dd><div class="inherited-member container">
+<em>inherited from the</em> <tt class="xref py py-attr docutils literal"><span class="pre">dialect_options</span></tt> <em>attribute of</em> <tt class="xref py py-class docutils literal"><span class="pre">DialectKWArgs</span></tt></div>
+<p>A collection of keyword arguments specified as dialect-specific
+options to this construct.</p>
+<p>This is a two-level nested registry, keyed to <tt class="docutils literal"><span class="pre">&lt;dialect_name&gt;</span></tt>
+and <tt class="docutils literal"><span class="pre">&lt;argument_name&gt;</span></tt>.  For example, the <tt class="docutils literal"><span class="pre">postgresql_where</span></tt> argument
+would be locatable as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">arg</span> <span class="o">=</span> <span class="n">my_object</span><span class="o">.</span><span class="n">dialect_options</span><span class="p">[</span><span class="s">&#39;postgresql&#39;</span><span class="p">][</span><span class="s">&#39;where&#39;</span><span class="p">]</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.2.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><tt class="xref py py-attr docutils literal"><span class="pre">DialectKWArgs.dialect_kwargs</span></tt> - flat dictionary form</p>
+</div>
+</dd></dl>
+
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.UpdateBase.execute">
 <tt class="descname">execute</tt><big>(</big><em>*multiparams</em>, <em>**params</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.UpdateBase.execute" title="Permalink to this definition">¶</a></dt>
@@ -1768,6 +1957,14 @@ returned, for example to return a subset of items in order to
 cut down on larger traversals, or to return child items from a
 different context (such as schema-level collections instead of
 clause-level).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.sql.expression.UpdateBase.kwargs">
+<tt class="descname">kwargs</tt><a class="headerlink" href="#sqlalchemy.sql.expression.UpdateBase.kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><div class="inherited-member container">
+<em>inherited from the</em> <tt class="xref py py-attr docutils literal"><span class="pre">kwargs</span></tt> <em>attribute of</em> <tt class="xref py py-class docutils literal"><span class="pre">DialectKWArgs</span></tt></div>
+<p>Deprecated; see :attr:<a href="#id8"><span class="problematic" id="id9">`</span></a>.DialectKWArgs.dialect_kwargs</p>
 </dd></dl>
 
 <dl class="method">
