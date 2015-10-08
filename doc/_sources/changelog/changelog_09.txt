@@ -12,6 +12,156 @@
         :start-line: 5
 
 .. changelog::
+    :version: 0.9.3
+    :released: February 19, 2014
+
+    .. change::
+        :tags: orm, bug, sqlite
+        :tickets: 2967
+
+        Fixed bug in SQLite "join rewriting" where usage of an exists() construct
+        would fail to be rewritten properly, such as when the exists is
+        mapped to a column_property in an intricate nested-join scenario.
+        Also fixed a somewhat related issue where join rewriting would fail
+        on the columns clause of the SELECT statement if the targets were
+        aliased tables, as opposed to individual aliased columns.
+
+    .. change::
+        :tags: sqlite, bug
+
+        The SQLite dialect will now skip unsupported arguments when reflecting
+        types; such as if it encounters a string like ``INTEGER(5)``, the
+        :class:`.INTEGER` type will be instantiated without the "5" being included,
+        based on detecting a ``TypeError`` on the first attempt.
+
+    .. change::
+        :tags: sqlite, bug
+        :pullreq: github:65
+
+        Support has been added to SQLite type reflection to fully support
+        the "type affinity" contract specified at http://www.sqlite.org/datatype3.html.
+        In this scheme, keywords like ``INT``, ``CHAR``, ``BLOB`` or
+        ``REAL`` located in the type name generically associate the type with
+        one of five affinities.  Pull request courtesy Erich Blume.
+
+        .. seealso::
+
+            :ref:`sqlite_type_reflection`
+
+    .. change::
+        :tags: postgresql, feature
+        :pullreq: github:64
+
+        Added the :attr:`.TypeEngine.python_type` convenience accessor onto the
+        :class:`.postgresql.ARRAY` type.  Pull request courtesy Alexey Terentev.
+
+    .. change::
+        :tags: examples, feature
+        :pullreq: github:41
+
+        Added optional "changed" column to the versioned rows example, as well
+        as support for when the versioned :class:`.Table` has an explicit
+        :paramref:`~.Table.schema` argument.   Pull request
+        courtesy jplaverdure.
+
+    .. change::
+        :tags: bug, postgresql
+        :tickets: 2946
+
+        Added server version detection to the newly added dialect startup
+        query for  "show standard_conforming_strings"; as this variable was
+        added as of PG 8.2, we skip the query for PG versions who report a
+        version string earlier than that.
+
+    .. change::
+        :tags: bug, orm, declarative
+        :tickets: 2950
+
+        Fixed bug where :class:`.AbstractConcreteBase` would fail to be
+        fully usable within declarative relationship configuration, as its
+        string classname would not be available in the registry of classnames
+        at mapper configuration time.   The class now explicitly adds itself
+        to the class regsitry, and additionally both :class:`.AbstractConcreteBase`
+        as well as :class:`.ConcreteBase` set themselves up *before* mappers
+        are configured within the :func:`.configure_mappers` setup, using
+        the new :meth:`.MapperEvents.before_configured` event.
+
+    .. change::
+        :tags: feature, orm
+
+        Added new :meth:`.MapperEvents.before_configured` event which allows
+        an event at the start of :func:`.configure_mappers`, as well
+        as ``__declare_first__()`` hook within declarative to complement
+        ``__declare_last__()``.
+
+    .. change::
+        :tags: bug, mysql, cymysql
+        :tickets: 2934
+        :pullreq: github:69
+
+        Fixed bug in cymysql dialect where a version string such as
+        ``'33a-MariaDB'`` would fail to parse properly.  Pull request
+        courtesy Matt Schmidt.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2949
+
+        Fixed an 0.9 regression where ORM instance or mapper events applied
+        to a base class such as a declarative base with the propagate=True
+        flag would fail to apply to existing mapped classes which also
+        used inheritance due to an assertion.  Addtionally, repaired an
+        attribute error which could occur during removal of such an event,
+        depending on how it was first assigned.
+
+    .. change::
+        :tags: bug, ext
+
+        Fixed bug where the :class:`.AutomapBase` class of the
+        new automap extension would fail if classes
+        were pre-arranged in single or potentially joined inheritance patterns.
+        The repaired joined inheritance issue could also potentially apply when
+        using :class:`.DeferredReflection` as well.
+
+
+    .. change::
+        :tags: bug, sql
+        :pullreq: github:67
+
+        Fixed regression in new "naming convention" feature where conventions
+        would fail if the referred table in a foreign key contained a schema
+        name.  Pull request courtesy Thomas Farvour.
+
+    .. change::
+        :tags: bug, sql
+
+        Fixed bug where so-called "literal render" of :func:`.bindparam`
+        constructs would fail if the bind were constructed with a callable,
+        rather than a direct value.  This prevented ORM expressions
+        from being rendered with the "literal_binds" compiler flag.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2935
+
+        Improved the initialization logic of composite attributes such that
+        calling ``MyClass.attribute`` will not require that the configure
+        mappers step has occurred, e.g. it will just work without throwing
+        any error.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 2932
+
+        More issues with [ticket:2932] first resolved in 0.9.2 where
+        using a column key of the form ``<tablename>_<columnname>``
+        matching that of an aliased column in the text would still not
+        match at the ORM level, which is ultimately due to a core
+        column-matching issue.  Additional rules have been added so that the
+        column ``_label`` is taken into account when working with a
+        :class:`.TextAsFrom` construct or with literal columns.
+
+.. changelog::
     :version: 0.9.2
     :released: February 2, 2014
 

@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.9.2',
+          VERSION:     '0.9.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
+        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
 
 
     </div>
@@ -173,6 +173,7 @@
 </li>
 <li><a class="reference internal" href="#special-directives">Special Directives</a><ul>
 <li><a class="reference internal" href="#declare-last"><tt class="docutils literal"><span class="pre">__declare_last__()</span></tt></a></li>
+<li><a class="reference internal" href="#declare-first"><tt class="docutils literal"><span class="pre">__declare_first__()</span></tt></a></li>
 <li><a class="reference internal" href="#abstract"><tt class="docutils literal"><span class="pre">__abstract__</span></tt></a></li>
 </ul>
 </li>
@@ -289,7 +290,7 @@ objects:</p>
 </div>
 </div>
 <div class="section" id="configuring-relationships">
-<h2>Configuring Relationships<a class="headerlink" href="#configuring-relationships" title="Permalink to this headline">¶</a></h2>
+<span id="declarative-configuring-relationships"></span><h2>Configuring Relationships<a class="headerlink" href="#configuring-relationships" title="Permalink to this headline">¶</a></h2>
 <p>Relationships to other classes are done in the usual way, with the added
 feature that the class specified to <a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>
 may be a string name.  The &#8220;class registry&#8221; associated with <tt class="docutils literal"><span class="pre">Base</span></tt>
@@ -376,7 +377,7 @@ are available:</p>
 </div>
 </div>
 <div class="section" id="configuring-many-to-many-relationships">
-<h2>Configuring Many-to-Many Relationships<a class="headerlink" href="#configuring-many-to-many-relationships" title="Permalink to this headline">¶</a></h2>
+<span id="declarative-many-to-many"></span><h2>Configuring Many-to-Many Relationships<a class="headerlink" href="#configuring-many-to-many-relationships" title="Permalink to this headline">¶</a></h2>
 <p>Many-to-many relationships are also declared in the same way
 with declarative as with traditional mappings. The
 <tt class="docutils literal"><span class="pre">secondary</span></tt> argument to
@@ -799,7 +800,7 @@ before the class is built:</p>
 <div class="section" id="using-the-concrete-helpers">
 <span id="declarative-concrete-helpers"></span><h4>Using the Concrete Helpers<a class="headerlink" href="#using-the-concrete-helpers" title="Permalink to this headline">¶</a></h4>
 <p>Helper classes provides a simpler pattern for concrete inheritance.
-With these objects, the <tt class="docutils literal"><span class="pre">__declare_last__</span></tt> helper is used to configure the
+With these objects, the <tt class="docutils literal"><span class="pre">__declare_first__</span></tt> helper is used to configure the
 &#8220;polymorphic&#8221; loader for the mapper after all subclasses have been declared.</p>
 <div class="versionadded">
 <p><span>New in version 0.7.3.</span></p>
@@ -839,6 +840,23 @@ With these objects, the <tt class="docutils literal"><span class="pre">__declare
     <span class="n">engineer_info</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">40</span><span class="p">))</span>
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span><span class="s">&#39;engineer&#39;</span><span class="p">,</span>
                     <span class="s">&#39;concrete&#39;</span><span class="p">:</span><span class="bp">True</span><span class="p">}</span></pre></div>
+</div>
+<p>The <a class="reference internal" href="#sqlalchemy.ext.declarative.AbstractConcreteBase" title="sqlalchemy.ext.declarative.AbstractConcreteBase"><tt class="xref py py-class docutils literal"><span class="pre">AbstractConcreteBase</span></tt></a> class is itself mapped, and can be
+used as a target of relationships:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Company</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;company&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">employees</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Employee&quot;</span><span class="p">,</span>
+                    <span class="n">primaryjoin</span><span class="o">=</span><span class="s">&quot;Company.id == Employee.company_id&quot;</span><span class="p">)</span></pre></div>
+</div>
+<div class="versionchanged">
+<p><span>Changed in version 0.9.3: </span>Support for use of <a class="reference internal" href="#sqlalchemy.ext.declarative.AbstractConcreteBase" title="sqlalchemy.ext.declarative.AbstractConcreteBase"><tt class="xref py py-class docutils literal"><span class="pre">AbstractConcreteBase</span></tt></a>
+as the target of a <a class="reference internal" href="../relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> has been improved.</p>
+</div>
+<p>It can also be queried directly:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">for</span> <span class="n">employee</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Employee</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Employee</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;qbert&#39;</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">employee</span><span class="p">)</span></pre></div>
 </div>
 </div>
 </div>
@@ -1226,37 +1244,6 @@ inheritance:</p>
     <span class="n">primary_language</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span> <span class="s">&#39;engineer&#39;</span><span class="p">}</span></pre></div>
 </div>
-<p>If you want to use a similar pattern with a mix of single and joined
-table inheritance, you would need a slightly different mixin and use
-it on any joined table child classes in addition to their parent
-classes:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declared_attr</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">has_inherited_table</span>
-
-<span class="k">class</span> <span class="nc">Tablename</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="nd">@declared_attr</span>
-    <span class="k">def</span> <span class="nf">__tablename__</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">has_inherited_table</span><span class="p">(</span><span class="n">cls</span><span class="p">)</span> <span class="ow">and</span>
-            <span class="n">Tablename</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">__bases__</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">None</span>
-        <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-
-<span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="n">Tablename</span><span class="p">,</span> <span class="n">Base</span><span class="p">):</span>
-    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">discriminator</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="s">&#39;type&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
-    <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_on&#39;</span><span class="p">:</span> <span class="n">discriminator</span><span class="p">}</span>
-
-<span class="c"># This is single table inheritance</span>
-<span class="k">class</span> <span class="nc">Engineer</span><span class="p">(</span><span class="n">Person</span><span class="p">):</span>
-    <span class="n">primary_language</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
-    <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span> <span class="s">&#39;engineer&#39;</span><span class="p">}</span>
-
-<span class="c"># This is joined table inheritance</span>
-<span class="k">class</span> <span class="nc">Manager</span><span class="p">(</span><span class="n">Tablename</span><span class="p">,</span> <span class="n">Person</span><span class="p">):</span>
-    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;person.id&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">preferred_recreation</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
-    <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;polymorphic_identity&#39;</span><span class="p">:</span> <span class="s">&#39;engineer&#39;</span><span class="p">}</span></pre></div>
-</div>
 </div>
 <div class="section" id="combining-table-mapper-arguments-from-multiple-mixins">
 <h3>Combining Table/Mapper Arguments from Multiple Mixins<a class="headerlink" href="#combining-table-mapper-arguments-from-multiple-mixins" title="Permalink to this headline">¶</a></h3>
@@ -1323,6 +1310,20 @@ assumed to be completed and the &#8216;configure&#8217; step has finished:</p>
 </div>
 <div class="versionadded">
 <p><span>New in version 0.7.3.</span></p>
+</div>
+</div>
+<div class="section" id="declare-first">
+<h3><tt class="docutils literal"><span class="pre">__declare_first__()</span></tt><a class="headerlink" href="#declare-first" title="Permalink to this headline">¶</a></h3>
+<p>Like <tt class="docutils literal"><span class="pre">__declare_last__()</span></tt>, but is called at the beginning of mapper configuration
+via the <a class="reference internal" href="../events.html#sqlalchemy.orm.events.MapperEvents.before_configured" title="sqlalchemy.orm.events.MapperEvents.before_configured"><tt class="xref py py-meth docutils literal"><span class="pre">MapperEvents.before_configured()</span></tt></a> event:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">__declare_first__</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="s">&quot;&quot;</span>
+        <span class="c"># do something before mappings are configured</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.3.</span></p>
 </div>
 </div>
 <div class="section" id="abstract">
@@ -1395,7 +1396,7 @@ setup using <a class="reference internal" href="../session.html#sqlalchemy.orm.s
 <h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="sqlalchemy.ext.declarative.declarative_base">
-<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x10f852b18&gt;</em>, <em>class_registry=None</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.api.DeclarativeMeta'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.ext.declarative.</tt><tt class="descname">declarative_base</tt><big>(</big><em>bind=None</em>, <em>metadata=None</em>, <em>mapper=None</em>, <em>cls=&lt;type 'object'&gt;</em>, <em>name='Base'</em>, <em>constructor=&lt;function __init__ at 0x10fc4f500&gt;</em>, <em>class_registry=None</em>, <em>metaclass=&lt;class 'sqlalchemy.ext.declarative.api.DeclarativeMeta'&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.declarative.declarative_base" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a base class for declarative class definitions.</p>
 <p>The new base class will be given a metaclass that produces
 appropriate <a class="reference internal" href="../../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects and makes

@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.2',
+          VERSION:     '0.9.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
+        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
 
 
     </div>
@@ -381,8 +381,10 @@ directly:</p>
     <span class="p">)</span><span class="o">.</span>\
     <span class="n">group_by</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">)</span></pre></div>
 </div>
-<p>See also:</p>
-<p><a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.SelectBase.cte" title="sqlalchemy.sql.expression.SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.cte()</span></tt></a></p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.SelectBase.cte" title="sqlalchemy.sql.expression.SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">SelectBase.cte()</span></tt></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -565,8 +567,10 @@ into SQL expression constructs via the <a class="reference internal" href="../co
 <div class="versionchanged">
 <p><span>Changed in version 0.7.5: </span>Multiple criteria joined by AND.</p>
 </div>
-<p>See also:</p>
-<p><a class="reference internal" href="#sqlalchemy.orm.query.Query.filter_by" title="sqlalchemy.orm.query.Query.filter_by"><tt class="xref py py-meth docutils literal"><span class="pre">Query.filter_by()</span></tt></a> - filter on keyword expressions.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.query.Query.filter_by" title="sqlalchemy.orm.query.Query.filter_by"><tt class="xref py py-meth docutils literal"><span class="pre">Query.filter_by()</span></tt></a> - filter on keyword expressions.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -584,8 +588,10 @@ of this <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="
 <p>The keyword expressions are extracted from the primary
 entity of the query, or the last entity that was the
 target of a call to <a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a>.</p>
-<p>See also:</p>
-<p><a class="reference internal" href="#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-meth docutils literal"><span class="pre">Query.filter()</span></tt></a> - filter on SQL expressions.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-meth docutils literal"><span class="pre">Query.filter()</span></tt></a> - filter on SQL expressions.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -944,15 +950,15 @@ FROM clauses of the query.</li>
 </tr>
 </tbody>
 </table>
-<p>See also:</p>
-<blockquote>
-<div><p><a class="reference internal" href="tutorial.html#ormtutorial-joins"><em>Querying with Joins</em></a> in the ORM tutorial.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="tutorial.html#ormtutorial-joins"><em>Querying with Joins</em></a> in the ORM tutorial.</p>
 <p><a class="reference internal" href="inheritance.html"><em>Mapping Class Inheritance Hierarchies</em></a> for details on how <a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a>
 is used for inheritance relationships.</p>
-<p><a class="reference internal" href="#sqlalchemy.orm.join" title="sqlalchemy.orm.join"><tt class="xref py py-func docutils literal"><span class="pre">orm.join()</span></tt></a> - a standalone ORM-level join function,
+<p class="last"><a class="reference internal" href="#sqlalchemy.orm.join" title="sqlalchemy.orm.join"><tt class="xref py py-func docutils literal"><span class="pre">orm.join()</span></tt></a> - a standalone ORM-level join function,
 used internally by <a class="reference internal" href="#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a>, which in previous
 SQLAlchemy versions was the primary ORM-level joining interface.</p>
-</div></blockquote>
+</div>
 </dd></dl>
 
 <dl class="method">

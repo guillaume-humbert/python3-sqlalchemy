@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.2',
+          VERSION:     '0.9.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
+        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
 
 
     </div>
@@ -465,7 +465,7 @@ absolutely ensure that it does not affect the end result of the query, only
 the way collections and related objects are loaded, no matter what the format of the query is.</p>
 </div>
 <div class="section" id="what-kind-of-loading-to-use">
-<h2>What Kind of Loading to Use ?<a class="headerlink" href="#what-kind-of-loading-to-use" title="Permalink to this headline">¶</a></h2>
+<span id="what-kind-of-loading"></span><h2>What Kind of Loading to Use ?<a class="headerlink" href="#what-kind-of-loading-to-use" title="Permalink to this headline">¶</a></h2>
 <p>Which type of loading to use typically comes down to optimizing the tradeoff
 between number of SQL executions, complexity of SQL emitted, and amount of
 data fetched. Lets take two examples, a <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>
@@ -512,7 +512,8 @@ using the default of <cite>lazy=&#8217;select&#8217;</cite> is by far the most e
 <li>When using joined loading, the load of 100 objects will emit only one SQL statement.   The join
 will be a LEFT OUTER JOIN, and the total number of rows will be equal to 100 in all cases.
 If you know that each parent definitely has a child (i.e. the foreign
-key reference is NOT NULL), the joined load can be configured with <tt class="docutils literal"><span class="pre">innerjoin=True</span></tt>, which is
+key reference is NOT NULL), the joined load can be configured with
+<a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.innerjoin" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">innerjoin</span></tt></a> set to <tt class="docutils literal"><span class="pre">True</span></tt>, which is
 usually specified within the <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.   For a load of objects where
 there are many possible target references which may have not been loaded already, joined loading
 with an INNER JOIN is extremely efficient.</li>

@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.2',
+          VERSION:     '0.9.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
+        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
 
 
     </div>
@@ -1331,7 +1331,7 @@ have one parent at a time, so is configured in the vast majority of cases
 on a one-to-many relationship.   Setting it on a many-to-one or
 many-to-many relationship is more awkward; for this use case,
 SQLAlchemy requires that the <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>
-be configured with the <tt class="docutils literal"><span class="pre">single_parent=True</span></tt> function, which
+be configured with the <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.single_parent" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">single_parent</span></tt></a> argument,
 establishes Python-side validation that ensures the object
 is associated with only one parent at a time.</p>
 </li>
@@ -1374,7 +1374,7 @@ place:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">i1</span> <span class="ow">in</span> <span class="n">session</span>
 <span class="go">True</span></pre></div>
 </div>
-<p>This behavior can be disabled using the <tt class="docutils literal"><span class="pre">cascade_backrefs</span></tt> flag:</p>
+<p>This behavior can be disabled using the <a class="reference internal" href="relationships.html#sqlalchemy.orm.relationship.params.cascade_backrefs" title="sqlalchemy.orm.relationship"><tt class="xref py py-paramref docutils literal"><span class="pre">cascade_backrefs</span></tt></a> flag:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Order</span><span class="p">,</span> <span class="n">order_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
     <span class="s">&#39;items&#39;</span> <span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Item</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&#39;order&#39;</span><span class="p">,</span>
                                 <span class="n">cascade_backrefs</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>

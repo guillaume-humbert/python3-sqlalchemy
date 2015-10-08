@@ -1,24 +1,24 @@
 #!coding: utf-8
 
 """SQLite-specific tests."""
+import os
+import datetime
 
 from sqlalchemy.testing import eq_, assert_raises, \
-    assert_raises_message
-import datetime
-from sqlalchemy import Table, String, select, Text, CHAR, bindparam, Column,\
-    Unicode, Date, MetaData, UnicodeText, Time, Integer, TIMESTAMP, \
-    Boolean, func, NUMERIC, DateTime, extract, ForeignKey, text, Numeric,\
-    DefaultClause, and_, DECIMAL, TypeDecorator, create_engine, Float, \
-    INTEGER, UniqueConstraint, DATETIME, DATE, TIME, BOOLEAN, BIGINT
+    assert_raises_message, is_
+from sqlalchemy import Table, select, bindparam, Column,\
+    MetaData, func, extract, ForeignKey, text, DefaultClause, and_, create_engine,\
+    UniqueConstraint
+from sqlalchemy.types import Integer, String, Boolean, DateTime, Date, Time
+from sqlalchemy import types as sqltypes
 from sqlalchemy.util import u, ue
-from sqlalchemy import exc, sql, schema, pool, types as sqltypes, util
+from sqlalchemy import exc, sql, schema, pool, util
 from sqlalchemy.dialects.sqlite import base as sqlite, \
     pysqlite as pysqlite_dialect
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.testing import fixtures, AssertsCompiledSQL, \
     AssertsExecutionResults, engines
 from sqlalchemy import testing
-import os
 from sqlalchemy.schema import CreateTable
 
 class TestTypes(fixtures.TestBase, AssertsExecutionResults):
@@ -78,9 +78,9 @@ class TestTypes(fixtures.TestBase, AssertsExecutionResults):
                         | dbapi.PARSE_COLNAMES}
         engine = engines.testing_engine(options={'connect_args'
                 : connect_args, 'native_datetime': True})
-        t = Table('datetest', MetaData(), Column('id', Integer,
-                  primary_key=True), Column('d1', Date), Column('d2',
-                  TIMESTAMP))
+        t = Table('datetest', MetaData(),
+                    Column('id', Integer, primary_key=True),
+                    Column('d1', Date), Column('d2', sqltypes.TIMESTAMP))
         t.create(engine)
         try:
             engine.execute(t.insert(), {'d1': datetime.date(2010, 5,
@@ -148,87 +148,17 @@ class TestTypes(fixtures.TestBase, AssertsExecutionResults):
         dialect = sqlite.dialect()
         for t in (
             String(convert_unicode=True),
-            CHAR(convert_unicode=True),
-            Unicode(),
-            UnicodeText(),
+            sqltypes.CHAR(convert_unicode=True),
+            sqltypes.Unicode(),
+            sqltypes.UnicodeText(),
             String(convert_unicode=True),
-            CHAR(convert_unicode=True),
-            Unicode(),
-            UnicodeText(),
+            sqltypes.CHAR(convert_unicode=True),
+            sqltypes.Unicode(),
+            sqltypes.UnicodeText(),
             ):
             bindproc = t.dialect_impl(dialect).bind_processor(dialect)
             assert not bindproc or \
                 isinstance(bindproc(util.u('some string')), util.text_type)
-
-    @testing.provide_metadata
-    def test_type_reflection(self):
-        metadata = self.metadata
-
-        # (ask_for, roundtripped_as_if_different)
-
-        specs = [
-            (String(), String()),
-            (String(1), String(1)),
-            (String(3), String(3)),
-            (Text(), Text()),
-            (Unicode(), String()),
-            (Unicode(1), String(1)),
-            (Unicode(3), String(3)),
-            (UnicodeText(), Text()),
-            (CHAR(1), ),
-            (CHAR(3), CHAR(3)),
-            (NUMERIC, NUMERIC()),
-            (NUMERIC(10, 2), NUMERIC(10, 2)),
-            (Numeric, NUMERIC()),
-            (Numeric(10, 2), NUMERIC(10, 2)),
-            (DECIMAL, DECIMAL()),
-            (DECIMAL(10, 2), DECIMAL(10, 2)),
-            (INTEGER, INTEGER()),
-            (BIGINT, BIGINT()),
-            (Float, Float()),
-            (NUMERIC(), ),
-            (TIMESTAMP, TIMESTAMP()),
-            (DATETIME, DATETIME()),
-            (DateTime, DateTime()),
-            (DateTime(), ),
-            (DATE, DATE()),
-            (Date, Date()),
-            (TIME, TIME()),
-            (Time, Time()),
-            (BOOLEAN, BOOLEAN()),
-            (Boolean, Boolean()),
-            ]
-        columns = [Column('c%i' % (i + 1), t[0]) for (i, t) in
-                   enumerate(specs)]
-        db = testing.db
-        t_table = Table('types', metadata, *columns)
-        metadata.create_all()
-        m2 = MetaData(db)
-        rt = Table('types', m2, autoload=True)
-        try:
-            db.execute('CREATE VIEW types_v AS SELECT * from types')
-            rv = Table('types_v', m2, autoload=True)
-            expected = [len(c) > 1 and c[1] or c[0] for c in specs]
-            for table in rt, rv:
-                for i, reflected in enumerate(table.c):
-                    assert isinstance(reflected.type,
-                            type(expected[i])), '%d: %r' % (i,
-                            type(expected[i]))
-        finally:
-            db.execute('DROP VIEW types_v')
-
-    @testing.emits_warning('Did not recognize')
-    @testing.provide_metadata
-    def test_unknown_reflection(self):
-        metadata = self.metadata
-        t = Table('t', metadata,
-            Column('x', sqltypes.BINARY(16)),
-            Column('y', sqltypes.BINARY())
-        )
-        t.create()
-        t2 = Table('t', MetaData(), autoload=True, autoload_with=testing.db)
-        assert isinstance(t2.c.x.type, sqltypes.NullType)
-        assert isinstance(t2.c.y.type, sqltypes.NullType)
 
 
 class DateTimeTest(fixtures.TestBase, AssertsCompiledSQL):
@@ -336,14 +266,14 @@ class DefaultsTest(fixtures.TestBase, AssertsCompiledSQL):
 
         # (ask_for, roundtripped_as_if_different)
 
-        specs = [(String(3), '"foo"'), (NUMERIC(10, 2), '100.50'),
+        specs = [(String(3), '"foo"'), (sqltypes.NUMERIC(10, 2), '100.50'),
                  (Integer, '5'), (Boolean, 'False')]
         columns = [Column('c%i' % (i + 1), t[0],
                    server_default=text(t[1])) for (i, t) in
                    enumerate(specs)]
         db = testing.db
         m = MetaData(db)
-        t_table = Table('t_defaults', m, *columns)
+        Table('t_defaults', m, *columns)
         try:
             m.create_all()
             m2 = MetaData(db)
@@ -416,13 +346,8 @@ class DefaultsTest(fixtures.TestBase, AssertsCompiledSQL):
         """test non-quoted integer value on older sqlite pragma"""
 
         dialect = sqlite.dialect()
-        eq_(
-            dialect._get_column_info("foo", "INTEGER", False, 3, False),
-            {'primary_key': False, 'nullable': False,
-                'default': '3', 'autoincrement': False,
-                'type': INTEGER, 'name': 'foo'}
-        )
-
+        info = dialect._get_column_info("foo", "INTEGER", False, 3, False)
+        eq_(info['default'], '3')
 
 
 
@@ -944,7 +869,7 @@ class AutoIncrementTest(fixtures.TestBase, AssertsCompiledSQL):
                             dialect=sqlite.dialect())
 
     def test_sqlite_autoincrement_int_affinity(self):
-        class MyInteger(TypeDecorator):
+        class MyInteger(sqltypes.TypeDecorator):
             impl = Integer
         table = Table(
             'autoinctable',
@@ -1022,3 +947,132 @@ class ReflectFKConstraintTest(fixtures.TestBase):
             set([con.name for con in c.constraints]),
             set([None, None])
         )
+
+
+class TypeReflectionTest(fixtures.TestBase):
+
+    __only_on__ = 'sqlite'
+
+    def _fixed_lookup_fixture(self):
+        return [
+            (sqltypes.String(), sqltypes.VARCHAR()),
+            (sqltypes.String(1), sqltypes.VARCHAR(1)),
+            (sqltypes.String(3), sqltypes.VARCHAR(3)),
+            (sqltypes.Text(), sqltypes.TEXT()),
+            (sqltypes.Unicode(), sqltypes.VARCHAR()),
+            (sqltypes.Unicode(1), sqltypes.VARCHAR(1)),
+            (sqltypes.UnicodeText(), sqltypes.TEXT()),
+            (sqltypes.CHAR(3), sqltypes.CHAR(3)),
+            (sqltypes.NUMERIC, sqltypes.NUMERIC()),
+            (sqltypes.NUMERIC(10, 2), sqltypes.NUMERIC(10, 2)),
+            (sqltypes.Numeric, sqltypes.NUMERIC()),
+            (sqltypes.Numeric(10, 2), sqltypes.NUMERIC(10, 2)),
+            (sqltypes.DECIMAL, sqltypes.DECIMAL()),
+            (sqltypes.DECIMAL(10, 2), sqltypes.DECIMAL(10, 2)),
+            (sqltypes.INTEGER, sqltypes.INTEGER()),
+            (sqltypes.BIGINT, sqltypes.BIGINT()),
+            (sqltypes.Float, sqltypes.FLOAT()),
+            (sqltypes.TIMESTAMP, sqltypes.TIMESTAMP()),
+            (sqltypes.DATETIME, sqltypes.DATETIME()),
+            (sqltypes.DateTime, sqltypes.DATETIME()),
+            (sqltypes.DateTime(), sqltypes.DATETIME()),
+            (sqltypes.DATE, sqltypes.DATE()),
+            (sqltypes.Date, sqltypes.DATE()),
+            (sqltypes.TIME, sqltypes.TIME()),
+            (sqltypes.Time, sqltypes.TIME()),
+            (sqltypes.BOOLEAN, sqltypes.BOOLEAN()),
+            (sqltypes.Boolean, sqltypes.BOOLEAN()),
+        ]
+
+    def _unsupported_args_fixture(self):
+        return [
+            ("INTEGER(5)", sqltypes.INTEGER(),),
+            ("DATETIME(6, 12)", sqltypes.DATETIME())
+        ]
+
+    def _type_affinity_fixture(self):
+        return [
+            ("LONGTEXT", sqltypes.TEXT()),
+            ("TINYINT", sqltypes.INTEGER()),
+            ("MEDIUMINT", sqltypes.INTEGER()),
+            ("INT2", sqltypes.INTEGER()),
+            ("UNSIGNED BIG INT", sqltypes.INTEGER()),
+            ("INT8", sqltypes.INTEGER()),
+            ("CHARACTER(20)", sqltypes.TEXT()),
+            ("CLOB", sqltypes.TEXT()),
+            ("CLOBBER", sqltypes.TEXT()),
+            ("VARYING CHARACTER(70)", sqltypes.TEXT()),
+            ("NATIVE CHARACTER(70)", sqltypes.TEXT()),
+            ("BLOB", sqltypes.BLOB()),
+            ("BLOBBER", sqltypes.NullType()),
+            ("DOUBLE PRECISION", sqltypes.REAL()),
+            ("FLOATY", sqltypes.REAL()),
+            ("NOTHING WE KNOW", sqltypes.NUMERIC()),
+        ]
+
+    def _fixture_as_string(self, fixture):
+        for from_, to_ in fixture:
+            if isinstance(from_, sqltypes.TypeEngine):
+                from_ = str(from_.compile())
+            elif isinstance(from_, type):
+                from_ = str(from_().compile())
+            yield from_, to_
+
+    def _test_lookup_direct(self, fixture, warnings=False):
+        dialect = sqlite.dialect()
+        for from_, to_ in self._fixture_as_string(fixture):
+            if warnings:
+                def go():
+                    return dialect._resolve_type_affinity(from_)
+                final_type = testing.assert_warnings(go,
+                                ["Could not instantiate"], regex=True)
+            else:
+                final_type = dialect._resolve_type_affinity(from_)
+            expected_type = type(to_)
+            is_(type(final_type), expected_type)
+
+    def _test_round_trip(self, fixture, warnings=False):
+        from sqlalchemy import inspect
+        conn = testing.db.connect()
+        for from_, to_ in self._fixture_as_string(fixture):
+            inspector = inspect(conn)
+            conn.execute("CREATE TABLE foo (data %s)" % from_)
+            try:
+                if warnings:
+                    def go():
+                        return inspector.get_columns("foo")[0]
+                    col_info = testing.assert_warnings(go,
+                                    ["Could not instantiate"], regex=True)
+                else:
+                    col_info = inspector.get_columns("foo")[0]
+                expected_type = type(to_)
+                is_(type(col_info['type']), expected_type)
+
+                # test args
+                for attr in ("scale", "precision", "length"):
+                    if getattr(to_, attr, None) is not None:
+                        eq_(
+                            getattr(col_info['type'], attr),
+                            getattr(to_, attr, None)
+                        )
+            finally:
+                conn.execute("DROP TABLE foo")
+
+    def test_lookup_direct_lookup(self):
+        self._test_lookup_direct(self._fixed_lookup_fixture())
+
+    def test_lookup_direct_unsupported_args(self):
+        self._test_lookup_direct(self._unsupported_args_fixture(), warnings=True)
+
+    def test_lookup_direct_type_affinity(self):
+        self._test_lookup_direct(self._type_affinity_fixture())
+
+    def test_round_trip_direct_lookup(self):
+        self._test_round_trip(self._fixed_lookup_fixture())
+
+    def test_round_trip_direct_unsupported_args(self):
+        self._test_round_trip(self._unsupported_args_fixture(), warnings=True)
+
+    def test_round_trip_direct_type_affinity(self):
+        self._test_round_trip(self._type_affinity_fixture())
+

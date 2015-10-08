@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.2',
+          VERSION:     '0.9.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
+        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
 
 
     </div>
@@ -136,7 +136,9 @@
 <li><a class="reference internal" href="#">0.8 Changelog</a><ul>
 <li><a class="reference internal" href="#change-0.8.5">0.8.5</a><ul>
 <li><a class="reference internal" href="#change-0.8.5-orm">orm</a></li>
+<li><a class="reference internal" href="#change-0.8.5-engine">engine</a></li>
 <li><a class="reference internal" href="#change-0.8.5-sql">sql</a></li>
+<li><a class="reference internal" href="#change-0.8.5-postgresql">postgresql</a></li>
 <li><a class="reference internal" href="#change-0.8.5-mysql">mysql</a></li>
 <li><a class="reference internal" href="#change-0.8.5-mssql">mssql</a></li>
 <li><a class="reference internal" href="#change-0.8.5-firebird">firebird</a></li>
@@ -257,28 +259,34 @@
 <h1>0.8 Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="change-0.8.5">
 <h2>0.8.5<a class="headerlink" href="#change-0.8.5" title="Permalink to this headline">¶</a></h2>
-no release date<div class="section" id="change-0.8.5-orm">
+Released: February 19, 2014<div class="section" id="change-0.8.5-orm">
 <h3>orm<a class="headerlink" href="#change-0.8.5-orm" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.8.5-0"><span class="target" id="change-3c1858beb196d211a158e6b04a259e9e"><strong>[orm] [bug] </strong></span>Fixed error message when an iterator object is passed to
+<li><p id="change-0.8.5-0"><span class="target" id="change-963fd6f9e65ff48f7f940166e32ee918"><strong>[orm] [bug] </strong></span>Fixed bug where <a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.get" title="sqlalchemy.orm.query.Query.get"><tt class="xref py py-meth docutils literal"><span class="pre">Query.get()</span></tt></a> would fail to consistently
+raise the <tt class="xref py py-class docutils literal"><span class="pre">InvalidRequestError</span></tt> that invokes when called
+on a query with existing criterion, when the given identity is
+already present in the identity map.<a class="changeset-link headerlink reference internal" href="#change-963fd6f9e65ff48f7f940166e32ee918">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2951">#2951</a></p>
+</p>
+</li>
+<li><p id="change-0.8.5-1"><span class="target" id="change-3c1858beb196d211a158e6b04a259e9e"><strong>[orm] [bug] </strong></span>Fixed error message when an iterator object is passed to
 <a class="reference internal" href="../orm/mapper_config.html#sqlalchemy.orm.class_mapper" title="sqlalchemy.orm.class_mapper"><tt class="xref py py-func docutils literal"><span class="pre">class_mapper()</span></tt></a> or similar, where the error would fail to
 render on string formatting.  Pullreq courtesy Kyle Stark.<a class="changeset-link headerlink reference internal" href="#change-3c1858beb196d211a158e6b04a259e9e">¶</a><p>References: <a class="reference external" href="https://github.com/zzzeek/sqlalchemy/pull/58">pull request github:58</a></p>
 </p>
 </li>
-<li><p id="change-0.8.5-1"><span class="target" id="change-299a27df663c00458dac3e27aa894641"><strong>[orm] [bug] </strong></span>An adjustment to the <a class="reference internal" href="../orm/loading.html#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a> strategy which ensures that
+<li><p id="change-0.8.5-2"><span class="target" id="change-299a27df663c00458dac3e27aa894641"><strong>[orm] [bug] </strong></span>An adjustment to the <a class="reference internal" href="../orm/loading.html#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a> strategy which ensures that
 the query runs after the loading process has begun; this is so that
 the subqueryload takes precedence over other loaders that may be
 hitting the same attribute due to other eager/noload situations
 at the wrong time.<a class="changeset-link headerlink reference internal" href="#change-299a27df663c00458dac3e27aa894641">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2887">#2887</a></p>
 </p>
 </li>
-<li><p id="change-0.8.5-2"><span class="target" id="change-63f4633bd86bada94c11baebaccf2306"><strong>[orm] [bug] </strong></span>Fixed bug when using joined table inheritance from a table to a
+<li><p id="change-0.8.5-3"><span class="target" id="change-63f4633bd86bada94c11baebaccf2306"><strong>[orm] [bug] </strong></span>Fixed bug when using joined table inheritance from a table to a
 select/alias on the base, where the PK columns were also not same
 named; the persistence system would fail to copy primary key values
 from the base table to the inherited table upon INSERT.<a class="changeset-link headerlink reference internal" href="#change-63f4633bd86bada94c11baebaccf2306">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2885">#2885</a></p>
 </p>
 </li>
-<li><p id="change-0.8.5-3"><span class="target" id="change-75ee98f66c5efa2d8d93820f1b4eaf74"><strong>[orm] [bug] </strong></span><a class="reference internal" href="../orm/mapper_config.html#sqlalchemy.orm.composite" title="sqlalchemy.orm.composite"><tt class="xref py py-func docutils literal"><span class="pre">composite()</span></tt></a> will raise an informative error message when the
+<li><p id="change-0.8.5-4"><span class="target" id="change-75ee98f66c5efa2d8d93820f1b4eaf74"><strong>[orm] [bug] </strong></span><a class="reference internal" href="../orm/mapper_config.html#sqlalchemy.orm.composite" title="sqlalchemy.orm.composite"><tt class="xref py py-func docutils literal"><span class="pre">composite()</span></tt></a> will raise an informative error message when the
 columns/attribute (names) passed don&#8217;t resolve to a Column or mapped
 attribute (such as an erroneous tuple); previously raised an unbound
 local.<a class="changeset-link headerlink reference internal" href="#change-75ee98f66c5efa2d8d93820f1b4eaf74">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2889">#2889</a></p>
@@ -286,10 +294,32 @@ local.<a class="changeset-link headerlink reference internal" href="#change-75ee
 </li>
 </ul>
 </div>
+<div class="section" id="change-0.8.5-engine">
+<h3>engine<a class="headerlink" href="#change-0.8.5-engine" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.5-5"><span class="target" id="change-b4da74a656ef5e3010bb13f8204f2fb0"><strong>[engine] [bug] [pool] </strong></span>Fixed a critical regression caused by <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2880">#2880</a> where the newly
+concurrent ability to return connections from the pool means that the
+&#8220;first_connect&#8221; event is now no longer synchronized either, thus leading
+to dialect mis-configurations under even minimal concurrency situations.<a class="changeset-link headerlink reference internal" href="#change-b4da74a656ef5e3010bb13f8204f2fb0">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2964">#2964</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2880">#2880</a></p>
+</p>
+</li>
+</ul>
+</div>
 <div class="section" id="change-0.8.5-sql">
 <h3>sql<a class="headerlink" href="#change-0.8.5-sql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.8.5-4"><span class="target" id="change-a635a18f34a5c52c352eaacb7e5d45db"><strong>[sql] [bug] </strong></span>Fixed issue where a primary key column that has a Sequence on it,
+<li><p id="change-0.8.5-6"><span class="target" id="change-eaeab65db0f99940354a433b2c1757e7"><strong>[sql] [bug] </strong></span>Fixed bug where calling <a class="reference internal" href="../core/dml.html#sqlalchemy.sql.expression.Insert.values" title="sqlalchemy.sql.expression.Insert.values"><tt class="xref py py-meth docutils literal"><span class="pre">Insert.values()</span></tt></a> with an empty list
+or tuple would raise an IndexError.   It now produces an empty
+insert construct as would be the case with an empty dictionary.<a class="changeset-link headerlink reference internal" href="#change-eaeab65db0f99940354a433b2c1757e7">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2944">#2944</a></p>
+</p>
+</li>
+<li><p id="change-0.8.5-7"><span class="target" id="change-33727fb51d625520dbf523e2021cb7ed"><strong>[sql] [bug] </strong></span>Fixed bug where <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.in_" title="sqlalchemy.sql.expression.ColumnElement.in_"><tt class="xref py py-meth docutils literal"><span class="pre">in_()</span></tt></a> would go into an endless loop if
+erroneously passed a column expression whose comparator included
+the <tt class="docutils literal"><span class="pre">__getitem__()</span></tt> method, such as a column that uses the
+<a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.ARRAY" title="sqlalchemy.dialects.postgresql.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.ARRAY</span></tt></a> type.<a class="changeset-link headerlink reference internal" href="#change-33727fb51d625520dbf523e2021cb7ed">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2957">#2957</a></p>
+</p>
+</li>
+<li><p id="change-0.8.5-8"><span class="target" id="change-a635a18f34a5c52c352eaacb7e5d45db"><strong>[sql] [bug] </strong></span>Fixed issue where a primary key column that has a Sequence on it,
 yet the column is not the &#8220;auto increment&#8221; column, either because
 it has a foreign key constraint or <tt class="docutils literal"><span class="pre">autoincrement=False</span></tt> set,
 would attempt to fire the Sequence on INSERT for backends that don&#8217;t
@@ -298,7 +328,7 @@ key value.  This would take place on non-sequence backends like
 SQLite, MySQL.<a class="changeset-link headerlink reference internal" href="#change-a635a18f34a5c52c352eaacb7e5d45db">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2896">#2896</a></p>
 </p>
 </li>
-<li><p id="change-0.8.5-5"><span class="target" id="change-2a68cc38f848658f1f726522b257ae30"><strong>[sql] [bug] </strong></span>Fixed bug with <a class="reference internal" href="../core/dml.html#sqlalchemy.sql.expression.Insert.from_select" title="sqlalchemy.sql.expression.Insert.from_select"><tt class="xref py py-meth docutils literal"><span class="pre">Insert.from_select()</span></tt></a> method where the order
+<li><p id="change-0.8.5-9"><span class="target" id="change-2a68cc38f848658f1f726522b257ae30"><strong>[sql] [bug] </strong></span>Fixed bug with <a class="reference internal" href="../core/dml.html#sqlalchemy.sql.expression.Insert.from_select" title="sqlalchemy.sql.expression.Insert.from_select"><tt class="xref py py-meth docutils literal"><span class="pre">Insert.from_select()</span></tt></a> method where the order
 of the given names would not be taken into account when generating
 the INSERT statement, thus producing a mismatch versus the column
 names in the given SELECT statement.  Also noted that
@@ -306,9 +336,40 @@ names in the given SELECT statement.  Also noted that
 cannot be used, since the statement has no VALUES clause.<a class="changeset-link headerlink reference internal" href="#change-2a68cc38f848658f1f726522b257ae30">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2895">#2895</a></p>
 </p>
 </li>
-<li><p id="change-0.8.5-6"><span class="target" id="change-328b0d6b8c257eff2b4edfd2852eb628"><strong>[sql] [enhancement] </strong></span>The exception raised when a <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a> is present
+<li><p id="change-0.8.5-10"><span class="target" id="change-328b0d6b8c257eff2b4edfd2852eb628"><strong>[sql] [enhancement] </strong></span>The exception raised when a <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.BindParameter" title="sqlalchemy.sql.expression.BindParameter"><tt class="xref py py-class docutils literal"><span class="pre">BindParameter</span></tt></a> is present
 in a compiled statement without a value now includes the key name
 of the bound parameter in the error message.<a class="changeset-link headerlink reference internal" href="#change-328b0d6b8c257eff2b4edfd2852eb628">¶</a><p></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.8.5-postgresql">
+<h3>postgresql<a class="headerlink" href="#change-0.8.5-postgresql" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.5-11"><span class="target" id="change-abe4e69a00c65c9fc72433a2a5aad465"><strong>[postgresql] [bug] </strong></span>Added an additional message to psycopg2 disconnect detection,
+&#8220;could not send data to server&#8221;, which complements the existing
+&#8220;could not receive data from server&#8221; and has been observed by users.<a class="changeset-link headerlink reference internal" href="#change-abe4e69a00c65c9fc72433a2a5aad465">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2936">#2936</a></p>
+</p>
+</li>
+<li><p id="change-0.8.5-12"><span class="target" id="change-a3d203ef1bb5e3411e9e3e279194848f"><strong>[postgresql] [bug] </strong></span><blockquote>
+<div>Support has been improved for Postgresql reflection behavior on very old
+(pre 8.1) versions of Postgresql, and potentially other PG engines
+such as Redshift (assuming Redshift reports the version as &lt; 8.1).
+The query for &#8220;indexes&#8221; as well as &#8220;primary keys&#8221; relies upon inspecting
+a so-called &#8220;int2vector&#8221; datatype, which refuses to coerce to an array
+prior to 8.1 causing failures regarding the &#8220;ANY()&#8221; operator used
+in the query.  Extensive googling has located the very hacky, but
+recommended-by-PG-core-developer query to use when PG version &lt; 8.1
+is in use, so index and primary key constraint reflection now work
+on these versions.</div></blockquote>
+<a class="changeset-link headerlink reference internal" href="#change-a3d203ef1bb5e3411e9e3e279194848f">¶</a><p></p>
+</p>
+</li>
+<li><p id="change-0.8.5-13"><span class="target" id="change-3d5d651a2c1822482b8645ec21a68973"><strong>[postgresql] [bug] </strong></span>Revised this very old issue where the Postgresql &#8220;get primary key&#8221;
+reflection query were updated to take into account primary key constraints
+that were renamed; the newer query fails on very old versions of
+Postgresql such as version 7, so the old query is restored in those cases
+when server_version_info &lt; (8, 0) is detected.<a class="changeset-link headerlink reference internal" href="#change-3d5d651a2c1822482b8645ec21a68973">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2291">#2291</a></p>
 </p>
 </li>
 </ul>
@@ -316,7 +377,29 @@ of the bound parameter in the error message.<a class="changeset-link headerlink 
 <div class="section" id="change-0.8.5-mysql">
 <h3>mysql<a class="headerlink" href="#change-0.8.5-mysql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.8.5-7"><span class="target" id="change-f55316fde4a189d8126b15e329332461"><strong>[mysql] [bug] </strong></span>Some missing methods added to the cymysql dialect, including
+<li><p id="change-0.8.5-14"><span class="target" id="change-e61353bcbaeea335f62823591b2bd3df"><strong>[mysql] [feature] </strong></span>Added new MySQL-specific <a class="reference internal" href="../dialects/mysql.html#sqlalchemy.dialects.mysql.DATETIME" title="sqlalchemy.dialects.mysql.DATETIME"><tt class="xref py py-class docutils literal"><span class="pre">mysql.DATETIME</span></tt></a> which includes
+fractional seconds support; also added fractional seconds support
+to <a class="reference internal" href="../dialects/mysql.html#sqlalchemy.dialects.mysql.TIMESTAMP" title="sqlalchemy.dialects.mysql.TIMESTAMP"><tt class="xref py py-class docutils literal"><span class="pre">mysql.TIMESTAMP</span></tt></a>.  DBAPI support is limited, though
+fractional seconds are known to be supported by MySQL Connector/Python.
+Patch courtesy Geert JM Vanderkelen.<a class="changeset-link headerlink reference internal" href="#change-e61353bcbaeea335f62823591b2bd3df">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2941">#2941</a></p>
+</p>
+</li>
+<li><p id="change-0.8.5-15"><span class="target" id="change-dc53ea0fad376d114f411a9855e869fc"><strong>[mysql] [bug] </strong></span>Added support for the <tt class="docutils literal"><span class="pre">PARTITION</span> <span class="pre">BY</span></tt> and <tt class="docutils literal"><span class="pre">PARTITIONS</span></tt>
+MySQL table keywords, specified as <tt class="docutils literal"><span class="pre">mysql_partition_by='value'</span></tt> and
+<tt class="docutils literal"><span class="pre">mysql_partitions='value'</span></tt> to <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.  Pull request
+courtesy Marcus McCurdy.<a class="changeset-link headerlink reference internal" href="#change-dc53ea0fad376d114f411a9855e869fc">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2966">#2966</a>, <a class="reference external" href="https://bitbucket.org/zzzeek/sqlalchemy/pull-request/12">pull request bitbucket:12</a></p>
+</p>
+</li>
+<li><p id="change-0.8.5-16"><span class="target" id="change-e9165d6fdae23130302d540e3bc6d597"><strong>[mysql] [bug] </strong></span>Fixed bug which prevented MySQLdb-based dialects (e.g.
+pymysql) from working in Py3K, where a check for &#8220;connection
+charset&#8221; would fail due to Py3K&#8217;s more strict value comparison
+rules.  The call in question  wasn&#8217;t taking the database
+version into account in any case as the server version was
+still None at that point, so the method overall has been
+simplified to rely upon connection.character_set_name().<a class="changeset-link headerlink reference internal" href="#change-e9165d6fdae23130302d540e3bc6d597">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2933">#2933</a></p>
+</p>
+</li>
+<li><p id="change-0.8.5-17"><span class="target" id="change-f55316fde4a189d8126b15e329332461"><strong>[mysql] [bug] </strong></span>Some missing methods added to the cymysql dialect, including
 _get_server_version_info() and _detect_charset().  Pullreq
 courtesy Hajime Nakagami.<a class="changeset-link headerlink reference internal" href="#change-f55316fde4a189d8126b15e329332461">¶</a><p>References: <a class="reference external" href="https://github.com/zzzeek/sqlalchemy/pull/61">pull request github:61</a></p>
 </p>
@@ -326,12 +409,12 @@ courtesy Hajime Nakagami.<a class="changeset-link headerlink reference internal"
 <div class="section" id="change-0.8.5-mssql">
 <h3>mssql<a class="headerlink" href="#change-0.8.5-mssql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.8.5-8"><span class="target" id="change-02b8136f04eac946a40b7db8f2f4f0f3"><strong>[mssql] [bug] [firebird] </strong></span>The &#8220;asdecimal&#8221; flag used with the <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a> type will now
+<li><p id="change-0.8.5-18"><span class="target" id="change-02b8136f04eac946a40b7db8f2f4f0f3"><strong>[mssql] [bug] [firebird] </strong></span>The &#8220;asdecimal&#8221; flag used with the <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></a> type will now
 work with Firebird as well as the mssql+pyodbc dialects; previously the
 decimal conversion was not occurring.<a class="changeset-link headerlink reference internal" href="#change-02b8136f04eac946a40b7db8f2f4f0f3">¶</a><p></p>
 </p>
 </li>
-<li><p id="change-0.8.5-9"><span class="target" id="change-87840ae63e620637ec1dd97e9f1fbbfc"><strong>[mssql] [bug] [pymssql] </strong></span>Added &#8220;Net-Lib error during Connection reset by peer&#8221; message
+<li><p id="change-0.8.5-19"><span class="target" id="change-87840ae63e620637ec1dd97e9f1fbbfc"><strong>[mssql] [bug] [pymssql] </strong></span>Added &#8220;Net-Lib error during Connection reset by peer&#8221; message
 to the list of messages checked for &#8220;disconnect&#8221; within the
 pymssql dialect.  Courtesy John Anderson.<a class="changeset-link headerlink reference internal" href="#change-87840ae63e620637ec1dd97e9f1fbbfc">¶</a><p>References: <a class="reference external" href="https://github.com/zzzeek/sqlalchemy/pull/51">pull request github:51</a></p>
 </p>
@@ -341,11 +424,11 @@ pymssql dialect.  Courtesy John Anderson.<a class="changeset-link headerlink ref
 <div class="section" id="change-0.8.5-firebird">
 <h3>firebird<a class="headerlink" href="#change-0.8.5-firebird" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.8.5-10"><span class="target" id="change-491c479b04e5d70530ef87406332f723"><strong>[firebird] [bug] </strong></span>The firebird dialect will quote identifiers which begin with an
+<li><p id="change-0.8.5-20"><span class="target" id="change-491c479b04e5d70530ef87406332f723"><strong>[firebird] [bug] </strong></span>The firebird dialect will quote identifiers which begin with an
 underscore.  Courtesy Treeve Jelbert.<a class="changeset-link headerlink reference internal" href="#change-491c479b04e5d70530ef87406332f723">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2897">#2897</a></p>
 </p>
 </li>
-<li><p id="change-0.8.5-11"><span class="target" id="change-8066c3961ec654ddd830fa2e4bb5a2b8"><strong>[firebird] [bug] </strong></span>Fixed bug in Firebird index reflection where the columns within the
+<li><p id="change-0.8.5-21"><span class="target" id="change-8066c3961ec654ddd830fa2e4bb5a2b8"><strong>[firebird] [bug] </strong></span>Fixed bug in Firebird index reflection where the columns within the
 index were not sorted correctly; they are now sorted
 in order of RDB$FIELD_POSITION.<a class="changeset-link headerlink reference internal" href="#change-8066c3961ec654ddd830fa2e4bb5a2b8">¶</a><p></p>
 </p>
@@ -355,13 +438,13 @@ in order of RDB$FIELD_POSITION.<a class="changeset-link headerlink reference int
 <div class="section" id="change-0.8.5-misc">
 <h3>misc<a class="headerlink" href="#change-0.8.5-misc" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p id="change-0.8.5-12"><span class="target" id="change-5ab170daca7483efaf20de27592c8329"><strong>[bug] [py3k] </strong></span>Fixed Py3K bug where a missing import would cause &#8220;literal binary&#8221;
+<li><p id="change-0.8.5-22"><span class="target" id="change-5ab170daca7483efaf20de27592c8329"><strong>[bug] [py3k] </strong></span>Fixed Py3K bug where a missing import would cause &#8220;literal binary&#8221;
 mode to fail to import &#8220;util.binary_type&#8221; when rendering a bound
 parameter.  0.9 handles this differently. Pull request courtesy
 Andreas Zeidler.<a class="changeset-link headerlink reference internal" href="#change-5ab170daca7483efaf20de27592c8329">¶</a><p>References: <a class="reference external" href="https://github.com/zzzeek/sqlalchemy/pull/63">pull request github:63</a></p>
 </p>
 </li>
-<li><p id="change-0.8.5-13"><span class="target" id="change-d707bd93370fc840f28c9d8faf6c209f"><strong>[bug] [declarative] </strong></span>Error message when a string arg sent to <a class="reference internal" href="../orm/relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> which
+<li><p id="change-0.8.5-23"><span class="target" id="change-d707bd93370fc840f28c9d8faf6c209f"><strong>[bug] [declarative] </strong></span>Error message when a string arg sent to <a class="reference internal" href="../orm/relationships.html#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> which
 doesn&#8217;t resolve to a class or mapper has been corrected to work
 the same way as when a non-string arg is received, which indicates
 the name of the relationship which had the configurational error.<a class="changeset-link headerlink reference internal" href="#change-d707bd93370fc840f28c9d8faf6c209f">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2888">#2888</a></p>
@@ -728,7 +811,7 @@ this keyword is not only silently ignored by MySQL but also breaks
 the ON UPDATE/ON DELETE options.<p>To use a <a class="reference internal" href="../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>
 that does not render or renders differently on MySQL, use a custom
 compilation option.  An example of this usage has been added to the
-documentation, see <a class="reference internal" href="../dialects/mysql.html#mysql-foreign-keys"><em>MySQL Foreign Key Options</em></a>.</p>
+documentation, see <a class="reference internal" href="../dialects/mysql.html#mysql-foreign-keys"><em>MySQL Foreign Keys</em></a>.</p>
 <a class="changeset-link headerlink reference internal" href="#change-f8980c12474534ac31102ea813a57a1b">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2721">#2721</a>, <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2839">#2839</a></p>
 </p>
 </li>

@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.2',
+          VERSION:     '0.9.3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -87,7 +87,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.9.2</span> | Release Date: February 2, 2014
+        Release: <span class="version-num">0.9.3</span> | Release Date: February 19, 2014
 
 
     </div>
@@ -1778,10 +1778,33 @@ psycopg2.</p>
 </div>
 <div class="section" id="hstore-type">
 <h3>HSTORE type<a class="headerlink" href="#hstore-type" title="Permalink to this headline">¶</a></h3>
-<p>The psycopg2 dialect will make use of the
-<tt class="docutils literal"><span class="pre">psycopg2.extensions.register_hstore()</span></tt> extension when using the HSTORE
-type.  This replaces SQLAlchemy&#8217;s pure-Python HSTORE coercion which takes
-effect for other DBAPIs.</p>
+<p>The <tt class="docutils literal"><span class="pre">psycopg2</span></tt> DBAPI includes an extension to natively handle marshalling of the
+HSTORE type.   The SQLAlchemy psycopg2 dialect will enable this extension
+by default when it is detected that the target database has the HSTORE
+type set up for use.   In other words, when the dialect makes the first
+connection, a sequence like the following is performed:</p>
+<ol class="arabic simple">
+<li>Request the available HSTORE oids using <tt class="docutils literal"><span class="pre">psycopg2.extras.HstoreAdapter.get_oids()</span></tt>.
+If this function returns a list of HSTORE identifiers, we then determine that
+the <tt class="docutils literal"><span class="pre">HSTORE</span></tt> extension is present.</li>
+<li>If the <tt class="docutils literal"><span class="pre">use_native_hstore</span></tt> flag is at it&#8217;s default of <tt class="docutils literal"><span class="pre">True</span></tt>, and
+we&#8217;ve detected that <tt class="docutils literal"><span class="pre">HSTORE</span></tt> oids are available, the
+<tt class="docutils literal"><span class="pre">psycopg2.extensions.register_hstore()</span></tt> extension is invoked for all
+connections.</li>
+</ol>
+<p>The <tt class="docutils literal"><span class="pre">register_hstore()</span></tt> extension has the effect of <strong>all Python dictionaries
+being accepted as parameters regardless of the type of target column in SQL</strong>.
+The dictionaries are converted by this extension into a textual HSTORE expression.
+If this behavior is not desired, disable the
+use of the hstore extension by setting <tt class="docutils literal"><span class="pre">use_native_hstore</span></tt> to <tt class="docutils literal"><span class="pre">False</span></tt> as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;postgresql+psycopg2://scott:tiger@localhost/test&quot;</span><span class="p">,</span>
+            <span class="n">use_native_hstore</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span></pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">HSTORE</span></tt> type is <strong>still supported</strong> when the <tt class="docutils literal"><span class="pre">psycopg2.extensions.register_hstore()</span></tt>
+extension is not used.  It merely means that the coercion between Python dictionaries and the HSTORE
+string format, on both the parameter side and the result side, will take
+place within SQLAlchemy&#8217;s own marshalling logic, and not that of <tt class="docutils literal"><span class="pre">psycopg2</span></tt> which
+may be more performant.</p>
 </div>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.postgresql.pypostgresql">
