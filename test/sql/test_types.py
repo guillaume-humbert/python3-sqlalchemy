@@ -130,6 +130,32 @@ class AdaptTest(fixtures.TestBase):
                         getattr(t2, k) == t1.__dict__[k] or \
                         t1.__dict__[k] is None
 
+    def test_python_type(self):
+        eq_(types.Integer().python_type, int)
+        eq_(types.Numeric().python_type, decimal.Decimal)
+        eq_(types.Numeric(asdecimal=False).python_type, float)
+        # Py3K
+        #eq_(types.LargeBinary().python_type, bytes)
+        # Py2K
+        eq_(types.LargeBinary().python_type, str)
+        # end Py2K
+        eq_(types.Float().python_type, float)
+        eq_(types.Interval().python_type, datetime.timedelta)
+        eq_(types.Date().python_type, datetime.date)
+        eq_(types.DateTime().python_type, datetime.datetime)
+        # Py3K
+        #eq_(types.String().python_type, unicode)
+        # Py2K
+        eq_(types.String().python_type, str)
+        # end Py2K
+        eq_(types.Unicode().python_type, unicode)
+        eq_(types.String(convert_unicode=True).python_type, unicode)
+
+        assert_raises(
+            NotImplementedError,
+            lambda: types.TypeEngine().python_type
+        )
+
     @testing.uses_deprecated()
     def test_repr(self):
         for typ in self._all_types():
@@ -172,6 +198,23 @@ class TypeAffinityTest(fixtures.TestBase):
             (PickleType(), PickleType(), True),
         ]:
             eq_(t1._compare_type_affinity(t2), comp, "%s %s" % (t1, t2))
+
+    def test_decorator_doesnt_cache(self):
+        from sqlalchemy.dialects import postgresql
+
+        class MyType(TypeDecorator):
+            impl = CHAR
+
+            def load_dialect_impl(self, dialect):
+                if dialect.name == 'postgresql':
+                    return dialect.type_descriptor(postgresql.UUID())
+                else:
+                    return dialect.type_descriptor(CHAR(32))
+
+        t1 = MyType()
+        d = postgresql.dialect()
+        assert t1._type_affinity is String
+        assert t1.dialect_impl(d)._type_affinity is postgresql.UUID
 
 class PickleMetadataTest(fixtures.TestBase):
     def testmeta(self):
@@ -626,6 +669,7 @@ class UnicodeTest(fixtures.TestBase, AssertsExecutionResults):
                 ('mysql','oursql'),
                 ('mysql','zxjdbc'),
                 ('mysql','mysqlconnector'),
+                ('mysql','pymysql'),
                 ('sqlite','pysqlite'),
                 ('oracle','zxjdbc'),
                 ('oracle','cx_oracle'),
@@ -929,6 +973,20 @@ class EnumTest(fixtures.TestBase):
             non_native_enum_table.insert().execute,
             {'id':4, 'someenum':'four'}
         )
+
+    def test_mock_engine_no_prob(self):
+        """ensure no 'checkfirst' queries are run when enums
+        are created with checkfirst=False"""
+
+        e = engines.mock_engine()
+        t = Table('t1', MetaData(),
+            Column('x', Enum("x", "y", name="pge"))
+        )
+        t.create(e, checkfirst=False)
+        # basically looking for the start of 
+        # the constraint, or the ENUM def itself,
+        # depending on backend.
+        assert "('x'," in e.print_sql()
 
 class BinaryTest(fixtures.TestBase, AssertsExecutionResults):
     __excluded_on__ = (

@@ -58,7 +58,7 @@ Standard Types`_ and the other sections of this chapter.
 
 .. autoclass:: Enum
   :show-inheritance:
-  :members:
+  :members: __init__, create, drop
 
 .. autoclass:: Float
   :show-inheritance:
@@ -296,6 +296,8 @@ to and from the database is required.
 TypeDecorator Recipes
 ~~~~~~~~~~~~~~~~~~~~~
 A few key :class:`.TypeDecorator` recipes follow.
+
+.. _coerce_to_unicode:
 
 Coercing Encoded Strings to Unicode
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

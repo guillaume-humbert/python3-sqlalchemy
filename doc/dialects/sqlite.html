@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.3',
+          VERSION:     '0.7.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -38,24 +38,35 @@
 
 
 
-<h1>SQLAlchemy 0.7 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+
+
+<div id="docs-container">
+
+
+
+<div id="docs-header">
+    <h1>SQLAlchemy 0.7 Documentation</h1>
+
+    <div id="docs-search">
+    Search:
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+
+
+    </div>
+
 </div>
 
-<div class="versionheader">
-    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
+<div id="docs-top-navigation">
+    <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
             <a href="postgresql.html" title="previous chapter">PostgreSQL</a>
@@ -71,8 +82,9 @@ Search:
         </li>
         </ul>
     </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
+
+    <div id="docs-navigation-banner">
+        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="Dialects">Dialects</a>
         » 
                 SQLite
@@ -83,7 +95,15 @@ Search:
                 SQLite
             
         </h2>
-        <ul>
+    </div>
+
+</div>
+
+<div id="docs-body-container">
+
+    <div id="docs-sidebar">
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
 <li><a class="reference internal" href="#">SQLite</a><ul>
 <li><a class="reference internal" href="#date-and-time-types">Date and Time Types</a></li>
 <li><a class="reference internal" href="#auto-incrementing-behavior">Auto Incrementing Behavior</a></li>
@@ -99,18 +119,35 @@ Search:
 </ul>
 </li>
 <li><a class="reference internal" href="#unicode">Unicode</a></li>
+<li><a class="reference internal" href="#serializable-transaction-isolation">Serializable Transaction Isolation</a></li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
+
+
+    <h4>Previous Topic</h4>
+    <p>
+    <a href="postgresql.html" title="previous chapter">PostgreSQL</a>
+    </p>
+    <h4>Next Topic</h4>
+    <p>
+    <a href="sybase.html" title="next chapter">Sybase</a>
+    </p>
+
+    <h4>Quick Search</h4>
+    <p>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </p>
 
     </div>
-    <div class="clearboth"></div>
-</div>
 
-<div class="document">
-    <div class="body">
+    <div id="docs-body" class="withsidebar" >
         
 <div class="section" id="module-sqlalchemy.dialects.sqlite.base">
 <span id="sqlite"></span><span id="sqlite-toplevel"></span><h1>SQLite<a class="headerlink" href="#module-sqlalchemy.dialects.sqlite.base" title="Permalink to this headline">¶</a></h1>
@@ -150,10 +187,12 @@ to the Table construct:</p>
 </div>
 <div class="section" id="transaction-isolation-level">
 <h2>Transaction Isolation Level<a class="headerlink" href="#transaction-isolation-level" title="Permalink to this headline">¶</a></h2>
-<p><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt> accepts an <tt class="docutils literal"><span class="pre">isolation_level</span></tt> parameter which results in 
+<p><a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> accepts an <tt class="docutils literal"><span class="pre">isolation_level</span></tt> parameter which results in 
 the command <tt class="docutils literal"><span class="pre">PRAGMA</span> <span class="pre">read_uncommitted</span> <span class="pre">&lt;level&gt;</span></tt> being invoked for every new 
 connection.   Valid values for this parameter are <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt> and 
-<tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt> corresponding to a value of 0 and 1, respectively.</p>
+<tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt> corresponding to a value of 0 and 1, respectively.
+See the section <a class="reference internal" href="#pysqlite-serializable"><em>Serializable Transaction Isolation</em></a> for an important workaround
+when using serializable isolation with Pysqlite.</p>
 </div>
 <div class="section" id="sqlite-data-types">
 <h2>SQLite Data Types<a class="headerlink" href="#sqlite-data-types" title="Permalink to this headline">¶</a></h2>
@@ -444,36 +483,58 @@ way.</p>
 </div>
 <div class="section" id="unicode">
 <h3>Unicode<a class="headerlink" href="#unicode" title="Permalink to this headline">¶</a></h3>
-<p>In contrast to SQLAlchemy&#8217;s active handling of date and time types for pysqlite, pysqlite&#8217;s 
-default behavior regarding Unicode is that all strings are returned as Python unicode objects
-in all cases.  So even if the <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> type is 
-<em>not</em> used, you will still always receive unicode data back from a result set.  It is 
-<strong>strongly</strong> recommended that you do use the <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> type
-to represent strings, since it will raise a warning if a non-unicode Python string is 
-passed from the user application.  Mixing the usage of non-unicode objects with returned unicode objects can
-quickly create confusion, particularly when using the ORM as internal data is not 
-always represented by an actual database result string.</p>
+<p>The pysqlite driver only returns Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects in result sets, never
+plain strings, and accommodates <tt class="docutils literal"><span class="pre">unicode</span></tt> objects within bound parameter
+values in all cases.   Regardless of the SQLAlchemy string type in use, 
+string-based result values will by Python <tt class="docutils literal"><span class="pre">unicode</span></tt> in Python 2.  
+The <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> type should still be used to indicate those columns that
+require unicode, however, so that non-<tt class="docutils literal"><span class="pre">unicode</span></tt> values passed inadvertently
+will emit a warning.  Pysqlite will emit an error if a non-<tt class="docutils literal"><span class="pre">unicode</span></tt> string
+is passed containing non-ASCII characters.</p>
+</div>
+<div class="section" id="serializable-transaction-isolation">
+<span id="pysqlite-serializable"></span><h3>Serializable Transaction Isolation<a class="headerlink" href="#serializable-transaction-isolation" title="Permalink to this headline">¶</a></h3>
+<p>The pysqlite DBAPI driver has a long-standing bug in which transactional
+state is not begun until the first DML statement, that is INSERT, UPDATE
+or DELETE, is emitted.  A SELECT statement will not cause transactional
+state to begin.   While this mode of usage is fine for typical situations
+and has the advantage that the SQLite database file is not prematurely 
+locked, it breaks serializable transaction isolation, which requires
+that the database file be locked upon any SQL being emitted.</p>
+<p>To work around this issue, the <tt class="docutils literal"><span class="pre">BEGIN</span></tt> keyword can be emitted
+at the start of each transaction.   The following recipe establishes
+a <a class="reference internal" href="../core/events.html#sqlalchemy.events.ConnectionEvents.begin" title="sqlalchemy.events.ConnectionEvents.begin"><tt class="xref py py-meth docutils literal"><span class="pre">ConnectionEvents.begin()</span></tt></a> handler to achieve this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">event</span>
+
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;sqlite:///myfile.db&quot;</span><span class="p">,</span> <span class="n">isolation_level</span><span class="o">=</span><span class="s">&#39;SERIALIZABLE&#39;</span><span class="p">)</span>
+
+<span class="nd">@event.listens_for</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s">&quot;begin&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">do_begin</span><span class="p">(</span><span class="n">conn</span><span class="p">):</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;BEGIN&quot;</span><span class="p">)</span></pre></div>
+</div>
 </div>
 </div>
 </div>
 
     </div>
+
 </div>
 
 
-    <div class="bottomnav">
+    <div id="docs-bottom-navigation" class="docs-navigation-links">
             Previous:
             <a href="postgresql.html" title="previous chapter">PostgreSQL</a>
             Next:
             <a href="sybase.html" title="next chapter">Sybase</a>
-        <div class="doc_copyright">
+
+        <div id="docs-copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
             Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 
 
-
+</div>
 
     </body>
 </html>

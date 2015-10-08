@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.7.3',
+          VERSION:     '0.7.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -38,24 +38,35 @@
 
 
 
-<h1>SQLAlchemy 0.7 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+
+
+<div id="docs-container">
+
+
+
+<div id="docs-header">
+    <h1>SQLAlchemy 0.7 Documentation</h1>
+
+    <div id="docs-search">
+    Search:
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+
+
+    </div>
+
 </div>
 
-<div class="versionheader">
-    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
+<div id="docs-top-navigation">
+    <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
             <a href="horizontal_shard.html" title="previous chapter">Horizontal Sharding</a>
@@ -71,8 +82,9 @@ Search:
         </li>
         </ul>
     </div>
-    <div id="navbanner">
-        <a class="totoc" href="../../index.html">SQLAlchemy 0.7 Documentation</a>
+
+    <div id="docs-navigation-banner">
+        <a href="../../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="../index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
                 » <a href="index.html" title="ORM Extensions">ORM Extensions</a>
         » 
@@ -84,24 +96,49 @@ Search:
                 Hybrid Attributes
             
         </h2>
-        <ul>
+    </div>
+
+</div>
+
+<div id="docs-body-container">
+
+    <div id="docs-sidebar">
+    <h3><a href="../../index.html">Table of Contents</a></h3>
+    <ul>
 <li><a class="reference internal" href="#">Hybrid Attributes</a><ul>
 <li><a class="reference internal" href="#defining-expression-behavior-distinct-from-attribute-behavior">Defining Expression Behavior Distinct from Attribute Behavior</a></li>
 <li><a class="reference internal" href="#defining-setters">Defining Setters</a></li>
 <li><a class="reference internal" href="#working-with-relationships">Working with Relationships</a></li>
 <li><a class="reference internal" href="#building-custom-comparators">Building Custom Comparators</a></li>
 <li><a class="reference internal" href="#hybrid-value-objects">Hybrid Value Objects</a></li>
+<li><a class="reference internal" href="#building-transformers">Building Transformers</a></li>
 <li><a class="reference internal" href="#api-reference">API Reference</a></li>
 </ul>
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
 
-<div class="document">
-    <div class="body">
+    <h4>Previous Topic</h4>
+    <p>
+    <a href="horizontal_shard.html" title="previous chapter">Horizontal Sharding</a>
+    </p>
+    <h4>Next Topic</h4>
+    <p>
+    <a href="sqlsoup.html" title="next chapter">SqlSoup</a>
+    </p>
+
+    <h4>Quick Search</h4>
+    <p>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </p>
+
+    </div>
+
+    <div id="docs-body" class="withsidebar" >
         
 <div class="section" id="module-sqlalchemy.ext.hybrid">
 <span id="hybrid-attributes"></span><span id="hybrids-toplevel"></span><h1>Hybrid Attributes<a class="headerlink" href="#module-sqlalchemy.ext.hybrid" title="Permalink to this headline">¶</a></h1>
@@ -456,6 +493,135 @@ converted to lower case on the Python side here):</p>
 </div>
 <p>The Hybrid Value pattern is very useful for any kind of value that may have multiple representations,
 such as timestamps, time deltas, units of measurement, currencies and encrypted passwords.</p>
+<p>See Also:</p>
+<p><a class="reference external" href="http://techspot.zzzeek.org/2011/10/21/hybrids-and-value-agnostic-types/">Hybrids and Value Agnostic Types</a> - on the techspot.zzzeek.org blog</p>
+<p><a class="reference external" href="http://techspot.zzzeek.org/2011/10/29/value-agnostic-types-part-ii/">Value Agnostic Types, Part II</a> - on the techspot.zzzeek.org blog</p>
+</div>
+<div class="section" id="building-transformers">
+<span id="hybrid-transformers"></span><h2>Building Transformers<a class="headerlink" href="#building-transformers" title="Permalink to this headline">¶</a></h2>
+<p>A <em>transformer</em> is an object which can receive a <a class="reference internal" href="../query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object and return a
+new one.   The <a class="reference internal" href="../query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object includes a method <a class="reference internal" href="../query.html#sqlalchemy.orm.query.Query.with_transformation" title="sqlalchemy.orm.query.Query.with_transformation"><tt class="xref py py-meth docutils literal"><span class="pre">with_transformation()</span></tt></a> 
+that simply returns a new <a class="reference internal" href="../query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> transformed by the given function.</p>
+<p>We can combine this with the <a class="reference internal" href="#sqlalchemy.ext.hybrid.Comparator" title="sqlalchemy.ext.hybrid.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">Comparator</span></tt></a> class to produce one type
+of recipe which can both set up the FROM clause of a query as well as assign
+filtering criterion.</p>
+<p>Consider a mapped class <tt class="docutils literal"><span class="pre">Node</span></tt>, which assembles using adjacency list into a hierarchical
+tree pattern:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">relationship</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
+<span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;node&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span><span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">parent_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;node.id&#39;</span><span class="p">))</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Node&quot;</span><span class="p">,</span> <span class="n">remote_side</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span></pre></div>
+</div>
+<p>Suppose we wanted to add an accessor <tt class="docutils literal"><span class="pre">grandparent</span></tt>.  This would return the <tt class="docutils literal"><span class="pre">parent</span></tt> of
+<tt class="docutils literal"><span class="pre">Node.parent</span></tt>.  When we have an instance of <tt class="docutils literal"><span class="pre">Node</span></tt>, this is simple:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.hybrid</span> <span class="kn">import</span> <span class="n">hybrid_property</span>
+
+<span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="c"># ...</span>
+    
+    <span class="nd">@hybrid_property</span>
+    <span class="k">def</span> <span class="nf">grandparent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span></pre></div>
+</div>
+<p>For the expression, things are not so clear.   We&#8217;d need to construct a <a class="reference internal" href="../query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> where we
+<a class="reference internal" href="../query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">join()</span></tt></a> twice along <tt class="docutils literal"><span class="pre">Node.parent</span></tt> to get to the <tt class="docutils literal"><span class="pre">grandparent</span></tt>.   We can instead
+return a transforming callable that we&#8217;ll combine with the <a class="reference internal" href="#sqlalchemy.ext.hybrid.Comparator" title="sqlalchemy.ext.hybrid.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">Comparator</span></tt></a> class
+to receive any <a class="reference internal" href="../query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object, and return a new one that&#8217;s joined to the <tt class="docutils literal"><span class="pre">Node.parent</span></tt>
+attribute and filtered based on the given criterion:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.hybrid</span> <span class="kn">import</span> <span class="n">Comparator</span>
+
+<span class="k">class</span> <span class="nc">GrandparentTransformer</span><span class="p">(</span><span class="n">Comparator</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">operate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+            <span class="n">cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clause_element__</span><span class="p">()</span>
+            <span class="n">parent_alias</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">cls</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">q</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parent_alias</span><span class="p">,</span> <span class="n">cls</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span><span class="o">.</span>\
+                        <span class="nb">filter</span><span class="p">(</span><span class="n">op</span><span class="p">(</span><span class="n">parent_alias</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">transform</span>
+
+<span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;node&#39;</span>
+    <span class="nb">id</span> <span class="o">=</span><span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">parent_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;node.id&#39;</span><span class="p">))</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Node&quot;</span><span class="p">,</span> <span class="n">remote_side</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span>
+    
+    <span class="nd">@hybrid_property</span>
+    <span class="k">def</span> <span class="nf">grandparent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span>
+
+    <span class="nd">@grandparent.comparator</span>
+    <span class="k">def</span> <span class="nf">grandparent</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">GrandparentTransformer</span><span class="p">(</span><span class="n">cls</span><span class="p">)</span></pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">GrandparentTransformer</span></tt> overrides the core <a class="reference internal" href="../../core/expression_api.html#sqlalchemy.sql.expression.Operators.operate" title="sqlalchemy.sql.expression.Operators.operate"><tt class="xref py py-meth docutils literal"><span class="pre">Operators.operate()</span></tt></a> method
+at the base of the <a class="reference internal" href="#sqlalchemy.ext.hybrid.Comparator" title="sqlalchemy.ext.hybrid.Comparator"><tt class="xref py py-class docutils literal"><span class="pre">Comparator</span></tt></a> hierarchy to return a query-transforming
+callable, which then runs the given comparison operation in a particular context.
+Such as, in the example above, the <tt class="docutils literal"><span class="pre">operate</span></tt> method is called, given the
+<tt class="xref py py-attr docutils literal"><span class="pre">Operators.eq</span></tt> callable as well as the right side of the comparison
+<tt class="docutils literal"><span class="pre">Node(id=5)</span></tt>.  A function <tt class="docutils literal"><span class="pre">transform</span></tt> is then returned which will transform
+a <a class="reference internal" href="../query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> first to join to <tt class="docutils literal"><span class="pre">Node.parent</span></tt>, then to compare <tt class="docutils literal"><span class="pre">parent_alias</span></tt>
+using <tt class="xref py py-attr docutils literal"><span class="pre">Operators.eq</span></tt> against the left and right sides, passing into
+<tt class="xref py py-class docutils literal"><span class="pre">Query.filter</span></tt>:</p>
+<div class="highlight-pycon+sql"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">Session</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
+<a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Node</span><span class="p">)</span><span class="o">.</span>\
+<span class="gp">... </span>       <span class="n">with_transformation</span><span class="p">(</span><span class="n">Node</span><span class="o">.</span><span class="n">grandparent</span><span class="o">==</span><span class="n">Node</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span><span class="o">.</span>\
+<span class="gp">... </span>       <span class="nb">all</span><span class="p">()</span>
+<div class='popup_sql'>SELECT node.id AS node_id, node.parent_id AS node_parent_id 
+FROM node JOIN node AS node_1 ON node_1.id = node.parent_id 
+WHERE :param_1 = node_1.parent_id</div></pre></div>
+</div>
+<p>We can modify the pattern to be more verbose but flexible by separating
+the &#8220;join&#8221; step from the &#8220;filter&#8221; step.  The tricky part here is ensuring
+that successive instances of <tt class="docutils literal"><span class="pre">GrandparentTransformer</span></tt> use the same
+<a class="reference internal" href="../query.html#sqlalchemy.orm.util.AliasedClass" title="sqlalchemy.orm.util.AliasedClass"><tt class="xref py py-class docutils literal"><span class="pre">AliasedClass</span></tt></a> object against <tt class="docutils literal"><span class="pre">Node</span></tt>.  Below we use a simple
+memoizing approach that associates a <tt class="docutils literal"><span class="pre">GrandparentTransformer</span></tt>
+with each class:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+
+    <span class="c"># ...</span>
+
+    <span class="nd">@grandparent.comparator</span>
+    <span class="k">def</span> <span class="nf">grandparent</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="c"># memoize a GrandparentTransformer</span>
+        <span class="c"># per class</span>
+        <span class="k">if</span> <span class="s">&#39;_gp&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
+            <span class="n">cls</span><span class="o">.</span><span class="n">_gp</span> <span class="o">=</span> <span class="n">GrandparentTransformer</span><span class="p">(</span><span class="n">cls</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">_gp</span>
+
+<span class="k">class</span> <span class="nc">GrandparentTransformer</span><span class="p">(</span><span class="n">Comparator</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cls</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent_alias</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">cls</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">go</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">q</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_alias</span><span class="p">,</span> <span class="n">Node</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">go</span>
+
+    <span class="k">def</span> <span class="nf">operate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_alias</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span></pre></div>
+</div>
+<div class="highlight-pycon+sql"><div class="highlight"><pre><a href='#' class='sql_link'>sql</a><span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Node</span><span class="p">)</span><span class="o">.</span>\
+<span class="gp">... </span>           <span class="n">with_transformation</span><span class="p">(</span><span class="n">Node</span><span class="o">.</span><span class="n">grandparent</span><span class="o">.</span><span class="n">join</span><span class="p">)</span><span class="o">.</span>\
+<span class="gp">... </span>           <span class="nb">filter</span><span class="p">(</span><span class="n">Node</span><span class="o">.</span><span class="n">grandparent</span><span class="o">==</span><span class="n">Node</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
+<div class='popup_sql'>SELECT node.id AS node_id, node.parent_id AS node_parent_id 
+FROM node JOIN node AS node_1 ON node_1.id = node.parent_id 
+WHERE :param_1 = node_1.parent_id</div></pre></div>
+</div>
+<p>The &#8220;transformer&#8221; pattern is an experimental pattern that starts
+to make usage of some functional programming paradigms.
+While it&#8217;s only recommended for advanced and/or patient developers, 
+there&#8217;s probably a whole lot of amazing things it can be used for.</p>
 </div>
 <div class="section" id="api-reference">
 <h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
@@ -553,22 +719,24 @@ classes for usage with hybrids.</p>
 </div>
 
     </div>
+
 </div>
 
 
-    <div class="bottomnav">
+    <div id="docs-bottom-navigation" class="docs-navigation-links">
             Previous:
             <a href="horizontal_shard.html" title="previous chapter">Horizontal Sharding</a>
             Next:
             <a href="sqlsoup.html" title="next chapter">SqlSoup</a>
-        <div class="doc_copyright">
+
+        <div id="docs-copyright">
             &copy; <a href="../../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
             Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 
 
-
+</div>
 
     </body>
 </html>

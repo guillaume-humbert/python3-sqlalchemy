@@ -239,7 +239,6 @@ RESERVED_WORDS = set(
      'writetext',
     ])
 
-
 class REAL(sqltypes.REAL):
     __visit_name__ = 'REAL'
 
@@ -789,7 +788,7 @@ class MSSQLCompiler(compiler.SQLCompiler):
             return s
         return compiler.SQLCompiler.get_select_precolumns(self, select)
 
-    def get_from_hint_text(self, text):
+    def get_from_hint_text(self, table, text):
         return text
 
     def limit_clause(self, select):
@@ -854,6 +853,9 @@ class MSSQLCompiler(compiler.SQLCompiler):
         field = self.extract_map.get(extract.field, extract.field)
         return 'DATEPART("%s", %s)' % \
                         (field, self.process(extract.expr, **kw))
+
+    def visit_savepoint(self, savepoint_stmt):
+        return "SAVE TRANSACTION %s" % self.preparer.format_savepoint(savepoint_stmt)
 
     def visit_rollback_to_savepoint(self, savepoint_stmt):
         return ("ROLLBACK TRANSACTION %s" 
@@ -1116,12 +1118,12 @@ class MSDialect(default.DefaultDialect):
         super(MSDialect, self).__init__(**opts)
 
     def do_savepoint(self, connection, name):
-        util.warn("Savepoint support in mssql is experimental and "
-                  "may lead to data loss.")
+        # give the DBAPI a push
         connection.execute("IF @@TRANCOUNT = 0 BEGIN TRANSACTION")
-        connection.execute("SAVE TRANSACTION %s" % name)
+        super(MSDialect, self).do_savepoint(connection, name)
 
     def do_release_savepoint(self, connection, name):
+        # SQL Server does not support RELEASE SAVEPOINT
         pass
 
     def initialize(self, connection):
@@ -1158,11 +1160,17 @@ class MSDialect(default.DefaultDialect):
                 pass
         return self.schema_name
 
+    def _unicode_cast(self, column):
+        if self.server_version_info >= MS_2005_VERSION:
+            return cast(column, NVARCHAR(_warn_on_bytestring=False))
+        else:
+            return column
 
     def has_table(self, connection, tablename, schema=None):
         current_schema = schema or self.default_schema_name
         columns = ischema.columns
-        whereclause = cast(columns.c.table_name, NVARCHAR(_warn_on_bytestring=False))==tablename
+
+        whereclause = self._unicode_cast(columns.c.table_name)==tablename
         if current_schema:
             whereclause = sql.and_(whereclause,
                                    columns.c.table_schema==current_schema)
@@ -1229,7 +1237,10 @@ class MSDialect(default.DefaultDialect):
                                     sqltypes.String(convert_unicode=True)),
                     sql.bindparam('schname', current_schema, 
                                     sqltypes.String(convert_unicode=True))
-                ]
+                ],
+                typemap = {
+                    'name':sqltypes.Unicode()
+                }
             )
         )
         indexes = {}
@@ -1255,7 +1266,11 @@ class MSDialect(default.DefaultDialect):
                                     sqltypes.String(convert_unicode=True)),
                             sql.bindparam('schname', current_schema, 
                                     sqltypes.String(convert_unicode=True))
-                        ]),
+                        ],
+                        typemap = {
+                            'name':sqltypes.Unicode()
+                        }
+                        ),
             )
         for row in rp:
             if row['index_id'] in indexes:

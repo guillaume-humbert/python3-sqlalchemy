@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.3',
+          VERSION:     '0.7.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -38,24 +38,35 @@
 
 
 
-<h1>SQLAlchemy 0.7 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+
+
+<div id="docs-container">
+
+
+
+<div id="docs-header">
+    <h1>SQLAlchemy 0.7 Documentation</h1>
+
+    <div id="docs-search">
+    Search:
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+
+
+    </div>
+
 </div>
 
-<div class="versionheader">
-    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
+<div id="docs-top-navigation">
+    <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
             <a href="collections.html" title="previous chapter">Collection Configuration and Techniques</a>
@@ -71,8 +82,9 @@ Search:
         </li>
         </ul>
     </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
+
+    <div id="docs-navigation-banner">
+        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
         » 
                 Mapping Class Inheritance Hierarchies
@@ -83,7 +95,15 @@ Search:
                 Mapping Class Inheritance Hierarchies
             
         </h2>
-        <ul>
+    </div>
+
+</div>
+
+<div id="docs-body-container">
+
+    <div id="docs-sidebar">
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
 <li><a class="reference internal" href="#">Mapping Class Inheritance Hierarchies</a><ul>
 <li><a class="reference internal" href="#joined-table-inheritance">Joined Table Inheritance</a><ul>
 <li><a class="reference internal" href="#basic-control-of-which-tables-are-queried">Basic Control of Which Tables are Queried</a></li>
@@ -105,12 +125,28 @@ Search:
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
 
-<div class="document">
-    <div class="body">
+    <h4>Previous Topic</h4>
+    <p>
+    <a href="collections.html" title="previous chapter">Collection Configuration and Techniques</a>
+    </p>
+    <h4>Next Topic</h4>
+    <p>
+    <a href="session.html" title="next chapter">Using the Session</a>
+    </p>
+
+    <h4>Quick Search</h4>
+    <p>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </p>
+
+    </div>
+
+    <div id="docs-body" class="withsidebar" >
         
 <div class="section" id="mapping-class-inheritance-hierarchies">
 <span id="inheritance-toplevel"></span><h1>Mapping Class Inheritance Hierarchies<a class="headerlink" href="#mapping-class-inheritance-hierarchies" title="Permalink to this headline">¶</a></h1>
@@ -234,7 +270,7 @@ stored in the polymorphic discriminator column.</p>
 <tt class="docutils literal"><span class="pre">employees.type</span></tt> column with <tt class="docutils literal"><span class="pre">engineer</span></tt>, <tt class="docutils literal"><span class="pre">manager</span></tt>, or <tt class="docutils literal"><span class="pre">employee</span></tt>, as
 appropriate.</p>
 <div class="section" id="basic-control-of-which-tables-are-queried">
-<h3>Basic Control of Which Tables are Queried<a class="headerlink" href="#basic-control-of-which-tables-are-queried" title="Permalink to this headline">¶</a></h3>
+<span id="with-polymorphic"></span><h3>Basic Control of Which Tables are Queried<a class="headerlink" href="#basic-control-of-which-tables-are-queried" title="Permalink to this headline">¶</a></h3>
 <p>The <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.with_polymorphic" title="sqlalchemy.orm.query.Query.with_polymorphic"><tt class="xref py py-func docutils literal"><span class="pre">with_polymorphic()</span></tt></a> method of
 <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> affects the specific subclass tables
 which the Query selects from. Normally, a query such as this:</p>
@@ -681,22 +717,24 @@ bidirectionally reference <tt class="docutils literal"><span class="pre">C</span
 </div>
 
     </div>
+
 </div>
 
 
-    <div class="bottomnav">
+    <div id="docs-bottom-navigation" class="docs-navigation-links">
             Previous:
             <a href="collections.html" title="previous chapter">Collection Configuration and Techniques</a>
             Next:
             <a href="session.html" title="next chapter">Using the Session</a>
-        <div class="doc_copyright">
+
+        <div id="docs-copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
             Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 
 
-
+</div>
 
     </body>
 </html>

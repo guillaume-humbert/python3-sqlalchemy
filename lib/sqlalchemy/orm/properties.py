@@ -19,6 +19,7 @@ from sqlalchemy.orm import attributes, dependency, mapper, \
     object_mapper, strategies, configure_mappers
 from sqlalchemy.orm.util import CascadeOptions, _class_to_mapper, \
     _orm_annotate, _orm_deannotate
+
 from sqlalchemy.orm.interfaces import MANYTOMANY, MANYTOONE, \
     MapperProperty, ONETOMANY, PropComparator, StrategizedProperty
 mapperlib = util.importlater("sqlalchemy.orm", "mapperlib")
@@ -60,7 +61,9 @@ class ColumnProperty(StrategizedProperty):
         :param extension:
 
         """
-        self.columns = [expression._labeled(c) for c in columns]
+        self._orig_columns = [expression._labeled(c) for c in columns]
+        self.columns = [expression._labeled(_orm_deannotate(c)) 
+                            for c in columns]
         self.group = kwargs.pop('group', None)
         self.deferred = kwargs.pop('deferred', False)
         self.instrument = kwargs.pop('_instrument', True)
@@ -735,11 +738,12 @@ class RelationshipProperty(StrategizedProperty):
                     dest_state,
                     dest_dict, 
                     load, _recursive):
+
         if load:
-            # TODO: no test coverage for recursive check
             for r in self._reverse_property:
                 if (source_state, r) in _recursive:
                     return
+
 
         if not "merge" in self.cascade:
             return
@@ -790,6 +794,7 @@ class RelationshipProperty(StrategizedProperty):
                         load=load, _recursive=_recursive)
             else:
                 obj = None
+
             if not load:
                 dest_dict[self.key] = obj
             else:

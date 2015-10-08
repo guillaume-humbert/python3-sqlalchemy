@@ -539,13 +539,27 @@ idioms is below::
 
         id =  Column(Integer, primary_key=True)
 
-    class MyModel(Base,MyMixin):
+    class MyModel(MyMixin, Base):
         name = Column(String(1000))
 
 Where above, the class ``MyModel`` will contain an "id" column
 as the primary key, a ``__tablename__`` attribute that derives
 from the name of the class itself, as well as ``__table_args__`` 
 and ``__mapper_args__`` defined by the ``MyMixin`` mixin class.
+
+There's no fixed convention over whether ``MyMixin`` precedes 
+``Base`` or not.  Normal Python method resolution rules apply, and 
+the above example would work just as well with::
+
+    class MyModel(Base, MyMixin):
+        name = Column(String(1000))
+
+This works because ``Base`` here doesn't define any of the 
+variables that ``MyMixin`` defines, i.e. ``__tablename__``, 
+``__table_args__``, ``id``, etc.   If the ``Base`` did define 
+an attribute of the same name, the class placed first in the 
+inherits list would determine which attribute is used on the 
+newly defined class.
 
 Augmenting the Base
 ~~~~~~~~~~~~~~~~~~~
@@ -586,7 +600,7 @@ declaration::
     class TimestampMixin(object):
         created_at = Column(DateTime, default=func.now())
 
-    class MyModel(Base, TimestampMixin):
+    class MyModel(TimestampMixin, Base):
         __tablename__ = 'test'
 
         id =  Column(Integer, primary_key=True)
@@ -626,7 +640,7 @@ patterns common to many classes can be defined as callables::
         def address_id(cls):
             return Column(Integer, ForeignKey('address.id'))
 
-    class User(Base, ReferenceAddressMixin):
+    class User(ReferenceAddressMixin, Base):
         __tablename__ = 'user'
         id = Column(Integer, primary_key=True)
 
@@ -648,7 +662,7 @@ will resolve them at class construction time::
 
         __mapper_args__= {'polymorphic_on':type_}
 
-    class MyModel(Base,MyMixin):
+    class MyModel(MyMixin, Base):
         __tablename__='test'
         id =  Column(Integer, primary_key=True)
 
@@ -672,11 +686,11 @@ reference a common target class via many-to-one::
         def target(cls):
             return relationship("Target")
 
-    class Foo(Base, RefTargetMixin):
+    class Foo(RefTargetMixin, Base):
         __tablename__ = 'foo'
         id = Column(Integer, primary_key=True)
 
-    class Bar(Base, RefTargetMixin):
+    class Bar(RefTargetMixin, Base):
         __tablename__ = 'bar'
         id = Column(Integer, primary_key=True)
 
@@ -717,7 +731,7 @@ requirement so that no reliance on copying is needed::
         def dprop(cls):
             return deferred(Column(Integer))
 
-    class Something(Base, SomethingMixin):
+    class Something(SomethingMixin, Base):
         __tablename__ = "something"
 
 
@@ -745,7 +759,7 @@ indicate that the class should not have a table mapped::
         def __tablename__(cls):
             return cls.__name__.lower()
 
-    class Person(Base,Tablename):
+    class Person(Tablename, Base):
         id = Column(Integer, primary_key=True)
         discriminator = Column('type', String(50))
         __mapper_args__ = {'polymorphic_on': discriminator}
@@ -768,14 +782,14 @@ inheritance::
     from sqlalchemy.ext.declarative import declared_attr
     from sqlalchemy.ext.declarative import has_inherited_table
 
-    class Tablename:
+    class Tablename(object):
         @declared_attr
         def __tablename__(cls):
             if has_inherited_table(cls):
                 return None
             return cls.__name__.lower()
 
-    class Person(Base,Tablename):
+    class Person(Tablename, Base):
         id = Column(Integer, primary_key=True)
         discriminator = Column('type', String(50))
         __mapper_args__ = {'polymorphic_on': discriminator}
@@ -792,7 +806,7 @@ classes::
     from sqlalchemy.ext.declarative import declared_attr
     from sqlalchemy.ext.declarative import has_inherited_table
 
-    class Tablename:
+    class Tablename(object):
         @declared_attr
         def __tablename__(cls):
             if (has_inherited_table(cls) and
@@ -800,7 +814,7 @@ classes::
                 return None
             return cls.__name__.lower()
 
-    class Person(Base,Tablename):
+    class Person(Tablename, Base):
         id = Column(Integer, primary_key=True)
         discriminator = Column('type', String(50))
         __mapper_args__ = {'polymorphic_on': discriminator}
@@ -811,7 +825,7 @@ classes::
         __mapper_args__ = {'polymorphic_identity': 'engineer'}
 
     # This is joined table inheritance
-    class Manager(Person,Tablename):
+    class Manager(Tablename, Person):
         id = Column(Integer, ForeignKey('person.id'), primary_key=True)
         preferred_recreation = Column(String(50))
         __mapper_args__ = {'polymorphic_identity': 'engineer'}
@@ -829,13 +843,13 @@ from multiple collections::
 
     from sqlalchemy.ext.declarative import declared_attr
 
-    class MySQLSettings:
+    class MySQLSettings(object):
         __table_args__ = {'mysql_engine':'InnoDB'}
 
-    class MyOtherMixin:
+    class MyOtherMixin(object):
         __table_args__ = {'info':'foo'}
 
-    class MyModel(Base,MySQLSettings,MyOtherMixin):
+    class MyModel(MySQLSettings, MyOtherMixin, Base):
         __tablename__='my_model'
 
         @declared_attr
@@ -862,7 +876,7 @@ it as part of ``__table_args__``::
         def __table_args__(cls):
             return (Index('test_idx_%s' % cls.__tablename__, 'a', 'b'),)
 
-    class MyModel(Base,MyMixin):
+    class MyModel(MyMixin, Base):
         __tablename__ = 'atable'
         c =  Column(Integer,primary_key=True)
 
@@ -1139,15 +1153,15 @@ def _as_declarative(cls, classname, dict_):
     if '__table__' not in dict_:
         if tablename is not None:
 
-            if isinstance(table_args, dict):
-                args, table_kw = (), table_args
-            elif isinstance(table_args, tuple):
-                if isinstance(table_args[-1], dict):
-                    args, table_kw = table_args[0:-1], table_args[-1]
-                else:
-                    args, table_kw = table_args, {}
-            else:
-                args, table_kw = (), {}
+            args, table_kw = (), {}
+            if table_args:
+                if isinstance(table_args, dict):
+                    table_kw = table_args
+                elif isinstance(table_args, tuple):
+                    if isinstance(table_args[-1], dict):
+                        args, table_kw = table_args[0:-1], table_args[-1]
+                    else:
+                        args = table_args
 
             autoload = dict_.get('__autoload__')
             if autoload:
@@ -1602,10 +1616,8 @@ class ConcreteBase(object):
         m = cls.__mapper__
         if m.with_polymorphic:
             return
-        mappers = [  sm for sm in [
-                    _mapper_or_none(klass)
-                    for klass in cls.__subclasses__()
-                ] if sm is not None] + [m]
+
+        mappers = list(m.self_and_descendants)
         pjoin = cls._create_polymorphic_union(mappers)
         m._set_with_polymorphic(("*",pjoin))
         m._set_polymorphic_on(pjoin.c.type)
@@ -1647,13 +1659,22 @@ class AbstractConcreteBase(ConcreteBase):
     def __declare_last__(cls):
         if hasattr(cls, '__mapper__'):
             return
-        table = cls._create_polymorphic_union(
-            m for m in [
-                _mapper_or_none(klass)
-                for klass in cls.__subclasses__()
-            ] if m is not None
-        )
-        cls.__mapper__ = m = mapper(cls, table, polymorphic_on=table.c.type)
+
+        # can't rely on 'self_and_descendants' here
+        # since technically an immediate subclass
+        # might not be mapped, but a subclass
+        # may be.
+        mappers = []
+        stack = list(cls.__subclasses__())
+        while stack:
+            klass = stack.pop()
+            stack.extend(klass.__subclasses__())
+            mn = _mapper_or_none(klass)
+            if mn is not None:
+                mappers.append(mn)
+        pjoin = cls._create_polymorphic_union(mappers)
+        cls.__mapper__ = m = mapper(cls, pjoin, polymorphic_on=pjoin.c.type)
+
         for scls in cls.__subclasses__():
             sm = _mapper_or_none(scls)
             if sm.concrete and cls in scls.__bases__:

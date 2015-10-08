@@ -78,10 +78,11 @@ class DDLEvents(event.Events):
         :param connection: the :class:`.Connection` where the
          CREATE statement or statements will be emitted.
         :param \**kw: additional keyword arguments relevant
-         to the event.  Currently this includes the ``tables``
-         argument in the case of a :class:`.MetaData` object,
-         which is the list of :class:`.Table` objects for which
-         CREATE will be emitted.
+         to the event.  The contents of this dictionary
+         may vary across releases, and include the
+         list of tables being generated for a metadata-level
+         event, the checkfirst flag, and other 
+         elements used by internal events.
 
         """
 
@@ -93,10 +94,11 @@ class DDLEvents(event.Events):
         :param connection: the :class:`.Connection` where the
          CREATE statement or statements have been emitted.
         :param \**kw: additional keyword arguments relevant
-         to the event.  Currently this includes the ``tables``
-         argument in the case of a :class:`.MetaData` object,
-         which is the list of :class:`.Table` objects for which
-         CREATE has been emitted.
+         to the event.  The contents of this dictionary
+         may vary across releases, and include the
+         list of tables being generated for a metadata-level
+         event, the checkfirst flag, and other 
+         elements used by internal events.
 
         """
 
@@ -108,10 +110,11 @@ class DDLEvents(event.Events):
         :param connection: the :class:`.Connection` where the
          DROP statement or statements will be emitted.
         :param \**kw: additional keyword arguments relevant
-         to the event.  Currently this includes the ``tables``
-         argument in the case of a :class:`.MetaData` object,
-         which is the list of :class:`.Table` objects for which
-         DROP will be emitted.
+         to the event.  The contents of this dictionary
+         may vary across releases, and include the
+         list of tables being generated for a metadata-level
+         event, the checkfirst flag, and other 
+         elements used by internal events.
 
         """
 
@@ -123,10 +126,11 @@ class DDLEvents(event.Events):
         :param connection: the :class:`.Connection` where the
          DROP statement or statements have been emitted.
         :param \**kw: additional keyword arguments relevant
-         to the event.  Currently this includes the ``tables``
-         argument in the case of a :class:`.MetaData` object,
-         which is the list of :class:`.Table` objects for which
-         DROP has been emitted.
+         to the event.  The contents of this dictionary
+         may vary across releases, and include the
+         list of tables being generated for a metadata-level
+         event, the checkfirst flag, and other 
+         elements used by internal events.
 
         """
 
@@ -244,7 +248,7 @@ class PoolEvents(event.Events):
         def my_on_checkout(dbapi_conn, connection_rec, connection_proxy):
             "handle an on checkout event"
 
-        events.listen(Pool, 'checkout', my_on_checkout)
+        event.listen(Pool, 'checkout', my_on_checkout)
 
     In addition to accepting the :class:`.Pool` class and :class:`.Pool` instances,
     :class:`.PoolEvents` also accepts :class:`.Engine` objects and
@@ -255,7 +259,7 @@ class PoolEvents(event.Events):
         engine = create_engine("postgresql://scott:tiger@localhost/test")
 
         # will associate with engine.pool
-        events.listen(engine, 'checkout', my_on_checkout)
+        event.listen(engine, 'checkout', my_on_checkout)
 
     """
 
@@ -308,7 +312,7 @@ class PoolEvents(event.Events):
           The ``_ConnectionFairy`` which manages the connection for the span of
           the current checkout.
 
-        If you raise an ``exc.DisconnectionError``, the current
+        If you raise a :class:`~sqlalchemy.exc.DisconnectionError`, the current
         connection will be disposed and a fresh connection retrieved.
         Processing of all checkout listeners will abort and restart
         using the new connection.

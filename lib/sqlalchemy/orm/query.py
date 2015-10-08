@@ -89,6 +89,7 @@ class Query(object):
     _only_load_props = None
     _refresh_state = None
     _from_obj = ()
+    _join_entities = ()
     _select_from_entity = None
     _filter_aliases = None
     _from_obj_alias = None
@@ -988,6 +989,27 @@ class Query(object):
             for opt in opts:
                 opt.process_query(self)
 
+    def with_transformation(self, fn):
+        """Return a new :class:`.Query` object transformed by
+        the given function.
+        
+        E.g.::
+        
+            def filter_something(criterion):
+                def transform(q):
+                    return q.filter(criterion)
+                return transform
+            
+            q = q.with_transformation(filter_something(x==5))
+        
+        This allows ad-hoc recipes to be created for :class:`.Query`
+        objects.  See the example at :ref:`hybrid_transformers`.
+
+        :meth:`~.Query.with_transformation` is new in SQLAlchemy 0.7.4.
+
+        """
+        return fn(self)
+
     @_generative()
     def with_hint(self, selectable, text, dialect_name='*'):
         """Add an indexing hint for the given entity or selectable to 
@@ -1641,6 +1663,9 @@ class Query(object):
         left_mapper, left_selectable, left_is_aliased = _entity_info(left)
         right_mapper, right_selectable, right_is_aliased = _entity_info(right)
 
+        if right_mapper:
+            self._join_entities += (right, )
+
         if right_mapper and prop and \
                 not right_mapper.common_parent(prop.mapper):
             raise sa_exc.InvalidRequestError(
@@ -2240,7 +2265,7 @@ class Query(object):
 
         """
         instance = session.identity_map.get(key)
-        if instance:
+        if instance is not None:
 
             state = attributes.instance_state(instance)
 
@@ -2382,7 +2407,7 @@ class Query(object):
         :param synchronize_session: chooses the strategy for the removal of
             matched objects from the session. Valid values are:
 
-            False - don't synchronize the session. This option is the most
+            ``False`` - don't synchronize the session. This option is the most
             efficient and is reliable once the session is expired, which
             typically occurs after a commit(), or explicitly using
             expire_all(). Before the expiration, objects may still remain in
@@ -2390,12 +2415,12 @@ class Query(object):
             results if they are accessed via get() or already loaded
             collections.
 
-            'fetch' - performs a select query before the delete to find
+            ``'fetch'`` - performs a select query before the delete to find
             objects that are matched by the delete query and need to be
             removed from the session. Matched objects are removed from the
             session.
 
-            'evaluate' - Evaluate the query's criteria in Python straight on
+            ``'evaluate'`` - Evaluate the query's criteria in Python straight on
             the objects in the session. If evaluation of the criteria isn't
             implemented, an error is raised.  In that case you probably 
             want to use the 'fetch' strategy as a fallback.
@@ -2412,10 +2437,10 @@ class Query(object):
         state of dependent objects subject to delete or delete-orphan cascade
         to be correctly represented.
 
-        Also, the ``before_delete()`` and ``after_delete()``
-        :class:`~sqlalchemy.orm.interfaces.MapperExtension` methods are not
-        called from this method. For a delete hook here, use the
-        :meth:`.SessionExtension.after_bulk_delete()` event hook.
+        Note that the :meth:`.MapperEvents.before_delete` and 
+        :meth:`.MapperEvents.after_delete`
+        events are **not** invoked from this method.  It instead
+        invokes :meth:`.SessionEvents.after_bulk_delete`.
 
         """
         #TODO: lots of duplication and ifs - probably needs to be 
@@ -2510,18 +2535,18 @@ class Query(object):
         :param synchronize_session: chooses the strategy to update the
             attributes on objects in the session. Valid values are:
 
-            False - don't synchronize the session. This option is the most
+            ``False`` - don't synchronize the session. This option is the most
             efficient and is reliable once the session is expired, which
             typically occurs after a commit(), or explicitly using
             expire_all(). Before the expiration, updated objects may still
             remain in the session with stale values on their attributes, which
             can lead to confusing results.
 
-            'fetch' - performs a select query before the update to find
+            ``'fetch'`` - performs a select query before the update to find
             objects that are matched by the update query. The updated
             attributes are expired on matched objects.
 
-            'evaluate' - Evaluate the Query's criteria in Python straight on
+            ``'evaluate'`` - Evaluate the Query's criteria in Python straight on
             the objects in the session. If evaluation of the criteria isn't
             implemented, an exception is raised.
 
@@ -2538,10 +2563,10 @@ class Query(object):
         or call expire_all()) in order for the state of dependent objects
         subject foreign key cascade to be correctly represented.
 
-        Also, the ``before_update()`` and ``after_update()``
-        :class:`~sqlalchemy.orm.interfaces.MapperExtension` methods are not
-        called from this method. For an update hook here, use the
-        :meth:`.SessionExtension.after_bulk_update()` event hook.
+        Note that the :meth:`.MapperEvents.before_update` and 
+        :meth:`.MapperEvents.after_update`
+        events are **not** invoked from this method.  It instead
+        invokes :meth:`.SessionEvents.after_bulk_update`.
 
         """
 
@@ -2818,9 +2843,10 @@ class Query(object):
         selected from the total results.
 
         """
-
         for entity, (mapper, adapter, s, i, w) in \
                             self._mapper_adapter_map.iteritems():
+            if entity in self._join_entities:
+                continue
             single_crit = mapper._single_table_criterion
             if single_crit is not None:
                 if adapter:
@@ -3052,7 +3078,7 @@ class _ColumnEntity(_QueryEntity):
         if not isinstance(column, sql.ColumnElement):
             raise sa_exc.InvalidRequestError(
                 "SQL expression, column, or mapped entity "
-                "expected - got '%r'" % column
+                "expected - got '%r'" % (column, )
             )
 
         # If the Column is unnamed, give it a

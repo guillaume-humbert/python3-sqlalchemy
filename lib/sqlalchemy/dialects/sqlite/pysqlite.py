@@ -173,15 +173,39 @@ way.
 Unicode
 -------
 
-In contrast to SQLAlchemy's active handling of date and time types for pysqlite, pysqlite's 
-default behavior regarding Unicode is that all strings are returned as Python unicode objects
-in all cases.  So even if the :class:`~sqlalchemy.types.Unicode` type is 
-*not* used, you will still always receive unicode data back from a result set.  It is 
-**strongly** recommended that you do use the :class:`~sqlalchemy.types.Unicode` type
-to represent strings, since it will raise a warning if a non-unicode Python string is 
-passed from the user application.  Mixing the usage of non-unicode objects with returned unicode objects can
-quickly create confusion, particularly when using the ORM as internal data is not 
-always represented by an actual database result string.
+The pysqlite driver only returns Python ``unicode`` objects in result sets, never
+plain strings, and accommodates ``unicode`` objects within bound parameter
+values in all cases.   Regardless of the SQLAlchemy string type in use, 
+string-based result values will by Python ``unicode`` in Python 2.  
+The :class:`.Unicode` type should still be used to indicate those columns that
+require unicode, however, so that non-``unicode`` values passed inadvertently
+will emit a warning.  Pysqlite will emit an error if a non-``unicode`` string
+is passed containing non-ASCII characters.
+
+.. _pysqlite_serializable:
+
+Serializable Transaction Isolation
+----------------------------------
+
+The pysqlite DBAPI driver has a long-standing bug in which transactional
+state is not begun until the first DML statement, that is INSERT, UPDATE
+or DELETE, is emitted.  A SELECT statement will not cause transactional
+state to begin.   While this mode of usage is fine for typical situations
+and has the advantage that the SQLite database file is not prematurely 
+locked, it breaks serializable transaction isolation, which requires
+that the database file be locked upon any SQL being emitted.
+
+To work around this issue, the ``BEGIN`` keyword can be emitted
+at the start of each transaction.   The following recipe establishes
+a :meth:`.ConnectionEvents.begin` handler to achieve this::
+
+    from sqlalchemy import create_engine, event
+
+    engine = create_engine("sqlite:///myfile.db", isolation_level='SERIALIZABLE')
+
+    @event.listens_for(engine, "begin")
+    def do_begin(conn):
+        conn.execute("BEGIN")
 
 """
 

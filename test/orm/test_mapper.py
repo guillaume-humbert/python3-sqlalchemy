@@ -18,7 +18,8 @@ from test.orm import _fixtures
 from test.lib.assertsql import CompiledSQL
 import logging
 
-class MapperTest(_fixtures.FixtureTest):
+class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
+    __dialect__ = 'default'
 
     def test_prop_shadow(self):
         """A backref name may not shadow an existing property name."""
@@ -93,13 +94,6 @@ class MapperTest(_fixtures.FixtureTest):
         assert_raises(NotImplementedError,
                           getattr, sa.orm.class_mapper(User), 'properties')
 
-
-    def test_bad_cascade(self):
-        addresses, Address = self.tables.addresses, self.classes.Address
-
-        mapper(Address, addresses)
-        assert_raises(sa.exc.ArgumentError,
-                          relationship, Address, cascade="fake, all, delete-orphan")
 
     def test_friendly_attribute_str_on_uncompiled_boom(self):
         User, users = self.classes.User, self.tables.users
@@ -471,6 +465,63 @@ class MapperTest(_fixtures.FixtureTest):
         u.name = 'jacko'
         assert m._columntoproperty[users.c.name] is m.get_property('_name')
 
+    def test_add_column_prop_deannotate(self):
+        User, users = self.classes.User, self.tables.users
+        Address, addresses = self.classes.Address, self.tables.addresses
+        class SubUser(User):
+            pass
+        m = mapper(User, users)
+        m2 = mapper(SubUser, addresses, inherits=User)
+        m3 = mapper(Address, addresses, properties={
+            'foo':relationship(m2)
+        })
+        # add property using annotated User.name,
+        # needs to be deannotated
+        m.add_property("x", column_property(User.name + "name"))
+        s = create_session()
+        q = s.query(m2).select_from(Address).join(Address.foo)
+        self.assert_compile(
+            q,
+            "SELECT "
+            "anon_1.addresses_id AS anon_1_addresses_id, "
+            "anon_1.users_id AS anon_1_users_id, "
+            "anon_1.users_name AS anon_1_users_name, "
+            "anon_1.addresses_user_id AS anon_1_addresses_user_id, "
+            "anon_1.addresses_email_address AS "
+            "anon_1_addresses_email_address, "
+            "anon_1.users_name || :name_1 AS anon_2 "
+            "FROM addresses JOIN (SELECT users.id AS users_id, "
+            "users.name AS users_name, addresses.id AS addresses_id, "
+            "addresses.user_id AS addresses_user_id, "
+            "addresses.email_address AS addresses_email_address "
+            "FROM users JOIN addresses ON users.id = "
+            "addresses.user_id) AS anon_1 ON "
+            "anon_1.users_id = addresses.user_id"
+        )
+
+    def test_column_prop_deannotate(self):
+        """test that column property deannotates, 
+        bringing expressions down to the original mapped columns.
+        """
+        User, users = self.classes.User, self.tables.users
+        m = mapper(User, users)
+        assert User.id.property.columns[0] is users.c.id
+        assert User.name.property.columns[0] is users.c.name
+        expr = User.name + "name"
+        expr2 = sa.select([User.name, users.c.id])
+        m.add_property("x", column_property(expr))
+        m.add_property("y", column_property(expr2))
+
+        assert User.x.property.columns[0] is not expr
+        assert User.x.property.columns[0].element.left is users.c.name
+        assert User.x.property.columns[0].element.right is not expr.right
+
+        assert User.y.property.columns[0] is not expr2
+        assert User.y.property.columns[0].element.\
+                    _raw_columns[0] is users.c.name
+        assert User.y.property.columns[0].element.\
+                    _raw_columns[1] is users.c.id
+
     def test_synonym_replaces_backref(self):
         addresses, users, User = (self.tables.addresses,
                                 self.tables.users,
@@ -664,17 +715,21 @@ class MapperTest(_fixtures.FixtureTest):
         assert_props(Lala, ['p_employee_number', 'p_id', 'p_name', 'p_type'])
         assert_props(Fub, ['id', 'type'])
         assert_props(Frob, ['f_id', 'f_type', 'f_name', ])
-        # excluding the discriminator column is currently not allowed
+
+
+        # putting the discriminator column in exclude_properties, 
+        # very weird.  As of 0.7.4 this re-maps it.
         class Foo(Person):
             pass
         assert_props(Empty, ['empty_id'])
 
-        assert_raises(
-            sa.exc.InvalidRequestError,
-            mapper,
+        mapper(
             Foo, inherits=Person, polymorphic_identity='foo',
             exclude_properties=('type', ),
-            )
+        )
+        assert hasattr(Foo, "type")
+        assert Foo.type.property.columns[0] is t.c.type
+
     @testing.provide_metadata
     def test_prop_filters_defaults(self):
         metadata = self.metadata
@@ -689,6 +744,18 @@ class MapperTest(_fixtures.FixtureTest):
         s = Session()
         s.add(A())
         s.commit()
+
+    def test_we_dont_call_bool(self):
+        class NoBoolAllowed(object):
+            def __nonzero__(self):
+                raise Exception("nope")
+        mapper(NoBoolAllowed, self.tables.users)
+        u1 = NoBoolAllowed()
+        u1.name = "some name"
+        s = Session(testing.db)
+        s.add(u1)
+        s.commit()
+        assert s.query(NoBoolAllowed).get(u1.id) is u1
 
     def test_we_dont_call_eq(self):
         class NoEqAllowed(object):

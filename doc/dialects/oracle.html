@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.3',
+          VERSION:     '0.7.4',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -38,24 +38,35 @@
 
 
 
-<h1>SQLAlchemy 0.7 Documentation</h1>
 
-<div id="search">
-Search:
-<form class="search" action="../search.html" method="get">
-  <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
+
+
+<div id="docs-container">
+
+
+
+<div id="docs-header">
+    <h1>SQLAlchemy 0.7 Documentation</h1>
+
+    <div id="docs-search">
+    Search:
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.7.4</span> | Release Date: December 9, 2011
+
+
+    </div>
+
 </div>
 
-<div class="versionheader">
-    Release: <span class="versionnum">0.7.3</span> | Release Date: October 16, 2011
-</div>
-<div class="clearboth"></div>
-
-<div id="topnav">
-    <div id="pagecontrol">
+<div id="docs-top-navigation">
+    <div id="docs-top-page-control" class="docs-navigation-links">
         <ul>
             <li>Prev:
             <a href="mysql.html" title="previous chapter">MySQL</a>
@@ -71,8 +82,9 @@ Search:
         </li>
         </ul>
     </div>
-    <div id="navbanner">
-        <a class="totoc" href="../index.html">SQLAlchemy 0.7 Documentation</a>
+
+    <div id="docs-navigation-banner">
+        <a href="../index.html">SQLAlchemy 0.7 Documentation</a>
                 » <a href="index.html" title="Dialects">Dialects</a>
         » 
                 Oracle
@@ -83,7 +95,15 @@ Search:
                 Oracle
             
         </h2>
-        <ul>
+    </div>
+
+</div>
+
+<div id="docs-body-container">
+
+    <div id="docs-sidebar">
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
 <li><a class="reference internal" href="#">Oracle</a><ul>
 <li><a class="reference internal" href="#connect-arguments">Connect Arguments</a></li>
 <li><a class="reference internal" href="#auto-increment-behavior">Auto Increment Behavior</a></li>
@@ -111,12 +131,28 @@ Search:
 </li>
 </ul>
 
-    </div>
-    <div class="clearboth"></div>
-</div>
 
-<div class="document">
-    <div class="body">
+    <h4>Previous Topic</h4>
+    <p>
+    <a href="mysql.html" title="previous chapter">MySQL</a>
+    </p>
+    <h4>Next Topic</h4>
+    <p>
+    <a href="postgresql.html" title="next chapter">PostgreSQL</a>
+    </p>
+
+    <h4>Quick Search</h4>
+    <p>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </p>
+
+    </div>
+
+    <div id="docs-body" class="withsidebar" >
         
 <div class="section" id="module-sqlalchemy.dialects.oracle.base">
 <span id="oracle"></span><h1>Oracle<a class="headerlink" href="#module-sqlalchemy.dialects.oracle.base" title="Permalink to this headline">¶</a></h1>
@@ -326,48 +362,51 @@ to store for the fractional seconds field.  Defaults to &#8220;6&#8221;.</li>
 <li><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
-<em>length</em> for use in DDL, and will raise an exception when
-the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.  Whether the value is
+<tt class="docutils literal"><span class="pre">length</span></tt> for use in DDL, and will raise an exception when
+the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued if a <tt class="docutils literal"><span class="pre">VARCHAR</span></tt>
+with no length is included.  Whether the value is
 interpreted as bytes or characters is database specific.</li>
-<li><strong>convert_unicode</strong> &#8211; <p>defaults to False.  If True, the 
-type will do what is necessary in order to accept 
-Python Unicode objects as bind parameters, and to return
-Python Unicode objects in result rows.   This may
-require SQLAlchemy to explicitly coerce incoming Python 
-unicodes into an encoding, and from an encoding 
-back to Unicode, or it may not require any interaction
-from SQLAlchemy at all, depending on the DBAPI in use.</p>
-<p>When SQLAlchemy performs the encoding/decoding, 
-the encoding used is configured via
-<tt class="xref py py-attr docutils literal"><span class="pre">encoding</span></tt>, which
-defaults to <cite>utf-8</cite>.</p>
-<p>The &#8220;convert_unicode&#8221; behavior can also be turned on
-for all String types by setting 
-<tt class="xref py py-attr docutils literal"><span class="pre">sqlalchemy.engine.base.Dialect.convert_unicode</span></tt>
-on create_engine().</p>
-<p>To instruct SQLAlchemy to perform Unicode encoding/decoding
-even on a platform that already handles Unicode natively,
-set convert_unicode=&#8217;force&#8217;.  This will incur significant
-performance overhead when fetching unicode result columns.</p>
+<li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="xref docutils literal"><span class="pre">True</span></tt>, the 
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type will assume that
+input is to be passed as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects,
+and results returned as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects.
+If the DBAPI in use does not support Python unicode
+(which is fewer and fewer these days), SQLAlchemy
+will encode/decode the value, using the 
+value of the <tt class="docutils literal"><span class="pre">encoding</span></tt> parameter passed to 
+<a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> as the encoding.</p>
+<p>When using a DBAPI that natively supports Python
+unicode objects, this flag generally does not 
+need to be set.  For columns that are explicitly
+intended to store non-ASCII data, the <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a>
+or <tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt> 
+types should be used regardless, which feature
+the same behavior of <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> but 
+also indicate an underlying column type that
+directly supports unicode, such as <tt class="docutils literal"><span class="pre">NVARCHAR</span></tt>.</p>
+<p>For the extremely rare case that Python <tt class="docutils literal"><span class="pre">unicode</span></tt>
+is to be encoded/decoded by SQLAlchemy on a backend
+that does natively support Python <tt class="docutils literal"><span class="pre">unicode</span></tt>,
+the value <tt class="docutils literal"><span class="pre">force</span></tt> can be passed here which will
+cause SQLAlchemy&#8217;s encode/decode services to be
+used unconditionally.</p>
 </li>
-<li><strong>assert_unicode</strong> &#8211; Deprecated.  A warning is raised in all cases
-when a non-Unicode object is passed when SQLAlchemy would coerce
-into an encoding (note: but <strong>not</strong> when the DBAPI handles unicode
-objects natively). To suppress or raise this warning to an error,
-use the Python warnings filter documented at:
-<a class="reference external" href="http://docs.python.org/library/warnings.html">http://docs.python.org/library/warnings.html</a></li>
+<li><strong>assert_unicode</strong> &#8211; Deprecated.  A warning is emitted 
+when a non-<tt class="docutils literal"><span class="pre">unicode</span></tt> object is passed to the 
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> subtype of <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a>, 
+or the <a class="reference internal" href="../core/types.html#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt></a> subtype of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">Text</span></tt></a>.   
+See <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> for information on how to 
+control this warning.</li>
 <li><strong>unicode_error</strong> &#8211; Optional, a method to use to handle Unicode
-conversion errors. Behaves like the &#8216;errors&#8217; keyword argument to
-the standard library&#8217;s string.decode() functions.   This flag
-requires that <cite>convert_unicode</cite> is set to <cite>&#8220;force&#8221;</cite> - otherwise,
+conversion errors. Behaves like the <tt class="docutils literal"><span class="pre">errors</span></tt> keyword argument to
+the standard library&#8217;s <tt class="docutils literal"><span class="pre">string.decode()</span></tt> functions.   This flag
+requires that <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> is set to <tt class="docutils literal"><span class="pre">force</span></tt> - otherwise,
 SQLAlchemy is not guaranteed to handle the task of unicode
 conversion.   Note that this flag adds significant performance
 overhead to row-fetching operations for backends that already
 return unicode objects natively (which most DBAPIs do).  This
-flag should only be used as an absolute last resort for reading
-strings from a column with varied or corrupted encodings,
-which only applies to databases that accept invalid encodings 
-in the first place (i.e. MySQL.  <em>not</em> PG, Sqlite, etc.)</li>
+flag should only be used as a last resort for reading
+strings from a column with varied or corrupted encodings.</li>
 </ul>
 </td>
 </tr>
@@ -399,48 +438,51 @@ in the first place (i.e. MySQL.  <em>not</em> PG, Sqlite, etc.)</li>
 <li><strong>length</strong> &#8211; optional, a length for the column for use in
 DDL statements.  May be safely omitted if no <tt class="docutils literal"><span class="pre">CREATE</span>
 <span class="pre">TABLE</span></tt> will be issued.  Certain databases may require a
-<em>length</em> for use in DDL, and will raise an exception when
-the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued.  Whether the value is
+<tt class="docutils literal"><span class="pre">length</span></tt> for use in DDL, and will raise an exception when
+the <tt class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></tt> DDL is issued if a <tt class="docutils literal"><span class="pre">VARCHAR</span></tt>
+with no length is included.  Whether the value is
 interpreted as bytes or characters is database specific.</li>
-<li><strong>convert_unicode</strong> &#8211; <p>defaults to False.  If True, the 
-type will do what is necessary in order to accept 
-Python Unicode objects as bind parameters, and to return
-Python Unicode objects in result rows.   This may
-require SQLAlchemy to explicitly coerce incoming Python 
-unicodes into an encoding, and from an encoding 
-back to Unicode, or it may not require any interaction
-from SQLAlchemy at all, depending on the DBAPI in use.</p>
-<p>When SQLAlchemy performs the encoding/decoding, 
-the encoding used is configured via
-<tt class="xref py py-attr docutils literal"><span class="pre">encoding</span></tt>, which
-defaults to <cite>utf-8</cite>.</p>
-<p>The &#8220;convert_unicode&#8221; behavior can also be turned on
-for all String types by setting 
-<tt class="xref py py-attr docutils literal"><span class="pre">sqlalchemy.engine.base.Dialect.convert_unicode</span></tt>
-on create_engine().</p>
-<p>To instruct SQLAlchemy to perform Unicode encoding/decoding
-even on a platform that already handles Unicode natively,
-set convert_unicode=&#8217;force&#8217;.  This will incur significant
-performance overhead when fetching unicode result columns.</p>
+<li><strong>convert_unicode</strong> &#8211; <p>When set to <tt class="xref docutils literal"><span class="pre">True</span></tt>, the 
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a> type will assume that
+input is to be passed as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects,
+and results returned as Python <tt class="docutils literal"><span class="pre">unicode</span></tt> objects.
+If the DBAPI in use does not support Python unicode
+(which is fewer and fewer these days), SQLAlchemy
+will encode/decode the value, using the 
+value of the <tt class="docutils literal"><span class="pre">encoding</span></tt> parameter passed to 
+<a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> as the encoding.</p>
+<p>When using a DBAPI that natively supports Python
+unicode objects, this flag generally does not 
+need to be set.  For columns that are explicitly
+intended to store non-ASCII data, the <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a>
+or <tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt> 
+types should be used regardless, which feature
+the same behavior of <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> but 
+also indicate an underlying column type that
+directly supports unicode, such as <tt class="docutils literal"><span class="pre">NVARCHAR</span></tt>.</p>
+<p>For the extremely rare case that Python <tt class="docutils literal"><span class="pre">unicode</span></tt>
+is to be encoded/decoded by SQLAlchemy on a backend
+that does natively support Python <tt class="docutils literal"><span class="pre">unicode</span></tt>,
+the value <tt class="docutils literal"><span class="pre">force</span></tt> can be passed here which will
+cause SQLAlchemy&#8217;s encode/decode services to be
+used unconditionally.</p>
 </li>
-<li><strong>assert_unicode</strong> &#8211; Deprecated.  A warning is raised in all cases
-when a non-Unicode object is passed when SQLAlchemy would coerce
-into an encoding (note: but <strong>not</strong> when the DBAPI handles unicode
-objects natively). To suppress or raise this warning to an error,
-use the Python warnings filter documented at:
-<a class="reference external" href="http://docs.python.org/library/warnings.html">http://docs.python.org/library/warnings.html</a></li>
+<li><strong>assert_unicode</strong> &#8211; Deprecated.  A warning is emitted 
+when a non-<tt class="docutils literal"><span class="pre">unicode</span></tt> object is passed to the 
+<a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> subtype of <a class="reference internal" href="../core/types.html#sqlalchemy.types.String" title="sqlalchemy.types.String"><tt class="xref py py-class docutils literal"><span class="pre">String</span></tt></a>, 
+or the <a class="reference internal" href="../core/types.html#sqlalchemy.types.UnicodeText" title="sqlalchemy.types.UnicodeText"><tt class="xref py py-class docutils literal"><span class="pre">UnicodeText</span></tt></a> subtype of <a class="reference internal" href="../core/types.html#sqlalchemy.types.Text" title="sqlalchemy.types.Text"><tt class="xref py py-class docutils literal"><span class="pre">Text</span></tt></a>.   
+See <a class="reference internal" href="../core/types.html#sqlalchemy.types.Unicode" title="sqlalchemy.types.Unicode"><tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></a> for information on how to 
+control this warning.</li>
 <li><strong>unicode_error</strong> &#8211; Optional, a method to use to handle Unicode
-conversion errors. Behaves like the &#8216;errors&#8217; keyword argument to
-the standard library&#8217;s string.decode() functions.   This flag
-requires that <cite>convert_unicode</cite> is set to <cite>&#8220;force&#8221;</cite> - otherwise,
+conversion errors. Behaves like the <tt class="docutils literal"><span class="pre">errors</span></tt> keyword argument to
+the standard library&#8217;s <tt class="docutils literal"><span class="pre">string.decode()</span></tt> functions.   This flag
+requires that <tt class="docutils literal"><span class="pre">convert_unicode</span></tt> is set to <tt class="docutils literal"><span class="pre">force</span></tt> - otherwise,
 SQLAlchemy is not guaranteed to handle the task of unicode
 conversion.   Note that this flag adds significant performance
 overhead to row-fetching operations for backends that already
 return unicode objects natively (which most DBAPIs do).  This
-flag should only be used as an absolute last resort for reading
-strings from a column with varied or corrupted encodings,
-which only applies to databases that accept invalid encodings 
-in the first place (i.e. MySQL.  <em>not</em> PG, Sqlite, etc.)</li>
+flag should only be used as a last resort for reading
+strings from a column with varied or corrupted encodings.</li>
 </ul>
 </td>
 </tr>
@@ -495,7 +537,9 @@ to <tt class="xref docutils literal"><span class="pre">True</span></tt>.  Note t
 <h3>Unicode<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <p>cx_oracle 5 fully supports Python unicode objects.   SQLAlchemy will pass
 all unicode strings directly to cx_oracle, and additionally uses an output
-handler so that all string based result values are returned as unicode as well.</p>
+handler so that all string based result values are returned as unicode as well.
+Generally, the <tt class="docutils literal"><span class="pre">NLS_LANG</span></tt> environment variable determines the nature
+of the encoding to be used.</p>
 <p>Note that this behavior is disabled when Oracle 8 is detected, as it has been 
 observed that issues remain when passing Python unicodes to cx_oracle with Oracle 8.</p>
 </div>
@@ -568,22 +612,24 @@ decimal character.</p>
 </div>
 
     </div>
+
 </div>
 
 
-    <div class="bottomnav">
+    <div id="docs-bottom-navigation" class="docs-navigation-links">
             Previous:
             <a href="mysql.html" title="previous chapter">MySQL</a>
             Next:
             <a href="postgresql.html" title="next chapter">PostgreSQL</a>
-        <div class="doc_copyright">
+
+        <div id="docs-copyright">
             &copy; <a href="../copyright.html">Copyright</a> 2007-2011, the SQLAlchemy authors and contributors.
             Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
         </div>
     </div>
 
 
-
+</div>
 
     </body>
 </html>

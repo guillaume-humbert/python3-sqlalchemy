@@ -421,6 +421,7 @@ test/dialect/test_mxodbc.py
 test/dialect/test_mysql.py
 test/dialect/test_oracle.py
 test/dialect/test_postgresql.py
+test/dialect/test_pyodbc.py
 test/dialect/test_sqlite.py
 test/dialect/test_sybase.py
 test/engine/__init__.py
@@ -479,6 +480,7 @@ test/orm/test_expire.py
 test/orm/test_extendedattr.py
 test/orm/test_froms.py
 test/orm/test_generative.py
+test/orm/test_hasparent.py
 test/orm/test_immediate_load.py
 test/orm/test_instrumentation.py
 test/orm/test_joins.py
@@ -544,3 +546,4 @@ test/sql/test_rowcount.py
 test/sql/test_selectable.py
 test/sql/test_types.py
 test/sql/test_unicode.py
+test/sql/test_update.py
