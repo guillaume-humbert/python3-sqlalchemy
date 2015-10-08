@@ -740,7 +740,7 @@ class MSSQLCompiler(compiler.SQLCompiler):
                                         self.process(binary.right, **kw))
 
     def get_select_precolumns(self, select):
-        """ MS-SQL puts TOP, it's version of LIMIT here """
+        """ MS-SQL puts TOP, its version of LIMIT, here """
         if select._distinct or select._limit is not None:
             s = select._distinct and "DISTINCT " or ""
 
@@ -1216,22 +1216,16 @@ class MSDialect(default.DefaultDialect):
             self.implicit_returning = True
 
     def _get_default_schema_name(self, connection):
-        user_name = connection.scalar("SELECT user_name()")
-        if user_name is not None:
-            # now, get the default schema
-            query = sql.text("""
+        query = sql.text("""
             SELECT default_schema_name FROM
             sys.database_principals
-            WHERE name = :name
-            AND type = 'S'
-            """)
-            try:
-                default_schema_name = connection.scalar(query, name=user_name)
-                if default_schema_name is not None:
-                    return util.text_type(default_schema_name)
-            except:
-                pass
-        return self.schema_name
+            WHERE principal_id=database_principal_id()
+        """)
+        default_schema_name = connection.scalar(query)
+        if default_schema_name is not None:
+            return util.text_type(default_schema_name)
+        else:
+            return self.schema_name
 
     @_db_plus_owner
     def has_table(self, connection, tablename, dbname, owner, schema):

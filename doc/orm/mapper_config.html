@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,70 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="tutorial.html" title="previous chapter">Object Relational Tutorial</a>
-            </li>
-            <li>Next:
-            <a href="relationships.html" title="next chapter">Relationship Configuration</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/orm/mapper_config.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-        » 
-                Mapper Configuration
-            
-
-        <h2>
-            
-                Mapper Configuration
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="SQLAlchemy ORM">Up</a> |
+
+                    <a href="tutorial.html" title="Object Relational Tutorial">Prev</a> |
+                    <a href="relationships.html" title="Relationship Configuration">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                Mapper Configuration
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">Mapper Configuration</a><ul>
 <li><a class="reference internal" href="#classical-mappings">Classical Mappings</a></li>
 <li><a class="reference internal" href="#customizing-column-properties">Customizing Column Properties</a><ul>
@@ -185,26 +177,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="tutorial.html" title="previous chapter">Object Relational Tutorial</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="relationships.html" title="next chapter">Relationship Configuration</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -1324,7 +1303,7 @@ using the <a class="reference internal" href="extensions/declarative.html#sqlalc
 <p>While the <a class="reference internal" href="#sqlalchemy.orm.synonym" title="sqlalchemy.orm.synonym"><tt class="xref py py-func docutils literal"><span class="pre">synonym()</span></tt></a> is useful for simple mirroring, the use case
 of augmenting attribute behavior with descriptors is better handled in modern
 usage using the <a class="reference internal" href="#mapper-hybrids"><em>hybrid attribute</em></a> feature, which
-is more oriented towards Python descriptors.   Techically, a <a class="reference internal" href="#sqlalchemy.orm.synonym" title="sqlalchemy.orm.synonym"><tt class="xref py py-func docutils literal"><span class="pre">synonym()</span></tt></a>
+is more oriented towards Python descriptors.   Technically, a <a class="reference internal" href="#sqlalchemy.orm.synonym" title="sqlalchemy.orm.synonym"><tt class="xref py py-func docutils literal"><span class="pre">synonym()</span></tt></a>
 can do everything that a <a class="reference internal" href="extensions/hybrid.html#sqlalchemy.ext.hybrid.hybrid_property" title="sqlalchemy.ext.hybrid.hybrid_property"><tt class="xref py py-class docutils literal"><span class="pre">hybrid_property</span></tt></a> can do, as it also supports
 injection of custom SQL capabilities, but the hybrid is more straightforward
 to use in more complex situations.</p>
@@ -1844,6 +1823,16 @@ is a single table column that increments or otherwise updates its value
 each time an <tt class="docutils literal"><span class="pre">UPDATE</span></tt> to the mapped table occurs.  This value is checked each
 time the ORM emits an <tt class="docutils literal"><span class="pre">UPDATE</span></tt> or <tt class="docutils literal"><span class="pre">DELETE</span></tt> against the row to ensure that
 the value held in memory matches the database value.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Because the versioning feature relies upon comparison of the <strong>in memory</strong>
+record of an object, the feature only applies to the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.flush" title="sqlalchemy.orm.session.Session.flush"><tt class="xref py py-meth docutils literal"><span class="pre">Session.flush()</span></tt></a>
+process, where the ORM flushes individual in-memory rows to the database.
+It does <strong>not</strong> take effect when performing
+a multirow UPDATE or DELETE using <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.update" title="sqlalchemy.orm.query.Query.update"><tt class="xref py py-meth docutils literal"><span class="pre">Query.update()</span></tt></a> or <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.delete" title="sqlalchemy.orm.query.Query.delete"><tt class="xref py py-meth docutils literal"><span class="pre">Query.delete()</span></tt></a>
+methods, as these methods only emit an UPDATE or DELETE statement but otherwise
+do not have direct access to the contents of those rows being affected.</p>
+</div>
 <p>The purpose of this feature is to detect when two concurrent transactions
 are modifying the same row at roughly the same time, or alternatively to provide
 a guard against the usage of a &#8220;stale&#8221; row in a system that might be re-using
@@ -1898,7 +1887,7 @@ WHERE user.id = :user_id AND user.version_id = :user_version_id
 <p>The above UPDATE statement is updating the row that not only matches
 <tt class="docutils literal"><span class="pre">user.id</span> <span class="pre">=</span> <span class="pre">1</span></tt>, it also is requiring that <tt class="docutils literal"><span class="pre">user.version_id</span> <span class="pre">=</span> <span class="pre">1</span></tt>, where &#8220;1&#8221;
 is the last version identifier we&#8217;ve been known to use on this object.
-If a transaction elsewhere has modifed the row independently, this version id
+If a transaction elsewhere has modified the row independently, this version id
 will no longer match, and the UPDATE statement will report that no rows matched;
 this is the condition that SQLAlchemy tests, that exactly one row matched our
 UPDATE (or DELETE) statement.  If zero rows match, that indicates our version
@@ -2148,7 +2137,7 @@ table inheritance with its parent mapper.</p>
 <p>See the section <a class="reference internal" href="inheritance.html#concrete-inheritance"><em>Concrete Table Inheritance</em></a> for an example.</p>
 </li>
 <li><span class="target" id="sqlalchemy.orm.mapper.params.confirm_deleted_rows"></span><strong>confirm_deleted_rows</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.orm.mapper.params.confirm_deleted_rows">¶</a> &#8211; <p>defaults to True; when a DELETE occurs
-of one more more rows based on specific primary keys, a warning is
+of one more rows based on specific primary keys, a warning is
 emitted when the number of rows matched does not equal the number
 of rows expected.  This parameter may be set to False to handle the case
 where database ON DELETE CASCADE rules may be deleting some of those

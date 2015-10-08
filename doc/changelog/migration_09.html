@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,70 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="index.html" title="previous chapter">Changes and Migration</a>
-            </li>
-            <li>Next:
-            <a href="changelog_09.html" title="next chapter">0.9 Changelog</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/changelog/migration_09.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
-        » 
-                What&#8217;s New in SQLAlchemy 0.9?
-            
-
-        <h2>
-            
-                What&#8217;s New in SQLAlchemy 0.9?
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="Changes and Migration">Up</a> |
+
+                    <a href="index.html" title="Changes and Migration">Prev</a> |
+                    <a href="changelog_09.html" title="0.9 Changelog">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                What&#8217;s New in SQLAlchemy 0.9?
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">What&#8217;s New in SQLAlchemy 0.9?</a><ul>
 <li><a class="reference internal" href="#introduction">Introduction</a></li>
 <li><a class="reference internal" href="#platform-support">Platform Support</a><ul>
@@ -200,26 +192,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="index.html" title="previous chapter">Changes and Migration</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="changelog_09.html" title="next chapter">0.9 Changelog</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -646,7 +625,7 @@ by that of most database documentation:</p>
 <div class="highlight-python"><pre>-- 0.9 behavior
 x = :x_1 COLLATE en_EN</pre>
 </div>
-<p>The potentially backwards incompatible change arises if the <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.collate" title="sqlalchemy.sql.operators.ColumnOperators.collate"><tt class="xref py py-meth docutils literal"><span class="pre">collate()</span></tt></a>
+<p>The potentially backwards incompatible change arises if the <a class="reference internal" href="../orm/internals.html#sqlalchemy.orm.interfaces.PropComparator.collate" title="sqlalchemy.orm.interfaces.PropComparator.collate"><tt class="xref py py-meth docutils literal"><span class="pre">collate()</span></tt></a>
 operator is being applied to the right-hand column, as follows:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">print</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">literal</span><span class="p">(</span><span class="s">&#39;somevalue&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">collate</span><span class="p">(</span><span class="s">&quot;en_EN&quot;</span><span class="p">)</span></pre></div>
 </div>
@@ -1384,7 +1363,7 @@ recursive loop.</p>
 <a class="reference internal" href="../orm/events.html#sqlalchemy.orm.events.AttributeEvents.append" title="sqlalchemy.orm.events.AttributeEvents.append"><tt class="xref py py-meth docutils literal"><span class="pre">AttributeEvents.append()</span></tt></a>, or <a class="reference internal" href="../orm/events.html#sqlalchemy.orm.events.AttributeEvents.remove" title="sqlalchemy.orm.events.AttributeEvents.remove"><tt class="xref py py-meth docutils literal"><span class="pre">AttributeEvents.remove()</span></tt></a> events,
 and b. initiates further attribute modification operations as a result of these
 events may need to be modified to prevent recursive loops, as the attribute system
-no longer stops a chain of events from propagating endlessly in the absense of the backref
+no longer stops a chain of events from propagating endlessly in the absence of the backref
 event handlers.   Additionally, code which depends upon the value of the <tt class="docutils literal"><span class="pre">initiator</span></tt>
 will need to be adjusted to the new API, and furthermore must be ready for the
 value of <tt class="docutils literal"><span class="pre">initiator</span></tt> to change from its original value within a string of
@@ -1490,7 +1469,7 @@ now consistent:</p>
 <span id="migration-1068"></span><h3>Label constructs can now render as their name alone in an ORDER BY<a class="headerlink" href="#label-constructs-can-now-render-as-their-name-alone-in-an-order-by" title="Permalink to this headline">¶</a></h3>
 <p>For the case where a <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.Label" title="sqlalchemy.sql.expression.Label"><tt class="xref py py-class docutils literal"><span class="pre">Label</span></tt></a> is used in both the columns clause
 as well as the ORDER BY clause of a SELECT, the label will render as
-just it&#8217;s name in the ORDER BY clause, assuming the underlying dialect
+just its name in the ORDER BY clause, assuming the underlying dialect
 reports support of this feature.</p>
 <p>E.g. an example like:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">func</span>
@@ -1571,7 +1550,7 @@ the statement is executed, which we can see by examining the <tt class="docutils
 statements without needing to explicitly specify those types within every
 <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> expression.</p>
 <p>The potentially backwards-compatible changes involve two unlikely
-scenarios.  Since the the bound parameter is
+scenarios.  Since the bound parameter is
 <strong>cloned</strong>, users should not be relying upon making in-place changes to a
 <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> construct once created.   Additionally, code which uses
 <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.bindparam" title="sqlalchemy.sql.expression.bindparam"><tt class="xref py py-func docutils literal"><span class="pre">bindparam()</span></tt></a> within an <a class="reference internal" href="../core/dml.html#sqlalchemy.sql.expression.Insert" title="sqlalchemy.sql.expression.Insert"><tt class="xref py py-class docutils literal"><span class="pre">Insert</span></tt></a> or <a class="reference internal" href="../core/dml.html#sqlalchemy.sql.expression.Update" title="sqlalchemy.sql.expression.Update"><tt class="xref py py-class docutils literal"><span class="pre">Update</span></tt></a> statement

@@ -212,6 +212,11 @@ class CustomUnaryOperatorTest(fixtures.TestBase, testing.AssertsCompiledSQL):
                                 operator=operators.custom_op("!!"),
                                 type_=MyInteger)
 
+                def __invert__(self):
+                    return UnaryExpression(self.expr,
+                                operator=operators.custom_op("!!!"),
+                                type_=MyInteger)
+
         return MyInteger
 
     def test_factorial(self):
@@ -233,6 +238,20 @@ class CustomUnaryOperatorTest(fixtures.TestBase, testing.AssertsCompiledSQL):
         self.assert_compile(
             col.factorial_prefix(),
             "!! somecol"
+        )
+
+    def test_factorial_invert(self):
+        col = column('somecol', self._factorial_fixture())
+        self.assert_compile(
+            ~col,
+            "!!! somecol"
+        )
+
+    def test_double_factorial_invert(self):
+        col = column('somecol', self._factorial_fixture())
+        self.assert_compile(
+            ~(~col),
+            "!!! (!!! somecol)"
         )
 
     def test_unary_no_ops(self):
@@ -263,6 +282,7 @@ class _CustomComparatorTests(object):
             )
         proxied = t.select().c.foo
         self._assert_add_override(proxied)
+        self._assert_and_override(proxied)
 
     def test_alias_proxy(self):
         t = Table('t', MetaData(),
@@ -270,22 +290,32 @@ class _CustomComparatorTests(object):
             )
         proxied = t.alias().c.foo
         self._assert_add_override(proxied)
+        self._assert_and_override(proxied)
 
     def test_binary_propagate(self):
         c1 = Column('foo', self._add_override_factory())
         self._assert_add_override(c1 - 6)
+        self._assert_and_override(c1 - 6)
 
     def test_reverse_binary_propagate(self):
         c1 = Column('foo', self._add_override_factory())
         self._assert_add_override(6 - c1)
+        self._assert_and_override(6 - c1)
 
     def test_binary_multi_propagate(self):
         c1 = Column('foo', self._add_override_factory())
         self._assert_add_override((c1 - 6) + 5)
+        self._assert_and_override((c1 - 6) + 5)
 
     def test_no_boolean_propagate(self):
         c1 = Column('foo', self._add_override_factory())
         self._assert_not_add_override(c1 == 56)
+        self._assert_not_and_override(c1 == 56)
+
+    def _assert_and_override(self, expr):
+        assert (expr & text("5")).compare(
+            expr.op("goofy_and")(text("5"))
+        )
 
     def _assert_add_override(self, expr):
         assert (expr + 5).compare(
@@ -295,6 +325,11 @@ class _CustomComparatorTests(object):
     def _assert_not_add_override(self, expr):
         assert not (expr + 5).compare(
             expr.op("goofy")(5)
+        )
+
+    def _assert_not_and_override(self, expr):
+        assert not (expr & text("5")).compare(
+            expr.op("goofy_and")(text("5"))
         )
 
 class CustomComparatorTest(_CustomComparatorTests, fixtures.TestBase):
@@ -308,6 +343,8 @@ class CustomComparatorTest(_CustomComparatorTests, fixtures.TestBase):
                 def __add__(self, other):
                     return self.expr.op("goofy")(other)
 
+                def __and__(self, other):
+                    return self.expr.op("goofy_and")(other)
 
         return MyInteger
 
@@ -325,6 +362,9 @@ class TypeDecoratorComparatorTest(_CustomComparatorTests, fixtures.TestBase):
                 def __add__(self, other):
                     return self.expr.op("goofy")(other)
 
+                def __and__(self, other):
+                    return self.expr.op("goofy_and")(other)
+
 
         return MyInteger
 
@@ -338,6 +378,9 @@ class CustomEmbeddedinTypeDecoratorTest(_CustomComparatorTests, fixtures.TestBas
 
                 def __add__(self, other):
                     return self.expr.op("goofy")(other)
+
+                def __and__(self, other):
+                    return self.expr.op("goofy_and")(other)
 
 
         class MyDecInteger(TypeDecorator):
@@ -363,6 +406,12 @@ class NewOperatorTest(_CustomComparatorTests, fixtures.TestBase):
 
     def _assert_not_add_override(self, expr):
         assert not hasattr(expr, "foob")
+
+    def _assert_and_override(self, expr):
+        pass
+
+    def _assert_not_and_override(self, expr):
+        pass
 
 class ExtensionOperatorTest(fixtures.TestBase, testing.AssertsCompiledSQL):
     __dialect__ = 'default'
@@ -439,7 +488,7 @@ class BooleanEvalTest(fixtures.TestBase, testing.AssertsCompiledSQL):
             dialect=self._dialect(True)
         )
 
-    def test_two(self):
+    def test_two_a(self):
         c = column('x', Boolean)
         self.assert_compile(
             select([c]).where(c),
@@ -447,10 +496,26 @@ class BooleanEvalTest(fixtures.TestBase, testing.AssertsCompiledSQL):
             dialect=self._dialect(False)
         )
 
-    def test_three(self):
+    def test_two_b(self):
+        c = column('x', Boolean)
+        self.assert_compile(
+            select([c], whereclause=c),
+            "SELECT x WHERE x = 1",
+            dialect=self._dialect(False)
+        )
+
+    def test_three_a(self):
         c = column('x', Boolean)
         self.assert_compile(
             select([c]).where(~c),
+            "SELECT x WHERE x = 0",
+            dialect=self._dialect(False)
+        )
+
+    def test_three_b(self):
+        c = column('x', Boolean)
+        self.assert_compile(
+            select([c], whereclause=~c),
             "SELECT x WHERE x = 0",
             dialect=self._dialect(False)
         )
@@ -463,10 +528,18 @@ class BooleanEvalTest(fixtures.TestBase, testing.AssertsCompiledSQL):
             dialect=self._dialect(True)
         )
 
-    def test_five(self):
+    def test_five_a(self):
         c = column('x', Boolean)
         self.assert_compile(
             select([c]).having(c),
+            "SELECT x HAVING x = 1",
+            dialect=self._dialect(False)
+        )
+
+    def test_five_b(self):
+        c = column('x', Boolean)
+        self.assert_compile(
+            select([c], having=c),
             "SELECT x HAVING x = 1",
             dialect=self._dialect(False)
         )
@@ -679,8 +752,8 @@ class OperatorPrecedenceTest(fixtures.TestBase, testing.AssertsCompiledSQL):
     def test_operator_precedence_9(self):
         self.assert_compile(self.table2.select(
                         not_(self.table2.c.field.between(5, 6))),
-            "SELECT op.field FROM op WHERE NOT "
-                    "(op.field BETWEEN :field_1 AND :field_2)")
+            "SELECT op.field FROM op WHERE "
+                    "op.field NOT BETWEEN :field_1 AND :field_2")
 
     def test_operator_precedence_10(self):
         self.assert_compile(self.table2.select(not_(self.table2.c.field) == 5),
@@ -1248,7 +1321,7 @@ class NegationTest(fixtures.TestBase, testing.AssertsCompiledSQL):
                 ~(self.table1.c.name.between('jack', 'john'))),
          "SELECT mytable.myid, mytable.name FROM "
              "mytable WHERE mytable.myid != :myid_1 AND "\
-             "NOT (mytable.name BETWEEN :name_1 AND :name_2)"
+             "mytable.name NOT BETWEEN :name_1 AND :name_2"
         )
 
     def test_negate_operators_4(self):
@@ -1343,6 +1416,46 @@ class LikeTest(fixtures.TestBase, testing.AssertsCompiledSQL):
                 ~self.table1.c.name.ilike('%something%'),
                 "mytable.name NOT ILIKE %(name_1)s",
                 dialect=postgresql.dialect())
+
+class BetweenTest(fixtures.TestBase, testing.AssertsCompiledSQL):
+    __dialect__ = 'default'
+
+    table1 = table('mytable',
+        column('myid', Integer),
+        column('name', String),
+    )
+
+    def test_between_1(self):
+        self.assert_compile(
+                self.table1.c.myid.between(1, 2),
+                "mytable.myid BETWEEN :myid_1 AND :myid_2")
+
+    def test_between_2(self):
+        self.assert_compile(
+                ~self.table1.c.myid.between(1, 2),
+                "mytable.myid NOT BETWEEN :myid_1 AND :myid_2")
+
+    def test_between_3(self):
+        self.assert_compile(
+                self.table1.c.myid.between(1, 2, symmetric=True),
+                "mytable.myid BETWEEN SYMMETRIC :myid_1 AND :myid_2")
+
+    def test_between_4(self):
+        self.assert_compile(
+                ~self.table1.c.myid.between(1, 2, symmetric=True),
+                "mytable.myid NOT BETWEEN SYMMETRIC :myid_1 AND :myid_2")
+
+    def test_between_5(self):
+        self.assert_compile(
+                between(self.table1.c.myid, 1, 2, symmetric=True),
+                "mytable.myid BETWEEN SYMMETRIC :myid_1 AND :myid_2")
+
+    def test_between_6(self):
+        self.assert_compile(
+                ~between(self.table1.c.myid, 1, 2, symmetric=True),
+                "mytable.myid NOT BETWEEN SYMMETRIC :myid_1 AND :myid_2")
+
+
 
 class MatchTest(fixtures.TestBase, testing.AssertsCompiledSQL):
     __dialect__ = 'default'

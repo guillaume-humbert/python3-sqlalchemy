@@ -9,6 +9,108 @@
         :start-line: 5
 
 .. changelog::
+    :version: 0.8.7
+
+    .. change::
+        :tags: bug, mysql
+        :versions: 1.0.0, 0.9.5
+        :tickets: 3085
+
+        Fixed bug where column names added to ``mysql_length`` parameter
+        on an index needed to have the same quoting for quoted names in
+        order to be recognized.  The fix makes the quotes optional but
+        also provides the old behavior for backwards compatibility with those
+        using the workaround.
+
+    .. change::
+        :tags: bug, declarative
+        :versions: 1.0.0, 0.9.5
+        :tickets: 3062
+
+        The ``__mapper_args__`` dictionary is copied from a declarative
+        mixin or abstract class when accessed, so that modifications made
+        to this dictionary by declarative itself won't conflict with that
+        of other mappings.  The dictionary is modified regarding the
+        ``version_id_col`` and ``polymorphic_on`` arguments, replacing the
+        column within with the one that is officially mapped to the local
+        class/table.
+
+    .. change::
+        :tags: bug, sql
+        :versions: 0.9.5, 1.0.0
+        :tickets: 3044
+
+        Fixed bug in INSERT..FROM SELECT construct where selecting from a
+        UNION would wrap the union in an anonymous (e.g. unlabled) subquery.
+
+    .. change::
+        :tags: bug, postgresql
+        :versions: 0.9.5, 1.0.0
+        :tickets: 3053
+
+        Added the ``hashable=False`` flag to the PG :class:`.HSTORE` type, which
+        is needed to allow the ORM to skip over trying to "hash" an ORM-mapped
+        HSTORE column when requesting it in a mixed column/entity list.
+        Patch courtesy Gunnlaugur Þór Briem.
+
+    .. change::
+        :tags: bug, orm
+        :versions: 0.9.5, 1.0.0
+        :tickets: 3055
+
+        Fixed bug in subquery eager loading where a long chain of
+        eager loads across a polymorphic-subclass boundary in conjunction
+        with polymorphic loading would fail to locate the subclass-link in the
+        chain, erroring out with a missing property name on an
+        :class:`.AliasedClass`.
+
+    .. change::
+        :tags: bug, ext
+        :versions: 0.9.5, 1.0.0
+        :tickets: 3051
+
+        Fixed bug in mutable extension where :class:`.MutableDict` did not
+        report change events for the ``setdefault()`` dictionary operation.
+
+    .. change::
+        :tags: bug, mysql
+        :versions: 0.9.5, 1.0.0
+        :pullreq: bitbucket:15
+
+        Added support for reflecting tables where an index includes
+        KEY_BLOCK_SIZE using an equal sign.  Pull request courtesy
+        Sean McGivern.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3047
+        :versions: 0.9.5, 1.0.0
+
+        Fixed ORM bug where the :func:`.class_mapper` function would mask
+        AttributeErrors or KeyErrors that should raise during mapper
+        configuration due to user errors.  The catch for attribute/keyerror
+        has been made more specific to not include the configuration step.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3045
+        :versions: 0.9.5, 1.0.0
+
+        Fixed bug where :meth:`.Table.update` and :meth:`.Table.delete`
+        would produce an empty WHERE clause when an empty :func:`.and_()`
+        or :func:`.or_()` or other blank expression were applied.  This is
+        now consistent with that of :func:`.select`.
+
+    .. change::
+        :tags: bug, postgresql
+        :pullreq: bitbucket:13
+        :versions: 0.9.5, 1.0.0
+
+        Added a new "disconnect" message "connection has been closed unexpectedly".
+        This appears to be related to newer versions of SSL.
+        Pull request courtesy Antti Haapala.
+
+.. changelog::
     :version: 0.8.6
     :released: March 28, 2014
 
@@ -19,9 +121,6 @@
 
         Fixed ORM bug where changing the primary key of an object, then marking
         it for DELETE would fail to target the correct row for DELETE.
-        Note that we cannot currently check "number of rows matched" in general
-        for DELETE statements as we can't be sure that a self-referential
-        ON DELETE CASCADE has gotten there first.
 
     .. change::
         :tags: feature, postgresql
@@ -380,7 +479,7 @@
         attempts when an existing connection attempt is blocking.  Previously,
         the production of new connections was serialized within the block
         that monitored overflow; the overflow counter is now altered within
-        it's own critical section outside of the connection process itself.
+        its own critical section outside of the connection process itself.
 
      .. change::
         :tags: bug, engine, pool

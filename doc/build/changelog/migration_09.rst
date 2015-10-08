@@ -1373,7 +1373,7 @@ End-user code which a. makes use of the :meth:`.AttributeEvents.set`,
 :meth:`.AttributeEvents.append`, or :meth:`.AttributeEvents.remove` events,
 and b. initiates further attribute modification operations as a result of these
 events may need to be modified to prevent recursive loops, as the attribute system
-no longer stops a chain of events from propagating endlessly in the absense of the backref
+no longer stops a chain of events from propagating endlessly in the absence of the backref
 event handlers.   Additionally, code which depends upon the value of the ``initiator``
 will need to be adjusted to the new API, and furthermore must be ready for the
 value of ``initiator`` to change from its original value within a string of
@@ -1504,7 +1504,7 @@ Label constructs can now render as their name alone in an ORDER BY
 
 For the case where a :class:`.Label` is used in both the columns clause
 as well as the ORDER BY clause of a SELECT, the label will render as
-just it's name in the ORDER BY clause, assuming the underlying dialect
+just its name in the ORDER BY clause, assuming the underlying dialect
 reports support of this feature.
 
 E.g. an example like::
@@ -1605,7 +1605,7 @@ statements without needing to explicitly specify those types within every
 :func:`.bindparam` expression.
 
 The potentially backwards-compatible changes involve two unlikely
-scenarios.  Since the the bound parameter is
+scenarios.  Since the bound parameter is
 **cloned**, users should not be relying upon making in-place changes to a
 :func:`.bindparam` construct once created.   Additionally, code which uses
 :func:`.bindparam` within an :class:`.Insert` or :class:`.Update` statement

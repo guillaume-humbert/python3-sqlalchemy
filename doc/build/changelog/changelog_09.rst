@@ -12,6 +12,331 @@
         :start-line: 5
 
 .. changelog::
+    :version: 0.9.6
+    :released: June 23, 2014
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3060
+
+        Reverted the change for :ticket:`3060` - this is a unit of work
+        fix that is updated more comprehensively in 1.0 via :ticket:`3061`.
+        The fix in :ticket:`3060` unfortunately produces a new issue whereby
+        an eager load of a many-to-one attribute can produce an event
+        that is interpreted into an attribute change.
+
+.. changelog::
+    :version: 0.9.5
+    :released: June 23, 2014
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3042
+        :versions: 1.0.0
+
+        Additional checks have been added for the case where an inheriting
+        mapper is implicitly combining one of its column-based attributes
+        with that of the parent, where those columns normally don't necessarily
+        share the same value.  This is an extension of an existing check that
+        was added via :ticket:`1892`; however this new check emits only a
+        warning, instead of an exception, to allow for applications that may
+        be relying upon the existing behavior.
+
+        .. seealso::
+
+            :ref:`faq_combining_columns`
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3023
+        :versions: 1.0.0
+
+        The :paramref:`.Column.nullable` flag is implicitly set to ``False``
+        when that :class:`.Column` is referred to in an explicit
+        :class:`.PrimaryKeyConstraint` for that table.  This behavior now
+        matches that of when the :class:`.Column` itself has the
+        :paramref:`.Column.primary_key` flag set to ``True``, which is
+        intended to be an exactly equivalent case.
+
+    .. change::
+        :tags: enhancement, postgresql
+        :tickets: 3002
+        :versions: 1.0.0
+
+        Added a new type :class:`.postgresql.OID` to the Postgresql dialect.
+        While "oid" is generally a private type within PG that is not exposed
+        in modern versions, there are some PG use cases such as large object
+        support where these types might be exposed, as well as within some
+        user-reported schema reflection use cases.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3080
+        :versions: 1.0.0
+
+        Modified the behavior of :func:`.orm.load_only` such that primary key
+        columns are always added to the list of columns to be "undeferred";
+        otherwise, the ORM can't load the row's identity.   Apparently,
+        one can defer the mapped primary keys and the ORM will fail, that
+        hasn't been changed.  But as load_only is essentially saying
+        "defer all but X", it's more critical that PK cols not be part of this
+        deferral.
+
+    .. change::
+        :tags: feature, examples
+        :pullreq: bitbucket: 21
+        :versions: 1.0.0
+
+        Added a new example illustrating materialized paths, using the
+        latest relationship features.   Example courtesy Jack Zhou.
+
+    .. change::
+        :tags: bug, testsuite
+        :pullreq: github: 95
+        :versions: 1.0.0
+
+        In public test suite, shanged to use of ``String(40)`` from
+        less-supported ``Text`` in ``StringTest.test_literal_backslashes``.
+        Pullreq courtesy Jan.
+
+    .. change::
+        :tags: bug, engine
+        :versions: 1.0.0
+        :tickets: 3063
+
+        Fixed bug which would occur if a DBAPI exception
+        occurs when the engine first connects and does its initial checks,
+        and the exception is not a disconnect exception, yet the cursor
+        raises an error when we try to close it.  In this case the real
+        exception would be quashed as we tried to log the cursor close
+        exception via the connection pool and failed, as we were trying
+        to access the pool's logger in a way that is inappropriate
+        in this very specific scenario.
+
+    .. change::
+        :tags: feature, postgresql
+        :versions: 1.0.0
+        :pullreq: github:88
+
+        Added support for AUTOCOMMIT isolation level when using the pg8000
+        DBAPI.  Pull request courtesy Tony Locke.
+
+    .. change::
+        :tags: bug, postgresql
+        :tickets: 3021
+        :versions: 1.0.0
+        :pullreq: github:87
+
+        The psycopg2 ``.closed`` accessor is now consulted when determining
+        if an exception is a "disconnect" error; ideally, this should remove
+        the need for any other inspection of the exception message to detect
+        disconnect, however we will leave those existing messages in place
+        as a fallback.   This should be able to handle newer cases like
+        "SSL EOF" conditions.  Pull request courtesy Dirk Mueller.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3060
+        :versions: 1.0.0
+
+        Fixed a few edge cases which arise in the so-called "row switch"
+        scenario, where an INSERT/DELETE can be turned into an UPDATE.
+        In this situation, a many-to-one relationship set to None, or
+        in some cases a scalar attribute set to None, may not be detected
+        as a net change in value, and therefore the UPDATE would not reset
+        what was on the previous row.   This is due to some as-yet
+        unresovled side effects of the way attribute history works in terms
+        of implicitly assuming None isn't really a "change" for a previously
+        un-set attribute.  See also :ticket:`3061`.
+
+        .. note::
+
+            This change has been **REVERTED** in 0.9.6.   The full fix
+            will be in version 1.0 of SQLAlchemy.
+
+
+    .. change::
+        :tags: bug, orm
+        :versions: 1.0.0
+
+        Related to :ticket:`3060`, an adjustment has been made to the unit
+        of work such that loading for related many-to-one objects is slightly
+        more aggressive, in the case of a graph of self-referential objects
+        that are to be deleted; the load of related objects is to help
+        determine the correct order for deletion if passive_deletes is
+        not set.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3057
+        :versions: 1.0.0
+
+        Fixed bug in SQLite join rewriting where anonymized column names
+        due to repeats would not correctly be rewritten in subqueries.
+        This would affect SELECT queries with any kind of subquery + join.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3012
+        :versions: 1.0.0
+
+        Fixed bug where the :meth:`.Operators.__and__`,
+        :meth:`.Operators.__or__` and :meth:`.Operators.__invert__`
+        operator overload methods could not be overridden within a custom
+        :class:`.TypeEngine.Comparator` implementation.
+
+    .. change::
+        :tags: feature, postgresql
+        :tickets: 2785
+        :pullreq: bitbucket:18
+        :versions: 1.0.0
+
+        Added a new flag :paramref:`.ARRAY.zero_indexes` to the Postgresql
+        :class:`.ARRAY` type.  When set to ``True``, a value of one will be
+        added to all array index values before passing to the database, allowing
+        better interoperability between Python style zero-based indexes and
+        Postgresql one-based indexes.  Pull request courtesy Alexey Terentev.
+
+    .. change::
+        :tags: bug, engine
+        :tickets: 3043
+        :versions: 1.0.0
+
+        Fixed some "double invalidate" situations were detected where
+        a connection invalidation could occur within an already critical section
+        like a connection.close(); ultimately, these conditions are caused
+        by the change in :ticket:`2907`, in that the "reset on return" feature
+        calls out to the Connection/Transaction in order to handle it, where
+        "disconnect detection" might be caught.  However, it's possible that
+        the more recent change in :ticket:`2985` made it more likely for this
+        to be seen as the "connection invalidate" operation is much quicker,
+        as the issue is more reproducible on 0.9.4 than 0.9.3.
+
+        Checks are now added within any section that
+        an invalidate might occur to halt further disallowed operations
+        on the invalidated connection.  This includes two fixes both at the
+        engine level and at the pool level.   While the issue was observed
+        with highly concurrent gevent cases, it could in theory occur in
+        any kind of scenario where a disconnect occurs within the connection
+        close operation.
+
+    .. change::
+        :tags: feature, orm
+        :tickets: 3029
+        :versions: 1.0.0
+
+        The "primaryjoin" model has been stretched a bit further to allow
+        a join condition that is strictly from a single column to itself,
+        translated through some kind of SQL function or expression.  This
+        is kind of experimental, but the first proof of concept is a
+        "materialized path" join condition where a path string is compared
+        to itself using "like".   The :meth:`.Operators.like` operator has
+        also been added to the list of valid operators to use in a primaryjoin
+        condition.
+
+    .. change::
+        :tags: feature, sql
+        :tickets: 3028
+        :versions: 1.0.0
+
+        Liberalized the contract for :class:`.Index` a bit in that you can
+        specify a :func:`.text` expression as the target; the index no longer
+        needs to have a table-bound column present if the index is to be
+        manually added to the table, either via inline declaration or via
+        :meth:`.Table.append_constraint`.
+
+    .. change::
+        :tags: bug, firebird
+        :tickets: 3038
+
+        Fixed bug where the combination of "limit" rendering as
+        "SELECT FIRST n ROWS" using a bound parameter (only firebird has both),
+        combined with column-level subqueries
+        which also feature "limit" as well as "positional" bound parameters
+        (e.g. qmark style) would erroneously assign the subquery-level positions
+        before that of the enclosing SELECT, thus returning parameters which
+        are out of order.
+
+    .. change::
+        :tags: bug, mssql
+        :tickets: 3025
+        :versions: 1.0.0
+
+        Revised the query used to determine the current default schema name
+        to use the ``database_principal_id()`` function in conjunction with
+        the ``sys.database_principals`` view so that we can determine
+        the default schema independently of the type of login in progress
+        (e.g., SQL Server, Windows, etc).
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3024
+        :versions: 1.0.0
+
+        Fixed bug in new :meth:`.DialectKWArgs.argument_for` method where
+        adding an argument for a construct not previously included for any
+        special arguments would fail.
+
+    .. change::
+        :tags: bug, py3k, tests
+        :tickets: 2830
+        :pullreq: bitbucket:2830
+        :versions: 1.0.0
+
+        Corrected for some deprecation warnings involving the ``imp``
+        module and Python 3.3 or greater, when running tests.  Pull
+        request courtesy Matt Chisholm.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3020, 1068
+        :versions: 1.0.0
+
+        Fixed regression introduced in 0.9 where new "ORDER BY <labelname>"
+        feature from :ticket:`1068` would not apply quoting rules to the
+        label name as rendered in the ORDER BY.
+
+    .. change::
+        :tags: feature, orm
+        :tickets: 3017
+        :versions: 1.0.0
+
+        Added new utility function :func:`.make_transient_to_detached` which can
+        be used to manufacture objects that behave as though they were loaded
+        from a session, then detached.   Attributes that aren't present
+        are marked as expired, and the object can be added to a Session
+        where it will act like a persistent one.
+
+    .. change::
+        :tags: bug, sql
+        :versions: 1.0.0
+
+        Restored the import for :class:`.Function` to the ``sqlalchemy.sql.expression``
+        import namespace, which was removed at the beginning of 0.9.
+
+    .. change::
+        :tags: bug, orm, sql
+        :tickets: 3013
+        :versions: 1.0.0
+
+        Fixes to the newly enhanced boolean coercion in :ticket:`2804` where
+        the new rules for "where" and "having" woudn't take effect for the
+        "whereclause" and "having" kw arguments of the :func:`.select` construct,
+        which is also what :class:`.Query` uses so wasn't working in the
+        ORM either.
+
+    .. change::
+        :tags: feature, sql
+        :tickets: 2990
+        :versions: 1.0.0
+
+        Added new flag :paramref:`.expression.between.symmetric`, when set to True
+        renders "BETWEEN SYMMETRIC".  Also added a new negation operator
+        "notbetween_op", which now allows an expression like ``~col.between(x, y)``
+        to render as "col NOT BETWEEN x AND y", rather than a parentheiszed NOT
+        string.
+
+.. changelog::
     :version: 0.9.4
     :released: March 28, 2014
 
@@ -19,12 +344,12 @@
         :tags: feature, orm
         :tickets: 3007
 
-        Added new parameter :paramref:`.mapper.confirm_deleted_rows`.  Defaults
+        Added new parameter :paramref:`.orm.mapper.confirm_deleted_rows`.  Defaults
         to True, indicates that a series of DELETE statements should confirm
         that the cursor rowcount matches the number of primary keys that should
         have matched;  this behavior had been taken off in most cases
         (except when version_id is used) to support the unusual edge case of
-        self-referential ON DELETE CASCADE; to accomodate this, the message
+        self-referential ON DELETE CASCADE; to accommodate this, the message
         is now just a warning, not an exception, and the flag can be used
         to indicate a mapping that expects self-refererntial cascaded
         deletes of this nature.  See also :ticket:`2403` for background on the
@@ -1173,7 +1498,7 @@
         :tags: feature, orm
 
         The :class:`.exc.StatementError` or DBAPI-related subclass
-        now can accomodate additional information about the "reason" for
+        now can accommodate additional information about the "reason" for
         the exception; the :class:`.Session` now adds some detail to it
         when the exception occurs within an autoflush.  This approach
         is taken as opposed to combining :class:`.FlushError` with
@@ -1791,7 +2116,7 @@
         operations.  End user code which emulates the behavior of backrefs
         must now ensure that recursive event propagation schemes are halted,
         if the scheme does not use the backref handlers.   Using this new system,
-        backref handlers can now peform a
+        backref handlers can now perform a
         "two-hop" operation when an object is appended to a collection,
         associated with a new many-to-one, de-associated with the previous
         many-to-one, and then removed from a previous collection.   Before this
@@ -1999,7 +2324,7 @@
 
         The "auto-aliasing" behavior of the :meth:`.Query.select_from`
         method has been turned off.  The specific behavior is now
-        availble via a new method :meth:`.Query.select_entity_from`.
+        available via a new method :meth:`.Query.select_entity_from`.
         The auto-aliasing behavior here was never well documented and
         is generally not what's desired, as :meth:`.Query.select_from`
         has become more oriented towards controlling how a JOIN is

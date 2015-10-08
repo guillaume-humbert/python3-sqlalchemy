@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,70 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="changelog_07.html" title="previous chapter">0.7 Changelog</a>
-            </li>
-            <li>Next:
-            <a href="changelog_05.html" title="next chapter">0.5 Changelog</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/changelog/changelog_06.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
-        » 
-                0.6 Changelog
-            
-
-        <h2>
-            
-                0.6 Changelog
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="Changes and Migration">Up</a> |
+
+                    <a href="changelog_07.html" title="0.7 Changelog">Prev</a> |
+                    <a href="changelog_05.html" title="0.5 Changelog">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                0.6 Changelog
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">0.6 Changelog</a><ul>
 <li><a class="reference internal" href="#change-0.6.9">0.6.9</a><ul>
 <li><a class="reference internal" href="#change-0.6.9-general">general</a></li>
@@ -276,26 +268,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="changelog_07.html" title="previous chapter">0.7 Changelog</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="changelog_05.html" title="next chapter">0.5 Changelog</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -958,7 +937,7 @@ suggestion for the generic &#8220;direction&#8221; error.<a class="changeset-lin
 <ul class="simple">
 <li><p id="change-0.6.6-15"><span class="target" id="change-e344fa51f77920bcead6517070be003a"><strong>[engine] </strong></span>The &#8220;unicode warning&#8221; against non-unicode bind data
 is now raised only when the
-Unicode type is used explictly; not when
+Unicode type is used explicitly; not when
 convert_unicode=True is used on the engine
 or String type.<a class="changeset-link headerlink reference internal" href="#change-e344fa51f77920bcead6517070be003a">¶</a><p></p>
 </p>
@@ -1523,7 +1502,7 @@ disambiguated.<a class="changeset-link headerlink reference internal" href="#cha
 <li><p id="change-0.6.4-5"><span class="target" id="change-96944473a095ce6dfc07cbc71640f1d9"><strong>[orm] </strong></span>A warning is now emitted if a mapper is created against a
 join or other single selectable that includes multiple
 columns with the same name in its .c. collection,
-and those columns aren&#8217;t explictly named as part of
+and those columns aren&#8217;t explicitly named as part of
 the same or separate attributes (or excluded).
 In 0.7 this warning will be an exception.   Note that
 this warning is not emitted when the combination occurs
@@ -1779,7 +1758,7 @@ a second time, raising a KeyError.<a class="changeset-link headerlink reference 
 </li>
 <li><p id="change-0.6.4-35"><span class="target" id="change-0a8949e6824cfb04db55beb3e85e4aed"><strong>[sql] </strong></span>the _Label construct, i.e. the one that is produced
 whenever you say somecol.label(), now counts itself
-in its &#8220;proxy_set&#8221; unioned with that of it&#8217;s
+in its &#8220;proxy_set&#8221; unioned with that of its
 contained column&#8217;s proxy set, instead of
 directly returning that of the contained column.
 This allows column correspondence
@@ -1881,12 +1860,12 @@ have been broken out. Lots of sections rewritten
 and/or reorganized.<a class="changeset-link headerlink reference internal" href="#change-d47912608c4830253d4f01066a3062bb">¶</a><p></p>
 </p>
 </li>
-<li><p id="change-0.6.4-47"><span class="target" id="change-4d0bf2f6176ff585be192cce5473508e"><strong>[examples] </strong></span>The beaker_caching example has been reorgnized
+<li><p id="change-0.6.4-47"><span class="target" id="change-781cd432413e70f6da98e3dd05fda2be"><strong>[examples] </strong></span>The beaker_caching example has been reorganized
 such that the Session, cache manager,
 declarative_base are part of environment, and
 custom cache code is portable and now within
 &#8220;caching_query.py&#8221;.  This allows the example to
-be easier to &#8220;drop in&#8221; to existing projects.<a class="changeset-link headerlink reference internal" href="#change-4d0bf2f6176ff585be192cce5473508e">¶</a><p></p>
+be easier to &#8220;drop in&#8221; to existing projects.<a class="changeset-link headerlink reference internal" href="#change-781cd432413e70f6da98e3dd05fda2be">¶</a><p></p>
 </p>
 </li>
 <li><p id="change-0.6.4-48"><span class="target" id="change-723cdb6f299e5eb37115fdceb06a6607"><strong>[examples] </strong></span>the history_meta versioning recipe sets &#8220;unique=False&#8221;
@@ -2670,10 +2649,10 @@ at the query options level using &#8220;subqueryload(props..)&#8221;,
 &#8220;subqueryload_all(props...)&#8221;.<a class="changeset-link headerlink reference internal" href="#change-f967d8dbf3c4194f9e0b1af4d5804fd6">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1675">#1675</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta3-1"><span class="target" id="change-5767ddfaa66ff81d727e89c1b58f2c10"><strong>[orm] </strong></span>To accomodate the fact that there are now two kinds of eager
+<li><p id="change-0.6beta3-1"><span class="target" id="change-18a93528ced9a2629dcac08a74e933e0"><strong>[orm] </strong></span>To accommodate the fact that there are now two kinds of eager
 loading available, the new names for eagerload() and
 eagerload_all() are joinedload() and joinedload_all().  The
-old names will remain as synonyms for the foreseeable future.<a class="changeset-link headerlink reference internal" href="#change-5767ddfaa66ff81d727e89c1b58f2c10">¶</a><p></p>
+old names will remain as synonyms for the foreseeable future.<a class="changeset-link headerlink reference internal" href="#change-18a93528ced9a2629dcac08a74e933e0">¶</a><p></p>
 </p>
 </li>
 <li><p id="change-0.6beta3-2"><span class="target" id="change-5660c8fd9cb4729f0f6017950bde5b27"><strong>[orm] </strong></span>The &#8220;lazy&#8221; flag on the relationship() function now accepts
@@ -2748,11 +2727,11 @@ render inside of column expressions already assigned a label.<a class="changeset
 &#8220;sqlalchemy.dialects.postgresql&#8221; logger name.<a class="changeset-link headerlink reference internal" href="#change-51b8f6239dcbf5719eeda7f33fb074ad">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/877">#877</a></p>
 </p>
 </li>
-<li><p id="change-0.6beta3-13"><span class="target" id="change-cc407f1f9b807702cef6cfefc88505ae"><strong>[postgresql] </strong></span>the TIME and TIMESTAMP types are now availble from the
+<li><p id="change-0.6beta3-13"><span class="target" id="change-b06780742c82dc402af8d0b581c9eebe"><strong>[postgresql] </strong></span>the TIME and TIMESTAMP types are now available from the
 postgresql dialect directly, which add the PG-specific
 argument &#8216;precision&#8217; to both.   &#8216;precision&#8217; and
 &#8216;timezone&#8217; are correctly reflected for both TIME and
-TIMEZONE types.<a class="changeset-link headerlink reference internal" href="#change-cc407f1f9b807702cef6cfefc88505ae">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/997">#997</a></p>
+TIMEZONE types.<a class="changeset-link headerlink reference internal" href="#change-b06780742c82dc402af8d0b581c9eebe">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/997">#997</a></p>
 </p>
 </li>
 </ul>
@@ -2838,7 +2817,7 @@ target and produce an invalid query.<a class="changeset-link headerlink referenc
 </li>
 <li><p id="change-0.6beta2-4"><span class="target" id="change-58c0d0b1848c816ae294a332245af234"><strong>[orm] </strong></span>Fixed bug in session.rollback() which involved not removing
 formerly &#8220;pending&#8221; objects from the session before
-re-integrating &#8220;deleted&#8221; objects, typically occured with
+re-integrating &#8220;deleted&#8221; objects, typically occurred with
 natural primary keys. If there was a primary key conflict
 between them, the attach of the deleted would fail
 internally. The formerly &#8220;pending&#8221; objects are now expunged
@@ -3050,7 +3029,7 @@ of the given expression.  In particular
 the date/time/interval system created for Postgresql
 EXTRACT in has now been generalized into
 the type system.   The previous behavior which often
-occured of an expression &#8220;column + literal&#8221; forcing
+occurred of an expression &#8220;column + literal&#8221; forcing
 the type of &#8220;literal&#8221; to be the same as that of &#8220;column&#8221;
 will now usually not occur - the type of
 &#8220;literal&#8221; is first derived from the Python type of the
@@ -3841,7 +3820,7 @@ Connection strings look like:<blockquote>
 <div><blockquote>
 <div>postgresql://scott:tiger&#64;localhost/test
 postgresql+pg8000://scott:tiger&#64;localhost/test</div></blockquote>
-<p>The &#8220;postgres&#8221; name remains for backwards compatiblity
+<p>The &#8220;postgres&#8221; name remains for backwards compatibility
 in the following ways:</p>
 <blockquote>
 <div><ul>
@@ -3967,7 +3946,7 @@ objects.<a class="changeset-link headerlink reference internal" href="#change-98
 <li><p id="change-0.6beta1-76"><span class="target" id="change-3a5af57ac623dd1f8cfef840898452b2"><strong>[mysql] </strong></span>a column of type TIMESTAMP now defaults to NULL if
 &#8220;nullable=False&#8221; is not passed to Column(), and no default
 is present. This is now consistent with all other types,
-and in the case of TIMESTAMP explictly renders &#8220;NULL&#8221;
+and in the case of TIMESTAMP explicitly renders &#8220;NULL&#8221;
 due to MySQL&#8217;s &#8220;switching&#8221; of default nullability
 for TIMESTAMP columns.<a class="changeset-link headerlink reference internal" href="#change-3a5af57ac623dd1f8cfef840898452b2">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/1539">#1539</a></p>
 </p>

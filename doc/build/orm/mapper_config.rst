@@ -942,7 +942,7 @@ using the :func:`.synonym_for` decorator::
 While the :func:`.synonym` is useful for simple mirroring, the use case
 of augmenting attribute behavior with descriptors is better handled in modern
 usage using the :ref:`hybrid attribute <mapper_hybrids>` feature, which
-is more oriented towards Python descriptors.   Techically, a :func:`.synonym`
+is more oriented towards Python descriptors.   Technically, a :func:`.synonym`
 can do everything that a :class:`.hybrid_property` can do, as it also supports
 injection of custom SQL capabilities, but the hybrid is more straightforward
 to use in more complex situations.
@@ -1395,6 +1395,16 @@ each time an ``UPDATE`` to the mapped table occurs.  This value is checked each
 time the ORM emits an ``UPDATE`` or ``DELETE`` against the row to ensure that
 the value held in memory matches the database value.
 
+.. warning::
+
+    Because the versioning feature relies upon comparison of the **in memory**
+    record of an object, the feature only applies to the :meth:`.Session.flush`
+    process, where the ORM flushes individual in-memory rows to the database.
+    It does **not** take effect when performing
+    a multirow UPDATE or DELETE using :meth:`.Query.update` or :meth:`.Query.delete`
+    methods, as these methods only emit an UPDATE or DELETE statement but otherwise
+    do not have direct access to the contents of those rows being affected.
+
 The purpose of this feature is to detect when two concurrent transactions
 are modifying the same row at roughly the same time, or alternatively to provide
 a guard against the usage of a "stale" row in a system that might be re-using
@@ -1454,7 +1464,7 @@ following::
 The above UPDATE statement is updating the row that not only matches
 ``user.id = 1``, it also is requiring that ``user.version_id = 1``, where "1"
 is the last version identifier we've been known to use on this object.
-If a transaction elsewhere has modifed the row independently, this version id
+If a transaction elsewhere has modified the row independently, this version id
 will no longer match, and the UPDATE statement will report that no rows matched;
 this is the condition that SQLAlchemy tests, that exactly one row matched our
 UPDATE (or DELETE) statement.  If zero rows match, that indicates our version

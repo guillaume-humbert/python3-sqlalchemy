@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,70 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="changelog_03.html" title="previous chapter">0.3 Changelog</a>
-            </li>
-            <li>Next:
-            <a href="changelog_01.html" title="next chapter">0.1 Changelog</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/changelog/changelog_02.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
-        » 
-                0.2 Changelog
-            
-
-        <h2>
-            
-                0.2 Changelog
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="Changes and Migration">Up</a> |
+
+                    <a href="changelog_03.html" title="0.3 Changelog">Prev</a> |
+                    <a href="changelog_01.html" title="0.1 Changelog">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                0.2 Changelog
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">0.2 Changelog</a><ul>
 <li><a class="reference internal" href="#change-0.2.8">0.2.8</a></li>
 <li><a class="reference internal" href="#change-0.2.7">0.2.7</a></li>
@@ -148,26 +140,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="changelog_03.html" title="previous chapter">0.3 Changelog</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="changelog_01.html" title="next chapter">0.1 Changelog</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -221,7 +200,7 @@ see <a class="reference external" href="http://www.sqlalchemy.org/trac/wiki/WhyD
 </li>
 <li><p id="change-0.2.8-8"><span class="target" id="change-721c4061d19ede0ca96b182b60e5d466"></span>unit-of-work does a better check for &#8220;orphaned&#8221; objects that are
 part of a &#8220;delete-orphan&#8221; cascade, for certain conditions where the
-parent isnt available to cascade from.<a class="changeset-link headerlink reference internal" href="#change-721c4061d19ede0ca96b182b60e5d466">¶</a><p></p>
+parent isn&#8217;t available to cascade from.<a class="changeset-link headerlink reference internal" href="#change-721c4061d19ede0ca96b182b60e5d466">¶</a><p></p>
 </p>
 </li>
 <li><p id="change-0.2.8-9"><span class="target" id="change-fac2a3b6748371c68b935a45f19d6e6a"></span>mappers can tell if one of their objects is an &#8220;orphan&#8221; based
@@ -274,7 +253,7 @@ test uses a mock DBAPI<a class="changeset-link headerlink reference internal" hr
 so far will convert this to &#8220;TIME[STAMP] (WITH|WITHOUT) TIME ZONE&#8221;,
 so that control over timezone presence is more controllable (psycopg2
 returns datetimes with tzinfo&#8217;s if available, which can create confusion
-against datetimes that dont).<a class="changeset-link headerlink reference internal" href="#change-76b257b9178528b6903fdfbacb5deb90">¶</a><p></p>
+against datetimes that don&#8217;t).<a class="changeset-link headerlink reference internal" href="#change-76b257b9178528b6903fdfbacb5deb90">¶</a><p></p>
 </p>
 </li>
 <li><p id="change-0.2.8-19"><span class="target" id="change-4c9c98073c450c62d75b6c9e1c6be295"></span>fix to using query.count() with distinct, **kwargs with SelectResults
@@ -316,8 +295,8 @@ are tagged with an ordering identifier as they are registered as new
 with the session, and the INSERT statements are then sorted within the
 mapper save_obj.  the INSERT ordering has basically been pushed all
 the way to the end of the flush cycle. that way the various sorts and
-organizations occuring within UOWTask (particularly the circular task
-sort) dont have to worry about maintaining order (which they werent anyway)<a class="changeset-link headerlink reference internal" href="#change-5cbf0cc0fe21a05f64a43cb5418713a8">¶</a><p></p>
+organizations occurring within UOWTask (particularly the circular task
+sort) don&#8217;t have to worry about maintaining order (which they weren&#8217;t anyway)<a class="changeset-link headerlink reference internal" href="#change-5cbf0cc0fe21a05f64a43cb5418713a8">¶</a><p></p>
 </p>
 </li>
 <li><p id="change-0.2.7-4"><span class="target" id="change-b48fef6da67e2ecf70da2c57a64e38de"></span>fixed reflection of foreign keys to autoload the referenced table
@@ -417,8 +396,8 @@ but use these new objects behind the scenes.  table creation
 and reflection is now more table oriented rather than column oriented.<a class="changeset-link headerlink reference internal" href="#change-f8f62c879ce023c4b5a34014b6a07e0e">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/76">#76</a></p>
 </p>
 </li>
-<li><p id="change-0.2.6-1"><span class="target" id="change-df63112788d96a1161a07e4c96d39b12"></span>overhaul to MapperExtension calling scheme, wasnt working very well
-previously<a class="changeset-link headerlink reference internal" href="#change-df63112788d96a1161a07e4c96d39b12">¶</a><p></p>
+<li><p id="change-0.2.6-1"><span class="target" id="change-77fcf46249de1df2311dcc5841a81672"></span>overhaul to MapperExtension calling scheme, wasn&#8217;t working very well
+previously<a class="changeset-link headerlink reference internal" href="#change-77fcf46249de1df2311dcc5841a81672">¶</a><p></p>
 </p>
 </li>
 <li><p id="change-0.2.6-2"><span class="target" id="change-3e7930f4e1f7db2df2614a03b648a0d4"></span>tweaks to ActiveMapper, supports self-referential relationships<a class="changeset-link headerlink reference internal" href="#change-3e7930f4e1f7db2df2614a03b648a0d4">¶</a><p></p>
@@ -439,7 +418,7 @@ activated when activemapper is imported<a class="changeset-link headerlink refer
 <li><p id="change-0.2.6-6"><span class="target" id="change-b249794857f4ffef83824b29eb577243"></span>fixes to Session expunge/update/etc...needs more cleanup.<a class="changeset-link headerlink reference internal" href="#change-b249794857f4ffef83824b29eb577243">¶</a><p></p>
 </p>
 </li>
-<li><p id="change-0.2.6-7"><span class="target" id="change-9108145770b8a36658d1f9bd1457b5c3"></span>select_table mappers <em>still</em> werent always compiling<a class="changeset-link headerlink reference internal" href="#change-9108145770b8a36658d1f9bd1457b5c3">¶</a><p></p>
+<li><p id="change-0.2.6-7"><span class="target" id="change-1e0443db2dd1ddadf93ed4e1637c9100"></span>select_table mappers <em>still</em> weren&#8217;t always compiling<a class="changeset-link headerlink reference internal" href="#change-1e0443db2dd1ddadf93ed4e1637c9100">¶</a><p></p>
 </p>
 </li>
 <li><p id="change-0.2.6-8"><span class="target" id="change-6110d6d0c21f6d8574611b4a3931fedb"></span>fixed up Boolean datatype<a class="changeset-link headerlink reference internal" href="#change-6110d6d0c21f6d8574611b4a3931fedb">¶</a><p></p>
@@ -566,7 +545,7 @@ the previous Session.<a class="changeset-link headerlink reference internal" hre
 </p>
 </li>
 <li><p id="change-0.2.4-6"><span class="target" id="change-1afa0092b73a4311513258de8d1bfe61"></span>utterly remarkable:  added a single space between &#8216;CREATE TABLE&#8217;
-and &#8216;(&lt;the rest of it&gt;&#8217; since <em>thats how MySQL indicates a non-
+and &#8216;(&lt;the rest of it&gt;&#8217; since <em>that&#8217;s how MySQL indicates a non-
 reserved word tablename.....</em><a class="changeset-link headerlink reference internal" href="#change-1afa0092b73a4311513258de8d1bfe61">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/206">#206</a></p>
 </p>
 </li>
@@ -627,35 +606,35 @@ now a large degree simpler and clearer, slightly faster.  the &#8220;history&#82
 of an attribute is no longer micromanaged with each change and is
 instead part of a &#8220;CommittedState&#8221; object created when the
 instance is first loaded.  HistoryArraySet is gone, the behavior of
-list attributes is now more open ended (i.e. theyre not sets anymore).<a class="changeset-link headerlink reference internal" href="#change-1c0e73f78920f1f97d78a0e02b7db01f">¶</a><p></p>
+list attributes is now more open ended (i.e. they&#8217;re not sets anymore).<a class="changeset-link headerlink reference internal" href="#change-1c0e73f78920f1f97d78a0e02b7db01f">¶</a><p></p>
 </p>
 </li>
 <li><p id="change-0.2.3-3"><span class="target" id="change-c64bb0af937cfa88844e4ab96b6733fd"></span>py2.4 &#8220;set&#8221; construct used internally, falls back to sets.Set when
 &#8220;set&#8221; not available/ordering is needed.<a class="changeset-link headerlink reference internal" href="#change-c64bb0af937cfa88844e4ab96b6733fd">¶</a><p></p>
 </p>
 </li>
-<li><p id="change-0.2.3-4"><span class="target" id="change-173425ac8faf5c96a6229372c6e4701e"></span>fix to transaction control, so that repeated rollback() calls
-dont fail (was failing pretty badly when flush() would raise
-an exception in a larger try/except transaction block)<a class="changeset-link headerlink reference internal" href="#change-173425ac8faf5c96a6229372c6e4701e">¶</a><p></p>
+<li><p id="change-0.2.3-4"><span class="target" id="change-8de15dabb0ded4dfee956d664aef38e4"></span>fix to transaction control, so that repeated rollback() calls
+don&#8217;t fail (was failing pretty badly when flush() would raise
+an exception in a larger try/except transaction block)<a class="changeset-link headerlink reference internal" href="#change-8de15dabb0ded4dfee956d664aef38e4">¶</a><p></p>
 </p>
 </li>
 <li><p id="change-0.2.3-5"><span class="target" id="change-34c175944f8e671890f062d720dda4b5"></span>&#8220;foreignkey&#8221; argument to relation() can also be a list.  fixed
 auto-foreignkey detection<a class="changeset-link headerlink reference internal" href="#change-34c175944f8e671890f062d720dda4b5">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/151">#151</a></p>
 </p>
 </li>
-<li><p id="change-0.2.3-6"><span class="target" id="change-b4cca2cf5feda5cac2048fa0b4c4f32c"></span>fixed bug where tables with schema names werent getting indexed in
-the MetaData object properly<a class="changeset-link headerlink reference internal" href="#change-b4cca2cf5feda5cac2048fa0b4c4f32c">¶</a><p></p>
+<li><p id="change-0.2.3-6"><span class="target" id="change-c720f31d6d377648e95acdd146d1ed90"></span>fixed bug where tables with schema names weren&#8217;t getting indexed in
+the MetaData object properly<a class="changeset-link headerlink reference internal" href="#change-c720f31d6d377648e95acdd146d1ed90">¶</a><p></p>
 </p>
 </li>
-<li><p id="change-0.2.3-7"><span class="target" id="change-b52b98c4a83fafec9295753804c3f136"></span>fixed bug where Column with redefined &#8220;key&#8221; property wasnt getting
-type conversion happening in the ResultProxy<a class="changeset-link headerlink reference internal" href="#change-b52b98c4a83fafec9295753804c3f136">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/207">#207</a></p>
+<li><p id="change-0.2.3-7"><span class="target" id="change-5f5ca83d1dd3a0599d44cfd324640ae3"></span>fixed bug where Column with redefined &#8220;key&#8221; property wasn&#8217;t getting
+type conversion happening in the ResultProxy<a class="changeset-link headerlink reference internal" href="#change-5f5ca83d1dd3a0599d44cfd324640ae3">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/207">#207</a></p>
 </p>
 </li>
 <li><p id="change-0.2.3-8"><span class="target" id="change-ecc83114559345f0a9a3eaa6df5bb4b9"></span>fixed &#8216;port&#8217; attribute of URL to be an integer if present<a class="changeset-link headerlink reference internal" href="#change-ecc83114559345f0a9a3eaa6df5bb4b9">¶</a><p></p>
 </p>
 </li>
 <li><p id="change-0.2.3-9"><span class="target" id="change-7b441f457cf77d508db40bebef05589b"></span>fixed old bug where if a many-to-many table mapped as &#8220;secondary&#8221;
-had extra columns, delete operations didnt work<a class="changeset-link headerlink reference internal" href="#change-7b441f457cf77d508db40bebef05589b">¶</a><p></p>
+had extra columns, delete operations didn&#8217;t work<a class="changeset-link headerlink reference internal" href="#change-7b441f457cf77d508db40bebef05589b">¶</a><p></p>
 </p>
 </li>
 <li><p id="change-0.2.3-10"><span class="target" id="change-de389a34b53d442e9d0b3b965217ab28"></span>bugfixes for mapping against UNION queries<a class="changeset-link headerlink reference internal" href="#change-de389a34b53d442e9d0b3b965217ab28">¶</a><p></p>
@@ -664,8 +643,8 @@ had extra columns, delete operations didnt work<a class="changeset-link headerli
 <li><p id="change-0.2.3-11"><span class="target" id="change-8f30bc9cbea047626bdc2a9439e7b5d9"></span>fixed incorrect exception class thrown when no DB driver present<a class="changeset-link headerlink reference internal" href="#change-8f30bc9cbea047626bdc2a9439e7b5d9">¶</a><p></p>
 </p>
 </li>
-<li><p id="change-0.2.3-12"><span class="target" id="change-24926253a5c623f41d5391b61b1bd27f"></span>added NonExistentTable exception thrown when reflecting a table
-that doesnt exist<a class="changeset-link headerlink reference internal" href="#change-24926253a5c623f41d5391b61b1bd27f">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/138">#138</a></p>
+<li><p id="change-0.2.3-12"><span class="target" id="change-f46f46103387cad34879ec24046fcf1e"></span>added NonExistentTable exception thrown when reflecting a table
+that doesn&#8217;t exist<a class="changeset-link headerlink reference internal" href="#change-f46f46103387cad34879ec24046fcf1e">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/138">#138</a></p>
 </p>
 </li>
 <li><p id="change-0.2.3-13"><span class="target" id="change-aafc1f39ed388e24a34c35773df53c20"></span>small fix to ActiveMapper regarding one-to-one backrefs, other
@@ -785,13 +764,13 @@ it.  fixed unittest to ensure that ConnectionFairy properly falls out
 of scope.<a class="changeset-link headerlink reference internal" href="#change-d9a9007ac13e6499a26f44a500fa7c5d">¶</a><p></p>
 </p>
 </li>
-<li><p id="change-0.2.1-5"><span class="target" id="change-0e86b706f331eeffef0eb93607dae7ac"></span>placeholder dispose() method added to SingletonThreadPool, doesnt
-do anything yet<a class="changeset-link headerlink reference internal" href="#change-0e86b706f331eeffef0eb93607dae7ac">¶</a><p></p>
+<li><p id="change-0.2.1-5"><span class="target" id="change-d110ae3a45ebc503ac45c8483c5bfc3d"></span>placeholder dispose() method added to SingletonThreadPool, doesn&#8217;t
+do anything yet<a class="changeset-link headerlink reference internal" href="#change-d110ae3a45ebc503ac45c8483c5bfc3d">¶</a><p></p>
 </p>
 </li>
-<li><p id="change-0.2.1-6"><span class="target" id="change-3e7c69b421994f1dadc810fa3d8c270c"></span>rollback() is automatically called when an exception is raised,
-but only if theres no transaction in process (i.e. works more like
-autocommit).<a class="changeset-link headerlink reference internal" href="#change-3e7c69b421994f1dadc810fa3d8c270c">¶</a><p></p>
+<li><p id="change-0.2.1-6"><span class="target" id="change-25946e86814860e1bc890e293c2ab638"></span>rollback() is automatically called when an exception is raised,
+but only if there&#8217;s no transaction in process (i.e. works more like
+autocommit).<a class="changeset-link headerlink reference internal" href="#change-25946e86814860e1bc890e293c2ab638">¶</a><p></p>
 </p>
 </li>
 <li><p id="change-0.2.1-7"><span class="target" id="change-7d94f3def3f5ff26407726dd433da955"></span>fixed exception raise in sqlite if no sqlite module present<a class="changeset-link headerlink reference internal" href="#change-7d94f3def3f5ff26407726dd433da955">¶</a><p></p>
@@ -854,7 +833,7 @@ anymore and is replaced by DynamicMetaData.<a class="changeset-link headerlink r
 </li>
 <li><p id="change-0.2.0-7"><span class="target" id="change-3d8b1afa02b15535632392487a516dde"></span>&#8220;oid&#8221; system has been totally moved into compile-time behavior;
 if they are used in an order_by where they are not available, the order_by
-doesnt get compiled, fixes<a class="changeset-link headerlink reference internal" href="#change-3d8b1afa02b15535632392487a516dde">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/147">#147</a></p>
+doesn&#8217;t get compiled, fixes<a class="changeset-link headerlink reference internal" href="#change-3d8b1afa02b15535632392487a516dde">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/147">#147</a></p>
 </p>
 </li>
 <li><p id="change-0.2.0-8"><span class="target" id="change-8bf8612ef556f0bf755fe718681e6980"></span>overhaul to packaging; &#8220;mapping&#8221; is now &#8220;orm&#8221;, &#8220;objectstore&#8221; is now

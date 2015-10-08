@@ -28,6 +28,7 @@ from sqlalchemy.engine import default
 from sqlalchemy.dialects import mysql, mssql, postgresql, oracle, \
             sqlite, sybase
 from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.sql import compiler
 
 table1 = table('mytable',
     column('myid', Integer),
@@ -180,6 +181,34 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
                 "SELECT 1 " + exp,
                 checkparams=params
             )
+
+    def test_select_precol_compile_ordering(self):
+        s1 = select([column('x')]).select_from('a').limit(5).as_scalar()
+        s2 = select([s1]).limit(10)
+
+        class MyCompiler(compiler.SQLCompiler):
+            def get_select_precolumns(self, select):
+                result = ""
+                if select._limit:
+                    result += "FIRST %s " % self.process(literal(select._limit))
+                if select._offset:
+                    result += "SKIP %s " % self.process(literal(select._offset))
+                return result
+
+            def limit_clause(self, select):
+                return ""
+
+        dialect = default.DefaultDialect()
+        dialect.statement_compiler = MyCompiler
+        dialect.paramstyle = 'qmark'
+        dialect.positional = True
+        self.assert_compile(
+            s2,
+            "SELECT FIRST ? (SELECT FIRST ? x FROM a) AS anon_1",
+            checkpositional=(10, 5),
+            dialect=dialect
+        )
+
 
     def test_from_subquery(self):
         """tests placing select statements in the column clause of
@@ -933,6 +962,15 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
         )
 
 
+    def test_where_empty(self):
+        self.assert_compile(
+            select([table1.c.myid]).where(and_()),
+            "SELECT mytable.myid FROM mytable"
+        )
+        self.assert_compile(
+            select([table1.c.myid]).where(or_()),
+            "SELECT mytable.myid FROM mytable"
+        )
 
     def test_multiple_col_binds(self):
         self.assert_compile(
@@ -1701,7 +1739,7 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
                         expected_test_params_list
                 )
 
-        # check that params() doesnt modify original statement
+        # check that params() doesn't modify original statement
         s = select([table1], or_(table1.c.myid == bindparam('myid'),
                                     table2.c.otherid ==
                                         bindparam('myotherid')))

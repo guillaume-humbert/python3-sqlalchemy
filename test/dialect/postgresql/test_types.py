@@ -108,9 +108,6 @@ class EnumTest(fixtures.TestBase, AssertsExecutionResults):
     @testing.fails_on('postgresql+zxjdbc',
                       'zxjdbc fails on ENUM: column "XXX" is of type '
                       'XXX but expression is of type character varying')
-    @testing.fails_on('postgresql+pg8000',
-                      'zxjdbc fails on ENUM: column "XXX" is of type '
-                      'XXX but expression is of type text')
     def test_create_table(self):
         metadata = MetaData(testing.db)
         t1 = Table('table', metadata, Column('id', Integer,
@@ -138,9 +135,6 @@ class EnumTest(fixtures.TestBase, AssertsExecutionResults):
     @testing.fails_on('postgresql+zxjdbc',
                       'zxjdbc fails on ENUM: column "XXX" is of type '
                       'XXX but expression is of type character varying')
-    @testing.fails_on('postgresql+pg8000',
-                      'zxjdbc fails on ENUM: column "XXX" is of type '
-                      'XXX but expression is of type text')
     @testing.provide_metadata
     def test_unicode_labels(self):
         metadata = self.metadata
@@ -326,6 +320,19 @@ class EnumTest(fixtures.TestBase, AssertsExecutionResults):
         finally:
             metadata.drop_all()
 
+class OIDTest(fixtures.TestBase):
+    __only_on__ = 'postgresql'
+
+    @testing.provide_metadata
+    def test_reflection(self):
+        metadata = self.metadata
+        Table('table', metadata, Column('x', Integer),
+                            Column('y', postgresql.OID))
+        metadata.create_all()
+        m2 = MetaData()
+        t2 = Table('table', m2, autoload_with=testing.db, autoload=True)
+        assert isinstance(t2.c.y.type, postgresql.OID)
+
 class NumericInterpretationTest(fixtures.TestBase):
     __only_on__ = 'postgresql'
 
@@ -374,7 +381,7 @@ class TimezoneTest(fixtures.TestBase):
 
     psycopg will return a datetime with a tzinfo attached to it, if
     postgresql returns it.  python then will not let you compare a
-    datetime with a tzinfo to a datetime that doesnt have one.  this
+    datetime with a tzinfo to a datetime that doesn't have one.  this
     test illustrates two ways to have datetime types with and without
     timezone info. """
 
@@ -1375,6 +1382,21 @@ class HStoreRoundTripTest(fixtures.TablesTest):
         )
         self._assert_data([{r'key \"foo\"': r'value \"bar"\ xyz'}])
 
+    def test_orm_round_trip(self):
+        from sqlalchemy import orm
+        class Data(object):
+            def __init__(self, name, data):
+                self.name = name
+                self.data = data
+        orm.mapper(Data, self.tables.data_table)
+        s = orm.Session(testing.db)
+        d = Data(name='r1', data={"key1": "value1", "key2": "value2",
+                                    "key3": "value3"})
+        s.add(d)
+        eq_(
+            s.query(Data.data, Data).all(),
+            [(d.data, d)]
+        )
 class _RangeTypeMixin(object):
     __requires__ = 'range_types',
     __dialect__ = 'postgresql+psycopg2'

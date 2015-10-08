@@ -93,7 +93,6 @@ OPERATORS = {
     operators.ge: ' >= ',
     operators.eq: ' = ',
     operators.concat_op: ' || ',
-    operators.between_op: ' BETWEEN ',
     operators.match_op: ' MATCH ',
     operators.in_op: ' IN ',
     operators.notin_op: ' NOT IN ',
@@ -522,7 +521,7 @@ class SQLCompiler(Compiled):
                         OPERATORS[operators.as_] + \
                         self.preparer.format_label(label, labelname)
         elif render_label_only:
-            return labelname
+            return self.preparer.format_label(label, labelname)
         else:
             return label.element._compiler_dispatch(self,
                                     within_columns_clause=False,
@@ -955,6 +954,18 @@ class SQLCompiler(Compiled):
                 self.render_literal_value(escape, sqltypes.STRINGTYPE)
                 if escape else ''
             )
+
+    def visit_between_op_binary(self, binary, operator, **kw):
+        symmetric = binary.modifiers.get("symmetric", False)
+        return self._generate_generic_binary(
+                        binary, " BETWEEN SYMMETRIC "
+                                if symmetric else " BETWEEN ", **kw)
+
+    def visit_notbetween_op_binary(self, binary, operator, **kw):
+        symmetric = binary.modifiers.get("symmetric", False)
+        return self._generate_generic_binary(
+                        binary, " NOT BETWEEN SYMMETRIC "
+                                if symmetric else " NOT BETWEEN ", **kw)
 
     def visit_bindparam(self, bindparam, within_columns_clause=False,
                                             literal_binds=False,
@@ -1470,19 +1481,6 @@ class SQLCompiler(Compiled):
                 'within_columns_clause': False
             })
 
-        # the actual list of columns to print in the SELECT column list.
-        inner_columns = [
-            c for c in [
-                self._label_select_column(select,
-                                    column,
-                                    populate_result_map, asfrom,
-                                    column_clause_args,
-                                    name=name)
-                for name, column in select._columns_plus_names
-                ]
-            if c is not None
-        ]
-
         text = "SELECT "  # we're off to a good start !
 
         if select._hints:
@@ -1503,6 +1501,20 @@ class SQLCompiler(Compiled):
             text += self._generate_prefixes(select, select._prefixes, **kwargs)
 
         text += self.get_select_precolumns(select)
+
+        # the actual list of columns to print in the SELECT column list.
+        inner_columns = [
+            c for c in [
+                self._label_select_column(select,
+                                    column,
+                                    populate_result_map, asfrom,
+                                    column_clause_args,
+                                    name=name)
+                for name, column in select._columns_plus_names
+                ]
+            if c is not None
+        ]
+
         text += ', '.join(inner_columns)
 
         if froms:
@@ -1827,7 +1839,9 @@ class SQLCompiler(Compiled):
                 text += " " + extra_from_text
 
         if update_stmt._whereclause is not None:
-            text += " WHERE " + self.process(update_stmt._whereclause)
+            t = self.process(update_stmt._whereclause)
+            if t:
+                text += " WHERE " + t
 
         limit_clause = self.update_limit_clause(update_stmt)
         if limit_clause:
@@ -1962,6 +1976,8 @@ class SQLCompiler(Compiled):
             implicit_return_defaults = self.dialect.implicit_returning and \
                                 stmt.table.implicit_returning and \
                                 stmt._return_defaults
+        else:
+            implicit_return_defaults = False
 
         if implicit_return_defaults:
             if stmt._return_defaults is True:
@@ -2132,7 +2148,7 @@ class SQLCompiler(Compiled):
                             c in implicit_return_defaults:
                             self.returning.append(c)
                         elif not c.primary_key:
-                            # dont add primary key column to postfetch
+                            # don't add primary key column to postfetch
                             self.postfetch.append(c)
                     else:
                         values.append(
@@ -2249,8 +2265,9 @@ class SQLCompiler(Compiled):
                                 delete_stmt, delete_stmt._returning)
 
         if delete_stmt._whereclause is not None:
-            text += " WHERE "
-            text += delete_stmt._whereclause._compiler_dispatch(self)
+            t = delete_stmt._whereclause._compiler_dispatch(self)
+            if t:
+                text += " WHERE " + t
 
         if self.returning and not self.returning_precedes_values:
             text += " " + self.returning_clause(

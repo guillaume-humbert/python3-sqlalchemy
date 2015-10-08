@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,11 +44,15 @@
         <script type="text/javascript" src="../../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../../_static/init.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
     <link rel="top" title="SQLAlchemy 0.9 Documentation" href="../../index.html" />
+        <link rel="up" title="ORM Extensions" href="index.html" />
+        <link rel="next" title="Declarative" href="declarative.html" />
+        <link rel="prev" title="Association Proxy" href="associationproxy.html" />
     <!-- end layout.mako headers -->
 
 
@@ -66,63 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-
-        <li>
-            <a href="../../contents.html">Table of Contents</a> |
-            <a href="../../genindex.html">Index</a>
-            | <a href="../../_sources/orm/extensions/automap.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../../index.html">SQLAlchemy 0.9 Documentation</a>
-        » 
-                Automap
-            
-
-        <h2>
-            
-                Automap
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="ORM Extensions">Up</a> |
+
+                    <a href="associationproxy.html" title="Association Proxy">Prev</a> |
+                    <a href="declarative.html" title="Declarative">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../../index.html">Contents</a> |
+                <a href="../../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                Automap
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">Automap</a><ul>
 <li><a class="reference internal" href="#basic-use">Basic Use</a></li>
 <li><a class="reference internal" href="#generating-mappings-from-an-existing-metadata">Generating Mappings from an Existing MetaData</a></li>
@@ -143,16 +145,11 @@
 
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -373,7 +370,7 @@ is examined for <a class="reference internal" href="../../core/constraints.html#
 <li>From each <a class="reference internal" href="../../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a>, the remote <a class="reference internal" href="../../core/metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>
 object present is matched up to the class to which it is to be mapped,
 if any, else it is skipped.</li>
-<li>As the <a class="reference internal" href="../../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> we are examining correponds to a reference
+<li>As the <a class="reference internal" href="../../core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint" title="sqlalchemy.schema.ForeignKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKeyConstraint</span></tt></a> we are examining corresponds to a reference
 from the immediate mapped class,
 the relationship will be set up as a many-to-one referring to the referred class;
 a corresponding one-to-many backref will be created on the referred class referring
@@ -611,7 +608,7 @@ are present under the name they were given, e.g.:</p>
 
 <dl class="classmethod">
 <dt id="sqlalchemy.ext.automap.AutomapBase.prepare">
-<em class="property">classmethod </em><tt class="descname">prepare</tt><big>(</big><em>engine=None</em>, <em>reflect=False</em>, <em>classname_for_table=&lt;function classname_for_table at 0x10fbac398&gt;</em>, <em>collection_class=&lt;type 'list'&gt;</em>, <em>name_for_scalar_relationship=&lt;function name_for_scalar_relationship at 0x10fbac758&gt;</em>, <em>name_for_collection_relationship=&lt;function name_for_collection_relationship at 0x10fbac7d0&gt;</em>, <em>generate_relationship=&lt;function generate_relationship at 0x10fbac848&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.automap.AutomapBase.prepare" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><tt class="descname">prepare</tt><big>(</big><em>engine=None</em>, <em>reflect=False</em>, <em>classname_for_table=&lt;function classname_for_table at 0x1103f9320&gt;</em>, <em>collection_class=&lt;type 'list'&gt;</em>, <em>name_for_scalar_relationship=&lt;function name_for_scalar_relationship at 0x1103f96e0&gt;</em>, <em>name_for_collection_relationship=&lt;function name_for_collection_relationship at 0x1103f9758&gt;</em>, <em>generate_relationship=&lt;function generate_relationship at 0x1103f97d0&gt;</em><big>)</big><a class="headerlink" href="#sqlalchemy.ext.automap.AutomapBase.prepare" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extract mapped classes and relationships from the <a class="reference internal" href="../../core/metadata.html#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> and
 perform mappings.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -806,6 +803,10 @@ by the <a class="reference internal" href="#sqlalchemy.ext.automap.generate_rela
 </div>
 
 <div id="docs-bottom-navigation" class="docs-navigation-links">
+        Previous:
+        <a href="associationproxy.html" title="previous chapter">Association Proxy</a>
+        Next:
+        <a href="declarative.html" title="next chapter">Declarative</a>
 
     <div id="docs-copyright">
         &copy; <a href="../../copyright.html">Copyright</a> 2007-2014, the SQLAlchemy authors and contributors.

@@ -73,8 +73,15 @@ Valid values for ``isolation_level`` include:
 * ``REPEATABLE READ``
 * ``SERIALIZABLE``
 
-The :mod:`~sqlalchemy.dialects.postgresql.psycopg2` dialect also offers the special level ``AUTOCOMMIT``.  See
-:ref:`psycopg2_isolation_level` for details.
+The :mod:`~sqlalchemy.dialects.postgresql.psycopg2` and
+:mod:`~sqlalchemy.dialects.postgresql.pg8000` dialects also offer the
+special level ``AUTOCOMMIT``.
+
+.. seealso::
+
+    :ref:`psycopg2_isolation_level`
+
+    :ref:`pg8000_isolation_level`
 
 .. _postgresql_schema_reflection:
 
@@ -402,6 +409,15 @@ class MACADDR(sqltypes.TypeEngine):
 PGMacAddr = MACADDR
 
 
+class OID(sqltypes.TypeEngine):
+    """Provide the Postgresql OID type.
+
+    .. versionadded:: 0.9.5
+
+    """
+    __visit_name__ = "OID"
+
+
 class TIMESTAMP(sqltypes.TIMESTAMP):
     def __init__(self, timezone=False, precision=None):
         super(TIMESTAMP, self).__init__(timezone=timezone)
@@ -702,11 +718,20 @@ class ARRAY(sqltypes.Concatenable, sqltypes.TypeEngine):
         """Define comparison operations for :class:`.ARRAY`."""
 
         def __getitem__(self, index):
+            shift_indexes = 1 if self.expr.type.zero_indexes else 0
             if isinstance(index, slice):
+                if shift_indexes:
+                    index = slice(
+                        index.start + shift_indexes,
+                        index.stop + shift_indexes,
+                        index.step
+                    )
                 index = _Slice(index, self)
                 return_type = self.type
             else:
+                index += shift_indexes
                 return_type = self.type.item_type
+
             return self._binary_operate(self.expr, operators.getitem, index,
                             result_type=return_type)
 
@@ -797,7 +822,8 @@ class ARRAY(sqltypes.Concatenable, sqltypes.TypeEngine):
 
     comparator_factory = Comparator
 
-    def __init__(self, item_type, as_tuple=False, dimensions=None):
+    def __init__(self, item_type, as_tuple=False, dimensions=None,
+                 zero_indexes=False):
         """Construct an ARRAY.
 
         E.g.::
@@ -824,6 +850,13 @@ class ARRAY(sqltypes.Concatenable, sqltypes.TypeEngine):
          meaning they can store any number of dimensions no matter how
          they were declared.
 
+        :param zero_indexes=False: when True, index values will be converted
+         between Python zero-based and Postgresql one-based indexes, e.g.
+         a value of one will be added to all index values before passing
+         to the database.
+
+         .. versionadded:: 0.9.5
+
         """
         if isinstance(item_type, ARRAY):
             raise ValueError("Do not nest ARRAY types; ARRAY(basetype) "
@@ -833,6 +866,7 @@ class ARRAY(sqltypes.Concatenable, sqltypes.TypeEngine):
         self.item_type = item_type
         self.as_tuple = as_tuple
         self.dimensions = dimensions
+        self.zero_indexes = zero_indexes
 
     @property
     def python_type(self):
@@ -1055,6 +1089,7 @@ ischema_names = {
     'bit': BIT,
     'bit varying': BIT,
     'macaddr': MACADDR,
+    'oid': OID,
     'double precision': DOUBLE_PRECISION,
     'timestamp': TIMESTAMP,
     'timestamp with time zone': TIMESTAMP,
@@ -1327,6 +1362,9 @@ class PGTypeCompiler(compiler.GenericTypeCompiler):
 
     def visit_MACADDR(self, type_):
         return "MACADDR"
+
+    def visit_OID(self, type_):
+        return "OID"
 
     def visit_FLOAT(self, type_):
         if not type_.precision:

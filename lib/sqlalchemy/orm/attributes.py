@@ -98,7 +98,7 @@ class QueryableAttribute(interfaces._MappedAttribute,
           any other kind of SQL expression other than a :class:`.Column`,
           the attribute will refer to the :attr:`.MapperProperty.info` dictionary
           associated directly with the :class:`.ColumnProperty`, assuming the SQL
-          expression itself does not have it's own ``.info`` attribute
+          expression itself does not have its own ``.info`` attribute
           (which should be the case, unless a user-defined SQL construct
           has defined one).
 
@@ -532,7 +532,7 @@ class AttributeImpl(object):
     def get_history(self, state, dict_, passive=PASSIVE_OFF):
         raise NotImplementedError()
 
-    def get_all_pending(self, state, dict_):
+    def get_all_pending(self, state, dict_, passive=PASSIVE_NO_INITIALIZE):
         """Return a list of tuples of (state, obj)
         for all objects in this attribute's current state
         + history.
@@ -568,7 +568,7 @@ class AttributeImpl(object):
             # if history present, don't load
             key = self.key
             if key not in state.committed_state or \
-                state.committed_state[key] is NEVER_SET:
+                    state.committed_state[key] is NEVER_SET:
                 if not passive & CALLABLES_OK:
                     return PASSIVE_NO_RESULT
 
@@ -737,23 +737,31 @@ class ScalarObjectAttributeImpl(ScalarAttributeImpl):
             else:
                 return History.from_object_attribute(self, state, current)
 
-    def get_all_pending(self, state, dict_):
+    def get_all_pending(self, state, dict_, passive=PASSIVE_NO_INITIALIZE):
         if self.key in dict_:
             current = dict_[self.key]
-            if current is not None:
-                ret = [(instance_state(current), current)]
-            else:
-                ret = [(None, None)]
-
-            if self.key in state.committed_state:
-                original = state.committed_state[self.key]
-                if original not in (NEVER_SET, PASSIVE_NO_RESULT, None) and \
-                    original is not current:
-
-                    ret.append((instance_state(original), original))
-            return ret
+        elif passive & CALLABLES_OK:
+            current = self.get(state, dict_, passive=passive)
         else:
             return []
+
+        # can't use __hash__(), can't use __eq__() here
+        if current is not None and \
+                current is not PASSIVE_NO_RESULT and \
+                current is not NEVER_SET:
+            ret = [(instance_state(current), current)]
+        else:
+            ret = [(None, None)]
+
+        if self.key in state.committed_state:
+            original = state.committed_state[self.key]
+            if original is not None and \
+                    original is not PASSIVE_NO_RESULT and \
+                    original is not NEVER_SET and \
+                    original is not current:
+
+                ret.append((instance_state(original), original))
+        return ret
 
     def set(self, state, dict_, value, initiator,
                 passive=PASSIVE_OFF, check_old=None, pop=False):
@@ -763,6 +771,13 @@ class ScalarObjectAttributeImpl(ScalarAttributeImpl):
         if self.dispatch._active_history:
             old = self.get(state, dict_, passive=PASSIVE_ONLY_PERSISTENT | NO_AUTOFLUSH)
         else:
+            # would like to call with PASSIVE_NO_FETCH ^ INIT_OK.  However,
+            # we have a long-standing behavior that a "get()" on never set
+            # should implicitly set the value to None.  Leaving INIT_OK
+            # set here means we are consistent whether or not we did a get
+            # first.
+            # see test_use_object_set_None vs. test_use_object_get_first_set_None
+            # in test_attributes.py
             old = self.get(state, dict_, passive=PASSIVE_NO_FETCH)
 
         if check_old is not None and \
@@ -777,6 +792,7 @@ class ScalarObjectAttributeImpl(ScalarAttributeImpl):
                    state_str(state),
                    self.key
                 ))
+
         value = self.fire_replace_event(state, dict_, value, old, initiator)
         dict_[self.key] = value
 
@@ -793,8 +809,7 @@ class ScalarObjectAttributeImpl(ScalarAttributeImpl):
     def fire_replace_event(self, state, dict_, value, previous, initiator):
         if self.trackparent:
             if (previous is not value and
-                previous is not None and
-                previous is not PASSIVE_NO_RESULT):
+                    previous not in (None, PASSIVE_NO_RESULT, NEVER_SET)):
                 self.sethasparent(instance_state(previous), state, False)
 
         for fn in self.dispatch.set:
@@ -852,7 +867,9 @@ class CollectionAttributeImpl(AttributeImpl):
         else:
             return History.from_collection(self, state, current)
 
-    def get_all_pending(self, state, dict_):
+    def get_all_pending(self, state, dict_, passive=PASSIVE_NO_INITIALIZE):
+        # NOTE: passive is ignored here at the moment
+
         if self.key not in dict_:
             return []
 
@@ -1080,7 +1097,9 @@ def backref_listeners(attribute, key, uselist):
     def emit_backref_from_scalar_set_event(state, child, oldchild, initiator):
         if oldchild is child:
             return child
-        if oldchild is not None and oldchild is not PASSIVE_NO_RESULT:
+        if oldchild is not None and \
+                oldchild is not PASSIVE_NO_RESULT and \
+                oldchild is not NEVER_SET:
             # With lazy=None, there's no guarantee that the full collection is
             # present when updating via a backref.
             old_state, old_dict = instance_state(oldchild),\
@@ -1208,7 +1227,7 @@ class History(History):
 
         return not bool(
                         (self.added or self.deleted)
-                        or self.unchanged and self.unchanged != [None]
+                        or self.unchanged
                     )
 
     def sum(self):

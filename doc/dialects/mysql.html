@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,70 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="mssql.html" title="previous chapter">Microsoft SQL Server</a>
-            </li>
-            <li>Next:
-            <a href="oracle.html" title="next chapter">Oracle</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/dialects/mysql.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="Dialects">Dialects</a>
-        » 
-                MySQL
-            
-
-        <h2>
-            
-                MySQL
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="Dialects">Up</a> |
+
+                    <a href="mssql.html" title="Microsoft SQL Server">Prev</a> |
+                    <a href="oracle.html" title="Oracle">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                MySQL
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">MySQL</a><ul>
 <li><a class="reference internal" href="#dialect-mysql">Support for the MySQL database.</a></li>
 <li><a class="reference internal" href="#supported-versions-and-features">Supported Versions and Features</a></li>
@@ -208,26 +200,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="mssql.html" title="previous chapter">Microsoft SQL Server</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="oracle.html" title="next chapter">Oracle</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -1699,7 +1678,7 @@ of OurSQL, MySQLdb, or MySQL-connector/Python.</p>
 zxjdbc/JDBC layer. To allow multiple character sets to be sent from the
 MySQL Connector/J JDBC driver, by default SQLAlchemy sets its
 <tt class="docutils literal"><span class="pre">characterEncoding</span></tt> connection property to <tt class="docutils literal"><span class="pre">UTF-8</span></tt>. It may be
-overriden via a <tt class="docutils literal"><span class="pre">create_engine</span></tt> URL parameter.</p>
+overridden via a <tt class="docutils literal"><span class="pre">create_engine</span></tt> URL parameter.</p>
 </div>
 </div>
 </div>

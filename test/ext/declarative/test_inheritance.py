@@ -76,7 +76,7 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
         class Bar(Foo):
 
             __tablename__ = 'bar'
-            id = Column('id', Integer, primary_key=True)
+            bar_id = Column('id', Integer, primary_key=True)
             foo_id = Column('foo_id', Integer)
             __mapper_args__ = {'inherit_condition': foo_id == Foo.id}
 
@@ -151,7 +151,7 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
 
         # assert that the "id" column is available without a second
         # load. as of 0.7, the ColumnProperty tests all columns
-        # in it's list to see which is present in the row.
+        # in its list to see which is present in the row.
 
         sess.expunge_all()
 

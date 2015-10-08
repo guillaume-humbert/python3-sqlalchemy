@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,71 +70,70 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="changelog_09.html" title="previous chapter">0.9 Changelog</a>
-            </li>
-            <li>Next:
-            <a href="changelog_07.html" title="next chapter">0.7 Changelog</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/changelog/changelog_08.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
-        » 
-                0.8 Changelog
-            
-
-        <h2>
-            
-                0.8 Changelog
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="Changes and Migration">Up</a> |
+
+                    <a href="changelog_09.html" title="0.9 Changelog">Prev</a> |
+                    <a href="changelog_07.html" title="0.7 Changelog">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                0.8 Changelog
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">0.8 Changelog</a><ul>
+<li><a class="reference internal" href="#change-0.8.7">0.8.7</a><ul>
+<li><a class="reference internal" href="#change-0.8.7-orm">orm</a></li>
+<li><a class="reference internal" href="#change-0.8.7-sql">sql</a></li>
+<li><a class="reference internal" href="#change-0.8.7-postgresql">postgresql</a></li>
+<li><a class="reference internal" href="#change-0.8.7-mysql">mysql</a></li>
+<li><a class="reference internal" href="#change-0.8.7-misc">misc</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#change-0.8.6">0.8.6</a><ul>
 <li><a class="reference internal" href="#change-0.8.6-general">general</a></li>
 <li><a class="reference internal" href="#change-0.8.6-orm">orm</a></li>
@@ -240,31 +240,105 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="changelog_09.html" title="previous chapter">0.9 Changelog</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="changelog_07.html" title="next chapter">0.7 Changelog</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
 <div class="section" id="changelog">
 <h1>0.8 Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="change-0.8.7">
+<h2>0.8.7<a class="headerlink" href="#change-0.8.7" title="Permalink to this headline">¶</a></h2>
+no release date<div class="section" id="change-0.8.7-orm">
+<h3>orm<a class="headerlink" href="#change-0.8.7-orm" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.7-0"><span class="target" id="change-e10433635e670cc6b02866d5fca31d7f"><strong>[orm] [bug] </strong></span>Fixed bug in subquery eager loading where a long chain of
+eager loads across a polymorphic-subclass boundary in conjunction
+with polymorphic loading would fail to locate the subclass-link in the
+chain, erroring out with a missing property name on an
+<a class="reference internal" href="../orm/query.html#sqlalchemy.orm.util.AliasedClass" title="sqlalchemy.orm.util.AliasedClass"><tt class="xref py py-class docutils literal"><span class="pre">AliasedClass</span></tt></a>.<a class="changeset-link headerlink reference internal" href="#change-e10433635e670cc6b02866d5fca31d7f">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/3055">#3055</a></p>
+</p>
+</li>
+<li><p id="change-0.8.7-1"><span class="target" id="change-e8cf642e4e106568a47ada55df3ad138"><strong>[orm] [bug] </strong></span>Fixed ORM bug where the <a class="reference internal" href="../orm/mapper_config.html#sqlalchemy.orm.class_mapper" title="sqlalchemy.orm.class_mapper"><tt class="xref py py-func docutils literal"><span class="pre">class_mapper()</span></tt></a> function would mask
+AttributeErrors or KeyErrors that should raise during mapper
+configuration due to user errors.  The catch for attribute/keyerror
+has been made more specific to not include the configuration step.<a class="changeset-link headerlink reference internal" href="#change-e8cf642e4e106568a47ada55df3ad138">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/3047">#3047</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.8.7-sql">
+<h3>sql<a class="headerlink" href="#change-0.8.7-sql" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.7-2"><span class="target" id="change-2d3949a5f46b25fe3382151b8669ae6b"><strong>[sql] [bug] </strong></span>Fixed bug in INSERT..FROM SELECT construct where selecting from a
+UNION would wrap the union in an anonymous (e.g. unlabled) subquery.<a class="changeset-link headerlink reference internal" href="#change-2d3949a5f46b25fe3382151b8669ae6b">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/3044">#3044</a></p>
+</p>
+</li>
+<li><p id="change-0.8.7-3"><span class="target" id="change-f4de3727dd13fd61c02ae2721cfaafc5"><strong>[sql] [bug] </strong></span>Fixed bug where <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table.update" title="sqlalchemy.schema.Table.update"><tt class="xref py py-meth docutils literal"><span class="pre">Table.update()</span></tt></a> and <a class="reference internal" href="../core/metadata.html#sqlalchemy.schema.Table.delete" title="sqlalchemy.schema.Table.delete"><tt class="xref py py-meth docutils literal"><span class="pre">Table.delete()</span></tt></a>
+would produce an empty WHERE clause when an empty <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.and_" title="sqlalchemy.sql.expression.and_"><tt class="xref py py-func docutils literal"><span class="pre">and_()</span></tt></a>
+or <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.or_" title="sqlalchemy.sql.expression.or_"><tt class="xref py py-func docutils literal"><span class="pre">or_()</span></tt></a> or other blank expression were applied.  This is
+now consistent with that of <a class="reference internal" href="../core/selectable.html#sqlalchemy.sql.expression.select" title="sqlalchemy.sql.expression.select"><tt class="xref py py-func docutils literal"><span class="pre">select()</span></tt></a>.<a class="changeset-link headerlink reference internal" href="#change-f4de3727dd13fd61c02ae2721cfaafc5">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/3045">#3045</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.8.7-postgresql">
+<h3>postgresql<a class="headerlink" href="#change-0.8.7-postgresql" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.7-4"><span class="target" id="change-127ec92a16e57cf51809b91f2b78c9d6"><strong>[postgresql] [bug] </strong></span>Added the <tt class="docutils literal"><span class="pre">hashable=False</span></tt> flag to the PG <a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.HSTORE" title="sqlalchemy.dialects.postgresql.HSTORE"><tt class="xref py py-class docutils literal"><span class="pre">HSTORE</span></tt></a> type, which
+is needed to allow the ORM to skip over trying to &#8220;hash&#8221; an ORM-mapped
+HSTORE column when requesting it in a mixed column/entity list.
+Patch courtesy Gunnlaugur Þór Briem.<a class="changeset-link headerlink reference internal" href="#change-127ec92a16e57cf51809b91f2b78c9d6">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/3053">#3053</a></p>
+</p>
+</li>
+<li><p id="change-0.8.7-5"><span class="target" id="change-b3bdb51a69a9c0f277ff16a91bfc9e34"><strong>[postgresql] [bug] </strong></span>Added a new &#8220;disconnect&#8221; message &#8220;connection has been closed unexpectedly&#8221;.
+This appears to be related to newer versions of SSL.
+Pull request courtesy Antti Haapala.<a class="changeset-link headerlink reference internal" href="#change-b3bdb51a69a9c0f277ff16a91bfc9e34">¶</a><p>References: <a class="reference external" href="https://bitbucket.org/zzzeek/sqlalchemy/pull-request/13">pull request bitbucket:13</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.8.7-mysql">
+<h3>mysql<a class="headerlink" href="#change-0.8.7-mysql" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.7-6"><span class="target" id="change-6ebc4901dda2870745c197767107fd38"><strong>[mysql] [bug] </strong></span>Fixed bug where column names added to <tt class="docutils literal"><span class="pre">mysql_length</span></tt> parameter
+on an index needed to have the same quoting for quoted names in
+order to be recognized.  The fix makes the quotes optional but
+also provides the old behavior for backwards compatibility with those
+using the workaround.<a class="changeset-link headerlink reference internal" href="#change-6ebc4901dda2870745c197767107fd38">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/3085">#3085</a></p>
+</p>
+</li>
+<li><p id="change-0.8.7-7"><span class="target" id="change-adc1cf48426d16ff7afa412b798f7afb"><strong>[mysql] [bug] </strong></span>Added support for reflecting tables where an index includes
+KEY_BLOCK_SIZE using an equal sign.  Pull request courtesy
+Sean McGivern.<a class="changeset-link headerlink reference internal" href="#change-adc1cf48426d16ff7afa412b798f7afb">¶</a><p>References: <a class="reference external" href="https://bitbucket.org/zzzeek/sqlalchemy/pull-request/15">pull request bitbucket:15</a></p>
+</p>
+</li>
+</ul>
+</div>
+<div class="section" id="change-0.8.7-misc">
+<h3>misc<a class="headerlink" href="#change-0.8.7-misc" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p id="change-0.8.7-8"><span class="target" id="change-4247b43502c3504d7399eff5dbaec535"><strong>[bug] [declarative] </strong></span>The <tt class="docutils literal"><span class="pre">__mapper_args__</span></tt> dictionary is copied from a declarative
+mixin or abstract class when accessed, so that modifications made
+to this dictionary by declarative itself won&#8217;t conflict with that
+of other mappings.  The dictionary is modified regarding the
+<tt class="docutils literal"><span class="pre">version_id_col</span></tt> and <tt class="docutils literal"><span class="pre">polymorphic_on</span></tt> arguments, replacing the
+column within with the one that is officially mapped to the local
+class/table.<a class="changeset-link headerlink reference internal" href="#change-4247b43502c3504d7399eff5dbaec535">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/3062">#3062</a></p>
+</p>
+</li>
+<li><p id="change-0.8.7-9"><span class="target" id="change-af885a6f2bdf7de42dea7ecbd89161c8"><strong>[bug] [ext] </strong></span>Fixed bug in mutable extension where <a class="reference internal" href="../orm/extensions/mutable.html#sqlalchemy.ext.mutable.MutableDict" title="sqlalchemy.ext.mutable.MutableDict"><tt class="xref py py-class docutils literal"><span class="pre">MutableDict</span></tt></a> did not
+report change events for the <tt class="docutils literal"><span class="pre">setdefault()</span></tt> dictionary operation.<a class="changeset-link headerlink reference internal" href="#change-af885a6f2bdf7de42dea7ecbd89161c8">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/3051">#3051</a></p>
+</p>
+</li>
+</ul>
+</div>
+</div>
 <div class="section" id="change-0.8.6">
 <h2>0.8.6<a class="headerlink" href="#change-0.8.6" title="Permalink to this headline">¶</a></h2>
 Released: March 28, 2014<div class="section" id="change-0.8.6-general">
@@ -285,10 +359,7 @@ whether or not setuptools is even available.<a class="changeset-link headerlink 
 <h3>orm<a class="headerlink" href="#change-0.8.6-orm" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p id="change-0.8.6-1"><span class="target" id="change-8aade2e05c6bfa4d19d23d28d5d85e3c"><strong>[orm] [bug] </strong></span>Fixed ORM bug where changing the primary key of an object, then marking
-it for DELETE would fail to target the correct row for DELETE.
-Note that we cannot currently check &#8220;number of rows matched&#8221; in general
-for DELETE statements as we can&#8217;t be sure that a self-referential
-ON DELETE CASCADE has gotten there first.<a class="changeset-link headerlink reference internal" href="#change-8aade2e05c6bfa4d19d23d28d5d85e3c">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/3006">#3006</a></p>
+it for DELETE would fail to target the correct row for DELETE.<a class="changeset-link headerlink reference internal" href="#change-8aade2e05c6bfa4d19d23d28d5d85e3c">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/3006">#3006</a></p>
 </p>
 </li>
 <li><p id="change-0.8.6-2"><span class="target" id="change-3751a74e73168b0beaccedabc93166fc"><strong>[orm] [bug] </strong></span>Fixed regression from 0.8.3 as a result of <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2818">#2818</a>
@@ -409,7 +480,7 @@ or tuple would raise an IndexError.   It now produces an empty
 insert construct as would be the case with an empty dictionary.<a class="changeset-link headerlink reference internal" href="#change-eaeab65db0f99940354a433b2c1757e7">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2944">#2944</a></p>
 </p>
 </li>
-<li><p id="change-0.8.5-7"><span class="target" id="change-33727fb51d625520dbf523e2021cb7ed"><strong>[sql] [bug] </strong></span>Fixed bug where <a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.ColumnElement.in_" title="sqlalchemy.sql.expression.ColumnElement.in_"><tt class="xref py py-meth docutils literal"><span class="pre">in_()</span></tt></a> would go into an endless loop if
+<li><p id="change-0.8.5-7"><span class="target" id="change-33727fb51d625520dbf523e2021cb7ed"><strong>[sql] [bug] </strong></span>Fixed bug where <a class="reference internal" href="../orm/internals.html#sqlalchemy.orm.interfaces.PropComparator.in_" title="sqlalchemy.orm.interfaces.PropComparator.in_"><tt class="xref py py-meth docutils literal"><span class="pre">in_()</span></tt></a> would go into an endless loop if
 erroneously passed a column expression whose comparator included
 the <tt class="docutils literal"><span class="pre">__getitem__()</span></tt> method, such as a column that uses the
 <a class="reference internal" href="../dialects/postgresql.html#sqlalchemy.dialects.postgresql.ARRAY" title="sqlalchemy.dialects.postgresql.ARRAY"><tt class="xref py py-class docutils literal"><span class="pre">postgresql.ARRAY</span></tt></a> type.<a class="changeset-link headerlink reference internal" href="#change-33727fb51d625520dbf523e2021cb7ed">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2957">#2957</a></p>
@@ -579,7 +650,7 @@ in the same way as occurs within the execute process.<a class="changeset-link he
 attempts when an existing connection attempt is blocking.  Previously,
 the production of new connections was serialized within the block
 that monitored overflow; the overflow counter is now altered within
-it&#8217;s own critical section outside of the connection process itself.<a class="changeset-link headerlink reference internal" href="#change-f61deee220ca510a2a34634540647466">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2880">#2880</a></p>
+its own critical section outside of the connection process itself.<a class="changeset-link headerlink reference internal" href="#change-f61deee220ca510a2a34634540647466">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/2880">#2880</a></p>
 </p>
 </li>
 <li><p id="change-0.8.4-3"><span class="target" id="change-9f50f03f97a15744f325f3b1f9efe144"><strong>[engine] [bug] [pool] </strong></span>Made a slight adjustment to the logic which waits for a pooled

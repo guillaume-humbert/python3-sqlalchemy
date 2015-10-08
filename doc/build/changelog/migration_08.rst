@@ -632,7 +632,7 @@ not really a column, CAST operator, or SQL function that
 really drives what kinds of operations are present, it's the
 *type* of the expression.   The implementation details are
 minimal - only a few extra methods are added to the core
-:class:`.ColumnElement` type so that it consults it's
+:class:`.ColumnElement` type so that it consults its
 :class:`.TypeEngine` object for an optional set of operators.
 New or revised operations can be associated with any type,
 either via subclassing of an existing type, by using
@@ -1176,7 +1176,7 @@ Prior to this change, the above would return::
 
 which is invalid SQL as "t1" is not referred to in any FROM clause.
 
-Now, in the absense of an enclosing SELECT, it returns::
+Now, in the absence of an enclosing SELECT, it returns::
 
     SELECT t1.x, t2.y FROM t1, t2
 

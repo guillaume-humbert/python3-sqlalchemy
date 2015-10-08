@@ -41,6 +41,39 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(schema.CreateIndex(idx2),
             'CREATE INDEX test_idx2 ON testtbl (data(5))')
 
+    def test_create_index_with_length_quoted(self):
+        m = MetaData()
+        tbl = Table('testtbl', m, Column('some quoted data',
+                                String(255), key='s'))
+        idx1 = Index('test_idx1', tbl.c.s, mysql_length=10)
+
+        self.assert_compile(schema.CreateIndex(idx1),
+            'CREATE INDEX test_idx1 ON testtbl (`some quoted data`(10))')
+
+    def test_create_composite_index_with_length_quoted(self):
+        m = MetaData()
+        tbl = Table('testtbl', m,
+                    Column('some Quoted a', String(255), key='a'),
+                    Column('some Quoted b', String(255), key='b'))
+        idx1 = Index('test_idx1', tbl.c.a, tbl.c.b,
+                mysql_length={'some Quoted a': 10, 'some Quoted b': 20})
+
+        self.assert_compile(schema.CreateIndex(idx1),
+            'CREATE INDEX test_idx1 ON testtbl '
+            '(`some Quoted a`(10), `some Quoted b`(20))')
+
+    def test_create_composite_index_with_length_quoted_3085_workaround(self):
+        m = MetaData()
+        tbl = Table('testtbl', m,
+                    Column('some quoted a', String(255), key='a'),
+                    Column('some quoted b', String(255), key='b'))
+        idx1 = Index('test_idx1', tbl.c.a, tbl.c.b,
+                mysql_length={'`some quoted a`': 10, '`some quoted b`': 20})
+
+        self.assert_compile(schema.CreateIndex(idx1),
+            'CREATE INDEX test_idx1 ON testtbl '
+            '(`some quoted a`(10), `some quoted b`(20))')
+
     def test_create_composite_index_with_length(self):
         m = MetaData()
         tbl = Table('testtbl', m,
@@ -84,7 +117,7 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             PrimaryKeyConstraint('data'))
 
         self.assert_compile(schema.CreateTable(tbl),
-            "CREATE TABLE testtbl (data VARCHAR(255), PRIMARY KEY (data))")
+            "CREATE TABLE testtbl (data VARCHAR(255) NOT NULL, PRIMARY KEY (data))")
 
     def test_create_pk_with_using(self):
         m = MetaData()
@@ -92,7 +125,7 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             PrimaryKeyConstraint('data', mysql_using='btree'))
 
         self.assert_compile(schema.CreateTable(tbl),
-            "CREATE TABLE testtbl (data VARCHAR(255), "
+            "CREATE TABLE testtbl (data VARCHAR(255) NOT NULL, "
             "PRIMARY KEY (data) USING btree)")
 
     def test_create_index_expr(self):

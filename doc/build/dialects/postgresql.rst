@@ -15,7 +15,7 @@ they originate from :mod:`sqlalchemy.types` or from the local dialect::
     from sqlalchemy.dialects.postgresql import \
         ARRAY, BIGINT, BIT, BOOLEAN, BYTEA, CHAR, CIDR, DATE, \
         DOUBLE_PRECISION, ENUM, FLOAT, HSTORE, INET, INTEGER, \
-        INTERVAL, JSON, MACADDR, NUMERIC, REAL, SMALLINT, TEXT, TIME, \
+        INTERVAL, JSON, MACADDR, NUMERIC, OID, REAL, SMALLINT, TEXT, TIME, \
         TIMESTAMP, UUID, VARCHAR, INT4RANGE, INT8RANGE, NUMRANGE, \
         DATERANGE, TSRANGE, TSTZRANGE, TSVECTOR
 
@@ -78,6 +78,8 @@ construction arguments, are as follows:
 .. autoclass:: MACADDR
     :members: __init__
 
+.. autoclass:: OID
+    :members: __init__
 
 .. autoclass:: REAL
     :members: __init__
@@ -126,6 +128,33 @@ mixin:
   ``psycopg2``, it's recommended to upgrade to version 2.5 or later
   before using these column types.
 
+When instantiating models that use these column types, you should pass
+whatever data type is expected by the DBAPI driver you're using for
+the column type. For :mod:`psycopg2` these are
+:class:`~psycopg2.extras.NumericRange`,
+:class:`~psycopg2.extras.DateRange`,
+:class:`~psycopg2.extras.DateTimeRange` and
+:class:`~psycopg2.extras.DateTimeTZRange` or the class you've
+registered with :func:`~psycopg2.extras.register_range`.
+
+For example:
+
+.. code-block:: python
+
+  from psycopg2.extras import DateTimeRange
+  from sqlalchemy.dialects.postgresql import TSRANGE
+
+  class RoomBooking(Base):
+
+      __tablename__ = 'room_booking'
+
+      room = Column(Integer(), primary_key=True)
+      during = Column(TSRANGE())
+
+  booking = RoomBooking(
+      room=101,
+      during=DateTimeRange(datetime(2013, 3, 23), None)
+  )
 
 PostgreSQL Constraint Types
 ---------------------------
@@ -140,7 +169,9 @@ For example::
 
   from sqlalchemy.dialects.postgresql import ExcludeConstraint, TSRANGE
 
-  class RoomBookings(Base):
+  class RoomBooking(Base):
+
+      __tablename__ = 'room_booking'
 
       room = Column(Integer(), primary_key=True)
       during = Column(TSRANGE())

@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,76 +70,67 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="collections.html" title="previous chapter">Collection Configuration and Techniques</a>
-            </li>
-            <li>Next:
-            <a href="session.html" title="next chapter">Using the Session</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/orm/inheritance.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-        » 
-                Mapping Class Inheritance Hierarchies
-            
-
-        <h2>
-            
-                Mapping Class Inheritance Hierarchies
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="SQLAlchemy ORM">Up</a> |
+
+                    <a href="collections.html" title="Collection Configuration and Techniques">Prev</a> |
+                    <a href="session.html" title="Using the Session">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                Mapping Class Inheritance Hierarchies
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">Mapping Class Inheritance Hierarchies</a><ul>
 <li><a class="reference internal" href="#joined-table-inheritance">Joined Table Inheritance</a><ul>
 <li><a class="reference internal" href="#basic-control-of-which-tables-are-queried">Basic Control of Which Tables are Queried</a></li>
 <li><a class="reference internal" href="#advanced-control-of-which-tables-are-queried">Advanced Control of Which Tables are Queried</a></li>
 <li><a class="reference internal" href="#creating-joins-to-specific-subtypes">Creating Joins to Specific Subtypes</a></li>
-<li><a class="reference internal" href="#eager-loading-of-specific-subtypes">Eager Loading of Specific Subtypes</a></li>
+<li><a class="reference internal" href="#eager-loading-of-specific-or-polymorphic-subtypes">Eager Loading of Specific or Polymorphic Subtypes</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#single-table-inheritance">Single Table Inheritance</a></li>
@@ -156,26 +148,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="collections.html" title="previous chapter">Collection Configuration and Techniques</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="session.html" title="next chapter">Using the Session</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -663,8 +642,8 @@ subselect back to the parent <tt class="docutils literal"><span class="pre">comp
 with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a>, <tt class="docutils literal"><span class="pre">any()</span></tt> and <tt class="docutils literal"><span class="pre">has()</span></tt>.</p>
 </div>
 </div>
-<div class="section" id="eager-loading-of-specific-subtypes">
-<h3>Eager Loading of Specific Subtypes<a class="headerlink" href="#eager-loading-of-specific-subtypes" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="eager-loading-of-specific-or-polymorphic-subtypes">
+<h3>Eager Loading of Specific or Polymorphic Subtypes<a class="headerlink" href="#eager-loading-of-specific-or-polymorphic-subtypes" title="Permalink to this headline">¶</a></h3>
 <p>The <a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> and <a class="reference internal" href="loading.html#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a> options also support
 paths which make use of <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator.of_type" title="sqlalchemy.orm.interfaces.PropComparator.of_type"><tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt></a>.
 Below we load <tt class="docutils literal"><span class="pre">Company</span></tt> rows while eagerly loading related <tt class="docutils literal"><span class="pre">Engineer</span></tt>
@@ -676,10 +655,25 @@ objects, querying the <tt class="docutils literal"><span class="pre">employee</s
         )
     )</pre>
 </div>
+<p>As is the case with <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.join" title="sqlalchemy.orm.query.Query.join"><tt class="xref py py-meth docutils literal"><span class="pre">Query.join()</span></tt></a>, <a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator.of_type" title="sqlalchemy.orm.interfaces.PropComparator.of_type"><tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt></a>
+also can be used with eager loading and <a class="reference internal" href="#sqlalchemy.orm.with_polymorphic" title="sqlalchemy.orm.with_polymorphic"><tt class="xref py py-func docutils literal"><span class="pre">orm.with_polymorphic()</span></tt></a>
+at the same time, so that all sub-attributes of all referenced subtypes
+can be loaded:</p>
+<div class="highlight-python"><pre>manager_and_engineer = with_polymorphic(
+                            Employee, [Manager, Engineer],
+                            aliased=True)
+
+session.query(Company).\
+    options(
+        joinedload(Company.employees.of_type(manager_and_engineer))
+        )
+    )</pre>
+</div>
 <div class="versionadded">
 <p><span>New in version 0.8: </span><a class="reference internal" href="loading.html#sqlalchemy.orm.joinedload" title="sqlalchemy.orm.joinedload"><tt class="xref py py-func docutils literal"><span class="pre">joinedload()</span></tt></a> and <a class="reference internal" href="loading.html#sqlalchemy.orm.subqueryload" title="sqlalchemy.orm.subqueryload"><tt class="xref py py-func docutils literal"><span class="pre">subqueryload()</span></tt></a> support
 paths that are qualified with
-<a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator.of_type" title="sqlalchemy.orm.interfaces.PropComparator.of_type"><tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt></a>.</p>
+<a class="reference internal" href="internals.html#sqlalchemy.orm.interfaces.PropComparator.of_type" title="sqlalchemy.orm.interfaces.PropComparator.of_type"><tt class="xref py py-func docutils literal"><span class="pre">of_type()</span></tt></a>, supporting
+single target types as well as <a class="reference internal" href="#sqlalchemy.orm.with_polymorphic" title="sqlalchemy.orm.with_polymorphic"><tt class="xref py py-func docutils literal"><span class="pre">orm.with_polymorphic()</span></tt></a> targets.</p>
 </div>
 </div>
 </div>

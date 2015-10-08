@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,70 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="index.html" title="previous chapter">SQLAlchemy ORM</a>
-            </li>
-            <li>Next:
-            <a href="mapper_config.html" title="next chapter">Mapper Configuration</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/orm/tutorial.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-        » 
-                Object Relational Tutorial
-            
-
-        <h2>
-            
-                Object Relational Tutorial
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="SQLAlchemy ORM">Up</a> |
+
+                    <a href="index.html" title="SQLAlchemy ORM">Prev</a> |
+                    <a href="mapper_config.html" title="Mapper Configuration">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                Object Relational Tutorial
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">Object Relational Tutorial</a><ul>
 <li><a class="reference internal" href="#version-check">Version Check</a></li>
 <li><a class="reference internal" href="#connecting">Connecting</a></li>
@@ -176,26 +168,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="index.html" title="previous chapter">SQLAlchemy ORM</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="mapper_config.html" title="next chapter">Mapper Configuration</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -821,19 +800,19 @@ WHERE users.name = ? AND users.fullname = ?
 <p>Here&#8217;s a rundown of some of the most common operators used in
 <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query.filter" title="sqlalchemy.orm.query.Query.filter"><tt class="xref py py-func docutils literal"><span class="pre">filter()</span></tt></a>:</p>
 <ul>
-<li><p class="first">equals:</p>
+<li><p class="first"><a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.__eq__" title="sqlalchemy.sql.operators.ColumnOperators.__eq__"><tt class="xref py py-meth docutils literal"><span class="pre">equals</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;ed&#39;</span><span class="p">)</span></pre></div>
 </div>
 </li>
-<li><p class="first">not equals:</p>
+<li><p class="first"><a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.__ne__" title="sqlalchemy.sql.operators.ColumnOperators.__ne__"><tt class="xref py py-meth docutils literal"><span class="pre">not</span> <span class="pre">equals</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s">&#39;ed&#39;</span><span class="p">)</span></pre></div>
 </div>
 </li>
-<li><p class="first">LIKE:</p>
+<li><p class="first"><a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.like" title="sqlalchemy.sql.operators.ColumnOperators.like"><tt class="xref py py-meth docutils literal"><span class="pre">LIKE</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%e</span><span class="s">d%&#39;</span><span class="p">))</span></pre></div>
 </div>
 </li>
-<li><p class="first">IN:</p>
+<li><p class="first"><a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.in_" title="sqlalchemy.sql.operators.ColumnOperators.in_"><tt class="xref py py-meth docutils literal"><span class="pre">IN</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">in_</span><span class="p">([</span><span class="s">&#39;ed&#39;</span><span class="p">,</span> <span class="s">&#39;wendy&#39;</span><span class="p">,</span> <span class="s">&#39;jack&#39;</span><span class="p">]))</span>
 
 <span class="c"># works with query objects too:</span>
@@ -842,25 +821,25 @@ WHERE users.name = ? AND users.fullname = ?
 <span class="p">))</span></pre></div>
 </div>
 </li>
-<li><p class="first">NOT IN:</p>
+<li><p class="first"><a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.notin_" title="sqlalchemy.sql.operators.ColumnOperators.notin_"><tt class="xref py py-meth docutils literal"><span class="pre">NOT</span> <span class="pre">IN</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="o">~</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">in_</span><span class="p">([</span><span class="s">&#39;ed&#39;</span><span class="p">,</span> <span class="s">&#39;wendy&#39;</span><span class="p">,</span> <span class="s">&#39;jack&#39;</span><span class="p">]))</span></pre></div>
 </div>
 </li>
-<li><p class="first">IS NULL:</p>
+<li><p class="first"><a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.is_" title="sqlalchemy.sql.operators.ColumnOperators.is_"><tt class="xref py py-meth docutils literal"><span class="pre">IS</span> <span class="pre">NULL</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="bp">None</span><span class="p">)</span>
 
 <span class="c"># alternatively, if pep8/linters are a concern</span>
 <span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">is_</span><span class="p">(</span><span class="bp">None</span><span class="p">))</span></pre></div>
 </div>
 </li>
-<li><p class="first">IS NOT NULL:</p>
+<li><p class="first"><a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.isnot" title="sqlalchemy.sql.operators.ColumnOperators.isnot"><tt class="xref py py-meth docutils literal"><span class="pre">IS</span> <span class="pre">NOT</span> <span class="pre">NULL</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">)</span>
 
 <span class="c"># alternatively, if pep8/linters are a concern</span>
 <span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">isnot</span><span class="p">(</span><span class="bp">None</span><span class="p">))</span></pre></div>
 </div>
 </li>
-<li><p class="first">AND:</p>
+<li><p class="first"><a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.and_" title="sqlalchemy.sql.expression.and_"><tt class="xref py py-func docutils literal"><span class="pre">AND</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># use and_()</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">and_</span>
 <span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">and_</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;ed&#39;</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">fullname</span> <span class="o">==</span> <span class="s">&#39;Ed Jones&#39;</span><span class="p">))</span>
@@ -872,18 +851,24 @@ WHERE users.name = ? AND users.fullname = ?
 <span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;ed&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">fullname</span> <span class="o">==</span> <span class="s">&#39;Ed Jones&#39;</span><span class="p">)</span></pre></div>
 </div>
 </li>
-<li><p class="first">OR:</p>
+<li><p class="first"><a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.expression.or_" title="sqlalchemy.sql.expression.or_"><tt class="xref py py-func docutils literal"><span class="pre">OR</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">or_</span>
 <span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">or_</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;ed&#39;</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;wendy&#39;</span><span class="p">))</span></pre></div>
 </div>
 </li>
-<li><p class="first">match:</p>
+<li><p class="first"><a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.match" title="sqlalchemy.sql.operators.ColumnOperators.match"><tt class="xref py py-meth docutils literal"><span class="pre">MATCH</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s">&#39;wendy&#39;</span><span class="p">))</span></pre></div>
 </div>
 </li>
 </ul>
 <blockquote>
-<div>The contents of the match parameter are database backend specific.</div></blockquote>
+<div><div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><a class="reference internal" href="../core/sqlelement.html#sqlalchemy.sql.operators.ColumnOperators.match" title="sqlalchemy.sql.operators.ColumnOperators.match"><tt class="xref py py-meth docutils literal"><span class="pre">match()</span></tt></a> uses a database-specific <tt class="docutils literal"><span class="pre">MATCH</span></tt>
+or <tt class="docutils literal"><span class="pre">CONTAINS</span></tt> function; its behavior will vary by backend and is not
+available on some backends such as SQLite.</p>
+</div>
+</div></blockquote>
 </div>
 <div class="section" id="returning-lists-and-scalars">
 <h3>Returning Lists and Scalars<a class="headerlink" href="#returning-lists-and-scalars" title="Permalink to this headline">¶</a></h3>

@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,95 +70,72 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="sqlelement.html" title="previous chapter">Column Elements and Expressions</a>
-            </li>
-            <li>Next:
-            <a href="dml.html" title="next chapter">Insert, Updates, Deletes</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/core/selectable.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
-                » <a href="expression_api.html" title="SQL Statements and Expressions API">SQL Statements and Expressions API</a>
-        » 
-                Selectables, Tables, FROM objects
-            
-
-        <h2>
-            
-                Selectables, Tables, FROM objects
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="expression_api.html" title="SQL Statements and Expressions API">Up</a> |
+
+                    <a href="sqlelement.html" title="Column Elements and Expressions">Prev</a> |
+                    <a href="dml.html" title="Insert, Updates, Deletes">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                Selectables, Tables, FROM objects
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">Selectables, Tables, FROM objects</a></li>
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="sqlelement.html" title="previous chapter">Column Elements and Expressions</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="dml.html" title="next chapter">Insert, Updates, Deletes</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -401,7 +379,7 @@ automatically located within the columns and whereclause ClauseElements.
 Use this parameter to explicitly specify &#8220;from&#8221; objects which are not
 automatically locatable. This could include
 <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects that aren&#8217;t otherwise present,
-or <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> objects whose presence will supercede that of the
+or <a class="reference internal" href="#sqlalchemy.sql.expression.Join" title="sqlalchemy.sql.expression.Join"><tt class="xref py py-class docutils literal"><span class="pre">Join</span></tt></a> objects whose presence will supersede that of the
 <a class="reference internal" href="metadata.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> objects already located in the other
 clauses.</li>
 <li><span class="target" id="sqlalchemy.sql.expression.select.params.autocommit"></span><strong>autocommit</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.select.params.autocommit">¶</a> &#8211; Deprecated.  Use .execution_options(autocommit=&lt;True|False&gt;)
@@ -652,11 +630,32 @@ key value to be rendered inline within the INSERT statement&#8217;s
 VALUES clause. This typically refers to Sequence execution but may
 also refer to any server-side default generation function
 associated with a primary key <cite>Column</cite>.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Alias.compile.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Alias.compile.params.compile_kwargs">¶</a> &#8211; <p>optional dictionary of additional parameters
+that will be passed through to the compiler within all &#8220;visit&#8221;
+methods.  This allows any custom flag to be passed through to
+a custom compilation construct, for example.  It is also used
+for the case of passing the <tt class="docutils literal"><span class="pre">literal_binds</span></tt> flag through:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">select</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">))</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">t</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">compile_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;literal_binds&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../faq.html#faq-sql-expression-string"><em>How do I render SQL expressions as strings, possibly with bound parameters inlined?</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1046,11 +1045,32 @@ key value to be rendered inline within the INSERT statement&#8217;s
 VALUES clause. This typically refers to Sequence execution but may
 also refer to any server-side default generation function
 associated with a primary key <cite>Column</cite>.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.CompoundSelect.compile.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CompoundSelect.compile.params.compile_kwargs">¶</a> &#8211; <p>optional dictionary of additional parameters
+that will be passed through to the compiler within all &#8220;visit&#8221;
+methods.  This allows any custom flag to be passed through to
+a custom compilation construct, for example.  It is also used
+for the case of passing the <tt class="docutils literal"><span class="pre">literal_binds</span></tt> flag through:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">select</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">))</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">t</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">compile_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;literal_binds&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../faq.html#faq-sql-expression-string"><em>How do I render SQL expressions as strings, possibly with bound parameters inlined?</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1202,8 +1222,8 @@ Postgresql&#8217;s documentation at
 <span class="n">parts_alias</span> <span class="o">=</span> <span class="n">parts</span><span class="o">.</span><span class="n">alias</span><span class="p">()</span>
 <span class="n">included_parts</span> <span class="o">=</span> <span class="n">included_parts</span><span class="o">.</span><span class="n">union_all</span><span class="p">(</span>
     <span class="n">select</span><span class="p">([</span>
-        <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="p">,</span>
         <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">,</span>
+        <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="p">,</span>
         <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">quantity</span>
     <span class="p">])</span><span class="o">.</span>
         <span class="n">where</span><span class="p">(</span><span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="o">==</span><span class="n">incl_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">)</span>
@@ -1213,8 +1233,7 @@ Postgresql&#8217;s documentation at
             <span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">,</span>
             <span class="n">func</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">quantity</span><span class="p">)</span><span class="o">.</span>
               <span class="n">label</span><span class="p">(</span><span class="s">&#39;total_quantity&#39;</span><span class="p">)</span>
-        <span class="p">])</span><span class="o">.</span>                    <span class="n">select_from</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span>
-                    <span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="o">==</span><span class="n">parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="p">))</span><span class="o">.</span>\
+        <span class="p">])</span><span class="o">.</span>\
         <span class="n">group_by</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">)</span>
 
 <span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></pre></div>
@@ -1620,11 +1639,32 @@ key value to be rendered inline within the INSERT statement&#8217;s
 VALUES clause. This typically refers to Sequence execution but may
 also refer to any server-side default generation function
 associated with a primary key <cite>Column</cite>.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.CTE.compile.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.CTE.compile.params.compile_kwargs">¶</a> &#8211; <p>optional dictionary of additional parameters
+that will be passed through to the compiler within all &#8220;visit&#8221;
+methods.  This allows any custom flag to be passed through to
+a custom compilation construct, for example.  It is also used
+for the case of passing the <tt class="docutils literal"><span class="pre">literal_binds</span></tt> flag through:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">select</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">))</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">t</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">compile_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;literal_binds&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../faq.html#faq-sql-expression-string"><em>How do I render SQL expressions as strings, possibly with bound parameters inlined?</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -2305,11 +2345,32 @@ key value to be rendered inline within the INSERT statement&#8217;s
 VALUES clause. This typically refers to Sequence execution but may
 also refer to any server-side default generation function
 associated with a primary key <cite>Column</cite>.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.GenerativeSelect.compile.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.GenerativeSelect.compile.params.compile_kwargs">¶</a> &#8211; <p>optional dictionary of additional parameters
+that will be passed through to the compiler within all &#8220;visit&#8221;
+methods.  This allows any custom flag to be passed through to
+a custom compilation construct, for example.  It is also used
+for the case of passing the <tt class="docutils literal"><span class="pre">literal_binds</span></tt> flag through:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">select</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">))</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">t</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">compile_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;literal_binds&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../faq.html#faq-sql-expression-string"><em>How do I render SQL expressions as strings, possibly with bound parameters inlined?</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -2461,8 +2522,8 @@ Postgresql&#8217;s documentation at
 <span class="n">parts_alias</span> <span class="o">=</span> <span class="n">parts</span><span class="o">.</span><span class="n">alias</span><span class="p">()</span>
 <span class="n">included_parts</span> <span class="o">=</span> <span class="n">included_parts</span><span class="o">.</span><span class="n">union_all</span><span class="p">(</span>
     <span class="n">select</span><span class="p">([</span>
-        <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="p">,</span>
         <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">,</span>
+        <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="p">,</span>
         <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">quantity</span>
     <span class="p">])</span><span class="o">.</span>
         <span class="n">where</span><span class="p">(</span><span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="o">==</span><span class="n">incl_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">)</span>
@@ -2472,8 +2533,7 @@ Postgresql&#8217;s documentation at
             <span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">,</span>
             <span class="n">func</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">quantity</span><span class="p">)</span><span class="o">.</span>
               <span class="n">label</span><span class="p">(</span><span class="s">&#39;total_quantity&#39;</span><span class="p">)</span>
-        <span class="p">])</span><span class="o">.</span>                    <span class="n">select_from</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span>
-                    <span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="o">==</span><span class="n">parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="p">))</span><span class="o">.</span>\
+        <span class="p">])</span><span class="o">.</span>\
         <span class="n">group_by</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">)</span>
 
 <span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></pre></div>
@@ -3065,11 +3125,32 @@ key value to be rendered inline within the INSERT statement&#8217;s
 VALUES clause. This typically refers to Sequence execution but may
 also refer to any server-side default generation function
 associated with a primary key <cite>Column</cite>.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Join.compile.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Join.compile.params.compile_kwargs">¶</a> &#8211; <p>optional dictionary of additional parameters
+that will be passed through to the compiler within all &#8220;visit&#8221;
+methods.  This allows any custom flag to be passed through to
+a custom compilation construct, for example.  It is also used
+for the case of passing the <tt class="docutils literal"><span class="pre">literal_binds</span></tt> flag through:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">select</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">))</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">t</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">compile_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;literal_binds&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../faq.html#faq-sql-expression-string"><em>How do I render SQL expressions as strings, possibly with bound parameters inlined?</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -3524,11 +3605,32 @@ key value to be rendered inline within the INSERT statement&#8217;s
 VALUES clause. This typically refers to Sequence execution but may
 also refer to any server-side default generation function
 associated with a primary key <cite>Column</cite>.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Select.compile.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Select.compile.params.compile_kwargs">¶</a> &#8211; <p>optional dictionary of additional parameters
+that will be passed through to the compiler within all &#8220;visit&#8221;
+methods.  This allows any custom flag to be passed through to
+a custom compilation construct, for example.  It is also used
+for the case of passing the <tt class="docutils literal"><span class="pre">literal_binds</span></tt> flag through:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">select</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">))</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">t</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">compile_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;literal_binds&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../faq.html#faq-sql-expression-string"><em>How do I render SQL expressions as strings, possibly with bound parameters inlined?</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -3783,8 +3885,8 @@ Postgresql&#8217;s documentation at
 <span class="n">parts_alias</span> <span class="o">=</span> <span class="n">parts</span><span class="o">.</span><span class="n">alias</span><span class="p">()</span>
 <span class="n">included_parts</span> <span class="o">=</span> <span class="n">included_parts</span><span class="o">.</span><span class="n">union_all</span><span class="p">(</span>
     <span class="n">select</span><span class="p">([</span>
-        <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="p">,</span>
         <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">,</span>
+        <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="p">,</span>
         <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">quantity</span>
     <span class="p">])</span><span class="o">.</span>
         <span class="n">where</span><span class="p">(</span><span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="o">==</span><span class="n">incl_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">)</span>
@@ -3794,8 +3896,7 @@ Postgresql&#8217;s documentation at
             <span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">,</span>
             <span class="n">func</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">quantity</span><span class="p">)</span><span class="o">.</span>
               <span class="n">label</span><span class="p">(</span><span class="s">&#39;total_quantity&#39;</span><span class="p">)</span>
-        <span class="p">])</span><span class="o">.</span>                    <span class="n">select_from</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span>
-                    <span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="o">==</span><span class="n">parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="p">))</span><span class="o">.</span>\
+        <span class="p">])</span><span class="o">.</span>\
         <span class="n">group_by</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">)</span>
 
 <span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></pre></div>
@@ -4567,8 +4668,8 @@ Postgresql&#8217;s documentation at
 <span class="n">parts_alias</span> <span class="o">=</span> <span class="n">parts</span><span class="o">.</span><span class="n">alias</span><span class="p">()</span>
 <span class="n">included_parts</span> <span class="o">=</span> <span class="n">included_parts</span><span class="o">.</span><span class="n">union_all</span><span class="p">(</span>
     <span class="n">select</span><span class="p">([</span>
-        <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="p">,</span>
         <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">,</span>
+        <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="p">,</span>
         <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">quantity</span>
     <span class="p">])</span><span class="o">.</span>
         <span class="n">where</span><span class="p">(</span><span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="o">==</span><span class="n">incl_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">)</span>
@@ -4578,8 +4679,7 @@ Postgresql&#8217;s documentation at
             <span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">,</span>
             <span class="n">func</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">quantity</span><span class="p">)</span><span class="o">.</span>
               <span class="n">label</span><span class="p">(</span><span class="s">&#39;total_quantity&#39;</span><span class="p">)</span>
-        <span class="p">])</span><span class="o">.</span>                    <span class="n">select_from</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span>
-                    <span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="o">==</span><span class="n">parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="p">))</span><span class="o">.</span>\
+        <span class="p">])</span><span class="o">.</span>\
         <span class="n">group_by</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">)</span>
 
 <span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></pre></div>
@@ -4719,11 +4819,32 @@ key value to be rendered inline within the INSERT statement&#8217;s
 VALUES clause. This typically refers to Sequence execution but may
 also refer to any server-side default generation function
 associated with a primary key <cite>Column</cite>.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.TableClause.compile.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.TableClause.compile.params.compile_kwargs">¶</a> &#8211; <p>optional dictionary of additional parameters
+that will be passed through to the compiler within all &#8220;visit&#8221;
+methods.  This allows any custom flag to be passed through to
+a custom compilation construct, for example.  It is also used
+for the case of passing the <tt class="docutils literal"><span class="pre">literal_binds</span></tt> flag through:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">select</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">))</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">t</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">compile_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;literal_binds&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../faq.html#faq-sql-expression-string"><em>How do I render SQL expressions as strings, possibly with bound parameters inlined?</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="method">

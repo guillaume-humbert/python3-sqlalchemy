@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,70 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="session.html" title="previous chapter">Using the Session</a>
-            </li>
-            <li>Next:
-            <a href="loading.html" title="next chapter">Relationship Loading Techniques</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/orm/query.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy ORM">SQLAlchemy ORM</a>
-        » 
-                Querying
-            
-
-        <h2>
-            
-                Querying
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="SQLAlchemy ORM">Up</a> |
+
+                    <a href="session.html" title="Using the Session">Prev</a> |
+                    <a href="loading.html" title="Relationship Loading Techniques">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                Querying
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">Querying</a><ul>
 <li><a class="reference internal" href="#the-query-object">The Query Object</a></li>
 <li><a class="reference internal" href="#orm-specific-query-constructs">ORM-Specific Query Constructs</a></li>
@@ -141,26 +133,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="session.html" title="previous chapter">Using the Session</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="loading.html" title="next chapter">Relationship Loading Techniques</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -368,8 +347,8 @@ directly:</p>
 <span class="n">parts_alias</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">Part</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;p&quot;</span><span class="p">)</span>
 <span class="n">included_parts</span> <span class="o">=</span> <span class="n">included_parts</span><span class="o">.</span><span class="n">union_all</span><span class="p">(</span>
     <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
-        <span class="n">parts_alias</span><span class="o">.</span><span class="n">part</span><span class="p">,</span>
         <span class="n">parts_alias</span><span class="o">.</span><span class="n">sub_part</span><span class="p">,</span>
+        <span class="n">parts_alias</span><span class="o">.</span><span class="n">part</span><span class="p">,</span>
         <span class="n">parts_alias</span><span class="o">.</span><span class="n">quantity</span><span class="p">)</span><span class="o">.</span>\
             <span class="nb">filter</span><span class="p">(</span><span class="n">parts_alias</span><span class="o">.</span><span class="n">part</span><span class="o">==</span><span class="n">incl_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">)</span>
     <span class="p">)</span>

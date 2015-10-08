@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,95 +70,72 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="selectable.html" title="previous chapter">Selectables, Tables, FROM objects</a>
-            </li>
-            <li>Next:
-            <a href="functions.html" title="next chapter">SQL and Generic Functions</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/core/dml.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="SQLAlchemy Core">SQLAlchemy Core</a>
-                » <a href="expression_api.html" title="SQL Statements and Expressions API">SQL Statements and Expressions API</a>
-        » 
-                Insert, Updates, Deletes
-            
-
-        <h2>
-            
-                Insert, Updates, Deletes
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="expression_api.html" title="SQL Statements and Expressions API">Up</a> |
+
+                    <a href="selectable.html" title="Selectables, Tables, FROM objects">Prev</a> |
+                    <a href="functions.html" title="SQL and Generic Functions">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                Insert, Updates, Deletes
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">Insert, Updates, Deletes</a></li>
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="selectable.html" title="previous chapter">Selectables, Tables, FROM objects</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="functions.html" title="next chapter">SQL and Generic Functions</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -456,11 +434,32 @@ key value to be rendered inline within the INSERT statement&#8217;s
 VALUES clause. This typically refers to Sequence execution but may
 also refer to any server-side default generation function
 associated with a primary key <cite>Column</cite>.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Delete.compile.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Delete.compile.params.compile_kwargs">¶</a> &#8211; <p>optional dictionary of additional parameters
+that will be passed through to the compiler within all &#8220;visit&#8221;
+methods.  This allows any custom flag to be passed through to
+a custom compilation construct, for example.  It is also used
+for the case of passing the <tt class="docutils literal"><span class="pre">literal_binds</span></tt> flag through:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">select</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">))</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">t</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">compile_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;literal_binds&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../faq.html#faq-sql-expression-string"><em>How do I render SQL expressions as strings, possibly with bound parameters inlined?</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -868,11 +867,32 @@ key value to be rendered inline within the INSERT statement&#8217;s
 VALUES clause. This typically refers to Sequence execution but may
 also refer to any server-side default generation function
 associated with a primary key <cite>Column</cite>.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Insert.compile.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Insert.compile.params.compile_kwargs">¶</a> &#8211; <p>optional dictionary of additional parameters
+that will be passed through to the compiler within all &#8220;visit&#8221;
+methods.  This allows any custom flag to be passed through to
+a custom compilation construct, for example.  It is also used
+for the case of passing the <tt class="docutils literal"><span class="pre">literal_binds</span></tt> flag through:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">select</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">))</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">t</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">compile_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;literal_binds&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../faq.html#faq-sql-expression-string"><em>How do I render SQL expressions as strings, possibly with bound parameters inlined?</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -1488,11 +1508,32 @@ key value to be rendered inline within the INSERT statement&#8217;s
 VALUES clause. This typically refers to Sequence execution but may
 also refer to any server-side default generation function
 associated with a primary key <cite>Column</cite>.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.Update.compile.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.Update.compile.params.compile_kwargs">¶</a> &#8211; <p>optional dictionary of additional parameters
+that will be passed through to the compiler within all &#8220;visit&#8221;
+methods.  This allows any custom flag to be passed through to
+a custom compilation construct, for example.  It is also used
+for the case of passing the <tt class="docutils literal"><span class="pre">literal_binds</span></tt> flag through:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">select</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">))</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">t</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">compile_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;literal_binds&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../faq.html#faq-sql-expression-string"><em>How do I render SQL expressions as strings, possibly with bound parameters inlined?</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -2061,11 +2102,32 @@ key value to be rendered inline within the INSERT statement&#8217;s
 VALUES clause. This typically refers to Sequence execution but may
 also refer to any server-side default generation function
 associated with a primary key <cite>Column</cite>.</li>
+<li><span class="target" id="sqlalchemy.sql.expression.UpdateBase.compile.params.compile_kwargs"></span><strong>compile_kwargs</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.sql.expression.UpdateBase.compile.params.compile_kwargs">¶</a> &#8211; <p>optional dictionary of additional parameters
+that will be passed through to the compiler within all &#8220;visit&#8221;
+methods.  This allows any custom flag to be passed through to
+a custom compilation construct, for example.  It is also used
+for the case of passing the <tt class="docutils literal"><span class="pre">literal_binds</span></tt> flag through:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">select</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">table</span><span class="p">(</span><span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">))</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">t</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">s</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">compile_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;literal_binds&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span></pre></div>
+</div>
+<div class="versionadded">
+<p><span>New in version 0.9.0.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../faq.html#faq-sql-expression-string"><em>How do I render SQL expressions as strings, possibly with bound parameters inlined?</em></a></p>
+</div>
 </dd></dl>
 
 <dl class="attribute">

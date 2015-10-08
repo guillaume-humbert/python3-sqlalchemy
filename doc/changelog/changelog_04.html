@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,70 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="changelog_05.html" title="previous chapter">0.5 Changelog</a>
-            </li>
-            <li>Next:
-            <a href="changelog_03.html" title="next chapter">0.3 Changelog</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/changelog/changelog_04.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="Changes and Migration">Changes and Migration</a>
-        » 
-                0.4 Changelog
-            
-
-        <h2>
-            
-                0.4 Changelog
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="Changes and Migration">Up</a> |
+
+                    <a href="changelog_05.html" title="0.5 Changelog">Prev</a> |
+                    <a href="changelog_03.html" title="0.3 Changelog">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                0.4 Changelog
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">0.4 Changelog</a><ul>
 <li><a class="reference internal" href="#change-0.4.8">0.4.8</a><ul>
 <li><a class="reference internal" href="#change-0.4.8-orm">orm</a></li>
@@ -228,26 +220,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="changelog_05.html" title="previous chapter">0.5 Changelog</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="changelog_03.html" title="next chapter">0.3 Changelog</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -1338,14 +1317,14 @@ nested transactions were used.</li>
 transaction directly to the parent of the transaction
 that could be rolled back to. Now it rolls back the next
 transaction up that can handle it, but sets the current
-transaction to it&#8217;s parent and inactivates the
+transaction to its parent and inactivates the
 transactions in between. Inactive transactions can only
 be rolled back or closed, any other call results in an
 error.</li>
 <li>autoflush for commit() wasn&#8217;t flushing for simple
 subtransactions.</li>
 <li>unitofwork flush didn&#8217;t close the failed transaction
-when the session was not in a transaction and commiting
+when the session was not in a transaction and committing
 the transaction failed.</li>
 </ul>
 </dd>
@@ -1461,7 +1440,7 @@ is a quirk of the datetime implementation.)<a class="changeset-link headerlink r
 <ul class="simple">
 <li><p id="change-0.4.3-40"><span class="target" id="change-f63c306a189efd4f901b963ab28adb1f"><strong>[dialects] </strong></span>Better support for schemas in SQLite (linked in by ATTACH
 DATABASE ... AS name).  In some cases in the past, schema
-names were ommitted from generated SQL for SQLite.  This is
+names were omitted from generated SQL for SQLite.  This is
 no longer the case.<a class="changeset-link headerlink reference internal" href="#change-f63c306a189efd4f901b963ab28adb1f">¶</a><p></p>
 </p>
 </li>
@@ -2614,9 +2593,9 @@ with SQLAlchemy, likewise column.<a class="changeset-link headerlink reference i
 etc., are also no longer imported into your namespace<a class="changeset-link headerlink reference internal" href="#change-2663410f9071b570a253c86fb4d09031">¶</a><p></p>
 </p>
 </li>
-<li><p id="change-0.4.0beta4-3"><span class="target" id="change-dca15652477c49266ba58637beea290e"></span>The &#8216;Smallinteger&#8217; compatiblity name (small i!) is no longer imported,
+<li><p id="change-0.4.0beta4-3"><span class="target" id="change-487de14a19636219ee9867528df4aee5"></span>The &#8216;Smallinteger&#8217; compatibility name (small i!) is no longer imported,
 but remains in schema.py for now.  SmallInteger (big I!) is still
-imported.<a class="changeset-link headerlink reference internal" href="#change-dca15652477c49266ba58637beea290e">¶</a><p></p>
+imported.<a class="changeset-link headerlink reference internal" href="#change-487de14a19636219ee9867528df4aee5">¶</a><p></p>
 </p>
 </li>
 <li><p id="change-0.4.0beta4-4"><span class="target" id="change-8b98efdb7b0519850778b7118b3c2e6d"></span>The connection pool uses a &#8220;threadlocal&#8221; strategy internally to return
@@ -2841,7 +2820,7 @@ etc.  Deprecated methods are docstring&#8217;ed with their new replacements.<a c
 </p>
 </li>
 <li><p id="change-0.4.0beta1-11"><span class="target" id="change-1693eadbe7a1e73418dc29c3c9f5f383"><strong>[orm] </strong></span>Class-level properties are now usable as query elements... no more
-&#8216;.c.&#8217;!  &#8220;Class.c.propname&#8221; is now superceded by &#8220;Class.propname&#8221;.  All
+&#8216;.c.&#8217;!  &#8220;Class.c.propname&#8221; is now superseded by &#8220;Class.propname&#8221;.  All
 clause operators are supported, as well as higher level operators such
 as Class.prop==&lt;some instance&gt; for scalar attributes,
 Class.prop.contains(&lt;some instance&gt;) and Class.prop.any(&lt;some
@@ -2971,7 +2950,7 @@ the new type are fully functional in query expressions, comparisons,
 query.get() clauses, etc. and act as though they are regular single-column
 scalars... except they&#8217;re not!  Use the function composite(cls, *columns)
 inside of the mapper&#8217;s &#8220;properties&#8221; dict, and instances of cls will be
-created/mapped to a single attribute, comprised of the values correponding
+created/mapped to a single attribute, comprised of the values corresponding
 to *columns.<a class="changeset-link headerlink reference internal" href="#change-3ee39648a350e0ce7f6e88a460ef4222">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/211">#211</a></p>
 </p>
 </li>
@@ -2990,7 +2969,7 @@ single-valued (or fewer-valued) primary key.  Fixes things like.<a class="change
 <li><p id="change-0.4.0beta1-33"><span class="target" id="change-8b14a583258b389d8befb88ffab4616e"><strong>[orm] </strong></span>Joined-table inheritance will now generate the primary key columns of all
 inherited classes against the root table of the join only.  This implies
 that each row in the root table is distinct to a single instance.  If for
-some rare reason this is not desireable, explicit primary_key settings on
+some rare reason this is not desirable, explicit primary_key settings on
 individual mappers will override it.<a class="changeset-link headerlink reference internal" href="#change-8b14a583258b389d8befb88ffab4616e">¶</a><p></p>
 </p>
 </li>
@@ -3032,7 +3011,7 @@ Hibernate<a class="changeset-link headerlink reference internal" href="#change-c
 <h3>sql<a class="headerlink" href="#change-0.4.0beta1-sql" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p id="change-0.4.0beta1-40"><span class="target" id="change-194d03e759795cb2ff68bbe9af23b306"><strong>[sql] </strong></span>Speed!  Clause compilation as well as the mechanics of SQL constructs have
-been streamlined and simplified to a signficant degree, for a 20-30%
+been streamlined and simplified to a significant degree, for a 20-30%
 improvement of the statement construction/compilation overhead of 0.3.<a class="changeset-link headerlink reference internal" href="#change-194d03e759795cb2ff68bbe9af23b306">¶</a><p></p>
 </p>
 </li>
@@ -3044,7 +3023,7 @@ name their &#8220;type&#8221; attribute as &#8220;type&#8221;.<a class="changese
 <li><p id="change-0.4.0beta1-42"><span class="target" id="change-52f227bbb5a90b801adc6ecfd0cc6e3a"><strong>[sql] </strong></span>case_sensitive=(True|False) setting removed from schema items, since
 checking this state added a lot of method call overhead and there was no
 decent reason to ever set it to False.  Table and column names which are
-all lower case will be treated as case-insenstive (yes we adjust for
+all lower case will be treated as case-insensitive (yes we adjust for
 Oracle&#8217;s UPPERCASE style too).<a class="changeset-link headerlink reference internal" href="#change-52f227bbb5a90b801adc6ecfd0cc6e3a">¶</a><p></p>
 </p>
 </li>
@@ -3075,7 +3054,7 @@ Oracle&#8217;s UPPERCASE style too).<a class="changeset-link headerlink referenc
 <ul class="simple">
 <li><p id="change-0.4.0beta1-48"><span class="target" id="change-cf0060d4bbf9e676c4a7c5beb5f02382"><strong>[oracle] </strong></span>Very rudimental support for OUT parameters added; use sql.outparam(name,
 type) to set up an OUT parameter, just like bindparam(); after execution,
-values are avaiable via result.out_parameters dictionary.<a class="changeset-link headerlink reference internal" href="#change-cf0060d4bbf9e676c4a7c5beb5f02382">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/507">#507</a></p>
+values are available via result.out_parameters dictionary.<a class="changeset-link headerlink reference internal" href="#change-cf0060d4bbf9e676c4a7c5beb5f02382">¶</a><p>References: <a class="reference external" href="http://www.sqlalchemy.org/trac/ticket/507">#507</a></p>
 </p>
 </li>
 </ul>

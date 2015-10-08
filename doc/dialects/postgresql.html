@@ -32,7 +32,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.9.4',
+          VERSION:     '0.9.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -44,6 +44,7 @@
         <script type="text/javascript" src="../_static/doctools.js"></script>
     <!-- end iterate through sphinx environment script_files -->
 
+    <script type="text/javascript" src="../_static/detectmobile.js"></script>
     <script type="text/javascript" src="../_static/init.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,70 +70,61 @@
 
 
 
+
 <div id="docs-container">
 
 
 
 
+
+<div id="docs-top-navigation-container" class="body-background">
 <div id="docs-header">
+    <div id="docs-version-header">
+        Release: <span class="version-num">0.9.6</span> | Release Date: June 23, 2014
+    </div>
+
     <h1>SQLAlchemy 0.9 Documentation</h1>
 
-    <div id="docs-search">
-    Search:
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </div>
-
-    <div id="docs-version-header">
-        Release: <span class="version-num">0.9.4</span> | Release Date: March 28, 2014
-
-
-    </div>
-
 </div>
-
-<div id="docs-top-navigation">
-    <div id="docs-top-page-control" class="docs-navigation-links">
-        <ul>
-            <li>Prev:
-            <a href="oracle.html" title="previous chapter">Oracle</a>
-            </li>
-            <li>Next:
-            <a href="sqlite.html" title="next chapter">SQLite</a>
-            </li>
-
-        <li>
-            <a href="../contents.html">Table of Contents</a> |
-            <a href="../genindex.html">Index</a>
-            | <a href="../_sources/dialects/postgresql.txt">view source
-        </li>
-        </ul>
-    </div>
-
-    <div id="docs-navigation-banner">
-        <a href="../index.html">SQLAlchemy 0.9 Documentation</a>
-                » <a href="index.html" title="Dialects">Dialects</a>
-        » 
-                PostgreSQL
-            
-
-        <h2>
-            
-                PostgreSQL
-            
-        </h2>
-    </div>
-
 </div>
 
 <div id="docs-body-container">
 
-    <div id="docs-sidebar">
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
+    <div id="fixed-sidebar" class="withsidebar">
+
+
+        <div id="docs-sidebar-popout">
+            <h3><a href="../index.html">SQLAlchemy 0.9 Documentation</a></h3>
+
+            <p id="sidebar-paginate">
+                    <a href="index.html" title="Dialects">Up</a> |
+
+                    <a href="oracle.html" title="Oracle">Prev</a> |
+                    <a href="sqlite.html" title="SQLite">Next</a>
+            </p>
+
+            <p id="sidebar-topnav">
+                <a href="../index.html">Contents</a> |
+                <a href="../genindex.html">Index</a>
+            </p>
+
+            <div id="sidebar-search">
+                <form class="search" action="../search.html" method="get">
+                  <input type="text" name="q" size="12" /> <input type="submit" value="Search" />
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </div>
+
+        </div>
+
+        <div id="docs-sidebar">
+
+        <h3><a href="#">            
+                PostgreSQL
+            
+        </a></h3>
+        <ul>
 <li><a class="reference internal" href="#">PostgreSQL</a><ul>
 <li><a class="reference internal" href="#dialect-postgresql">Support for the PostgreSQL database.</a></li>
 <li><a class="reference internal" href="#sequences-serial">Sequences/SERIAL</a></li>
@@ -174,7 +166,7 @@
 <li><a class="reference internal" href="#dialect-postgresql-pg8000-url">DBAPI</a></li>
 <li><a class="reference internal" href="#dialect-postgresql-pg8000-connect">Connecting</a></li>
 <li><a class="reference internal" href="#id3">Unicode</a></li>
-<li><a class="reference internal" href="#interval">Interval</a></li>
+<li><a class="reference internal" href="#pg8000-transaction-isolation-level">pg8000 Transaction Isolation Level</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.postgresql.zxjdbc">zxjdbc</a><ul>
@@ -187,26 +179,13 @@
 </ul>
 
 
-    <h4>Previous Topic</h4>
-    <p>
-    <a href="oracle.html" title="previous chapter">Oracle</a>
-    </p>
-    <h4>Next Topic</h4>
-    <p>
-    <a href="sqlite.html" title="next chapter">SQLite</a>
-    </p>
 
 
-    <h4>Quick Search</h4>
-    <p>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    </p>
+        </div>
 
     </div>
+
+    
 
     <div id="docs-body" class="withsidebar" >
         
@@ -277,8 +256,14 @@ command <tt class="docutils literal"><span class="pre">SET</span> <span class="p
 <li><tt class="docutils literal"><span class="pre">REPEATABLE</span> <span class="pre">READ</span></tt></li>
 <li><tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt></li>
 </ul>
-<p>The <a class="reference internal" href="#module-sqlalchemy.dialects.postgresql.psycopg2" title="sqlalchemy.dialects.postgresql.psycopg2"><tt class="xref py py-mod docutils literal"><span class="pre">psycopg2</span></tt></a> dialect also offers the special level <tt class="docutils literal"><span class="pre">AUTOCOMMIT</span></tt>.  See
-<a class="reference internal" href="#psycopg2-isolation-level"><em>Psycopg2 Transaction Isolation Level</em></a> for details.</p>
+<p>The <a class="reference internal" href="#module-sqlalchemy.dialects.postgresql.psycopg2" title="sqlalchemy.dialects.postgresql.psycopg2"><tt class="xref py py-mod docutils literal"><span class="pre">psycopg2</span></tt></a> and
+<a class="reference internal" href="#module-sqlalchemy.dialects.postgresql.pg8000" title="sqlalchemy.dialects.postgresql.pg8000"><tt class="xref py py-mod docutils literal"><span class="pre">pg8000</span></tt></a> dialects also offer the
+special level <tt class="docutils literal"><span class="pre">AUTOCOMMIT</span></tt>.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#psycopg2-isolation-level"><em>Psycopg2 Transaction Isolation Level</em></a></p>
+<p class="last"><a class="reference internal" href="#pg8000-isolation-level"><em>pg8000 Transaction Isolation Level</em></a></p>
+</div>
 </div>
 <div class="section" id="remote-schema-table-introspection-and-postgresql-search-path">
 <span id="postgresql-schema-reflection"></span><h2>Remote-Schema Table Introspection and Postgresql search_path<a class="headerlink" href="#remote-schema-table-introspection-and-postgresql-search-path" title="Permalink to this headline">¶</a></h2>
@@ -519,7 +504,7 @@ they originate from <a class="reference internal" href="../core/types.html#modul
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.dialects.postgresql</span> <span class="kn">import</span> \
     <span class="n">ARRAY</span><span class="p">,</span> <span class="n">BIGINT</span><span class="p">,</span> <span class="n">BIT</span><span class="p">,</span> <span class="n">BOOLEAN</span><span class="p">,</span> <span class="n">BYTEA</span><span class="p">,</span> <span class="n">CHAR</span><span class="p">,</span> <span class="n">CIDR</span><span class="p">,</span> <span class="n">DATE</span><span class="p">,</span> \
     <span class="n">DOUBLE_PRECISION</span><span class="p">,</span> <span class="n">ENUM</span><span class="p">,</span> <span class="n">FLOAT</span><span class="p">,</span> <span class="n">HSTORE</span><span class="p">,</span> <span class="n">INET</span><span class="p">,</span> <span class="n">INTEGER</span><span class="p">,</span> \
-    <span class="n">INTERVAL</span><span class="p">,</span> <span class="n">JSON</span><span class="p">,</span> <span class="n">MACADDR</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">REAL</span><span class="p">,</span> <span class="n">SMALLINT</span><span class="p">,</span> <span class="n">TEXT</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> \
+    <span class="n">INTERVAL</span><span class="p">,</span> <span class="n">JSON</span><span class="p">,</span> <span class="n">MACADDR</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">OID</span><span class="p">,</span> <span class="n">REAL</span><span class="p">,</span> <span class="n">SMALLINT</span><span class="p">,</span> <span class="n">TEXT</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> \
     <span class="n">TIMESTAMP</span><span class="p">,</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">,</span> <span class="n">INT4RANGE</span><span class="p">,</span> <span class="n">INT8RANGE</span><span class="p">,</span> <span class="n">NUMRANGE</span><span class="p">,</span> \
     <span class="n">DATERANGE</span><span class="p">,</span> <span class="n">TSRANGE</span><span class="p">,</span> <span class="n">TSTZRANGE</span><span class="p">,</span> <span class="n">TSVECTOR</span></pre></div>
 </div>
@@ -559,7 +544,7 @@ the values present, unless the <tt class="docutils literal"><span class="pre">ty
 
 <dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.ARRAY">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">ARRAY</tt><big>(</big><em>item_type</em>, <em>as_tuple=False</em>, <em>dimensions=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ARRAY" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">ARRAY</tt><big>(</big><em>item_type</em>, <em>as_tuple=False</em>, <em>dimensions=None</em>, <em>zero_indexes=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ARRAY" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Concatenable" title="sqlalchemy.types.Concatenable"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Concatenable</span></tt></a>, <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
 <p>Postgresql ARRAY type.</p>
 <p>Represents values as Python lists.</p>
@@ -722,7 +707,7 @@ an argument array expression.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.dialects.postgresql.ARRAY.__init__">
-<tt class="descclassname">ARRAY.</tt><tt class="descname">__init__</tt><big>(</big><em>item_type</em>, <em>as_tuple=False</em>, <em>dimensions=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ARRAY.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ARRAY.</tt><tt class="descname">__init__</tt><big>(</big><em>item_type</em>, <em>as_tuple=False</em>, <em>dimensions=None</em>, <em>zero_indexes=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.ARRAY.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct an ARRAY.</p>
 <p>E.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Column</span><span class="p">(</span><span class="s">&#39;myarray&#39;</span><span class="p">,</span> <span class="n">ARRAY</span><span class="p">(</span><span class="n">Integer</span><span class="p">))</span></pre></div>
@@ -748,6 +733,14 @@ and will also optimize the performance of the type overall.
 Note that PG arrays are always implicitly &#8220;non-dimensioned&#8221;,
 meaning they can store any number of dimensions no matter how
 they were declared.</li>
+<li><span class="target" id="sqlalchemy.dialects.postgresql.ARRAY.params.zero_indexes"></span><strong>zero_indexes=False</strong><a class="paramlink headerlink reference internal" href="#sqlalchemy.dialects.postgresql.ARRAY.params.zero_indexes">¶</a> &#8211; <p>when True, index values will be converted
+between Python zero-based and Postgresql one-based indexes, e.g.
+a value of one will be added to all index values before passing
+to the database.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.5.</span></p>
+</div>
+</li>
 </ul>
 </td>
 </tr>
@@ -1325,6 +1318,22 @@ as well as an explicit type cast when evaulated.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="sqlalchemy.dialects.postgresql.OID">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">OID</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.OID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.TypeEngine" title="sqlalchemy.types.TypeEngine"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeEngine</span></tt></a></p>
+<p>Provide the Postgresql OID type.</p>
+<div class="versionadded">
+<p><span>New in version 0.9.5.</span></p>
+</div>
+<dl class="attribute">
+<dt id="sqlalchemy.dialects.postgresql.OID.__init__">
+<tt class="descname">__init__</tt><a class="headerlink" href="#sqlalchemy.dialects.postgresql.OID.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="sqlalchemy.dialects.postgresql.REAL">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.dialects.postgresql.</tt><tt class="descname">REAL</tt><big>(</big><em>precision=None</em>, <em>asdecimal=False</em>, <em>decimal_return_scale=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.dialects.postgresql.REAL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../core/types.html#sqlalchemy.types.Float" title="sqlalchemy.types.Float"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.Float</span></tt></a></p>
@@ -1579,6 +1588,30 @@ driver, however the data types returned may vary. If you are using
 <tt class="docutils literal"><span class="pre">psycopg2</span></tt>, it&#8217;s recommended to upgrade to version 2.5 or later
 before using these column types.</p>
 </div>
+<p>When instantiating models that use these column types, you should pass
+whatever data type is expected by the DBAPI driver you&#8217;re using for
+the column type. For <a class="reference external" href="http://pythonhosted.org/psycopg2/module.html#psycopg2" title="(in Psycopg v2.5)"><tt class="xref py py-mod docutils literal"><span class="pre">psycopg2</span></tt></a> these are
+<a class="reference external" href="http://pythonhosted.org/psycopg2/extras.html#psycopg2.extras.NumericRange" title="(in Psycopg v2.5)"><tt class="xref py py-class docutils literal"><span class="pre">NumericRange</span></tt></a>,
+<a class="reference external" href="http://pythonhosted.org/psycopg2/extras.html#psycopg2.extras.DateRange" title="(in Psycopg v2.5)"><tt class="xref py py-class docutils literal"><span class="pre">DateRange</span></tt></a>,
+<a class="reference external" href="http://pythonhosted.org/psycopg2/extras.html#psycopg2.extras.DateTimeRange" title="(in Psycopg v2.5)"><tt class="xref py py-class docutils literal"><span class="pre">DateTimeRange</span></tt></a> and
+<a class="reference external" href="http://pythonhosted.org/psycopg2/extras.html#psycopg2.extras.DateTimeTZRange" title="(in Psycopg v2.5)"><tt class="xref py py-class docutils literal"><span class="pre">DateTimeTZRange</span></tt></a> or the class you&#8217;ve
+registered with <a class="reference external" href="http://pythonhosted.org/psycopg2/extras.html#psycopg2.extras.register_range" title="(in Psycopg v2.5)"><tt class="xref py py-func docutils literal"><span class="pre">register_range()</span></tt></a>.</p>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">psycopg2.extras</span> <span class="kn">import</span> <span class="n">DateTimeRange</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.dialects.postgresql</span> <span class="kn">import</span> <span class="n">TSRANGE</span>
+
+<span class="k">class</span> <span class="nc">RoomBooking</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;room_booking&#39;</span>
+
+    <span class="n">room</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">during</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TSRANGE</span><span class="p">())</span>
+
+<span class="n">booking</span> <span class="o">=</span> <span class="n">RoomBooking</span><span class="p">(</span>
+    <span class="n">room</span><span class="o">=</span><span class="mi">101</span><span class="p">,</span>
+    <span class="n">during</span><span class="o">=</span><span class="n">DateTimeRange</span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2013</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">23</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span>
+<span class="p">)</span></pre></div>
+</div>
 </div>
 </div>
 <div class="section" id="postgresql-constraint-types">
@@ -1624,7 +1657,9 @@ for this constraint.</li>
 <p>For example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.dialects.postgresql</span> <span class="kn">import</span> <span class="n">ExcludeConstraint</span><span class="p">,</span> <span class="n">TSRANGE</span>
 
-<span class="k">class</span> <span class="nc">RoomBookings</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">RoomBooking</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;room_booking&#39;</span>
 
     <span class="n">room</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">during</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TSRANGE</span><span class="p">())</span>
@@ -1666,7 +1701,7 @@ Note that the <tt class="docutils literal"><span class="pre">stream_results=True
 way of enabling this mode on a per-execution basis.</li>
 <li><tt class="docutils literal"><span class="pre">use_native_unicode</span></tt>: Enable the usage of Psycopg2 &#8220;native unicode&#8221; mode
 per connection.  True by default.</li>
-<li><tt class="docutils literal"><span class="pre">isolation_level</span></tt>: This option, available for all Posgtresql dialects,
+<li><tt class="docutils literal"><span class="pre">isolation_level</span></tt>: This option, available for all PostgreSQL dialects,
 includes the <tt class="docutils literal"><span class="pre">AUTOCOMMIT</span></tt> isolation level when using the psycopg2
 dialect.  See <a class="reference internal" href="#psycopg2-isolation-level"><em>Psycopg2 Transaction Isolation Level</em></a>.</li>
 </ul>
@@ -1729,7 +1764,7 @@ on all new connections based on the value passed to
 <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a>.</p>
 </div>
 <p>SQLAlchemy can also be instructed to skip the usage of the psycopg2
-<tt class="docutils literal"><span class="pre">UNICODE</span></tt> extension and to instead utilize it&#8217;s own unicode encode/decode
+<tt class="docutils literal"><span class="pre">UNICODE</span></tt> extension and to instead utilize its own unicode encode/decode
 services, which are normally reserved only for those DBAPIs that don&#8217;t
 fully support unicode directly.  Passing <tt class="docutils literal"><span class="pre">use_native_unicode=False</span></tt> to
 <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> will disable usage of <tt class="docutils literal"><span class="pre">psycopg2.extensions.UNICODE</span></tt>.
@@ -1767,6 +1802,11 @@ setting is always emitted at the start of each transaction in any case.</p>
 <p><span>New in version 0.8.2: </span>support for AUTOCOMMIT isolation level when using
 psycopg2.</p>
 </div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#postgresql-isolation-level"><em>Transaction Isolation Level</em></a></p>
+<p class="last"><a class="reference internal" href="#pg8000-isolation-level"><em>pg8000 Transaction Isolation Level</em></a></p>
+</div>
 </div>
 <div class="section" id="notice-logging">
 <h3>NOTICE logging<a class="headerlink" href="#notice-logging" title="Permalink to this headline">¶</a></h3>
@@ -1787,7 +1827,7 @@ connection, a sequence like the following is performed:</p>
 <li>Request the available HSTORE oids using <tt class="docutils literal"><span class="pre">psycopg2.extras.HstoreAdapter.get_oids()</span></tt>.
 If this function returns a list of HSTORE identifiers, we then determine that
 the <tt class="docutils literal"><span class="pre">HSTORE</span></tt> extension is present.</li>
-<li>If the <tt class="docutils literal"><span class="pre">use_native_hstore</span></tt> flag is at it&#8217;s default of <tt class="docutils literal"><span class="pre">True</span></tt>, and
+<li>If the <tt class="docutils literal"><span class="pre">use_native_hstore</span></tt> flag is at its default of <tt class="docutils literal"><span class="pre">True</span></tt>, and
 we&#8217;ve detected that <tt class="docutils literal"><span class="pre">HSTORE</span></tt> oids are available, the
 <tt class="docutils literal"><span class="pre">psycopg2.extensions.register_hstore()</span></tt> extension is invoked for all
 connections.</li>
@@ -1828,7 +1868,7 @@ may be more performant.</p>
 <div class="section" id="dialect-postgresql-pg8000-url">
 <h3>DBAPI<a class="headerlink" href="#dialect-postgresql-pg8000-url" title="Permalink to this headline">¶</a></h3>
 <p>Documentation and download information (if applicable) for pg8000 is available at:
-<a class="reference external" href="http://pybrary.net/pg8000/">http://pybrary.net/pg8000/</a></p>
+<a class="reference external" href="https://pythonhosted.org/pg8000/">https://pythonhosted.org/pg8000/</a></p>
 </div>
 <div class="section" id="dialect-postgresql-pg8000-connect">
 <h3>Connecting<a class="headerlink" href="#dialect-postgresql-pg8000-connect" title="Permalink to this headline">¶</a></h3>
@@ -1838,15 +1878,34 @@ may be more performant.</p>
 </div>
 <div class="section" id="id3">
 <h3>Unicode<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<p>pg8000 requires that the postgresql client encoding be
-configured in the postgresql.conf file in order to use encodings
-other than ascii. Set this value to the same value as the
-&#8220;encoding&#8221; parameter on create_engine(), usually &#8220;utf-8&#8221;.</p>
+<p>When communicating with the server, pg8000 uses the character set that the
+server asks it to use (the client encoding). By default the client encoding is
+the database&#8217;s character set (chosen when the database is created), but the
+client encoding can be changed in a number of ways (eg. setting CLIENT_ENCODING
+in postgresql.conf).</p>
+<p>Set the &#8220;encoding&#8221; parameter on create_engine(), to the same as the client
+encoding, usually &#8220;utf-8&#8221;.</p>
 </div>
-<div class="section" id="interval">
-<h3>Interval<a class="headerlink" href="#interval" title="Permalink to this headline">¶</a></h3>
-<p>Passing data from/to the Interval type is not supported as of
-yet.</p>
+<div class="section" id="pg8000-transaction-isolation-level">
+<span id="pg8000-isolation-level"></span><h3>pg8000 Transaction Isolation Level<a class="headerlink" href="#pg8000-transaction-isolation-level" title="Permalink to this headline">¶</a></h3>
+<p>The pg8000 dialect offers the same isolation level settings as that
+of the <a class="reference internal" href="#psycopg2-isolation-level"><em>psycopg2</em></a> dialect:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">READ</span> <span class="pre">COMMITTED</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">REPEATABLE</span> <span class="pre">READ</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">AUTOCOMMIT</span></tt></li>
+</ul>
+<div class="versionadded">
+<p><span>New in version 0.9.5: </span>support for AUTOCOMMIT isolation level when using
+pg8000.</p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><a class="reference internal" href="#postgresql-isolation-level"><em>Transaction Isolation Level</em></a></p>
+<p class="last"><a class="reference internal" href="#psycopg2-isolation-level"><em>Psycopg2 Transaction Isolation Level</em></a></p>
+</div>
 </div>
 </div>
 <div class="section" id="module-sqlalchemy.dialects.postgresql.zxjdbc">
