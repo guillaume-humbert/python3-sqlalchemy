@@ -509,7 +509,7 @@ class Connection(Connectable):
         return self.execute(object, *multiparams, **params).scalar()
 
     def compiler(self, statement, parameters, **kwargs):
-        return self.dialect.compiler(statement, parameters, engine=self.engine, **kwargs)
+        return self.dialect.compiler(statement, parameters, bind=self, **kwargs)
 
     def execute(self, object, *multiparams, **params):
         for c in type(object).__mro__:
@@ -883,7 +883,7 @@ class ResultProxy(object):
                 rec = (type, type.dialect_impl(self.dialect), i)
 
                 if rec[0] is None:
-                    raise DBAPIError("None for metadata " + colname)
+                    raise exceptions.DBAPIError("None for metadata " + colname)
                 if self.__props.setdefault(colname.lower(), rec) is not rec:
                     self.__props[colname.lower()] = (type, ResultProxy.AmbiguousColumn(colname), 0)
                 self.__keys.append(colname)

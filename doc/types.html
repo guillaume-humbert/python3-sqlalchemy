@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.9   Last Updated: 07/15/07 12:30:22</div>
+<div class="versionheader">Version: 0.3.10   Last Updated: 07/20/07 17:20:04</div>
 
 
 
@@ -61,6 +61,13 @@
     <ul>
         
         <li><A style="" href="types.html#types_standard">Built-in Types</a></li>
+        
+            
+    <ul>
+    </ul>
+
+        
+        <li><A style="" href="types.html#types_dialect">Dialect Specific Types</a></li>
         
             
     <ul>
@@ -199,6 +206,49 @@
 
 
     
+    <A name="types_dialect"></a>
+    
+    <div class="sectionL2">
+
+    <h3>Dialect Specific Types</h3>
+    
+    
+
+<p>Each dialect has its own set of types, many of which are available only within that dialect.  For example, MySQL has a <code>BigInteger</code> type and Postgres has an <code>Inet</code> type.  To use these, import them from the module explicitly:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">databases</span><span class="python_operator">.</span><span class="python_name">mysql </span><span class="python_keyword">import </span><span class="python_name">MSEnum</span><span class="python_operator">, </span><span class="python_name">MSBigInteger</span><span class="python_operator">
+</span>
+<span class="python_name">table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'foo'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'enumerates'</span><span class="python_operator">, </span><span class="python_name">MSEnum</span><span class="python_enclosure">(</span><span class="python_literal">'a'</span><span class="python_operator">, </span><span class="python_literal">'b'</span><span class="python_operator">, </span><span class="python_literal">'c'</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">MSBigInteger</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+    </div>
+<p>Or some postgres types:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">databases</span><span class="python_operator">.</span><span class="python_name">postgres </span><span class="python_keyword">import </span><span class="python_name">PGInet</span><span class="python_operator">, </span><span class="python_name">PGArray</span><span class="python_operator">
+</span>
+<span class="python_name">table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'foo'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'ipaddress'</span><span class="python_operator">, </span><span class="python_name">PGInet</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'elements'</span><span class="python_operator">, </span><span class="python_name">PGArray</span><span class="python_enclosure">(</span><span class="python_name">str</span><span class="python_enclosure">))   </span><span class="python_comment"># PGArray is available in 0.4, and takes a type argument</span>
+    <span class="python_enclosure">)</span><span class="python_operator"></span></pre>
+    </div>
+
+
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+    
     <A name="types_custom"></a>
     
     <div class="sectionL2">
@@ -224,7 +274,7 @@
     </span><span class="python_keyword">def </span><span class="python_name">convert_result_value</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_enclosure">[</span><span class="python_number">7</span><span class="python_operator">:</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre>
     </div>
-<p>The <code>Unicode</code> and <code>PickleType</code> classes are instances of <code>TypeDecorator</code> already and can be subclassed directly.
+<p>The <code>PickleType</code> class is an instance of <code>TypeDecorator</code> already and can be subclassed directly.
 </p>
 <p>To build a type object from scratch, which will not have a corresponding database-specific implementation, subclass <code>TypeEngine</code>:
 </p>
@@ -243,6 +293,17 @@
         </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_operator">
     </span><span class="python_keyword">def </span><span class="python_name">convert_result_value</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_operator"></span></pre>
+    </div>
+<p>Once you make your type, its immediately useable:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre><span class="python_name">table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'foo'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'data'</span><span class="python_operator">, </span><span class="python_name">MyType</span><span class="python_enclosure">(</span><span class="python_number">16</span><span class="python_enclosure">))</span>
+    <span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
 
 

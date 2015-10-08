@@ -727,7 +727,7 @@ class ForeignKey(SchemaItem):
                         break
                 else:
                     raise exceptions.ArgumentError("Parent column '%s' does not descend from a table-attached Column" % str(self.parent))
-                m = re.match(r"^([\w_-]+)(?:\.([\w_-]+))?(?:\.([\w_-]+))?$", self._colspec, re.UNICODE)
+                m = re.match(r"^(.+?)(?:\.(.+?))?(?:\.(.+?))?$", self._colspec, re.UNICODE)
                 if m is None:
                     raise exceptions.ArgumentError("Invalid foreign key column specification: " + self._colspec)
                 if m.group(3) is None:
@@ -1191,8 +1191,6 @@ class MetaData(SchemaItem):
         
         if bind is None:
             bind = kwargs.pop('engine_or_url', None)
-        if bind is None:
-            raise exceptions.ArguemntError("'bind' argument is required for connect()")
         from sqlalchemy.engine.url import URL
         if isinstance(bind, (basestring, URL)):
             self._bind = sqlalchemy.create_engine(bind, **kwargs)
