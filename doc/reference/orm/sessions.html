@@ -7,7 +7,7 @@
         
         <title>
     Sessions
- &mdash; SQLAlchemy 0.5.0 Documentation</title>
+ &mdash; SQLAlchemy 0.5.1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.0',
+          VERSION:     '0.5.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.0 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.1 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Interfaces" href="interfaces.html" />
         <link rel="prev" title="Querying" href="query.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.0 Documentation</h1>
+        <h1>SQLAlchemy 0.5.1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.0</span> Last Updated: 01/06/2009 13:41:02
+            Version: <span class="versionnum">0.5.1</span> Last Updated: 01/17/2009 16:46:53
         </div>
         <div class="clearboth"></div>
 
@@ -446,6 +446,7 @@ given <cite>bind</cite>.</p>
 <dt id="sqlalchemy.orm.session.Session.clear">
 <!--[sqlalchemy.orm.session.Session.clear]--><tt class="descname">clear</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.clear" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove all object instances from this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
+<p>Use session.expunge_all()</p>
 <p>This is equivalent to calling <tt class="docutils literal"><span class="pre">expunge(obj)</span></tt> on all objects in this
 <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
 </dd></dl>
@@ -460,9 +461,10 @@ transaction is immediately begun.  Note that this new transaction does
 not use any connection resources until they are first needed.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="classmethod">
 <dt id="sqlalchemy.orm.session.Session.close_all">
-<!--[sqlalchemy.orm.session.Session.close_all]--><tt class="descname">close_all</tt><a class="headerlink" href="#sqlalchemy.orm.session.Session.close_all" title="Permalink to this definition">¶</a></dt>
+<!--[sqlalchemy.orm.session.Session.close_all]--><em class="property">
+classmethod </em><tt class="descname">close_all</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.close_all" title="Permalink to this definition">¶</a></dt>
 <dd>Close <em>all</em> sessions in memory.</dd></dl>
 
 <dl class="method">
@@ -625,9 +627,10 @@ to only these objects, rather than all pending changes.</dd>
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="classmethod">
 <dt id="sqlalchemy.orm.session.Session.identity_key">
-<!--[sqlalchemy.orm.session.Session.identity_key]--><tt class="descname">identity_key</tt><a class="headerlink" href="#sqlalchemy.orm.session.Session.identity_key" title="Permalink to this definition">¶</a></dt>
+<!--[sqlalchemy.orm.session.Session.identity_key]--><em class="property">
+classmethod </em><tt class="descname">identity_key</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.identity_key" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -671,9 +674,10 @@ mapped with <tt class="docutils literal"><span class="pre">cascade=&quot;merge&q
 <!--[sqlalchemy.orm.session.Session.new]--><tt class="descname">new</tt><a class="headerlink" href="#sqlalchemy.orm.session.Session.new" title="Permalink to this definition">¶</a></dt>
 <dd>The set of all instances marked as &#8216;new&#8217; within this <tt class="docutils literal"><span class="pre">Session</span></tt>.</dd></dl>
 
-<dl class="attribute">
+<dl class="classmethod">
 <dt id="sqlalchemy.orm.session.Session.object_session">
-<!--[sqlalchemy.orm.session.Session.object_session]--><tt class="descname">object_session</tt><a class="headerlink" href="#sqlalchemy.orm.session.Session.object_session" title="Permalink to this definition">¶</a></dt>
+<!--[sqlalchemy.orm.session.Session.object_session]--><em class="property">
+classmethod </em><tt class="descname">object_session</tt><big>(</big><em>instance</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.session.Session.object_session" title="Permalink to this definition">¶</a></dt>
 <dd>Return the <tt class="docutils literal"><span class="pre">Session</span></tt> to which an object belongs.</dd></dl>
 
 <dl class="method">
@@ -786,9 +790,10 @@ mapper(Class, table, ...)</pre>
 <!--[sqlalchemy.orm.scoping.ScopedSession.__init__]--><tt class="descname">__init__</tt><big>(</big><em>session_factory</em>, <em>scopefunc=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.scoping.ScopedSession.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
+<dl class="classmethod">
 <dt id="sqlalchemy.orm.scoping.ScopedSession.close_all">
-<!--[sqlalchemy.orm.scoping.ScopedSession.close_all]--><tt class="descname">close_all</tt><a class="headerlink" href="#sqlalchemy.orm.scoping.ScopedSession.close_all" title="Permalink to this definition">¶</a></dt>
+<!--[sqlalchemy.orm.scoping.ScopedSession.close_all]--><em class="property">
+classmethod </em><tt class="descname">close_all</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.scoping.ScopedSession.close_all" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -796,9 +801,10 @@ mapper(Class, table, ...)</pre>
 <!--[sqlalchemy.orm.scoping.ScopedSession.configure]--><tt class="descname">configure</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.scoping.ScopedSession.configure" title="Permalink to this definition">¶</a></dt>
 <dd>reconfigure the sessionmaker used by this ScopedSession.</dd></dl>
 
-<dl class="attribute">
+<dl class="classmethod">
 <dt id="sqlalchemy.orm.scoping.ScopedSession.identity_key">
-<!--[sqlalchemy.orm.scoping.ScopedSession.identity_key]--><tt class="descname">identity_key</tt><a class="headerlink" href="#sqlalchemy.orm.scoping.ScopedSession.identity_key" title="Permalink to this definition">¶</a></dt>
+<!--[sqlalchemy.orm.scoping.ScopedSession.identity_key]--><em class="property">
+classmethod </em><tt class="descname">identity_key</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.scoping.ScopedSession.identity_key" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -806,9 +812,10 @@ mapper(Class, table, ...)</pre>
 <!--[sqlalchemy.orm.scoping.ScopedSession.mapper]--><tt class="descname">mapper</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.scoping.ScopedSession.mapper" title="Permalink to this definition">¶</a></dt>
 <dd>return a mapper() function which associates this ScopedSession with the Mapper.</dd></dl>
 
-<dl class="attribute">
+<dl class="classmethod">
 <dt id="sqlalchemy.orm.scoping.ScopedSession.object_session">
-<!--[sqlalchemy.orm.scoping.ScopedSession.object_session]--><tt class="descname">object_session</tt><a class="headerlink" href="#sqlalchemy.orm.scoping.ScopedSession.object_session" title="Permalink to this definition">¶</a></dt>
+<!--[sqlalchemy.orm.scoping.ScopedSession.object_session]--><em class="property">
+classmethod </em><tt class="descname">object_session</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.scoping.ScopedSession.object_session" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -855,7 +862,7 @@ a class.</p>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2008, the SQLAlchemy authors and contributors.
+                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.
                 </div>
             </div>

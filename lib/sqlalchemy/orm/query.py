@@ -1,5 +1,5 @@
 # orm/query.py
-# Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008, 2009 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -73,6 +73,7 @@ class Query(object):
         self._correlate = set()
         self._joinpoint = None
         self._with_labels = False
+        self._enable_eagerloads = True
         self.__joinable_tables = None
         self._having = None
         self._populate_existing = False
@@ -131,16 +132,14 @@ class Query(object):
 
     def __set_select_from(self, from_obj):
         if isinstance(from_obj, expression._SelectBaseMixin):
-            # alias SELECTs and unions
             from_obj = from_obj.alias()
 
         self._from_obj = from_obj
         equivs = self.__all_equivs()
 
         if isinstance(from_obj, expression.Alias):
-            # dont alias a regular join (since its not an alias itself)
             self._from_obj_alias = sql_util.ColumnAdapter(self._from_obj, equivs)
-
+            
     def _get_polymorphic_adapter(self, entity, selectable):
         self.__mapper_loads_polymorphically_with(entity.mapper, sql_util.ColumnAdapter(selectable, entity.mapper._equivalent_columns))
 
@@ -318,13 +317,37 @@ class Query(object):
     @property
     def statement(self):
         """The full SELECT statement represented by this Query."""
+        
         return self._compile_context(labels=self._with_labels).statement._annotate({'_halt_adapt': True})
 
+    @property
+    def _nested_statement(self):
+        return self.with_labels().enable_eagerloads(False).statement.correlate(None)
+
     def subquery(self):
-        """return the full SELECT statement represented by this Query, embedded within an Alias."""
+        """return the full SELECT statement represented by this Query, embedded within an Alias.
+        
+        Eager JOIN generation within the query is disabled.
+        
+        """
 
-        return self.statement.alias()
+        return self.enable_eagerloads(False).statement.alias()
 
+    @_generative()
+    def enable_eagerloads(self, value):
+        """Control whether or not eager joins are rendered.
+        
+        When set to False, the returned Query will not render 
+        eager joins regardless of eagerload() options
+        or mapper-level lazy=False configurations.
+        
+        This is used primarily when nesting the Query's
+        statement into a subquery or other
+        selectable.
+        
+        """
+        self._enable_eagerloads = value
+        
     @_generative()
     def with_labels(self):
         """Apply column labels to the return value of Query.statement.
@@ -524,23 +547,27 @@ class Query(object):
         m = _MapperEntity(self, entity)
         self.__setup_aliasizers([m])
 
-    @_generative()
     def from_self(self, *entities):
         """return a Query that selects from this Query's SELECT statement.
 
         \*entities - optional list of entities which will replace
         those being selected.
-        """
 
-        fromclause = self.with_labels().statement.correlate(None)
+        """
+        fromclause = self._nested_statement
+        q = self._from_selectable(fromclause)
+        if entities:
+            q._set_entities(entities)
+        return q
+
+    _from_self = from_self
+
+    @_generative()
+    def _from_selectable(self, fromclause):
         self._statement = self._criterion = None
         self._order_by = self._group_by = self._distinct = False
         self._limit = self._offset = None
         self.__set_select_from(fromclause)
-        if entities:
-            self._set_entities(entities)
-
-    _from_self = from_self
 
     def values(self, *columns):
         """Return an iterator yielding result tuples corresponding to the given list of columns"""
@@ -691,6 +718,92 @@ class Query(object):
             self._having = self._having & criterion
         else:
             self._having = criterion
+
+    def union(self, *q):
+        """Produce a UNION of this Query against one or more queries.
+
+        e.g.::
+
+            q1 = sess.query(SomeClass).filter(SomeClass.foo=='bar')
+            q2 = sess.query(SomeClass).filter(SomeClass.bar=='foo')
+
+            q3 = q1.union(q2)
+            
+        The method accepts multiple Query objects so as to control
+        the level of nesting.  A series of ``union()`` calls such as::
+        
+            x.union(y).union(z).all()
+            
+        will nest on each ``union()``, and produces::
+        
+            SELECT * FROM (SELECT * FROM (SELECT * FROM X UNION SELECT * FROM y) UNION SELECT * FROM Z)
+            
+        Whereas::
+        
+            x.union(y, z).all()
+            
+        produces::
+
+            SELECT * FROM (SELECT * FROM X UNION SELECT * FROM y UNION SELECT * FROM Z)
+
+        """
+        return self._from_selectable(
+                    expression.union(*([self._nested_statement]+ [x._nested_statement for x in q])))
+
+    def union_all(self, *q):
+        """Produce a UNION ALL of this Query against one or more queries.
+
+        Works the same way as :meth:`~sqlalchemy.orm.query.Query.union`.  See that
+        method for usage examples.
+
+        """
+        return self._from_selectable(
+                    expression.union_all(*([self._nested_statement]+ [x._nested_statement for x in q]))
+                )
+
+    def intersect(self, *q):
+        """Produce an INTERSECT of this Query against one or more queries.
+
+        Works the same way as :meth:`~sqlalchemy.orm.query.Query.union`.  See that
+        method for usage examples.
+
+        """
+        return self._from_selectable(
+                    expression.intersect(*([self._nested_statement]+ [x._nested_statement for x in q]))
+                )
+
+    def intersect_all(self, *q):
+        """Produce an INTERSECT ALL of this Query against one or more queries.
+
+        Works the same way as :meth:`~sqlalchemy.orm.query.Query.union`.  See that
+        method for usage examples.
+
+        """
+        return self._from_selectable(
+                    expression.intersect_all(*([self._nested_statement]+ [x._nested_statement for x in q]))
+                )
+
+    def except_(self, *q):
+        """Produce an EXCEPT of this Query against one or more queries.
+
+        Works the same way as :meth:`~sqlalchemy.orm.query.Query.union`.  See that
+        method for usage examples.
+
+        """
+        return self._from_selectable(
+                    expression.except_(*([self._nested_statement]+ [x._nested_statement for x in q]))
+                )
+
+    def except_all(self, *q):
+        """Produce an EXCEPT ALL of this Query against one or more queries.
+
+        Works the same way as :meth:`~sqlalchemy.orm.query.Query.union`.  See that
+        method for usage examples.
+
+        """
+        return self._from_selectable(
+                    expression.except_all(*([self._nested_statement]+ [x._nested_statement for x in q]))
+                )
 
     @util.accepts_a_list_as_starargs(list_deprecation='pending')
     def join(self, *props, **kwargs):
@@ -1330,32 +1443,43 @@ class Query(object):
     def delete(self, synchronize_session='fetch'):
         """Perform a bulk delete query.
 
-        Deletes rows matched by this query from the database. The synchronize_session
-        parameter chooses the strategy for the removal of matched objects from the
-        session. Valid values are:
+        Deletes rows matched by this query from the database. 
+        
+        :param synchronize_session: chooses the strategy for the removal of matched 
+            objects from the session. Valid values are:
 
-        False
-          don't synchronize the session. Use this when you don't need to use the
-          session after the delete or you can be sure that none of the matched objects
-          are in the session. The behavior of deleted objects still in the session is
-          undefined.
+            False
+              don't synchronize the session. This option is the most efficient and is reliable
+              once the session is expired, which typically occurs after a commit().   Before
+              the expiration, objects may still remain in the session which were in fact deleted
+              which can lead to confusing results if they are accessed via get() or already
+              loaded collections.
 
-        'fetch'
-          performs a select query before the delete to find objects that are matched
-          by the delete query and need to be removed from the session. Matched objects
-          are removed from the session. 'fetch' is the default strategy.
+            'fetch'
+              performs a select query before the delete to find objects that are matched
+              by the delete query and need to be removed from the session. Matched objects
+              are removed from the session. 'fetch' is the default strategy.
 
-        'evaluate'
-          experimental feature. Tries to evaluate the querys criteria in Python
-          straight on the objects in the session. If evaluation of the criteria isn't
-          implemented, the 'fetch' strategy will be used as a fallback.
+            'evaluate'
+              experimental feature. Tries to evaluate the querys criteria in Python
+              straight on the objects in the session. If evaluation of the criteria isn't
+              implemented, the 'fetch' strategy will be used as a fallback.
 
-          The expression evaluator currently doesn't account for differing string
-          collations between the database and Python.
+              The expression evaluator currently doesn't account for differing string
+              collations between the database and Python.
 
         Returns the number of rows deleted, excluding any cascades.
 
-        Warning - this currently doesn't account for any foreign key/relation cascades.
+        The method does *not* offer in-Python cascading of relations - it is assumed that
+        ON DELETE CASCADE is configured for any foreign key references which require it.
+        The Session needs to be expired (occurs automatically after commit(), or call expire_all())
+        in order for the state of dependent objects subject to delete or delete-orphan cascade to be 
+        correctly represented.
+        
+        Also, the ``before_delete()`` and ``after_delete()`` :class:`~sqlalchemy.orm.interfaces.MapperExtension` 
+        methods are not called from this method.  For a delete hook here, use the
+        ``after_bulk_delete()`` :class:`~sqlalchemy.orm.interfaces.MapperExtension` method.
+
         """
         #TODO: lots of duplication and ifs - probably needs to be refactored to strategies
         #TODO: cascades need handling.
@@ -1411,31 +1535,43 @@ class Query(object):
     def update(self, values, synchronize_session='expire'):
         """Perform a bulk update query.
 
-        Updates rows matched by this query in the database. The values parameter takes
-        a dictionary with object attributes as keys and literal values or sql expressions
-        as values. The synchronize_session parameter chooses the strategy to update the
-        attributes on objects in the session. Valid values are:
+        Updates rows matched by this query in the database. 
+        
+        :param values: a dictionary with attributes names as keys and literal values or sql expressions
+            as values. 
+        
+        :param synchronize_session: chooses the strategy to update the
+            attributes on objects in the session. Valid values are:
 
-        False
-          don't synchronize the session. Use this when you don't need to use the
-          session after the update or you can be sure that none of the matched objects
-          are in the session.
+            False
+              don't synchronize the session. Use this when you don't need to use the
+              session after the update or you can be sure that none of the matched objects
+              are in the session.
 
-        'expire'
-          performs a select query before the update to find objects that are matched
-          by the update query. The updated attributes are expired on matched objects.
+            'expire'
+              performs a select query before the update to find objects that are matched
+              by the update query. The updated attributes are expired on matched objects.
 
-        'evaluate'
-          experimental feature. Tries to evaluate the querys criteria in Python
-          straight on the objects in the session. If evaluation of the criteria isn't
-          implemented, the 'expire' strategy will be used as a fallback.
+            'evaluate'
+              experimental feature. Tries to evaluate the querys criteria in Python
+              straight on the objects in the session. If evaluation of the criteria isn't
+              implemented, the 'expire' strategy will be used as a fallback.
 
-          The expression evaluator currently doesn't account for differing string
-          collations between the database and Python.
+              The expression evaluator currently doesn't account for differing string
+              collations between the database and Python.
 
         Returns the number of rows matched by the update.
 
-        Warning - this currently doesn't account for any foreign key/relation cascades.
+        The method does *not* offer in-Python cascading of relations - it is assumed that
+        ON UPDATE CASCADE is configured for any foreign key references which require it.
+        The Session needs to be expired (occurs automatically after commit(), or call expire_all())
+        in order for the state of dependent objects subject foreign key cascade to be 
+        correctly represented.
+        
+        Also, the ``before_update()`` and ``after_update()`` :class:`~sqlalchemy.orm.interfaces.MapperExtension` 
+        methods are not called from this method.  For an update hook here, use the
+        ``after_bulk_update()`` :class:`~sqlalchemy.orm.interfaces.MapperExtension`  method.
+
         """
 
         #TODO: value keys need to be mapped to corresponding sql cols and instr.attr.s to string keys
@@ -1799,8 +1935,8 @@ class _ColumnEntity(_QueryEntity):
         if isinstance(column, basestring):
             column = sql.literal_column(column)
             self._result_label = column.name
-        elif isinstance(column, (attributes.QueryableAttribute, mapper.Mapper._CompileOnAttr)):
-            self._result_label = column.impl.key
+        elif isinstance(column, attributes.QueryableAttribute):
+            self._result_label = column.key
             column = column.__clause_element__()
         else:
             self._result_label = getattr(column, 'key', None)
@@ -1906,7 +2042,7 @@ class QueryContext(object):
         self.primary_columns = []
         self.secondary_columns = []
         self.eager_order_by = []
-
+        self.enable_eagerloads = query._enable_eagerloads
         self.eager_joins = {}
         self.froms = []
         self.adapter = None

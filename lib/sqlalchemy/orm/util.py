@@ -1,5 +1,5 @@
 # mapper/util.py
-# Copyright (C) 2005, 2006, 2007, 2008 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007, 2008, 2009 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -31,6 +31,11 @@ class CascadeOptions(object):
         self.merge = "merge" in values or "all" in values
         self.expunge = "expunge" in values or "all" in values
         self.refresh_expire = "refresh-expire" in values or "all" in values
+        
+        if self.delete_orphan and not self.delete:
+            util.warn("The 'delete-orphan' cascade option requires "
+                        "'delete'.  This will raise an error in 0.6.")
+            
         for x in values:
             if x not in all_cascades:
                 raise sa_exc.ArgumentError("Invalid cascade option '%s'" % x)
@@ -78,7 +83,7 @@ class Validator(AttributeExtension):
 def polymorphic_union(table_map, typecolname, aliasname='p_union'):
     """Create a ``UNION`` statement used by a polymorphic mapper.
 
-    See the `SQLAlchemy` advanced mapping docs for an example of how
+    See  :ref:`concrete_inheritance` for an example of how
     this is used.
     """
 
@@ -304,8 +309,8 @@ class AliasedClass(object):
         existing = getattr(self.__target, prop.key)
         comparator = existing.comparator.adapted(self.__adapt_element)
 
-        queryattr = attributes.QueryableAttribute(
-            existing.impl, parententity=self, comparator=comparator)
+        queryattr = attributes.QueryableAttribute(prop.key,
+            impl=existing.impl, parententity=self, comparator=comparator)
         setattr(self, prop.key, queryattr)
         return queryattr
 
@@ -378,6 +383,10 @@ class _ORMJoin(expression.Join):
             if isinstance(onclause, basestring):
                 prop = left_mapper.get_property(onclause)
             elif isinstance(onclause, attributes.QueryableAttribute):
+                # TODO: we might want to honor the current adapt_from,
+                # if already set.  we would need to adjust how we calculate
+                # adapt_from though since it is present in too many cases
+                # at the moment (query tests illustrate that).
                 adapt_from = onclause.__clause_element__()
                 prop = onclause.property
             elif isinstance(onclause, MapperProperty):

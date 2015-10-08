@@ -4,7 +4,7 @@ from testlib import sa, testing
 from testlib.sa import Table, Column, Integer, String, ForeignKey, MetaData
 from testlib.sa.orm import mapper, relation, backref, create_session, compile_mappers, clear_mappers
 from testlib.testing import eq_, startswith_
-from orm import _base
+from orm import _base, _fixtures
 
 
 class RelationTest(_base.MappedTest):
@@ -160,7 +160,7 @@ class RelationTest2(_base.MappedTest):
 
         sess.add_all((c1, c2))
         sess.flush()
-        sess.clear()
+        sess.expunge_all()
 
         test_c1 = sess.query(Company).get(c1.company_id)
         test_e1 = sess.query(Employee).get([c1.company_id, e1.emp_id])
@@ -206,7 +206,7 @@ class RelationTest2(_base.MappedTest):
 
         sess.add_all((c1, c2))
         sess.flush()
-        sess.clear()
+        sess.expunge_all()
 
         test_c1 = sess.query(Company).get(c1.company_id)
         test_e1 = sess.query(Employee).get([c1.company_id, e1.emp_id])
@@ -344,14 +344,14 @@ class RelationTest3(_base.MappedTest):
 
         s.flush()
 
-        s.clear()
+        s.expunge_all()
         j = s.query(Job).filter_by(jobno=u'somejob').one()
         oldp = list(j.pages)
         j.pages = []
 
         s.flush()
 
-        s.clear()
+        s.expunge_all()
         j = s.query(Job).filter_by(jobno=u'somejob2').one()
         j.pages[1].current_version = 12
         s.delete(j)
@@ -466,7 +466,7 @@ class RelationTest4(_base.MappedTest):
             sess.flush()
             assert a1 not in sess
             assert b1 not in sess
-            sess.clear()
+            sess.expunge_all()
             sa.orm.clear_mappers()
 
     @testing.resolve_artifact_names
@@ -491,7 +491,7 @@ class RelationTest4(_base.MappedTest):
             sess.flush()
             assert a1 not in sess
             assert b1 not in sess
-            sess.clear()
+            sess.expunge_all()
             sa.orm.clear_mappers()
 
     @testing.resolve_artifact_names
@@ -513,7 +513,7 @@ class RelationTest4(_base.MappedTest):
         sess.flush()
         assert a1 not in sess
         assert b1 not in sess
-        sess.clear()
+        sess.expunge_all()
 
     @testing.resolve_artifact_names
     def test_delete_manual_BtoA(self):
@@ -591,7 +591,7 @@ class RelationTest5(_base.MappedTest):
             con.lineItems.append(li)
             session.add(li)
         session.flush()
-        session.clear()
+        session.expunge_all()
         newcon = session.query(Container).first()
         assert con.policyNum == newcon.policyNum
         assert len(newcon.lineItems) == 10
@@ -639,7 +639,7 @@ class RelationTest6(_base.MappedTest):
         t1.foo.append(TagInstance(data='not_iplc_case'))
         sess.add(t1)
         sess.flush()
-        sess.clear()
+        sess.expunge_all()
         
         # relation works
         eq_(sess.query(Tag).all(), [Tag(data='some tag', foo=[TagInstance(data='iplc_case')])])
@@ -650,7 +650,63 @@ class RelationTest6(_base.MappedTest):
             [TagInstance(data='iplc_case'), TagInstance(data='not_iplc_case')]
         )
 
+class ManualBackrefTest(_fixtures.FixtureTest):
+    """Test explicit relations that are backrefs to each other."""
 
+    run_inserts = None
+    
+    @testing.resolve_artifact_names
+    def test_o2m(self):
+        mapper(User, users, properties={
+            'addresses':relation(Address, back_populates='user')
+        })
+        
+        mapper(Address, addresses, properties={
+            'user':relation(User, back_populates='addresses')
+        })
+        
+        sess = create_session()
+        
+        u1 = User(name='u1')
+        a1 = Address(email_address='foo')
+        u1.addresses.append(a1)
+        assert a1.user is u1
+        
+        sess.add(u1)
+        sess.flush()
+        sess.expire_all()
+        assert sess.query(Address).one() is a1
+        assert a1.user is u1
+        assert a1 in u1.addresses
+
+    @testing.resolve_artifact_names
+    def test_invalid_key(self):
+        mapper(User, users, properties={
+            'addresses':relation(Address, back_populates='userr')
+        })
+        
+        mapper(Address, addresses, properties={
+            'user':relation(User, back_populates='addresses')
+        })
+        
+        self.assertRaises(sa.exc.InvalidRequestError, compile_mappers)
+        
+    @testing.resolve_artifact_names
+    def test_invalid_target(self):
+        mapper(User, users, properties={
+            'addresses':relation(Address, back_populates='dingaling'),
+        })
+        
+        mapper(Dingaling, dingalings)
+        mapper(Address, addresses, properties={
+            'dingaling':relation(Dingaling)
+        })
+        
+        self.assertRaisesMessage(sa.exc.ArgumentError, 
+            r"reverse_property 'dingaling' on relation User.addresses references "
+            "relation Address.dingaling, which does not reference mapper Mapper\|User\|users", 
+            compile_mappers)
+        
 class JoinConditionErrorTest(testing.TestBase):
     
     def test_clauseelement_pj(self):
@@ -954,7 +1010,7 @@ class ViewOnlyOverlappingNames(_base.MappedTest):
         sess.add(c1)
         sess.add(c3)
         sess.flush()
-        sess.clear()
+        sess.expunge_all()
 
         c1 = sess.query(C1).get(c1.id)
         assert set([x.id for x in c1.t2s]) == set([c2a.id, c2b.id])
@@ -1012,7 +1068,7 @@ class ViewOnlyUniqueNames(_base.MappedTest):
 
         sess.add_all((c1, c3))
         sess.flush()
-        sess.clear()
+        sess.expunge_all()
 
         c1 = sess.query(C1).get(c1.t1id)
         assert set([x.t2id for x in c1.t2s]) == set([c2a.t2id, c2b.t2id])
@@ -1132,7 +1188,7 @@ class ViewOnlyRepeatedRemoteColumn(_base.MappedTest):
         sess.add_all((f1, f2))
         sess.flush()
 
-        sess.clear()
+        sess.expunge_all()
         eq_(sess.query(Foo).filter_by(id=f1.id).one(),
             Foo(bars=[Bar(data='b1'), Bar(data='b2')]))
         eq_(sess.query(Foo).filter_by(id=f2.id).one(),
@@ -1179,7 +1235,7 @@ class ViewOnlyRepeatedLocalColumn(_base.MappedTest):
         sess.add_all((b1, b2, b3, b4))
         sess.flush()
 
-        sess.clear()
+        sess.expunge_all()
         eq_(sess.query(Foo).filter_by(id=f1.id).one(),
             Foo(bars=[Bar(data='b1'), Bar(data='b2'), Bar(data='b4')]))
         eq_(sess.query(Foo).filter_by(id=f2.id).one(),
@@ -1230,7 +1286,7 @@ class ViewOnlyComplexJoin(_base.MappedTest):
         sess = create_session()
         sess.add(T2(data='t2', t1=T1(data='t1'), t3s=[T3(data='t3')]))
         sess.flush()
-        sess.clear()
+        sess.expunge_all()
 
         a = sess.query(T1).first()
         eq_(a.t3s, [T3(data='t3')])
@@ -1292,7 +1348,7 @@ class ExplicitLocalRemoteTest(_base.MappedTest):
         b3 = T2(data='b3', t1id='Number2')
         sess.add_all((a1, a2, b1, b2, b3))
         sess.flush()
-        sess.clear()
+        sess.expunge_all()
 
         eq_(sess.query(T1).first(),
             T1(id='number1', data='a1', t2s=[
@@ -1317,7 +1373,7 @@ class ExplicitLocalRemoteTest(_base.MappedTest):
         b3 = T2(data='b3', t1id='Number2')
         sess.add_all((a1, a2, b1, b2, b3))
         sess.flush()
-        sess.clear()
+        sess.expunge_all()
 
         eq_(sess.query(T2).filter(T2.data.in_(['b1', 'b2'])).all(),
             [T2(data='b1', t1=[T1(id='number1', data='a1')]),
@@ -1340,7 +1396,7 @@ class ExplicitLocalRemoteTest(_base.MappedTest):
         b3 = T2(data='b2', t1id='number2')
         sess.add_all((a1, a2, b1, b2, b3))
         sess.flush()
-        sess.clear()
+        sess.expunge_all()
 
         eq_(sess.query(T1).first(),
             T1(id='NuMbeR1', data='a1', t2s=[
@@ -1364,7 +1420,7 @@ class ExplicitLocalRemoteTest(_base.MappedTest):
         b3 = T2(data='b3', t1id='number2')
         sess.add_all((a1, a2, b1, b2, b3))
         sess.flush()
-        sess.clear()
+        sess.expunge_all()
 
         eq_(sess.query(T2).filter(T2.data.in_(['b1', 'b2'])).all(),
             [T2(data='b1', t1=[T1(id='NuMbeR1', data='a1')]),

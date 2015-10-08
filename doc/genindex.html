@@ -5,7 +5,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
-        <title>Index &mdash; SQLAlchemy 0.5.0 Documentation</title>
+        <title>Index &mdash; SQLAlchemy 0.5.1 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -13,7 +13,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.0',
+          VERSION:     '0.5.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -24,7 +24,7 @@
     <link rel="index" title="Index" href="" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.0 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.1 Documentation" href="index.html" />
     
 
     </head>
@@ -34,7 +34,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.0 Documentation</h1>
+        <h1>SQLAlchemy 0.5.1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -46,7 +46,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.0</span> Last Updated: 01/06/2009 13:41:02
+            Version: <span class="versionnum">0.5.1</span> Last Updated: 01/17/2009 16:46:53
         </div>
         <div class="clearboth"></div>
 
@@ -508,7 +508,7 @@
 
 
 <dt>
-        <a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.ColumnElement.anon_label">anon_label (sqlalchemy.sql.expression.ColumnElement attribute)</a>
+        <a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.ColumnElement.anon_label">anon_label() (sqlalchemy.sql.expression.ColumnElement method)</a>
     
   
 
@@ -526,7 +526,7 @@
 
 
 <dt>
-        <a href="reference/orm/interfaces.html#sqlalchemy.orm.interfaces.PropComparator.any_op">any_op (sqlalchemy.orm.interfaces.PropComparator attribute)</a>
+        <a href="reference/orm/interfaces.html#sqlalchemy.orm.interfaces.PropComparator.any_op">any_op() (sqlalchemy.orm.interfaces.PropComparator static method)</a>
     
   
 
@@ -948,10 +948,10 @@
 
 
 <dt>
-        <a href="reference/orm/sessions.html#sqlalchemy.orm.scoping.ScopedSession.close_all">close_all (sqlalchemy.orm.scoping.ScopedSession attribute)</a>
+        <a href="reference/orm/sessions.html#sqlalchemy.orm.scoping.ScopedSession.close_all">close_all() (sqlalchemy.orm.scoping.ScopedSession class method)</a>
     
   <dd><dl>
-    <dt><a href="reference/orm/sessions.html#sqlalchemy.orm.session.Session.close_all">(sqlalchemy.orm.session.Session attribute)</a>
+    <dt><a href="reference/orm/sessions.html#sqlalchemy.orm.session.Session.close_all">(sqlalchemy.orm.session.Session class method)</a>
     </dt>
   </dl></dd>
   
@@ -990,15 +990,11 @@
 
 
 <dt>
-        <a href="reference/sqlalchemy/schema.html#sqlalchemy.schema.ForeignKey.column">column (sqlalchemy.schema.ForeignKey attribute)</a>
-    
-  
-
-
-<dt>
         <a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.column">column() (in module sqlalchemy.sql.expression)</a>
     
   <dd><dl>
+    <dt><a href="reference/sqlalchemy/schema.html#sqlalchemy.schema.ForeignKey.column">(sqlalchemy.schema.ForeignKey method)</a>
+    </dt>
     <dt><a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.Select.column">(sqlalchemy.sql.expression.Select method)</a>
     </dt>
   </dl></dd>
@@ -1521,7 +1517,7 @@
 
 
 <dt>
-        <a href="reference/sqlalchemy/connections.html#sqlalchemy.engine.default.DefaultDialect.defaultrunner">defaultrunner() (sqlalchemy.engine.default.DefaultDialect method)</a>
+        <a href="reference/sqlalchemy/connections.html#sqlalchemy.engine.default.DefaultDialect.defaultrunner">defaultrunner (sqlalchemy.engine.default.DefaultDialect attribute)</a>
     
   
 
@@ -1824,6 +1820,12 @@
 
 
 <dt>
+        <a href="reference/orm/query.html#sqlalchemy.orm.query.Query.enable_eagerloads">enable_eagerloads() (sqlalchemy.orm.query.Query method)</a>
+    
+  
+
+
+<dt>
         <a href="reference/sqlalchemy/schema.html#sqlalchemy.schema.Column.endswith">endswith() (sqlalchemy.schema.Column method)</a>
     
   <dd><dl>
@@ -1863,6 +1865,8 @@
         <a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.except_">except_() (in module sqlalchemy.sql.expression)</a>
     
   <dd><dl>
+    <dt><a href="reference/orm/query.html#sqlalchemy.orm.query.Query.except_">(sqlalchemy.orm.query.Query method)</a>
+    </dt>
     <dt><a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.Select.except_">(sqlalchemy.sql.expression.Select method)</a>
     </dt>
   </dl></dd>
@@ -1873,6 +1877,8 @@
         <a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.except_all">except_all() (in module sqlalchemy.sql.expression)</a>
     
   <dd><dl>
+    <dt><a href="reference/orm/query.html#sqlalchemy.orm.query.Query.except_all">(sqlalchemy.orm.query.Query method)</a>
+    </dt>
     <dt><a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.Select.except_all">(sqlalchemy.sql.expression.Select method)</a>
     </dt>
   </dl></dd>
@@ -1954,8 +1960,12 @@
 
 
 <dt>
-        <a href="reference/orm/sessions.html#sqlalchemy.orm.session.Session.expunge_all">expunge_all() (sqlalchemy.orm.session.Session method)</a>
+        <a href="reference/ext/sqlsoup.html#sqlalchemy.ext.sqlsoup.SqlSoup.expunge_all">expunge_all() (sqlalchemy.ext.sqlsoup.SqlSoup method)</a>
     
+  <dd><dl>
+    <dt><a href="reference/orm/sessions.html#sqlalchemy.orm.session.Session.expunge_all">(sqlalchemy.orm.session.Session method)</a>
+    </dt>
+  </dl></dd>
   
 
 
@@ -2227,7 +2237,7 @@
 
 
 <dt>
-        <a href="reference/orm/interfaces.html#sqlalchemy.orm.interfaces.PropComparator.has_op">has_op (sqlalchemy.orm.interfaces.PropComparator attribute)</a>
+        <a href="reference/orm/interfaces.html#sqlalchemy.orm.interfaces.PropComparator.has_op">has_op() (sqlalchemy.orm.interfaces.PropComparator static method)</a>
     
   
 
@@ -2262,18 +2272,14 @@
     
 
 <dt>
-        <a href="reference/orm/sessions.html#sqlalchemy.orm.scoping.ScopedSession.identity_key">identity_key (sqlalchemy.orm.scoping.ScopedSession attribute)</a>
-    
-  <dd><dl>
-    <dt><a href="reference/orm/sessions.html#sqlalchemy.orm.session.Session.identity_key">(sqlalchemy.orm.session.Session attribute)</a>
-    </dt>
-  </dl></dd>
-  
-
-
-<dt>
         <a href="reference/orm/utilities.html#sqlalchemy.orm.util.identity_key">identity_key() (in module sqlalchemy.orm.util)</a>
     
+  <dd><dl>
+    <dt><a href="reference/orm/sessions.html#sqlalchemy.orm.scoping.ScopedSession.identity_key">(sqlalchemy.orm.scoping.ScopedSession class method)</a>
+    </dt>
+    <dt><a href="reference/orm/sessions.html#sqlalchemy.orm.session.Session.identity_key">(sqlalchemy.orm.session.Session class method)</a>
+    </dt>
+  </dl></dd>
   
 
 
@@ -2413,14 +2419,14 @@
         <a href="reference/orm/interfaces.html#sqlalchemy.orm.interfaces.InstrumentationManager.instrument_attribute">instrument_attribute() (sqlalchemy.orm.interfaces.InstrumentationManager method)</a>
     
   
-     
-        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
         <a href="reference/orm/interfaces.html#sqlalchemy.orm.interfaces.MapperExtension.instrument_class">instrument_class() (sqlalchemy.orm.interfaces.MapperExtension method)</a>
     
   
+     
+        </dl></td><td width="33%" valign="top"><dl>
 
 
 <dt>
@@ -2463,6 +2469,8 @@
         <a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.intersect">intersect() (in module sqlalchemy.sql.expression)</a>
     
   <dd><dl>
+    <dt><a href="reference/orm/query.html#sqlalchemy.orm.query.Query.intersect">(sqlalchemy.orm.query.Query method)</a>
+    </dt>
     <dt><a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.Select.intersect">(sqlalchemy.sql.expression.Select method)</a>
     </dt>
   </dl></dd>
@@ -2473,6 +2481,8 @@
         <a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.intersect_all">intersect_all() (in module sqlalchemy.sql.expression)</a>
     
   <dd><dl>
+    <dt><a href="reference/orm/query.html#sqlalchemy.orm.query.Query.intersect_all">(sqlalchemy.orm.query.Query method)</a>
+    </dt>
     <dt><a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.Select.intersect_all">(sqlalchemy.sql.expression.Select method)</a>
     </dt>
   </dl></dd>
@@ -2745,7 +2755,7 @@
 
 
 <dt>
-        <a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.Select.locate_all_froms">locate_all_froms (sqlalchemy.sql.expression.Select attribute)</a>
+        <a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.Select.locate_all_froms">locate_all_froms() (sqlalchemy.sql.expression.Select method)</a>
     
   
 
@@ -3126,10 +3136,10 @@
 
 
 <dt>
-        <a href="reference/orm/sessions.html#sqlalchemy.orm.scoping.ScopedSession.object_session">object_session (sqlalchemy.orm.scoping.ScopedSession attribute)</a>
+        <a href="reference/orm/sessions.html#sqlalchemy.orm.scoping.ScopedSession.object_session">object_session() (sqlalchemy.orm.scoping.ScopedSession class method)</a>
     
   <dd><dl>
-    <dt><a href="reference/orm/sessions.html#sqlalchemy.orm.session.Session.object_session">(sqlalchemy.orm.session.Session attribute)</a>
+    <dt><a href="reference/orm/sessions.html#sqlalchemy.orm.session.Session.object_session">(sqlalchemy.orm.session.Session class method)</a>
     </dt>
   </dl></dd>
   
@@ -3142,7 +3152,7 @@
 
 
 <dt>
-        <a href="reference/orm/interfaces.html#sqlalchemy.orm.interfaces.PropComparator.of_type_op">of_type_op (sqlalchemy.orm.interfaces.PropComparator attribute)</a>
+        <a href="reference/orm/interfaces.html#sqlalchemy.orm.interfaces.PropComparator.of_type_op">of_type_op() (sqlalchemy.orm.interfaces.PropComparator static method)</a>
     
   
 
@@ -3275,6 +3285,12 @@
 
 
 <dt>
+        <a href="reference/orm/utilities.html#sqlalchemy.orm.util.polymorphic_union">polymorphic_union() (in module sqlalchemy.orm.util)</a>
+    
+  
+
+
+<dt>
         <a href="reference/sqlalchemy/pooling.html#sqlalchemy.pool.Pool">Pool (class in sqlalchemy.pool)</a>
     
   
@@ -3335,7 +3351,7 @@
 
 
 <dt>
-        <a href="reference/sqlalchemy/connections.html#sqlalchemy.engine.default.DefaultDialect.preparer">preparer() (sqlalchemy.engine.default.DefaultDialect method)</a>
+        <a href="reference/sqlalchemy/connections.html#sqlalchemy.engine.default.DefaultDialect.preparer">preparer (sqlalchemy.engine.default.DefaultDialect attribute)</a>
     
   
 
@@ -3416,7 +3432,7 @@
 
 
 <dt>
-        <a href="reference/orm/query.html#sqlalchemy.orm.query.Query.query_from_parent">query_from_parent (sqlalchemy.orm.query.Query attribute)</a>
+        <a href="reference/orm/query.html#sqlalchemy.orm.query.Query.query_from_parent">query_from_parent() (sqlalchemy.orm.query.Query class method)</a>
     
   
      
@@ -4024,7 +4040,7 @@
 
 
 <dt>
-        <a href="reference/sqlalchemy/connections.html#sqlalchemy.engine.default.DefaultDialect.statement_compiler">statement_compiler() (sqlalchemy.engine.default.DefaultDialect method)</a>
+        <a href="reference/sqlalchemy/connections.html#sqlalchemy.engine.default.DefaultDialect.statement_compiler">statement_compiler (sqlalchemy.engine.default.DefaultDialect attribute)</a>
     
   
 
@@ -4211,6 +4227,12 @@
 
 
 <dt>
+        <a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.ColumnOperators.timetuple">timetuple (sqlalchemy.sql.expression.ColumnOperators attribute)</a>
+    
+  
+
+
+<dt>
         <a href="reference/sqlalchemy/schema.html#sqlalchemy.schema.Table.tometadata">tometadata() (sqlalchemy.schema.Table method)</a>
     
   
@@ -4301,6 +4323,8 @@
         <a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.union">union() (in module sqlalchemy.sql.expression)</a>
     
   <dd><dl>
+    <dt><a href="reference/orm/query.html#sqlalchemy.orm.query.Query.union">(sqlalchemy.orm.query.Query method)</a>
+    </dt>
     <dt><a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.Select.union">(sqlalchemy.sql.expression.Select method)</a>
     </dt>
   </dl></dd>
@@ -4311,6 +4335,8 @@
         <a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.union_all">union_all() (in module sqlalchemy.sql.expression)</a>
     
   <dd><dl>
+    <dt><a href="reference/orm/query.html#sqlalchemy.orm.query.Query.union_all">(sqlalchemy.orm.query.Query method)</a>
+    </dt>
     <dt><a href="reference/sqlalchemy/expressions.html#sqlalchemy.sql.expression.Select.union_all">(sqlalchemy.sql.expression.Select method)</a>
     </dt>
   </dl></dd>
@@ -4512,7 +4538,7 @@
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="copyright.html">Copyright</a> 2008, the SQLAlchemy authors and contributors.
+                    &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.
                 </div>
             </div>

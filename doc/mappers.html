@@ -7,7 +7,7 @@
         
         <title>
     Mapper Configuration
- &mdash; SQLAlchemy 0.5.0 Documentation</title>
+ &mdash; SQLAlchemy 0.5.1 Documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '',
-          VERSION:     '0.5.0',
+          VERSION:     '0.5.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
         <link rel="copyright" title="Copyright" href="copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.0 Documentation" href="index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.1 Documentation" href="index.html" />
         <link rel="next" title="Using the Session" href="session.html" />
         <link rel="prev" title="SQL Expression Language Tutorial" href="sqlexpression.html" />
     
@@ -38,7 +38,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.0 Documentation</h1>
+        <h1>SQLAlchemy 0.5.1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -50,7 +50,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.0</span> Last Updated: 01/06/2009 13:41:02
+            Version: <span class="versionnum">0.5.1</span> Last Updated: 01/17/2009 16:46:53
         </div>
         <div class="clearboth"></div>
 
@@ -249,14 +249,14 @@
 <span class="n">query</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">defer</span><span class="p">(</span><span class="s">&#39;summary&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 <span class="n">query</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">undefer</span><span class="p">(</span><span class="s">&#39;excerpt&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></pre></div>
 </div>
-<p>And an entire &#8220;deferred group&#8221;, i.e. which uses the <tt class="docutils literal"><span class="pre">group</span></tt> keyword argument to <tt class="xref docutils literal"><span class="pre">deferred()</span></tt>, can be undeferred using <tt class="xref docutils literal"><span class="pre">undefer_group()</span></tt>, sending in the group name:</p>
+<p>And an entire &#8220;deferred group&#8221;, i.e. which uses the <tt class="docutils literal"><span class="pre">group</span></tt> keyword argument to <a title="sqlalchemy.orm.deferred" class="reference external" href="reference/orm/mapping.html#sqlalchemy.orm.deferred"><tt class="xref docutils literal"><span class="pre">deferred()</span></tt></a>, can be undeferred using <tt class="xref docutils literal"><span class="pre">undefer_group()</span></tt>, sending in the group name:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">query</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Book</span><span class="p">)</span>
 <span class="n">query</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">undefer_group</span><span class="p">(</span><span class="s">&#39;photos&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></pre></div>
 </div>
 </div>
 <div class="section" id="sql-expressions-as-mapped-attributes">
 <h3>SQL Expressions as Mapped Attributes<a class="headerlink" href="#sql-expressions-as-mapped-attributes" title="Permalink to this headline">¶</a></h3>
-<p>To add a SQL clause composed of local or external columns as a read-only, mapped column attribute, use the <tt class="xref docutils literal"><span class="pre">column_property()</span></tt> function.  Any scalar-returning <tt class="docutils literal"><span class="pre">ClauseElement</span></tt> may be used, as long as it has a <tt class="docutils literal"><span class="pre">name</span></tt> attribute; usually, you&#8217;ll want to call <tt class="docutils literal"><span class="pre">label()</span></tt> to give it a specific name:</p>
+<p>To add a SQL clause composed of local or external columns as a read-only, mapped column attribute, use the <a title="sqlalchemy.orm.column_property" class="reference external" href="reference/orm/mapping.html#sqlalchemy.orm.column_property"><tt class="xref docutils literal"><span class="pre">column_property()</span></tt></a> function.  Any scalar-returning <tt class="docutils literal"><span class="pre">ClauseElement</span></tt> may be used, as long as it has a <tt class="docutils literal"><span class="pre">name</span></tt> attribute; usually, you&#8217;ll want to call <tt class="docutils literal"><span class="pre">label()</span></tt> to give it a specific name:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
     <span class="s">&#39;fullname&#39;</span><span class="p">:</span> <span class="n">column_property</span><span class="p">(</span>
         <span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">firstname</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">lastname</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;fullname&#39;</span><span class="p">)</span>
@@ -622,7 +622,7 @@ FROM employees LEFT OUTER JOIN engineers ON employees.employee_id = engineers.em
 <p>Note that the mappers for the derived classes Manager and Engineer omit the specification of their associated table, as it is inherited from the employee_mapper. Omitting the table specification for derived mappers in single-table inheritance is required.</p>
 </div>
 <div class="section" id="concrete-table-inheritance">
-<h4>Concrete Table Inheritance<a class="headerlink" href="#concrete-table-inheritance" title="Permalink to this headline">¶</a></h4>
+<span id="concrete-inheritance"></span><h4>Concrete Table Inheritance<a class="headerlink" href="#concrete-table-inheritance" title="Permalink to this headline">¶</a></h4>
 <p>This form of inheritance maps each class to a distinct table, as below:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">employees_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;employees&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;employee_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
@@ -683,7 +683,7 @@ UNION ALL
 </div>
 <div class="section" id="using-relations-with-inheritance">
 <h4>Using Relations with Inheritance<a class="headerlink" href="#using-relations-with-inheritance" title="Permalink to this headline">¶</a></h4>
-<p>Both joined-table and single table inheritance scenarios produce mappings which are usable in relation() functions; that is, it&#8217;s possible to map a parent object to a child object which is polymorphic.  Similarly, inheriting mappers can have <tt class="docutils literal"><span class="pre">relation()``s</span> <span class="pre">of</span> <span class="pre">their</span> <span class="pre">own</span> <span class="pre">at</span> <span class="pre">any</span> <span class="pre">level,</span> <span class="pre">which</span> <span class="pre">are</span> <span class="pre">inherited</span> <span class="pre">to</span> <span class="pre">each</span> <span class="pre">child</span> <span class="pre">class.</span>&nbsp; <span class="pre">The</span> <span class="pre">only</span> <span class="pre">requirement</span> <span class="pre">for</span> <span class="pre">relations</span> <span class="pre">is</span> <span class="pre">that</span> <span class="pre">there</span> <span class="pre">is</span> <span class="pre">a</span> <span class="pre">table</span> <span class="pre">relationship</span> <span class="pre">between</span> <span class="pre">parent</span> <span class="pre">and</span> <span class="pre">child.</span>&nbsp; <span class="pre">An</span> <span class="pre">example</span> <span class="pre">is</span> <span class="pre">the</span> <span class="pre">following</span> <span class="pre">modification</span> <span class="pre">to</span> <span class="pre">the</span> <span class="pre">joined</span> <span class="pre">table</span> <span class="pre">inheritance</span> <span class="pre">example,</span> <span class="pre">which</span> <span class="pre">sets</span> <span class="pre">a</span> <span class="pre">bi-directional</span> <span class="pre">relationship</span> <span class="pre">between</span> <span class="pre">``Employee</span></tt> and <tt class="docutils literal"><span class="pre">Company</span></tt>:</p>
+<p>Both joined-table and single table inheritance scenarios produce mappings which are usable in <a title="sqlalchemy.orm.relation" class="reference external" href="reference/orm/mapping.html#sqlalchemy.orm.relation"><tt class="xref docutils literal"><span class="pre">relation()</span></tt></a> functions; that is, it&#8217;s possible to map a parent object to a child object which is polymorphic.  Similarly, inheriting mappers can have <a title="sqlalchemy.orm.relation" class="reference external" href="reference/orm/mapping.html#sqlalchemy.orm.relation"><tt class="xref docutils literal"><span class="pre">relation()</span></tt></a> objects of their own at any level, which are inherited to each child class.  The only requirement for relations is that there is a table relationship between parent and child.  An example is the following modification to the joined table inheritance example, which sets a bi-directional relationship between <tt class="docutils literal"><span class="pre">Employee</span></tt> and <tt class="docutils literal"><span class="pre">Company</span></tt>:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">employees_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;employees&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;employee_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mf">50</span><span class="p">)),</span>
@@ -701,7 +701,7 @@ UNION ALL
    <span class="s">&#39;employees&#39;</span><span class="p">:</span> <span class="n">relation</span><span class="p">(</span><span class="n">Employee</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s">&#39;company&#39;</span><span class="p">)</span>
 <span class="p">})</span></pre></div>
 </div>
-<p>SQLAlchemy has a lot of experience in this area; the optimized &#8220;outer join&#8221; approach can be used freely for parent and child relationships, eager loads are fully useable, query aliasing and other tricks are fully supported as well.</p>
+<p>SQLAlchemy has a lot of experience in this area; the optimized &#8220;outer join&#8221; approach can be used freely for parent and child relationships, eager loads are fully useable, <a title="sqlalchemy.orm.aliased" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.aliased"><tt class="xref docutils literal"><span class="pre">aliased()</span></tt></a> objects and other techniques are fully supported as well.</p>
 <p>In a concrete inheritance scenario, mapping relations is more difficult since the distinct classes do not share a table.  In this case, you <em>can</em> establish a relationship from parent to child if a join condition can be constructed from parent to child, if each child table contains a foreign key to the parent:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="n">companies</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;companies&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
@@ -734,22 +734,26 @@ UNION ALL
     <span class="s">&#39;employees&#39;</span><span class="p">:</span> <span class="n">relation</span><span class="p">(</span><span class="n">Employee</span><span class="p">)</span>
 <span class="p">})</span></pre></div>
 </div>
-<p>Let&#8217;s crank it up and try loading with an eager load:</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Company</span><span class="p">)</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">eagerload</span><span class="p">(</span><span class="s">&#39;employees&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-<div class='show_sql'>
-SELECT anon_1.type AS anon_1_type, anon_1.manager_data AS anon_1_manager_data, anon_1.engineer_info AS anon_1_engineer_info,
-anon_1.employee_id AS anon_1_employee_id, anon_1.name AS anon_1_name, anon_1.company_id AS anon_1_company_id,
-companies.id AS companies_id, companies.name AS companies_name
-FROM companies LEFT OUTER JOIN (SELECT CAST(NULL AS VARCHAR(50)) AS engineer_info, employees.employee_id AS employee_id,
-CAST(NULL AS VARCHAR(50)) AS manager_data, employees.name AS name, employees.company_id AS company_id, 'employee' AS type
-FROM employees UNION ALL SELECT CAST(NULL AS VARCHAR(50)) AS engineer_info, managers.employee_id AS employee_id,
-managers.manager_data AS manager_data, managers.name AS name, managers.company_id AS company_id, 'manager' AS type
-FROM managers UNION ALL SELECT engineers.engineer_info AS engineer_info, engineers.employee_id AS employee_id,
-CAST(NULL AS VARCHAR(50)) AS manager_data, engineers.name AS name, engineers.company_id AS company_id, 'engineer' AS type
-FROM engineers) AS anon_1 ON companies.id = anon_1.company_id
-[]</div></pre></div>
+<p>The big limitation with concrete table inheritance is that <a title="sqlalchemy.orm.relation" class="reference external" href="reference/orm/mapping.html#sqlalchemy.orm.relation"><tt class="xref docutils literal"><span class="pre">relation()</span></tt></a> objects placed on each concrete mapper do <strong>not</strong> propagate to child mappers.  If you want to have the same <a title="sqlalchemy.orm.relation" class="reference external" href="reference/orm/mapping.html#sqlalchemy.orm.relation"><tt class="xref docutils literal"><span class="pre">relation()</span></tt></a> objects set up on all concrete mappers, they must be configured manually on each.  To configure back references in such a configuration the <tt class="docutils literal"><span class="pre">back_populates</span></tt> keyword may be used instead of <tt class="docutils literal"><span class="pre">backref</span></tt>, such as below where both <tt class="docutils literal"><span class="pre">A(object)</span></tt> and <tt class="docutils literal"><span class="pre">B(A)</span></tt> bidirectionally reference <tt class="docutils literal"><span class="pre">C</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ajoin</span> <span class="o">=</span> <span class="n">polymorphic_union</span><span class="p">({</span>
+        <span class="s">&#39;a&#39;</span><span class="p">:</span><span class="n">a_table</span><span class="p">,</span>
+        <span class="s">&#39;b&#39;</span><span class="p">:</span><span class="n">b_table</span>
+    <span class="p">},</span> <span class="s">&#39;type&#39;</span><span class="p">,</span> <span class="s">&#39;ajoin&#39;</span><span class="p">)</span>
+
+<span class="n">mapper</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">a_table</span><span class="p">,</span> <span class="n">with_polymorphic</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;*&#39;</span><span class="p">,</span> <span class="n">ajoin</span><span class="p">),</span>
+    <span class="n">polymorphic_on</span><span class="o">=</span><span class="n">ajoin</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;a&#39;</span><span class="p">,</span>
+    <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+        <span class="s">&#39;some_c&#39;</span><span class="p">:</span><span class="n">relation</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s">&#39;many_a&#39;</span><span class="p">)</span>
+<span class="p">})</span>
+<span class="n">mapper</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">b_table</span><span class="p">,</span><span class="n">inherits</span><span class="o">=</span><span class="n">A</span><span class="p">,</span> <span class="n">concrete</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">polymorphic_identity</span><span class="o">=</span><span class="s">&#39;b&#39;</span><span class="p">,</span>
+    <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+        <span class="s">&#39;some_c&#39;</span><span class="p">:</span><span class="n">relation</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s">&#39;many_a&#39;</span><span class="p">)</span>
+<span class="p">})</span>
+<span class="n">mapper</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">c_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+    <span class="s">&#39;many_a&#39;</span><span class="p">:</span><span class="n">relation</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">collection_class</span><span class="o">=</span><span class="n">set</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s">&#39;some_c&#39;</span><span class="p">),</span>
+<span class="p">})</span></pre></div>
 </div>
-<p>The big limitation with concrete table inheritance is that relation()s placed on each concrete mapper do <strong>not</strong> propagate to child mappers.  If you want to have the same relation()s set up on all concrete mappers, they must be configured manually on each.</p>
 </div>
 </div>
 <div class="section" id="mapping-a-class-against-multiple-tables">
@@ -805,7 +809,7 @@ FROM engineers) AS anon_1 ON companies.id = anon_1.company_id
 </div>
 <div class="section" id="multiple-mappers-for-one-class">
 <h3>Multiple Mappers for One Class<a class="headerlink" href="#multiple-mappers-for-one-class" title="Permalink to this headline">¶</a></h3>
-<p>The first mapper created for a certain class is known as that class&#8217;s &#8220;primary mapper.&#8221;  Other mappers can be created as well on the &#8220;load side&#8221; - these are called <strong>secondary mappers</strong>.   This is a mapper that must be constructed with the keyword argument <tt class="docutils literal"><span class="pre">non_primary=True</span></tt>, and represents a load-only mapper.  Objects that are loaded with a secondary mapper will have their save operation processed by the primary mapper.  It is also invalid to add new <tt class="docutils literal"><span class="pre">relation()``s</span> <span class="pre">to</span> <span class="pre">a</span> <span class="pre">non-primary</span> <span class="pre">mapper.</span> <span class="pre">To</span> <span class="pre">use</span> <span class="pre">this</span> <span class="pre">mapper</span> <span class="pre">with</span> <span class="pre">the</span> <span class="pre">Session,</span> <span class="pre">specify</span> <span class="pre">it</span> <span class="pre">to</span> <span class="pre">the</span> <span class="pre">``query</span></tt> method:</p>
+<p>The first mapper created for a certain class is known as that class&#8217;s &#8220;primary mapper.&#8221;  Other mappers can be created as well on the &#8220;load side&#8221; - these are called <strong>secondary mappers</strong>.   This is a mapper that must be constructed with the keyword argument <tt class="docutils literal"><span class="pre">non_primary=True</span></tt>, and represents a load-only mapper.  Objects that are loaded with a secondary mapper will have their save operation processed by the primary mapper.  It is also invalid to add new <tt class="docutils literal"><span class="pre">relation()</span></tt> objects to a non-primary mapper. To use this mapper with the Session, specify it to the <tt class="docutils literal"><span class="pre">query</span></tt> method:</p>
 <p>example:</p>
 <div class="highlight-python+sql"><div class="highlight"><pre><span class="c"># primary mapper</span>
 <span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users_table</span><span class="p">)</span>
@@ -1361,8 +1365,8 @@ WHERE ? = addresses.user_id
 <p>There are two other loader strategies available, <strong>dynamic loading</strong> and <strong>no loading</strong>; these are described in <a class="reference internal" href="#largecollections"><em>Working with Large Collections</em></a>.</p>
 <div class="section" id="routing-explicit-joins-statements-into-eagerly-loaded-collections">
 <h4>Routing Explicit Joins/Statements into Eagerly Loaded Collections<a class="headerlink" href="#routing-explicit-joins-statements-into-eagerly-loaded-collections" title="Permalink to this headline">¶</a></h4>
-<p>The behavior of <tt class="xref docutils literal"><span class="pre">eagerload()</span></tt> is such that joins are created automatically, the results of which are routed into collections and scalar references on loaded objects.  It is often the case that a query already includes the necessary joins which represent a particular collection or scalar reference, and the joins added by the eagerload feature are redundant - yet you&#8217;d still like the collections/references to be populated.</p>
-<p>For this SQLAlchemy supplies the <tt class="xref docutils literal"><span class="pre">contains_eager()</span></tt> option.  This option is used in the same manner as the <tt class="xref docutils literal"><span class="pre">eagerload()</span></tt> option except it is assumed that the <tt class="docutils literal"><span class="pre">Query</span></tt> will specify the appropriate joins explicitly.  Below it&#8217;s used with a <tt class="docutils literal"><span class="pre">from_statement</span></tt> load:</p>
+<p>The behavior of <a title="sqlalchemy.orm.eagerload" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.eagerload"><tt class="xref docutils literal"><span class="pre">eagerload()</span></tt></a> is such that joins are created automatically, the results of which are routed into collections and scalar references on loaded objects.  It is often the case that a query already includes the necessary joins which represent a particular collection or scalar reference, and the joins added by the eagerload feature are redundant - yet you&#8217;d still like the collections/references to be populated.</p>
+<p>For this SQLAlchemy supplies the <a title="sqlalchemy.orm.contains_eager" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.contains_eager"><tt class="xref docutils literal"><span class="pre">contains_eager()</span></tt></a> option.  This option is used in the same manner as the <a title="sqlalchemy.orm.eagerload" class="reference external" href="reference/orm/query.html#sqlalchemy.orm.eagerload"><tt class="xref docutils literal"><span class="pre">eagerload()</span></tt></a> option except it is assumed that the <tt class="docutils literal"><span class="pre">Query</span></tt> will specify the appropriate joins explicitly.  Below it&#8217;s used with a <tt class="docutils literal"><span class="pre">from_statement</span></tt> load:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># mapping is the users-&gt;addresses mapping</span>
 <span class="n">mapper</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">users_table</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
     <span class="s">&#39;addresses&#39;</span><span class="p">:</span> <span class="n">relation</span><span class="p">(</span><span class="n">Address</span><span class="p">,</span> <span class="n">addresses_table</span><span class="p">)</span>
@@ -1536,7 +1540,7 @@ FROM users LEFT OUTER JOIN email_addresses AS email_addresses_1 ON users.user_id
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="copyright.html">Copyright</a> 2008, the SQLAlchemy authors and contributors.
+                    &copy; <a href="copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.
                 </div>
             </div>

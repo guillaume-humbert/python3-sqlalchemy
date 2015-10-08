@@ -332,16 +332,17 @@ class MSNumeric(sqltypes.Numeric):
                 # Not sure that this exception is needed
                 return value
             else:
-                # FIXME: this will not correct a situation where a float
-                # gets converted to e-notation.
-                if isinstance(value, decimal.Decimal) and value._exp < -6:
-                    value = ((value < 0 and '-' or '')
-                        + '0.'
-                        + '0' * -(value._exp+1)
-                        + value._int)
-                    return value
+                if isinstance(value, decimal.Decimal):
+                    sign = (value < 0 and '-' or '') 
+                    if value._exp > -1:
+                        return float(sign + value._int + '0' * value._exp)
+                    else:
+                        s = value._int.zfill(-value._exp+1)
+                        pos = len(s) + value._exp
+                        return sign + s[:pos] + '.' + s[pos:]
                 else:
-                    return str(value)
+                    return value
+
         return process
 
     def get_col_spec(self):
@@ -358,14 +359,6 @@ class MSFloat(sqltypes.Float):
         else:
             return "FLOAT(%(precision)s)" % {'precision': self.precision}
 
-    def bind_processor(self, dialect):
-        def process(value):
-            """By converting to string, we can use Decimal types round-trip."""
-            if not value is None:
-                return str(value)
-            return None
-        return process
-
 
 class MSReal(MSFloat):
     """A type for ``real`` numbers."""
@@ -379,14 +372,6 @@ class MSReal(MSFloat):
 
     def adapt(self, impltype):
         return impltype()
-
-    def bind_processor(self, dialect):
-        def process(value):
-            if value is not None:
-                return float(value)
-            else:
-                return value
-        return process
 
     def get_col_spec(self):
         return "REAL"
@@ -1056,8 +1041,12 @@ class MSSQLDialect(default.DefaultDialect):
         return newobj
 
     def do_begin(self, connection):
-        connection.execute("SET IMPLICIT_TRANSACTIONS OFF")
-        connection.execute("BEGIN TRANSACTION")
+        cursor = connection.cursor()
+        cursor.execute("SET IMPLICIT_TRANSACTIONS OFF")
+        cursor.execute("BEGIN TRANSACTION")
+
+    def do_release_savepoint(self, connection, name):
+        pass
 
     @base.connection_memoize(('dialect', 'default_schema_name'))
     def get_default_schema_name(self, connection):
@@ -1304,6 +1293,9 @@ class MSSQLDialect_pymssql(MSSQLDialect):
     def is_disconnect(self, e):
         return isinstance(e, self.dbapi.DatabaseError) and "Error 10054" in str(e)
 
+    def do_begin(self, connection):
+        pass
+
 
 class MSSQLDialect_pyodbc(MSSQLDialect):
     supports_sane_rowcount = False
@@ -1430,6 +1422,7 @@ class MSSQLDialect_adodbapi(MSSQLDialect):
     def is_disconnect(self, e):
         return isinstance(e, self.dbapi.adodbapi.DatabaseError) and "'connection failure'" in str(e)
 
+
 dialect_mapping = {
     'pymssql':  MSSQLDialect_pymssql,
     'pyodbc':   MSSQLDialect_pyodbc,
@@ -1532,9 +1525,6 @@ class MSSQLCompiler(compiler.DefaultCompiler):
     def visit_rollback_to_savepoint(self, savepoint_stmt):
         return "ROLLBACK TRANSACTION %s" % self.preparer.format_savepoint(savepoint_stmt)
 
-    def visit_release_savepoint(self, savepoint_stmt):
-        pass
-
     def visit_column(self, column, result_map=None, **kwargs):
         if column.table is not None and \
             (not self.isupdate and not self.isdelete) or self.is_subquery():
@@ -1580,7 +1570,7 @@ class MSSQLCompiler(compiler.DefaultCompiler):
                               [self.process(x) for x in insert_stmt._prefixes])
 
             if not colparams and not self.dialect.supports_default_values and not self.dialect.supports_empty_insert:
-                raise exc.NotSupportedError(
+                raise exc.CompileError(
                     "The version of %s you are using does not support empty inserts." % self.dialect.name)
             elif not colparams and self.dialect.supports_default_values:
                 return (insert + " INTO %s DEFAULT VALUES" % (

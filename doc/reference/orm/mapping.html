@@ -7,7 +7,7 @@
         
         <title>
     Class Mapping
- &mdash; SQLAlchemy 0.5.0 Documentation</title>
+ &mdash; SQLAlchemy 0.5.1 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.0',
+          VERSION:     '0.5.1',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.0 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.1 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Querying" href="query.html" />
         <link rel="prev" title="sqlalchemy.orm" href="index.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.0 Documentation</h1>
+        <h1>SQLAlchemy 0.5.1 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.0</span> Last Updated: 01/06/2009 13:41:02
+            Version: <span class="versionnum">0.5.1</span> Last Updated: 01/17/2009 16:46:53
         </div>
         <div class="clearboth"></div>
 
@@ -465,11 +465,17 @@ be used for a table that is not otherwise expressed in any class
 mapping. In particular, using the Association Object Pattern is
 generally mutually exclusive with the use of the <em>secondary</em>
 keyword argument.</li>
-<li><em>backref</em> &#8211; indicates the name of a property to be placed on the related
+<li><em>backref</em> &#8211; indicates the string name of a property to be placed on the related
 mapper&#8217;s class that will handle this relationship in the other
-direction, including synchronizing the object attributes on both
-sides of the relation. Can also point to a <a title="sqlalchemy.orm.backref" class="reference internal" href="#sqlalchemy.orm.backref"><tt class="xref docutils literal"><span class="pre">backref()</span></tt></a> for
-more configurability.</li>
+direction. The other property will be created automatically 
+when the mappers are configured.  Can also be passed as a
+<a title="sqlalchemy.orm.backref" class="reference internal" href="#sqlalchemy.orm.backref"><tt class="xref docutils literal"><span class="pre">backref()</span></tt></a> object to control the configuration of the
+new relation.</li>
+<li><em>back_populates</em> &#8211; Takes a string name and has the same meaning as <tt class="docutils literal"><span class="pre">backref</span></tt>, 
+except the complementing property is <strong>not</strong> created automatically, 
+and instead must be configured explicitly on the other mapper.  The 
+complementing property should also indicate <tt class="docutils literal"><span class="pre">back_populates</span></tt> 
+to this relation to ensure proper functioning.</li>
 <li><em>cascade</em> &#8211; <p>a comma-separated list of cascade rules which determines how
 Session operations should be &#8220;cascaded&#8221; from parent to child.
 This defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>, which means the default cascade
@@ -882,7 +888,7 @@ instance.</dd></dl>
 </div>
 
                 <div class="doc_copyright">
-                    &copy; <a href="../../copyright.html">Copyright</a> 2008, the SQLAlchemy authors and contributors.
+                    &copy; <a href="../../copyright.html">Copyright</a> 2007, 2008, 2009, the SQLAlchemy authors and contributors.
                     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.
                 </div>
             </div>
