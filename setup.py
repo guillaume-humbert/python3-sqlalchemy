@@ -3,13 +3,17 @@ use_setuptools()
 from setuptools import setup, find_packages
 
 setup(name = "SQLAlchemy",
-    version = "0.3.6",
+    version = "0.3.7",
     description = "Database Abstraction Library",
     author = "Mike Bayer",
     author_email = "mike_mp@zzzcomputing.com",
     url = "http://www.sqlalchemy.org",
     packages = find_packages('lib'),
     package_dir = {'':'lib'},
+    entry_points = { 
+      'sqlalchemy.databases': [
+        '%s = sqlalchemy.databases.%s:dialect' % (f,f) for f in 
+          ['sqlite', 'postgres', 'mysql', 'oracle', 'mssql', 'firebird']]},
     license = "MIT License",
     long_description = """\
 SQLAlchemy is:

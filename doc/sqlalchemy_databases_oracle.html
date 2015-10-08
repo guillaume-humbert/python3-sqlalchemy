@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.6   Last Updated: 03/23/07 17:45:02</div>
+<div class="versionheader">Version: 0.3.7   Last Updated: 04/30/07 00:08:52</div>
 
 
 
@@ -129,13 +129,6 @@
     </ul>
 
         
-        <li><A style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleDialect">class OracleDialect(ANSIDialect)</a></li>
-        
-            
-    <ul>
-    </ul>
-
-        
         <li><A style="" href="sqlalchemy_databases_oracle.html#docstrings_sqlalchemy.databases.oracle_OracleExecutionContext">class OracleExecutionContext(DefaultExecutionContext)</a></li>
         
             
@@ -217,7 +210,7 @@
     
     <A name="docstrings_sqlalchemy.databases.oracle"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>module sqlalchemy.databases.oracle</h3>
     
@@ -228,7 +221,7 @@
     
     <A name="docstrings_sqlalchemy.databases.oracle_modfunc"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Module Functions</h3>
     
@@ -245,7 +238,6 @@
 
         
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -258,7 +250,7 @@
     
     <A name="docstrings_sqlalchemy.databases.oracle_OracleBinary"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class OracleBinary(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Binary">Binary</a>)</h3>
     
@@ -320,7 +312,7 @@
     
     <A name="docstrings_sqlalchemy.databases.oracle_OracleBoolean"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class OracleBoolean(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Boolean">Boolean</a>)</h3>
     
@@ -372,7 +364,7 @@
     
     <A name="docstrings_sqlalchemy.databases.oracle_OracleChar"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class OracleChar(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_CHAR">CHAR</a>)</h3>
     
@@ -404,9 +396,9 @@
     
     <A name="docstrings_sqlalchemy.databases.oracle_OracleCompiler"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
-    <h3>class OracleCompiler(ANSICompiler)</h3>
+    <h3>class OracleCompiler(<a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSICompiler">ANSICompiler</a>)</h3>
     
     
     <div class="darkcell"><p>Oracle compiler modifies the lexical structure of Select
@@ -414,6 +406,16 @@ statements to work under non-ANSI configured Oracle databases, if
 the use_ansi flag is False.</p>
 </div>
     
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
 
                     
     <div class="darkcell">
@@ -542,7 +544,7 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     
     <A name="docstrings_sqlalchemy.databases.oracle_OracleDateTime"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class OracleDateTime(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_DateTime">DateTime</a>)</h3>
     
@@ -574,9 +576,9 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     
     <A name="docstrings_sqlalchemy.databases.oracle_OracleDefaultRunner"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
-    <h3>class OracleDefaultRunner(ANSIDefaultRunner)</h3>
+    <h3>class OracleDefaultRunner(<a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSIDefaultRunner">ANSIDefaultRunner</a>)</h3>
     
     
     
@@ -616,9 +618,9 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     
     <A name="docstrings_sqlalchemy.databases.oracle_OracleDialect"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
-    <h3>class OracleDialect(ANSIDialect)</h3>
+    <h3>class OracleDialect(<a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSIDialect">ANSIDialect</a>)</h3>
     
     
     
@@ -627,7 +629,7 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>use_ansi=True</i>, <i>auto_setinputsizes=True</i>, <i>module=None</i>, <i>threaded=True</i>, <i>**kwargs</i>)</b>
+    <b>def __init__(<i>self</i>, <i>use_ansi=True</i>, <i>auto_setinputsizes=True</i>, <i>threaded=True</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -657,7 +659,7 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def create_execution_context(<i>self</i>)</b>
+    <b>def create_execution_context(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -667,7 +669,7 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def create_result_proxy_args(<i>self</i>, <i>connection</i>, <i>cursor</i>)</b>
+    <b>def dbapi(<i>cls</i>)</b>
     <div class="docstring">
     
     </div>
@@ -677,17 +679,7 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def dbapi(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def defaultrunner(<i>self</i>, <i>engine</i>, <i>proxy</i>)</b>
+    <b>def defaultrunner(<i>self</i>, <i>connection</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -718,6 +710,16 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     
     <A name=""></a>
     <b>def has_table(<i>self</i>, <i>connection</i>, <i>table_name</i>, <i>schema=None</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def max_identifier_length(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
@@ -767,171 +769,10 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def type_descriptor(<i>self</i>, <i>typeobj</i>)</b>
+    <b>def supports_unicode_statements(<i>self</i>)</b>
     <div class="docstring">
-    
-    </div>
-    </div>
+    <p>indicate whether the DBAPI can receive SQL statements as Python unicode strings</p>
 
-
-    
-
-            <a href="#top">back to section top</a>
-    </div>
-
-
-
-            
-    
-
-    
-    
-    <A name="docstrings_sqlalchemy.databases.oracle_OracleDialect"></a>
-    
-    <div class="subsection">
-
-    <h3>class OracleDialect(ANSIDialect)</h3>
-    
-    
-    
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>use_ansi=True</i>, <i>auto_setinputsizes=True</i>, <i>module=None</i>, <i>threaded=True</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def compiler(<i>self</i>, <i>statement</i>, <i>bindparams</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def create_connect_args(<i>self</i>, <i>url</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def create_execution_context(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def create_result_proxy_args(<i>self</i>, <i>connection</i>, <i>cursor</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def dbapi(<i>self</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def defaultrunner(<i>self</i>, <i>engine</i>, <i>proxy</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def do_executemany(<i>self</i>, <i>c</i>, <i>statement</i>, <i>parameters</i>, <i>context=None</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def has_sequence(<i>self</i>, <i>connection</i>, <i>sequence_name</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def has_table(<i>self</i>, <i>connection</i>, <i>table_name</i>, <i>schema=None</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def oid_column_name(<i>self</i>, <i>column</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def reflecttable(<i>self</i>, <i>connection</i>, <i>table</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def schemadropper(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def schemagenerator(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
-    <div class="docstring">
-    
     </div>
     </div>
 
@@ -960,9 +801,9 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     
     <A name="docstrings_sqlalchemy.databases.oracle_OracleExecutionContext"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
-    <h3>class OracleExecutionContext(DefaultExecutionContext)</h3>
+    <h3>class OracleExecutionContext(<a href="sqlalchemy_engine_default.html#docstrings_sqlalchemy.engine.default_DefaultExecutionContext">DefaultExecutionContext</a>)</h3>
     
     
     
@@ -971,7 +812,17 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def pre_exec(<i>self</i>, <i>engine</i>, <i>proxy</i>, <i>compiled</i>, <i>parameters</i>)</b>
+    <b>def get_result_proxy(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def pre_exec(<i>self</i>)</b>
     <div class="docstring">
     
     </div>
@@ -992,7 +843,7 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     
     <A name="docstrings_sqlalchemy.databases.oracle_OracleInteger"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class OracleInteger(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Integer">Integer</a>)</h3>
     
@@ -1024,7 +875,7 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     
     <A name="docstrings_sqlalchemy.databases.oracle_OracleNumeric"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class OracleNumeric(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Numeric">Numeric</a>)</h3>
     
@@ -1056,7 +907,7 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     
     <A name="docstrings_sqlalchemy.databases.oracle_OracleRaw"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class OracleRaw(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Binary">Binary</a>)</h3>
     
@@ -1088,9 +939,9 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     
     <A name="docstrings_sqlalchemy.databases.oracle_OracleSchemaDropper"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
-    <h3>class OracleSchemaDropper(ANSISchemaDropper)</h3>
+    <h3>class OracleSchemaDropper(<a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSISchemaDropper">ANSISchemaDropper</a>)</h3>
     
     
     
@@ -1120,9 +971,9 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     
     <A name="docstrings_sqlalchemy.databases.oracle_OracleSchemaGenerator"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
-    <h3>class OracleSchemaGenerator(ANSISchemaGenerator)</h3>
+    <h3>class OracleSchemaGenerator(<a href="sqlalchemy_ansisql.html#docstrings_sqlalchemy.ansisql_ANSISchemaGenerator">ANSISchemaGenerator</a>)</h3>
     
     
     
@@ -1162,7 +1013,7 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     
     <A name="docstrings_sqlalchemy.databases.oracle_OracleSmallInteger"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class OracleSmallInteger(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_SmallInteger">SmallInteger</a>)</h3>
     
@@ -1194,7 +1045,7 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     
     <A name="docstrings_sqlalchemy.databases.oracle_OracleString"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class OracleString(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_String">String</a>)</h3>
     
@@ -1226,7 +1077,7 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     
     <A name="docstrings_sqlalchemy.databases.oracle_OracleText"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class OracleText(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_TEXT">TEXT</a>)</h3>
     
@@ -1278,7 +1129,7 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
     
     <A name="docstrings_sqlalchemy.databases.oracle_OracleTimestamp"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class OracleTimestamp(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_DateTime">DateTime</a>)</h3>
     
@@ -1308,13 +1159,13 @@ so tries to wrap it in a subquery with <tt class="docutils literal"><span class=
 
     
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
     
 
-            <a href="#top">back to section top</a>
     </div>
 
 

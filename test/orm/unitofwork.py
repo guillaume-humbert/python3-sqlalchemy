@@ -55,33 +55,6 @@ class HistoryTest(UnitOfWorkTest):
         u = s.query(m).select()[0]
         print u.addresses[0].user
 
-class CustomCollectionsTest(UnitOfWorkTest):
-    def setUpAll(self):
-        UnitOfWorkTest.setUpAll(self)
-        global sometable, metadata, someothertable
-        metadata = BoundMetaData(testbase.db)
-        sometable = Table('sometable', metadata,
-            Column('col1',Integer, primary_key=True))
-        someothertable = Table('someothertable', metadata, 
-            Column('col1', Integer, primary_key=True),
-            Column('scol1', Integer, ForeignKey(sometable.c.col1)),
-            Column('data', String(20))
-        )
-    def testbasic(self):
-        class MyList(list):
-            pass
-        class Foo(object):
-            pass
-        class Bar(object):
-            pass
-        mapper(Foo, sometable, properties={
-            'bars':relation(Bar, collection_class=MyList)
-        })
-        mapper(Bar, someothertable)
-        f = Foo()
-        assert isinstance(f.bars.data, MyList)
-    def tearDownAll(self):
-        UnitOfWorkTest.tearDownAll(self)
             
 class VersioningTest(UnitOfWorkTest):
     def setUpAll(self):
@@ -137,7 +110,8 @@ class VersioningTest(UnitOfWorkTest):
         f1_s.value='f1rev4'
         s2.flush()
     
-        s.delete(f1, f2)
+        s.delete(f1)
+        s.delete(f2)
         success = False
         try:
             s.flush()
@@ -243,7 +217,7 @@ class MutableTypesTest(UnitOfWorkTest):
         global metadata, table
         metadata = BoundMetaData(testbase.db)
         table = Table('mutabletest', metadata,
-            Column('id', Integer, primary_key=True),
+            Column('id', Integer, Sequence('mutableidseq', optional=True), primary_key=True),
             Column('data', PickleType),
             Column('value', Unicode(30)))
         table.create()
@@ -304,14 +278,32 @@ class MutableTypesTest(UnitOfWorkTest):
         f1 = Foo()
         f1.data = pickleable.BarWithoutCompare(4,5)
         ctx.current.flush()
+        
+        def go():
+            ctx.current.flush()
+        self.assert_sql_count(db, go, 0)
+        
         ctx.current.clear()
+
         f2 = ctx.current.query(Foo).get_by(id=f1.id)
+
+        def go():
+            ctx.current.flush()
+        self.assert_sql_count(db, go, 0)
+
         f2.data.y = 19
-        ctx.current.flush()
+        def go():
+            ctx.current.flush()
+        self.assert_sql_count(db, go, 1)
+        
         ctx.current.clear()
         f3 = ctx.current.query(Foo).get_by(id=f1.id)
         print f2.data, f3.data
         assert (f3.data.x, f3.data.y) == (4,19)
+
+        def go():
+            ctx.current.flush()
+        self.assert_sql_count(db, go, 0)
         
     def testunicode(self):
         """test that two equivalent unicode values dont get flagged as changed.
@@ -1249,7 +1241,7 @@ class ManyToManyTest(UnitOfWorkTest):
     def tearDown(self):
         tables.delete()
         UnitOfWorkTest.tearDown(self)
-        
+
     def testmanytomany(self):
         items = orderitems
 
@@ -1374,7 +1366,7 @@ class ManyToManyTest(UnitOfWorkTest):
                 
         mapper(Keyword, keywords)
         mapper(Item, orderitems, properties = dict(
-                keywords = relation(Keyword, secondary=itemkeywords, lazy=False),
+                keywords = relation(Keyword, secondary=itemkeywords, lazy=False, order_by=keywords.c.name),
             ))
 
         (k1, k2, k3) = (Keyword('keyword 1'), Keyword('keyword 2'), Keyword('keyword 3'))
@@ -1464,7 +1456,7 @@ class ManyToManyTest(UnitOfWorkTest):
         j = join(users, userkeywords, 
                 users.c.user_id==userkeywords.c.user_id).join(keywords, 
                    userkeywords.c.keyword_id==keywords.c.keyword_id)
-
+        print "PK", j.primary_key
         # a class 
         class KeywordUser(object):
             pass
@@ -1474,15 +1466,15 @@ class ManyToManyTest(UnitOfWorkTest):
         m = mapper(KeywordUser, j, properties={
             'user_id':[users.c.user_id, userkeywords.c.user_id],
             'keyword_id':[userkeywords.c.keyword_id, keywords.c.keyword_id],
-            'keyword_name':keywords.c.name
-
-        })
+            'keyword_name':keywords.c.name,
+        }, )
 
         k = KeywordUser()
         k.user_name = 'keyworduser'
         k.keyword_name = 'a keyword'
         ctx.current.flush()
         print m.instance_key(k)
+        
         id = (k.user_id, k.keyword_id)
         ctx.current.clear()
         k = ctx.current.query(KeywordUser).get(id)

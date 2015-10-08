@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.6   Last Updated: 03/23/07 17:45:02</div>
+<div class="versionheader">Version: 0.3.7   Last Updated: 04/30/07 00:08:52</div>
 
 
 
@@ -112,7 +112,7 @@
     
     <A name="docstrings_sqlalchemy.orm.mapper"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>module sqlalchemy.orm.mapper</h3>
     
@@ -123,7 +123,7 @@
     
     <A name="docstrings_sqlalchemy.orm.mapper_modfunc"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Module Functions</h3>
     
@@ -144,12 +144,16 @@
     <div class="darkcell">
     
     <A name="docstrings_sqlalchemy.orm.mapper_modfunc_object_mapper"></a>
-    <b>def object_mapper(<i>object</i>, <i>raiseerror=True</i>)</b>
+    <b>def object_mapper(<i>object</i>, <i>entity_name=None</i>, <i>raiseerror=True</i>)</b>
     <div class="docstring">
     <p>Given an object, return the primary Mapper associated with the object instance.</p>
 <dl class="docutils">
 <dt>object</dt>
 <dd>The object instance.</dd>
+<dt>entity_name</dt>
+<dd>Entity name of the mapper to retrieve, if the given instance is
+transient.  Otherwise uses the entity name already associated
+with the instance.</dd>
 <dt>raiseerror</dt>
 <dd>Defaults to True: raise an <tt class="docutils literal"><span class="pre">InvalidRequestError</span></tt> if no mapper can
 be located.  If False, return None.</dd>
@@ -160,7 +164,6 @@ be located.  If False, return None.</dd>
 
         
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -173,7 +176,7 @@ be located.  If False, return None.</dd>
     
     <A name="docstrings_sqlalchemy.orm.mapper_MapperExtension"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class MapperExtension(object)</h3>
     
@@ -446,7 +449,7 @@ method.</p>
     
     <A name="docstrings_sqlalchemy.orm.mapper_Mapper"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class Mapper(object)</h3>
     
@@ -1003,13 +1006,13 @@ populate an instance using an alternate mapper.</p>
 
     
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
     
 
-            <a href="#top">back to section top</a>
     </div>
 
 

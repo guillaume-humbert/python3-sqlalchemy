@@ -20,13 +20,13 @@ class ColumnLoader(LoaderStrategy):
         self.columns = self.parent_property.columns
         self._should_log_debug = logging.is_debug_enabled(self.logger)
         
-    def setup_query(self, context, eagertable=None, **kwargs):
+    def setup_query(self, context, eagertable=None, parentclauses=None, **kwargs):
         for c in self.columns:
-            if eagertable is not None:
-                context.statement.append_column(eagertable.corresponding_column(c))
+            if parentclauses is not None:
+                context.statement.append_column(parentclauses.aliased_column(c))
             else:
                 context.statement.append_column(c)
-
+        
     def init_class_attribute(self):
         self.logger.info("register managed attribute %s on class %s" % (self.key, self.parent.class_.__name__))
         coltype = self.columns[0].type
@@ -161,7 +161,7 @@ NoLoader.logger = logging.class_logger(NoLoader)
 class LazyLoader(AbstractRelationLoader):
     def init(self):
         super(LazyLoader, self).init()
-        (self.lazywhere, self.lazybinds, self.lazyreverse) = self._create_lazy_clause(self.polymorphic_primaryjoin, self.polymorphic_secondaryjoin, self.remote_side)
+        (self.lazywhere, self.lazybinds, self.lazyreverse) = self._create_lazy_clause(self)
 
         # determine if our "lazywhere" clause is the same as the mapper's
         # get() clause.  then we can just use mapper.get()
@@ -246,12 +246,17 @@ class LazyLoader(AbstractRelationLoader):
                 # to load data into it.
                 sessionlib.attribute_manager.reset_instance_attribute(instance, self.key)
 
-    def _create_lazy_clause(self, primaryjoin, secondaryjoin, remote_side):
+    def _create_lazy_clause(cls, prop, reverse_direction=False):
+        (primaryjoin, secondaryjoin, remote_side) = (prop.polymorphic_primaryjoin, prop.polymorphic_secondaryjoin, prop.remote_side)
+        
         binds = {}
         reverse = {}
 
         def should_bind(targetcol, othercol):
-            return othercol in remote_side
+            if reverse_direction:
+                return targetcol in remote_side
+            else:
+                return othercol in remote_side
 
         def find_column_in_expr(expr):
             if not isinstance(expr, sql.ColumnElement):
@@ -263,14 +268,8 @@ class LazyLoader(AbstractRelationLoader):
             FindColumnInColumnClause().traverse(expr)
             return len(columns) and columns[0] or None
         
-        def col_in_collection(column, collection):
-            for c in collection:
-                if column.shares_lineage(c):
-                    return True
-            else:
-                return False
-                
         def bind_label():
+            # TODO: make this generation deterministic
             return "lazy_" + hex(random.randint(0, 65535))[2:]
 
         def visit_binary(binary):
@@ -300,9 +299,11 @@ class LazyLoader(AbstractRelationLoader):
             secondaryjoin = secondaryjoin.copy_container()
             lazywhere = sql.and_(lazywhere, secondaryjoin)
  
-        LazyLoader.logger.info(str(self.parent_property) + " lazy loading clause " + str(lazywhere))
+        if hasattr(cls, 'parent_property'):
+            LazyLoader.logger.info(str(cls.parent_property) + " lazy loading clause " + str(lazywhere))
         return (lazywhere, binds, reverse)
-
+    _create_lazy_clause = classmethod(_create_lazy_clause)
+    
 LazyLoader.logger = logging.class_logger(LazyLoader)
 
 
@@ -312,8 +313,13 @@ class EagerLoader(AbstractRelationLoader):
     def init(self):
         super(EagerLoader, self).init()
         if self.parent.isa(self.mapper):
-            raise exceptions.ArgumentError("Error creating eager relationship '%s' on parent class '%s' to child class '%s': Cant use eager loading on a self referential relationship." % (self.key, repr(self.parent.class_), repr(self.mapper.class_)))
-        self.parent._eager_loaders.add(self.parent_property)
+            raise exceptions.ArgumentError(
+                "Error creating eager relationship '%s' on parent class '%s' "
+                "to child class '%s': Cant use eager loading on a self "
+                "referential relationship." %
+                (self.key, repr(self.parent.class_), repr(self.mapper.class_)))
+        if self.is_default:
+            self.parent._eager_loaders.add(self.parent_property)
 
         self.clauses = {}
         self.clauses_by_lead_mapper = {}
@@ -352,12 +358,14 @@ class EagerLoader(AbstractRelationLoader):
         """
         
         def __init__(self, eagerloader, parentclauses=None):
+            self.id = (parentclauses is not None and (parentclauses.id + "/") or '') + str(eagerloader.parent_property)
             self.parent = eagerloader
             self.target = eagerloader.select_table
-            self.eagertarget = eagerloader.select_table.alias()
+            self.eagertarget = eagerloader.select_table.alias(self._aliashash("/target"))
+            self.extra_cols = {}
             
             if eagerloader.secondary:
-                self.eagersecondary = eagerloader.secondary.alias()
+                self.eagersecondary = eagerloader.secondary.alias(self._aliashash("/secondary"))
                 self.aliasizer = sql_util.Aliasizer(eagerloader.target, eagerloader.secondary, aliases={
                         eagerloader.target:self.eagertarget,
                         eagerloader.secondary:self.eagersecondary
@@ -380,7 +388,31 @@ class EagerLoader(AbstractRelationLoader):
                 self.eager_order_by = None
 
             self._row_decorator = self._create_decorator_row()
+        
+        def aliased_column(self, column):
+            """return the aliased version of the given column, creating a new label for it if not already
+            present in this AliasedClauses eagertable."""
 
+            conv = self.eagertarget.corresponding_column(column, raiseerr=False)
+            if conv:
+                return conv
+
+            if column in self.extra_cols:
+                return self.extra_cols[column]
+            
+            aliased_column = column.copy_container()
+            sql_util.ClauseAdapter(self.eagertarget).traverse(aliased_column)
+            alias = self._aliashash(column.name)
+            aliased_column = aliased_column.label(alias)
+            self._row_decorator.map[column] = alias
+            self.extra_cols[column] = aliased_column
+            return aliased_column
+            
+        def _aliashash(self, extra):
+            """return a deterministic 4 digit hash value for this AliasedClause's id + extra."""
+            # use the first 4 digits of an MD5 hash
+            return "anon_" + util.hash(self.id + extra)[0:4]
+            
         def _aliasize_orderby(self, orderby, copy=True):
             if copy:
                 return self.aliasizer.copy_and_process(util.to_list(orderby))
@@ -407,6 +439,7 @@ class EagerLoader(AbstractRelationLoader):
                 map[parent] = c
                 map[parent._label] = c
                 map[parent.name] = c
+            EagerRowAdapter.map = map
             return EagerRowAdapter
 
         def _decorate_row(self, row):

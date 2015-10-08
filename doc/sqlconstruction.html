@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.6   Last Updated: 03/23/07 17:45:02</div>
+<div class="versionheader">Version: 0.3.7   Last Updated: 04/30/07 00:08:52</div>
 
 
 
@@ -272,7 +272,7 @@
     
     <A name="sql"></a>
     
-    <div class="section">
+    <div class="sectionL1">
 
     
     
@@ -328,7 +328,7 @@
     
     <A name="sql_select"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Simple Select</h3>
     
@@ -360,7 +360,7 @@
     
     <A name="sql_select_explicit"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Explicit Execution</h3>
     
@@ -390,7 +390,7 @@
     
     <A name="sql_select_binding"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Binding ClauseElements to Engines</h3>
     
@@ -419,7 +419,7 @@
     
     <A name="sql_select_resultproxy"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Getting Results</h3>
     
@@ -474,7 +474,7 @@
     
     <A name="sql_select_labels"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Using Column Labels</h3>
     
@@ -552,7 +552,7 @@ FROM users<br/>
     
     <A name="sql_select_columns"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Table/Column Specification</h3>
     
@@ -582,12 +582,12 @@ addresses.zip FROM users, addresses<br/>
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -595,7 +595,7 @@ addresses.zip FROM users, addresses<br/>
     
     <A name="sql_whereclause"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>WHERE Clause</h3>
     
@@ -683,7 +683,7 @@ FROM users WHERE users.user_name = :users_user_name AND users.user_id = :users_u
     
     <A name="sql_whereclause_operators"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Operators</h3>
     
@@ -739,7 +739,7 @@ WHERE users.user_name IS NULL</div><pre><span class="python_operator"></span></p
     
     <A name="sql_whereclause_functions"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Functions</h3>
     
@@ -781,7 +781,7 @@ WHERE substr(users.user_name, :substr) = :substr_1<br/>
     
     <A name="sql_whereclause_literals"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Literals</h3>
     
@@ -819,7 +819,7 @@ FROM users<br/>
     
     <A name="sql_whereclause_orderby"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Order By</h3>
     
@@ -852,7 +852,7 @@ ORDER BY users.user_id DESC, users.user_name ASC<br/>
     
     <A name="sql_whereclause_options"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>DISTINCT, LIMIT and OFFSET</h3>
     
@@ -871,12 +871,12 @@ ORDER BY users.user_id DESC, users.user_name ASC<br/>
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -884,7 +884,7 @@ ORDER BY users.user_id DESC, users.user_name ASC<br/>
     
     <A name="sql_join"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Inner and Outer Joins</h3>
     
@@ -984,7 +984,7 @@ FROM users JOIN addresses ON users.user_id = addresses.address_id<br/>
     
     <A name="sql_alias"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Table Aliases</h3>
     
@@ -1022,7 +1022,7 @@ AND addressb.street LIKE :addressb_street<br/>
     
     <A name="sql_subqueries"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Subqueries</h3>
     
@@ -1109,7 +1109,7 @@ FROM addresses WHERE addresses.address_id IN <br/>
     
     <A name="sql_subqueries_scalar"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Scalar Column Subqueries</h3>
     
@@ -1130,12 +1130,12 @@ FROM table2<br/>
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -1143,7 +1143,7 @@ FROM table2<br/>
     
     <A name="sql_correlated"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Correlated Subqueries</h3>
     
@@ -1174,7 +1174,7 @@ FROM table2<br/>
     
     <A name="sql_correlated_exists"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>EXISTS Clauses</h3>
     
@@ -1204,12 +1204,12 @@ AND addresses.street LIKE :addresses_street)<br/>
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -1217,7 +1217,7 @@ AND addresses.street LIKE :addresses_street)<br/>
     
     <A name="sql_unions"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Unions</h3>
     
@@ -1274,7 +1274,7 @@ ORDER BY users.user_id<br/>
     
     <A name="sql_bindparams"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Custom Bind Parameters</h3>
     
@@ -1305,7 +1305,7 @@ FROM users WHERE users.user_name = :username<br/>
     
     <A name="sql_bindparams_precompiling"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Precompiling a Query</h3>
     
@@ -1325,12 +1325,12 @@ FROM users WHERE users.user_name = :username<br/>
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -1338,7 +1338,7 @@ FROM users WHERE users.user_name = :username<br/>
     
     <A name="sql_textual"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Literal Text Blocks</h3>
     
@@ -1380,7 +1380,7 @@ WHERE exists (select 1 from addresses where addresses.user_id=users.user_id)<br/
     
     <A name="sql_textual_textual_binds"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Using Bind Parameters in Text Blocks</h3>
     
@@ -1425,12 +1425,12 @@ WHERE exists (select 1 from addresses where addresses.user_id=users.user_id)<br/
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -1438,7 +1438,7 @@ WHERE exists (select 1 from addresses where addresses.user_id=users.user_id)<br/
     
     <A name="sql_building"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Building Select Objects</h3>
     
@@ -1492,7 +1492,7 @@ WHERE users.user_name = :users_user_name AND keywords.name IN ('jack', 'foo')<br
     
     <A name="sql_insert"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Inserts</h3>
     
@@ -1547,7 +1547,7 @@ VALUES (:user_id, :user_name, :password)<br/>
     
     <A name="sql_update"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Updates</h3>
     
@@ -1568,12 +1568,14 @@ VALUES (:user_id, :user_name, :password)<br/>
 </span><span class="python_literal"><a href="javascript:togglePopbox('popbox_67', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">u</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'jack'</span><span class="python_operator">, </span><span class="python_name">newname</span><span class="python_operator">=</span><span class="python_literal">'ed'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_67_div" class="codepop" style="display:none;">UPDATE users SET user_name=:newname WHERE users.user_name = :name<br/>
 {'newname': 'ed', 'name': 'jack'}</div><pre><span class="python_comment"># update a column to another column
 </span><span class="python_literal"><a href="javascript:togglePopbox('popbox_68', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">update</span><span class="python_enclosure">(</span><span class="python_name">values</span><span class="python_operator">=</span><span class="python_enclosure">{</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">password</span><span class="python_operator">:</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_enclosure">})</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_68_div" class="codepop" style="display:none;">UPDATE users SET password=users.user_name<br/>
-{}</div><pre><span class="python_comment"># multi-update
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_69', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">update</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">bindparam</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span>
+{}</div><pre><span class="python_comment"># expressions OK too
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_69', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">update</span><span class="python_enclosure">(</span><span class="python_name">values</span><span class="python_operator">=</span><span class="python_enclosure">{</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">:</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id </span><span class="python_operator">+ </span><span class="python_number">17</span><span class="python_enclosure">})</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_69_div" class="codepop" style="display:none;">UPDATE users SET user_id=users.user_id + :users_user_id<br/>
+{'users_user_id':17}</div><pre><span class="python_comment"># multi-update
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_70', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">update</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">bindparam</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span>
         <span class="python_enclosure">{</span><span class="python_literal">'id'</span><span class="python_operator">:</span><span class="python_number">7</span><span class="python_operator">, </span><span class="python_literal">'user_name'</span><span class="python_operator">:</span><span class="python_literal">'jack'</span><span class="python_operator">, </span><span class="python_literal">'password'</span><span class="python_operator">:</span><span class="python_literal">'fh5jks'</span><span class="python_enclosure">}</span><span class="python_operator">,</span>
         <span class="python_enclosure">{</span><span class="python_literal">'id'</span><span class="python_operator">:</span><span class="python_number">8</span><span class="python_operator">, </span><span class="python_literal">'user_name'</span><span class="python_operator">:</span><span class="python_literal">'ed'</span><span class="python_operator">, </span><span class="python_literal">'password'</span><span class="python_operator">:</span><span class="python_literal">'fsr234ks'</span><span class="python_enclosure">}</span><span class="python_operator">,</span>
         <span class="python_enclosure">{</span><span class="python_literal">'id'</span><span class="python_operator">:</span><span class="python_number">9</span><span class="python_operator">, </span><span class="python_literal">'user_name'</span><span class="python_operator">:</span><span class="python_literal">'mary'</span><span class="python_operator">, </span><span class="python_literal">'password'</span><span class="python_operator">:</span><span class="python_literal">'7h5jse'</span><span class="python_enclosure">}</span><span class="python_operator">,</span>
-    <span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_69_div" class="codepop" style="display:none;">UPDATE users SET user_name=:user_name, password=:password WHERE users.user_id = :id<br/>
+    <span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_70_div" class="codepop" style="display:none;">UPDATE users SET user_name=:user_name, password=:password WHERE users.user_id = :id<br/>
 [{'password': 'fh5jks', 'user_name': 'jack', 'id': 7}, <br/>
 {'password': 'fsr234ks', 'user_name': 'ed', 'id': 8}, <br/>
 {'password': '7h5jse', 'user_name': 'mary', 'id': 9}]</div><pre><span class="python_operator"></span></pre>
@@ -1583,7 +1585,7 @@ VALUES (:user_id, :user_name, :password)<br/>
     
     <A name="sql_update_correlated"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Correlated Updates</h3>
     
@@ -1596,10 +1598,10 @@ VALUES (:user_id, :user_name, :password)<br/>
 
     <div class="code">
         <pre><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">city</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_70', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">update</span><span class="python_enclosure">(</span>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_71', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">update</span><span class="python_enclosure">(</span>
     <span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">></span><span class="python_number">10</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator"><</span><span class="python_number">20</span><span class="python_enclosure">)</span><span class="python_operator">, </span>
     <span class="python_name">values</span><span class="python_operator">=</span><span class="python_enclosure">{</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">:</span><span class="python_name">s</span><span class="python_enclosure">}</span>
-<span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_70_div" class="codepop" style="display:none;">UPDATE users SET user_name=(SELECT addresses.city <br/>
+<span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_71_div" class="codepop" style="display:none;">UPDATE users SET user_name=(SELECT addresses.city <br/>
 FROM addresses <br/>
 WHERE addresses.user_id = users.user_id) <br/>
 WHERE users.user_id > :users_user_id AND users.user_id < :users_user_id_1<br/>
@@ -1608,12 +1610,12 @@ WHERE users.user_id > :users_user_id AND users.user_id < :users_user_id_1<br/>
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -1621,7 +1623,7 @@ WHERE users.user_id > :users_user_id AND users.user_id < :users_user_id_1<br/>
     
     <A name="sql_delete"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Deletes</h3>
     
@@ -1645,12 +1647,12 @@ WHERE users.user_id > :users_user_id AND users.user_id < :users_user_id_1<br/>
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 

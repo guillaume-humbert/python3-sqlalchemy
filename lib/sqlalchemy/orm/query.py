@@ -5,7 +5,7 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 from sqlalchemy import sql, util, exceptions, sql_util, logging, schema
-from sqlalchemy.orm import mapper, class_mapper
+from sqlalchemy.orm import mapper, class_mapper, object_mapper
 from sqlalchemy.orm.interfaces import OperationContext, SynonymProperty
 
 __all__ = ['Query', 'QueryContext', 'SelectionContext']
@@ -43,6 +43,8 @@ class Query(object):
         self._offset = kwargs.pop('offset', None)
         self._limit = kwargs.pop('limit', None)
         self._criterion = None
+        self._col = None
+        self._func = None
         self._joinpoint = self.mapper
         self._from_obj = [self.table]
 
@@ -71,6 +73,8 @@ class Query(object):
         q._from_obj = list(self._from_obj)
         q._joinpoint = self._joinpoint
         q._criterion = self._criterion
+        q._col = self._col
+        q._func = self._func
         return q
     
     def _get_session(self):
@@ -119,8 +123,9 @@ class Query(object):
         return instance
 
     def get_by(self, *args, **params):
-        """Return a single object instance based on the given
-        key/value criterion.
+        """Like ``select_by()``, but only return the first 
+        as a scalar, or None if no object found.
+        Synonymous with ``selectfirst_by()``.
 
         The criterion is constructed in the same way as the
         ``select_by()`` method.
@@ -213,9 +218,9 @@ class Query(object):
         return clause
 
     def selectfirst_by(self, *args, **params):
-        """Like ``select_by()``, but only return the first result by
-        itself, or None if no objects returned.  Synonymous with
-        ``get_by()``.
+        """Like ``select_by()``, but only return the first 
+        as a scalar, or None if no object found.
+        Synonymous with ``get_by()``.
 
         The criterion is constructed in the same way as the
         ``select_by()`` method.
@@ -250,8 +255,12 @@ class Query(object):
         return self.count(self.join_by(*args, **params))
 
     def selectfirst(self, arg=None, **kwargs):
-        """Like ``select()``, but only return the first result by
-        itself, or None if no objects returned.
+        """Query for a single instance using the given criterion.
+        
+        Arguments are the same as ``select()``. In the case that 
+        the given criterion represents ``WHERE`` criterion only, 
+        LIMIT 1 is applied to the fully generated statement.
+
         """
 
         if isinstance(arg, sql.FromClause) and arg.supports_execution():
@@ -265,11 +274,20 @@ class Query(object):
             return None
 
     def selectone(self, arg=None, **kwargs):
-        """Like ``selectfirst()``, but throw an error if not exactly
-        one result was returned.
-        """
+        """Query for a single instance using the given criterion.
+        
+        Unlike ``selectfirst``, this method asserts that only one
+        row exists.  In the case that the given criterion represents
+        ``WHERE`` criterion only, LIMIT 2 is applied to the fully
+        generated statement.
 
-        ret = list(self.select(arg, **kwargs)[0:2])
+        """
+        
+        if isinstance(arg, sql.FromClause) and arg.supports_execution():
+            ret = self.select_statement(arg, **kwargs)
+        else:
+            kwargs['limit'] = 2
+            ret = self.select_whereclause(whereclause=arg, **kwargs)
         if len(ret) == 1:
             return ret[0]
         elif len(ret) == 0:
@@ -304,7 +322,6 @@ class Query(object):
         """Given a ``WHERE`` criterion, create a ``SELECT`` statement,
         execute and return the resulting instances.
         """
-
         statement = self.compile(whereclause, **kwargs)
         return self._select_statement(statement, params=params)
 
@@ -327,7 +344,7 @@ class Query(object):
         if self.table not in alltables:
             from_obj.append(self.table)
         if self._nestable(**kwargs):
-            s = sql.select([self.table], whereclause, **kwargs).alias('getcount').count()
+            s = sql.select([self.table], whereclause, from_obj=from_obj, **kwargs).alias('getcount').count()
         else:
             primary_key = self.primary_key_columns
             s = sql.select([sql.func.count(list(primary_key)[0])], whereclause, from_obj=from_obj, **kwargs)
@@ -347,6 +364,77 @@ class Query(object):
 
         t = sql.text(text)
         return self.execute(t, params=params)
+
+    def _with_lazy_criterion(cls, instance, prop, reverse=False):
+        """extract query criterion from a LazyLoader strategy given a Mapper, 
+        source persisted/detached instance and PropertyLoader.
+        
+        """
+        
+        from sqlalchemy.orm import strategies
+        (criterion, lazybinds, rev) = strategies.LazyLoader._create_lazy_clause(prop, reverse_direction=reverse)
+        bind_to_col = dict([(lazybinds[col].key, col) for col in lazybinds])
+
+        class Visitor(sql.ClauseVisitor):
+            def visit_bindparam(self, bindparam):
+                mapper = reverse and prop.mapper or prop.parent
+                bindparam.value = mapper.get_attr_by_column(instance, bind_to_col[bindparam.key])
+        Visitor().traverse(criterion)
+        return criterion
+    _with_lazy_criterion = classmethod(_with_lazy_criterion)
+    
+        
+    def query_from_parent(cls, instance, property, **kwargs):
+        """return a newly constructed Query object, with criterion corresponding to 
+        a relationship to the given parent instance.
+
+            instance
+                a persistent or detached instance which is related to class represented
+                by this query.
+
+            property
+                string name of the property which relates this query's class to the 
+                instance. 
+                
+            \**kwargs
+                all extra keyword arguments are propigated to the constructor of
+                Query.
+                
+        """
+        
+        mapper = object_mapper(instance)
+        prop = mapper.props[property]
+        target = prop.mapper
+        criterion = cls._with_lazy_criterion(instance, prop)
+        return Query(target, **kwargs).filter(criterion)
+    query_from_parent = classmethod(query_from_parent)
+        
+    def with_parent(self, instance, property=None):
+        """add a join criterion corresponding to a relationship to the given parent instance.
+
+            instance
+                a persistent or detached instance which is related to class represented
+                by this query.
+
+            property
+                string name of the property which relates this query's class to the 
+                instance.  if None, the method will attempt to find a suitable property.
+
+        currently, this method only works with immediate parent relationships, but in the
+        future may be enhanced to work across a chain of parent mappers.    
+        """
+
+        from sqlalchemy.orm import properties
+        mapper = object_mapper(instance)
+        if property is None:
+            for prop in mapper.props.values():
+                if isinstance(prop, properties.PropertyLoader) and prop.mapper is self.mapper:
+                    break
+            else:
+                raise exceptions.InvalidRequestError("Could not locate a property which relates instances of class '%s' to instances of class '%s'" % (self.mapper.class_.__name__, instance.__class__.__name__))
+        else:
+            prop = mapper.props[property]
+        return self.filter(Query._with_lazy_criterion(instance, prop))
 
     def add_entity(self, entity):
         """add a mapped entity to the list of result columns to be returned.
@@ -442,6 +530,8 @@ class Query(object):
             keys = []
             for key in prop:
                 p = mapper.props[key]
+                if p._is_self_referential():
+                    raise exceptions.InvalidRequestError("Self-referential query on '%s' property must be constructed manually using an Alias object for the related table." % (str(p)))
                 keys.append(key)
                 mapper = p.mapper
         else:
@@ -450,6 +540,8 @@ class Query(object):
         mapper = self._joinpoint
         for key in keys:
             prop = mapper.props[key]
+            if prop._is_self_referential():
+                raise exceptions.InvalidRequestError("Self-referential query on '%s' property must be constructed manually using an Alias object for the related table." % str(prop))
             if outerjoin:
                 if prop.secondary:
                     clause = clause.outerjoin(prop.secondary, prop.get_join(mapper, primary=True, secondary=False))
@@ -473,7 +565,8 @@ class Query(object):
         The criterion is constructed in the same way as the
         ``select_by()`` method.
         """
-
+        import properties
+        
         clause = None
         for arg in args:
             if clause is None:
@@ -483,7 +576,10 @@ class Query(object):
 
         for key, value in params.iteritems():
             (keys, prop) = self._locate_prop(key, start=start)
-            c = prop.compare(value) & self.join_via(keys)
+            if isinstance(prop, properties.PropertyLoader):
+                c = self._with_lazy_criterion(value, prop, True) & self.join_via(keys[:-1])
+            else:
+                c = prop.compare(value) & self.join_via(keys)
             if clause is None:
                 clause =  c
             else:
@@ -517,8 +613,43 @@ class Query(object):
                     return None
         p = search_for_prop(start or self.mapper)
         if p is None:
-            raise exceptions.InvalidRequestError("Cant locate property named '%s'" % key)
+            raise exceptions.InvalidRequestError("Can't locate property named '%s'" % key)
         return [keys, p]
+
+    def _generative_col_aggregate(self, col, func):
+        """apply the given aggregate function to the query and return the newly
+        resulting ``Query``.
+        """
+        if self._col is not None or self._func is not None:
+            raise exceptions.InvalidRequestError("Query already contains an aggregate column or function")
+        q = self._clone()
+        q._col = col
+        q._func = func
+        return q
+
+    def apply_min(self, col):
+        """apply the SQL ``min()`` function against the given column to the
+        query and return the newly resulting ``Query``.
+        """
+        return self._generative_col_aggregate(col, sql.func.min)
+
+    def apply_max(self, col):
+        """apply the SQL ``max()`` function against the given column to the
+        query and return the newly resulting ``Query``.
+        """
+        return self._generative_col_aggregate(col, sql.func.max)
+
+    def apply_sum(self, col):
+        """apply the SQL ``sum()`` function against the given column to the
+        query and return the newly resulting ``Query``.
+        """
+        return self._generative_col_aggregate(col, sql.func.sum)
+
+    def apply_avg(self, col):
+        """apply the SQL ``avg()`` function against the given column to the
+        query and return the newly resulting ``Query``.
+        """
+        return self._generative_col_aggregate(col, sql.func.avg)
 
     def _col_aggregate(self, col, func):
         """Execute ``func()`` function against the given column.
@@ -676,6 +807,12 @@ class Query(object):
         """
 
         return list(self)
+
+    def scalar(self):
+        if self._col is None or self._func is None: 
+            return self[0]
+        else:
+            return self._col_aggregate(self._col, self._func)
     
     def __iter__(self):
         return iter(self.select_whereclause())
@@ -774,17 +911,9 @@ class Query(object):
             ident = key[1]
         else:
             ident = util.to_list(ident)
-        i = 0
         params = {}
-        for primary_key in self.primary_key_columns:
+        for i, primary_key in enumerate(self.primary_key_columns):
             params[primary_key._label] = ident[i]
-            # if there are not enough elements in the given identifier, then
-            # use the previous identifier repeatedly.  this is a workaround for the issue
-            # in [ticket:185], where a mapper that uses joined table inheritance needs to specify
-            # all primary keys of the joined relationship, which includes even if the join is joining
-            # two primary key (and therefore synonymous) columns together, the usual case for joined table inheritance.
-            if len(ident) > i + 1:
-                i += 1
         try:
             statement = self.compile(self._get_clause, lockmode=lockmode)
             return self._select_statement(statement, params=params, populate_existing=reload, version_check=(lockmode is not None))[0]

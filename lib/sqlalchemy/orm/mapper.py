@@ -473,14 +473,12 @@ class Mapper(object):
         # local_table - the Selectable that was passed to this Mapper's constructor, if any
         # select_table - the Selectable that will be used during queries.  if this is specified
         # as a constructor keyword argument, it takes precendence over mapped_table, otherwise its mapped_table
-        # unjoined_table - our Selectable, minus any joins constructed against the inherits table.
         # this is either select_table if it was given explicitly, or in the case of a mapper that inherits
         # its local_table
         # tables - a collection of underlying Table objects pulled from mapped_table
 
         if self.select_table is None:
             self.select_table = self.mapped_table
-        self.unjoined_table = self.local_table
 
         # locate all tables contained within the "table" passed in, which
         # may be a join or other construct
@@ -670,10 +668,13 @@ class Mapper(object):
             if oldinit is not None:
                 try:
                     oldinit(self, *args, **kwargs)
-                except:
-                    if session is not None:
-                        session.expunge(self)
-                    raise
+                except Exception, e:
+                    try:
+                        if session is not None:
+                            session.expunge(self)
+                    except:
+                        pass # raise original exception instead
+                    raise e
         # override oldinit, insuring that its not already a Mapper-decorated init method
         if oldinit is None or not hasattr(oldinit, '_sa_mapper_init'):
             init._sa_mapper_init = True
@@ -725,12 +726,10 @@ class Mapper(object):
         To iterate through an entire hierarchy, use
         ``mapper.base_mapper().polymorphic_iterator()``."""
 
-        def iterate(m):
-            yield m
-            for mapper in m._inheriting_mappers:
-                for x in iterate(mapper):
-                    yield x
-        return iterate(self)
+        yield self
+        for mapper in self._inheriting_mappers:
+            for m in mapper.polymorphic_iterator():
+                yield m
 
     def _get_inherited_column_equivalents(self):
         """Return a map of all *equivalent* columns, based on
@@ -793,33 +792,24 @@ class Mapper(object):
             self._compile_all()
             self._compile_property(key, prop, init=True)
 
-    def _create_prop_from_column(self, column, skipmissing=False):
-        if sql.is_column(column):
-            try:
-                column = self.mapped_table.corresponding_column(column)
-            except KeyError:
-                if skipmissing:
-                    return
-                raise exceptions.ArgumentError("Column '%s' is not represented in mapper's table" % prop._label)
-            return ColumnProperty(column)
-        elif isinstance(column, list) and sql.is_column(column[0]):
-            try:
-                column = [self.mapped_table.corresponding_column(c) for c in column]
-            except KeyError, e:
-                # TODO: want to take the columns we have from this
-                if skipmissing:
-                    return
-                raise exceptions.ArgumentError("Column '%s' is not represented in mapper's table" % e.args[0])
-            return ColumnProperty(*column)
-        else:
+    def _create_prop_from_column(self, column):
+        column = util.to_list(column)
+        if not sql.is_column(column[0]):
             return None
+        mapped_column = []
+        for c in column:
+            mc = self.mapped_table.corresponding_column(c, raiseerr=False)
+            if not mc:
+                raise exceptions.ArgumentError("Column '%s' is not represented in mapper's table.  Use the `column_property()` function to force this column to be mapped as a read-only attribute." % str(c))
+            mapped_column.append(mc)
+        return ColumnProperty(*mapped_column)
 
     def _adapt_inherited_property(self, key, prop):
         if not self.concrete:
             self._compile_property(key, prop, init=False, setparent=False)
         # TODO: concrete properties dont adapt at all right now....will require copies of relations() etc.
 
-    def _compile_property(self, key, prop, init=True, skipmissing=False, setparent=True):
+    def _compile_property(self, key, prop, init=True, setparent=True):
         """Add a ``MapperProperty`` to this or another ``Mapper``,
         including configuration of the property.
 
@@ -834,7 +824,7 @@ class Mapper(object):
         self.__log("_compile_property(%s, %s)" % (key, prop.__class__.__name__))
 
         if not isinstance(prop, MapperProperty):
-            col = self._create_prop_from_column(prop, skipmissing=skipmissing)
+            col = self._create_prop_from_column(prop)
             if col is None:
                 raise exceptions.ArgumentError("%s=%r is not an instance of MapperProperty or Column" % (key, prop))
             prop = col
@@ -862,7 +852,7 @@ class Mapper(object):
             mapper._adapt_inherited_property(key, prop)
 
     def __str__(self):
-        return "Mapper|" + self.class_.__name__ + "|" + (self.entity_name is not None and "/%s" % self.entity_name or "") + (self.local_table and self.local_table.name or str(self.local_table)) + (not self._is_primary_mapper() and "|non-primary" or "")
+        return "Mapper|" + self.class_.__name__ + "|" + (self.entity_name is not None and "/%s" % self.entity_name or "") + (self.local_table and self.local_table.encodedname or str(self.local_table)) + (not self._is_primary_mapper() and "|non-primary" or "")
 
     def _is_primary_mapper(self):
         """Return True if this mapper is the primary mapper for its class key (class + entity_name)."""
@@ -1237,13 +1227,13 @@ class Mapper(object):
                     self.set_attr_by_column(obj, c, row[c])
         else:
             for c in table.c:
-                if c.primary_key or not params.has_key(c.name):
+                if c.primary_key or not c.key in params:
                     continue
                 v = self.get_attr_by_column(obj, c, False)
                 if v is NO_ATTRIBUTE:
                     continue
-                elif v != params.get_original(c.name):
-                    self.set_attr_by_column(obj, c, params.get_original(c.name))
+                elif v != params.get_original(c.key):
+                    self.set_attr_by_column(obj, c, params.get_original(c.key))
 
     def delete_obj(self, objects, uowtransaction):
         """Issue ``DELETE`` statements for a list of objects.
@@ -1257,42 +1247,55 @@ class Mapper(object):
 
         connection = uowtransaction.transaction.connection(self)
 
-        [self.extension.before_delete(self, connection, obj) for obj in objects]
+        for obj in objects:
+            for mapper in object_mapper(obj).iterate_to_root():
+                mapper.extension.before_delete(mapper, connection, obj)
+        
         deleted_objects = util.Set()
-        for table in self.tables.sort(reverse=True):
-            if not self._has_pks(table):
-                continue
+        table_to_mapper = {}
+        for mapper in self.base_mapper().polymorphic_iterator():
+            for t in mapper.tables:
+                table_to_mapper.setdefault(t, mapper)
+
+        for table in sqlutil.TableCollection(list(table_to_mapper.keys())).sort(reverse=True):
             delete = []
             for obj in objects:
+                mapper = object_mapper(obj)
+                if table not in mapper.tables or not mapper._has_pks(table):
+                    continue
+
                 params = {}
-                if not hasattr(obj, "_instance_key"):
+                if not hasattr(obj, '_instance_key'):
                     continue
                 else:
                     delete.append(params)
-                for col in self.pks_by_table[table]:
-                    params[col.key] = self.get_attr_by_column(obj, col)
-                if self.version_id_col is not None:
-                    params[self.version_id_col.key] = self.get_attr_by_column(obj, self.version_id_col)
+                for col in mapper.pks_by_table[table]:
+                    params[col.key] = mapper.get_attr_by_column(obj, col)
+                if mapper.version_id_col is not None:
+                    params[mapper.version_id_col.key] = mapper.get_attr_by_column(obj, mapper.version_id_col)
                 deleted_objects.add(obj)
             if len(delete):
+                mapper = table_to_mapper[table]
                 def comparator(a, b):
-                    for col in self.pks_by_table[table]:
+                    for col in mapper.pks_by_table[table]:
                         x = cmp(a[col.key],b[col.key])
                         if x != 0:
                             return x
                     return 0
                 delete.sort(comparator)
                 clause = sql.and_()
-                for col in self.pks_by_table[table]:
+                for col in mapper.pks_by_table[table]:
                     clause.clauses.append(col == sql.bindparam(col.key, type=col.type, unique=True))
-                if self.version_id_col is not None:
-                    clause.clauses.append(self.version_id_col == sql.bindparam(self.version_id_col.key, type=self.version_id_col.type, unique=True))
+                if mapper.version_id_col is not None:
+                    clause.clauses.append(mapper.version_id_col == sql.bindparam(mapper.version_id_col.key, type=mapper.version_id_col.type, unique=True))
                 statement = table.delete(clause)
                 c = connection.execute(statement, delete)
                 if c.supports_sane_rowcount() and c.rowcount != len(delete):
                     raise exceptions.ConcurrentModificationError("Updated rowcount %d does not match number of objects updated %d" % (c.cursor.rowcount, len(delete)))
 
-        [self.extension.after_delete(self, connection, obj) for obj in deleted_objects]
+        for obj in deleted_objects:
+            for mapper in object_mapper(obj).iterate_to_root():
+                mapper.extension.after_delete(mapper, connection, obj)
 
     def _has_pks(self, table):
         try:
@@ -1803,11 +1806,16 @@ def has_mapper(object):
 
     return hasattr(object, '_entity_name')
 
-def object_mapper(object, raiseerror=True):
+def object_mapper(object, entity_name=None, raiseerror=True):
     """Given an object, return the primary Mapper associated with the object instance.
     
         object
             The object instance.
+            
+        entity_name
+            Entity name of the mapper to retrieve, if the given instance is 
+            transient.  Otherwise uses the entity name already associated 
+            with the instance.
             
         raiseerror
             Defaults to True: raise an ``InvalidRequestError`` if no mapper can
@@ -1816,10 +1824,10 @@ def object_mapper(object, raiseerror=True):
     """
 
     try:
-        mapper = mapper_registry[ClassKey(object.__class__, getattr(object, '_entity_name', None))]
+        mapper = mapper_registry[ClassKey(object.__class__, getattr(object, '_entity_name', entity_name))]
     except (KeyError, AttributeError):
         if raiseerror:
-            raise exceptions.InvalidRequestError("Class '%s' entity name '%s' has no mapper associated with it" % (object.__class__.__name__, getattr(object, '_entity_name', None)))
+            raise exceptions.InvalidRequestError("Class '%s' entity name '%s' has no mapper associated with it" % (object.__class__.__name__, getattr(object, '_entity_name', entity_name)))
         else:
             return None
     return mapper.compile()

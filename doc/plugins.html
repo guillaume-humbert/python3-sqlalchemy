@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.6   Last Updated: 03/23/07 17:45:02</div>
+<div class="versionheader">Version: 0.3.7   Last Updated: 04/30/07 00:08:52</div>
 
 
 
@@ -139,7 +139,7 @@
     
     <A name="plugins"></a>
     
-    <div class="section">
+    <div class="sectionL1">
 
     
     
@@ -151,7 +151,7 @@
     
     <A name="plugins_sessioncontext"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>SessionContext</h3>
     
@@ -274,7 +274,7 @@
     
     <A name="plugins_sessioncontext_sessioncontextext"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Using SessionContextExt</h3>
     
@@ -376,12 +376,12 @@
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -389,7 +389,7 @@
     
     <A name="plugins_selectresults"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>SelectResults</h3>
     
@@ -474,7 +474,7 @@
     
     <A name="plugins_assignmapper"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>assignmapper</h3>
     
@@ -530,27 +530,11 @@
 <span class="python_comment"># delete it
 </span><span class="python_name">result</span><span class="python_operator">.</span><span class="python_name">delete</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
-<span class="python_comment"># commit the change
-</span><span class="python_name">result</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
-    </div>
-<p>It should be noted that the <code>flush()</code> method on the instance need not be called.  You're probably better off calling <code>flush()</code> on the actual session, so that all changes are properly written to the database simultaneously:
-</p>
-
-    
-
-    <div class="sliding_code">
-        <pre><span class="python_comment"># create a MyClass.
-</span><span class="python_name">mc </span><span class="python_operator">= </span><span class="python_name">MyClass</span><span class="python_enclosure">()</span><span class="python_operator">
-</span>
-<span class="python_comment"># load some MyClass objects
-</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">MyClass</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">==</span><span class="python_literal">'bar'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># delete one of them
-</span><span class="python_name">result</span><span class="python_enclosure">[</span><span class="python_number">1</span><span class="python_enclosure">]</span><span class="python_operator">.</span><span class="python_name">delete</span><span class="python_enclosure">()</span><span class="python_operator">
-</span>
 <span class="python_comment"># commit all changes
 </span><span class="python_name">ctx</span><span class="python_operator">.</span><span class="python_name">current</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre>
     </div>
+<p><strong>Note:</strong> : while the <code>flush()</code> method is also available on individual object instances, the instance-local flush() <strong>does not flush dependent objects</strong>.  For this reason this method may be removed in a future release and replaced with a more explicit version.
+</p>
 
 
 
@@ -562,7 +546,7 @@
     
     <A name="plugins_associationproxy"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>associationproxy</h3>
     
@@ -662,7 +646,7 @@
     
     <A name="plugins_threadlocal"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>threadlocal</h3>
     
@@ -773,13 +757,15 @@
     
     <A name="plugins_activemapper"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>ActiveMapper</h3>
     
     
 
 <p><strong>Author:</strong> Jonathan LaCour
+</p>
+<p>Please note that ActiveMapper has been deprecated in favor of <a href='http://elixir.ematia.de/'>Elixir</a>, a more comprehensive solution to declarative mapping, of which Jonathan is a co-author.
 </p>
 <p>ActiveMapper is a so-called "declarative layer" which allows the construction of a class, a <code>Table</code>, and a <code>Mapper</code> all in one step:
 </p>
@@ -846,7 +832,7 @@
     
     <A name="plugins_sqlsoup"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>SqlSoup</h3>
     
@@ -880,7 +866,7 @@
     
     <A name="plugins_proxyengine"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>ProxyEngine</h3>
     
@@ -903,12 +889,12 @@
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 

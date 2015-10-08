@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.6   Last Updated: 03/23/07 17:45:02</div>
+<div class="versionheader">Version: 0.3.7   Last Updated: 04/30/07 00:08:52</div>
 
 
 
@@ -98,7 +98,7 @@
     
     <A name="docstrings_sqlalchemy.orm.query"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>module sqlalchemy.orm.query</h3>
     
@@ -113,7 +113,7 @@
     
     <A name="docstrings_sqlalchemy.orm.query_Query"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class Query(object)</h3>
     
@@ -183,6 +183,54 @@ is disabled to maintain grouping.</p>
 <dd>a class or mapper which will be added to the results.</dd>
 </dl>
 </blockquote>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def apply_avg(<i>self</i>, <i>col</i>)</b>
+    <div class="docstring">
+    <p>apply the SQL <tt class="docutils literal"><span class="pre">avg()</span></tt> function against the given column to the
+query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def apply_max(<i>self</i>, <i>col</i>)</b>
+    <div class="docstring">
+    <p>apply the SQL <tt class="docutils literal"><span class="pre">max()</span></tt> function against the given column to the
+query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def apply_min(<i>self</i>, <i>col</i>)</b>
+    <div class="docstring">
+    <p>apply the SQL <tt class="docutils literal"><span class="pre">min()</span></tt> function against the given column to the
+query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def apply_sum(<i>self</i>, <i>col</i>)</b>
+    <div class="docstring">
+    <p>apply the SQL <tt class="docutils literal"><span class="pre">sum()</span></tt> function against the given column to the
+query and return the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
 
     </div>
     </div>
@@ -310,8 +358,9 @@ columns.</p>
     <A name=""></a>
     <b>def get_by(<i>self</i>, <i>*args</i>, <i>**params</i>)</b>
     <div class="docstring">
-    <p>Return a single object instance based on the given
-key/value criterion.</p>
+    <p>Like <tt class="docutils literal"><span class="pre">select_by()</span></tt>, but only return the first
+as a scalar, or None if no object found.
+Synonymous with <tt class="docutils literal"><span class="pre">selectfirst_by()</span></tt>.</p>
 <p>The criterion is constructed in the same way as the
 <tt class="docutils literal"><span class="pre">select_by()</span></tt> method.</p>
 
@@ -542,6 +591,41 @@ by direct traversal of each keyname (i.e. like join_via()).</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def query_from_parent(<i>cls</i>, <i>instance</i>, <i>property</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    <p>return a newly constructed Query object, with criterion corresponding to
+a relationship to the given parent instance.</p>
+<blockquote>
+<dl class="docutils">
+<dt>instance</dt>
+<dd>a persistent or detached instance which is related to class represented
+by this query.</dd>
+<dt>property</dt>
+<dd>string name of the property which relates this query's class to the
+instance.</dd>
+<dt>**kwargs</dt>
+<dd>all extra keyword arguments are propigated to the constructor of
+Query.</dd>
+</dl>
+</blockquote>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def scalar(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def select(<i>self</i>, <i>arg=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Select instances of the object from the database.</p>
@@ -646,8 +730,10 @@ execute and return the resulting instances.</p>
     <A name=""></a>
     <b>def selectfirst(<i>self</i>, <i>arg=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>Like <tt class="docutils literal"><span class="pre">select()</span></tt>, but only return the first result by
-itself, or None if no objects returned.</p>
+    <p>Query for a single instance using the given criterion.</p>
+<p>Arguments are the same as <tt class="docutils literal"><span class="pre">select()</span></tt>. In the case that
+the given criterion represents <tt class="docutils literal"><span class="pre">WHERE</span></tt> criterion only,
+LIMIT 1 is applied to the fully generated statement.</p>
 
     </div>
     </div>
@@ -658,9 +744,9 @@ itself, or None if no objects returned.</p>
     <A name=""></a>
     <b>def selectfirst_by(<i>self</i>, <i>*args</i>, <i>**params</i>)</b>
     <div class="docstring">
-    <p>Like <tt class="docutils literal"><span class="pre">select_by()</span></tt>, but only return the first result by
-itself, or None if no objects returned.  Synonymous with
-<tt class="docutils literal"><span class="pre">get_by()</span></tt>.</p>
+    <p>Like <tt class="docutils literal"><span class="pre">select_by()</span></tt>, but only return the first
+as a scalar, or None if no object found.
+Synonymous with <tt class="docutils literal"><span class="pre">get_by()</span></tt>.</p>
 <p>The criterion is constructed in the same way as the
 <tt class="docutils literal"><span class="pre">select_by()</span></tt> method.</p>
 
@@ -673,8 +759,11 @@ itself, or None if no objects returned.  Synonymous with
     <A name=""></a>
     <b>def selectone(<i>self</i>, <i>arg=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
-    <p>Like <tt class="docutils literal"><span class="pre">selectfirst()</span></tt>, but throw an error if not exactly
-one result was returned.</p>
+    <p>Query for a single instance using the given criterion.</p>
+<p>Unlike <tt class="docutils literal"><span class="pre">selectfirst</span></tt>, this method asserts that only one
+row exists.  In the case that the given criterion represents
+<tt class="docutils literal"><span class="pre">WHERE</span></tt> criterion only, LIMIT 2 is applied to the fully
+generated statement.</p>
 
     </div>
     </div>
@@ -733,6 +822,29 @@ exactly one result was returned.</p>
     </div>
     </div>
 
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def with_parent(<i>self</i>, <i>instance</i>, <i>property=None</i>)</b>
+    <div class="docstring">
+    <p>add a join criterion corresponding to a relationship to the given parent instance.</p>
+<blockquote>
+<dl class="docutils">
+<dt>instance</dt>
+<dd>a persistent or detached instance which is related to class represented
+by this query.</dd>
+<dt>property</dt>
+<dd>string name of the property which relates this query's class to the
+instance.  if None, the method will attempt to find a suitable property.</dd>
+</dl>
+</blockquote>
+<p>currently, this method only works with immediate parent relationships, but in the
+future may be enhanced to work across a chain of parent mappers.</p>
+
+    </div>
+    </div>
+
 
     
 
@@ -748,7 +860,7 @@ exactly one result was returned.</p>
     
     <A name="docstrings_sqlalchemy.orm.query_QueryContext"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class QueryContext(OperationContext)</h3>
     
@@ -809,7 +921,7 @@ statement.</p>
     
     <A name="docstrings_sqlalchemy.orm.query_SelectionContext"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class SelectionContext(OperationContext)</h3>
     
@@ -865,13 +977,13 @@ of this SelectionContext.</p>
 
     
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
     
 
-            <a href="#top">back to section top</a>
     </div>
 
 

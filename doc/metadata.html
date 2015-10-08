@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.6   Last Updated: 03/23/07 17:45:02</div>
+<div class="versionheader">Version: 0.3.7   Last Updated: 04/30/07 00:08:52</div>
 
 
 
@@ -223,7 +223,7 @@
     
     <A name="metadata"></a>
     
-    <div class="section">
+    <div class="sectionL1">
 
     
     
@@ -233,7 +233,7 @@
     
     <A name="metadata_tables"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Describing Databases with MetaData</h3>
     
@@ -370,7 +370,7 @@
     
     <A name="metadata_tables_binding"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Binding MetaData to an Engine</h3>
     
@@ -392,7 +392,7 @@
 <span class="python_comment"># create the Engine and MetaData in one step
 </span><span class="python_name">meta </span><span class="python_operator">= </span><span class="python_name">BoundMetaData</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://db/'</span><span class="python_operator">, **</span><span class="python_name">kwargs</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
-<p>Another form of <code>MetaData</code> exists which allows connecting to any number of engines, within the context of the current thread.  This is <code>DynamicMetaData</code>:
+<p>Another form of <code>MetaData</code> exits which can connect to an engine within the current thread (or "on a per-thread basis"), allowing other threads to be connected to different engines simultaneously:
 </p>
 
     
@@ -400,11 +400,13 @@
     <div class="sliding_code">
         <pre><span class="python_name">meta </span><span class="python_operator">= </span><span class="python_name">DynamicMetaData</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
-<span class="python_name">meta</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_enclosure">)    </span><span class="python_comment"># connect to an existing Engine</span><span class="python_operator">
+<span class="python_comment"># In thread 1, connect to an existing Engine    
+</span><span class="python_name">meta</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_name">meta</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_literal">'mysql://user@host/dsn'</span><span class="python_enclosure">)   </span><span class="python_comment"># create a new Engine and connect</span><span class="python_operator"></span></pre>
+<span class="python_comment"># Meanwhile in thread 2, create a new Engine and connect
+</span><span class="python_name">meta</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_literal">'mysq://user@host/dsn'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre>
     </div>
-<p><code>DynamicMetaData</code> is ideal for applications that need to use the same set of <code>Tables</code> for many different database connections in the same process, such as a CherryPy web application which handles multiple application instances in one process.
+<p><code>DynamicMetaData</code> is intended for applications that need to use the same set of <code>Tables</code> for many different database connections in the same process, such as a CherryPy web application which handles multiple application instances in one process.
 </p>
 
 
@@ -417,7 +419,7 @@
     
     <A name="metadata_tables_using"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Using the global Metadata object</h3>
     
@@ -457,7 +459,7 @@
     
     <A name="metadata_tables_reflecting"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Reflecting Tables</h3>
     
@@ -513,7 +515,7 @@
     
     <A name="metadata_tables_reflecting_overriding"></a>
     
-    <div class="subsection">
+    <div class="sectionL4">
 
     <h3>Overriding Reflected Columns</h3>
     
@@ -532,12 +534,12 @@
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -545,7 +547,7 @@
     
     <A name="metadata_tables_schema"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Specifying the Schema Name</h3>
     
@@ -576,7 +578,7 @@
     
     <A name="metadata_tables_onupdate"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>ON UPDATE and ON DELETE</h3>
     
@@ -606,7 +608,7 @@
     
     <A name="metadata_tables_quoting"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Enabling Table / Column Quoting</h3>
     
@@ -660,7 +662,7 @@
     
     <A name="metadata_tables_options"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Other Options</h3>
     
@@ -682,12 +684,12 @@
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -695,7 +697,7 @@
     
     <A name="metadata_creating"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Creating and Dropping Database Tables</h3>
     
@@ -788,7 +790,7 @@ CREATE TABLE user_prefs(<br/>
     
     <A name="metadata_defaults"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Column Defaults and OnUpdates</h3>
     
@@ -801,7 +803,7 @@ CREATE TABLE user_prefs(<br/>
     
     <A name="metadata_defaults_oninsert"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Pre-Executed Insert Defaults</h3>
     
@@ -863,7 +865,7 @@ CREATE TABLE user_prefs(<br/>
     
     <A name="metadata_defaults_onupdate"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Pre-Executed OnUpdate Defaults</h3>
     
@@ -901,7 +903,7 @@ CREATE TABLE user_prefs(<br/>
     
     <A name="metadata_defaults_passive"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Inline Default Execution: PassiveDefault</h3>
     
@@ -956,7 +958,7 @@ CREATE TABLE user_prefs(<br/>
     
     <A name="metadata_defaults_passive_postgres"></a>
     
-    <div class="subsection">
+    <div class="sectionL4">
 
     <h3>The Catch: Postgres Primary Key Defaults always Pre-Execute</h3>
     
@@ -966,12 +968,12 @@ CREATE TABLE user_prefs(<br/>
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -979,7 +981,7 @@ CREATE TABLE user_prefs(<br/>
     
     <A name="metadata_defaults_sequences"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Defining Sequences</h3>
     
@@ -1006,12 +1008,12 @@ CREATE TABLE user_prefs(<br/>
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -1019,7 +1021,7 @@ CREATE TABLE user_prefs(<br/>
     
     <A name="metadata_constraints"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Defining Constraints and Indexes</h3>
     
@@ -1030,7 +1032,7 @@ CREATE TABLE user_prefs(<br/>
     
     <A name="metadata_constraints_unique"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>UNIQUE Constraint</h3>
     
@@ -1066,7 +1068,7 @@ CREATE TABLE user_prefs(<br/>
     
     <A name="metadata_constraints_check"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>CHECK Constraint</h3>
     
@@ -1104,7 +1106,7 @@ CREATE TABLE user_prefs(<br/>
     
     <A name="metadata_constraints_indexes"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Indexes</h3>
     
@@ -1157,12 +1159,12 @@ CREATE TABLE user_prefs(<br/>
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -1170,7 +1172,7 @@ CREATE TABLE user_prefs(<br/>
     
     <A name="metadata_adapting"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Adapting Tables to Alternate Metadata</h3>
     
@@ -1196,12 +1198,12 @@ CREATE TABLE user_prefs(<br/>
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 

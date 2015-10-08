@@ -5,18 +5,13 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 
-import sys, StringIO, string, re
+import sys, StringIO, string, re, warnings
 
 from sqlalchemy import util, sql, engine, schema, ansisql, exceptions, logging
-import sqlalchemy.engine.default as default
+from sqlalchemy.engine import default, base
 import sqlalchemy.types as sqltypes
 
-try:
-    import cx_Oracle
-except:
-    cx_Oracle = None
 
-ORACLE_BINARY_TYPES = [getattr(cx_Oracle, k) for k in ["BFILE", "CLOB", "NCLOB", "BLOB", "LONG_BINARY", "LONG_STRING"] if hasattr(cx_Oracle, k)]
 
 class OracleNumeric(sqltypes.Numeric):
     def get_col_spec(self):
@@ -136,6 +131,7 @@ ischema_names = {
     'RAW' : OracleRaw,
     'FLOAT' : OracleNumeric,
     'DOUBLE PRECISION' : OracleNumeric,
+    'LONG' : OracleText,
 }
 
 def descriptor():
@@ -148,26 +144,37 @@ def descriptor():
     ]}
 
 class OracleExecutionContext(default.DefaultExecutionContext):
-    def pre_exec(self, engine, proxy, compiled, parameters):
-        super(OracleExecutionContext, self).pre_exec(engine, proxy, compiled, parameters)
+    def pre_exec(self):
+        super(OracleExecutionContext, self).pre_exec()
         if self.dialect.auto_setinputsizes:
-                self.set_input_sizes(proxy(), parameters)
+            self.set_input_sizes()
+
+    def get_result_proxy(self):
+        if self.cursor.description is not None:
+            for column in self.cursor.description:
+                type_code = column[1]
+                if type_code in self.dialect.ORACLE_BINARY_TYPES:
+                    return base.BufferedColumnResultProxy(self)
+        
+        return base.ResultProxy(self)
 
 class OracleDialect(ansisql.ANSIDialect):
-    def __init__(self, use_ansi=True, auto_setinputsizes=True, module=None, threaded=True, **kwargs):
+    def __init__(self, use_ansi=True, auto_setinputsizes=True, threaded=True, **kwargs):
+        ansisql.ANSIDialect.__init__(self, default_paramstyle='named', **kwargs)
         self.use_ansi = use_ansi
         self.threaded = threaded
-        if module is None:
-            self.module = cx_Oracle
-        else:
-            self.module = module
-        self.supports_timestamp = hasattr(self.module, 'TIMESTAMP' )
+        self.supports_timestamp = self.dbapi is None or hasattr(self.dbapi, 'TIMESTAMP' )
         self.auto_setinputsizes = auto_setinputsizes
-        ansisql.ANSIDialect.__init__(self, **kwargs)
+        if self.dbapi is not None:
+            self.ORACLE_BINARY_TYPES = [getattr(self.dbapi, k) for k in ["BFILE", "CLOB", "NCLOB", "BLOB", "LONG_BINARY", "LONG_STRING"] if hasattr(self.dbapi, k)]
+        else:
+            self.ORACLE_BINARY_TYPES = []
 
-    def dbapi(self):
-        return self.module
-
+    def dbapi(cls):
+        import cx_Oracle
+        return cx_Oracle
+    dbapi = classmethod(dbapi)
+    
     def create_connect_args(self, url):
         if url.database:
             # if we have a database, then we have a remote host
@@ -176,7 +183,7 @@ class OracleDialect(ansisql.ANSIDialect):
                 port = int(port)
             else:
                 port = 1521
-            dsn = self.module.makedsn(url.host,port,url.database)
+            dsn = self.dbapi.makedsn(url.host,port,url.database)
         else:
             # we have a local tnsname
             dsn = url.host
@@ -192,26 +199,33 @@ class OracleDialect(ansisql.ANSIDialect):
     def type_descriptor(self, typeobj):
         return sqltypes.adapt_type(typeobj, colspecs)
 
+    def supports_unicode_statements(self):
+        """indicate whether the DBAPI can receive SQL statements as Python unicode strings"""
+        return False
+
+    def max_identifier_length(self):
+        return 30
+        
     def oid_column_name(self, column):
         if not isinstance(column.table, sql.TableClause) and not isinstance(column.table, sql.Select):
             return None
         else:
             return "rowid"
 
-    def create_execution_context(self):
-        return OracleExecutionContext(self)
+    def create_execution_context(self, *args, **kwargs):
+        return OracleExecutionContext(self, *args, **kwargs)
 
     def compiler(self, statement, bindparams, **kwargs):
         return OracleCompiler(self, statement, bindparams, **kwargs)
 
     def schemagenerator(self, *args, **kwargs):
-        return OracleSchemaGenerator(*args, **kwargs)
+        return OracleSchemaGenerator(self, *args, **kwargs)
 
     def schemadropper(self, *args, **kwargs):
-        return OracleSchemaDropper(*args, **kwargs)
+        return OracleSchemaDropper(self, *args, **kwargs)
 
-    def defaultrunner(self, engine, proxy):
-        return OracleDefaultRunner(engine, proxy)
+    def defaultrunner(self, connection, **kwargs):
+        return OracleDefaultRunner(connection, **kwargs)
 
     def has_table(self, connection, table_name, schema=None):
         cursor = connection.execute("""select table_name from all_tables where table_name=:name""", {'name':table_name.upper()})
@@ -324,7 +338,7 @@ class OracleDialect(ansisql.ANSIDialect):
                 try:
                     coltype = ischema_names[coltype]
                 except KeyError:
-                    raise exceptions.AssertionError("Cant get coltype for type '%s' on colname '%s'" % (coltype, colname))
+                    raise exceptions.AssertionError("Can't get coltype for type '%s' on colname '%s'" % (coltype, colname))
 
             colargs = []
             if default is not None:
@@ -377,7 +391,7 @@ class OracleDialect(ansisql.ANSIDialect):
                    fks[cons_name] = fk
                 if remote_table is None:
                     # ticket 363
-                    self.logger.warn("Got 'None' querying 'table_name' from all_cons_columns%(dblink)s - does the user have proper rights to the table?" % {'dblink':dblink})
+                    warnings.warn("Got 'None' querying 'table_name' from all_cons_columns%(dblink)s - does the user have proper rights to the table?" % {'dblink':dblink})
                     continue
                 refspec = ".".join([remote_table, remote_column])
                 schema.Table(remote_table, table.metadata, autoload=True, autoload_with=connection, owner=remote_owner)
@@ -397,15 +411,6 @@ class OracleDialect(ansisql.ANSIDialect):
         if context is not None:
             context._rowcount = rowcount
 
-    def create_result_proxy_args(self, connection, cursor):
-        args = super(OracleDialect, self).create_result_proxy_args(connection, cursor)
-        if cursor and cursor.description:
-            for column in cursor.description:
-                type_code = column[1]
-                if type_code in ORACLE_BINARY_TYPES:
-                    args['should_prefetch'] = True
-                    break
-        return args
 
 OracleDialect.logger = logging.class_logger(OracleDialect)
 
@@ -415,6 +420,11 @@ class OracleCompiler(ansisql.ANSICompiler):
     the use_ansi flag is False.
     """
 
+    def __init__(self, *args, **kwargs):
+        super(OracleCompiler, self).__init__(*args, **kwargs)
+        # we have to modify SELECT objects a little bit, so store state here
+        self._select_state = {}
+        
     def default_from(self):
         """Called when a ``SELECT`` statement has no froms, and no ``FROM`` clause is to be appended.
 
@@ -520,7 +530,7 @@ class OracleCompiler(ansisql.ANSICompiler):
 
         # TODO: put a real copy-container on Select and copy, or somehow make this
         # not modify the Select statement
-        if getattr(select, '_oracle_visit', False):
+        if self._select_state.get((select, 'visit'), False):
             # cancel out the compiled order_by on the select
             if hasattr(select, "order_by_clause"):
                 self.strings[select.order_by_clause] = ""
@@ -528,14 +538,16 @@ class OracleCompiler(ansisql.ANSICompiler):
             return
 
         if select.limit is not None or select.offset is not None:
-            select._oracle_visit = True
+            self._select_state[(select, 'visit')] = True
             # to use ROW_NUMBER(), an ORDER BY is required.
             orderby = self.strings[select.order_by_clause]
             if not orderby:
                 orderby = select.oid_column
                 self.traverse(orderby)
                 orderby = self.strings[orderby]
-            select.append_column(sql.literal_column("ROW_NUMBER() OVER (ORDER BY %s)" % orderby).label("ora_rn"))
+            if not hasattr(select, '_oracle_visit'):
+                select.append_column(sql.literal_column("ROW_NUMBER() OVER (ORDER BY %s)" % orderby).label("ora_rn"))
+                select._oracle_visit = True
             limitselect = sql.select([c for c in select.c if c.key!='ora_rn'])
             if select.offset is not None:
                 limitselect.append_whereclause("ora_rn>%d" % select.offset)
@@ -561,7 +573,7 @@ class OracleCompiler(ansisql.ANSICompiler):
 class OracleSchemaGenerator(ansisql.ANSISchemaGenerator):
     def get_column_specification(self, column, **kwargs):
         colspec = self.preparer.format_column(column)
-        colspec += " " + column.type.engine_impl(self.engine).get_col_spec()
+        colspec += " " + column.type.dialect_impl(self.dialect).get_col_spec()
         default = self.get_column_default_string(column)
         if default is not None:
             colspec += " DEFAULT " + default
@@ -571,22 +583,22 @@ class OracleSchemaGenerator(ansisql.ANSISchemaGenerator):
         return colspec
 
     def visit_sequence(self, sequence):
-        if not self.engine.dialect.has_sequence(self.connection, sequence.name):
+        if not self.dialect.has_sequence(self.connection, sequence.name):
             self.append("CREATE SEQUENCE %s" % self.preparer.format_sequence(sequence))
             self.execute()
 
 class OracleSchemaDropper(ansisql.ANSISchemaDropper):
     def visit_sequence(self, sequence):
-        if self.engine.dialect.has_sequence(self.connection, sequence.name):
+        if self.dialect.has_sequence(self.connection, sequence.name):
             self.append("DROP SEQUENCE %s" % sequence.name)
             self.execute()
 
 class OracleDefaultRunner(ansisql.ANSIDefaultRunner):
     def exec_default_sql(self, default):
-        c = sql.select([default.arg], from_obj=["DUAL"], engine=self.engine).compile()
-        return self.proxy(str(c), c.get_params()).fetchone()[0]
+        c = sql.select([default.arg], from_obj=["DUAL"]).compile(engine=self.connection)
+        return self.connection.execute_compiled(c).scalar()
 
     def visit_sequence(self, seq):
-        return self.proxy("SELECT " + seq.name + ".nextval FROM DUAL").fetchone()[0]
+        return self.connection.execute_text("SELECT " + seq.name + ".nextval FROM DUAL").scalar()
 
 dialect = OracleDialect

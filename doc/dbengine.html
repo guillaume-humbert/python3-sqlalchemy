@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.6   Last Updated: 03/23/07 17:45:02</div>
+<div class="versionheader">Version: 0.3.7   Last Updated: 04/30/07 00:08:52</div>
 
 
 
@@ -139,7 +139,7 @@
     
     <A name="dbengine"></a>
     
-    <div class="section">
+    <div class="sectionL1">
 
     
     
@@ -195,13 +195,13 @@
     
     <A name="dbengine_supported"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Supported Databases</h3>
     
     
 
-<p>Engines exist for SQLite, Postgres, MySQL, and Oracle, using the Pysqlite, Psycopg2 (Psycopg1 will work to a limited degree, but it is <strong>not supported</strong>), MySQLDB, and cx_Oracle modules.  There is also preliminary support for MS-SQL using adodbapi or pymssql, as well as Firebird.   For each engine, a distinct Python module exists in the <code>sqlalchemy.databases</code> package, which provides implementations of some of the objects mentioned in the previous section.
+<p>Engines exist for SQLite, Postgres, MySQL, and Oracle, using the Pysqlite, Psycopg2 (Psycopg1 will work to a limited degree, but it is <strong>not supported</strong>), MySQLDB, and cx_Oracle modules.  There is also preliminary support for MS-SQL using pyodbc, adodbapi or pymssql, Firebird with kinterbasdb, and Informix with informixdb.   For each engine, a distinct Python module exists in the <code>sqlalchemy.databases</code> package, which provides implementations of some of the objects mentioned in the previous section.
 </p>
 <p>Downloads for each DBAPI at the time of this writing are as follows:
 </p>
@@ -229,6 +229,10 @@
  <li>
      Firebird:  <a href='http://kinterbasdb.sourceforge.net/'>kinterbasdb</a>
  </li>
+
+ <li>
+     Informix:  <a href='http://informixdb.sourceforge.net/'>informixdb</a>
+ </li>
 </ul>
 <p>The SQLAlchemy Wiki contains a page of database notes, describing whatever quirks and behaviors have been observed.  Its a good place to check for issues with specific databases.  <a href='http://www.sqlalchemy.org/trac/wiki/DatabaseNotes'>Database Notes</a>
 </p>
@@ -243,7 +247,7 @@
     
     <A name="dbengine_establishing"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Establishing a Database Engine</h3>
     
@@ -282,7 +286,7 @@
     
     <A name="dbengine_establishing_custom"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Custom DBAPI keyword arguments</h3>
     
@@ -320,12 +324,12 @@
 
 
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
 
-            <a href="#top">back to section top</a>
     </div>
 
 
@@ -333,7 +337,7 @@
     
     <A name="dbengine_options"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Database Engine Options</h3>
     
@@ -429,7 +433,7 @@
     
     <A name="dbengine_logging"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Configuring Logging</h3>
     
@@ -500,7 +504,7 @@
     
     <A name="dbengine_connections"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Using Connections</h3>
     
@@ -579,7 +583,7 @@
     
     <A name="dbengine_transactions"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Transactions</h3>
     
@@ -654,7 +658,7 @@
     
     <A name="dbengine_implicit"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>Implicit Execution</h3>
     
@@ -694,7 +698,7 @@
     
     <A name="dbengine_implicit_strategies"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>Implicit Execution Strategies</h3>
     
@@ -821,17 +825,17 @@
 
 
 
-    </div>
-
-
-
-
-    </div>
-
-
-
-
             <a href="#top">back to section top</a>
+    </div>
+
+
+
+
+    </div>
+
+
+
+
     </div>
 
 

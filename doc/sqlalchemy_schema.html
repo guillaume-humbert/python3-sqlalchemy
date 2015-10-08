@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.6   Last Updated: 03/23/07 17:45:02</div>
+<div class="versionheader">Version: 0.3.7   Last Updated: 04/30/07 00:08:52</div>
 
 
 
@@ -203,7 +203,7 @@
     
     <A name="docstrings_sqlalchemy.schema"></a>
     
-    <div class="subsection">
+    <div class="sectionL2">
 
     <h3>module sqlalchemy.schema</h3>
     
@@ -228,7 +228,7 @@ objects as well as the visitor interface, so that the schema package
     
     <A name="docstrings_sqlalchemy.schema_BoundMetaData"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class BoundMetaData(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_MetaData">MetaData</a>)</h3>
     
@@ -262,7 +262,7 @@ objects as well as the visitor interface, so that the schema package
     
     <A name="docstrings_sqlalchemy.schema_CheckConstraint"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class CheckConstraint(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Constraint">Constraint</a>)</h3>
     
@@ -314,9 +314,9 @@ objects as well as the visitor interface, so that the schema package
     
     <A name="docstrings_sqlalchemy.schema_Column"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
-    <h3>class Column(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">SchemaItem</a>,_ColumnClause)</h3>
+    <h3>class Column(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">SchemaItem</a>,<a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql__ColumnClause">_ColumnClause</a>)</h3>
     
     
     <div class="darkcell"><p>Represent a column in a database table.</p>
@@ -463,6 +463,16 @@ identifier contains mixed case.</dd>
     </div>
 
                     
+         <div class="darkcell">
+         <A name=""></a>
+         <b>foreign_keys = property()</b>
+         <div class="docstring">
+         <p>A <em>default</em> property accessor.</p>
+
+         </div> 
+         </div>
+
+                    
     <div class="darkcell">
     
     <A name=""></a>
@@ -471,6 +481,16 @@ identifier contains mixed case.</dd>
     
     </div>
     </div>
+
+                    
+         <div class="darkcell">
+         <A name=""></a>
+         <b>primary_key = property()</b>
+         <div class="docstring">
+         <p>A <em>default</em> property accessor.</p>
+
+         </div> 
+         </div>
 
 
     
@@ -487,7 +507,7 @@ identifier contains mixed case.</dd>
     
     <A name="docstrings_sqlalchemy.schema_ColumnDefault"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class ColumnDefault(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_DefaultGenerator">DefaultGenerator</a>)</h3>
     
@@ -534,7 +554,7 @@ clause.</p>
     
     <A name="docstrings_sqlalchemy.schema_Constraint"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class Constraint(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">SchemaItem</a>)</h3>
     
@@ -590,7 +610,7 @@ list of underying columns.</p>
     
     <A name="docstrings_sqlalchemy.schema_DefaultGenerator"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class DefaultGenerator(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">SchemaItem</a>)</h3>
     
@@ -634,7 +654,7 @@ list of underying columns.</p>
     
     <A name="docstrings_sqlalchemy.schema_DynamicMetaData"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class DynamicMetaData(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_MetaData">MetaData</a>)</h3>
     
@@ -710,7 +730,7 @@ thread-local basis.</p>
     
     <A name="docstrings_sqlalchemy.schema_ForeignKey"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class ForeignKey(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">SchemaItem</a>)</h3>
     
@@ -801,7 +821,7 @@ created and added to the parent table.</dd>
     
     <A name="docstrings_sqlalchemy.schema_ForeignKeyConstraint"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class ForeignKeyConstraint(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Constraint">Constraint</a>)</h3>
     
@@ -865,7 +885,7 @@ created and added to the parent table.</dd>
     
     <A name="docstrings_sqlalchemy.schema_Index"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class Index(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">SchemaItem</a>)</h3>
     
@@ -955,7 +975,7 @@ the same table, and no column may appear more than once.</dd>
     
     <A name="docstrings_sqlalchemy.schema_MetaData"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class MetaData(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">SchemaItem</a>)</h3>
     
@@ -1104,7 +1124,7 @@ tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt
     
     <A name="docstrings_sqlalchemy.schema_PassiveDefault"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class PassiveDefault(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_DefaultGenerator">DefaultGenerator</a>)</h3>
     
@@ -1148,7 +1168,7 @@ tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt
     
     <A name="docstrings_sqlalchemy.schema_PrimaryKeyConstraint"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class PrimaryKeyConstraint(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Constraint">Constraint</a>)</h3>
     
@@ -1230,7 +1250,7 @@ tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt
     
     <A name="docstrings_sqlalchemy.schema_SchemaItem"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class SchemaItem(object)</h3>
     
@@ -1303,7 +1323,7 @@ tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt
     
     <A name="docstrings_sqlalchemy.schema_SchemaVisitor"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class SchemaVisitor(<a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_ClauseVisitor">ClauseVisitor</a>)</h3>
     
@@ -1481,7 +1501,7 @@ tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt
     
     <A name="docstrings_sqlalchemy.schema_Sequence"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class Sequence(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_DefaultGenerator">DefaultGenerator</a>)</h3>
     
@@ -1546,7 +1566,7 @@ tables in the <tt class="docutils literal"><span class="pre">MetaData</span></tt
     
     <A name="docstrings_sqlalchemy.schema_Table"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class Table(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_SchemaItem">SchemaItem</a>,<a href="sqlalchemy_sql.html#docstrings_sqlalchemy.sql_TableClause">TableClause</a>)</h3>
     
@@ -1750,7 +1770,7 @@ identifier contains mixed case.</dd>
     
     <A name="docstrings_sqlalchemy.schema_UniqueConstraint"></a>
     
-    <div class="subsection">
+    <div class="sectionL3">
 
     <h3>class UniqueConstraint(<a href="sqlalchemy_schema.html#docstrings_sqlalchemy.schema_Constraint">Constraint</a>)</h3>
     
@@ -1800,13 +1820,13 @@ identifier contains mixed case.</dd>
 
     
 
+            <a href="#top">back to section top</a>
     </div>
 
 
 
     
 
-            <a href="#top">back to section top</a>
     </div>
 
 

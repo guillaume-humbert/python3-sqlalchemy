@@ -10,14 +10,9 @@ from sqlalchemy import sql,engine,schema,ansisql
 from sqlalchemy.engine import default
 import sqlalchemy.types as sqltypes
 import sqlalchemy.exceptions as exceptions
+import sqlalchemy.util as util
 from array import array
 
-try:
-    import MySQLdb as mysql
-    import MySQLdb.constants.CLIENT as CLIENT_FLAGS
-except:
-    mysql = None
-    CLIENT_FLAGS = None
 
 def kw_colspec(self, spec):
     if self.unsigned:
@@ -158,8 +153,6 @@ class MSLongText(MSText):
             return "LONGTEXT"
 
 class MSString(sqltypes.String):
-    def __init__(self, length=None, *extra, **kwargs):
-        sqltypes.String.__init__(self, length=length)
     def get_col_spec(self):
         return "VARCHAR(%(length)s)" % {'length' : self.length}
 
@@ -277,42 +270,53 @@ def descriptor():
     ]}
 
 class MySQLExecutionContext(default.DefaultExecutionContext):
-    def post_exec(self, engine, proxy, compiled, parameters, **kwargs):
-        if getattr(compiled, "isinsert", False):
-            self._last_inserted_ids = [proxy().lastrowid]
+    def post_exec(self):
+        if self.compiled.isinsert:
+            self._last_inserted_ids = [self.cursor.lastrowid]
 
 class MySQLDialect(ansisql.ANSIDialect):
-    def __init__(self, module = None, **kwargs):
-        if module is None:
-            self.module = mysql
-        else:
-            self.module = module
+    def __init__(self, **kwargs):
         ansisql.ANSIDialect.__init__(self, default_paramstyle='format', **kwargs)
 
+    def dbapi(cls):
+        import MySQLdb as mysql
+        return mysql
+    dbapi = classmethod(dbapi)
+    
     def create_connect_args(self, url):
         opts = url.translate_connect_args(['host', 'db', 'user', 'passwd', 'port'])
         opts.update(url.query)
-        def coercetype(param, type):
-            if param in opts and type(param) is not type:
-                if type is bool:
-                    opts[param] = bool(int(opts[param]))
-                else:
-                    opts[param] = type(opts[param])
-        coercetype('compress', bool)
-        coercetype('connect_timeout', int)
-        coercetype('use_unicode', bool)   # this could break SA Unicode type
-        coercetype('charset', str)        # this could break SA Unicode type
-        # TODO: what about options like "ssl", "cursorclass" and "conv" ?
 
+        util.coerce_kw_type(opts, 'compress', bool)
+        util.coerce_kw_type(opts, 'connect_timeout', int)
+        util.coerce_kw_type(opts, 'client_flag', int)
+        # note: these two could break SA Unicode type
+        util.coerce_kw_type(opts, 'use_unicode', bool)   
+        util.coerce_kw_type(opts, 'charset', str)
+        
+        # ssl
+        ssl = {}
+        for key in ['ssl_ca', 'ssl_key', 'ssl_cert', 'ssl_capath', 'ssl_cipher']:
+            if key in opts:
+                ssl[key[4:]] = opts[key]
+                util.coerce_kw_type(ssl, key[4:], str)
+                del opts[key]
+        if len(ssl):
+            opts['ssl'] = ssl
+
+        # TODO: what about options like "cursorclass" and "conv" ?
         client_flag = opts.get('client_flag', 0)
-        if CLIENT_FLAGS is not None:
-            client_flag |= CLIENT_FLAGS.FOUND_ROWS
-        opts['client_flag'] = client_flag
-
+        if self.dbapi is not None:
+            try:
+                import MySQLdb.constants.CLIENT as CLIENT_FLAGS
+                client_flag |= CLIENT_FLAGS.FOUND_ROWS
+            except:
+                pass
+            opts['client_flag'] = client_flag
         return [[], opts]
 
-    def create_execution_context(self):
-        return MySQLExecutionContext(self)
+    def create_execution_context(self, *args, **kwargs):
+        return MySQLExecutionContext(self, *args, **kwargs)
 
     def type_descriptor(self, typeobj):
         return sqltypes.adapt_type(typeobj, colspecs)
@@ -324,30 +328,24 @@ class MySQLDialect(ansisql.ANSIDialect):
         return MySQLCompiler(self, statement, bindparams, **kwargs)
 
     def schemagenerator(self, *args, **kwargs):
-        return MySQLSchemaGenerator(*args, **kwargs)
+        return MySQLSchemaGenerator(self, *args, **kwargs)
 
     def schemadropper(self, *args, **kwargs):
-        return MySQLSchemaDropper(*args, **kwargs)
+        return MySQLSchemaDropper(self, *args, **kwargs)
 
     def preparer(self):
         return MySQLIdentifierPreparer(self)
 
     def do_executemany(self, cursor, statement, parameters, context=None, **kwargs):
-        try:
-            rowcount = cursor.executemany(statement, parameters)
-            if context is not None:
-                context._rowcount = rowcount
-        except mysql.OperationalError, o:
-            if o.args[0] == 2006 or o.args[0] == 2014:
-                cursor.invalidate()
-            raise o
+        rowcount = cursor.executemany(statement, parameters)
+        if context is not None:
+            context._rowcount = rowcount
+    
+    def supports_unicode_statements(self):
+        return True
+                
     def do_execute(self, cursor, statement, parameters, **kwargs):
-        try:
-            cursor.execute(statement, parameters)
-        except mysql.OperationalError, o:
-            if o.args[0] == 2006 or o.args[0] == 2014:
-                cursor.invalidate()
-            raise o
+        cursor.execute(statement, parameters)
 
     def do_rollback(self, connection):
         # MySQL without InnoDB doesnt support rollback()
@@ -356,17 +354,34 @@ class MySQLDialect(ansisql.ANSIDialect):
         except:
             pass
 
+    def is_disconnect(self, e):
+        return isinstance(e, self.dbapi.OperationalError) and e.args[0] in (2006, 2014)
+
     def get_default_schema_name(self):
         if not hasattr(self, '_default_schema_name'):
             self._default_schema_name = text("select database()", self).scalar()
         return self._default_schema_name
 
-    def dbapi(self):
-        return self.module
-
     def has_table(self, connection, table_name, schema=None):
-        cursor = connection.execute("show table status like '" + table_name + "'")
-        return bool( not not cursor.rowcount )
+        # TODO: this does not work for table names that contain multibyte characters.
+
+        # http://dev.mysql.com/doc/refman/5.0/en/error-messages-server.html
+
+        # Error: 1146 SQLSTATE: 42S02 (ER_NO_SUCH_TABLE)
+        # Message: Table '%s.%s' doesn't exist
+
+        # Error: 1046 SQLSTATE: 3D000 (ER_NO_DB_ERROR)
+        # Message: No database selected
+
+        try:
+            name = schema and ("%s.%s" % (schema, table_name)) or table_name
+            connection.execute("DESCRIBE `%s`" % name)
+            return True
+        except exceptions.SQLError, e:
+            if e.orig.args[0] in (1146, 1046): 
+                return False
+            else:
+                raise
 
     def reflecttable(self, connection, table):
         # reference:  http://dev.mysql.com/doc/refman/5.0/en/name-case-sensitivity.html
@@ -374,6 +389,8 @@ class MySQLDialect(ansisql.ANSIDialect):
         if isinstance(cs, array):
             cs = cs.tostring()
         case_sensitive = int(cs) == 0
+
+        decode_from = connection.execute("show variables like 'character_set_results'").fetchone()[1]
 
         if not case_sensitive:
             table.name = table.name.lower()
@@ -392,7 +409,9 @@ class MySQLDialect(ansisql.ANSIDialect):
                 found_table = True
 
             # these can come back as unicode if use_unicode=1 in the mysql connection
-            (name, type, nullable, primary_key, default) = (str(row[0]), str(row[1]), row[2] == 'YES', row[3] == 'PRI', row[4])
+            (name, type, nullable, primary_key, default) = (row[0], str(row[1]), row[2] == 'YES', row[3] == 'PRI', row[4])
+            if not isinstance(name, unicode):
+                name = name.decode(decode_from)
 
             match = re.match(r'(\w+)(\(.*?\))?\s*(\w+)?\s*(\w+)?', type)
             col_type = match.group(1)
@@ -438,10 +457,7 @@ class MySQLDialect(ansisql.ANSIDialect):
         c = connection.execute("SHOW CREATE TABLE " + table.fullname, {})
         desc_fetched = c.fetchone()[1]
 
-        # this can come back as unicode if use_unicode=1 in the mysql connection
-        if type(desc_fetched) is unicode:
-            desc_fetched = str(desc_fetched)
-        elif type(desc_fetched) is not str:
+        if not isinstance(desc_fetched, basestring):
             # may get array.array object here, depending on version (such as mysql 4.1.14 vs. 4.1.11)
             desc_fetched = desc_fetched.tostring()
         desc = desc_fetched.strip()
@@ -492,8 +508,7 @@ class MySQLCompiler(ansisql.ANSICompiler):
 
 class MySQLSchemaGenerator(ansisql.ANSISchemaGenerator):
     def get_column_specification(self, column, override_pk=False, first_pk=False):
-        t = column.type.engine_impl(self.engine)
-        colspec = self.preparer.format_column(column) + " " + column.type.engine_impl(self.engine).get_col_spec()
+        colspec = self.preparer.format_column(column) + " " + column.type.dialect_impl(self.dialect).get_col_spec()
         default = self.get_column_default_string(column)
         if default is not None:
             colspec += " DEFAULT " + default

@@ -41,17 +41,26 @@ class DefaultEngineStrategy(EngineStrategy):
         # create url.URL object
         u = url.make_url(name_or_url)
 
-        # get module from sqlalchemy.databases
-        module = u.get_module()
+        dialect_cls = u.get_dialect()
 
         dialect_args = {}
         # consume dialect arguments from kwargs
-        for k in util.get_cls_kwargs(module.dialect):
+        for k in util.get_cls_kwargs(dialect_cls):
             if k in kwargs:
                 dialect_args[k] = kwargs.pop(k)
 
+        dbapi = kwargs.pop('module', None)
+        if dbapi is None:
+            dbapi_args = {}
+            for k in util.get_func_kwargs(dialect_cls.dbapi):
+                if k in kwargs:
+                    dbapi_args[k] = kwargs.pop(k)
+            dbapi = dialect_cls.dbapi(**dbapi_args)
+        
+        dialect_args['dbapi'] = dbapi
+        
         # create dialect
-        dialect = module.dialect(**dialect_args)
+        dialect = dialect_cls(**dialect_args)
 
         # assemble connection arguments
         (cargs, cparams) = dialect.create_connect_args(u)
@@ -60,10 +69,6 @@ class DefaultEngineStrategy(EngineStrategy):
         # look for existing pool or create
         pool = kwargs.pop('pool', None)
         if pool is None:
-            dbapi = kwargs.pop('module', dialect.dbapi())
-            if dbapi is None:
-                raise exceptions.InvalidRequestError("Cant get DBAPI module for dialect '%s'" % dialect)
-
             def connect():
                 try:
                     return dbapi.connect(*cargs, **cparams)
@@ -71,8 +76,9 @@ class DefaultEngineStrategy(EngineStrategy):
                     raise exceptions.DBAPIError("Connection failed", e)
             creator = kwargs.pop('creator', connect)
 
-            poolclass = kwargs.pop('poolclass', getattr(module, 'poolclass', poollib.QueuePool))
+            poolclass = kwargs.pop('poolclass', getattr(dialect_cls, 'poolclass', poollib.QueuePool))
             pool_args = {}
+
             # consume pool arguments from kwargs, translating a few of the arguments
             for k in util.get_cls_kwargs(poolclass):
                 tk = {'echo':'echo_pool', 'timeout':'pool_timeout', 'recycle':'pool_recycle'}.get(k, k)
@@ -86,7 +92,7 @@ class DefaultEngineStrategy(EngineStrategy):
             else:
                 pool = pool
 
-        provider = self.get_pool_provider(pool)
+        provider = self.get_pool_provider(u, pool)
 
         # create engine.
         engineclass = self.get_engine_cls()
@@ -104,7 +110,7 @@ class DefaultEngineStrategy(EngineStrategy):
     def pool_threadlocal(self):
         raise NotImplementedError()
 
-    def get_pool_provider(self, pool):
+    def get_pool_provider(self, url, pool):
         raise NotImplementedError()
 
     def get_engine_cls(self):
@@ -117,8 +123,8 @@ class PlainEngineStrategy(DefaultEngineStrategy):
     def pool_threadlocal(self):
         return False
 
-    def get_pool_provider(self, pool):
-        return default.PoolConnectionProvider(pool)
+    def get_pool_provider(self, url, pool):
+        return default.PoolConnectionProvider(url, pool)
 
     def get_engine_cls(self):
         return base.Engine
@@ -132,10 +138,61 @@ class ThreadLocalEngineStrategy(DefaultEngineStrategy):
     def pool_threadlocal(self):
         return True
 
-    def get_pool_provider(self, pool):
-        return threadlocal.TLocalConnectionProvider(pool)
+    def get_pool_provider(self, url, pool):
+        return threadlocal.TLocalConnectionProvider(url, pool)
 
     def get_engine_cls(self):
         return threadlocal.TLEngine
 
 ThreadLocalEngineStrategy()
+
+
+class MockEngineStrategy(EngineStrategy):
+    """Produces a single Connection object which dispatches statement executions
+    to a passed-in function"""
+    def __init__(self):
+        EngineStrategy.__init__(self, 'mock')
+        
+    def create(self, name_or_url, executor, **kwargs):
+        # create url.URL object
+        u = url.make_url(name_or_url)
+
+        dialect_cls = u.get_dialect()
+
+        dialect_args = {}
+        # consume dialect arguments from kwargs
+        for k in util.get_cls_kwargs(dialect_cls):
+            if k in kwargs:
+                dialect_args[k] = kwargs.pop(k)
+
+        # create dialect
+        dialect = dialect_cls(**dialect_args)
+
+        return MockEngineStrategy.MockConnection(dialect, executor)
+
+    class MockConnection(base.Connectable):
+        def __init__(self, dialect, execute):
+            self._dialect = dialect
+            self.execute = execute
+
+        engine = property(lambda s: s)
+        dialect = property(lambda s:s._dialect)
+        
+        def contextual_connect(self, **kwargs):
+            return self
+
+        def compiler(self, statement, parameters, **kwargs):
+            return self._dialect.compiler(statement, parameters, engine=self, **kwargs)
+
+        def create(self, entity, **kwargs):
+            kwargs['checkfirst'] = False
+            entity.accept_visitor(self.dialect.schemagenerator(self, **kwargs))
+
+        def drop(self, entity, **kwargs):
+            kwargs['checkfirst'] = False
+            entity.accept_visitor(self.dialect.schemadropper(self, **kwargs))
+
+        def execute(self, object, *multiparams, **params):
+            raise NotImplementedError()
+
+MockEngineStrategy()
