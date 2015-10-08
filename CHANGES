@@ -1,15 +1,63 @@
 =======
 CHANGES
 =======
+
+0.4.2b
+------
+- sql
+    - changed name of TEXT to Text since its a "generic" type; TEXT name is
+      deprecated until 0.5.  The "upgrading" behavior of String to Text 
+      when no length is present is also deprecated until 0.5; will issue a
+      warning when used for CREATE TABLE statements (String with no length
+      for SQL expression purposes is still fine) [ticket:912]
+    
+    - generative select.order_by(None) / group_by(None) was not managing to 
+      reset order by/group by criterion, fixed [ticket:924]
+      
+- orm
+    - suppressing *all* errors in InstanceState.__cleanup() now.  
+
+    - fixed an attribute history bug whereby assigning a new collection
+      to a collection-based attribute which already had pending changes
+      would generate incorrect history [ticket:922]
+      
+    - fixed delete-orphan cascade bug whereby setting the same
+      object twice to a scalar attribute could log it as an orphan
+      [ticket:925]
+      
+    - Fixed cascades on a += assignment to a list-based relation.
+    
+    - synonyms can now be created against props that don't exist yet,
+      which are later added via add_property().  This commonly includes
+      backrefs. (i.e. you can make synonyms for backrefs without
+      worrying about the order of operations) [ticket:919]
+
+    - fixed bug which could occur with polymorphic "union" mapper
+      which falls back to "deferred" loading of inheriting tables
+      
+    - the "columns" collection on a mapper/mapped class (i.e. 'c')
+      is against the mapped table, not the select_table in the 
+      case of polymorphic "union" loading (this shouldn't be 
+      noticeable).
+      
+- ext
+    - '+', '*', '+=' and '*=' support for association proxied lists.
+
+- dialects
+    - mssql - narrowed down the test for "date"/"datetime" in MSDate/
+      MSDateTime subclasses so that incoming "datetime" objects don't
+      get mis-interpreted as "date" objects and vice versa, [ticket:923]
+
 0.4.2a
------
+------
+
 - orm
     - fixed fairly critical bug whereby the same instance could be listed
       more than once in the unitofwork.new collection; most typically
       reproduced when using a combination of inheriting mappers and 
       ScopedSession.mapper, as the multiple __init__ calls per instance
       could save() the object with distinct _state objects
-      
+
     - added very rudimentary yielding iterator behavior to Query.  Call
       query.yield_per(<number of rows>) and evaluate the Query in an 
       iterative context; every collection of N rows will be packaged up

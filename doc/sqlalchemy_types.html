@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.2a   Last Updated: 01/05/08 13:33:45</div>
+<div class="versionheader">Version: 0.4.2b   Last Updated: 01/07/08 15:05:25</div>
 
 
 
@@ -84,7 +84,7 @@
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_CHAR">class CHAR(String)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_CLOB">class CLOB(TEXT)</a></li>
+        <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_CLOB">class CLOB(Text)</a></li>
         
         
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_DATE">class DATE(Date)</a></li>
@@ -138,13 +138,13 @@
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_String">class String(Concatenable,TypeEngine)</a></li>
         
         
-        <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_TEXT">class TEXT(String)</a></li>
-        
-        
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_TIME">class TIME(Time)</a></li>
         
         
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_TIMESTAMP">class TIMESTAMP(DateTime)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Text">class Text(String)</a></li>
         
         
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Time">class Time(TypeEngine)</a></li>
@@ -498,7 +498,7 @@ can be considered 'not changed' by identity alone.</p>
     
     <div class="sectionL3">
 
-    <h3>class CLOB(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_TEXT">TEXT</a>)</h3>
+    <h3>class CLOB(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Text">Text</a>)</h3>
     
     
     
@@ -907,6 +907,8 @@ it fallback to engine's DateTime implementation class</p>
     <h3>class Numeric(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_TypeEngine">TypeEngine</a>)</h3>
     
     
+    <div class="darkcell"><p>Numeric datatype, usually resolves to DECIMAL or NUMERIC.</p>
+</div>
     
 
                     
@@ -1109,6 +1111,13 @@ it fallback to engine's DateTime implementation class</p>
     <h3>class String(Concatenable,<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_TypeEngine">TypeEngine</a>)</h3>
     
     
+    <div class="darkcell"><p>A sized string type.</p>
+<p>Usually corresponds to VARCHAR.  Can also take Python unicode objects
+and encode to the database's encoding in bind params (and the reverse for
+result sets.)</p>
+<p>a String with no length will adapt itself automatically to a Text
+object at the dialect level (this behavior is deprecated in 0.4).</p>
+</div>
     
 
                     
@@ -1137,6 +1146,16 @@ it fallback to engine's DateTime implementation class</p>
     
     <A name=""></a>
     <b>def bind_processor(<i>self</i>, <i>dialect</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def dialect_impl(<i>self</i>, <i>dialect</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1185,28 +1204,6 @@ it fallback to engine's DateTime implementation class</p>
 
     
     
-    <A name="docstrings_sqlalchemy.types_TEXT"></a>
-    
-    <div class="sectionL3">
-
-    <h3>class TEXT(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_String">String</a>)</h3>
-    
-    
-    
-
-
-    
-
-            <a href="#top">back to section top</a>
-    </div>
-
-
-
-            
-    
-
-    
-    
     <A name="docstrings_sqlalchemy.types_TIME"></a>
     
     <div class="sectionL3">
@@ -1234,6 +1231,28 @@ it fallback to engine's DateTime implementation class</p>
     <div class="sectionL3">
 
     <h3>class TIMESTAMP(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_DateTime">DateTime</a>)</h3>
+    
+    
+    
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.types_Text"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class Text(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_String">String</a>)</h3>
     
     
     
@@ -1370,7 +1389,7 @@ it fallback to engine's DateTime implementation class</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def dialect_impl(<i>self</i>, <i>dialect</i>)</b>
+    <b>def dialect_impl(<i>self</i>, <i>dialect</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1506,7 +1525,7 @@ can be overridden to provide different behavior.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def dialect_impl(<i>self</i>, <i>dialect</i>)</b>
+    <b>def dialect_impl(<i>self</i>, <i>dialect</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     
     </div>
@@ -1564,6 +1583,8 @@ when adapting this type to a dialect-specific type.</p>
     <h3>class Unicode(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_String">String</a>)</h3>
     
     
+    <div class="darkcell"><p>A synonym for String(length, convert_unicode=True, assert_unicode='warn').</p>
+</div>
     
 
                     
