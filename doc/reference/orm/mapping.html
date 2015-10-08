@@ -7,7 +7,7 @@
         
         <title>
     Class Mapping
- &mdash; SQLAlchemy 0.5.1 Documentation</title>
+ &mdash; SQLAlchemy 0.5.2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.1',
+          VERSION:     '0.5.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Querying" href="query.html" />
         <link rel="prev" title="sqlalchemy.orm" href="index.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.1 Documentation</h1>
+        <h1>SQLAlchemy 0.5.2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.1</span> Last Updated: 01/17/2009 16:46:53
+            Version: <span class="versionnum">0.5.2</span> Last Updated: 01/24/2009 14:16:44
         </div>
         <div class="clearboth"></div>
 
@@ -610,6 +610,12 @@ list of columns that form the &#8220;remote side&#8221; of the relationship.</li
 table to the child object. By default, this value is computed
 based on the foreign key relationships of the association and
 child tables.</li>
+<li><em>single_parent=(True|False)</em> &#8211; when True, installs a validator which will prevent objects
+from being associated with more than one parent at a time.
+This is used for many-to-one or many-to-many relationships that
+should be treated either as one-to-one or one-to-many.  Its
+usage is optional unless delete-orphan cascade is also 
+set on this relation(), in which case its required (new in 0.5.2).</li>
 <li><em>uselist=(True|False)</em> &#8211; a boolean that indicates if this property should be loaded as a
 list or a scalar. In most cases, this value is determined
 automatically by <tt class="docutils literal"><span class="pre">relation()</span></tt>, based on the type and direction
@@ -619,7 +625,7 @@ where normally a list would be present, such as a bi-directional
 one-to-one relationship, set uselist to False.</li>
 <li><em>viewonly=False</em> &#8211; when set to True, the relation is used only for loading objects
 within the relationship, and has no effect on the unit-of-work
-flush process.  Relations with viewonly can specify any kind of
+flush process.  Relationships with viewonly can specify any kind of
 join conditions to provide additional views of related objects
 onto a parent object. Note that the functionality of a viewonly
 relationship has its limits - complicated join conditions may

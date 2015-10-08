@@ -7,7 +7,7 @@
         
         <title>
     Querying
- &mdash; SQLAlchemy 0.5.1 Documentation</title>
+ &mdash; SQLAlchemy 0.5.2 Documentation</title>
         
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.5.1',
+          VERSION:     '0.5.2',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
         <link rel="copyright" title="Copyright" href="../../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.5.1 Documentation" href="../../index.html" />
+    <link rel="top" title="SQLAlchemy 0.5.2 Documentation" href="../../index.html" />
         <link rel="up" title="sqlalchemy.orm" href="index.html" />
         <link rel="next" title="Sessions" href="sessions.html" />
         <link rel="prev" title="Class Mapping" href="mapping.html" />
@@ -39,7 +39,7 @@
 
 
 
-        <h1>SQLAlchemy 0.5.1 Documentation</h1>
+        <h1>SQLAlchemy 0.5.2 Documentation</h1>
 
         <div id="search">
         Search:
@@ -51,7 +51,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.5.1</span> Last Updated: 01/17/2009 16:46:53
+            Version: <span class="versionnum">0.5.2</span> Last Updated: 01/24/2009 14:16:44
         </div>
         <div class="clearboth"></div>
 
@@ -747,18 +747,22 @@ InstrumentedAttributes so that they adapt the
 
 <dl class="function">
 <dt id="sqlalchemy.orm.join">
-<!--[sqlalchemy.orm.join]--><tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">join</tt><big>(</big><em>left</em>, <em>right</em>, <em>onclause=None</em>, <em>isouter=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.join" title="Permalink to this definition">¶</a></dt>
+<!--[sqlalchemy.orm.join]--><tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">join</tt><big>(</big><em>left</em>, <em>right</em>, <em>onclause=None</em>, <em>isouter=False</em>, <em>join_to_left=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.join" title="Permalink to this definition">¶</a></dt>
 <dd><p>Produce an inner join between left and right clauses.</p>
 <p>In addition to the interface provided by 
 <a title="sqlalchemy.sql.expression.join" class="reference external" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.join"><tt class="xref docutils literal"><span class="pre">join()</span></tt></a>, left and right may be mapped 
 classes or AliasedClass instances. The onclause may be a 
 string name of a relation(), or a class-bound descriptor 
 representing a relation.</p>
+<p>join_to_left indicates to attempt aliasing the ON clause,
+in whatever form it is passed, to the selectable
+passed as the left side.  If False, the onclause
+is used as is.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.orm.outerjoin">
-<!--[sqlalchemy.orm.outerjoin]--><tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">outerjoin</tt><big>(</big><em>left</em>, <em>right</em>, <em>onclause=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.outerjoin" title="Permalink to this definition">¶</a></dt>
+<!--[sqlalchemy.orm.outerjoin]--><tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">outerjoin</tt><big>(</big><em>left</em>, <em>right</em>, <em>onclause=None</em>, <em>join_to_left=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.outerjoin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Produce a left outer join between left and right clauses.</p>
 <p>In addition to the interface provided by 
 <a title="sqlalchemy.sql.expression.outerjoin" class="reference external" href="../sqlalchemy/expressions.html#sqlalchemy.sql.expression.outerjoin"><tt class="xref docutils literal"><span class="pre">outerjoin()</span></tt></a>, left and right may be mapped 
