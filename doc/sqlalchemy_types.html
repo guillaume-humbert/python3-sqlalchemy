@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.2b   Last Updated: 01/07/08 15:05:25</div>
+<div class="versionheader">Version: 0.4.2p3   Last Updated: 01/09/08 16:39:03</div>
 
 
 
@@ -157,6 +157,9 @@
         
         
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Unicode">class Unicode(String)</a></li>
+        
+        
+        <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_UnicodeText">class UnicodeText(Text)</a></li>
         
         
         <li><a style="" href="sqlalchemy_types.html#docstrings_sqlalchemy.types_VARCHAR">class VARCHAR(String)</a></li>
@@ -1257,6 +1260,16 @@ object at the dialect level (this behavior is deprecated in 0.4).</p>
     
     
 
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def dialect_impl(<i>self</i>, <i>dialect</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
 
     
 
@@ -1594,6 +1607,41 @@ when adapting this type to a dialect-specific type.</p>
     <b>def __init__(<i>self</i>, <i>length=None</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">Unicode</span></tt>.</p>
+
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.types_UnicodeText"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class UnicodeText(<a href="sqlalchemy_types.html#docstrings_sqlalchemy.types_Text">Text</a>)</h3>
+    
+    
+    <div class="darkcell"><p>A synonym for Text(convert_unicode=True, assert_unicode='warn').</p>
+</div>
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>length=None</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    <p>Construct a new <tt class="docutils literal"><span class="pre">UnicodeText</span></tt>.</p>
 
     </div>
     </div>

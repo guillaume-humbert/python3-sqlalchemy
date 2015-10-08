@@ -9,7 +9,7 @@ from sqlalchemy.types import \
     BLOB, BOOLEAN, CHAR, CLOB, DATE, DATETIME, DECIMAL, FLOAT, INT, \
     NCHAR, NUMERIC, SMALLINT, TEXT, TIME, TIMESTAMP, VARCHAR, \
     Binary, Boolean, Date, DateTime, Float, Integer, Interval, Numeric, \
-    PickleType, SmallInteger, String, Time, Unicode
+    PickleType, SmallInteger, String, Text, Time, Unicode, UnicodeText
 
 from sqlalchemy.sql import \
     func, modifier, text, literal, literal_column, null, alias, \
@@ -31,4 +31,4 @@ from sqlalchemy.engine import create_engine, engine_from_config
 __all__ = [ name for name, obj in locals().items()
             if not (name.startswith('_') or inspect.ismodule(obj)) ]
 
-__version__ = '0.4.2b'
+__version__ = '0.4.2p3'
