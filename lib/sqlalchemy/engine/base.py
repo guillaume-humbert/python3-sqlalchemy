@@ -85,6 +85,8 @@ class Dialect(sql.AbstractDialect):
         raise NotImplementedError()
     def has_table(self, connection, table_name):
         raise NotImplementedError()
+    def has_sequence(self, connection, sequence_name):
+        raise NotImplementedError()
     def dbapi(self):
         """subclasses override this method to provide the DBAPI module used to establish
         connections."""
@@ -340,7 +342,8 @@ class Connection(Connectable):
         try:
             self.__engine.dialect.do_executemany(c, statement, parameters, context=context)
         except Exception, e:
-            self._rollback_impl()
+            self._autorollback()
+            #self._rollback_impl()
             if self.__close_with_result:
                 self.close()
             raise exceptions.SQLError(statement, parameters, e)

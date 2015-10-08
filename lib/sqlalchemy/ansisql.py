@@ -9,7 +9,7 @@ in the sql module."""
 
 from sqlalchemy import schema, sql, engine, util
 import sqlalchemy.engine.default as default
-import string, re, sets
+import string, re, sets, weakref
 
 ANSI_FUNCS = sets.ImmutableSet([
 'CURRENT_TIME',
@@ -23,10 +23,20 @@ ANSI_FUNCS = sets.ImmutableSet([
 ])
 
 
+RESERVED_WORDS = util.Set(['all', 'analyse', 'analyze', 'and', 'any', 'array', 'as', 'asc', 'asymmetric', 'authorization', 'between', 'binary', 'both', 'case', 'cast', 'check', 'collate', 'column', 'constraint', 'create', 'cross', 'current_date', 'current_role', 'current_time', 'current_timestamp', 'current_user', 'default', 'deferrable', 'desc', 'distinct', 'do', 'else', 'end', 'except', 'false', 'for', 'foreign', 'freeze', 'from', 'full', 'grant', 'group', 'having', 'ilike', 'in', 'initially', 'inner', 'intersect', 'into', 'is', 'isnull', 'join', 'leading', 'left', 'like', 'limit', 'localtime', 'localtimestamp', 'natural', 'new', 'not', 'notnull', 'null', 'off', 'offset', 'old', 'on', 'only', 'or', 'order', 'outer', 'overlaps', 'placing', 'primary', 'references', 'right', 'select', 'session_user', 'similar', 'some', 'symmetric', 'table', 'then', 'to', 'trailing', 'true', 'union', 'unique', 'user', 'using', 'verbose', 'when', 'where'])
+
+LEGAL_CHARACTERS = util.Set(string.ascii_lowercase + string.ascii_uppercase + string.digits + '_$')
+ILLEGAL_INITIAL_CHARACTERS = util.Set(string.digits + '$')
+
 def create_engine():
     return engine.ComposedSQLEngine(None, ANSIDialect())
     
 class ANSIDialect(default.DefaultDialect):
+    def __init__(self, cache_identifiers=True, **kwargs):
+        super(ANSIDialect,self).__init__(**kwargs)
+        self.identifier_preparer = self.preparer()
+        self.cache_identifiers = cache_identifiers
+        
     def connect_args(self):
         return ([],{})
 
@@ -46,7 +56,7 @@ class ANSIDialect(default.DefaultDialect):
         """return an IdenfifierPreparer.
         
         This object is used to format table and column names including proper quoting and case conventions."""
-        return ANSIIdentifierPreparer()
+        return ANSIIdentifierPreparer(self)
 
 class ANSICompiler(sql.Compiled):
     """default implementation of Compiled, which compiles ClauseElements into ANSI-compliant SQL strings."""
@@ -74,7 +84,8 @@ class ANSICompiler(sql.Compiled):
         self.bindtemplate = ":%s"
         self.paramstyle = dialect.paramstyle
         self.positional = dialect.positional
-        self.preparer = dialect.preparer()
+        self.positiontup = []
+        self.preparer = dialect.identifier_preparer
         
     def after_compile(self):
         # this re will search for params like :param
@@ -84,7 +95,6 @@ class ANSICompiler(sql.Compiled):
         if self.paramstyle=='pyformat':
             self.strings[self.statement] = re.sub(match, lambda m:'%(' + m.group(1) +')s', self.strings[self.statement])
         elif self.positional:
-            self.positiontup = []
             params = re.finditer(match, self.strings[self.statement])
             for p in params:
                 self.positiontup.append(p.group(1))
@@ -128,15 +138,10 @@ class ANSICompiler(sql.Compiled):
             bindparams = {}
         bindparams.update(params)
 
-        d = sql.ClauseParameters(self.dialect)
-        if self.positional:
-            for k in self.positiontup:
-                b = self.binds[k]
-                d.set_parameter(k, b.value, b)
-        else:
-            for b in self.binds.values():
-                d.set_parameter(b.key, b.value, b)
-            
+        d = sql.ClauseParameters(self.dialect, self.positiontup)
+        for b in self.binds.values():
+            d.set_parameter(b.key, b.value, b)
+
         for key, value in bindparams.iteritems():
             try:
                 b = self.binds[key]
@@ -146,20 +151,6 @@ class ANSICompiler(sql.Compiled):
 
         return d
 
-    def get_named_params(self, parameters):
-        """given the results of the get_params method, returns the parameters
-        in dictionary format.  For a named paramstyle, this just returns the
-        same dictionary.  For a positional paramstyle, the given parameters are
-        assumed to be in list format and are converted back to a dictionary.
-        """
-        if self.positional:
-            p = {}
-            for i in range(0, len(self.positiontup)):
-                p[self.positiontup[i]] = parameters[i]
-            return p
-        else:
-            return parameters
-    
     def default_from(self):
         """called when a SELECT statement has no froms, and no FROM clause is to be appended.  
         gives Oracle a chance to tack on a "FROM DUAL" to the string output. """
@@ -168,7 +159,7 @@ class ANSICompiler(sql.Compiled):
     def visit_label(self, label):
         if len(self.select_stack):
             self.typemap.setdefault(label.name.lower(), label.obj.type)
-        self.strings[label] = self.strings[label.obj] + " AS "  + label.name
+        self.strings[label] = self.strings[label.obj] + " AS "  + self.preparer.format_label(label)
         
     def visit_column(self, column):
         if len(self.select_stack):
@@ -259,6 +250,7 @@ class ANSICompiler(sql.Compiled):
         order_by = self.get_str(cs.order_by_clause)
         if order_by:
             text += " ORDER BY " + order_by
+        text += self.visit_select_postclauses(cs)
         if cs.parens:
             self.strings[cs] = "(" + text + ")"
         else:
@@ -298,7 +290,7 @@ class ANSICompiler(sql.Compiled):
         return self.bindtemplate % name
         
     def visit_alias(self, alias):
-        self.froms[alias] = self.get_from_text(alias.original) + " AS " + alias.name
+        self.froms[alias] = self.get_from_text(alias.original) + " AS " + self.preparer.format_alias(alias)
         self.strings[alias] = self.get_str(alias.original)
 
     def visit_select(self, select):
@@ -424,12 +416,14 @@ class ANSICompiler(sql.Compiled):
         return (select.limit or select.offset) and self.limit_clause(select) or ""
 
     def limit_clause(self, select):
+        text = ""
         if select.limit is not None:
-            return  " \n LIMIT " + str(select.limit)
+            text +=  " \n LIMIT " + str(select.limit)
         if select.offset is not None:
             if select.limit is None:
-                return " \n LIMIT -1"
-            return " OFFSET " + str(select.offset)
+                text += " \n LIMIT -1"
+            text += " OFFSET " + str(select.offset)
+        return text
 
     def visit_table(self, table):
         self.froms[table] = self.preparer.format_table(table)
@@ -563,7 +557,7 @@ class ANSICompiler(sql.Compiled):
         # case one: no parameters in the statement, no parameters in the 
         # compiled params - just return binds for all the table columns
         if self.parameters is None and stmt.parameters is None:
-            return [(c, sql.bindparam(c.name, type=c.type)) for c in stmt.table.columns]
+            return [(c, sql.bindparam(c.key, type=c.type)) for c in stmt.table.columns]
 
         # if we have statement parameters - set defaults in the 
         # compiled params
@@ -596,7 +590,7 @@ class ANSICompiler(sql.Compiled):
             if d.has_key(c):
                 value = d[c]
                 if sql._is_literal(value):
-                    value = sql.bindparam(c.name, value, type=c.type)
+                    value = sql.bindparam(c.key, value, type=c.type)
                 values.append((c, value))
         return values
 
@@ -671,9 +665,11 @@ class ANSISchemaGenerator(engine.SchemaIterator):
     def visit_primary_key_constraint(self, constraint):
         if len(constraint) == 0:
             return
-        self.append(", \n")
-        self.append("\tPRIMARY KEY (%s)" % string.join([self.preparer.format_column(c) for c in constraint],', '))
-            
+        self.append(", \n\tPRIMARY KEY ")
+        if constraint.name is not None:
+            self.append("%s " % constraint.name)
+        self.append("(%s)" % (string.join([self.preparer.format_column(c) for c in constraint],', ')))
+                    
     def visit_foreign_key_constraint(self, constraint):
         self.append(", \n\t ")
         if constraint.name is not None:
@@ -722,9 +718,9 @@ class ANSISchemaDropper(engine.SchemaIterator):
 class ANSIDefaultRunner(engine.DefaultRunner):
     pass
 
-class ANSIIdentifierPreparer(schema.SchemaVisitor):
-    """Transforms identifiers of SchemaItems into ANSI-Compliant delimited identifiers where required"""
-    def __init__(self, initial_quote='"', final_quote=None, omit_schema=False):
+class ANSIIdentifierPreparer(object):
+    """handles quoting and case-folding of identifiers based on options"""
+    def __init__(self, dialect, initial_quote='"', final_quote=None, omit_schema=False):
         """Constructs a new ANSIIdentifierPreparer object.
         
         initial_quote - Character that begins a delimited identifier
@@ -732,12 +728,11 @@ class ANSIIdentifierPreparer(schema.SchemaVisitor):
         
         omit_schema - prevent prepending schema name. useful for databases that do not support schemae
         """
+        self.dialect = dialect
         self.initial_quote = initial_quote
         self.final_quote = final_quote or self.initial_quote
         self.omit_schema = omit_schema
-        self.strings = {}
-        self.__visited = util.Set()
-        
+        self.__strings = {}
     def _escape_identifier(self, value):
         """escape an identifier.
         
@@ -759,56 +754,81 @@ class ANSIIdentifierPreparer(schema.SchemaVisitor):
         # some tests would need to be rewritten if this is done.
         #return value.upper()
     
-    def visit_table(self, table):
-        if table in self.__visited:
-            return
-        if table.quote:
-            self.strings[table] = self._quote_identifier(table.name)
-        else:
-            self.strings[table] = table.name # TODO: case folding ?
-        if table.schema:
-            if table.quote_schema:
-                self.strings[(table, 'schema')] = self._quote_identifier(table.schema)
-            else: 
-                self.strings[(table, 'schema')] = table.schema # TODO: case folding ?
-            
-    def visit_column(self, column):
-        if column in self.__visited:
-            return
-        if column.quote:
-            self.strings[column] = self._quote_identifier(column.name)
-        else:
-            self.strings[column] = column.name # TODO: case folding ?
-    
-    def __start_visit(self, obj):
-        if obj in self.__visited:
-            return
-        if isinstance(obj, schema.SchemaItem):
-            obj.accept_schema_visitor(self)
-        self.__visited.add(obj)
-         
-    def __prepare_table(self, table, use_schema=False):
-        self.__start_visit(table)
-        if not self.omit_schema and use_schema and (table, 'schema') in self.strings:
-            return self.strings[(table, 'schema')] + "." + self.strings.get(table, table.name)
-        else:
-            return self.strings.get(table, table.name)
+    def _reserved_words(self):
+        return RESERVED_WORDS
 
-    def __prepare_column(self, column, use_table=True, **kwargs):
-        self.__start_visit(column)
-        if use_table:
-            return self.__prepare_table(column.table, **kwargs) + "." + self.strings.get(column, column.name)
-        else:
-            return self.strings.get(column, column.name)
+    def _legal_characters(self):
+        return LEGAL_CHARACTERS
     
+    def _illegal_initial_characters(self):
+        return ILLEGAL_INITIAL_CHARACTERS
+        
+    def _requires_quotes(self, value, case_sensitive):
+        """return true if the given identifier requires quoting."""
+        return \
+            value in self._reserved_words() \
+            or (value[0] in self._illegal_initial_characters()) \
+            or bool(len([x for x in str(value) if x not in self._legal_characters()])) \
+            or (case_sensitive and value.lower() != value)
+    
+    def __generic_obj_format(self, obj, ident):
+        if getattr(obj, 'quote', False):
+            return self._quote_identifier(ident)
+        if self.dialect.cache_identifiers:
+            case_sens = getattr(obj, 'case_sensitive', None)
+            try:
+                return self.__strings[(ident, case_sens)]
+            except KeyError:
+                if self._requires_quotes(ident, getattr(obj, 'case_sensitive', ident == ident.lower())):
+                    self.__strings[(ident, case_sens)] = self._quote_identifier(ident)
+                else:
+                    self.__strings[(ident, case_sens)] = ident
+                return self.__strings[(ident, case_sens)]
+        else:
+            if self._requires_quotes(ident, getattr(obj, 'case_sensitive', ident == ident.lower())):
+                return self._quote_identifier(ident)
+            else:
+                return ident
+            
+    def should_quote(self, object):
+        return object.quote or self._requires_quotes(object.name, object.case_sensitive) 
+ 
+    def is_natural_case(self, object):
+        return object.quote or self._requires_quotes(object.name, object.case_sensitive)
+        
+    def format_sequence(self, sequence):
+        return self.__generic_obj_format(sequence, sequence.name)
+    
+    def format_label(self, label):
+        return self.__generic_obj_format(label, label.name)
+
+    def format_alias(self, alias):
+        return self.__generic_obj_format(alias, alias.name)
+        
     def format_table(self, table, use_schema=True):
         """Prepare a quoted table and schema name"""
-        return self.__prepare_table(table, use_schema=use_schema)
+        result = self.__generic_obj_format(table, table.name)
+        if use_schema and getattr(table, "schema", None):
+            result = self.__generic_obj_format(table, table.schema) + "." + result
+        return result
     
-    def format_column(self, column):
+    def format_column(self, column, use_table=False):
         """Prepare a quoted column name """
-        return self.__prepare_column(column, use_table=False)
-    
+        # TODO: isinstance alert !  get ColumnClause and Column to better
+        # differentiate themselves
+        if isinstance(column, schema.SchemaItem):
+            if use_table:
+                return self.format_table(column.table, use_schema=False) + "." + self.__generic_obj_format(column, column.name)
+            else:
+                return self.__generic_obj_format(column, column.name)
+        else:
+            # literal textual elements get stuck into ColumnClause alot, which shouldnt get quoted
+            if use_table:
+                return column.table.name + "." + column.name
+            else:
+                return column.name
+            
     def format_column_with_table(self, column):
         """Prepare a quoted column name with table name"""
-        return self.__prepare_column(column)
+        return self.format_column(column, use_table=True)
+

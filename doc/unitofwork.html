@@ -21,8 +21,8 @@
 
 <div class="docheader">
 
-<div class="docheadertext" >Session / Unit of Work</div>
-<div class="">Version: 0.2.7   Last Updated: 08/12/06 18:15:53</div>
+<h1>Session / Unit of Work</h1>
+<div class="">Version: 0.2.8   Last Updated: 09/05/06 12:33:09</div>
 </div>
 
 
@@ -61,284 +61,215 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 	<div class="topnavitems">
 	
 
+<ul class="toc_list">
 
     
     
-    <div class="toclink">
-        <A style="" href="#unitofwork_overview">Overview</a>
-    </div>
+        <li><A style="" href="#unitofwork_overview">Overview</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
-
-
-    
-    
-    <div class="toclink">
-        <A style="" href="#unitofwork_states">Object States</a>
-    </div>
-    
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#unitofwork_getting">Acquiring a Session</a>
-    </div>
+        <li><A style="" href="#unitofwork_states">Object States</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#unitofwork_identitymap">Introduction to the Identity Map</a>
-    </div>
+        <li><A style="" href="#unitofwork_getting">Acquiring a Session</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#unitofwork_changed">Whats Changed ?</a>
-    </div>
+        <li><A style="" href="#unitofwork_identitymap">Introduction to the Identity Map</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#unitofwork_api">The Session API</a>
-    </div>
+        <li><A style="" href="#unitofwork_changed">Whats Changed ?</a></li>
     
-    <div class="toclinkcontainer">
+    <ul class="small_toc_list">
+    </ul>
+
+
+    
+    
+        <li><A style="" href="#unitofwork_api">The Session API</a></li>
+    
+    <ul class="small_toc_list">
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#unitofwork_api_query">query()</a>
-    </div>
+    <li><A href="#unitofwork_api_query">query()</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#unitofwork_api_get">get()</a>
-    </div>
+    <li><A href="#unitofwork_api_get">get()</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#unitofwork_api_load">load()</a>
-    </div>
+    <li><A href="#unitofwork_api_load">load()</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#unitofwork_api_save">save()</a>
-    </div>
+    <li><A href="#unitofwork_api_save">save()</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#unitofwork_api_flush">flush()</a>
-    </div>
+    <li><A href="#unitofwork_api_flush">flush()</a></li>
 
+    <ul class="small_toc_list">
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#unitofwork_api_flush_whatis">Notes on Flush</a>
-    </div>
-
-    </div>
+    <li><A href="#unitofwork_api_flush_whatis">Notes on Flush</a></li>
 
 
-    </div>
+
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#unitofwork_api_close">close()</a>
-    </div>
+    <li><A href="#unitofwork_api_close">close()</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#unitofwork_api_delete">delete()</a>
-    </div>
+    <li><A href="#unitofwork_api_delete">delete()</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#unitofwork_api_clear">clear()</a>
-    </div>
+    <li><A href="#unitofwork_api_clear">clear()</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#unitofwork_api_refreshexpire">refresh() / expire()</a>
-    </div>
+    <li><A href="#unitofwork_api_refreshexpire">refresh() / expire()</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#unitofwork_api_expunge">expunge()</a>
-    </div>
+    <li><A href="#unitofwork_api_expunge">expunge()</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#unitofwork_api_bind">bind_mapper() / bind_table()</a>
-    </div>
+    <li><A href="#unitofwork_api_bind">bind_mapper() / bind_table()</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#unitofwork_api_update">update()</a>
-    </div>
+    <li><A href="#unitofwork_api_update">update()</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#unitofwork_api_saveorupdate">save_or_update()</a>
-    </div>
+    <li><A href="#unitofwork_api_saveorupdate">save_or_update()</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#unitofwork_api_merge">merge()</a>
-    </div>
+    <li><A href="#unitofwork_api_merge">merge()</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
-    </div>
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#unitofwork_cascade">Cascade rules</a>
-    </div>
+        <li><A style="" href="#unitofwork_cascade">Cascade rules</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#unitofwork_transaction">SessionTransaction</a>
-    </div>
+        <li><A style="" href="#unitofwork_transaction">SessionTransaction</a></li>
     
-    <div class="toclinkcontainer">
+    <ul class="small_toc_list">
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#unitofwork_transaction_sql">Using SQL with SessionTransaction</a>
-    </div>
+    <li><A href="#unitofwork_transaction_sql">Using SQL with SessionTransaction</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#unitofwork_transaction_using">Using Engine-level Transactions with Sessions</a>
-    </div>
+    <li><A href="#unitofwork_transaction_using">Using Engine-level Transactions with Sessions</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
-    </div>
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#unitofwork_logging">Analyzing Object Flushes</a>
-    </div>
+        <li><A style="" href="#unitofwork_logging">Analyzing Object Flushes</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
+</ul>
 
 	</div>
 </div>
@@ -387,7 +318,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Overview</span>
+    <h3>Overview</h3>
     <div class="sectiontext">
 
 
@@ -444,7 +375,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Object States</span>
+    <h3>Object States</h3>
     <div class="sectiontext">
 
 
@@ -491,7 +422,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Acquiring a Session</span>
+    <h3>Acquiring a Session</h3>
     <div class="sectiontext">
 
 
@@ -540,7 +471,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator">
 </span>
 <span class="python_comment"># which is the same as this (assuming we are still on the same thread):
-</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">get_session</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">session</span><span class="python_operator">
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
 <p>We will now cover some of the key concepts used by Sessions and its underlying Unit of Work.
 </p>
@@ -563,7 +494,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Introduction to the Identity Map</span>
+    <h3>Introduction to the Identity Map</h3>
     <div class="sectiontext">
 
 
@@ -636,7 +567,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Whats Changed ?</span>
+    <h3>Whats Changed ?</h3>
     <div class="sectiontext">
 
 
@@ -677,7 +608,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">The Session API</span>
+    <h3>The Session API</h3>
     <div class="sectiontext">
 
 
@@ -722,7 +653,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">query()</span>
+    <h3>query()</h3>
     <div class="sectiontext">
 
 
@@ -765,7 +696,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">get()</span>
+    <h3>get()</h3>
     <div class="sectiontext">
 
 
@@ -799,7 +730,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">load()</span>
+    <h3>load()</h3>
     <div class="sectiontext">
 
 
@@ -833,7 +764,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">save()</span>
+    <h3>save()</h3>
     <div class="sectiontext">
 
 
@@ -874,7 +805,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">flush()</span>
+    <h3>flush()</h3>
     <div class="sectiontext">
 
 
@@ -908,7 +839,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:40px;">
 
-    <span class="sectionheadertext">Notes on Flush</span>
+    <h3>Notes on Flush</h3>
     <div class="sectiontext">
 
 
@@ -943,7 +874,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">close()</span>
+    <h3>close()</h3>
     <div class="sectiontext">
 
 
@@ -969,7 +900,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">delete()</span>
+    <h3>delete()</h3>
     <div class="sectiontext">
 
 
@@ -1008,7 +939,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">clear()</span>
+    <h3>clear()</h3>
     <div class="sectiontext">
 
 
@@ -1040,7 +971,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">refresh() / expire()</span>
+    <h3>refresh() / expire()</h3>
     <div class="sectiontext">
 
 
@@ -1077,7 +1008,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">expunge()</span>
+    <h3>expunge()</h3>
     <div class="sectiontext">
 
 
@@ -1109,7 +1040,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">bind_mapper() / bind_table()</span>
+    <h3>bind_mapper() / bind_table()</h3>
     <div class="sectiontext">
 
 
@@ -1151,7 +1082,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">update()</span>
+    <h3>update()</h3>
     <div class="sectiontext">
 
 
@@ -1181,7 +1112,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">save_or_update()</span>
+    <h3>save_or_update()</h3>
     <div class="sectiontext">
 
 
@@ -1207,7 +1138,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">merge()</span>
+    <h3>merge()</h3>
     <div class="sectiontext">
 
 
@@ -1256,7 +1187,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Cascade rules</span>
+    <h3>Cascade rules</h3>
     <div class="sectiontext">
 
 
@@ -1303,7 +1234,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">SessionTransaction</span>
+    <h3>SessionTransaction</h3>
     <div class="sectiontext">
 
 
@@ -1322,10 +1253,10 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
     </span><span class="python_name">item2 </span><span class="python_operator">= </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Item</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_enclosure">)</span><span class="python_operator">
     </span><span class="python_name">item1</span><span class="python_operator">.</span><span class="python_name">foo </span><span class="python_operator">= </span><span class="python_literal">'bar'</span><span class="python_operator">
     </span><span class="python_name">item2</span><span class="python_operator">.</span><span class="python_name">bar </span><span class="python_operator">= </span><span class="python_literal">'foo'</span><span class="python_operator">
-    </span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_keyword">except</span><span class="python_operator">:
     </span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
-    </span><span class="python_keyword">raise</span><span class="python_operator"></span></pre></div>
+    </span><span class="python_keyword">raise</span><span class="python_operator">
+</span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
 <p>The <code>create_transaction()</code> method creates a new SessionTransaction object but does not declare any connection/transaction resources.  At the point of the first <code>get()</code> call, a connection resource is opened off the engine that corresponds to the Item classes' mapper and is stored within the <code>SessionTransaction</code> with an open <code>Transaction</code>.  When <code>trans.commit()</code> is called, the <code>flush()</code> method is called on the <code>Session</code> and the corresponding update statements are issued to the database within the scope of the transaction already opened; afterwards, the underying Transaction is committed, and connection resources are freed.
 </p>
 <p> <code>SessionTransaction</code>, like the <code>Transaction</code> off of <code>Connection</code> also supports "nested" behavior, and is safe to pass to other functions which then issue their own <code>begin()</code>/<code>commit()</code> pair; only the outermost <code>begin()</code>/<code>commit()</code> pair actually affects the transaction, and any call to <code>rollback()</code> within a particular call stack will issue a rollback.
@@ -1348,7 +1279,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Using SQL with SessionTransaction</span>
+    <h3>Using SQL with SessionTransaction</h3>
     <div class="sectiontext">
 
 
@@ -1367,10 +1298,10 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
     </span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">add</span><span class="python_enclosure">(</span><span class="python_name">connection</span><span class="python_enclosure">)</span><span class="python_operator">
     </span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">update</span><span class="python_enclosure">()</span><span class="python_operator">, </span><span class="python_enclosure">{</span><span class="python_literal">'col1'</span><span class="python_operator">:</span><span class="python_number">4</span><span class="python_operator">, </span><span class="python_literal">'col2'</span><span class="python_operator">:</span><span class="python_number">17</span><span class="python_enclosure">})</span><span class="python_operator">
     </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">() </span><span class="python_comment"># flush() operation will use the same connection</span><span class="python_operator">
-    </span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()  </span><span class="python_operator">
 </span><span class="python_keyword">except</span><span class="python_operator">:
     </span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
-    </span><span class="python_keyword">raise</span><span class="python_operator"></span></pre></div>
+    </span><span class="python_keyword">raise</span><span class="python_operator">
+</span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
 <p>The <code>add()</code> method will key the <code>Connection</code>'s underlying <code>Engine</code> to this <code>SessionTransaction</code>.  When mapper operations are performed against this <code>Engine</code>, the <code>Connection</code> explicitly added will be used.  This <strong>overrides</strong> any other <code>Connection</code> objects that the underlying Session was associated with, corresponding to the underlying <code>Engine</code> of that <code>Connection</code>.  However, if the <code>SessionTransaction</code> itself is already associated with a <code>Connection</code>, then an exception is thrown.
 </p>
 <p>The other way is just to use the <code>Connection</code> referenced by the <code>SessionTransaction</code>.  This is performed via the <code>connection()</code> method, and requires passing in a class or <code>Mapper</code> which indicates which underlying <code>Connection</code> should be returned (recall that different <code>Mappers</code> may use different underlying <code>Engines</code>).  If the <code>class_or_mapper</code> argument is <code>None</code>, then the <code>Session</code> must be globally bound to a specific <code>Engine</code> when it was constructed, else the method returns <code>None</code>.
@@ -1383,10 +1314,10 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 </span><span class="python_keyword">try</span><span class="python_operator">:
     </span><span class="python_name">connection </span><span class="python_operator">= </span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">connection</span><span class="python_enclosure">(</span><span class="python_name">UserClass</span><span class="python_enclosure">)   </span><span class="python_comment"># get the Connection used by the UserClass' Mapper</span><span class="python_operator">
     </span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">update</span><span class="python_enclosure">()</span><span class="python_operator">, </span><span class="python_enclosure">{</span><span class="python_literal">'col1'</span><span class="python_operator">:</span><span class="python_number">4</span><span class="python_operator">, </span><span class="python_literal">'col2'</span><span class="python_operator">:</span><span class="python_number">17</span><span class="python_enclosure">})</span><span class="python_operator">
-    </span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_keyword">except</span><span class="python_operator">:
     </span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
-    </span><span class="python_keyword">raise</span><span class="python_operator"></span></pre></div>
+    </span><span class="python_keyword">raise</span><span class="python_operator">
+</span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
 <p>The <code>connection()</code> method also exists on the <code>Session</code> object itself, and can be called regardless of whether or not a <code>SessionTransaction</code> is in progress.  If a <code>SessionTransaction</code> is in progress, it will return the connection referenced by the transaction.  If an <code>Engine</code> is being used with <code>threadlocal</code> strategy, the <code>Connection</code> returned will correspond to the connection resources that are bound to the current thread, if any (i.e. it is obtained by calling <code>contextual_connection()</code>).
 </p>
 
@@ -1408,7 +1339,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Using Engine-level Transactions with Sessions</span>
+    <h3>Using Engine-level Transactions with Sessions</h3>
     <div class="sectiontext">
 
 
@@ -1427,10 +1358,10 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
     </span><span class="python_name">stuff</span><span class="python_enclosure">[</span><span class="python_number">2</span><span class="python_enclosure">]</span><span class="python_operator">.</span><span class="python_name">foo </span><span class="python_operator">= </span><span class="python_literal">'bar'</span><span class="python_operator">
     </span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">insert</span><span class="python_enclosure">()</span><span class="python_operator">, </span><span class="python_name">dict</span><span class="python_enclosure">(</span><span class="python_name">id</span><span class="python_operator">=</span><span class="python_number">12</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">=</span><span class="python_literal">"bar"</span><span class="python_enclosure">))    </span><span class="python_comment"># use connection explicitly</span><span class="python_operator">
     </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()     </span><span class="python_comment"># Session flushes with "connection", using transaction "trans"</span><span class="python_operator">
-    </span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()      </span><span class="python_comment"># commit</span><span class="python_operator">
 </span><span class="python_keyword">except</span><span class="python_operator">:
     </span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()    </span><span class="python_comment"># or rollback</span><span class="python_operator">
-    </span><span class="python_keyword">raise</span><span class="python_operator"></span></pre></div>
+    </span><span class="python_keyword">raise</span><span class="python_operator">
+</span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()      </span><span class="python_comment"># commit</span><span class="python_operator"></span></pre></div>
 
 
     </div>
@@ -1456,7 +1387,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Analyzing Object Flushes</span>
+    <h3>Analyzing Object Flushes</h3>
     <div class="sectiontext">
 
 

@@ -1,3 +1,74 @@
+0.2.8
+- cleanup on connection methods + documentation.  custom DBAPI
+arguments specified in query string, 'connect_args' argument
+to 'create_engine', or custom creation function via 'creator'
+function to 'create_engine'.
+- added "recycle" argument to Pool, is "pool_recycle" on create_engine,
+defaults to 3600 seconds; connections after this age will be closed and
+replaced with a new one, to handle db's that automatically close 
+stale connections [ticket:274]
+- changed "invalidate" semantics with pooled connection; will 
+instruct the underlying connection record to reconnect the next 
+time its called.  "invalidate" will also automatically be called
+if any error is thrown in the underlying call to connection.cursor().
+this will hopefully allow the connection pool to reconnect to a
+database that had been stopped and started without restarting
+the connecting application [ticket:121] 
+- eesh !  the tutorial doctest was broken for quite some time.
+- add_property() method on mapper does a "compile all mappers"
+step in case the given property references a non-compiled mapper
+(as it did in the case of the tutorial !)
+- [ticket:277] check for pg sequence already existing before create
+- if a contextual session is established via MapperExtension.get_session
+(as it is using the sessioncontext plugin, etc), a lazy load operation
+will use that session by default if the parent object is not 
+persistent with a session already.
+- lazy loads will not fire off for an object that does not have a 
+database identity (why?  
+see http://www.sqlalchemy.org/trac/wiki/WhyDontForeignKeysLoadData)
+- unit-of-work does a better check for "orphaned" objects that are
+part of a "delete-orphan" cascade, for certain conditions where the 
+parent isnt available to cascade from.
+- mappers can tell if one of their objects is an "orphan" based
+on interactions with the attribute package. this check is based
+on a status flag maintained for each relationship 
+when objects are attached and detached from each other.
+- it is now invalid to declare a self-referential relationship with
+"delete-orphan" (as the abovementioned check would make them impossible
+to save)
+- improved the check for objects being part of a session when the
+unit of work seeks to flush() them as part of a relationship..
+- [ticket:280] statement execution supports using the same BindParam
+object more than once in an expression; simplified handling of positional
+parameters.  nice job by Bill Noon figuring out the basic idea.
+- postgres reflection moved to use pg_schema tables, can be overridden
+with use_information_schema=True argument to create_engine
+[ticket:60], [ticket:71]
+- added case_sensitive argument to MetaData, Table, Column, determines
+itself automatically based on if a parent schemaitem has a non-None
+setting for the flag, or if not, then whether the identifier name is all lower
+case or not.  when set to True, quoting is applied to identifiers with mixed or 
+uppercase identifiers.  quoting is also applied automatically in all cases to 
+identifiers that are known to be reserved words or contain other non-standard 
+characters. various database dialects can override all of this behavior, but 
+currently they are all using the default behavior.  tested with postgres, mysql, 
+sqlite, oracle.  needs more testing with firebird, ms-sql. part of the ongoing 
+work with [ticket:155]
+- unit tests updated to run without any pysqlite installed; pool
+test uses a mock DBAPI
+- urls support escaped characters in passwords [ticket:281]
+- added limit/offset to UNION queries (though not yet in oracle)
+- added "timezone=True" flag to DateTime and Time types.  postgres
+so far will convert this to "TIME[STAMP] (WITH|WITHOUT) TIME ZONE",
+so that control over timezone presence is more controllable (psycopg2
+returns datetimes with tzinfo's if available, which can create confusion
+against datetimes that dont).
+- fix to using query.count() with distinct, **kwargs with SelectResults
+count() [ticket:287]
+- deregister Table from MetaData when autoload fails; [ticket:289]
+- import of py2.5s sqlite3 [ticket:293]
+- unicode fix for startswith()/endswith() [ticket:296]
+
 0.2.7
 - quoting facilities set up so that database-specific quoting can be
 turned on for individual table, schema, and column identifiers when
@@ -105,6 +176,7 @@ relationships to an inheriting mapper (which is also self-referential)
 - added 'checkfirst' argument to table.create()/table.drop(), as 
 well as table.exists() [ticket:234]
 - some other ongoing fixes to inheritance [ticket:245]
+- attribute/backref/orphan/history-tracking tweaks as usual...
 
 0.2.5
 - fixed endless loop bug in select_by(), if the traversal hit

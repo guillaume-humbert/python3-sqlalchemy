@@ -273,12 +273,19 @@ class AbstractDialect(object):
     """represents the behavior of a particular database.  Used by Compiled objects."""
     pass
     
-class ClauseParameters(util.OrderedDict):
-    """represents a dictionary/iterator of bind parameter key names/values.  Includes parameters compiled with a Compiled object as well as additional arguments passed to the Compiled object's get_params() method.  Parameter values will be converted as per the TypeEngine objects present in the bind parameter objects.  The non-converted value can be retrieved via the get_original method.  For Compiled objects that compile positional parameters, the values() iteration of the object will return the parameter values in the correct order."""
-    def __init__(self, dialect):
+class ClauseParameters(dict):
+    """represents a dictionary/iterator of bind parameter key names/values.  
+    
+    Tracks the original BindParam objects as well as the keys/position of each
+    parameter, and can return parameters as a dictionary or a list.
+    Will process parameter values according to the TypeEngine objects present in
+    the BindParams.
+    """
+    def __init__(self, dialect, positional=None):
         super(ClauseParameters, self).__init__(self)
         self.dialect=dialect
         self.binds = {}
+        self.positional = positional or []
     def set_parameter(self, key, value, bindparam):
         self[key] = value
         self.binds[key] = bindparam
@@ -290,10 +297,10 @@ class ClauseParameters(util.OrderedDict):
         if self.binds.has_key(key):
             v = self.binds[key].typeprocess(v, self.dialect)
         return v
-    def values(self):
-        return [self[key] for key in self]
     def get_original_dict(self):
         return self.copy()
+    def get_raw_list(self):
+        return [self[key] for key in self.positional]
     def get_raw_dict(self):
         d = {}
         for k in self:
@@ -547,9 +554,9 @@ class CompareMixin(object):
             # statement out of it.
             return self._compare('IN', union(parens=True, *other))
     def startswith(self, other):
-        return self._compare('LIKE', str(other) + "%")
+        return self._compare('LIKE', other + "%")
     def endswith(self, other):
-        return self._compare('LIKE', "%" + str(other))
+        return self._compare('LIKE', "%" + other)
     def label(self, name):
         return Label(name, self, self.type)
     def distinct(self):
@@ -1141,6 +1148,7 @@ class Alias(FromClause):
                 alias = alias[0:15]
             alias = alias + "_" + hex(random.randint(0, 65535))[2:]
         self.name = alias
+        self.case_sensitive = getattr(baseselectable, "case_sensitive", alias.lower() != alias)
         
     def _locate_oid_column(self):
         if self.selectable.oid_column is not None:
@@ -1173,6 +1181,7 @@ class Label(ColumnElement):
         while isinstance(obj, Label):
             obj = obj.obj
         self.obj = obj
+        self.case_sensitive = getattr(obj, "case_sensitive", name.lower() != name)
         self.type = sqltypes.to_instance(type)
         obj.parens=True
     key = property(lambda s: s.name)
@@ -1199,7 +1208,7 @@ class ColumnClause(ColumnElement):
     def _get_label(self):
         if self.__label is None:
             if self.table is not None and self.table.named_with_column():
-                self.__label =  self.table.name + "_" + self.name
+                self.__label = self.table.name + "_" + self.name
                 if self.table.c.has_key(self.__label) or len(self.__label) >= 30:
                     self.__label = self.__label[0:24] + "_" + hex(random.randint(0, 65535))[2:]
             else:
@@ -1340,6 +1349,8 @@ class CompoundSelect(SelectBaseMixin, FromClause):
         self.correlate = kwargs.pop('correlate', False)
         self.for_update = kwargs.pop('for_update', False)
         self.nowait = kwargs.pop('nowait', False)
+        self.limit = kwargs.get('limit', None)
+        self.offset = kwargs.get('offset', None)
         for s in self.selects:
             s.group_by(None)
             s.order_by(None)

@@ -180,9 +180,18 @@ class OracleDialect(ansisql.ANSIDialect):
     def has_table(self, connection, table_name):
         cursor = connection.execute("""select table_name from all_tables where table_name=:name""", {'name':table_name.upper()})
         return bool( cursor.fetchone() is not None )
+
+    def has_sequence(self, connection, sequence_name):
+        cursor = connection.execute("""select sequence_name from all_sequences where sequence_name=:name""", {'name':sequence_name.upper()})
+        return bool( cursor.fetchone() is not None )
         
     def reflecttable(self, connection, table):
-        c = connection.execute ("select distinct OWNER from ALL_TAB_COLUMNS where TABLE_NAME = :table_name", {'table_name':table.name.upper()})
+        preparer = self.identifier_preparer
+        if not preparer.should_quote(table):
+            name = table.name.upper()
+        else:
+            name = table.name
+        c = connection.execute ("select distinct OWNER from ALL_TAB_COLUMNS where TABLE_NAME = :table_name", {'table_name':name})
         rows = c.fetchall()
         if not rows :
             raise exceptions.NoSuchTableError(table.name)
@@ -198,7 +207,7 @@ class OracleDialect(ansisql.ANSIDialect):
                 else:
                     raise exceptions.AssertionError("There are multiple tables with name %s in the schema, you must specifie owner"%table.name)
 
-        c = connection.execute ("select COLUMN_NAME, DATA_TYPE, DATA_LENGTH, DATA_PRECISION, DATA_SCALE, NULLABLE, DATA_DEFAULT from ALL_TAB_COLUMNS where TABLE_NAME = :table_name and OWNER = :owner", {'table_name':table.name.upper(), 'owner':owner})
+        c = connection.execute ("select COLUMN_NAME, DATA_TYPE, DATA_LENGTH, DATA_PRECISION, DATA_SCALE, NULLABLE, DATA_DEFAULT from ALL_TAB_COLUMNS where TABLE_NAME = :table_name and OWNER = :owner", {'table_name':name, 'owner':owner})
         
         while True:
             row = c.fetchone()
@@ -229,8 +238,10 @@ class OracleDialect(ansisql.ANSIDialect):
             colargs = []
             if default is not None:
                 colargs.append(schema.PassiveDefault(sql.text(default)))
-            
-            name = name.lower()
+          
+            # if name comes back as all upper, assume its case folded 
+            if (name.upper() == name): 
+                name = name.lower()
             
             table.append_item (schema.Column(name, coltype, nullable=nullable, *colargs))
 
@@ -320,6 +331,40 @@ class OracleCompiler(ansisql.ANSICompiler):
                 self.parameters[c.key] = None
         return ansisql.ANSICompiler.visit_insert(self, insert)
 
+    def _TODO_visit_compound_select(self, select):
+        """need to determine how to get LIMIT/OFFSET into a UNION for oracle"""
+        if getattr(select, '_oracle_visit', False):
+            # cancel out the compiled order_by on the select
+            if hasattr(select, "order_by_clause"):
+                self.strings[select.order_by_clause] = ""
+            ansisql.ANSICompiler.visit_compound_select(self, select)
+            return
+            
+        if select.limit is not None or select.offset is not None:
+            select._oracle_visit = True
+            # to use ROW_NUMBER(), an ORDER BY is required. 
+            orderby = self.strings[select.order_by_clause]
+            if not orderby:
+                orderby = select.oid_column
+                orderby.accept_visitor(self)
+                orderby = self.strings[orderby]
+            class SelectVisitor(sql.ClauseVisitor):
+                def visit_select(self, select):
+                    select.append_column(sql.ColumnClause("ROW_NUMBER() OVER (ORDER BY %s)" % orderby).label("ora_rn"))
+            select.accept_visitor(SelectVisitor())
+            limitselect = sql.select([c for c in select.c if c.key!='ora_rn'])
+            if select.offset is not None:
+                limitselect.append_whereclause("ora_rn>%d" % select.offset)
+                if select.limit is not None:
+                    limitselect.append_whereclause("ora_rn<=%d" % (select.limit + select.offset))
+            else:
+                limitselect.append_whereclause("ora_rn<=%d" % select.limit)
+            limitselect.accept_visitor(self)
+            self.strings[select] = self.strings[limitselect]
+            self.froms[select] = self.froms[limitselect]
+        else:
+            ansisql.ANSICompiler.visit_compound_select(self, select)
+        
     def visit_select(self, select):
         """looks for LIMIT and OFFSET in a select statement, and if so tries to wrap it in a 
         subquery with row_number() criterion."""
@@ -359,7 +404,7 @@ class OracleCompiler(ansisql.ANSICompiler):
 
 class OracleSchemaGenerator(ansisql.ANSISchemaGenerator):
     def get_column_specification(self, column, **kwargs):
-        colspec = column.name
+        colspec = self.preparer.format_column(column)
         colspec += " " + column.type.engine_impl(self.engine).get_col_spec()
         default = self.get_column_default_string(column)
         if default is not None:
@@ -370,13 +415,15 @@ class OracleSchemaGenerator(ansisql.ANSISchemaGenerator):
         return colspec
 
     def visit_sequence(self, sequence):
-        self.append("CREATE SEQUENCE %s" % sequence.name)
-        self.execute()
+        if not self.engine.dialect.has_sequence(self.connection, sequence.name):
+            self.append("CREATE SEQUENCE %s" % self.preparer.format_sequence(sequence))
+            self.execute()
 
 class OracleSchemaDropper(ansisql.ANSISchemaDropper):
     def visit_sequence(self, sequence):
-        self.append("DROP SEQUENCE %s" % sequence.name)
-        self.execute()
+        if self.engine.dialect.has_sequence(self.connection, sequence.name):
+            self.append("DROP SEQUENCE %s" % sequence.name)
+            self.execute()
 
 class OracleDefaultRunner(ansisql.ANSIDefaultRunner):
     def exec_default_sql(self, default):

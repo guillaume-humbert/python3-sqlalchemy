@@ -21,8 +21,8 @@
 
 <div class="docheader">
 
-<div class="docheadertext" >Database Meta Data</div>
-<div class="">Version: 0.2.7   Last Updated: 08/12/06 18:15:53</div>
+<h1>Database Meta Data</h1>
+<div class="">Version: 0.2.8   Last Updated: 09/05/06 12:33:09</div>
 </div>
 
 
@@ -61,200 +61,149 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 	<div class="topnavitems">
 	
 
+<ul class="toc_list">
 
     
     
-    <div class="toclink">
-        <A style="" href="#metadata_tables">Describing Databases with MetaData</a>
-    </div>
+        <li><A style="" href="#metadata_tables">Describing Databases with MetaData</a></li>
     
-    <div class="toclinkcontainer">
+    <ul class="small_toc_list">
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#metadata_tables_binding">Binding MetaData to an Engine</a>
-    </div>
+    <li><A href="#metadata_tables_binding">Binding MetaData to an Engine</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#metadata_tables_using">Using the global Metadata object</a>
-    </div>
+    <li><A href="#metadata_tables_using">Using the global Metadata object</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#metadata_tables_reflecting">Reflecting Tables</a>
-    </div>
+    <li><A href="#metadata_tables_reflecting">Reflecting Tables</a></li>
 
+    <ul class="small_toc_list">
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#metadata_tables_reflecting_overriding">Overriding Reflected Columns</a>
-    </div>
-
-    </div>
+    <li><A href="#metadata_tables_reflecting_overriding">Overriding Reflected Columns</a></li>
 
 
-    </div>
+
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#metadata_tables_schema">Specifying the Schema Name</a>
-    </div>
+    <li><A href="#metadata_tables_schema">Specifying the Schema Name</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#metadata_tables_onupdate">ON UPDATE and ON DELETE</a>
-    </div>
+    <li><A href="#metadata_tables_onupdate">ON UPDATE and ON DELETE</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#metadata_tables_quoting">Enabling Table / Column Quoting</a>
-    </div>
+    <li><A href="#metadata_tables_quoting">Enabling Table / Column Quoting</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#metadata_tables_options">Other Options</a>
-    </div>
+    <li><A href="#metadata_tables_options">Other Options</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
-    </div>
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#metadata_creating">Creating and Dropping Database Tables</a>
-    </div>
+        <li><A style="" href="#metadata_creating">Creating and Dropping Database Tables</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#metadata_defaults">Column Defaults and OnUpdates</a>
-    </div>
+        <li><A style="" href="#metadata_defaults">Column Defaults and OnUpdates</a></li>
     
-    <div class="toclinkcontainer">
+    <ul class="small_toc_list">
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#metadata_defaults_oninsert">Pre-Executed Insert Defaults</a>
-    </div>
+    <li><A href="#metadata_defaults_oninsert">Pre-Executed Insert Defaults</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#metadata_defaults_onupdate">Pre-Executed OnUpdate Defaults</a>
-    </div>
+    <li><A href="#metadata_defaults_onupdate">Pre-Executed OnUpdate Defaults</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#metadata_defaults_passive">Inline Default Execution: PassiveDefault</a>
-    </div>
+    <li><A href="#metadata_defaults_passive">Inline Default Execution: PassiveDefault</a></li>
 
+    <ul class="small_toc_list">
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#metadata_defaults_passive_postgres">The Catch: Postgres Primary Key Defaults always Pre-Execute</a>
-    </div>
-
-    </div>
+    <li><A href="#metadata_defaults_passive_postgres">The Catch: Postgres Primary Key Defaults always Pre-Execute</a></li>
 
 
-    </div>
+
+    </ul>
 
 
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#metadata_defaults_sequences">Defining Sequences</a>
-    </div>
+    <li><A href="#metadata_defaults_sequences">Defining Sequences</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
-    </div>
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#metadata_indexes">Defining Indexes</a>
-    </div>
+        <li><A style="" href="#metadata_indexes">Defining Indexes</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#metadata_adapting">Adapting Tables to Alternate Metadata</a>
-    </div>
+        <li><A style="" href="#metadata_adapting">Adapting Tables to Alternate Metadata</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
+</ul>
 
 	</div>
 </div>
@@ -295,7 +244,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Describing Databases with MetaData</span>
+    <h3>Describing Databases with MetaData</h3>
     <div class="sectiontext">
 
 
@@ -442,7 +391,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Binding MetaData to an Engine</span>
+    <h3>Binding MetaData to an Engine</h3>
     <div class="sectiontext">
 
 
@@ -492,7 +441,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Using the global Metadata object</span>
+    <h3>Using the global Metadata object</h3>
     <div class="sectiontext">
 
 
@@ -537,7 +486,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Reflecting Tables</span>
+    <h3>Reflecting Tables</h3>
     <div class="sectiontext">
 
 
@@ -593,7 +542,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:40px;">
 
-    <span class="sectionheadertext">Overriding Reflected Columns</span>
+    <h3>Overriding Reflected Columns</h3>
     <div class="sectiontext">
 
 
@@ -631,7 +580,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Specifying the Schema Name</span>
+    <h3>Specifying the Schema Name</h3>
     <div class="sectiontext">
 
 
@@ -667,7 +616,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">ON UPDATE and ON DELETE</span>
+    <h3>ON UPDATE and ON DELETE</h3>
     <div class="sectiontext">
 
 
@@ -700,31 +649,46 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Enabling Table / Column Quoting</span>
+    <h3>Enabling Table / Column Quoting</h3>
     <div class="sectiontext">
 
 
 
-<p>Many table, schema, or column names require quoting to be enabled.  Reasons for this include names that are the same as a database reserved word, or for identifiers that use MixedCase, where the database would normally "fold" the case convention into lower or uppercase (such as Postgres).  SQLAlchemy currently has no internal logic to automatically determine when quoting should be used; so its off unless explicitly enabled for a particular column or table.  Turning on quoting for a column or table identifier is performed manually by the <code>quote=True</code> flag on <code>Column</code> or <code>Table</code>, as well as the <code>quote_schema=True</code> flag for <code>Table</code>. 
+<p>Feature Status: [Alpha Implementation][alpha_implementation] 
+</p>
+<p>Many table, schema, or column names require quoting to be enabled.  Reasons for this include names that are the same as a database reserved word, or for identifiers that use MixedCase, where the database would normally "fold" the case convention into lower or uppercase (such as Postgres).  SQLAlchemy as of version 0.2.8 will attempt to automatically determine when quoting should be used.  It will determine a value for every identifier name called <code>case_sensitive</code>, which defaults to <code>False</code> if the identifer name uses no uppercase letters, or <code>True</code> otherwise.  This flag may be explicitly set on any schema item as well (schema items include <code>Table</code>, <code>Column</code>, <code>MetaData</code>, <code>Sequence</code>, etc.) to override this default setting, where objects will inherit the setting from an enclosing object if not explicitly overridden.
+</p>
+<p>When <code>case_sensitive</code> is <code>True</code>, the dialect will do what it has to in order for the database to recognize the casing.  For Postgres and Oracle, this means using quoted identifiers.
+</p>
+<p>Identifiers that match known SQL reserved words (such as "asc", "union", etc.) will also be quoted according to the dialect's quoting convention regardless of the <code>case_sensitive</code> setting.
+</p>
+<p>To force quoting for an identifier, set the "quote=True" flag on <code>Column</code> or <code>Table</code>, as well as the <code>quote_schema=True</code> flag for <code>Table</code>. 
 </p>
 
 
 <div class="sliding_code">
 <pre><span class="python_name">table2 </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'WorstCase2'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">,</span>
-    <span class="python_comment"># desc is a reserved word so quote this column</span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'desc'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">quote</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_comment"># desc is a reserved word, which will be quoted.</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'desc'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
 
-    <span class="python_comment"># MixedCase uses a mixed case convention, so quote this column</span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'MixedCase'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">quote</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_comment"># if using a reserved word which SQLAlchemy doesn't know about,</span>
+    <span class="python_comment"># specify quote=True</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'some_reserved_word'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">quote</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+
+    <span class="python_comment"># MixedCase uses a mixed case convention. </span>
+    <span class="python_comment"># it will be automatically quoted since it is case sensitive</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'MixedCase'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
 
     <span class="python_comment"># Union is both a reserved word and mixed case</span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'Union'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">quote</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'Union'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
 
     <span class="python_comment"># normal_column doesnt require quoting</span>
-    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'normal_column'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">30</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
-
-    <span class="python_comment"># the table name uses mixed case, so turn on quoting for the table ident</span>
-    <span class="python_name">quote</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'normal_column'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">30</span><span class="python_enclosure">)))</span><span class="python_operator">
+</span>
+<span class="python_comment"># to use tables where case_sensitive is False by default regardless
+# of idenfifier casings, set "case_sensitive" to false at any level
+# (or true to force case sensitive for lowercase identifiers as well)
+</span><span class="python_name">lowercase_metadata </span><span class="python_operator">= </span><span class="python_name">MetaData</span><span class="python_enclosure">(</span><span class="python_name">case_sensitive</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
 
 
     </div>
@@ -744,7 +708,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Other Options</span>
+    <h3>Other Options</h3>
     <div class="sectiontext">
 
 
@@ -785,12 +749,12 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Creating and Dropping Database Tables</span>
+    <h3>Creating and Dropping Database Tables</h3>
     <div class="sectiontext">
 
 
 
-<p>Creating and dropping individual tables can be done via the <code>create()</code> and <code>drop()</code> methods of <code>Table</code>; these methods take an optional <code>engine</code> parameter which references an <code>Engine</code> or a <code>Connection</code>.  If not supplied, the <code>Engine</code> bound to the <code>MetaData</code> will be used, else an error is raised:
+<p>Creating and dropping individual tables can be done via the <code>create()</code> and <code>drop()</code> methods of <code>Table</code>; these methods take an optional <code>connectable</code> parameter which references an <code>Engine</code> or a <code>Connection</code>.  If not supplied, the <code>Engine</code> bound to the <code>MetaData</code> will be used, else an error is raised:
 </p>
 
 
@@ -821,7 +785,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 <div class="sliding_code">
 <pre><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">create</span><span class="python_enclosure">(</span><span class="python_name">connectable</span><span class="python_operator">=</span><span class="python_name">e</span><span class="python_operator">, </span><span class="python_name">checkfirst</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">employees</span><span class="python_operator">.</span><span class="python_name">drop</span><span class="python_enclosure">(</span><span class="python_name">checkfirst</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
-<p>Entire groups of Tables can be created and dropped directly from the <code>MetaData</code> object with <code>create_all()</code> and <code>drop_all()</code>.  These methods always check for the existence of each table before creating or dropping.  Each method takes an optional <code>engine</code> keyword argument which can reference an <code>Engine</code> or a <code>Connection</code>.  If no engine is specified, the underlying bound <code>Engine</code>,  if any, is used:
+<p>Entire groups of Tables can be created and dropped directly from the <code>MetaData</code> object with <code>create_all()</code> and <code>drop_all()</code>.  These methods always check for the existence of each table before creating or dropping.  Each method takes an optional <code>connectable</code> keyword argument which can reference an <code>Engine</code> or a <code>Connection</code>.  If no engine is specified, the underlying bound <code>Engine</code>,  if any, is used:
 </p>
 
 
@@ -877,7 +841,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Column Defaults and OnUpdates</span>
+    <h3>Column Defaults and OnUpdates</h3>
     <div class="sectiontext">
 
 
@@ -904,7 +868,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Pre-Executed Insert Defaults</span>
+    <h3>Pre-Executed Insert Defaults</h3>
     <div class="sectiontext">
 
 
@@ -967,7 +931,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Pre-Executed OnUpdate Defaults</span>
+    <h3>Pre-Executed OnUpdate Defaults</h3>
     <div class="sectiontext">
 
 
@@ -1008,7 +972,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Inline Default Execution: PassiveDefault</span>
+    <h3>Inline Default Execution: PassiveDefault</h3>
     <div class="sectiontext">
 
 
@@ -1065,7 +1029,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:40px;">
 
-    <span class="sectionheadertext">The Catch: Postgres Primary Key Defaults always Pre-Execute</span>
+    <h3>The Catch: Postgres Primary Key Defaults always Pre-Execute</h3>
     <div class="sectiontext">
 
 
@@ -1096,7 +1060,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Defining Sequences</span>
+    <h3>Defining Sequences</h3>
     <div class="sectiontext">
 
 
@@ -1142,7 +1106,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Defining Indexes</span>
+    <h3>Defining Indexes</h3>
     <div class="sectiontext">
 
 
@@ -1200,7 +1164,7 @@ Next: <a href="sqlconstruction.html">Constructing SQL Queries via Python Express
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Adapting Tables to Alternate Metadata</span>
+    <h3>Adapting Tables to Alternate Metadata</h3>
     <div class="sectiontext">
 
 

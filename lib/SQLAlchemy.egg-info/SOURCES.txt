@@ -156,6 +156,7 @@ test/orm/poly_linked_list.py
 test/orm/polymorph.py
 test/orm/relationships.py
 test/orm/selectresults.py
+test/orm/session.py
 test/orm/sessioncontext.py
 test/perf/masscreate.py
 test/perf/masscreate2.py
@@ -172,3 +173,10 @@ test/sql/quote.py
 test/sql/select.py
 test/sql/selectable.py
 test/sql/testtypes.py
+test/zblog/__init__.py
+test/zblog/alltests.py
+test/zblog/blog.py
+test/zblog/mappers.py
+test/zblog/tables.py
+test/zblog/tests.py
+test/zblog/user.py

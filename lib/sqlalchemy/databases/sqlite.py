@@ -16,11 +16,14 @@ pysqlite2_timesupport = False   # Change this if the init.d guys ever get around
 
 try:
     from pysqlite2 import dbapi2 as sqlite
-except:
+except ImportError:
     try:
-        sqlite = __import__('sqlite') # skip ourselves
-    except:
-        sqlite = None
+        from sqlite3 import dbapi2 as sqlite #try the 2.5+ stdlib name.
+    except ImportError:
+        try:
+            sqlite = __import__('sqlite') # skip ourselves
+        except:
+            sqlite = None
 
 class SLNumeric(sqltypes.Numeric):
     def get_col_spec(self):
@@ -135,14 +138,14 @@ class SQLiteDialect(ansisql.ANSIDialect):
     def __init__(self, **kwargs):
         def vers(num):
             return tuple([int(x) for x in num.split('.')])
-        self.supports_cast = (vers(sqlite.sqlite_version) >= vers("3.2.3"))
+        self.supports_cast = (sqlite is not None and vers(sqlite.sqlite_version) >= vers("3.2.3"))
         ansisql.ANSIDialect.__init__(self, **kwargs)
     def compiler(self, statement, bindparams, **kwargs):
         return SQLiteCompiler(self, statement, bindparams, **kwargs)
     def schemagenerator(self, *args, **kwargs):
         return SQLiteSchemaGenerator(*args, **kwargs)
     def preparer(self):
-        return SQLiteIdentifierPreparer()
+        return SQLiteIdentifierPreparer(self)
     def create_connect_args(self, url):
         filename = url.database or ':memory:'
         return ([filename], url.query)
@@ -160,8 +163,6 @@ class SQLiteDialect(ansisql.ANSIDialect):
         return ([self.filename], self.opts)
 
     def dbapi(self):
-        if sqlite is None:
-            raise exceptions.ArgumentError("Couldn't import sqlite or pysqlite2")
         return sqlite
         
     def has_table(self, connection, table_name):
@@ -300,8 +301,8 @@ class SQLiteSchemaGenerator(ansisql.ANSISchemaGenerator):
     #        super(SQLiteSchemaGenerator, self).visit_primary_key_constraint(constraint)
 
 class SQLiteIdentifierPreparer(ansisql.ANSIIdentifierPreparer):
-    def __init__(self):
-        super(SQLiteIdentifierPreparer, self).__init__(omit_schema=True)
+    def __init__(self, dialect):
+        super(SQLiteIdentifierPreparer, self).__init__(dialect, omit_schema=True)
 
 dialect = SQLiteDialect
 poolclass = pool.SingletonThreadPool       

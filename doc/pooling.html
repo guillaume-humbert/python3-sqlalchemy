@@ -21,8 +21,8 @@
 
 <div class="docheader">
 
-<div class="docheadertext" >Connection Pooling</div>
-<div class="">Version: 0.2.7   Last Updated: 08/12/06 18:15:53</div>
+<h1>Connection Pooling</h1>
+<div class="">Version: 0.2.8   Last Updated: 09/05/06 12:33:09</div>
 </div>
 
 
@@ -61,37 +61,33 @@ Next: <a href="plugins.html">Plugins</a>
 	<div class="topnavitems">
 	
 
+<ul class="toc_list">
 
     
     
-    <div class="toclink">
-        <A style="" href="#pooling_establishing">Establishing a Transparent Connection Pool</a>
-    </div>
+        <li><A style="" href="#pooling_establishing">Establishing a Transparent Connection Pool</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
-
-
-    
-    
-    <div class="toclink">
-        <A style="" href="#pooling_configuration">Connection Pool Configuration</a>
-    </div>
-    
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#pooling_custom">Custom Pool Construction</a>
-    </div>
+        <li><A style="" href="#pooling_configuration">Connection Pool Configuration</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
+    
+    
+        <li><A style="" href="#pooling_custom">Custom Pool Construction</a></li>
+    
+    <ul class="small_toc_list">
+    </ul>
+
+
+</ul>
 
 	</div>
 </div>
@@ -132,7 +128,7 @@ Next: <a href="plugins.html">Plugins</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Establishing a Transparent Connection Pool</span>
+    <h3>Establishing a Transparent Connection Pool</h3>
     <div class="sectiontext">
 
 
@@ -175,7 +171,7 @@ Next: <a href="plugins.html">Plugins</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Connection Pool Configuration</span>
+    <h3>Connection Pool Configuration</h3>
     <div class="sectiontext">
 
 
@@ -189,6 +185,10 @@ Next: <a href="plugins.html">Plugins</a>
 
  <li>
      use_threadlocal=True : if set to True, repeated calls to connect() within the same application thread will be guaranteed to return the <strong>same</strong> connection object, if one has already been retrieved from the pool and has not been returned yet.  This allows code to retrieve a connection from the pool, and then while still holding on to that connection, to call other functions which also ask the pool for a connection of the same arguments;  those functions will act upon the same connection that the calling method is using.  Note that once the connection is returned to the pool, it then may be used by another thread.  To guarantee a single unique connection per thread that <strong>never</strong> changes, use the option <code>poolclass=SingletonThreadPool</code>, in which case the use_threadlocal parameter is not used.
+ </li>
+
+ <li>
+     recycle=3600 : this setting causes the pool to recycle connections after the given number of seconds has passed.  It defaults to 3600 seconds, or one hour.  Note that MySQL in particular will disconnect automatically if no activity is detected on a connection for eight hours.
  </li>
 
  <li>
@@ -226,7 +226,7 @@ Next: <a href="plugins.html">Plugins</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Custom Pool Construction</span>
+    <h3>Custom Pool Construction</h3>
     <div class="sectiontext">
 
 

@@ -77,6 +77,12 @@ class ReflectionTest(PersistTest):
             addresses.drop()
             users.drop()
         
+        # a hack to remove the defaults we got reflecting from postgres
+        # SERIAL columns, since they reference sequences that were just dropped.
+        # PG 8.1 doesnt want to create them if the underlying sequence doesnt exist
+        users.c.user_id.default = None
+        addresses.c.address_id.default = None
+        
         users.create()
         addresses.create()
         try:
@@ -103,7 +109,12 @@ class ReflectionTest(PersistTest):
             Column('id', Integer, primary_key=True),
             Column('num1', mysql.MSInteger(unsigned=True)),
             Column('text1', mysql.MSLongText),
-            Column('text2', mysql.MSLongText())
+            Column('text2', mysql.MSLongText()),
+             Column('num2', mysql.MSBigInteger),
+             Column('num3', mysql.MSBigInteger()),
+             Column('num4', mysql.MSDouble),
+             Column('num5', mysql.MSDouble()),
+             Column('enum1', mysql.MSEnum('"black"', '"white"')),
             )
         try:
             table.create(checkfirst=True)
@@ -113,16 +124,32 @@ class ReflectionTest(PersistTest):
             assert t2.c.num1.type.unsigned
             assert isinstance(t2.c.text1.type, mysql.MSLongText)
             assert isinstance(t2.c.text2.type, mysql.MSLongText)
+            assert isinstance(t2.c.num2.type, mysql.MSBigInteger)
+            assert isinstance(t2.c.num3.type, mysql.MSBigInteger)
+            assert isinstance(t2.c.num4.type, mysql.MSDouble)
+            assert isinstance(t2.c.num5.type, mysql.MSDouble)
+            assert isinstance(t2.c.enum1.type, mysql.MSEnum)
             t2.drop()
             t2.create()
         finally:
             table.drop(checkfirst=True)
-        
+            
+    @testbase.supported('postgres')
+    def testredundantsequence(self):
+        meta1 = BoundMetaData(testbase.db)
+        t = Table('mytable', meta1, 
+            Column('col1', Integer, Sequence('fooseq')))
+        try:
+            testbase.db.execute("CREATE SEQUENCE fooseq")
+            t.create()
+        finally:
+            t.drop()
+            
     def testmultipk(self):
         table = Table(
             'engine_multi', testbase.db, 
-            Column('multi_id', Integer, primary_key=True),
-            Column('multi_rev', Integer, primary_key=True),
+            Column('multi_id', Integer, Sequence('multi_id_seq'), primary_key=True),
+            Column('multi_rev', Integer, Sequence('multi_rev_seq'), primary_key=True),
             Column('name', String(50), nullable=False),
             Column('val', String(100))
         )
@@ -140,6 +167,8 @@ class ReflectionTest(PersistTest):
             table.c['multi_rev'].primary_key
             ]
         )
+
+
         table.create()
         table.insert().execute({'multi_id':1,'multi_rev':1,'name':'row1', 'val':'value1'})
         table.insert().execute({'multi_id':2,'multi_rev':18,'name':'row2', 'val':'value2'})
@@ -333,6 +362,7 @@ class SchemaTest(PersistTest):
         table1.accept_schema_visitor(gen)
         table2.accept_schema_visitor(gen)
         buf = buf.getvalue()
+        print buf
         assert buf.index("CREATE TABLE someschema.table1") > -1
         assert buf.index("CREATE TABLE someschema.table2") > -1
          

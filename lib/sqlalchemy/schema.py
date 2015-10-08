@@ -29,6 +29,8 @@ class SchemaItem(object):
         for item in args:
             if item is not None:
                 item._set_parent(self)
+    def _get_parent(self):
+        raise NotImplementedError()
     def _set_parent(self, parent):
         """associate with this SchemaItem's parent object."""
         raise NotImplementedError()
@@ -39,6 +41,44 @@ class SchemaItem(object):
         return None
     def _get_engine(self):
         return self._derived_metadata().engine
+        
+    def _set_casing_strategy(self, name, kwargs, keyname='case_sensitive'):
+        """set the "case_sensitive" argument sent via keywords to the item's constructor.
+        
+        for the purposes of Table's 'schema' property, the name of the variable is
+        optionally configurable."""
+        setattr(self, '_%s_setting' % keyname, kwargs.pop(keyname, None))
+    def _determine_case_sensitive(self, name, keyname='case_sensitive'):
+        """determine the "case_sensitive" value for this item.
+        
+        for the purposes of Table's 'schema' property, the name of the variable is
+        optionally configurable.
+        
+        a local non-None value overrides all others.  after that, the parent item
+        (i.e. Column for a Sequence, Table for a Column, MetaData for a Table) is
+        searched for a non-None setting, traversing each parent until none are found.
+        finally, case_sensitive is set to True if and only if the name of this item
+        is not all lowercase.
+        """
+        local = getattr(self, '_%s_setting' % keyname, None)
+        if local is not None:
+            return local
+        parent = self
+        while parent is not None:
+            parent = parent._get_parent()
+            if parent is not None:
+                parentval = getattr(parent, '_case_sensitive_setting', None)
+                if parentval is not None:
+                    return parentval
+        return name is not None and name.lower() != name
+    def _get_case_sensitive(self):
+        try:
+            return self.__case_sensitive
+        except AttributeError:
+            self.__case_sensitive = self._determine_case_sensitive(self.name)
+            return self.__case_sensitive
+    case_sensitive = property(_get_case_sensitive)
+        
     engine = property(lambda s:s._get_engine())
     metadata = property(lambda s:s._derived_metadata())
     
@@ -91,10 +131,14 @@ class TableSingleton(type):
             # we do it after the table is in the singleton dictionary to support
             # circular foreign keys
             if autoload:
-                if autoload_with:
-                    autoload_with.reflecttable(table)
-                else:
-                    metadata.engine.reflecttable(table)
+                try:
+                    if autoload_with:
+                        autoload_with.reflecttable(table)
+                    else:
+                        metadata.engine.reflecttable(table)
+                except exceptions.NoSuchTableError:
+                    table.deregister()
+                    raise
             # initialize all the column, etc. objects.  done after
             # reflection to allow user-overrides
             table._init_items(*args)
@@ -144,10 +188,16 @@ class Table(SchemaItem, sql.TableClause):
         reflection.
         
         quote=False : indicates that the Table identifier must be properly escaped and quoted before being sent 
-        to the database.
+        to the database. This flag overrides all other quoting behavior.
         
         quote_schema=False : indicates that the Namespace identifier must be properly escaped and quoted before being sent 
-        to the database.
+        to the database. This flag overrides all other quoting behavior.
+        
+        case_sensitive=True : indicates that the identifier should be interpreted by the database in the natural case for identifiers.
+        Mixed case is not sufficient to cause this identifier to be quoted; it must contain an illegal character.
+        
+        case_sensitive_schema=True : indicates that the identifier should be interpreted by the database in the natural case for identifiers.
+        Mixed case is not sufficient to cause this identifier to be quoted; it must contain an illegal character.
         """
         super(Table, self).__init__(name)
         self._metadata = metadata
@@ -155,15 +205,25 @@ class Table(SchemaItem, sql.TableClause):
         self.indexes = util.OrderedProperties()
         self.constraints = []
         self.primary_key = PrimaryKeyConstraint()
-
+        self.quote = kwargs.get('quote', False)
+        self.quote_schema = kwargs.get('quote_schema', False)
         if self.schema is not None:
             self.fullname = "%s.%s" % (self.schema, self.name)
         else:
             self.fullname = self.name
         self.owner = kwargs.pop('owner', None)
-        self.quote = kwargs.pop('quote', False)
-        self.quote_schema = kwargs.pop('quote_schema', False)
+
+        self._set_casing_strategy(name, kwargs)
+        self._set_casing_strategy(self.schema or '', kwargs, keyname='case_sensitive_schema')
         self.kwargs = kwargs
+
+    def _get_case_sensitive_schema(self):
+        try:
+            return getattr(self, '_case_sensitive_schema')
+        except AttributeError:
+            setattr(self, '_case_sensitive_schema', self._determine_case_sensitive(self.schema or '', keyname='case_sensitive_schema'))
+            return getattr(self, '_case_sensitive_schema')
+    case_sensitive_schema = property(_get_case_sensitive_schema)
 
     def _set_primary_key(self, pk):
         if getattr(self, '_primary_key', None) in self.constraints:
@@ -205,7 +265,9 @@ class Table(SchemaItem, sql.TableClause):
 
     def append_index(self, index):
         self.indexes[index.name] = index
-        
+    
+    def _get_parent(self):
+        return self._metadata    
     def _set_parent(self, metadata):
         metadata.tables[_get_table_key(self.name, self.schema)] = self
         self._metadata = metadata
@@ -332,6 +394,9 @@ class Column(SchemaItem, sql.ColumnClause):
 
         quote=False : indicates that the Column identifier must be properly escaped and quoted before being sent 
         to the database.
+
+        case_sensitive=True : indicates that the identifier should be interpreted by the database in the natural case for identifiers.
+        Mixed case is not sufficient to cause this identifier to be quoted; it must contain an illegal character.
         """
         name = str(name) # in case of incoming unicode
         super(Column, self).__init__(name, None, type)
@@ -344,7 +409,9 @@ class Column(SchemaItem, sql.ColumnClause):
         self.index = kwargs.pop('index', None)
         self.unique = kwargs.pop('unique', None)
         self.quote = kwargs.pop('quote', False)
+        self._set_casing_strategy(name, kwargs)
         self.onupdate = kwargs.pop('onupdate', None)
+        self.__originating_column = self
         if self.index is not None and self.unique is not None:
             raise exceptions.ArgumentError("Column may not define both index and unique")
         self._foreign_key = None
@@ -386,7 +453,9 @@ class Column(SchemaItem, sql.ColumnClause):
         self.primary_key = True
         self.nullable = False
         self.table.primary_key.append(self)
-            
+    
+    def _get_parent(self):
+        return self.table        
     def _set_parent(self, table):
         if getattr(self, 'table', None) is not None:
             raise exceptions.ArgumentError("this Column already has a table!")
@@ -405,19 +474,22 @@ class Column(SchemaItem, sql.ColumnClause):
         self.args = None
 
     def copy(self): 
-        """creates a copy of this Column, unitialized"""
-        return Column(self.name, self.type, self.default, key = self.key, primary_key = self.primary_key, nullable = self.nullable, hidden = self.hidden)
+        """creates a copy of this Column, unitialized.  this is used in Table.tometadata."""
+        return Column(self.name, self.type, self.default, key = self.key, primary_key = self.primary_key, nullable = self.nullable, hidden = self.hidden, case_sensitive=self._case_sensitive_setting, quote=self.quote)
         
     def _make_proxy(self, selectable, name = None):
-        """creates a copy of this Column, initialized the way this Column is"""
+        """create a "proxy" for this column.
+        
+        This is a copy of this Column referenced 
+        by a different parent (such as an alias or select statement)"""
         if self.foreign_key is None:
             fk = None
         else:
             fk = self.foreign_key.copy()
-        c = Column(name or self.name, self.type, fk, self.default, key = name or self.key, primary_key = self.primary_key, nullable = self.nullable, hidden = self.hidden)
+        c = Column(name or self.name, self.type, fk, self.default, key = name or self.key, primary_key = self.primary_key, nullable = self.nullable, hidden = self.hidden, quote=self.quote)
         c.table = selectable
         c.orig_set = self.orig_set
-        c._parent = self
+        c.__originating_column = self.__originating_column
         if not c.hidden:
             selectable.columns[c.key] = c
             if self.primary_key:
@@ -426,6 +498,12 @@ class Column(SchemaItem, sql.ColumnClause):
             c._init_items(fk)
         return c
 
+    def _case_sens(self):
+        """redirect the 'case_sensitive' accessor to use the ultimate parent column which created
+        this one."""
+        return self.__originating_column._get_case_sensitive()
+    case_sensitive = property(_case_sens)
+    
     def accept_schema_visitor(self, visitor):
         """traverses the given visitor to this Column's default and foreign key object,
         then calls visit_column on the visitor."""
@@ -518,7 +596,9 @@ class ForeignKey(SchemaItem):
     def accept_schema_visitor(self, visitor):
         """calls the visit_foreign_key method on the given visitor."""
         visitor.visit_foreign_key(self)
-        
+  
+    def _get_parent(self):
+        return self.parent
     def _set_parent(self, column):
         self.parent = column
 
@@ -544,6 +624,8 @@ class DefaultGenerator(SchemaItem):
             return self.column.table.metadata
         except AttributeError:
             return self._metadata
+    def _get_parent(self):
+        return getattr(self, 'column', None)
     def _set_parent(self, column):
         self.column = column
         self._metadata = self.column.table.metadata
@@ -583,12 +665,14 @@ class ColumnDefault(DefaultGenerator):
         
 class Sequence(DefaultGenerator):
     """represents a sequence, which applies to Oracle and Postgres databases."""
-    def __init__(self, name, start = None, increment = None, optional=False, **kwargs):
+    def __init__(self, name, start = None, increment = None, optional=False, quote=False, **kwargs):
         super(Sequence, self).__init__(**kwargs)
         self.name = name
         self.start = start
         self.increment = increment
         self.optional=optional
+        self.quote = quote
+        self._set_casing_strategy(name, kwargs)
     def __repr__(self):
         return "Sequence(%s)" % string.join(
              [repr(self.name)] +
@@ -627,6 +711,8 @@ class Constraint(SchemaItem):
         self.columns[index] = item
     def copy(self):
         raise NotImplementedError()
+    def _get_parent(self):
+        return getattr(self, 'table', None)
         
 class ForeignKeyConstraint(Constraint):
     """table-level foreign key constraint, represents a colleciton of ForeignKey objects."""
@@ -649,7 +735,7 @@ class ForeignKeyConstraint(Constraint):
         fk._set_parent(self.table.c[col])
         self._append_fk(fk)
     def _append_fk(self, fk):
-        self.columns.append(self.table.c[fk.parent.name])
+        self.columns.append(self.table.c[fk.parent.key])
         self.elements.append(fk)
     def copy(self):
         return ForeignKeyConstraint([x.parent.name for x in self.elements], [x._get_colspec() for x in self.elements], name=self.name, onupdate=self.onupdate, ondelete=self.ondelete)
@@ -659,6 +745,7 @@ class PrimaryKeyConstraint(Constraint):
         super(PrimaryKeyConstraint, self).__init__(name=kwargs.pop('name', None))
         self.__colnames = list(columns)
     def _set_parent(self, table):
+        self.table = table
         table.primary_key = self
         for c in self.__colnames:
             self.append(table.c[c])
@@ -668,13 +755,14 @@ class PrimaryKeyConstraint(Constraint):
         self.columns.append(col)
         col.primary_key=True
     def copy(self):
-        return PrimaryKeyConstraint(name=self.name, *[c.name for c in self])
+        return PrimaryKeyConstraint(name=self.name, *[c.key for c in self])
             
 class UniqueConstraint(Constraint):
     def __init__(self, name=None, *columns):
         super(Constraint, self).__init__(name)
         self.__colnames = list(columns)
     def _set_parent(self, table):
+        self.table = table
         table.constraints.append(self)
         for c in self.__colnames:
             self.append(table.c[c])
@@ -709,7 +797,8 @@ class Index(SchemaItem):
     def _init_items(self, *args):
         for column in args:
             self.append_column(column)
-            
+    def _get_parent(self):
+        return self.table    
     def append_column(self, column):
         # make sure all columns are from the same table
         # and no column is repeated
@@ -751,17 +840,19 @@ class Index(SchemaItem):
         
 class MetaData(SchemaItem):
     """represents a collection of Tables and their associated schema constructs."""
-    def __init__(self, name=None):
+    def __init__(self, name=None, **kwargs):
         # a dictionary that stores Table objects keyed off their name (and possibly schema name)
         self.tables = {}
         self.name = name
+        self._set_casing_strategy(name, kwargs)
     def is_bound(self):
         return False
     def clear(self):
         self.tables.clear()
     def table_iterator(self, reverse=True):
         return self._sort_tables(self.tables.values(), reverse=reverse)
-        
+    def _get_parent(self):
+        return None    
     def create_all(self, connectable=None, tables=None, engine=None):
         """create all tables stored in this metadata.
         
@@ -838,7 +929,7 @@ class MetaData(SchemaItem):
 class BoundMetaData(MetaData):
     """builds upon MetaData to provide the capability to bind to an Engine implementation."""
     def __init__(self, engine_or_url, name=None, **kwargs):
-        super(BoundMetaData, self).__init__(name)
+        super(BoundMetaData, self).__init__(name, **kwargs)
         if isinstance(engine_or_url, str):
             self._engine = sqlalchemy.create_engine(engine_or_url, **kwargs)
         else:
@@ -849,8 +940,8 @@ class BoundMetaData(MetaData):
 class DynamicMetaData(MetaData):
     """builds upon MetaData to provide the capability to bind to multiple Engine implementations
     on a dynamically alterable, thread-local basis."""
-    def __init__(self, name=None, threadlocal=True):
-        super(DynamicMetaData, self).__init__(name)
+    def __init__(self, name=None, threadlocal=True, **kwargs):
+        super(DynamicMetaData, self).__init__(name, **kwargs)
         if threadlocal:
             self.context = util.ThreadLocal()
         else:

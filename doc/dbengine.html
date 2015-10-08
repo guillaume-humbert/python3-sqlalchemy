@@ -21,8 +21,8 @@
 
 <div class="docheader">
 
-<div class="docheadertext" >Database Engines</div>
-<div class="">Version: 0.2.7   Last Updated: 08/12/06 18:15:53</div>
+<h1>Database Engines</h1>
+<div class="">Version: 0.2.8   Last Updated: 09/05/06 12:33:09</div>
 </div>
 
 
@@ -61,68 +61,65 @@ Next: <a href="metadata.html">Database Meta Data</a>
 	<div class="topnavitems">
 	
 
+<ul class="toc_list">
 
     
     
-    <div class="toclink">
-        <A style="" href="#dbengine_supported">Supported Databases</a>
-    </div>
+        <li><A style="" href="#dbengine_supported">Supported Databases</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
-
-
-    
-    
-    <div class="toclink">
-        <A style="" href="#dbengine_establishing">Establishing a Database Engine</a>
-    </div>
-    
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#dbengine_options">Database Engine Options</a>
-    </div>
+        <li><A style="" href="#dbengine_establishing">Establishing a Database Engine</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
-
-
-    
-    
-    <div class="toclink">
-        <A style="" href="#dbengine_connections">Using Connections</a>
-    </div>
-    
-    <div class="toclinkcontainer">
+    <ul class="small_toc_list">
         
         
-    <div class="toclinkcontainer">
-    
-    <div class="smalltoclink">
-    <A href="#dbengine_connections_context">Implicit Connection Contexts</a>
-    </div>
+    <li><A href="#dbengine_establishing_custom">Custom DBAPI keyword arguments</a></li>
 
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
-    </div>
+    </ul>
 
 
     
     
-    <div class="toclink">
-        <A style="" href="#dbengine_transactions">Transactions</a>
-    </div>
+        <li><A style="" href="#dbengine_options">Database Engine Options</a></li>
     
-    <div class="toclinkcontainer">
-    </div>
+    <ul class="small_toc_list">
+    </ul>
 
 
+    
+    
+        <li><A style="" href="#dbengine_connections">Using Connections</a></li>
+    
+    <ul class="small_toc_list">
+        
+        
+    <li><A href="#dbengine_connections_context">Implicit Connection Contexts</a></li>
+
+    <ul class="small_toc_list">
+    </ul>
+
+
+    </ul>
+
+
+    
+    
+        <li><A style="" href="#dbengine_transactions">Transactions</a></li>
+    
+    <ul class="small_toc_list">
+    </ul>
+
+
+</ul>
 
 	</div>
 </div>
@@ -213,7 +210,7 @@ Next: <a href="metadata.html">Database Meta Data</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Supported Databases</span>
+    <h3>Supported Databases</h3>
     <div class="sectiontext">
 
 
@@ -268,7 +265,7 @@ Next: <a href="metadata.html">Database Meta Data</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Establishing a Database Engine</span>
+    <h3>Establishing a Database Engine</h3>
     <div class="sectiontext">
 
 
@@ -301,10 +298,58 @@ Next: <a href="metadata.html">Database Meta Data</a>
 </p>
 
 
+			
+
+    </div>
+
+        
+
+
+
+<A name="dbengine_establishing_custom"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <h3>Custom DBAPI keyword arguments</h3>
+    <div class="sectiontext">
+
+
+
+<p>Custom arguments can be passed to the underlying DBAPI in three ways.  String-based arguments can be passed directly from the URL string as query arguments:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://scott:tiger@localhost/test?argument1=foo&argument2=bar'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+<p>If SQLAlchemy's database connector is aware of a particular query argument, it may convert its type from string to its proper type.
+</p>
+<p> <code>create_engine</code> also takes an argument <code>connect_args</code> which is an additional dictionary that will be passed to <code>connect()</code>.  This can be used when arguments of a type other than string are required, and SQLAlchemy's database connector has no type conversion logic present for that parameter:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://scott:tiger@localhost/test'</span><span class="python_operator">, </span><span class="python_name">create_args </span><span class="python_operator">= </span><span class="python_enclosure">{</span><span class="python_literal">'argument1'</span><span class="python_operator">:</span><span class="python_number">17</span><span class="python_operator">, </span><span class="python_literal">'argument2'</span><span class="python_operator">:</span><span class="python_literal">'bar'</span><span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
+<p>The most customizable connection method of all is to pass a <code>creator</code> argument, which specifies a callable that returns a DBAPI connection:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_keyword">def </span><span class="python_name">connect</span><span class="python_enclosure">()</span><span class="python_operator">:
+    </span><span class="python_keyword">return </span><span class="python_name">psycopg</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_name">user</span><span class="python_operator">=</span><span class="python_literal">'scott'</span><span class="python_operator">, </span><span class="python_name">host</span><span class="python_operator">=</span><span class="python_literal">'localhost'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://'</span><span class="python_operator">, </span><span class="python_name">creator</span><span class="python_operator">=</span><span class="python_name">connect</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+
     </div>
 
 
     <a href="#dbengine" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
 
 
 </div>
@@ -318,7 +363,7 @@ Next: <a href="metadata.html">Database Meta Data</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Database Engine Options</span>
+    <h3>Database Engine Options</h3>
     <div class="sectiontext">
 
 
@@ -337,10 +382,14 @@ Next: <a href="metadata.html">Database Meta Data</a>
  </li>
 
  <li>
-     pool=None : an instance of <code>sqlalchemy.pool.Pool</code> to be used as the underlying source for connections, overriding the engine's connect arguments (pooling is described in <a href="pooling.html#pooling" >Connection Pooling</a>).  If None, a default <code>Pool</code> (usually <code>QueuePool</code>, or <code>SingletonThreadPool</code> in the case of SQLite) will be created using the engine's connect arguments.
+     poolclass=None : a <code>sqlalchemy.pool.Pool</code> subclass (or duck-typed equivalent) that will be instantated in place of the default connection pool.
+ </li>
+
+ <li>
+     pool=None : an actual pool instance.  Note that an already-constructed pool should already know how to create database connections, so this option supercedes any other connect options specified.  Typically, it is an instance of <code>sqlalchemy.pool.Pool</code> to be used as the underlying source for connections.  For more on connection pooling, see <a href="pooling.html#pooling" >Connection Pooling</a>.
  </li>
 </ul>
-<p>Example:
+<p>Example of a manual invocation of <code>pool.QueuePool</code> (which is the pool instance used for all databases except sqlite):
 </p>
 
 
@@ -364,6 +413,10 @@ Next: <a href="metadata.html">Database Meta Data</a>
 
  <li>
      pool_timeout=30 : number of seconds to wait before giving up on getting a connection from the pool.  This is only used with <code>QueuePool</code>.
+ </li>
+
+ <li>
+     pool_recycle=3600 : this setting causes the pool to recycle connections after the given number of seconds has passed.  It defaults to 3600 seconds, or one hour.  Note that MySQL in particular will disconnect automatically if no activity is detected on a connection for eight hours.
  </li>
 
  <li>
@@ -417,7 +470,7 @@ Next: <a href="metadata.html">Database Meta Data</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Using Connections</span>
+    <h3>Using Connections</h3>
     <div class="sectiontext">
 
 
@@ -481,12 +534,12 @@ Next: <a href="metadata.html">Database Meta Data</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <span class="sectionheadertext">Implicit Connection Contexts</span>
+    <h3>Implicit Connection Contexts</h3>
     <div class="sectiontext">
 
 
 
-<p>An <strong>implicit connection</strong> refers to connections that are allocated by the <code>Engine</code> internally.  There are two general cases when this occurs:  when using the various <code>execute()</code> methods that are available off the <code>Engine</code> object itself, and when calling the <code>execute()</code> method on constructed SQL objects, which are described in <b>None</b>.
+<p>An <strong>implicit connection</strong> refers to connections that are allocated by the <code>Engine</code> internally.  There are two general cases when this occurs:  when using the various <code>execute()</code> methods that are available off the <code>Engine</code> object itself, and when calling the <code>execute()</code> method on constructed SQL objects, which are described in <a href="sqlconstruction.html#sql" >Constructing SQL Queries via Python Expressions</a>.
 </p>
 
 
@@ -596,7 +649,7 @@ Next: <a href="metadata.html">Database Meta Data</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <span class="sectionheadertext">Transactions</span>
+    <h3>Transactions</h3>
     <div class="sectiontext">
 
 

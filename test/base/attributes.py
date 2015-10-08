@@ -131,8 +131,8 @@ class AttributesTest(PersistTest):
         class Post(object):pass
         class Blog(object):pass
         
-        manager.register_attribute(Post, 'blog', uselist=False, extension=attributes.GenericBackrefExtension('posts'))
-        manager.register_attribute(Blog, 'posts', uselist=True, extension=attributes.GenericBackrefExtension('blog'))
+        manager.register_attribute(Post, 'blog', uselist=False, extension=attributes.GenericBackrefExtension('posts'), trackparent=True)
+        manager.register_attribute(Blog, 'posts', uselist=True, extension=attributes.GenericBackrefExtension('blog'), trackparent=True)
         b = Blog()
         (p1, p2, p3) = (Post(), Post(), Post())
         b.posts.append(p1)
@@ -165,6 +165,39 @@ class AttributesTest(PersistTest):
         j.port = None
         self.assert_(p.jack is None)
 
+    def testlazytrackparent(self):
+        """test that the "hasparent" flag works properly when lazy loaders and backrefs are used"""
+        manager = attributes.AttributeManager()
+
+        class Post(object):pass
+        class Blog(object):pass
+
+        # set up instrumented attributes with backrefs    
+        manager.register_attribute(Post, 'blog', uselist=False, extension=attributes.GenericBackrefExtension('posts'), trackparent=True)
+        manager.register_attribute(Blog, 'posts', uselist=True, extension=attributes.GenericBackrefExtension('blog'), trackparent=True)
+
+        # create objects as if they'd been freshly loaded from the database (without history)
+        b = Blog()
+        p1 = Post()
+        Blog.posts.set_callable(b, lambda:[p1])
+        Post.blog.set_callable(p1, lambda:b)
+        manager.commit(p1, b)
+
+        # no orphans (called before the lazy loaders fire off)
+        assert getattr(Blog, 'posts').hasparent(p1, optimistic=True)
+        assert getattr(Post, 'blog').hasparent(b, optimistic=True)
+
+        # assert connections
+        assert p1.blog is b
+        assert p1 in b.posts
+        
+        # manual connections
+        b2 = Blog()
+        p2 = Post()
+        b2.posts.append(p2)
+        assert getattr(Blog, 'posts').hasparent(p2)
+        assert getattr(Post, 'blog').hasparent(b2)
+        
     def testinheritance(self):
         """tests that attributes are polymorphic"""
         class Foo(object):pass
