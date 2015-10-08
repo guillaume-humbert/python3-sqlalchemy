@@ -655,8 +655,7 @@ class ConstraintTest(fixtures.TestBase):
                     onupdate='CASCADE'))
         assert_raises(exc.SAWarning, bat.create)
 
-class TypesTest(fixtures.TestBase, AssertsCompiledSQL):
-    __only_on__ = 'oracle'
+class DialectTypesTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = oracle.OracleDialect()
 
     def test_no_clobs_for_string_params(self):
@@ -677,6 +676,72 @@ class TypesTest(fixtures.TestBase, AssertsCompiledSQL):
 
         b = bindparam("foo", u"hello world!")
         assert b.type.dialect_impl(dialect).get_dbapi_type(dbapi) == 'STRING'
+
+    def test_long(self):
+        self.assert_compile(oracle.LONG(), "LONG")
+
+    def test_type_adapt(self):
+        dialect = cx_oracle.dialect()
+
+        for start, test in [
+            (Date(), cx_oracle._OracleDate),
+            (oracle.OracleRaw(), cx_oracle._OracleRaw),
+            (String(), String),
+            (VARCHAR(), cx_oracle._OracleString),
+            (DATE(), DATE),
+            (String(50), cx_oracle._OracleString),
+            (Unicode(), cx_oracle._OracleNVarChar),
+            (Text(), cx_oracle._OracleText),
+            (UnicodeText(), cx_oracle._OracleUnicodeText),
+            (NCHAR(), cx_oracle._OracleNVarChar),
+            (oracle.RAW(50), cx_oracle._OracleRaw),
+        ]:
+            assert isinstance(start.dialect_impl(dialect), test), \
+                    "wanted %r got %r" % (test, start.dialect_impl(dialect))
+
+    def test_raw_compile(self):
+        self.assert_compile(oracle.RAW(), "RAW")
+        self.assert_compile(oracle.RAW(35), "RAW(35)")
+
+    def test_char_length(self):
+        self.assert_compile(VARCHAR(50),"VARCHAR(50 CHAR)")
+
+        oracle8dialect = oracle.dialect()
+        oracle8dialect.server_version_info = (8, 0)
+        self.assert_compile(VARCHAR(50),"VARCHAR(50)",dialect=oracle8dialect)
+
+        self.assert_compile(NVARCHAR(50),"NVARCHAR2(50)")
+        self.assert_compile(CHAR(50),"CHAR(50)")
+
+    def test_varchar_types(self):
+        dialect = oracle.dialect()
+        for typ, exp in [
+            (String(50), "VARCHAR2(50 CHAR)"),
+            (Unicode(50), "NVARCHAR2(50)"),
+            (NVARCHAR(50), "NVARCHAR2(50)"),
+            (VARCHAR(50), "VARCHAR(50 CHAR)"),
+            (oracle.NVARCHAR2(50), "NVARCHAR2(50)"),
+            (oracle.VARCHAR2(50), "VARCHAR2(50 CHAR)"),
+        ]:
+            self.assert_compile(typ, exp, dialect=dialect)
+
+    def test_interval(self):
+        for type_, expected in [(oracle.INTERVAL(),
+                                'INTERVAL DAY TO SECOND'),
+                                (oracle.INTERVAL(day_precision=3),
+                                'INTERVAL DAY(3) TO SECOND'),
+                                (oracle.INTERVAL(second_precision=5),
+                                'INTERVAL DAY TO SECOND(5)'),
+                                (oracle.INTERVAL(day_precision=2,
+                                second_precision=5),
+                                'INTERVAL DAY(2) TO SECOND(5)')]:
+            self.assert_compile(type_, expected)
+
+
+class TypesTest(fixtures.TestBase):
+    __only_on__ = 'oracle'
+    __dialect__ = oracle.OracleDialect()
+
 
     @testing.fails_on('+zxjdbc', 'zxjdbc lacks the FIXED_CHAR dbapi type')
     def test_fixed_char(self):
@@ -707,25 +772,6 @@ class TypesTest(fixtures.TestBase, AssertsCompiledSQL):
 
         finally:
             t.drop()
-
-    def test_type_adapt(self):
-        dialect = cx_oracle.dialect()
-
-        for start, test in [
-            (Date(), cx_oracle._OracleDate),
-            (oracle.OracleRaw(), cx_oracle._OracleRaw),
-            (String(), String),
-            (VARCHAR(), cx_oracle._OracleString),
-            (DATE(), DATE),
-            (String(50), cx_oracle._OracleString),
-            (Unicode(), cx_oracle._OracleNVarChar),
-            (Text(), cx_oracle._OracleText),
-            (UnicodeText(), cx_oracle._OracleUnicodeText),
-            (NCHAR(), cx_oracle._OracleNVarChar),
-            (oracle.RAW(50), cx_oracle._OracleRaw),
-        ]:
-            assert isinstance(start.dialect_impl(dialect), test), \
-                    "wanted %r got %r" % (test, start.dialect_impl(dialect))
 
     @testing.requires.returning
     def test_int_not_float(self):
@@ -769,33 +815,21 @@ class TypesTest(fixtures.TestBase, AssertsCompiledSQL):
     @testing.fails_on('+zxjdbc',
                       'Not yet known how to pass values of the '
                       'INTERVAL type')
+    @testing.provide_metadata
     def test_interval(self):
-        for type_, expected in [(oracle.INTERVAL(),
-                                'INTERVAL DAY TO SECOND'),
-                                (oracle.INTERVAL(day_precision=3),
-                                'INTERVAL DAY(3) TO SECOND'),
-                                (oracle.INTERVAL(second_precision=5),
-                                'INTERVAL DAY TO SECOND(5)'),
-                                (oracle.INTERVAL(day_precision=2,
-                                second_precision=5),
-                                'INTERVAL DAY(2) TO SECOND(5)')]:
-            self.assert_compile(type_, expected)
-        metadata = MetaData(testing.db)
+        metadata = self.metadata
         interval_table = Table('intervaltable', metadata, Column('id',
                                Integer, primary_key=True,
                                test_needs_autoincrement=True),
                                Column('day_interval',
                                oracle.INTERVAL(day_precision=3)))
         metadata.create_all()
-        try:
-            interval_table.insert().\
-                execute(day_interval=datetime.timedelta(days=35,
-                    seconds=5743))
-            row = interval_table.select().execute().first()
-            eq_(row['day_interval'], datetime.timedelta(days=35,
+        interval_table.insert().\
+            execute(day_interval=datetime.timedelta(days=35,
                 seconds=5743))
-        finally:
-            metadata.drop_all()
+        row = interval_table.select().execute().first()
+        eq_(row['day_interval'], datetime.timedelta(days=35,
+            seconds=5743))
 
     def test_numerics(self):
         m = MetaData(testing.db)
@@ -847,6 +881,15 @@ class TypesTest(fixtures.TestBase, AssertsCompiledSQL):
         finally:
             t1.drop()
 
+
+    def test_numeric_no_decimal_mode(self):
+        engine = testing_engine(options=dict(coerce_to_decimal=False))
+        value = engine.scalar("SELECT 5.66 FROM DUAL")
+        assert isinstance(value, float)
+
+        value = testing.db.scalar("SELECT 5.66 FROM DUAL")
+        assert isinstance(value, decimal.Decimal)
+
     @testing.provide_metadata
     def test_numerics_broken_inspection(self):
         """Numeric scenarios where Oracle type info is 'broken',
@@ -869,7 +912,8 @@ class TypesTest(fixtures.TestBase, AssertsCompiledSQL):
         foo.create()
 
         foo.insert().execute(
-            {'idata':5, 'ndata':decimal.Decimal("45.6"), 'ndata2':decimal.Decimal("45.0"), 
+            {'idata':5, 'ndata':decimal.Decimal("45.6"), 
+                    'ndata2':decimal.Decimal("45.0"), 
                     'nidata':decimal.Decimal('53'), 'fdata':45.68392},
         )
 
@@ -1019,10 +1063,6 @@ class TypesTest(fixtures.TestBase, AssertsCompiledSQL):
         for row in types_table.select().execute().fetchall():
             [row[k] for k in row.keys()]
 
-    def test_raw_compile(self):
-        self.assert_compile(oracle.RAW(), "RAW")
-        self.assert_compile(oracle.RAW(35), "RAW(35)")
-
     @testing.provide_metadata
     def test_raw_roundtrip(self):
         metadata = self.metadata
@@ -1061,16 +1101,8 @@ class TypesTest(fixtures.TestBase, AssertsCompiledSQL):
         eq_(res, data)
         assert isinstance(res, unicode)
 
+
     def test_char_length(self):
-        self.assert_compile(VARCHAR(50),"VARCHAR(50 CHAR)")
-
-        oracle8dialect = oracle.dialect()
-        oracle8dialect.server_version_info = (8, 0)
-        self.assert_compile(VARCHAR(50),"VARCHAR(50)",dialect=oracle8dialect)
-
-        self.assert_compile(NVARCHAR(50),"NVARCHAR2(50)")
-        self.assert_compile(CHAR(50),"CHAR(50)")
-
         metadata = MetaData(testing.db)
         t1 = Table('t1', metadata,
               Column("c1", VARCHAR(50)),
@@ -1087,17 +1119,6 @@ class TypesTest(fixtures.TestBase, AssertsCompiledSQL):
         finally:
             t1.drop()
 
-    def test_varchar_types(self):
-        dialect = oracle.dialect()
-        for typ, exp in [
-            (String(50), "VARCHAR2(50 CHAR)"),
-            (Unicode(50), "NVARCHAR2(50)"),
-            (NVARCHAR(50), "NVARCHAR2(50)"),
-            (VARCHAR(50), "VARCHAR(50 CHAR)"),
-            (oracle.NVARCHAR2(50), "NVARCHAR2(50)"),
-            (oracle.VARCHAR2(50), "VARCHAR2(50 CHAR)"),
-        ]:
-            self.assert_compile(typ, exp, dialect=dialect)
 
     def test_longstring(self):
         metadata = MetaData(testing.db)
@@ -1246,6 +1267,7 @@ class UnsupportedIndexReflectTest(fixtures.TestBase):
     def teardown(self):
         metadata.drop_all()
 
+    @testing.emits_warning("No column names")
     def test_reflect_functional_index(self):
         testing.db.execute('CREATE INDEX DATA_IDX ON '
                            'TEST_INDEX_REFLECT (UPPER(DATA))')

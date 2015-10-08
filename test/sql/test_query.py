@@ -29,6 +29,7 @@ class QueryTest(fixtures.TestBase):
             Column('user_name', VARCHAR(20)),
             test_needs_acid=True
         )
+
         metadata.create_all()
 
     @engines.close_first
@@ -264,7 +265,6 @@ class QueryTest(fixtures.TestBase):
         )
 
         concat = ("test: " + users.c.user_name).label('thedata')
-        print select([concat]).order_by("thedata")
         eq_(
             select([concat]).order_by("thedata").execute().fetchall(),
             [("test: ed",), ("test: fred",), ("test: jack",)]
@@ -706,7 +706,6 @@ class QueryTest(fixtures.TestBase):
                               use_labels=labels),
                  [(3, 'a'), (2, 'b'), (1, None)])
 
-    @testing.fails_on("+pyodbc", "pyodbc row doesn't seem to accept slices")
     def test_column_slices(self):
         users.insert().execute(user_id=1, user_name='john')
         users.insert().execute(user_id=2, user_name='jack')
@@ -749,6 +748,19 @@ class QueryTest(fixtures.TestBase):
         r = select([users.c.user_name.distinct()]).order_by(users.c.user_name).execute().first()
         eq_(r[users.c.user_name], 'jack')
         eq_(r.user_name, 'jack')
+
+    def test_column_accessor_err(self):
+        r = testing.db.execute(select([1])).first()
+        assert_raises_message(
+            AttributeError,
+            "Could not locate column in row for column 'foo'",
+            getattr, r, "foo"
+        )
+        assert_raises_message(
+            KeyError,
+            "Could not locate column in row for column 'foo'",
+            lambda: r['foo']
+        )
 
     @testing.requires.dbapi_lastrowid
     def test_native_lastrowid(self):
@@ -1094,11 +1106,15 @@ class PercentSchemaNamesTest(fixtures.TestBase):
 
     @classmethod
     def setup_class(cls):
-        global percent_table, metadata
+        global percent_table, metadata, lightweight_percent_table
         metadata = MetaData(testing.db)
         percent_table = Table('percent%table', metadata,
             Column("percent%", Integer),
             Column("spaces % more spaces", Integer),
+        )
+        lightweight_percent_table = sql.table('percent%table', 
+            sql.column("percent%"),
+            sql.column("spaces % more spaces"),
         )
         metadata.create_all()
 
@@ -1109,7 +1125,8 @@ class PercentSchemaNamesTest(fixtures.TestBase):
     def teardown_class(cls):
         metadata.drop_all()
 
-    @testing.skip_if(lambda: testing.against('postgresql'), "psycopg2 2.4 no longer accepts % in bind placeholders")
+    @testing.skip_if(lambda: testing.against('postgresql'), 
+                    "psycopg2 2.4 no longer accepts % in bind placeholders")
     def test_single_roundtrip(self):
         percent_table.insert().execute(
             {'percent%':5, 'spaces % more spaces':12},
@@ -1125,8 +1142,10 @@ class PercentSchemaNamesTest(fixtures.TestBase):
         )
         self._assert_table()
 
-    @testing.skip_if(lambda: testing.against('postgresql'), "psycopg2 2.4 no longer accepts % in bind placeholders")
-    @testing.crashes('mysql+mysqldb', 'MySQLdb handles executemany() inconsistently vs. execute()')
+    @testing.skip_if(lambda: testing.against('postgresql'), 
+                "psycopg2 2.4 no longer accepts % in bind placeholders")
+    @testing.crashes('mysql+mysqldb', "MySQLdb handles executemany() "
+                        "inconsistently vs. execute()")
     def test_executemany_roundtrip(self):
         percent_table.insert().execute(
             {'percent%':5, 'spaces % more spaces':12},
@@ -1139,9 +1158,17 @@ class PercentSchemaNamesTest(fixtures.TestBase):
         self._assert_table()
 
     def _assert_table(self):
-        for table in (percent_table, percent_table.alias()):
+        for table in (
+                    percent_table, 
+                    percent_table.alias(), 
+                    lightweight_percent_table, 
+                    lightweight_percent_table.alias()):
             eq_(
-                table.select().order_by(table.c['percent%']).execute().fetchall(),
+                list(
+                    testing.db.execute(
+                        table.select().order_by(table.c['percent%'])
+                    )
+                ),
                 [
                     (5, 12),
                     (7, 11),
@@ -1151,28 +1178,39 @@ class PercentSchemaNamesTest(fixtures.TestBase):
             )
 
             eq_(
-                table.select().
-                    where(table.c['spaces % more spaces'].in_([9, 10])).
-                    order_by(table.c['percent%']).execute().fetchall(),
+                list(
+                    testing.db.execute(
+                        table.select().
+                            where(table.c['spaces % more spaces'].in_([9, 10])).
+                            order_by(table.c['percent%']),
+                    )
+                ),
                     [
                         (9, 10),
                         (11, 9)
                     ]
             )
 
-            result = table.select().order_by(table.c['percent%']).execute()
-            row = result.fetchone()
+            row = testing.db.execute(table.select().\
+                        order_by(table.c['percent%'])).first()
+            eq_(row['percent%'], 5)
+            eq_(row['spaces % more spaces'], 12)
+
             eq_(row[table.c['percent%']], 5)
             eq_(row[table.c['spaces % more spaces']], 12)
-            row = result.fetchone()
-            eq_(row['percent%'], 7)
-            eq_(row['spaces % more spaces'], 11)
-            result.close()
 
-        percent_table.update().values({percent_table.c['spaces % more spaces']:15}).execute()
+        percent_table.update().values(
+            {percent_table.c['spaces % more spaces']:15}
+        ).execute()
 
         eq_(
-            percent_table.select().order_by(percent_table.c['percent%']).execute().fetchall(),
+            list(
+                testing.db.execute(
+                    percent_table.\
+                        select().\
+                        order_by(percent_table.c['percent%'])
+                )
+            ),
             [
                 (5, 15),
                 (7, 15),
@@ -1181,6 +1219,168 @@ class PercentSchemaNamesTest(fixtures.TestBase):
             ]
         )
 
+class KeyTargetingTest(fixtures.TablesTest):
+    run_inserts = 'once'
+    run_deletes = None
+
+    @classmethod
+    def define_tables(cls, metadata):
+        keyed1 = Table('keyed1', metadata,
+                Column("a", CHAR(2), key="b"),
+                Column("c", CHAR(2), key="q")
+        )
+        keyed2 = Table('keyed2', metadata,
+                Column("a", CHAR(2)),
+                Column("b", CHAR(2)),
+        )
+        keyed3 = Table('keyed3', metadata,
+                Column("a", CHAR(2)),
+                Column("d", CHAR(2)),
+        )
+        keyed4 = Table('keyed4', metadata,
+                Column("b", CHAR(2)),
+                Column("q", CHAR(2)),
+        )
+
+        content = Table('content', metadata,
+            Column('t', String(30), key="type"),
+        )
+        bar = Table('bar', metadata, 
+            Column('ctype', String(30), key="content_type")
+        )
+
+    @classmethod
+    def insert_data(cls):
+        cls.tables.keyed1.insert().execute(dict(b="a1", q="c1"))
+        cls.tables.keyed2.insert().execute(dict(a="a2", b="b2"))
+        cls.tables.keyed3.insert().execute(dict(a="a3", d="d3"))
+        cls.tables.keyed4.insert().execute(dict(b="b4", q="q4"))
+        cls.tables.content.insert().execute(type="t1")
+
+    def test_keyed_accessor_single(self):
+        keyed1 = self.tables.keyed1
+        row = testing.db.execute(keyed1.select()).first()
+
+        eq_(row.b, "a1")
+        eq_(row.q, "c1")
+        eq_(row.a, "a1")
+        eq_(row.c, "c1")
+
+    def test_keyed_accessor_single_labeled(self):
+        keyed1 = self.tables.keyed1
+        row = testing.db.execute(keyed1.select().apply_labels()).first()
+
+        eq_(row.keyed1_b, "a1")
+        eq_(row.keyed1_q, "c1")
+        eq_(row.keyed1_a, "a1")
+        eq_(row.keyed1_c, "c1")
+
+    def test_keyed_accessor_composite_conflict_2(self):
+        keyed1 = self.tables.keyed1
+        keyed2 = self.tables.keyed2
+
+        row = testing.db.execute(select([keyed1, keyed2])).first()
+        # without #2397, row.b is unambiguous
+        eq_(row.b, "b2")
+        # row.a is ambiguous
+        assert_raises_message(
+            exc.InvalidRequestError,
+            "Ambig",
+            getattr, row, "a"
+        )
+
+    @testing.fails_if(lambda: True, "Possible future behavior")
+    def test_keyed_accessor_composite_conflict_2397(self):
+        keyed1 = self.tables.keyed1
+        keyed2 = self.tables.keyed2
+
+        row = testing.db.execute(select([keyed1, keyed2])).first()
+        # with #2397, row.a is unambiguous
+        eq_(row.a, "a2")
+        # row.b is ambiguous
+        assert_raises_message(
+            exc.InvalidRequestError,
+            "Ambiguous column name 'b'",
+            getattr, row, 'b'
+        )
+
+    def test_keyed_accessor_composite_names_precedent(self):
+        keyed1 = self.tables.keyed1
+        keyed4 = self.tables.keyed4
+
+        row = testing.db.execute(select([keyed1, keyed4])).first()
+        eq_(row.b, "b4")
+        eq_(row.q, "q4")
+        eq_(row.a, "a1")
+        eq_(row.c, "c1")
+
+    def test_keyed_accessor_composite_keys_precedent(self):
+        keyed1 = self.tables.keyed1
+        keyed3 = self.tables.keyed3
+
+        row = testing.db.execute(select([keyed1, keyed3])).first()
+        assert 'b' not in row
+        eq_(row.q, "c1")
+        assert_raises_message(
+            exc.InvalidRequestError,
+            "Ambiguous column name 'a'",
+            getattr, row, "a"
+        )
+        eq_(row.d, "d3")
+
+    @testing.fails_if(lambda: True, "Possible future behavior")
+    def test_keyed_accessor_composite_2397(self):
+        keyed1 = self.tables.keyed1
+        keyed3 = self.tables.keyed3
+
+        row = testing.db.execute(select([keyed1, keyed3])).first()
+        eq_(row.b, "a1")
+        eq_(row.q, "c1")
+        eq_(row.a, "a3")
+        eq_(row.d, "d3")
+
+    def test_keyed_accessor_composite_labeled(self):
+        keyed1 = self.tables.keyed1
+        keyed2 = self.tables.keyed2
+
+        row = testing.db.execute(select([keyed1, keyed2]).apply_labels()).first()
+        eq_(row.keyed1_b, "a1")
+        eq_(row.keyed1_a, "a1")
+        eq_(row.keyed1_q, "c1")
+        eq_(row.keyed1_c, "c1")
+        eq_(row.keyed2_a, "a2")
+        eq_(row.keyed2_b, "b2")
+        assert_raises(KeyError, lambda: row['keyed2_c'])
+        assert_raises(KeyError, lambda: row['keyed2_q'])
+
+    def test_column_label_overlap_fallback(self):
+        content, bar = self.tables.content, self.tables.bar
+        row = testing.db.execute(select([content.c.type.label("content_type")])).first()
+        assert content.c.type in row
+        assert bar.c.content_type not in row
+        assert sql.column('content_type') in row
+
+        row = testing.db.execute(select([func.now().label("content_type")])).first()
+        assert content.c.type not in row
+        assert bar.c.content_type not in row
+        assert sql.column('content_type') in row
+
+    def test_column_label_overlap_fallback_2(self):
+        # this fails with #2397
+        content, bar = self.tables.content, self.tables.bar
+        row = testing.db.execute(content.select(use_labels=True)).first()
+        assert content.c.type in row
+        assert bar.c.content_type not in row
+        assert sql.column('content_type') not in row
+
+    @testing.fails_if(lambda: True, "Possible future behavior")
+    def test_column_label_overlap_fallback_3(self):
+        # this passes with #2397
+        content, bar = self.tables.content, self.tables.bar
+        row = testing.db.execute(content.select(use_labels=True)).first()
+        assert content.c.type in row
+        assert bar.c.content_type not in row
+        assert sql.column('content_type') in row
 
 
 class LimitTest(fixtures.TestBase):

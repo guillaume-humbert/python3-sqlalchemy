@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.5',
+          VERSION:     '0.7.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
+        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
 
 
     </div>
@@ -116,7 +116,17 @@
 <li><a class="reference internal" href="#">Engine Configuration</a><ul>
 <li><a class="reference internal" href="#supported-databases">Supported Databases</a></li>
 <li><a class="reference internal" href="#engine-creation-api">Engine Creation API</a></li>
-<li><a class="reference internal" href="#database-urls">Database Urls</a></li>
+<li><a class="reference internal" href="#database-urls">Database Urls</a><ul>
+<li><a class="reference internal" href="#postgresql">Postgresql</a></li>
+<li><a class="reference internal" href="#mysql">MySQL</a></li>
+<li><a class="reference internal" href="#oracle">Oracle</a></li>
+<li><a class="reference internal" href="#microsoft-sql-server">Microsoft SQL Server</a></li>
+<li><a class="reference internal" href="#sqlite">SQLite</a></li>
+<li><a class="reference internal" href="#others">Others</a></li>
+<li><a class="reference internal" href="#url-api">URL API</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pooling">Pooling</a></li>
 <li><a class="reference internal" href="#custom-dbapi-connect-arguments">Custom DBAPI connect() arguments</a></li>
 <li><a class="reference internal" href="#configuring-logging">Configuring Logging</a></li>
 </ul>
@@ -379,7 +389,7 @@ information on current support.</li>
 <tr class="row-even"><td><a class="reference external" href="https://launchpad.net/myconnpy">MySQL Connector/Python</a></td>
 <td><tt class="docutils literal"><span class="pre">mysql+mysqlconnector</span></tt></td>
 <td>yes</td>
-<td>yes</td>
+<td>development</td>
 <td>no</td>
 <td>yes</td>
 <td>yes</td>
@@ -731,6 +741,11 @@ MySQL in particular will disconnect automatically if no
 activity is detected on a connection for eight hours (although
 this is configurable with the MySQLDB connection itself and the
 server configuration as well).</li>
+<li><strong>pool_reset_on_return=&#8217;rollback&#8217;</strong> &#8211; set the &#8220;reset on return&#8221;
+behavior of the pool, which is whether <tt class="docutils literal"><span class="pre">rollback()</span></tt>, 
+<tt class="docutils literal"><span class="pre">commit()</span></tt>, or nothing is called upon connections
+being returned to the pool.  See the docstring for
+<tt class="docutils literal"><span class="pre">reset_on_return</span></tt> at <a class="reference internal" href="pooling.html#sqlalchemy.pool.Pool" title="sqlalchemy.pool.Pool"><tt class="xref py py-class docutils literal"><span class="pre">Pool</span></tt></a>. (new as of 0.7.6)</li>
 <li><strong>pool_timeout=30</strong> &#8211; number of seconds to wait before giving
 up on getting a connection from the pool. This is only used
 with <a class="reference internal" href="pooling.html#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a>.</li>
@@ -772,65 +787,77 @@ will be imported if available - this default is typically the most widely
 known driver available for that backend (i.e. cx_oracle, pysqlite/sqlite3,
 psycopg2, mysqldb). For Jython connections, specify the <cite>zxjdbc</cite> driver, which
 is the JDBC-DBAPI bridge included with Jython.</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="c"># postgresql - psycopg2 is the default driver.</span>
-<span class="n">pg_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
-<span class="n">pg_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql+psycopg2://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
-<span class="n">pg_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql+pg8000://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
-<span class="n">pg_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql+pypostgresql://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
+<div class="section" id="postgresql">
+<h3>Postgresql<a class="headerlink" href="#postgresql" title="Permalink to this headline">¶</a></h3>
+<p>The Postgresql dialect uses psycopg2 as the default DBAPI:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># default</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
 
-<span class="c"># postgresql on Jython</span>
-<span class="n">pg_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql+zxjdbc://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
+<span class="c"># psycopg2</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql+psycopg2://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
 
-<span class="c"># mysql - MySQLdb (mysql-python) is the default driver</span>
-<span class="n">mysql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql://scott:tiger@localhost/foo&#39;</span><span class="p">)</span>
-<span class="n">mysql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+mysqldb://scott:tiger@localhost/foo&#39;</span><span class="p">)</span>
+<span class="c"># pg8000</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql+pg8000://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span>
 
-<span class="c"># mysql on Jython</span>
-<span class="n">mysql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+zxjdbc://localhost/foo&#39;</span><span class="p">)</span>
-
-<span class="c"># mysql with pyodbc (buggy)</span>
-<span class="n">mysql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+pyodbc://scott:tiger@some_dsn&#39;</span><span class="p">)</span>
-
-<span class="c"># oracle - cx_oracle is the default driver</span>
-<span class="n">oracle_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle://scott:tiger@127.0.0.1:1521/sidname&#39;</span><span class="p">)</span>
-
-<span class="c"># oracle via TNS name</span>
-<span class="n">oracle_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle+cx_oracle://scott:tiger@tnsname&#39;</span><span class="p">)</span>
-
-<span class="c"># mssql using ODBC datasource names.  PyODBC is the default driver.</span>
-<span class="n">mssql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql://mydsn&#39;</span><span class="p">)</span>
-<span class="n">mssql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql+pyodbc://mydsn&#39;</span><span class="p">)</span>
-<span class="n">mssql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql+adodbapi://mydsn&#39;</span><span class="p">)</span>
-<span class="n">mssql_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql+pyodbc://username:password@mydsn&#39;</span><span class="p">)</span></pre></div>
+<span class="c"># Jython</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;postgresql+zxjdbc://scott:tiger@localhost/mydatabase&#39;</span><span class="p">)</span></pre></div>
 </div>
+<p>More notes on connecting to Postgresql at <a class="reference internal" href="../dialects/postgresql.html"><em>PostgreSQL</em></a>.</p>
+</div>
+<div class="section" id="mysql">
+<h3>MySQL<a class="headerlink" href="#mysql" title="Permalink to this headline">¶</a></h3>
+<p>The MySQL dialect uses mysql-python as the default DBAPI:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># default</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql://scott:tiger@localhost/foo&#39;</span><span class="p">)</span>
+
+<span class="c"># mysql-python</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+mysqldb://scott:tiger@localhost/foo&#39;</span><span class="p">)</span>
+
+<span class="c"># OurSQL</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mysql+oursql://scott:tiger@localhost/foo&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>More notes on connecting to MySQL at <a class="reference internal" href="../dialects/mysql.html"><em>MySQL</em></a>.</p>
+</div>
+<div class="section" id="oracle">
+<h3>Oracle<a class="headerlink" href="#oracle" title="Permalink to this headline">¶</a></h3>
+<p>cx_oracle is usualjy used here:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle://scott:tiger@127.0.0.1:1521/sidname&#39;</span><span class="p">)</span>
+
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;oracle+cx_oracle://scott:tiger@tnsname&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>More notes on connecting to Oracle at <a class="reference internal" href="../dialects/oracle.html"><em>Oracle</em></a>.</p>
+</div>
+<div class="section" id="microsoft-sql-server">
+<h3>Microsoft SQL Server<a class="headerlink" href="#microsoft-sql-server" title="Permalink to this headline">¶</a></h3>
+<p>There are a few drivers for SQL Server, currently PyODBC is the most solid:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;mssql+pyodbc://mydsn&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>More notes on connecting to SQL Server at <a class="reference internal" href="../dialects/mssql.html"><em>Microsoft SQL Server</em></a>.</p>
+</div>
+<div class="section" id="sqlite">
+<h3>SQLite<a class="headerlink" href="#sqlite" title="Permalink to this headline">¶</a></h3>
 <p>SQLite connects to file based databases. The same URL format is used, omitting
 the hostname, and using the &#8220;file&#8221; portion as the filename of the database.
 This has the effect of four slashes being present for an absolute file path:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># sqlite://&lt;nohostname&gt;/&lt;path&gt;</span>
 <span class="c"># where &lt;path&gt; is relative:</span>
-<span class="n">sqlite_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:///foo.db&#39;</span><span class="p">)</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:///foo.db&#39;</span><span class="p">)</span>
 
 <span class="c"># or absolute, starting with a slash:</span>
-<span class="n">sqlite_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:////absolute/path/to/foo.db&#39;</span><span class="p">)</span></pre></div>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:////absolute/path/to/foo.db&#39;</span><span class="p">)</span></pre></div>
 </div>
 <p>To use a SQLite <tt class="docutils literal"><span class="pre">:memory:</span></tt> database, specify an empty URL:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">sqlite_memory_db</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite://&#39;</span><span class="p">)</span></pre></div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite://&#39;</span><span class="p">)</span></pre></div>
 </div>
-<p>The <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> will ask the connection pool for a
-connection when the <tt class="docutils literal"><span class="pre">connect()</span></tt> or <tt class="docutils literal"><span class="pre">execute()</span></tt> methods are called. The
-default connection pool, <a class="reference internal" href="pooling.html#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a>, will open connections to the
-database on an as-needed basis. As concurrent statements are executed,
-<a class="reference internal" href="pooling.html#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a> will grow its pool of connections to a
-default size of five, and will allow a default &#8220;overflow&#8221; of ten. Since the
-<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> is essentially &#8220;home base&#8221; for the
-connection pool, it follows that you should keep a single
-<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> per database established within an
-application, rather than creating a new one for each connection.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last"><a class="reference internal" href="pooling.html#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a> is not used by default for SQLite engines.  See
-<a class="reference internal" href="../dialects/sqlite.html"><em>SQLite</em></a> for details on SQLite connection pool usage.</p>
+<p>More notes on connecting to SQLite at <a class="reference internal" href="../dialects/sqlite.html"><em>SQLite</em></a>.</p>
 </div>
+<div class="section" id="others">
+<h3>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h3>
+<p>See <a class="reference internal" href="../dialects/index.html"><em>Dialects</em></a>, the top-level page for all dialect
+documentation.</p>
+</div>
+<div class="section" id="url-api">
+<h3>URL API<a class="headerlink" href="#url-api" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sqlalchemy.engine.url.URL">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.engine.url.</tt><tt class="descname">URL</tt><big>(</big><em>drivername</em>, <em>username=None</em>, <em>password=None</em>, <em>host=None</em>, <em>port=None</em>, <em>database=None</em>, <em>query=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.url.URL" title="Permalink to this definition">¶</a></dt>
@@ -892,6 +919,26 @@ but correlates the name to the original positionally.</li>
 
 </dd></dl>
 
+</div>
+</div>
+<div class="section" id="pooling">
+<h2>Pooling<a class="headerlink" href="#pooling" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> will ask the connection pool for a
+connection when the <tt class="docutils literal"><span class="pre">connect()</span></tt> or <tt class="docutils literal"><span class="pre">execute()</span></tt> methods are called. The
+default connection pool, <a class="reference internal" href="pooling.html#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a>, will open connections to the
+database on an as-needed basis. As concurrent statements are executed,
+<a class="reference internal" href="pooling.html#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a> will grow its pool of connections to a
+default size of five, and will allow a default &#8220;overflow&#8221; of ten. Since the
+<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> is essentially &#8220;home base&#8221; for the
+connection pool, it follows that you should keep a single
+<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a> per database established within an
+application, rather than creating a new one for each connection.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><a class="reference internal" href="pooling.html#sqlalchemy.pool.QueuePool" title="sqlalchemy.pool.QueuePool"><tt class="xref py py-class docutils literal"><span class="pre">QueuePool</span></tt></a> is not used by default for SQLite engines.  See
+<a class="reference internal" href="../dialects/sqlite.html"><em>SQLite</em></a> for details on SQLite connection pool usage.</p>
+</div>
+<p>For more information on connection pooling, see <a class="reference internal" href="pooling.html"><em>Connection Pooling</em></a>.</p>
 </div>
 <div class="section" id="custom-dbapi-connect-arguments">
 <span id="custom-dbapi-args"></span><h2>Custom DBAPI connect() arguments<a class="headerlink" href="#custom-dbapi-connect-arguments" title="Permalink to this headline">¶</a></h2>

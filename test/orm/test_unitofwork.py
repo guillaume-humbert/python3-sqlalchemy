@@ -567,6 +567,31 @@ class PassiveDeletesTest(fixtures.MappedTest):
         mapper(MyClass, mytable)
         assert_raises(sa.exc.SAWarning, sa.orm.configure_mappers)
 
+class BatchDeleteIgnoresRowcountTest(fixtures.DeclarativeMappedTest):
+    __requires__ = ('foreign_keys',)
+    @classmethod
+    def setup_classes(cls):
+        class A(cls.DeclarativeBasic):
+            __tablename__ = 'A'
+            __table_args__ = dict(test_needs_fk=True)
+            id = Column(Integer, primary_key=True)
+            parent_id = Column(Integer, ForeignKey('A.id', ondelete='CASCADE'))
+
+    def test_delete_both(self):
+        A = self.classes.A
+        session = Session(testing.db)
+
+        a1, a2 = A(id=1),A(id=2, parent_id=1)
+
+        session.add_all([a1, a2])
+        session.flush()
+
+        session.delete(a1)
+        session.delete(a2)
+
+        # no issue with multi-row count here
+        session.flush()
+
 class ExtraPassiveDeletesTest(fixtures.MappedTest):
     __requires__ = ('foreign_keys',)
 
@@ -2483,3 +2508,13 @@ class PartialNullPKTest(fixtures.MappedTest):
             "check that the database table allows generation ",
             s.commit
         )
+
+    def test_dont_complain_if_no_update(self):
+        T1 = self.classes.T1
+        s = Session()
+        t = T1(col1="1", col2=None)
+        s.add(t)
+        s.commit()
+
+        t.col1 = "1"
+        s.commit()

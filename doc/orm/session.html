@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.5',
+          VERSION:     '0.7.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
+        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
 
 
     </div>
@@ -996,8 +996,14 @@ all objects which have had changes since they were last loaded or saved (i.e.
 <span class="n">session</span><span class="o">.</span><span class="n">dirty</span>
 
 <span class="c"># persistent objects that have been marked as deleted via session.delete(obj)</span>
-<span class="n">session</span><span class="o">.</span><span class="n">deleted</span></pre></div>
+<span class="n">session</span><span class="o">.</span><span class="n">deleted</span>
+
+<span class="c"># dictionary of all persistent objects, keyed on their</span>
+<span class="c"># identity key</span>
+<span class="n">session</span><span class="o">.</span><span class="n">identity_map</span></pre></div>
 </div>
+<p>(Documentation: <a class="reference internal" href="#sqlalchemy.orm.session.Session.new" title="sqlalchemy.orm.session.Session.new"><tt class="xref py py-attr docutils literal"><span class="pre">Session.new</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.session.Session.dirty" title="sqlalchemy.orm.session.Session.dirty"><tt class="xref py py-attr docutils literal"><span class="pre">Session.dirty</span></tt></a>,
+<a class="reference internal" href="#sqlalchemy.orm.session.Session.deleted" title="sqlalchemy.orm.session.Session.deleted"><tt class="xref py py-attr docutils literal"><span class="pre">Session.deleted</span></tt></a>, <a class="reference internal" href="#sqlalchemy.orm.session.Session.identity_map" title="sqlalchemy.orm.session.Session.identity_map"><tt class="xref py py-attr docutils literal"><span class="pre">Session.identity_map</span></tt></a>).</p>
 <p>Note that objects within the session are by default <em>weakly referenced</em>. This
 means that when they are dereferenced in the outside application, they fall
 out of scope from within the <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> as well
@@ -1673,8 +1679,8 @@ and by default is an instance of <a class="reference internal" href="#sqlalchemy
 <dl class="method">
 <dt id="sqlalchemy.orm.scoping.ScopedSession.query_property">
 <tt class="descname">query_property</tt><big>(</big><em>query_cls=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.scoping.ScopedSession.query_property" title="Permalink to this definition">¶</a></dt>
-<dd><p>return a class property which produces a <cite>Query</cite> object against the
-class when called.</p>
+<dd><p>return a class property which produces a <cite>Query</cite> object 
+against the class when called.</p>
 <p>e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Session</span> <span class="o">=</span> <span class="n">scoped_session</span><span class="p">(</span><span class="n">sessionmaker</span><span class="p">())</span>
 
@@ -2385,6 +2391,17 @@ element, typically a <a class="reference internal" href="../core/schema.html#sql
 </dd></dl>
 
 <dl class="attribute">
+<dt id="sqlalchemy.orm.session.Session.identity_map">
+<tt class="descname">identity_map</tt><em class="property"> = None</em><a class="headerlink" href="#sqlalchemy.orm.session.Session.identity_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>A mapping of object identities to objects themselves.</p>
+<p>Iterating through <tt class="docutils literal"><span class="pre">Session.identity_map.values()</span></tt> provides
+access to the full set of persistent objects (i.e., those
+that have row identity) currently in the session.</p>
+<p>See also:</p>
+<p><a class="reference internal" href="mapper_config.html#sqlalchemy.orm.util.identity_key" title="sqlalchemy.orm.util.identity_key"><tt class="xref py py-func docutils literal"><span class="pre">identity_key()</span></tt></a> - operations involving identity keys.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="sqlalchemy.orm.session.Session.is_active">
 <tt class="descname">is_active</tt><a class="headerlink" href="#sqlalchemy.orm.session.Session.is_active" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if this <a class="reference internal" href="#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> has an active transaction.</p>
@@ -2503,6 +2520,26 @@ mapped with <tt class="docutils literal"><span class="pre">cascade=&quot;merge&q
 <dt id="sqlalchemy.orm.session.Session.new">
 <tt class="descname">new</tt><a class="headerlink" href="#sqlalchemy.orm.session.Session.new" title="Permalink to this definition">¶</a></dt>
 <dd><p>The set of all instances marked as &#8216;new&#8217; within this <tt class="docutils literal"><span class="pre">Session</span></tt>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.orm.session.Session.no_autoflush">
+<tt class="descname">no_autoflush</tt><a class="headerlink" href="#sqlalchemy.orm.session.Session.no_autoflush" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a context manager that disables autoflush.</p>
+<p>e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="n">session</span><span class="o">.</span><span class="n">no_autoflush</span><span class="p">:</span>
+    
+    <span class="n">some_object</span> <span class="o">=</span> <span class="n">SomeClass</span><span class="p">()</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">some_object</span><span class="p">)</span>
+    <span class="c"># won&#39;t autoflush</span>
+    <span class="n">some_object</span><span class="o">.</span><span class="n">related_thing</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SomeRelated</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span></pre></div>
+</div>
+<p>Operations that proceed within the <tt class="docutils literal"><span class="pre">with:</span></tt> block
+will not be subject to flushes occurring upon query
+access.  This is useful when initializing a series
+of objects which involve existing database queries,
+where the uncompleted object should not yet be flushed.</p>
+<p>New in 0.7.6.</p>
 </dd></dl>
 
 <dl class="classmethod">

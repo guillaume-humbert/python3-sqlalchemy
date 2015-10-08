@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.5',
+          VERSION:     '0.7.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
+        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
 
 
     </div>
@@ -478,7 +478,7 @@ boolean equivalent for the target dialect.</p>
 
 <dl class="data">
 <dt id="sqlalchemy.sql.expression.func">
-<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.expression._FunctionGenerator object at 0x10176e850&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">func</tt><em class="property"> = &lt;sqlalchemy.sql.expression._FunctionGenerator object at 0x101879150&gt;</em><a class="headerlink" href="#sqlalchemy.sql.expression.func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate SQL function expressions.</p>
 <p><tt class="docutils literal"><span class="pre">func</span></tt> is a special object instance which generates SQL functions based on name-based attributes, e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -1085,6 +1085,14 @@ boolean equivalent for the target dialect.</p>
     <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">19</span><span class="p">)]</span>
 <span class="p">)</span></pre></div>
 </div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The composite IN construct is not supported by all backends, 
+and is currently known to work on Postgresql and MySQL,
+but not SQLite.   Unsupported backends will raise
+a subclass of <a class="reference internal" href="exceptions.html#sqlalchemy.exc.DBAPIError" title="sqlalchemy.exc.DBAPIError"><tt class="xref py py-class docutils literal"><span class="pre">DBAPIError</span></tt></a> when such 
+an expression is invoked.</p>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -1206,7 +1214,7 @@ statement during the execution and/or compilation of the
 statement.   When compiled standalone without any parameters,
 the <tt class="docutils literal"><span class="pre">SET</span></tt> clause generates for all columns.</p>
 <p>Modern applications may prefer to use the generative 
-<a class="reference internal" href="#sqlalchemy.sql.expression.Update.values" title="sqlalchemy.sql.expression.Update.values"><tt class="xref py py-meth docutils literal"><span class="pre">Update.values()</span></tt></a> method to set the values of the 
+<tt class="xref py py-meth docutils literal"><span class="pre">Update.values()</span></tt> method to set the values of the 
 UPDATE statement.</p>
 </li>
 <li><strong>inline</strong> &#8211; if True, SQL defaults present on <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> objects via 
@@ -2132,6 +2140,17 @@ SELECT-based set operations.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="sqlalchemy.sql.expression.CTE">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">CTE</tt><big>(</big><em>selectable</em>, <em>name=None</em>, <em>recursive=False</em>, <em>cte_alias=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.CTE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.sql.expression.Alias" title="sqlalchemy.sql.expression.Alias"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.Alias</span></tt></a></p>
+<p>Represent a Common Table Expression.</p>
+<p>The <a class="reference internal" href="#sqlalchemy.sql.expression.CTE" title="sqlalchemy.sql.expression.CTE"><tt class="xref py py-class docutils literal"><span class="pre">CTE</span></tt></a> object is obtained using the
+<a class="reference internal" href="#sqlalchemy.sql.expression._SelectBase.cte" title="sqlalchemy.sql.expression._SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">_SelectBase.cte()</span></tt></a> method from any selectable.
+See that method for complete examples.</p>
+<p>New in 0.7.6.</p>
+</dd></dl>
+
+<dl class="class">
 <dt id="sqlalchemy.sql.expression.Delete">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">Delete</tt><big>(</big><em>table</em>, <em>whereclause</em>, <em>bind=None</em>, <em>returning=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Delete" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.sql.expression.UpdateBase" title="sqlalchemy.sql.expression.UpdateBase"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.UpdateBase</span></tt></a></p>
@@ -2983,7 +3002,7 @@ its WHERE clause, joined to the existing clause via AND, if any.</p>
 <p>The text of the hint is rendered in the appropriate
 location for the database backend in use, relative
 to the given <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> or <a class="reference internal" href="#sqlalchemy.sql.expression.Alias" title="sqlalchemy.sql.expression.Alias"><tt class="xref py py-class docutils literal"><span class="pre">Alias</span></tt></a> passed as the
-<em>selectable</em> argument. The dialect implementation
+<tt class="docutils literal"><span class="pre">selectable</span></tt> argument. The dialect implementation
 typically uses Python string substitution syntax
 with the token <tt class="docutils literal"><span class="pre">%(name)s</span></tt> to render the name of
 the table or alias. E.g. when using Oracle, the
@@ -3144,6 +3163,124 @@ clause is eligible to be used as a scalar expression.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="sqlalchemy.sql.expression._SelectBase.cte">
+<tt class="descname">cte</tt><big>(</big><em>name=None</em>, <em>recursive=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression._SelectBase.cte" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new <a class="reference internal" href="#sqlalchemy.sql.expression.CTE" title="sqlalchemy.sql.expression.CTE"><tt class="xref py py-class docutils literal"><span class="pre">CTE</span></tt></a>, or Common Table Expression instance.</p>
+<p>Common table expressions are a SQL standard whereby SELECT
+statements can draw upon secondary statements specified along
+with the primary statement, using a clause called &#8220;WITH&#8221;.
+Special semantics regarding UNION can also be employed to 
+allow &#8220;recursive&#8221; queries, where a SELECT statement can draw 
+upon the set of rows that have previously been selected.</p>
+<p>SQLAlchemy detects <a class="reference internal" href="#sqlalchemy.sql.expression.CTE" title="sqlalchemy.sql.expression.CTE"><tt class="xref py py-class docutils literal"><span class="pre">CTE</span></tt></a> objects, which are treated
+similarly to <a class="reference internal" href="#sqlalchemy.sql.expression.Alias" title="sqlalchemy.sql.expression.Alias"><tt class="xref py py-class docutils literal"><span class="pre">Alias</span></tt></a> objects, as special elements
+to be delivered to the FROM clause of the statement as well
+as to a WITH clause at the top of the statement.</p>
+<p>The <a class="reference internal" href="#sqlalchemy.sql.expression._SelectBase.cte" title="sqlalchemy.sql.expression._SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">_SelectBase.cte()</span></tt></a> method is new in 0.7.6.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; name given to the common table expression.  Like
+<tt class="xref py py-meth docutils literal"><span class="pre">_FromClause.alias()</span></tt>, the name can be left as <tt class="docutils literal"><span class="pre">None</span></tt>
+in which case an anonymous symbol will be used at query
+compile time.</li>
+<li><strong>recursive</strong> &#8211; if <tt class="docutils literal"><span class="pre">True</span></tt>, will render <tt class="docutils literal"><span class="pre">WITH</span> <span class="pre">RECURSIVE</span></tt>.
+A recursive common table expression is intended to be used in 
+conjunction with UNION ALL in order to derive rows
+from those already selected.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The following examples illustrate two examples from 
+Postgresql&#8217;s documentation at
+<a class="reference external" href="http://www.postgresql.org/docs/8.4/static/queries-with.html">http://www.postgresql.org/docs/8.4/static/queries-with.html</a>.</p>
+<p>Example 1, non recursive:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">MetaData</span><span class="p">,</span> \
+    <span class="n">select</span><span class="p">,</span> <span class="n">func</span>
+
+<span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
+
+<span class="n">orders</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;orders&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;region&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">),</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;amount&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;product&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">),</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;quantity&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">regional_sales</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span>
+                    <span class="n">orders</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">region</span><span class="p">,</span> 
+                    <span class="n">func</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">orders</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">amount</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;total_sales&#39;</span><span class="p">)</span>
+                <span class="p">])</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="n">orders</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">region</span><span class="p">)</span><span class="o">.</span><span class="n">cte</span><span class="p">(</span><span class="s">&quot;regional_sales&quot;</span><span class="p">)</span>
+
+
+<span class="n">top_regions</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">regional_sales</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">region</span><span class="p">])</span><span class="o">.</span>\
+        <span class="n">where</span><span class="p">(</span>
+            <span class="n">regional_sales</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">total_sales</span> <span class="o">&gt;</span> 
+            <span class="n">select</span><span class="p">([</span>
+                <span class="n">func</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">regional_sales</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">total_sales</span><span class="p">)</span><span class="o">/</span><span class="mi">10</span>
+            <span class="p">])</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">cte</span><span class="p">(</span><span class="s">&quot;top_regions&quot;</span><span class="p">)</span>
+
+<span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span>
+            <span class="n">orders</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">region</span><span class="p">,</span> 
+            <span class="n">orders</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> 
+            <span class="n">func</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">orders</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">quantity</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&quot;product_units&quot;</span><span class="p">),</span> 
+            <span class="n">func</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">orders</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">amount</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&quot;product_sales&quot;</span><span class="p">)</span>
+    <span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">orders</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span>
+        <span class="n">select</span><span class="p">([</span><span class="n">top_regions</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">region</span><span class="p">])</span>
+    <span class="p">))</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="n">orders</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">region</span><span class="p">,</span> <span class="n">orders</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">product</span><span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></pre></div>
+</div>
+<p>Example 2, WITH RECURSIVE:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">MetaData</span><span class="p">,</span> \
+    <span class="n">select</span><span class="p">,</span> <span class="n">func</span>
+
+<span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
+
+<span class="n">parts</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;parts&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;part&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">),</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;sub_part&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">),</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;quantity&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">included_parts</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span>
+                    <span class="n">parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">,</span> 
+                    <span class="n">parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="p">,</span> 
+                    <span class="n">parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">quantity</span><span class="p">])</span><span class="o">.</span>\
+                    <span class="n">where</span><span class="p">(</span><span class="n">parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="o">==</span><span class="s">&#39;our part&#39;</span><span class="p">)</span><span class="o">.</span>\
+                    <span class="n">cte</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+
+<span class="n">incl_alias</span> <span class="o">=</span> <span class="n">included_parts</span><span class="o">.</span><span class="n">alias</span><span class="p">()</span>
+<span class="n">parts_alias</span> <span class="o">=</span> <span class="n">parts</span><span class="o">.</span><span class="n">alias</span><span class="p">()</span>
+<span class="n">included_parts</span> <span class="o">=</span> <span class="n">included_parts</span><span class="o">.</span><span class="n">union_all</span><span class="p">(</span>
+    <span class="n">select</span><span class="p">([</span>
+        <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="p">,</span> 
+        <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">,</span> 
+        <span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">quantity</span>
+    <span class="p">])</span><span class="o">.</span>
+        <span class="n">where</span><span class="p">(</span><span class="n">parts_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="o">==</span><span class="n">incl_alias</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span>
+            <span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">,</span> 
+            <span class="n">func</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">quantity</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;total_quantity&#39;</span><span class="p">)</span>
+        <span class="p">])</span><span class="o">.</span>                    <span class="n">select_from</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span>
+                    <span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="o">==</span><span class="n">parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">part</span><span class="p">))</span><span class="o">.</span>\
+        <span class="n">group_by</span><span class="p">(</span><span class="n">included_parts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sub_part</span><span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></pre></div>
+</div>
+<p>See also:</p>
+<p><a class="reference internal" href="../orm/query.html#sqlalchemy.orm.query.Query.cte" title="sqlalchemy.orm.query.Query.cte"><tt class="xref py py-meth docutils literal"><span class="pre">orm.query.Query.cte()</span></tt></a> - ORM version of <a class="reference internal" href="#sqlalchemy.sql.expression._SelectBase.cte" title="sqlalchemy.sql.expression._SelectBase.cte"><tt class="xref py py-meth docutils literal"><span class="pre">_SelectBase.cte()</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="sqlalchemy.sql.expression._SelectBase.group_by">
 <tt class="descname">group_by</tt><big>(</big><em>*clauses</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression._SelectBase.group_by" title="Permalink to this definition">¶</a></dt>
 <dd><p>return a new selectable with the given list of GROUP BY
@@ -3267,46 +3404,6 @@ statements when a more fully fledged <a class="reference internal" href="schema.
 its WHERE clause, joined to the existing clause via AND, if any.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="sqlalchemy.sql.expression.Update.values">
-<tt class="descname">values</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.Update.values" title="Permalink to this definition">¶</a></dt>
-<dd><p>specify the VALUES clause for an INSERT statement, or the SET
-clause for an UPDATE.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>**kwargs</strong> &#8211; <p>key value pairs representing the string key 
-of a <a class="reference internal" href="schema.html#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a> mapped to the value to be rendered into the
-VALUES or SET clause:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">users</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;some name&quot;</span><span class="p">)</span>
-
-<span class="n">users</span><span class="o">.</span><span class="n">update</span><span class="p">()</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;some name&quot;</span><span class="p">)</span></pre></div>
-</div>
-</li>
-<li><strong>*args</strong> &#8211; <p>A single dictionary can be sent as the first positional
-argument. This allows non-string based keys, such as Column
-objects, to be used:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">users</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">({</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="p">:</span> <span class="s">&quot;some name&quot;</span><span class="p">})</span>
-
-<span class="n">users</span><span class="o">.</span><span class="n">update</span><span class="p">()</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">({</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="p">:</span> <span class="s">&quot;some name&quot;</span><span class="p">})</span></pre></div>
-</div>
-</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>See also:</p>
-<blockquote>
-<div><p><a class="reference internal" href="tutorial.html#inserts-and-updates"><em>Inserts and Updates</em></a> - SQL Expression 
-Language Tutorial</p>
-<p><a class="reference internal" href="#sqlalchemy.sql.expression.insert" title="sqlalchemy.sql.expression.insert"><tt class="xref py py-func docutils literal"><span class="pre">insert()</span></tt></a> - produce an <tt class="docutils literal"><span class="pre">INSERT</span></tt> statement</p>
-<p><a class="reference internal" href="#sqlalchemy.sql.expression.update" title="sqlalchemy.sql.expression.update"><tt class="xref py py-func docutils literal"><span class="pre">update()</span></tt></a> - produce an <tt class="docutils literal"><span class="pre">UPDATE</span></tt> statement</p>
-</div></blockquote>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -3314,6 +3411,13 @@ Language Tutorial</p>
 <em class="property">class </em><tt class="descclassname">sqlalchemy.sql.expression.</tt><tt class="descname">UpdateBase</tt><a class="headerlink" href="#sqlalchemy.sql.expression.UpdateBase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.sql.expression.Executable" title="sqlalchemy.sql.expression.Executable"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.Executable</span></tt></a>, <a class="reference internal" href="#sqlalchemy.sql.expression.ClauseElement" title="sqlalchemy.sql.expression.ClauseElement"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.sql.expression.ClauseElement</span></tt></a></p>
 <p>Form the base for <tt class="docutils literal"><span class="pre">INSERT</span></tt>, <tt class="docutils literal"><span class="pre">UPDATE</span></tt>, and <tt class="docutils literal"><span class="pre">DELETE</span></tt> statements.</p>
+<dl class="attribute">
+<dt id="sqlalchemy.sql.expression.UpdateBase.bind">
+<tt class="descname">bind</tt><a class="headerlink" href="#sqlalchemy.sql.expression.UpdateBase.bind" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a &#8216;bind&#8217; linked to this <a class="reference internal" href="#sqlalchemy.sql.expression.UpdateBase" title="sqlalchemy.sql.expression.UpdateBase"><tt class="xref py py-class docutils literal"><span class="pre">UpdateBase</span></tt></a>
+or a <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> associated with it.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="sqlalchemy.sql.expression.UpdateBase.params">
 <tt class="descname">params</tt><big>(</big><em>*arg</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.UpdateBase.params" title="Permalink to this definition">¶</a></dt>
@@ -3321,13 +3425,6 @@ Language Tutorial</p>
 <p>This method raises <tt class="docutils literal"><span class="pre">NotImplementedError</span></tt> on the base class,
 and is overridden by <a class="reference internal" href="#sqlalchemy.sql.expression.ValuesBase" title="sqlalchemy.sql.expression.ValuesBase"><tt class="xref py py-class docutils literal"><span class="pre">ValuesBase</span></tt></a> to provide the
 SET/VALUES clause of UPDATE and INSERT.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sqlalchemy.sql.expression.UpdateBase.bind">
-<tt class="descname">bind</tt><a class="headerlink" href="#sqlalchemy.sql.expression.UpdateBase.bind" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a &#8216;bind&#8217; linked to this <a class="reference internal" href="#sqlalchemy.sql.expression.UpdateBase" title="sqlalchemy.sql.expression.UpdateBase"><tt class="xref py py-class docutils literal"><span class="pre">UpdateBase</span></tt></a>
-or a <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> associated with it.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3357,6 +3454,48 @@ varies greatly, including restrictions on executemany()
 and other statements which return multiple rows. Please 
 read the documentation notes for the database in use in 
 order to determine the availability of RETURNING.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.sql.expression.UpdateBase.with_hint">
+<tt class="descname">with_hint</tt><big>(</big><em>text</em>, <em>selectable=None</em>, <em>dialect_name='*'</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.expression.UpdateBase.with_hint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a table hint for a single table to this 
+INSERT/UPDATE/DELETE statement.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><a class="reference internal" href="#sqlalchemy.sql.expression.UpdateBase.with_hint" title="sqlalchemy.sql.expression.UpdateBase.with_hint"><tt class="xref py py-meth docutils literal"><span class="pre">UpdateBase.with_hint()</span></tt></a> currently applies only to 
+Microsoft SQL Server.  For MySQL INSERT hints, use
+<a class="reference internal" href="#sqlalchemy.sql.expression.Insert.prefix_with" title="sqlalchemy.sql.expression.Insert.prefix_with"><tt class="xref py py-meth docutils literal"><span class="pre">Insert.prefix_with()</span></tt></a>.   UPDATE/DELETE hints for 
+MySQL will be added in a future release.</p>
+</div>
+<p>The text of the hint is rendered in the appropriate
+location for the database backend in use, relative
+to the <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> that is the subject of this
+statement, or optionally to that of the given 
+<a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> passed as the <tt class="docutils literal"><span class="pre">selectable</span></tt> argument.</p>
+<p>The <tt class="docutils literal"><span class="pre">dialect_name</span></tt> option will limit the rendering of a particular
+hint to a particular backend. Such as, to add a hint
+that only takes effect for SQL Server:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mytable</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span><span class="o">.</span><span class="n">with_hint</span><span class="p">(</span><span class="s">&quot;WITH (PAGLOCK)&quot;</span><span class="p">,</span> <span class="n">dialect_name</span><span class="o">=</span><span class="s">&quot;mssql&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>New in 0.7.6.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>text</strong> &#8211; Text of the hint.</li>
+<li><strong>selectable</strong> &#8211; optional <a class="reference internal" href="schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> that specifies
+an element of the FROM clause within an UPDATE or DELETE
+to be the subject of the hint - applies only to certain backends.</li>
+<li><strong>dialect_name</strong> &#8211; defaults to <tt class="docutils literal"><span class="pre">*</span></tt>, if specified as the name
+of a particular dialect, will apply these hints only when
+that dialect is in use.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>

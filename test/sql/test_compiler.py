@@ -64,6 +64,12 @@ addresses = table('addresses',
     column('zip')
 )
 
+keyed = Table('keyed', metadata,
+    Column('x', Integer, key='colx'),
+    Column('y', Integer, key='coly'),
+    Column('z', Integer),
+)
+
 class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = 'default'
 
@@ -242,6 +248,20 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
             "SELECT sum(lala(mytable.myid)) AS bar FROM mytable"
         )
 
+        # changes with #2397
+        self.assert_compile(
+            select([keyed]),
+            "SELECT keyed.x, keyed.y"
+            ", keyed.z FROM keyed"
+        )
+
+        # changes with #2397
+        self.assert_compile(
+            select([keyed]).apply_labels(),
+            "SELECT keyed.x AS keyed_x, keyed.y AS "
+            "keyed_y, keyed.z AS keyed_z FROM keyed"
+        )
+
     def test_paramstyles(self):
         stmt = text("select :foo, :bar, :bat from sometable")
 
@@ -272,7 +292,8 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
         )
 
     def test_dupe_columns(self):
-        """test that deduping is performed against clause element identity, not rendered result."""
+        """test that deduping is performed against clause 
+        element identity, not rendered result."""
 
         self.assert_compile(
             select([column('a'), column('a'), column('a')]),
@@ -291,6 +312,17 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(
             select([a, b, b, b, a, a]),
             "SELECT a, b"
+            , dialect=default.DefaultDialect()
+        )
+
+        # using alternate keys.  
+        # this will change with #2397
+        a, b, c = Column('a', Integer, key='b'), \
+                    Column('b', Integer), \
+                    Column('c', Integer, key='a')
+        self.assert_compile(
+            select([a, b, c, a, b, c]),
+            "SELECT a, b, c"
             , dialect=default.DefaultDialect()
         )
 
@@ -315,12 +347,10 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
         s = s.compile(dialect=default.DefaultDialect(paramstyle='qmark'))
         eq_(s.positiontup, ['a', 'b', 'c'])
 
-    def test_nested_uselabels(self):
-        """test nested anonymous label generation.  this
-        essentially tests the ANONYMOUS_LABEL regex.
+    def test_nested_label_targeting(self):
+        """test nested anonymous label generation.  
 
         """
-
         s1 = table1.select()
         s2 = s1.alias()
         s3 = select([s2], use_labels=True)
@@ -338,6 +368,30 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
                             'mytable.name AS name, mytable.description '
                             'AS description FROM mytable) AS anon_2) '
                             'AS anon_1')
+
+    def test_nested_label_targeting_keyed(self):
+        # this behavior chagnes with #2397
+        s1 = keyed.select()
+        s2 = s1.alias()
+        s3 = select([s2], use_labels=True)
+        self.assert_compile(s3,
+                    "SELECT anon_1.x AS anon_1_x, "
+                    "anon_1.y AS anon_1_y, "
+                    "anon_1.z AS anon_1_z FROM "
+                    "(SELECT keyed.x AS x, keyed.y "
+                    "AS y, keyed.z AS z FROM keyed) AS anon_1")
+
+        s4 = s3.alias()
+        s5 = select([s4], use_labels=True)
+        self.assert_compile(s5,
+                    "SELECT anon_1.anon_2_x AS anon_1_anon_2_x, "
+                    "anon_1.anon_2_y AS anon_1_anon_2_y, "
+                    "anon_1.anon_2_z AS anon_1_anon_2_z "
+                    "FROM (SELECT anon_2.x AS anon_2_x, anon_2.y AS anon_2_y, "
+                    "anon_2.z AS anon_2_z FROM "
+                    "(SELECT keyed.x AS x, keyed.y AS y, keyed.z "
+                    "AS z FROM keyed) AS anon_2) AS anon_1"
+                    )
 
     def test_dont_overcorrelate(self):
         self.assert_compile(select([table1], from_obj=[table1,
@@ -2243,6 +2297,116 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
             "SELECT x + foo() OVER () AS anon_1"
         )
 
+    def test_cte_nonrecursive(self):
+        orders = table('orders', 
+            column('region'),
+            column('amount'),
+            column('product'),
+            column('quantity')
+        )
+
+        regional_sales = select([
+                            orders.c.region, 
+                            func.sum(orders.c.amount).label('total_sales')
+                        ]).group_by(orders.c.region).cte("regional_sales")
+
+        top_regions = select([regional_sales.c.region]).\
+                where(
+                    regional_sales.c.total_sales > 
+                    select([
+                        func.sum(regional_sales.c.total_sales)/10
+                    ])
+                ).cte("top_regions")
+
+        s = select([
+                    orders.c.region, 
+                    orders.c.product, 
+                    func.sum(orders.c.quantity).label("product_units"), 
+                    func.sum(orders.c.amount).label("product_sales")
+            ]).where(orders.c.region.in_(
+                select([top_regions.c.region])
+            )).group_by(orders.c.region, orders.c.product)
+
+        # needs to render regional_sales first as top_regions
+        # refers to it
+        self.assert_compile(
+            s,
+            "WITH regional_sales AS (SELECT orders.region AS region, "
+            "sum(orders.amount) AS total_sales FROM orders "
+            "GROUP BY orders.region), "
+            "top_regions AS (SELECT "
+            "regional_sales.region AS region FROM regional_sales "
+            "WHERE regional_sales.total_sales > "
+            "(SELECT sum(regional_sales.total_sales) / :sum_1 AS "
+            "anon_1 FROM regional_sales)) "
+            "SELECT orders.region, orders.product, "
+            "sum(orders.quantity) AS product_units, "
+            "sum(orders.amount) AS product_sales "
+            "FROM orders WHERE orders.region "
+            "IN (SELECT top_regions.region FROM top_regions) "
+            "GROUP BY orders.region, orders.product"
+        )
+
+    def test_cte_recursive(self):
+        parts = table('parts', 
+            column('part'),
+            column('sub_part'),
+            column('quantity'),
+        )
+
+        included_parts = select([
+                            parts.c.sub_part, 
+                            parts.c.part, 
+                            parts.c.quantity]).\
+                            where(parts.c.part=='our part').\
+                                cte(recursive=True)
+
+        incl_alias = included_parts.alias()
+        parts_alias = parts.alias()
+        included_parts = included_parts.union(
+            select([
+                parts_alias.c.part, 
+                parts_alias.c.sub_part, 
+                parts_alias.c.quantity]).\
+                where(parts_alias.c.part==incl_alias.c.sub_part)
+            )
+
+        s = select([
+            included_parts.c.sub_part, 
+            func.sum(included_parts.c.quantity).label('total_quantity')]).\
+            select_from(included_parts.join(
+                    parts,included_parts.c.part==parts.c.part)).\
+            group_by(included_parts.c.sub_part)
+        self.assert_compile(s, 
+                "WITH RECURSIVE anon_1(sub_part, part, quantity) "
+                "AS (SELECT parts.sub_part AS sub_part, parts.part "
+                "AS part, parts.quantity AS quantity FROM parts "
+                "WHERE parts.part = :part_1 UNION SELECT parts_1.part "
+                "AS part, parts_1.sub_part AS sub_part, parts_1.quantity "
+                "AS quantity FROM parts AS parts_1, anon_1 AS anon_2 "
+                "WHERE parts_1.part = anon_2.sub_part) "
+                "SELECT anon_1.sub_part, "
+                "sum(anon_1.quantity) AS total_quantity FROM anon_1 "
+                "JOIN parts ON anon_1.part = parts.part "
+                "GROUP BY anon_1.sub_part"
+            )
+
+        # quick check that the "WITH RECURSIVE" varies per
+        # dialect
+        self.assert_compile(s, 
+                "WITH anon_1(sub_part, part, quantity) "
+                "AS (SELECT parts.sub_part AS sub_part, parts.part "
+                "AS part, parts.quantity AS quantity FROM parts "
+                "WHERE parts.part = :part_1 UNION SELECT parts_1.part "
+                "AS part, parts_1.sub_part AS sub_part, parts_1.quantity "
+                "AS quantity FROM parts AS parts_1, anon_1 AS anon_2 "
+                "WHERE parts_1.part = anon_2.sub_part) "
+                "SELECT anon_1.sub_part, "
+                "sum(anon_1.quantity) AS total_quantity FROM anon_1 "
+                "JOIN parts ON anon_1.part = parts.part "
+                "GROUP BY anon_1.sub_part",
+                dialect=mssql.dialect()
+            )
 
     def test_date_between(self):
         import datetime
@@ -2800,6 +2964,50 @@ class CRUDTest(fixtures.TestBase, AssertsCompiledSQL):
                                     params={'x':1, 'y':2})
         self.assert_compile(i, "INSERT INTO foo (x, y) VALUES ((:param_1 + :x2), :y)",
                                     params={'x2':1, 'y':2})
+
+    def test_unconsumed_names(self):
+        t = table("t", column("x"), column("y"))
+        t2 = table("t2", column("q"), column("z"))
+        assert_raises_message(
+            exc.SAWarning,
+            "Unconsumed column names: z",
+            t.insert().values(x=5, z=5).compile,
+        )
+        assert_raises_message(
+            exc.SAWarning,
+            "Unconsumed column names: z",
+            t.update().values(x=5, z=5).compile,
+        )
+
+        assert_raises_message(
+            exc.SAWarning,
+            "Unconsumed column names: j",
+            t.update().values(x=5, j=7).values({t2.c.z:5}).
+                where(t.c.x==t2.c.q).compile,
+        )
+
+        # bindparam names don't get counted
+        i = t.insert().values(x=3 + bindparam('x2'))
+        self.assert_compile(
+            i,
+            "INSERT INTO t (x) VALUES ((:param_1 + :x2))"
+        )
+
+        # even if in the params list
+        i = t.insert().values(x=3 + bindparam('x2'))
+        self.assert_compile(
+            i,
+            "INSERT INTO t (x) VALUES ((:param_1 + :x2))",
+            params={"x2":1}
+        )
+
+        assert_raises_message(
+            exc.SAWarning,
+            "Unconsumed column names: j",
+            t.update().values(x=5, j=7).compile,
+            column_keys=['j']
+        )
+
 
     def test_labels_no_collision(self):
 

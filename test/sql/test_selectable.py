@@ -26,6 +26,11 @@ table2 = Table('table2', metadata,
     Column('coly', Integer),
 )
 
+keyed = Table('keyed', metadata,
+    Column('x', Integer, key='colx'),
+    Column('y', Integer, key='coly'),
+    Column('z', Integer),
+)
 
 class SelectableTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiledSQL):
     __dialect__ = 'default'
@@ -90,6 +95,24 @@ class SelectableTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiled
         sel3 = sel.union(sel2).alias()
         assert sel3.corresponding_column(l1) is sel3.c.foo
         assert sel3.corresponding_column(l2) is sel3.c.bar
+
+    def test_keyed_gen(self):
+        s = select([keyed])
+        eq_(s.c.colx.key, 'colx')
+
+        # this would change to 'colx' 
+        # with #2397
+        eq_(s.c.colx.name, 'x')
+
+        assert s.corresponding_column(keyed.c.colx) is s.c.colx
+        assert s.corresponding_column(keyed.c.coly) is s.c.coly
+        assert s.corresponding_column(keyed.c.z) is s.c.z
+
+        sel2 = s.alias()
+        assert sel2.corresponding_column(keyed.c.colx) is sel2.c.colx
+        assert sel2.corresponding_column(keyed.c.coly) is sel2.c.coly
+        assert sel2.corresponding_column(keyed.c.z) is sel2.c.z
+
 
     def test_distance_on_aliases(self):
         a1 = table1.alias('a1')
@@ -1111,3 +1134,13 @@ class AnnotationsTest(fixtures.TestBase):
         assert b4.left is bin.left  # since column is immutable
         assert b4.right is not bin.right is not b2.right is not b3.right
 
+    def test_bind_unique_test(self):
+        t1 = table('t', column('a'), column('b'))
+
+        b = bindparam("bind", value="x", unique=True)
+
+        # the annotation of "b" should render the
+        # same.  The "unique" test in compiler should
+        # also pass, [ticket:2425]
+        eq_(str(or_(b, b._annotate({"foo":"bar"}))),
+            ":bind_1 OR :bind_1")

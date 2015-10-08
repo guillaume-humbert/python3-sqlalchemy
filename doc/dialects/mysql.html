@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.5',
+          VERSION:     '0.7.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
+        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
 
 
     </div>
@@ -119,12 +119,14 @@
 <li><a class="reference internal" href="#connection-timeouts">Connection Timeouts</a></li>
 <li><a class="reference internal" href="#storage-engines">Storage Engines</a></li>
 <li><a class="reference internal" href="#case-sensitivity-and-table-reflection">Case Sensitivity and Table Reflection</a></li>
+<li><a class="reference internal" href="#transaction-isolation-level">Transaction Isolation Level</a></li>
 <li><a class="reference internal" href="#keys">Keys</a></li>
 <li><a class="reference internal" href="#sql-mode">SQL Mode</a></li>
 <li><a class="reference internal" href="#mysql-sql-extensions">MySQL SQL Extensions</a></li>
 <li><a class="reference internal" href="#cast-support">CAST Support</a></li>
 <li><a class="reference internal" href="#mysql-specific-index-options">MySQL Specific Index Options</a><ul>
 <li><a class="reference internal" href="#index-length">Index Length</a></li>
+<li><a class="reference internal" href="#index-types">Index Types</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#mysql-data-types">MySQL Data Types</a></li>
@@ -188,7 +190,7 @@
     <div id="docs-body" class="withsidebar" >
         
 <div class="section" id="module-sqlalchemy.dialects.mysql.base">
-<span id="mysql"></span><h1>MySQL<a class="headerlink" href="#module-sqlalchemy.dialects.mysql.base" title="Permalink to this headline">¶</a></h1>
+<span id="mysql"></span><span id="mysql-toplevel"></span><h1>MySQL<a class="headerlink" href="#module-sqlalchemy.dialects.mysql.base" title="Permalink to this headline">¶</a></h1>
 <p>Support for the MySQL database.</p>
 <div class="section" id="supported-versions-and-features">
 <h2>Supported Versions and Features<a class="headerlink" href="#supported-versions-and-features" title="Permalink to this headline">¶</a></h2>
@@ -279,6 +281,21 @@ schema where inter-related tables use mixed-case identifier names.</p>
 all lower case both within SQLAlchemy as well as on the MySQL
 database itself, especially if database reflection features are
 to be used.</p>
+</div>
+<div class="section" id="transaction-isolation-level">
+<h2>Transaction Isolation Level<a class="headerlink" href="#transaction-isolation-level" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> accepts an <tt class="docutils literal"><span class="pre">isolation_level</span></tt> 
+parameter which results in the command <tt class="docutils literal"><span class="pre">SET</span> <span class="pre">SESSION</span> 
+<span class="pre">TRANSACTION</span> <span class="pre">ISOLATION</span> <span class="pre">LEVEL</span> <span class="pre">&lt;level&gt;</span></tt> being invoked for 
+every new connection. Valid values for this parameter are
+<tt class="docutils literal"><span class="pre">READ</span> <span class="pre">COMMITTED</span></tt>, <tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt>, 
+<tt class="docutils literal"><span class="pre">REPEATABLE</span> <span class="pre">READ</span></tt>, and <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span>
+                <span class="s">&quot;mysql://scott:tiger@localhost/test&quot;</span><span class="p">,</span> 
+                <span class="n">isolation_level</span><span class="o">=</span><span class="s">&quot;READ UNCOMMITTED&quot;</span>
+            <span class="p">)</span></pre></div>
+</div>
+<p>(new in 0.7.6)</p>
 </div>
 <div class="section" id="keys">
 <h2>Keys<a class="headerlink" href="#keys" title="Permalink to this headline">¶</a></h2>
@@ -398,8 +415,23 @@ for binary string types. The value passed to the keyword argument will be
 simply passed through to the underlying CREATE INDEX command, so it <em>must</em> be
 an integer. MySQL only allows a length for an index if it is for a CHAR,
 VARCHAR, TEXT, BINARY, VARBINARY and BLOB.</p>
-<p>More information can be found at:
-<a class="reference external" href="http://dev.mysql.com/doc/refman/5.0/en/create-index.html">http://dev.mysql.com/doc/refman/5.0/en/create-index.html</a></p>
+</div>
+<div class="section" id="index-types">
+<h3>Index Types<a class="headerlink" href="#index-types" title="Permalink to this headline">¶</a></h3>
+<p>Some MySQL storage engines permit you to specify an index type when creating
+an index or primary key constraint. SQLAlchemy provides this feature via the 
+<tt class="docutils literal"><span class="pre">mysql_using</span></tt> parameter on <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Index" title="sqlalchemy.schema.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Index</span><span class="p">(</span><span class="s">&#39;my_index&#39;</span><span class="p">,</span> <span class="n">my_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">mysql_using</span><span class="o">=</span><span class="s">&#39;hash&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>As well as the <tt class="docutils literal"><span class="pre">mysql_using</span></tt> parameter on <a class="reference internal" href="../core/schema.html#sqlalchemy.schema.PrimaryKeyConstraint" title="sqlalchemy.schema.PrimaryKeyConstraint"><tt class="xref py py-class docutils literal"><span class="pre">PrimaryKeyConstraint</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">PrimaryKeyConstraint</span><span class="p">(</span><span class="s">&quot;data&quot;</span><span class="p">,</span> <span class="n">mysql_using</span><span class="o">=</span><span class="s">&#39;hash&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>The value passed to the keyword argument will be simply passed through to the
+underlying CREATE INDEX or PRIMARY KEY clause, so it <em>must</em> be a valid index 
+type for your MySQL storage engine.</p>
+<p>More information can be found at:</p>
+<p><a class="reference external" href="http://dev.mysql.com/doc/refman/5.0/en/create-index.html">http://dev.mysql.com/doc/refman/5.0/en/create-index.html</a></p>
+<p><a class="reference external" href="http://dev.mysql.com/doc/refman/5.0/en/create-table.html">http://dev.mysql.com/doc/refman/5.0/en/create-table.html</a></p>
 </div>
 </div>
 <div class="section" id="mysql-data-types">

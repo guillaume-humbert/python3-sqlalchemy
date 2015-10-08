@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.5',
+          VERSION:     '0.7.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
+        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
 
 
     </div>
@@ -128,10 +128,11 @@
 <li><a class="reference internal" href="#module-sqlalchemy.dialects.postgresql.psycopg2">psycopg2 Notes</a><ul>
 <li><a class="reference internal" href="#driver">Driver</a></li>
 <li><a class="reference internal" href="#connecting">Connecting</a></li>
+<li><a class="reference internal" href="#unix-domain-connections">Unix Domain Connections</a></li>
 <li><a class="reference internal" href="#per-statement-connection-execution-options">Per-Statement/Connection Execution Options</a></li>
 <li><a class="reference internal" href="#unicode">Unicode</a></li>
 <li><a class="reference internal" href="#transactions">Transactions</a></li>
-<li><a class="reference internal" href="#id1">Transaction Isolation Level</a></li>
+<li><a class="reference internal" href="#psycopg2-isolation">Transaction Isolation Level</a></li>
 <li><a class="reference internal" href="#notice-logging">NOTICE logging</a></li>
 </ul>
 </li>
@@ -215,9 +216,16 @@ case.</p>
 <p><a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> accepts an <tt class="docutils literal"><span class="pre">isolation_level</span></tt> parameter which results
 in the command <tt class="docutils literal"><span class="pre">SET</span> <span class="pre">SESSION</span> <span class="pre">CHARACTERISTICS</span> <span class="pre">AS</span> <span class="pre">TRANSACTION</span> <span class="pre">ISOLATION</span> <span class="pre">LEVEL</span>
 <span class="pre">&lt;level&gt;</span></tt> being invoked for every new connection. Valid values for this
-parameter are <tt class="docutils literal"><span class="pre">READ_COMMITTED</span></tt>, <tt class="docutils literal"><span class="pre">READ_UNCOMMITTED</span></tt>, <tt class="docutils literal"><span class="pre">REPEATABLE_READ</span></tt>,
-and <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt>.  Note that the psycopg2 dialect does <em>not</em> use this
-technique and uses psycopg2-specific APIs (see that dialect for details).</p>
+parameter are <tt class="docutils literal"><span class="pre">READ</span> <span class="pre">COMMITTED</span></tt>, <tt class="docutils literal"><span class="pre">READ</span> <span class="pre">UNCOMMITTED</span></tt>, <tt class="docutils literal"><span class="pre">REPEATABLE</span> <span class="pre">READ</span></tt>,
+and <tt class="docutils literal"><span class="pre">SERIALIZABLE</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span>
+                <span class="s">&quot;postgresql+pg8000://scott:tiger@localhost/test&quot;</span><span class="p">,</span> 
+                <span class="n">isolation_level</span><span class="o">=</span><span class="s">&quot;READ UNCOMMITTED&quot;</span>
+            <span class="p">)</span></pre></div>
+</div>
+<p>When using the psycopg2 dialect, a psycopg2-specific method of setting
+transaction isolation level is used, but the API of <tt class="docutils literal"><span class="pre">isolation_level</span></tt>
+remains the same - see <a class="reference internal" href="#psycopg2-isolation"><em>Transaction Isolation Level</em></a>.</p>
 </div>
 <div class="section" id="remote-cross-schema-table-introspection">
 <h2>Remote / Cross-Schema Table Introspection<a class="headerlink" href="#remote-cross-schema-table-introspection" title="Permalink to this headline">¶</a></h2>
@@ -684,6 +692,22 @@ way of enabling this mode on a per-execution basis.</li>
 per connection. True by default.</li>
 </ul>
 </div>
+<div class="section" id="unix-domain-connections">
+<h3>Unix Domain Connections<a class="headerlink" href="#unix-domain-connections" title="Permalink to this headline">¶</a></h3>
+<p>psycopg2 supports connecting via Unix domain connections.   When the <tt class="docutils literal"><span class="pre">host</span></tt>
+portion of the URL is omitted, SQLAlchemy passes <tt class="docutils literal"><span class="pre">None</span></tt> to psycopg2,
+which specifies Unix-domain communication rather than TCP/IP communication:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;postgresql+psycopg2://user:password@/dbname&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>By default, the socket file used is to connect to a Unix-domain socket
+in <tt class="docutils literal"><span class="pre">/tmp</span></tt>, or whatever socket directory was specified when PostgreSQL 
+was built.  This value can be overridden by passing a pathname to psycopg2,
+using <tt class="docutils literal"><span class="pre">host</span></tt> as an additional keyword argument:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">create_engine</span><span class="p">(</span><span class="s">&quot;postgresql+psycopg2://user:password@/dbname?host=/var/lib/postgresql&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>See also:</p>
+<p><a class="reference external" href="http://www.postgresql.org/docs/9.1/static/libpq-connect.html#LIBPQ-PQCONNECTDBPARAMS">PQconnectdbParams</a></p>
+</div>
 <div class="section" id="per-statement-connection-execution-options">
 <h3>Per-Statement/Connection Execution Options<a class="headerlink" href="#per-statement-connection-execution-options" title="Permalink to this headline">¶</a></h3>
 <p>The following DBAPI-specific options are respected when used with 
@@ -738,8 +762,8 @@ Python 3; in modern usage psycopg2 should be relied upon to handle unicode.</p>
 <h3>Transactions<a class="headerlink" href="#transactions" title="Permalink to this headline">¶</a></h3>
 <p>The psycopg2 dialect fully supports SAVEPOINT and two-phase commit operations.</p>
 </div>
-<div class="section" id="id1">
-<h3>Transaction Isolation Level<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="psycopg2-isolation">
+<span id="id1"></span><h3>Transaction Isolation Level<a class="headerlink" href="#psycopg2-isolation" title="Permalink to this headline">¶</a></h3>
 <p>The <tt class="docutils literal"><span class="pre">isolation_level</span></tt> parameter of <a class="reference internal" href="../core/engines.html#sqlalchemy.create_engine" title="sqlalchemy.create_engine"><tt class="xref py py-func docutils literal"><span class="pre">create_engine()</span></tt></a> here makes use
 psycopg2&#8217;s <tt class="docutils literal"><span class="pre">set_isolation_level()</span></tt> connection method, rather than
 issuing a <tt class="docutils literal"><span class="pre">SET</span> <span class="pre">SESSION</span> <span class="pre">CHARACTERISTICS</span></tt> command.   This because psycopg2

@@ -3,6 +3,236 @@
 =======
 CHANGES
 =======
+0.7.6
+=====
+- orm
+  - [bug] Fixed event registration bug
+    which would primarily show up as
+    events not being registered with 
+    sessionmaker() instances created
+    after the event was associated
+    with the Session class.  [ticket:2424]
+
+  - [bug] Fixed bug whereby a primaryjoin
+    condition with a "literal" in it would
+    raise an error on compile with certain
+    kinds of deeply nested expressions
+    which also needed to render the same
+    bound parameter name more than once.
+    [ticket:2425]
+
+  - [feature] Added "no_autoflush" context
+    manager to Session, used with with:
+    will temporarily disable autoflush.
+
+  - [feature] Added cte() method to Query,
+    invokes common table expression support
+    from the Core (see below). [ticket:1859]
+
+  - [bug] Removed the check for number of
+    rows affected when doing a multi-delete
+    against mapped objects.   If an ON DELETE
+    CASCADE exists between two rows, we can't
+    get an accurate rowcount from the DBAPI;
+    this particular count is not supported
+    on most DBAPIs in any case, MySQLdb
+    is the notable case where it is.
+    [ticket:2403]
+
+  - [bug] Fixed bug whereby objects using
+    attribute_mapped_collection or 
+    column_mapped_collection could not be
+    pickled.  [ticket:2409]
+
+  - [bug] Fixed bug whereby MappedCollection
+    would not get the appropriate collection
+    instrumentation if it were only used
+    in a custom subclass that used
+    @collection.internally_instrumented.  
+    [ticket:2406]
+
+  - [bug] Fixed bug whereby SQL adaption mechanics
+    would fail in a very nested scenario involving
+    joined-inheritance, joinedload(), limit(), and a
+    derived function in the columns clause.  
+    [ticket:2419]
+
+  - [bug] Fixed the repr() for CascadeOptions to
+    include refresh-expire.  Also reworked
+    CascadeOptions to be a <frozenset>.
+    [ticket:2417]
+
+  - [feature] Added the ability to query for
+    Table-bound column names when using 
+    query(sometable).filter_by(colname=value).  
+    [ticket:2400]
+
+  - [bug] Improved the "declarative reflection" 
+    example to support single-table inheritance,
+    multiple calls to prepare(), tables that
+    are present in alternate schemas,
+    establishing only a subset of classes
+    as reflected.
+
+  - [bug] Scaled back the test applied within
+    flush() to check for UPDATE against partially 
+    NULL PK within one table to only actually 
+    happen if there's really an UPDATE to occur.
+    [ticket:2390]
+
+  - [bug] Fixed bug whereby if a method name
+    conflicted with a column name, a
+    TypeError would be raised when the mapper
+    tried to inspect the __get__() method
+    on the method object.  [ticket:2352]
+
+- sql
+  - [bug] Fixed memory leak in core which would
+    occur when C extensions were used with
+    particular types of result fetches,
+    in particular when orm query.count()
+    were called.  [ticket:2427]
+
+  - [bug] Fixed issue whereby attribute-based
+    column access on a row would raise 
+    AttributeError with non-C version,
+    NoSuchColumnError with C version.  Now
+    raises AttributeError in both cases.
+    [ticket:2398]
+
+  - [feature] Added support for SQL standard
+    common table expressions (CTE), allowing
+    SELECT objects as the CTE source (DML
+    not yet supported).  This is invoked via
+    the cte() method on any select() construct.
+    [ticket:1859]
+
+  - [bug] Added support for using the .key
+    of a Column as a string identifier in a 
+    result set row.   The .key is currently
+    listed as an "alternate" name for a column,
+    and is superseded by the name of a column 
+    which has that key value as its regular name.
+    For the next major release
+    of SQLAlchemy we may reverse this precedence
+    so that .key takes precedence, but this
+    is not decided on yet.  [ticket:2392]
+
+  - [bug] A warning is emitted when a not-present
+    column is stated in the values() clause
+    of an insert() or update() construct.
+    Will move to an exception in 0.8.
+    [ticket:2413]
+
+  - [bug] A significant change to how labeling
+    is applied to columns in SELECT statements
+    allows "truncated" labels, that is label names
+    that are generated in Python which exceed
+    the maximum identifier length (note this is 
+    configurable via label_length on create_engine()),
+    to be properly referenced when rendered inside
+    of a subquery, as well as to be present
+    in a result set row using their original
+    in-Python names.   [ticket:2396]
+
+  - [bug] Fixed bug in new "autoload_replace" flag
+    which would fail to preserve the primary
+    key constraint of the reflected table.
+    [ticket:2402]
+
+  - [bug] Index will raise when arguments passed
+    cannot be interpreted as columns or expressions.
+    Will warn when Index is created
+    with no columns at all.  [ticket:2380]
+
+- engine
+  - [feature] Added "no_parameters=True" execution
+    option for connections.   If no parameters
+    are present, will pass the statement
+    as cursor.execute(statement), thereby invoking
+    the DBAPIs behavior when no parameter collection
+    is present; for psycopg2 and mysql-python, this
+    means not interpreting % signs in the string.
+    This only occurs with this option, and not
+    just if the param list is blank, as otherwise
+    this would produce inconsistent behavior
+    of SQL expressions that normally escape percent
+    signs (and while compiling, can't know ahead of 
+    time if parameters will be present in 
+    some cases).  [ticket:2407]
+
+  - [bug] Added execution_options() call to
+    MockConnection (i.e., that used with 
+    strategy="mock") which acts as a pass through
+    for arguments.
+
+  - [feature] Added pool_reset_on_return argument
+    to create_engine, allows control over 
+    "connection return" behavior.  Also added
+    new arguments 'rollback', 'commit', None
+    to pool.reset_on_return to allow more control
+    over connection return activity. [ticket:2378]
+
+  - [feature] Added some decent context managers
+    to Engine, Connection:
+
+        with engine.begin() as conn:
+            <work with conn in a transaction>
+
+    and:
+
+        with engine.connect() as conn:
+            <work with conn>
+
+    Both close out the connection when done,
+    commit or rollback transaction with errors
+    on engine.begin().
+
+- sqlite
+  - [bug] Fixed bug in C extensions whereby
+    string format would not be applied to a
+    Numeric value returned as integer; this
+    affected primarily SQLite which does
+    not maintain numeric scale settings.
+    [ticket:2432]
+
+- mssql
+  - [feature] Added support for MSSQL INSERT, 
+    UPDATE, and DELETE table hints, using
+    new with_hint() method on UpdateBase.
+    [ticket:2430]
+
+- mysql
+  - [feature] Added support for MySQL index and
+    primary key constraint types
+    (i.e. USING) via new mysql_using parameter
+    to Index and PrimaryKeyConstraint, 
+    courtesy Diana Clarke.  [ticket:2386]
+
+  - [feature] Added support for the "isolation_level"
+    parameter to all MySQL dialects.  Thanks
+    to mu_mind for the patch here. [ticket:2394]
+
+- oracle
+  - [feature] Added a new create_engine() flag
+    coerce_to_decimal=False, disables the precision
+    numeric handling which can add lots of overhead
+    by converting all numeric values to 
+    Decimal.  [ticket:2399]
+
+  - [bug] Added missing compilation support for 
+    LONG [ticket:2401]
+
+  - [bug] Added 'LEVEL' to the list of reserved
+    words for Oracle.  [ticket:2435]
+
+- examples
+  - [bug] Altered _params_from_query() function
+    in Beaker example to pull bindparams from the
+    fully compiled statement, as a quick means
+    to get everything including subqueries in the
+    columns clause, etc.
+
 0.7.5 (January 28, 2012)
 =====
 - orm

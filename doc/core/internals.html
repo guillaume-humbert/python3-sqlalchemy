@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7.5',
+          VERSION:     '0.7.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
+        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
 
 
     </div>
@@ -316,6 +316,11 @@ autocommit on/off, etc.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultDialect.do_execute">
 <tt class="descname">do_execute</tt><big>(</big><em>cursor</em>, <em>statement</em>, <em>parameters</em>, <em>context=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.do_execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.engine.default.DefaultDialect.do_execute_no_params">
+<tt class="descname">do_execute_no_params</tt><big>(</big><em>cursor</em>, <em>statement</em>, <em>context=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultDialect.do_execute_no_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -730,15 +735,22 @@ DB-API connection.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_execute">
 <tt class="descname">do_execute</tt><big>(</big><em>cursor</em>, <em>statement</em>, <em>parameters</em>, <em>context=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_execute" title="Permalink to this definition">¶</a></dt>
-<dd><p>Provide an implementation of <em>cursor.execute(statement,
-parameters)</em>.</p>
+<dd><p>Provide an implementation of <tt class="docutils literal"><span class="pre">cursor.execute(statement,</span>
+<span class="pre">parameters)</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.engine.base.Dialect.do_execute_no_params">
+<tt class="descname">do_execute_no_params</tt><big>(</big><em>cursor</em>, <em>statement</em>, <em>parameters</em>, <em>context=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_execute_no_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provide an implementation of <tt class="docutils literal"><span class="pre">cursor.execute(statement)</span></tt>.</p>
+<p>The parameter collection should not be sent.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.engine.base.Dialect.do_executemany">
 <tt class="descname">do_executemany</tt><big>(</big><em>cursor</em>, <em>statement</em>, <em>parameters</em>, <em>context=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.engine.base.Dialect.do_executemany" title="Permalink to this definition">¶</a></dt>
-<dd><p>Provide an implementation of <em>cursor.executemany(statement,
-parameters)</em>.</p>
+<dd><p>Provide an implementation of <tt class="docutils literal"><span class="pre">cursor.executemany(statement,</span>
+<span class="pre">parameters)</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1092,6 +1104,11 @@ in all cases.</p>
 <dl class="method">
 <dt id="sqlalchemy.engine.default.DefaultExecutionContext.lastrow_has_defaults">
 <tt class="descname">lastrow_has_defaults</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.lastrow_has_defaults" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sqlalchemy.engine.default.DefaultExecutionContext.no_parameters">
+<tt class="descname">no_parameters</tt><a class="headerlink" href="#sqlalchemy.engine.default.DefaultExecutionContext.no_parameters" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1470,7 +1487,7 @@ clauses before the VALUES or WHERE clause (i.e. MSSQL)</p>
 
 <dl class="method">
 <dt id="sqlalchemy.sql.compiler.SQLCompiler.update_from_clause">
-<tt class="descname">update_from_clause</tt><big>(</big><em>update_stmt</em>, <em>from_table</em>, <em>extra_froms</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.update_from_clause" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">update_from_clause</tt><big>(</big><em>update_stmt</em>, <em>from_table</em>, <em>extra_froms</em>, <em>from_hints</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.sql.compiler.SQLCompiler.update_from_clause" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provide a hook to override the generation of an 
 UPDATE..FROM clause.</p>
 <p>MySQL overrides this.</p>

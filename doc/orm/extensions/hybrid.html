@@ -20,7 +20,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../../',
-          VERSION:     '0.7.5',
+          VERSION:     '0.7.6',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -67,7 +67,7 @@
     </div>
 
     <div id="docs-version-header">
-        Release: <span class="version-num">0.7.5</span> | Release Date: January 28, 2012
+        Release: <span class="version-num">0.7.6</span> | Release Date: March 14, 2012
 
 
     </div>
@@ -157,27 +157,28 @@
 class level and at the instance level.</p>
 <p>The <a class="reference internal" href="#module-sqlalchemy.ext.hybrid" title="sqlalchemy.ext.hybrid"><tt class="xref py py-mod docutils literal"><span class="pre">hybrid</span></tt></a> extension provides a special form of method
 decorator, is around 50 lines of code and has almost no dependencies on the rest 
-of SQLAlchemy.  It can in theory work with any class-level expression generator.</p>
-<p>Consider a table <tt class="docutils literal"><span class="pre">interval</span></tt> as below:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">MetaData</span><span class="p">,</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Integer</span>
+of SQLAlchemy.  It can, in theory, work with any descriptor-based expression 
+system.</p>
+<p>Consider a mapping <tt class="docutils literal"><span class="pre">Interval</span></tt>, representing integer <tt class="docutils literal"><span class="pre">start</span></tt> and <tt class="docutils literal"><span class="pre">end</span></tt>
+values. We can define higher level functions on mapped classes that produce
+SQL expressions at the class level, and Python expression evaluation at the
+instance level.  Below, each function decorated with <a class="reference internal" href="#sqlalchemy.ext.hybrid.hybrid_method" title="sqlalchemy.ext.hybrid.hybrid_method"><tt class="xref py py-class docutils literal"><span class="pre">hybrid_method</span></tt></a> or
+<a class="reference internal" href="#sqlalchemy.ext.hybrid.hybrid_property" title="sqlalchemy.ext.hybrid.hybrid_property"><tt class="xref py py-class docutils literal"><span class="pre">hybrid_property</span></tt></a> may receive <tt class="docutils literal"><span class="pre">self</span></tt> as an instance of the class, or
+as the class itself:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Integer</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">Session</span><span class="p">,</span> <span class="n">aliased</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.hybrid</span> <span class="kn">import</span> <span class="n">hybrid_property</span><span class="p">,</span> <span class="n">hybrid_method</span>
 
-<span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
+<span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
 
-<span class="n">interval_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;interval&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;end&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="p">)</span></pre></div>
-</div>
-<p>We can define higher level functions on mapped classes that produce SQL
-expressions at the class level, and Python expression evaluation at the
-instance level.  Below, each function decorated with <tt class="xref py py-func docutils literal"><span class="pre">hybrid_method()</span></tt>
-or <tt class="xref py py-func docutils literal"><span class="pre">hybrid_property()</span></tt> may receive <tt class="docutils literal"><span class="pre">self</span></tt> as an instance of the class,
-or as the class itself:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.ext.hybrid</span> <span class="kn">import</span> <span class="n">hybrid_property</span><span class="p">,</span> <span class="n">hybrid_method</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">mapper</span><span class="p">,</span> <span class="n">Session</span><span class="p">,</span> <span class="n">aliased</span>
+<span class="k">class</span> <span class="nc">Interval</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;interval&#39;</span>
 
-<span class="k">class</span> <span class="nc">Interval</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">start</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="n">end</span>
@@ -192,9 +193,7 @@ or as the class itself:</p>
 
     <span class="nd">@hybrid_method</span>
     <span class="k">def</span> <span class="nf">intersects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">end</span><span class="p">)</span>
-
-<span class="n">mapper</span><span class="p">(</span><span class="n">Interval</span><span class="p">,</span> <span class="n">interval_table</span><span class="p">)</span></pre></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">end</span><span class="p">)</span></pre></div>
 </div>
 <p>Above, the <tt class="docutils literal"><span class="pre">length</span></tt> property returns the difference between the <tt class="docutils literal"><span class="pre">end</span></tt> and
 <tt class="docutils literal"><span class="pre">start</span></tt> attributes.  With an instance of <tt class="docutils literal"><span class="pre">Interval</span></tt>, this subtraction occurs
@@ -203,9 +202,10 @@ in Python, using normal Python descriptor mechanics:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">i1</span><span class="o">.</span><span class="n">length</span>
 <span class="go">5</span></pre></div>
 </div>
-<p>At the class level, the usual descriptor behavior of returning the descriptor
-itself is modified by <a class="reference internal" href="#sqlalchemy.ext.hybrid.hybrid_property" title="sqlalchemy.ext.hybrid.hybrid_property"><tt class="xref py py-class docutils literal"><span class="pre">hybrid_property</span></tt></a>, to instead evaluate the function 
-body given the <tt class="docutils literal"><span class="pre">Interval</span></tt> class as the argument:</p>
+<p>When dealing with the <tt class="docutils literal"><span class="pre">Interval</span></tt> class itself, the <a class="reference internal" href="#sqlalchemy.ext.hybrid.hybrid_property" title="sqlalchemy.ext.hybrid.hybrid_property"><tt class="xref py py-class docutils literal"><span class="pre">hybrid_property</span></tt></a>
+descriptor evaluates the function body given the <tt class="docutils literal"><span class="pre">Interval</span></tt> class as 
+the argument, which when evaluated with SQLAlchemy expression mechanics
+returns a new SQL expression:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">Interval</span><span class="o">.</span><span class="n">length</span>
 <span class="go">interval.&quot;end&quot; - interval.start</span>
 
@@ -223,9 +223,10 @@ locate attributes, so can also be used with hybrid attributes:</p>
 <span class="go">FROM interval </span>
 <span class="go">WHERE interval.&quot;end&quot; - interval.start = :param_1</span></pre></div>
 </div>
-<p>The <tt class="docutils literal"><span class="pre">contains()</span></tt> and <tt class="docutils literal"><span class="pre">intersects()</span></tt> methods are decorated with <a class="reference internal" href="#sqlalchemy.ext.hybrid.hybrid_method" title="sqlalchemy.ext.hybrid.hybrid_method"><tt class="xref py py-class docutils literal"><span class="pre">hybrid_method</span></tt></a>.
-This decorator applies the same idea to methods which accept
-zero or more arguments.   The above methods return boolean values, and take advantage 
+<p>The <tt class="docutils literal"><span class="pre">Interval</span></tt> class example also illustrates two methods, <tt class="docutils literal"><span class="pre">contains()</span></tt> and <tt class="docutils literal"><span class="pre">intersects()</span></tt>,
+decorated with <a class="reference internal" href="#sqlalchemy.ext.hybrid.hybrid_method" title="sqlalchemy.ext.hybrid.hybrid_method"><tt class="xref py py-class docutils literal"><span class="pre">hybrid_method</span></tt></a>.
+This decorator applies the same idea to methods that <a class="reference internal" href="#sqlalchemy.ext.hybrid.hybrid_property" title="sqlalchemy.ext.hybrid.hybrid_property"><tt class="xref py py-class docutils literal"><span class="pre">hybrid_property</span></tt></a> applies
+to attributes.   The methods return boolean values, and take advantage 
 of the Python <tt class="docutils literal"><span class="pre">|</span></tt> and <tt class="docutils literal"><span class="pre">&amp;</span></tt> bitwise operators to produce equivalent instance-level and 
 SQL expression-level boolean behavior:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">i1</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
@@ -487,7 +488,12 @@ converted to lower case on the Python side here):</p>
 <p>SQL expression versus SQL expression:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">sw1</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">SearchWord</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sw2</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">SearchWord</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">Session</span><span class="p">()</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">sw1</span><span class="o">.</span><span class="n">word_insensitive</span><span class="p">,</span> <span class="n">sw2</span><span class="o">.</span><span class="n">word_insensitive</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">sw1</span><span class="o">.</span><span class="n">word_insensitive</span> <span class="o">&gt;</span> <span class="n">sw2</span><span class="o">.</span><span class="n">word_insensitive</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">Session</span><span class="p">()</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<span class="gp">... </span>                   <span class="n">sw1</span><span class="o">.</span><span class="n">word_insensitive</span><span class="p">,</span> 
+<span class="gp">... </span>                   <span class="n">sw2</span><span class="o">.</span><span class="n">word_insensitive</span><span class="p">)</span><span class="o">.</span>\
+<span class="gp">... </span>                       <span class="nb">filter</span><span class="p">(</span>
+<span class="gp">... </span>                           <span class="n">sw1</span><span class="o">.</span><span class="n">word_insensitive</span> <span class="o">&gt;</span> <span class="n">sw2</span><span class="o">.</span><span class="n">word_insensitive</span>
+<span class="gp">... </span>                       <span class="p">)</span>
 <span class="go">SELECT lower(searchword_1.word) AS lower_1, lower(searchword_2.word) AS lower_2 </span>
 <span class="go">FROM searchword AS searchword_1, searchword AS searchword_2 </span>
 <span class="go">WHERE lower(searchword_1.word) &gt; lower(searchword_2.word)</span></pre></div>

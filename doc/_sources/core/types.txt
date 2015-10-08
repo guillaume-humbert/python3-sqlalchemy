@@ -284,7 +284,7 @@ Augmenting Existing Types
 
 The :class:`.TypeDecorator` allows the creation of custom types which
 add bind-parameter and result-processing behavior to an existing
-type object.  It is used when additional in-Python marshalling of data
+type object.  It is used when additional in-Python marshaling of data
 to and from the database is required.
 
 .. autoclass:: TypeDecorator
@@ -441,7 +441,9 @@ Creating New Types
 ~~~~~~~~~~~~~~~~~~
 
 The :class:`.UserDefinedType` class is provided as a simple base class
-for defining entirely new database types:
+for defining entirely new database types.   Use this to represent native 
+database types not known by SQLAlchemy.   If only Python translation behavior
+is needed, use :class:`.TypeDecorator` instead.
 
 .. autoclass:: UserDefinedType
    :members:

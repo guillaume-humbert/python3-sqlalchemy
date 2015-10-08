@@ -37,8 +37,8 @@ class ResultSetTest(fixtures.TestBase, AssertsExecutionResults):
                                     '2.4': 13214,
                                     '2.6':14416,
                                     '2.7':14416,
-                                   '2.6+cextension': 345,
-                                   '2.7+cextension':345})
+                                   '2.6+cextension': 365,
+                                   '2.7+cextension':365})
     def test_string(self):
         [tuple(row) for row in t.select().execute().fetchall()]
 
@@ -47,8 +47,8 @@ class ResultSetTest(fixtures.TestBase, AssertsExecutionResults):
     @profiling.function_call_count(versions={
                                     '2.7':14396,
                                     '2.6':14396,
-                                   '2.6+cextension': 345, 
-                                   '2.7+cextension':345})
+                                   '2.6+cextension': 365, 
+                                   '2.7+cextension':365})
     def test_unicode(self):
         [tuple(row) for row in t2.select().execute().fetchall()]
 
@@ -71,8 +71,8 @@ class ExecutionTest(fixtures.TestBase):
         # ensure initial connect activities complete
         c.execute("select 1")
 
-        @profiling.function_call_count(versions={'2.7':36, '2.6':35, '2.5':35, 
-                                                    '2.4':21, '3':34}, 
+        @profiling.function_call_count(versions={'2.7':40, '2.6':40, '2.5':35, 
+                                                    '2.4':21, '3':40}, 
                                             variance=.10)
         def go():
             c.execute("select 1")
@@ -84,10 +84,10 @@ class ExecutionTest(fixtures.TestBase):
         # ensure initial connect activities complete
         e.execute("select 1")
 
-        @profiling.function_call_count(versions={'2.4':41, '2.5':58, 
-                                                    '2.6':58, '3':57,
-                                                    '2.7':56,
-                                                    '2.6+cextension':56}, 
+        @profiling.function_call_count(versions={'2.4':41, '2.5':60, 
+                                                    '2.6':60, '3':61,
+                                                    '2.7':60,
+                                                    '2.6+cextension':60}, 
                                             variance=.05)
         def go():
             e.execute("select 1")
