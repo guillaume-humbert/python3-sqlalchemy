@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.4.7p1   Last Updated: 07/31/08 11:09:56</div>
+<div class="versionheader">Version: 0.4.8   Last Updated: 10/12/08 13:33:19</div>
 
 
 
@@ -112,6 +112,9 @@
 
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSMediumBlob">class MSMediumBlob(MSBlob)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSMediumInteger">class MSMediumInteger(MSInteger)</a></li>
 
         
         <li><a style="" href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSMediumText">class MSMediumText(MSText)</a></li>
@@ -1201,6 +1204,61 @@ collation of character data.</dd>
     <div class="darkcell"><p>MySQL MEDIUMBLOB type, for binary data up to 2^24 bytes.</p>
 </div>
     
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def get_col_spec(<i>self</i>)</b>
+    <div class="docstring">
+    
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.databases.mysql_MSMediumInteger"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class MSMediumInteger(<a href="sqlalchemy_databases_mysql.html#docstrings_sqlalchemy.databases.mysql_MSInteger">MSInteger</a>)</h3>
+    
+    
+    <div class="darkcell"><p>MySQL MEDIUMINTEGER type.</p>
+</div>
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>length=None</i>, <i>**kw</i>)</b>
+    <div class="docstring">
+    <p>Construct a MEDIUMINTEGER</p>
+<dl class="docutils">
+<dt>length</dt>
+<dd>Optional, maximum display width for this number.</dd>
+<dt>unsigned</dt>
+<dd>Optional.</dd>
+<dt>zerofill</dt>
+<dd>Optional. If true, values will be stored as strings left-padded with
+zeros. Note that this does not effect the values returned by the
+underlying database API, which continue to be numeric.</dd>
+</dl>
+
+    </div>
+    </div>
 
                     
     <div class="darkcell">

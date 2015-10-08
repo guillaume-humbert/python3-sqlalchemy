@@ -2,7 +2,8 @@ import testenv; testenv.configure_for_tests()
 import sys, weakref
 from sqlalchemy import create_engine, exceptions, select, MetaData, Table, Column, Integer, String
 from testlib import *
-
+import time
+import gc
 
 class MockDisconnect(Exception):
     pass
@@ -93,6 +94,7 @@ class MockReconnectTest(TestBase):
         assert id(db.pool) != pid
 
         # ensure all connections closed (pool was recycled)
+        gc.collect()
         assert len(dbapi.connections) == 0
 
         conn =db.connect()
@@ -112,6 +114,7 @@ class MockReconnectTest(TestBase):
             pass
 
         # assert was invalidated
+        gc.collect()
         assert len(dbapi.connections) == 0
         assert not conn.closed
         assert conn.invalidated
@@ -161,6 +164,7 @@ class MockReconnectTest(TestBase):
         assert conn.invalidated
 
         # ensure all connections closed (pool was recycled)
+        gc.collect()
         assert len(dbapi.connections) == 0
 
         # test reconnects
@@ -275,6 +279,22 @@ class RealReconnectTest(TestBase):
         self.assertEquals(conn.execute(select([1])).scalar(), 1)
         assert not conn.invalidated
 
+class RecycleTest(TestBase):
+    def test_basic(self):
+        for threadlocal in (False, True):
+            engine = engines.reconnecting_engine(options={'pool_recycle':1, 'pool_threadlocal':threadlocal})
+        
+            conn = engine.contextual_connect()
+            self.assertEquals(conn.execute(select([1])).scalar(), 1)
+            conn.close()
+
+            engine.test_shutdown()
+            time.sleep(2)
+    
+            conn = engine.contextual_connect()
+            self.assertEquals(conn.execute(select([1])).scalar(), 1)
+            conn.close()
+    
 class InvalidateDuringResultTest(TestBase):
     def setUp(self):
         global meta, table, engine
@@ -292,7 +312,6 @@ class InvalidateDuringResultTest(TestBase):
         meta.drop_all()
         engine.dispose()
     
-    @testing.fails_on('mysql')    
     def test_invalidate_on_results(self):
         conn = engine.connect()
         
@@ -309,6 +328,7 @@ class InvalidateDuringResultTest(TestBase):
                 raise
 
         assert conn.invalidated
+    test_invalidate_on_results = testing.fails_on('mysql')    (test_invalidate_on_results)
         
 if __name__ == '__main__':
     testenv.main()
